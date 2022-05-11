@@ -163,44 +163,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         relationContainer.add(relation);
-
-        AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON,
-                createStringResource("ReferenceValueSearchPopupPanel.selectObject")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                List<QName> supportedTypes = getSupportedTargetList();
-                if (CollectionUtils.isEmpty(supportedTypes)) {
-                    supportedTypes = WebComponentUtil.createObjectTypeList();
-                }
-                ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
-                        getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
-                        null) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onSelectPerformed(AjaxRequestTarget target, O object) {
-                        getPageBase().hideMainPopup(target);
-                        if (ReferenceValueSearchPopupPanel.this.getModel().getObject() == null) {
-                            ReferenceValueSearchPopupPanel.this.getModel().setObject(new ObjectReferenceType());
-                        }
-                        ReferenceValueSearchPopupPanel.this.getModelObject().setOid(object.getOid());
-                        ReferenceValueSearchPopupPanel.this.getModelObject().setTargetName(object.getName());
-                        ReferenceValueSearchPopupPanel.this.getModelObject().setType(
-                                object.asPrismObject().getComplexTypeDefinition().getTypeName());
-                        target.add(oidField);
-                        target.add(nameField);
-                        target.add(type);
-                    }
-                };
-
-                getPageBase().showMainPopup(objectBrowserPanel, target);
-            }
-        };
-        selectObject.add(new VisibleBehaviour(() -> getPageBase().getMainPopup().getContentComponent() == null));
-        midpointForm.add(selectObject);
     }
 
     private void updateModel(ObjectReferenceType ref, MidpointForm<?> midpointForm, AjaxRequestTarget target) {

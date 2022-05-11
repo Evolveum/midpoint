@@ -35,7 +35,7 @@ import java.util.List;
                 order = 30
         )
 )
-@Counter(provider = AdditionalMenuLinkCounter.class)
+@Counter(provider = UserDashboardLinkCounter.class)
 public class UserDashboardLinkContentPanel extends RichHyperlinkListContentPanel {
 
     public UserDashboardLinkContentPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {

@@ -10,11 +10,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
         implements PrismReferenceWrapper<R> {
 
     private ObjectFilter filter;
-    private Set<Function<Search, SearchItem>> specialItemFunctions = Collections.emptySet();
+    private Set<SerializableSupplier<AbstractSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
     private boolean onlyForDeltaComputation;
 
     public PrismReferenceWrapperImpl(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status) {
@@ -91,12 +91,12 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+    public Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemFunctions() {
         return specialItemFunctions;
     }
 
     @Override
-    public void setSpecialSearchItemFunctions(Set<Function<Search, SearchItem>> functions) {
+    public void setSpecialSearchItemFunctions(Set<SerializableSupplier<AbstractSearchItemWrapper>> functions) {
         this.specialItemFunctions = functions;
     }
 

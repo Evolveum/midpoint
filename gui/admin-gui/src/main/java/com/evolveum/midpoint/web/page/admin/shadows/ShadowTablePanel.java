@@ -99,7 +99,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
 
     @Override
-    protected CompiledObjectCollectionView getObjectCollectionView() {
+    public CompiledObjectCollectionView getObjectCollectionView() {
         CompiledShadowCollectionView compiledView = findContainerPanelConfig();
         if (compiledView != null) {
             return compiledView;
