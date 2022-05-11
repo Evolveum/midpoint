@@ -572,7 +572,7 @@ th.cog, td.cog {
   &.card-body {
     border: 0px;
     border-left: 3px solid;
-    padding: 0.25rem 0 0 0.5rem;
+    padding: 0.5rem 0 0 0.5rem;
   }
 }
 
@@ -1036,13 +1036,9 @@ span.tree-content > table tr td:first-child {
 }
 
 .stacktrace {
-	font-family: monospace;
+    font-family: $font-family-monospace !important;
+    font-size: $font-size-sm !important;
     white-space: pre-wrap;
-    font-size: 11px;
-}
-
-dd.stacktrace::before {
-	content: none;
 }
 
 // Shopping cart

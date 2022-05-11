@@ -304,64 +304,37 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         details.add(new VisibleBehaviour(() -> getModelObject().isShowMore()));
         box.add(details);
 
-        Label operationLabel = new Label("operationLabel", createStringResource("FeedbackAlertMessageDetails.operation"));
-        operationLabel.setOutputMarkupId(true);
-        details.add(operationLabel);
-
-        Label operation = new Label("operation", () -> {
+        DetailsPanel operation = new DetailsPanel("operation", createStringResource("FeedbackAlertMessageDetails.operation"));
+        details.add(operation);
+        Label operationBody = new Label("operationBody", () -> {
             OpResult result = getModelObject();
 
             String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
             return getString(resourceKey, null, result.getOperation());
         });
-        operation.setOutputMarkupId(true);
-        details.add(operation);
+        operation.add(operationBody);
 
-        Label count = new Label("countLabel", createStringResource("FeedbackAlertMessageDetails.count"));
-        count.add(new VisibleBehaviour(() -> getModelObject().getCount() > 1));
-        details.add(count);
-        details.add(initCountPanel(getModel()));
-
-        Label message = new Label("resultMessage", new PropertyModel<String>(getModel(), "message").getObject());
-        message.setOutputMarkupId(true);
-
+        DetailsPanel message = new DetailsPanel("message", createStringResource("FeedbackAlertMessageDetails.message"));
         message.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject().getMessage())));
-
         details.add(message);
+        Label resultMessage = new Label("resultMessage", new PropertyModel<String>(getModel(), "message").getObject());
+        resultMessage.setRenderBodyOnly(true);
+        message.add(resultMessage);
 
-        Label messageLabel = new Label("messageLabel", createStringResource("FeedbackAlertMessageDetails.message"));
-        messageLabel.setOutputMarkupId(true);
+        initParams(details);
+        initContexts(details);
 
-        messageLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject().getMessage())));
+        DetailsPanel countContainer = new DetailsPanel("countContainer", createStringResource("FeedbackAlertMessageDetails.count"));
+        countContainer.add(new VisibleBehaviour(() -> getModelObject().getCount() > 1));
+        details.add(countContainer);
 
-        details.add(messageLabel);
+        Label count = new Label("count", () -> getModelObject().getCount());
+        count.add(new VisibleBehaviour(() -> getModelObject().getCount() > 1));
+        countContainer.add(count);
 
-        initParams(details, getModel());
-        initContexts(details, getModel());
-        initError(details, getModel());
-    }
+        initError(details);
 
-    private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
-        Label paramsLabel = new Label("paramsLabel", createStringResource("FeedbackAlertMessageDetails.params"));
-        paramsLabel.setOutputMarkupId(true);
-        paramsLabel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getParams())));
-        operationContent.add(paramsLabel);
-
-        ListView<Param> params = new ListView<>(ID_PARAMS, createParamsModel(model)) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<Param> item) {
-                item.add(new Label("paramName", new PropertyModel<>(item.getModel(), "name")));
-                item.add(new Label("paramValue", new PropertyModel<>(item.getModel(), "value")));
-            }
-        };
-        params.setOutputMarkupId(true);
-        params.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getParams())));
-
-        operationContent.add(params);
-
-        ListView<OpResult> subresults = new ListView<>("subresults", createSubresultsModel(model)) {
+        ListView<OpResult> subresults = new ListView<>("subresults", createSubresultsModel(getModel())) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -372,18 +345,33 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 item.add(subresult);
             }
         };
-        subresults.setOutputMarkupId(true);
-        subresults.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getSubresults())));
-        operationContent.add(subresults);
+        subresults.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getModelObject().getSubresults())));
+        details.add(subresults);
     }
 
-    private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {
-        Label contextsLabel = new Label("contextsLabel", createStringResource("FeedbackAlertMessageDetails.contexts"));
-        contextsLabel.setOutputMarkupId(true);
-        contextsLabel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getContexts())));
-        operationContent.add(contextsLabel);
+    private void initParams(WebMarkupContainer details) {
+        DetailsPanel paramsContainer = new DetailsPanel("paramsContainer", createStringResource("FeedbackAlertMessageDetails.params"));
+        paramsContainer.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getModelObject().getParams())));
+        details.add(paramsContainer);
 
-        ListView<Context> contexts = new ListView<>("contexts", createContextsModel(model)) {
+        ListView<Param> params = new ListView<>(ID_PARAMS, createParamsModel(getModel())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<Param> item) {
+                item.add(new Label("paramName", new PropertyModel<>(item.getModel(), "name")));
+                item.add(new Label("paramValue", new PropertyModel<>(item.getModel(), "value")));
+            }
+        };
+        paramsContainer.add(params);
+    }
+
+    private void initContexts(WebMarkupContainer details) {
+        DetailsPanel contextsContainer = new DetailsPanel("contextsContainer", createStringResource("FeedbackAlertMessageDetails.contexts"));
+        contextsContainer.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getModelObject().getContexts())));
+        details.add(contextsContainer);
+
+        ListView<Context> contexts = new ListView<>("contexts", createContextsModel(getModel())) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -392,26 +380,25 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 item.add(new Label("contextValue", new PropertyModel<>(item.getModel(), "value")));
             }
         };
-        contexts.setOutputMarkupId(true);
-        contexts.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getContexts())));
-        operationContent.add(contexts);
+        contextsContainer.add(contexts);
     }
 
-    private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model) {
-        Label errorLabel = new Label("errorLabel", createStringResource("FeedbackAlertMessageDetails.error"));
-        errorLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace())));
-        errorLabel.setOutputMarkupId(true);
-        operationPanel.add(errorLabel);
+    private void initError(WebMarkupContainer details) {
+        DetailsPanel errorContainer = new DetailsPanel("errorContainer", createStringResource("FeedbackAlertMessageDetails.error"));
+        errorContainer.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject().getExceptionsStackTrace())));
+        details.add(errorContainer);
 
-        Label errorMessage = new Label("errorMessage", new PropertyModel<String>(model, "exceptionMessage"));
-        errorMessage.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace())));
-        errorMessage.setOutputMarkupId(true);
-        operationPanel.add(errorMessage);
+        Label errorMessage = new Label("errorMessage", () -> getModelObject().getExceptionMessage());
+        errorContainer.add(errorMessage);
 
-        final Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE, new PropertyModel<String>(model, "exceptionsStackTrace"));
-        errorStackTrace.add(new VisibleBehaviour(() -> model.getObject().isShowError()));
-        errorStackTrace.setOutputMarkupId(true);
-        operationPanel.add(errorStackTrace);
+        Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE, () -> getModelObject().getExceptionsStackTrace());
+        errorStackTrace.add(new VisibleBehaviour(() -> getModelObject().isShowError()));
+        errorContainer.add(errorStackTrace);
+
+        Label linkText = new Label("linkText", () -> {
+            String key = getModelObject().isShowError() ? "operationResultPanel.hideStack" : "operationResultPanel.showStack";
+            return getString(key);
+        });
 
         AjaxLink<Void> errorStackTraceLink = new AjaxLink<>("errorStackTraceLink") {
             private static final long serialVersionUID = 1L;
@@ -419,21 +406,13 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             @Override
             public void onClick(AjaxRequestTarget target) {
                 OpResult result = OperationResultPanel.this.getModelObject();
-                result.setShowError(!model.getObject().isShowError());
+                result.setShowError(!result.isShowError());
                 result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
                 target.add(OperationResultPanel.this);
             }
-
         };
-        errorStackTraceLink.setOutputMarkupId(true);
-        errorStackTraceLink.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace())));
-        operationPanel.add(errorStackTraceLink);
-    }
-
-    private Label initCountPanel(final IModel<OpResult> model) {
-        Label count = new Label("count", new PropertyModel<String>(model, "count"));
-        count.add(new VisibleBehaviour(() -> model.getObject().getCount() > 1));
-        return count;
+        errorStackTraceLink.add(linkText);
+        errorContainer.add(errorStackTraceLink);
     }
 
     private void showHideAll(final boolean show, AjaxRequestTarget target) {
