@@ -17,6 +17,7 @@ spec:
                         resourceRequestMemory: '1Gi'),
                 containerTemplate(name: 'maven',
                         image: 'maven:3.8.5-openjdk-11-slim',
+                        runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
                         resourceLimitCpu: '4',

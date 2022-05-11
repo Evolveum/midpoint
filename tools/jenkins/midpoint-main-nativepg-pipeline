@@ -11,12 +11,14 @@ podTemplate(
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
                         resourceRequestCpu: '1',
                         resourceLimitCpu: '1',
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'postgres',
                         image: "${params.POSTGRES_IMAGE ?: 'postgres:13-alpine'}",
+                        runAsUser: '0',
                         ttyEnabled: true,
                         resourceRequestCpu: '2',
                         resourceLimitCpu: '2',
@@ -31,10 +33,11 @@ podTemplate(
                         ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
                         image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
+                        runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceRequestCpu: '4',
-                        resourceLimitCpu: '4',
+                        resourceRequestCpu: "${params.BUILDER_CPU ?: '4'}",
+                        resourceLimitCpu: "${params.BUILDER_CPU ?: '4'}",
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ]
