@@ -19,6 +19,9 @@ podTemplate(
                         image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
                         ttyEnabled: true,
                         command: 'cat',
+                        envVars: [
+                            envVar(key: 'npm_config_user', value: 'root'),
+                        ],
                         resourceRequestCpu: "${params.BUILDER_CPU ?: '4'}",
                         resourceLimitCpu: "${params.BUILDER_CPU ?: '4'}",
                         resourceRequestMemory: '6Gi',
