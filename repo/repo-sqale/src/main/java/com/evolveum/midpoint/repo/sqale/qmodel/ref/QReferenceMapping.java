@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -48,7 +50,7 @@ public class QReferenceMapping<
     public static QReferenceMapping<?, ?, ?, ?> init(@NotNull SqaleRepoContext repositoryContext) {
         return new QReferenceMapping<>(
                 QReference.TABLE_NAME, DEFAULT_ALIAS_NAME, QReference.CLASS, repositoryContext,
-                new RefTableTargetResolver<>(QObjectMapping::getObjectMapping));
+                QObjectMapping::getObjectMapping);
     }
 
     protected <TQ extends QObject<TR>, TR extends MObject> QReferenceMapping(
@@ -56,10 +58,11 @@ public class QReferenceMapping<
             String defaultAliasName,
             Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext,
-            @NotNull RefTableTargetResolver<Q, R, TQ, TR> targetResolver) {
+            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
         super(tableName, defaultAliasName, Referencable.class, queryType, repositoryContext);
 
-        addRelationResolver(PrismConstants.T_OBJECT_REFERENCE, targetResolver);
+        addRelationResolver(PrismConstants.T_OBJECT_REFERENCE,
+                new RefTableTargetResolver<>(targetMappingSupplier));
     }
 
     @Override
