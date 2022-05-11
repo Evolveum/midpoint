@@ -57,7 +57,9 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private static final String ID_FIELD_TYPE_BUTTON_LABEL = "fieldTypeButtonLabel";
 
     private LoadableModel<Class<O>> filterTypeModel;
+
     private PrismContainerValueWrapper<ObjectCollectionType> containerWrapper;
+
     private FieldType fieldType;
 
     public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper) {
@@ -134,19 +136,15 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (FieldType.QUERY.equals(fieldType)) {
-                    fieldType = FieldType.XML;
-                } else {
-                    fieldType = FieldType.QUERY;
-                }
+                fieldType = FieldType.QUERY.equals(fieldType) ? FieldType.XML : FieldType.QUERY;
+
                 target.add(SearchFilterConfigurationPanel.this.get(ID_CONTAINER));
                 target.add(getPageBase().getFeedbackPanel());
                 target.add(buttonLabel);
             }
         };
-        fieldTypeButton.setOutputMarkupId(true);
-        add(fieldTypeButton);
         fieldTypeButton.add(buttonLabel);
+        add(fieldTypeButton);
     }
 
     private void searchConfigurationPerformed(AjaxRequestTarget target) {
