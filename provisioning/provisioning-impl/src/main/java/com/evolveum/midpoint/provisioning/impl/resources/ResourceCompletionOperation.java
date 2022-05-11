@@ -227,7 +227,7 @@ class ResourceCompletionOperation {
             // with the parsed schemas.
             ResourceSchemaFactory.getRawSchema(reloaded);
             ResourceSchema completeSchema = ResourceSchemaFactory.getCompleteSchema(reloaded);
-            LOGGER.trace("Complete schema:\n{}", completeSchema.debugDumpLazily(1));
+            LOGGER.trace("Complete schema:\n{}", DebugUtil.debugDumpLazily(completeSchema, 1));
         } catch (Throwable e) {
             String message = "Error while processing schemaHandling section of " + reloaded + ": " + e.getMessage();
             result.recordPartialError(message, e);
