@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  */
 public class Popover extends Border {
 
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_POPOVER = "popover";
     private static final String ID_TITLE = "title";
 
