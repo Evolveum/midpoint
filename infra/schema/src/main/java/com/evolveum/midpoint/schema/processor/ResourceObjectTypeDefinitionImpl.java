@@ -16,6 +16,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,24 +95,14 @@ public final class ResourceObjectTypeDefinitionImpl
     /**
      * The "source" bean for this definition.
      *
-     * - For object type definition, this is relevant `objectType` value in `schemaHandling`.
+     * - For object type definition, this is relevant `objectType` value in `schemaHandling`, expanded by resolving
+     * object type inheritance.
      * - For object class definition, this is (currently) an empty value. It is here to avoid writing two
      * variants of various getter methods like {@link #getDisplayName()}.
      *
      * Immutable.
      */
     @NotNull private final ResourceObjectTypeDefinitionType definitionBean;
-
-    /**
-     * Parent source beans for this definition.
-     *
-     * They are here to implement resource object type inheritance.
-     *
-     * Frozen after parsing.
-     *
-     * TODO remove
-     */
-    @NotNull private final DeeplyFreezableList<ResourceObjectTypeDefinitionType> parentBeans = new DeeplyFreezableList<>();
 
     /**
      * Compiled patterns denoting protected objects.
@@ -184,15 +176,13 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @Nullable String getDisplayName() {
         return getFirstNonNull(
-                extractFeature(
-                        ResourceObjectTypeDefinitionType::getDisplayName),
+                definitionBean.getDisplayName(),
                 rawObjectClassDefinition.getDisplayName());
     }
 
     @Override
     public String getDescription() {
-        return extractFeature(
-                ResourceObjectTypeDefinitionType::getDescription);
+        return definitionBean.getDescription();
     }
 
     @Override
@@ -257,8 +247,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull ResourceObjectVolatilityType getVolatility() {
         return Objects.requireNonNullElse(
-                extractFeature(
-                        ResourceObjectTypeDefinitionType::getVolatility),
+                definitionBean.getVolatility(),
                 ResourceObjectVolatilityType.NONE);
     }
 
@@ -266,7 +255,7 @@ public final class ResourceObjectTypeDefinitionImpl
     public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
         // In the future we may define the value also on resource or even global system level
         ResourceMappingsEvaluationConfigurationType definition = // TODO consider merging the values
-                extractFeature(ResourceObjectTypeDefinitionType::getMappingsEvaluation);
+                definitionBean.getMappingsEvaluation();
         if (definition == null) {
             return null;
         }
@@ -278,14 +267,12 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
-        return extractFeature(
-                ResourceObjectTypeDefinitionType::getMultiplicity);
+        return definitionBean.getMultiplicity();
     }
 
     @Override
     public ProjectionPolicyType getProjectionPolicy() {
-        return extractFeature(
-                ResourceObjectTypeDefinitionType::getProjection);
+        return definitionBean.getProjection();
     }
     //endregion
 
@@ -629,19 +616,10 @@ public final class ResourceObjectTypeDefinitionImpl
         sb.append(",intent=").append(getIntent());
     }
 
-    /** Extracts a feature (e.g. `description`) from the main definition bean or one of the parents. */
-    private <X> @Nullable X extractFeature(@NotNull FeatureExtractor<X> extractor) {
-        X fromMain = extractor.apply(definitionBean);
-        if (fromMain != null) {
-            return fromMain;
-        }
-        for (ResourceObjectTypeDefinitionType parentBean : parentBeans) {
-            X fromParent = extractor.apply(parentBean);
-            if (fromParent != null) {
-                return fromParent;
-            }
-        }
-        return null;
+    @Override
+    protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", definitionBean, indent + 1);
     }
 
     @FunctionalInterface

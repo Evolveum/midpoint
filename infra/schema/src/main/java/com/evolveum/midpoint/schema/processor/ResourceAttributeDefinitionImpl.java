@@ -623,11 +623,6 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public Class<?> getTypeClassIfKnown() {
-        return rawDefinition.getTypeClassIfKnown();
-    }
-
-    @Override
     public <A> A getAnnotation(QName qname) {
         return rawDefinition.getAnnotation(qname);
     }

@@ -81,6 +81,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
 
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME = "givenName";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME = "sn";

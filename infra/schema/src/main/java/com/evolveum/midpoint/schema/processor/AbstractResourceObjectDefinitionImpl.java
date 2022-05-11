@@ -280,10 +280,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
             sb.append("\n");
             sb.append(rAttrDef.debugDump(indent + 1, layer));
         }
+        _this.addDebugDumpTrailer(sb, indent);
         return sb.toString();
     }
 
     protected void addDebugDumpHeaderExtension(StringBuilder sb) {
+    }
+
+    protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
     }
 
     @Override
@@ -407,13 +411,8 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public Class<?> getTypeClassIfKnown() {
-        return null;
-    }
-
-    @Override
     public Class<?> getTypeClass() {
-        return null;
+        return null; // No static definition here
     }
 
     @Override

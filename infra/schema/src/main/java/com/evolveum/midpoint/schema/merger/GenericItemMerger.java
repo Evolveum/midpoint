@@ -11,18 +11,24 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.key.NaturalKey;
+import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
+import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Supplier;
 
 import static com.evolveum.midpoint.schema.merger.GenericItemMerger.Kind.CONTAINER;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
@@ -50,15 +56,41 @@ public class GenericItemMerger implements ItemMerger {
     /** Mergers to be used for child items. */
     @NotNull private final PathKeyedMap<ItemMerger> childrenMergers;
 
+    /** Mergers to be used universally. Indexed by the value class. */
+    @NotNull private final Map<Class<?>, Supplier<ItemMerger>> typeSpecificMergers;
+
     public GenericItemMerger(
             @Nullable NaturalKey naturalKey,
             @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this.naturalKey = naturalKey;
         this.childrenMergers = childrenMergers;
+        this.typeSpecificMergers = createStandardTypeSpecificMergersMap();
+    }
+
+    /** In the future this may be parameterized on instance creation. */
+    private Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap() {
+        // @formatter:off
+        return Map.of(
+                PropertyLimitationsType.class,
+                    LimitationsMerger::new,
+                ResourceObjectTypeDefinitionType.class,
+                    ObjectTypeDefinitionMerger::new,
+                MappingType.class,
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(MappingType.F_NAME)),
+                SynchronizationReactionNewType.class,
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(SynchronizationReactionNewType.F_NAME)),
+                AbstractSynchronizationActionType.class,
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME))
+                );
+        // @formatter:on
     }
 
     public GenericItemMerger(@NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this(null, childrenMergers);
+    }
+
+    public GenericItemMerger(NaturalKey naturalKey) {
+        this(naturalKey, new PathKeyedMap<>());
     }
 
     @Override
@@ -71,12 +103,40 @@ public class GenericItemMerger implements ItemMerger {
         for (QName qName : determineItemNames(targetPcv, sourcePcv)) {
             LOGGER.trace("Merging {}", qName);
             ItemName itemName = ItemName.fromQName(qName);
-            ItemMerger merger =
-                    Objects.requireNonNullElseGet(
-                            childrenMergers.get(itemName),
-                            () -> createDefaultSubMerger(itemName));
+            ItemMerger merger = determineChildMerger(itemName, sourcePcv);
             merger.merge(itemName, targetPcv, sourcePcv);
         }
+    }
+
+    @NotNull
+    private ItemMerger determineChildMerger(ItemName itemName, PrismContainerValue<?> sourcePcv) {
+        // First let's have a look at explicit path-based information
+        ItemMerger byItemName = childrenMergers.get(itemName);
+        if (byItemName != null) {
+            LOGGER.trace("Child merger for {} obtained by item name: {}", itemName, byItemName);
+            return byItemName;
+        }
+
+        // Then let's have a look at the type. Currently we use definitions to determine it,
+        // but maybe we could go with the real values (if this would not work).
+        ComplexTypeDefinition ctd = sourcePcv.getComplexTypeDefinition();
+        stateCheck(ctd != null, "No complex type definition of %s", sourcePcv);
+        ItemDefinition<?> childDef = ctd.findItemDefinition(itemName);
+        stateCheck(childDef != null, "No definition of %s in %s", itemName, ctd);
+        Class<?> valueClass = childDef.getTypeClass();
+        if (valueClass != null) {
+            for (Map.Entry<Class<?>, Supplier<ItemMerger>> entry : typeSpecificMergers.entrySet()) {
+                if (entry.getKey().isAssignableFrom(valueClass)) {
+                    ItemMerger byTypeName = entry.getValue().get();
+                    LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, byTypeName);
+                    return byTypeName;
+                }
+            }
+        }
+
+        // Finally, let's go with the default
+        LOGGER.trace("Using default merger for {} (value class {})", itemName, valueClass);
+        return createDefaultSubMerger(itemName);
     }
 
     private ItemMerger createDefaultSubMerger(ItemName itemName) {
@@ -114,11 +174,11 @@ public class GenericItemMerger implements ItemMerger {
         LOGGER.trace("Merging item {}", itemName);
         Item<?, ?> sourceItem = source.findItem(itemName);
         if (sourceItem == null || sourceItem.hasNoValues()) {
-            LOGGER.trace("Nothing found at source; keeping target unchanged");
+            LOGGER.trace(" -> Nothing found at source; keeping target unchanged");
         } else {
             Item<?, ?> targetItem = target.findItem(itemName);
             if (targetItem == null || targetItem.hasNoValues()) {
-                LOGGER.trace("Nothing found at target; copying source value(s) to the target");
+                LOGGER.trace(" -> Nothing found at target; copying source value(s) to the target");
                 //noinspection unchecked
                 target.add(
                         sourceItem.clone());
@@ -129,8 +189,10 @@ public class GenericItemMerger implements ItemMerger {
                         "Mismatch between the cardinality of source and target items: single=%s (source) vs single=%s (target)",
                         isSourceItemSingleValued, isTargetItemSingleValued);
                 if (isSourceItemSingleValued) {
+                    LOGGER.trace(" -> Merging as single-valued item");
                     mergeSingleValuedItem(targetItem, sourceItem);
                 } else {
+                    LOGGER.trace(" -> Merging as multi-valued item");
                     mergeMultiValuedItem(targetItem, sourceItem);
                 }
             }
@@ -166,18 +228,18 @@ public class GenericItemMerger implements ItemMerger {
                 PrismContainerValue<?> matchingTargetValue =
                         findMatchingTargetValue((PrismContainer<?>) targetItem, sourcePcv);
                 if (matchingTargetValue != null) {
-                    LOGGER.trace("Merging into matching target value: {}", matchingTargetValue);
+                    LOGGER.trace(" -> Matching target value found, merging into it: {}", matchingTargetValue);
                     mergeKey(matchingTargetValue, sourcePcv);
                     merge(matchingTargetValue, sourcePcv);
                 } else {
-                    LOGGER.trace("Adding to the target item (without ID)");
+                    LOGGER.trace(" -> Has no matching target value, so adding it to the target item (without ID)");
                     PrismContainerValue<?> sourcePcvClone = sourcePcv.clone();
                     sourcePcvClone.setId(null);
                     //noinspection unchecked
                     ((Item<PrismValue, ?>) targetItem).add(sourcePcvClone);
                 }
             } else {
-                LOGGER.trace("Adding to the target item");
+                LOGGER.trace(" -> Not a container, adding the value right to the target item");
                 //noinspection unchecked
                 ((Item<PrismValue, ?>) targetItem).add(
                         sourceValue.clone());

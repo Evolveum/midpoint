@@ -574,11 +574,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public Class<?> getTypeClassIfKnown() {
-        return getItemDefinition().getTypeClassIfKnown();
-    }
-
-    @Override
     public Class<?> getTypeClass() {
         return getItemDefinition().getTypeClass();
     }

@@ -47,6 +47,13 @@
             <attribute>
                 <ref>ri:weapon</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <inbound>
+                    <name>weapon-mapping</name>
+                    <strength>strong</strength>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:loot</ref>
@@ -124,6 +131,20 @@
                     </q:equal>
                 </filter>
             </protected>
+            <synchronization>
+                <reaction>
+                    <name>reaction1</name>
+                    <documentation>Makes no sense, just for testing the merging process</documentation>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus>
+                            <name>add-focus</name>
+                            <documentation>Adding a focus</documentation>
+                            <synchronize>false</synchronize>
+                        </addFocus>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
         <objectType>
             <kind>entitlement</kind>

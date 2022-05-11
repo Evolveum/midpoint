@@ -36,7 +36,7 @@ import java.util.List;
  *
  * This should work with any interpretation of the {@link PropertyLimitationsType} in the follow-on code.
  */
-class LimitationsMerger extends BaseCustomItemMerger<PrismContainer<PropertyLimitationsType>> {
+public class LimitationsMerger extends BaseCustomItemMerger<PrismContainer<PropertyLimitationsType>> {
 
     @Override
     protected void mergeInternal(

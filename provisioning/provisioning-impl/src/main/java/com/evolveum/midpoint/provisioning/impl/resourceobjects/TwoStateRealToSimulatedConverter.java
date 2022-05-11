@@ -226,10 +226,9 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     @NotNull
-    private <T> Class<T> getAttributeValueClass(ResourceAttribute<T> attribute)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private <T> Class<T> getAttributeValueClass(ResourceAttribute<T> attribute) {
         ResourceAttributeDefinition<T> attributeDefinition = attribute.getDefinition();
-        Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
+        Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClass() : null;
         if (attributeValueClass != null) {
             //noinspection unchecked
             return (Class<T>) attributeValueClass;

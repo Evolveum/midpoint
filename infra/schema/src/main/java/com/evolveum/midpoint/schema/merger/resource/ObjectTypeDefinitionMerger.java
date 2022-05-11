@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SuperObjectTypeRefer
  * A merger specific to resource definitions: creates inheritance relations between the same definitions
  * (matched by kind and intent).
  */
-class ObjectTypeDefinitionMerger extends BaseCustomItemMerger<PrismContainer<ResourceObjectTypeDefinitionType>> {
+public class ObjectTypeDefinitionMerger extends BaseCustomItemMerger<PrismContainer<ResourceObjectTypeDefinitionType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeDefinitionMerger.class);
 

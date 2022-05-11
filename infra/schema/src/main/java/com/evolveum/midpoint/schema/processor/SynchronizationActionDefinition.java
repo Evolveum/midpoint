@@ -11,13 +11,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.Comparator;
 
 /**
  * Wraps both {@link SynchronizationActionType} and {@link AbstractSynchronizationActionType}.
  */
-public class SynchronizationActionDefinition implements Comparable<SynchronizationActionDefinition> {
+public abstract class SynchronizationActionDefinition implements Comparable<SynchronizationActionDefinition> {
 
     private static final Comparator<SynchronizationActionDefinition> COMPARATOR =
             Comparator.comparing(
@@ -26,24 +27,8 @@ public class SynchronizationActionDefinition implements Comparable<Synchronizati
 
     @NotNull private final ClockworkSettings clockworkSettings;
 
-    @Nullable private final SynchronizationActionType legacyBean;
-    @Nullable private final AbstractSynchronizationActionType bean;
-
-    SynchronizationActionDefinition(
-            @NotNull SynchronizationActionType bean,
-            @NotNull ClockworkSettings defaultSettings) {
+    SynchronizationActionDefinition(@NotNull ClockworkSettings defaultSettings) {
         this.clockworkSettings = defaultSettings;
-        this.legacyBean = bean;
-        this.bean = null;
-    }
-
-    SynchronizationActionDefinition(
-            @NotNull AbstractSynchronizationActionType bean,
-            @NotNull ClockworkSettings defaultSettings) {
-        this.clockworkSettings = bean instanceof AbstractClockworkBasedSynchronizationActionType ?
-                defaultSettings.updateFrom((AbstractClockworkBasedSynchronizationActionType) bean) : defaultSettings;
-        this.legacyBean = null;
-        this.bean = bean;
     }
 
     @Override
@@ -51,9 +36,9 @@ public class SynchronizationActionDefinition implements Comparable<Synchronizati
         return COMPARATOR.compare(this, o);
     }
 
-    public @Nullable Integer getOrder() {
-        return bean != null ? bean.getOrder() : null;
-    }
+    public abstract @Nullable Integer getOrder();
+
+    public abstract @Nullable String getName();
 
     public Boolean isReconcileAll() {
         return clockworkSettings.getReconcileAll();
@@ -75,11 +60,100 @@ public class SynchronizationActionDefinition implements Comparable<Synchronizati
         return clockworkSettings.getObjectTemplateRef();
     }
 
-    public @Nullable String getLegacyActionUri() {
-        return legacyBean != null ? legacyBean.getHandlerUri() : null;
+    public abstract @Nullable String getLegacyActionUri();
+
+    public abstract @Nullable Class<? extends AbstractSynchronizationActionType> getNewDefinitionBeanClass();
+
+    @VisibleForTesting
+    public abstract @Nullable AbstractSynchronizationActionType getNewDefinitionBean();
+
+    public static class New extends SynchronizationActionDefinition {
+
+        @NotNull private final AbstractSynchronizationActionType bean;
+
+        public New(
+                @NotNull AbstractSynchronizationActionType bean,
+                @NotNull ClockworkSettings defaultSettings) {
+            super(bean instanceof AbstractClockworkBasedSynchronizationActionType ?
+                    defaultSettings.updateFrom((AbstractClockworkBasedSynchronizationActionType) bean) :
+                    defaultSettings);
+            this.bean = bean;
+        }
+
+        @Override
+        public @Nullable Integer getOrder() {
+            return bean.getOrder();
+        }
+
+        @Override
+        public @Nullable String getName() {
+            return bean.getName();
+        }
+
+        @Override
+        public @Nullable String getLegacyActionUri() {
+            return null;
+        }
+
+        @Override
+        public @Nullable Class<? extends AbstractSynchronizationActionType> getNewDefinitionBeanClass() {
+            return bean.getClass();
+        }
+
+        @Override
+        public @Nullable AbstractSynchronizationActionType getNewDefinitionBean() {
+            return bean;
+        }
+
+        @Override
+        public String toString() {
+            return "SynchronizationActionDefinition.New{" +
+                    "bean:" + bean.getClass().getSimpleName() + "=" + bean +
+                    "}";
+        }
     }
 
-    public @Nullable Class<? extends AbstractSynchronizationActionType> getDefinitionBeanClass() {
-        return bean != null ? bean.getClass() : null;
+    public static class Legacy extends SynchronizationActionDefinition {
+
+        @NotNull private final SynchronizationActionType legacyBean;
+
+        public Legacy(
+                @NotNull SynchronizationActionType legacyBean,
+                @NotNull ClockworkSettings defaultSettings) {
+            super(defaultSettings);
+            this.legacyBean = legacyBean;
+        }
+
+        @Override
+        public @Nullable Integer getOrder() {
+            return null;
+        }
+
+        @Override
+        public @Nullable String getName() {
+            return legacyBean.getName();
+        }
+
+        @Override
+        public @Nullable String getLegacyActionUri() {
+            return legacyBean.getHandlerUri();
+        }
+
+        @Override
+        public @Nullable Class<? extends AbstractSynchronizationActionType> getNewDefinitionBeanClass() {
+            return null;
+        }
+
+        @Override
+        public @Nullable AbstractSynchronizationActionType getNewDefinitionBean() {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return "SynchronizationActionDefinition.Legacy{" +
+                    "legacyBean:" + legacyBean.getClass().getSimpleName() + "=" + legacyBean +
+                    "}";
+        }
     }
 }

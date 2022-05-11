@@ -39,7 +39,7 @@ public class SynchronizationActionFactory {
     public SynchronizationAction getActionInstance(@NotNull ActionInstantiationContext<?> context)
             throws ConfigurationException {
         SynchronizationActionDefinition definition = context.actionDefinition;
-        Class<? extends AbstractSynchronizationActionType> beanClass = definition.getDefinitionBeanClass();
+        Class<? extends AbstractSynchronizationActionType> beanClass = definition.getNewDefinitionBeanClass();
         String legacyUri = definition.getLegacyActionUri();
         if (beanClass != null) {
             return getByBeanClass(beanClass, context);
