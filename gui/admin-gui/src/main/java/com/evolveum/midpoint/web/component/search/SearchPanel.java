@@ -166,16 +166,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 debugPerformed();
             }
         };
-        debug.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
-                        && queryPlaygroundAccessible;
-            }
-        });
+        debug.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && queryPlaygroundAccessible));
         form.add(debug);
 
 //        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
@@ -202,8 +193,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         ListView<SearchItem> compositedItems = createSpecialItemsPanel(ID_COMPOSITED_SPECIAL_ITEMS, new PropertyModel(getModel(), Search.F_COMPOSITED_SPECIAL_ITEMS + "." + AbstractRoleCompositedSearchItem.F_SEARCH_ITEMS));
         form.add(compositedItems);
 
-        ListView<S> items = new ListView<S>(ID_ITEMS,
-                new PropertyModel<>(getModel(), Search.F_ITEMS)) {
+        ListView<S> items = new ListView<S>(ID_ITEMS, new PropertyModel<>(getModel(), Search.F_ITEMS)) {
 
             private static final long serialVersionUID = 1L;
 

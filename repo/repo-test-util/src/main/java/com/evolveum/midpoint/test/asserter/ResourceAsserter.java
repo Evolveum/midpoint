@@ -12,8 +12,13 @@ import static org.testng.AssertJUnit.assertNull;
 
 import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -26,11 +31,10 @@ import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ConfigurationPropertiesType;
 import com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
@@ -223,5 +227,21 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
                 .as("additional connectors configurations")
                 .hasSize(expected);
         return this;
+    }
+
+    public ResourceAsserter<RA> assertGeneratedClasses(QName... expected) {
+        assertThat(getGeneratedClasses())
+                .as("generated classes")
+                .containsExactlyInAnyOrder(expected);
+        return this;
+    }
+
+    private @NotNull Collection<QName> getGeneratedClasses() {
+        XmlSchemaType schema = getObjectable().getSchema();
+        if (schema == null) {
+            return List.of();
+        }
+        SchemaGenerationConstraintsType constraints = schema.getGenerationConstraints();
+        return constraints != null ? constraints.getGenerateObjectClass() : List.of();
     }
 }

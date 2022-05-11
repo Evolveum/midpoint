@@ -19,6 +19,8 @@ ace.config.setModuleUrl('ace/mode/xml',
     require('../../../node_modules/ace-builds/src-noconflict/mode-xml.js'));
 ace.config.setModuleUrl('ace/ext/language_tools',
     require('../../../node_modules/ace-builds/src-noconflict/ext-language_tools.js'));
+ace.config.setModuleUrl('ace/ext/searchbox',
+    require('../../../node_modules/ace-builds/src-noconflict/ext-searchbox.js'));
 
 // ace.config.setModuleUrl('ace/mode/xml_worker', require('../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
 ace.config.setModuleUrl('ace/mode/xml_worker',

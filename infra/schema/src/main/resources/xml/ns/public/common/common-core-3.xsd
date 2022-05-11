@@ -3799,6 +3799,9 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="generateObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -3806,7 +3809,7 @@
                     <xsd:documentation>
                         Specification of an object class that has to be automatically generated into a schema.
                         If at least one generateObjectClass specification is present then only the object classes
-                        specified by the generateObjectClass elements will be generated an no other object class
+                        specified by the generateObjectClass elements will be generated and no other object class
                         will be passed into the schema.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -3948,7 +3951,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectClass" type="xsd:QName">
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         XSD type from the resource schema (Object Class) that should be used for accounts
@@ -4085,7 +4088,7 @@
                     <xsd:documentation>
                         Specifies volatility of this type of resource objects, i.e. whether it can change when midPoint
                         is not looking. (Meaning if it is possible that midPoint creates or updates the object, providing
-                        some attributes, but after subsequent read, some of the relevant attributes would have values
+                        some attributes, but after subsequent read, some relevant attributes would have values
                         other than provided.) An example of volatile object is Exchange mailbox, where its PrimarySmtpAddress
                         (or EmailAddresses) can be created based on system policies. Therefore, in order to fill-in
                         $user/emailAddress based on PrimarySmtpAddress, one has to fetch a newly created object before
@@ -4149,7 +4152,7 @@
                         The configured capabilities of the resource specific to this object type.
 
                         This part contains "tweaks" of the native capabilities.
-                        Some of the native capabilities may be turned off, other capabilities may be simulated.
+                        Some native capabilities may be turned off, other capabilities may be simulated.
 
                         If this element is not present at all then the native+configured capabilities
                         at the resource level are applied.
@@ -5749,6 +5752,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
+                <a:container>true</a:container>
                 <a:schemaMigration>
                     <a:element>tns:ignore</a:element>
                     <a:version>4.4</a:version>
@@ -5851,6 +5855,11 @@
     </xsd:simpleType>
 
     <xsd:complexType name="PropertyAccessType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="read" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="add" type="xsd:boolean" minOccurs="0"/>
@@ -6015,7 +6024,7 @@
     <xsd:simpleType name="PasswordCompareStrategyType">
         <xsd:annotation>
             <xsd:documentation>
-                The way how an resource password is compared with the current password.
+                The way how a resource password is compared with the current password.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -6067,6 +6076,14 @@
 
 
     <xsd:complexType name="ResourceCredentialsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="password" type="tns:ResourcePasswordDefinitionType" minOccurs="0">
                 <xsd:annotation>
@@ -6116,7 +6133,7 @@
             <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines how user password is constructed if he user is created or updated from this account.
+                        Defines how user password is constructed if the user is created or updated from this account.
                         The "target" part of the assignment is implicitly set to user's password, therefore it may be
                         omitted.
                     </xsd:documentation>
@@ -6292,7 +6309,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="maxIterations" type="xsd:int">
+            <xsd:element name="maxIterations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Maximum number of iteration attempts. The number specifies attempts
@@ -6453,7 +6470,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the origin object.
-                        This object represent the business-wise origin of the data.
+                        This object represents the business-wise origin of the data.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
@@ -6527,7 +6544,7 @@
                     <xsd:documentation>
                         Reference to shadow that represents the resource object. If present, then it will be
                         used directly. If not present then the search filter will be used to locate the shadow
-                        and the the result will be set to this reference.
+                        and the result will be set to this reference.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
@@ -6685,7 +6702,7 @@
                            </xsd:appinfo>
                         </xsd:annotation>
                      </xsd:element>
-                     <xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0">
+                     <xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType" minOccurs="0">
                          <xsd:annotation>
                              <xsd:documentation>
                                  Specifies the direction of association, i.e. if the association point from object to
@@ -6696,7 +6713,7 @@
                            </xsd:appinfo>
                          </xsd:annotation>
                      </xsd:element>
-                     <xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0">
+                     <xsd:element name="associationAttribute" type="xsd:QName" minOccurs="0">
                          <xsd:annotation>
                              <xsd:documentation>
                                  Name of the attribute which represents the association. This is the attribute
@@ -6711,7 +6728,7 @@
                            </xsd:appinfo>
                          </xsd:annotation>
                      </xsd:element>
-                     <xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0">
+                     <xsd:element name="valueAttribute" type="xsd:QName" minOccurs="0">
                            <xsd:annotation>
                              <xsd:documentation>
                                  Name of the attribute from with a value for association attribute is taken.
@@ -6729,10 +6746,10 @@
                            </xsd:appinfo>
                          </xsd:annotation>
                      </xsd:element>
-                     <xsd:element name="shortcutAssociationAttribute" type="xsd:QName"  minOccurs="0">
+                     <xsd:element name="shortcutAssociationAttribute" type="xsd:QName" minOccurs="0">
                          <xsd:annotation>
                              <xsd:documentation>
-                                 Association attribute short-cut. There are cases when a object-to-subject association
+                                 Association attribute short-cut. There are cases when an object-to-subject association
                                  is the authoritative one, but reading object-to-subject is expensive. E.g. several searches
                                  must be done to fully resolve object-to-subject associations. This attribute provides a
                                  short-cut mechanism. It is used in cases when there is additional (virtual) attribute that
@@ -6750,7 +6767,7 @@
                            </xsd:appinfo>
                          </xsd:annotation>
                      </xsd:element>
-                     <xsd:element name="shortcutValueAttribute" type="xsd:QName"  minOccurs="0">
+                     <xsd:element name="shortcutValueAttribute" type="xsd:QName" minOccurs="0">
                          <xsd:annotation>
                              <xsd:documentation>
                                  Association attribute short-cut. There are cases when a object-to-subject association
@@ -6772,7 +6789,7 @@
                            </xsd:appinfo>
                          </xsd:annotation>
                      </xsd:element>
-                     <xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
+                     <xsd:element name="explicitReferentialIntegrity" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether you require midPoint to provide referential integrity for object-to-subject associations.
@@ -6897,13 +6914,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-<!--          <xsd:element name="cap" type="cap:CapabilityType" minOccurs="0" maxOccurs="unbounded"> -->
-<!--                 <xsd:annotation> -->
-<!--                     <xsd:documentation> -->
-<!--                         Elements defining individual capabilities. -->
-<!--                     </xsd:documentation> -->
-<!--                 </xsd:annotation> -->
-<!--             </xsd:element> -->
             <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -22895,15 +22905,21 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.5</a:since>
+                <a:schemaMigration>
+                    <a:element>tns:cachingStategy</a:element>
+                    <a:version>4.6</a:version>
+                    <a:operation>moved</a:operation>
+                    <a:replacement>tns:cachingStrategy</a:replacement>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="cachingStategy" type="tns:CachingStategyType" minOccurs="0" default="none"/>
+            <xsd:element name="cachingStrategy" type="tns:CachingStrategyType" minOccurs="0" default="none"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="CachingStategyType">
+    <xsd:simpleType name="CachingStrategyType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of overall caching strategy.

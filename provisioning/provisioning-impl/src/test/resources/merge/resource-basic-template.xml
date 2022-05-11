@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-    <name>template-basic</name>
+    <name>basic-template</name>
     <abstract>true</abstract>
     <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
     <connectorConfiguration >

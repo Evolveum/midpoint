@@ -29,8 +29,6 @@ public class Popover extends Border {
 
     private IModel<String> title;
 
-    private IModel<Boolean> visible = new Model<>(false);
-
     public Popover(String id) {
         this(id, null);
     }
@@ -57,39 +55,7 @@ public class Popover extends Border {
         addToBorder(title);
     }
 
-    public boolean isPopoverVisible() {
-        return visible.getObject();
-    }
-
     public void toggle(AjaxRequestTarget target) {
-        if (isPopoverVisible()) {
-            hide(target);
-        } else {
-            show(target);
-        }
-    }
-
-    public void show(AjaxRequestTarget target) {
-        if (isPopoverVisible()) {
-            return;
-        }
-
-        visible.setObject(true);
-
-        callJavascript(target, true);
-    }
-
-    public void hide(AjaxRequestTarget target) {
-        if (!isPopoverVisible()) {
-            return;
-        }
-
-        visible.setObject(false);
-
-        callJavascript(target, false);
-    }
-
-    private void callJavascript(AjaxRequestTarget target, boolean show) {
-        target.appendJavaScript("$(function() { MidPointTheme.showPopover('#" + reference.getMarkupId() + "', '#" + getMarkupId() + "', " + show + "); });");
+        target.appendJavaScript("$(function() { MidPointTheme.togglePopover('#" + reference.getMarkupId() + "', '#" + getMarkupId() + "'); });");
     }
 }

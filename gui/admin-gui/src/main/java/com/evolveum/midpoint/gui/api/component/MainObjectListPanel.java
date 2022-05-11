@@ -410,7 +410,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 target.add(getTable());
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return refreshIcon;
     }
 

@@ -71,17 +71,17 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(minOccurs).append(",").append(maxOccurs).append("]");
         sb.append(",");
-        if (getAccess().isRead()) {
+        if (canRead()) {
             sb.append("R");
         } else {
             sb.append("-");
         }
-        if (getAccess().isAdd()) {
+        if (canAdd()) {
             sb.append("A");
         } else {
             sb.append("-");
         }
-        if (getAccess().isModify()) {
+        if (canModify()) {
             sb.append("M");
         } else {
             sb.append("-");
@@ -90,6 +90,28 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
             sb.append(",").append(processing);
         }
         return sb.toString();
+    }
+
+    // Note that the defaults here may look strange but it is exactly as existing clients use the data.
+
+    // TODO maybe the names should be thought out once more...
+
+    /** Returns `true` if the `modify` operation is allowed. */
+    public boolean canModify() {
+        return access == null
+                || Boolean.TRUE.equals(access.isModify());
+    }
+
+    /** Returns `true` if the `add` operation is allowed. */
+    public boolean canAdd() {
+        return access == null
+                || Boolean.TRUE.equals(access.isAdd());
+    }
+
+    /** Returns `true` if the `read` operation is allowed. */
+    public boolean canRead() {
+        return access == null
+                || Boolean.TRUE.equals(access.isRead());
     }
 
     @Override

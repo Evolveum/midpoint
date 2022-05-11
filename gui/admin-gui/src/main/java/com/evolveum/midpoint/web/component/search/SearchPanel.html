@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
+    <form wicket:id="form" class="search-form d-flex flex-wrap justify-content-end">
 
         <div class="my-1" wicket:id="fullTextContainer">
             <input wicket:id="fullTextField" type="text" class="form-control form-control-sm" style="width: 150px; min-width: 150px;">
@@ -40,11 +40,11 @@
         </div>
 
         <div class="d-flex my-1">
-            <a wicket:id="more" class="btn btn-sm btn-default mx-1">
+            <button wicket:id="more" class="btn btn-sm btn-default mx-1">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="fa fa-caret-down"></span>
-            </a>
+            </button>
 
             <div wicket:id="searchContainer">
                 <div class="btn-group btn-group-sm">

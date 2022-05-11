@@ -13,6 +13,8 @@ import javax.servlet.http.HttpSession;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,12 +53,7 @@ public abstract class AbstractPageLogin extends PageBase {
     private void initLayer() {
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
-        sequence.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !StringUtils.isEmpty(sequenceName);
-            }
-        });
+        sequence.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(sequence);
         AjaxButton toDefault = new AjaxButton(ID_SWITCH_TO_DEFAULT_SEQUENCE, createStringResource("AbstractPageLogin.switchToDefault")) {
 
@@ -66,12 +63,7 @@ public abstract class AbstractPageLogin extends PageBase {
                 setResponsePage(getMidpointApplication().getHomePage());
             }
         };
-        toDefault.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !StringUtils.isEmpty(sequenceName);
-            }
-        });
+        toDefault.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(toDefault);
         initCustomLayer();
     }
@@ -101,7 +93,6 @@ public abstract class AbstractPageLogin extends PageBase {
     }
 
     private void showExceptionMessage() {
-
         ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
         HttpServletRequest httpReq = req.getContainerRequest();
         HttpSession httpSession = httpReq.getSession();

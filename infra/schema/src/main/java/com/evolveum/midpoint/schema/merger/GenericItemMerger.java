@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.schema.merger;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.schema.merger.key.NaturalKey;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -167,6 +167,7 @@ public class GenericItemMerger implements ItemMerger {
                         findMatchingTargetValue((PrismContainer<?>) targetItem, sourcePcv);
                 if (matchingTargetValue != null) {
                     LOGGER.trace("Merging into matching target value: {}", matchingTargetValue);
+                    mergeKey(matchingTargetValue, sourcePcv);
                     merge(matchingTargetValue, sourcePcv);
                 } else {
                     LOGGER.trace("Adding to the target item (without ID)");
@@ -185,58 +186,31 @@ public class GenericItemMerger implements ItemMerger {
     }
 
     private PrismContainerValue<?> findMatchingTargetValue(
-            PrismContainer<?> targetItem, PrismContainerValue<?> sourceValue) {
+            PrismContainer<?> targetItem, PrismContainerValue<?> sourceValue) throws ConfigurationException {
         if (naturalKey == null) {
             return null;
         }
         for (PrismContainerValue<?> targetValue : targetItem.getValues()) {
-            if (matchesOnNaturalKey(targetValue, sourceValue)) {
+            if (naturalKey.valuesMatch(targetValue, sourceValue)) {
                 return targetValue;
             }
         }
         return null;
     }
 
-    private boolean matchesOnNaturalKey(PrismContainerValue<?> targetValue, PrismContainerValue<?> sourceValue) {
-        for (QName keyConstituent : Objects.requireNonNull(naturalKey).constituents) {
-            Item<?, ?> targetKeyItem = targetValue.findItem(ItemName.fromQName(keyConstituent));
-            Item<?, ?> sourceKeyItem = sourceValue.findItem(ItemName.fromQName(keyConstituent));
-            if (areNotEquivalent(targetKeyItem, sourceKeyItem)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean areNotEquivalent(Item<?, ?> targetKeyItem, Item<?, ?> sourceKeyItem) {
-        if (targetKeyItem != null && targetKeyItem.hasAnyValue()) {
-            return !targetKeyItem.equals(sourceKeyItem, EquivalenceStrategy.DATA);
-        } else {
-            return sourceKeyItem != null && sourceKeyItem.hasAnyValue();
+    private void mergeKey(PrismContainerValue<?> matchingTargetValue, PrismContainerValue<?> sourcePcv)
+            throws ConfigurationException {
+        if (naturalKey != null) {
+            naturalKey.mergeMatchingKeys(matchingTargetValue, sourcePcv);
         }
     }
 
-    private boolean isSingleValued(@NotNull Item<?, ?> item) {
-        ItemDefinition<?> definition = item.getDefinition();
-        if (definition != null) {
-            return definition.isSingleValue();
-        } else {
-            // FIXME we must have definitions for everything!
-            LOGGER.warn("Item without definition, will consider it single-valued: {}", item);
-            return true;
-        }
-    }
-
-    public static class NaturalKey {
-        @NotNull private final Collection<QName> constituents;
-
-        private NaturalKey(@NotNull Collection<QName> constituents) {
-            this.constituents = constituents;
-        }
-
-        public static NaturalKey of(QName... constituents) {
-            return new NaturalKey(List.of(constituents));
-        }
+    private boolean isSingleValued(@NotNull Item<?, ?> item) throws SchemaException {
+        ItemDefinition<?> definition =
+                MiscUtil.requireNonNull(
+                        item.getDefinition(),
+                        () -> "Cannot merge item without definition: " + item);
+        return definition.isSingleValue();
     }
 
     enum Kind {

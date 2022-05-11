@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +28,7 @@ import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ResourceAssociationDefinition extends AbstractFreezable
-        implements Serializable, Visitable, Freezable {
+        implements Serializable, Visitable, Freezable, DebugDumpable {
 
     private static final long serialVersionUID = 1L;
 
@@ -168,5 +172,13 @@ public class ResourceAssociationDefinition extends AbstractFreezable
                 "ref=" + definitionBean.getRef() +
                 ", associationTarget=" + associationTarget +
                 "}";
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "definition", definitionBean, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "associationTarget", String.valueOf(associationTarget), indent + 1);
+        return sb.toString();
     }
 }

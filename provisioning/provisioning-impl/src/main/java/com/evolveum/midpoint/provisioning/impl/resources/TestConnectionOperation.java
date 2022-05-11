@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -290,7 +288,11 @@ class TestConnectionOperation {
             PrismObject<ResourceType> resource = connectorSpec.getResource();
             PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
             beans.resourceManager.applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, configResult);
-            PrismContainerValue<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration().getValue();
+            PrismContainer<ConnectorConfigurationType> connectorConfigurationContainer = connectorSpec.getConnectorConfiguration();
+            PrismContainerValue<ConnectorConfigurationType> connectorConfiguration =
+                    connectorConfigurationContainer != null ?
+                            connectorConfigurationContainer.getValue() :
+                            PrismContext.get().itemFactory().createContainerValue(); // TODO or should UCF accept null config PCV?
 
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 

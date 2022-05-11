@@ -246,7 +246,7 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_SAVE = "fa fa-save";
     public static final String CLASS_ICON_PREVIEW = "fa fa-eye";
-    public static final String CLASS_ICON_REMOVE = "fa fa-trash";
+    public static final String CLASS_ICON_REMOVE = CLASS_ICON_TRASH;
 
     public static final String CLASS_ICON_WIZARD = "fa fa-magic";
 

@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
@@ -124,7 +125,10 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     }
 
     @Override
-    public void configure(@NotNull PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
+    public void configure(
+            @NotNull PrismContainerValue<?> configuration,
+            @Nullable List<QName> generateObjectClasses,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);

@@ -17,7 +17,7 @@ import com.evolveum.midpoint.schema.merger.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger.NaturalKey;
+import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
@@ -33,18 +33,15 @@ public class ResourceMergeOperation extends BaseMergeOperation<ResourceType> {
 
         super(target,
                 source,
-                new GenericItemMerger(
-                        createPathMap(
-                                Map.of(
-                                        F_NAME, RequiredItemMerger.INSTANCE,
-                                        // connectorRef - default
-                                        // connectorConfiguration - default
-                                        F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE,
-                                        F_ADDITIONAL_CONNECTOR, new GenericItemMerger(
-                                                NaturalKey.of(ConnectorInstanceSpecificationType.F_NAME),
-                                                emptyPathMap()),
-                                        ItemPath.create(F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE),
-                                        new ObjectTypeDefinitionMerger()
-                                ))));
+                new GenericItemMerger(createPathMap(Map.of(
+                        F_NAME, RequiredItemMerger.INSTANCE,
+                        // connectorRef - default
+                        // connectorConfiguration - default
+                        F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE,
+                        F_ADDITIONAL_CONNECTOR, new GenericItemMerger(
+                                DefaultNaturalKeyImpl.of(ConnectorInstanceSpecificationType.F_NAME),
+                                emptyPathMap()),
+                        ItemPath.create(F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE), new ObjectTypeDefinitionMerger()
+                ))));
     }
 }

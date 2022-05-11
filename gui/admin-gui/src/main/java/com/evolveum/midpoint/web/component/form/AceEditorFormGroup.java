@@ -17,7 +17,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
@@ -66,16 +66,9 @@ public class AceEditorFormGroup extends BasePanel<String> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title",
-                (IModel<String>) () -> getString(tooltipKey)));
+        tooltipLabel.add(AttributeAppender.replace("data-original-title", () -> getString(tooltipKey)));
         tooltipLabel.add(new InfoTooltipBehavior());
-        tooltipLabel.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return tooltipKey != null;
-            }
-        });
+        tooltipLabel.add(new VisibleBehaviour(() -> tooltipKey != null));
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
@@ -87,7 +80,7 @@ public class AceEditorFormGroup extends BasePanel<String> {
         add(textWrapper);
 
         AceEditor text = new AceEditor(ID_TEXT, getModel());
-        text.add(new AttributeModifier("rows", rowNumber));
+        text.add(AttributeModifier.replace("rows", rowNumber));
         text.setOutputMarkupId(true);
         text.setRequired(required);
         text.setLabel(label);
