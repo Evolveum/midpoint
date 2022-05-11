@@ -35,45 +35,52 @@
             </div>
         </div>
         <div class="feedback-message card-body" wicket:id="details">
-            <div class="left-margin" wicket:id="type">
-                <dl class="feedback-message dl-horizontal">
-                    <dt wicket:id="operationLabel"></dt>
-                    <dd>
-                        <b wicket:id="operation"> </b>
-<!--                         <b style="margin-left: 20px;">Status:</b> -->
-<!--                         <i title="Info" class="fa fa-info-circle" wicket:id="iconType"></i> text-info -->
+            <dl class="feedback-message row">
+                <wicket:enclosure child="operationLabel">
+                    <dt class="col-12 col-sm-3 col-md-2 col-xxl-1 text-secondary" wicket:id="operationLabel"></dt>
+                    <dd class="col-12 col-sm-9 col-md-10 col-xxl-11">
+                        <b wicket:id="operation"/>
                     </dd>
-                    <dt wicket:id="messageLabel"></dt>
-                    <dd wicket:id="resultMessage"></dd>
-                    <dt wicket:id="paramsLabel"></dt>
-                    <dd>
+                </wicket:enclosure>
+                <wicket:enclosure child="messageLabel">
+                    <dt class="col-12 col-sm-3 col-md-2 col-xxl-1 text-secondary" wicket:id="messageLabel"></dt>
+                    <dd class="col-12 col-sm-9 col-md-10 col-xxl-11" wicket:id="resultMessage"></dd>
+                </wicket:enclosure>
+                <wicket:enclosure child="paramsLabel">
+                    <dt class="col-12 col-sm-3 col-md-2 col-xxl-1 text-secondary" wicket:id="paramsLabel"/>
+                    <dd class="col-12 col-sm-9 col-md-10 col-xxl-11">
                         <table class="paramtable">
                             <tr class="paramtable-row" wicket:id="params">
-                                <th class="paramtable-name" wicket:id="paramName"/><td class="paramtable-value" wicket:id="paramValue"/>
+                                <th class="paramtable-name" wicket:id="paramName"/>
+                                <td class="paramtable-value" wicket:id="paramValue"/>
                             </tr>
                         </table>
                     </dd>
-                    <dt wicket:id="contextsLabel"></dt>
-                    <dd>
+                </wicket:enclosure>
+                <wicket:enclosure child="contextsLabel">
+                    <dt class="col-12 col-sm-3 col-md-2 col-xxl-1 text-secondary" wicket:id="contextsLabel"/>
+                    <dd class="col-12 col-sm-9 col-md-10 col-xxl-11">
                         <table class="paramtable">
                             <tr class="paramtable-row"  wicket:id="contexts">
-                                <th class="paramtable-name" wicket:id="contextName"/><td class="paramtable-value" wicket:id="contextValue"/>
+                                <th class="paramtable-name" wicket:id="contextName"/>
+                                <td class="paramtable-value" wicket:id="contextValue"/>
                             </tr>
                         </table>
                     </dd>
-                    <dt wicket:id="countLabel"></dt>
-                    <dd  wicket:id="count"></dd>
-
-                    <dt wicket:id="errorLabel"></dt>
-                    <dd  wicket:id="errorMessage"></dd>
-                    <dd > <a wicket:id="errorStackTraceLink" >show</a></dd>
-                    <dd  class="stacktrace" wicket:id="errorStackTrace"></dd>
-
-
-                </dl>
-                <div class="left-margin" wicket:id="subresults">
-                    <div wicket:id="subresult" />
-                </div>
+                </wicket:enclosure>
+                <wicket:enclosure child="countLabel">
+                    <dt class="col-12 col-sm-3 col-md-2 col-xxl-1 text-secondary" wicket:id="countLabel"/>
+                    <dd class="col-12 col-sm-9 col-md-10 col-xxl-11" wicket:id="count"/>
+                </wicket:enclosure>
+                <wicket:enclosure child="errorLabel">
+                    <dt class="col-12 col-sm-3 col-md-2 col-xxl-1 text-secondary" wicket:id="errorLabel"/>
+                    <dd class="col-12 col-sm-9 col-md-10 col-xxl-11" wicket:id="errorMessage"/>
+                    <dd><a wicket:id="errorStackTraceLink">show</a></dd>
+                    <dd class="stacktrace" wicket:id="errorStackTrace"/>
+                </wicket:enclosure>
+            </dl>
+            <div wicket:id="subresults">
+                <div wicket:id="subresult" />
             </div>
         </div>
     </div>

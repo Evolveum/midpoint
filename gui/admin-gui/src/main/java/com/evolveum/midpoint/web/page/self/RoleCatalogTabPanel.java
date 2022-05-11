@@ -7,41 +7,31 @@
 package com.evolveum.midpoint.web.page.self;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.component.search.ScopeSearchItemWrapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.web.component.search.SearchSpecialItemPanel;
-import com.evolveum.midpoint.web.component.search.SpecialSearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar
  */
-public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleType> {
+public class RoleCatalogTabPanel<R extends AbstractRoleType> extends AbstractShoppingCartTabPanel<AbstractRoleType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
@@ -159,42 +149,9 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     }
 
     @Override
-    protected Search createSearch() {
+    protected Search<R> createSearch() {
         Search search = super.createSearch();
-        search.addSpecialItem(createScopeItem(search, getRoleCatalogStorage()));
+        search.getItems().add(new ScopeSearchItemWrapper(search.getSearchConfigurationWrapper()));
         return search;
-    }
-
-    private SearchItem createScopeItem(Search search, RoleCatalogStorage roleCatalogStorage) {
-        return new SpecialSearchItem(search) {
-            @Override
-            public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
-                return null;
-            }
-
-            @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id){
-                return new SearchSpecialItemPanel(id, new PropertyModel(roleCatalogStorage, RoleCatalogStorage.F_ORG_SEARCH_SCOPE)) {
-                    @Override
-                    protected WebMarkupContainer initSearchItemField(String id) {
-                        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
-                        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
-                        inputPanel.setOutputMarkupId(true);
-                        return inputPanel;
-                    }
-
-                    @Override
-                    protected IModel<String> createLabelModel() {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope");
-                    }
-
-                    @Override
-                    protected IModel<String> createHelpModel() {
-                        return getPageBase().createStringResource("abstractRoleMemberPanel.searchScope.tooltip");
-                    }
-                };
-            }
-        };
     }
 }

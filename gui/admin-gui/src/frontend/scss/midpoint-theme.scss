@@ -12,6 +12,7 @@
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables-alt";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
 // AdminLTE and Bootstrap end
 
 @import "icon-style";
@@ -29,7 +30,6 @@
 //@import "midpoint/tree-theme-basic.less";
 //@import "midpoint/operation-result.less";
 //@import "midpoint/icon-style.less";
-
 
 body.custom-hold-transition {
 	.content-wrapper,
@@ -552,77 +552,28 @@ th.cog, td.cog {
 	padding-left: 0px;
 }
 
-// Feedback messages ???
-
-.feedback-message.box {
-	box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
-	word-break: inherit;
-}
-
-.feedback-message.box-body {
-	padding-top : 5px;
-	padding-left : 10px;
-	padding-right : 0px;
-	padding-bottom : 0px;
-}
-
-.feedback-message.box.box-solid.box-danger {
-	border-left: 3px solid #dd4b39;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-
-.feedback-message.box.box-solid.box-success {
-	border-left: 3px solid #00a65a;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-.feedback-message.box.box-solid.box-info {
-	border-left: 3px solid #00c0ef;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-.feedback-message.box.box-solid.box-warning {
-	border-left: 3px solid #f39c12;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-.feedback-message.dl-horizontal {
-
-	& dt {
-		width: 100px;
-	}
-}
-
-
-.feedback-message.dl-horizontal {
-
-	& dd {
-		margin-left: 130px;
-		word-break: break-word;
-	}
-}
-
-.feedback-message .icon {
-	margin-right: 10px;
+// Feedback messages
+@each $name, $color in $theme-colors {
+  .feedback-message.card.card-#{$name} > .card-body {
+    border-color: $color;
+  }
 }
 
 .feedback-message {
-	& .box-header .box-title {
-		font-size: 14px;
-	}
 
-	& .box-header {
-		border-radius: 0 3px 3px 0;
-	}
+  &.card {
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
+
+    & > .card-header {
+      border-bottom-right-radius: valid-radius($border-radius);
+    }
+  }
+
+  &.card-body {
+    border: 0px;
+    border-left: 3px solid;
+    padding: 0.25rem 0 0 0.5rem;
+  }
 }
 
 .summary-panel-display-name {
@@ -762,36 +713,6 @@ th.cog, td.cog {
 .prism-multivalue-container {
     margin-left: 15px; // aligning multivalue container with superior container
 }
-
-
-// Common styles for object detail pages
-
-// TODO: probably not used
-//.assignable-header {
-//  border-bottom: 2px solid $table-divider-color;
-//  margin: 0px;
-//  margin-bottom: 10px;
-//  padding-left: 5px; // align with the checkboxes below
-//
-//  div.col-xs-10 {
-//    padding: 0 5px;
-//
-//    & > input {
-//      display: inline-block;
-//    }
-//
-//    > h3 {
-//      display: inline-block;
-//      margin-bottom: 5px;
-//      margin-left: 5px;
-//    }
-//  }
-//
-//  & > div.cog {
-//    margin-top: 18px;
-//    padding-right: 5px;
-//  }
-//}
 
 .check-table-header {
 	padding-left: 20px;
@@ -1419,10 +1340,6 @@ td .prism-property-value {
 
 .cog-xs {
 	width: 38px;
-}
-
-.ace-editor-left-aligning {
-  margin-left: -15px;
 }
 
 .search-form {

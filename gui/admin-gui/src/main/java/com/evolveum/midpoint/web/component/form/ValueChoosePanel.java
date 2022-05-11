@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -206,8 +206,8 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
             }
 
             @Override
-            protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
-                return ValueChoosePanel.this.getSpecialSearchItemFunctions();
+            protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
+                return ValueChoosePanel.this.getSpecialSearchItemWrappers();
             }
         };
 
@@ -215,7 +215,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     }
 
-    protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
         return Collections.emptySet();
     }
 

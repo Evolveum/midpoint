@@ -1366,6 +1366,80 @@ public final class WebComponentUtil {
         return name.getOrig();
     }
 
+    //todo copied from DashboardServiceImpl; may be move to som util class?
+    public static DisplayType combineDisplay(DisplayType display, DisplayType variationDisplay) {
+        DisplayType combinedDisplay = new DisplayType();
+        if (variationDisplay == null) {
+            return display;
+        }
+        if (display == null) {
+            return variationDisplay;
+        }
+        if (StringUtils.isBlank(variationDisplay.getColor())) {
+            combinedDisplay.setColor(display.getColor());
+        } else {
+            combinedDisplay.setColor(variationDisplay.getColor());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssClass())) {
+            combinedDisplay.setCssClass(display.getCssClass());
+        } else {
+            combinedDisplay.setCssClass(variationDisplay.getCssClass());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssStyle())) {
+            combinedDisplay.setCssStyle(display.getCssStyle());
+        } else {
+            combinedDisplay.setCssStyle(variationDisplay.getCssStyle());
+        }
+        if (variationDisplay.getHelp() == null) {
+            combinedDisplay.setHelp(display.getHelp());
+        } else {
+            combinedDisplay.setHelp(variationDisplay.getHelp());
+        }
+        if (variationDisplay.getLabel() == null) {
+            combinedDisplay.setLabel(display.getLabel());
+        } else {
+            combinedDisplay.setLabel(variationDisplay.getLabel());
+        }
+        if (variationDisplay.getSingularLabel() == null) {
+            combinedDisplay.setSingularLabel(display.getSingularLabel());
+        } else {
+            combinedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
+        }
+        if (variationDisplay.getPluralLabel() == null) {
+            combinedDisplay.setPluralLabel(display.getPluralLabel());
+        } else {
+            combinedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
+        }
+        if (variationDisplay.getTooltip() == null) {
+            combinedDisplay.setTooltip(display.getTooltip());
+        } else {
+            combinedDisplay.setTooltip(variationDisplay.getTooltip());
+        }
+        if (variationDisplay.getIcon() == null) {
+            combinedDisplay.setIcon(display.getIcon());
+        } else if (display.getIcon() != null) {
+            IconType icon = new IconType();
+            if (StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
+                icon.setCssClass(display.getIcon().getCssClass());
+            } else {
+                icon.setCssClass(variationDisplay.getIcon().getCssClass());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
+                icon.setColor(display.getIcon().getColor());
+            } else {
+                icon.setColor(variationDisplay.getIcon().getColor());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
+                icon.setImageUrl(display.getIcon().getImageUrl());
+            } else {
+                icon.setImageUrl(variationDisplay.getIcon().getImageUrl());
+            }
+            combinedDisplay.setIcon(icon);
+        }
+
+        return combinedDisplay;
+    }
+
     public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
         if (def == null) {
             return null;
@@ -5161,13 +5235,16 @@ public final class WebComponentUtil {
     }
 
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
+            return new ArrayList<>();
+        }
+        return getAllowedValues(parameter.getAllowedValuesExpression(), pageBase);
+    }
+
+    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, PageBase pageBase) {
         List<DisplayableValue<?>> allowedValues = new ArrayList<>();
 
-        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
-            return allowedValues;
-        }
         Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
-        ExpressionType expression = parameter.getAllowedValuesExpression();
         Object value = null;
         try {
 
@@ -5201,6 +5278,51 @@ public final class WebComponentUtil {
                     .map(PrismPropertyValue::getValue).collect(Collectors.toList());
         }
         return allowedValues;
+    }
+
+    public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
+        PageParameters parameters = pageBase.getPageParameters();
+        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+    }
+
+    public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageBase pageBase,
+            FocusType principalFocus, @NotNull Class<C> viewType, boolean createIfNotExist) {
+        if (!(principalFocus instanceof UserType)) {
+            return null;
+        }
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(pageBase);
+        String viewName = collectionViewParameter != null ? collectionViewParameter.toString() : null;
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            adminGui = new AdminGuiConfigurationType();
+            ((UserType) principalFocus).setAdminGuiConfiguration(adminGui);
+        }
+        GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
+        if (views == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            views = new GuiObjectListViewsType();
+            adminGui.objectCollectionViews(views);
+        }
+
+        if (StringUtils.isNoneEmpty(viewName)) {
+            for (GuiObjectListViewType view : views.getObjectCollectionView()) {
+                if (view.getIdentifier().equals(viewName)) {
+                    return view;
+                }
+            }
+        } else {
+            for (GuiObjectListViewType view : views.getObjectCollectionView()) {
+                if (view.getType().equals(WebComponentUtil.containerClassToQName(PrismContext.get(), viewType))) {
+                    return view;
+                }
+            }
+        }
+        return null;
     }
 
     public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,

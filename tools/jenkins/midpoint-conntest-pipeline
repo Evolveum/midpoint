@@ -32,7 +32,7 @@ spec:
         stage("build") {
             container('maven') {
                 try {
-                    sh """#!/bin/bash
+                    sh """#!/bin/bash -ex
                         if [ '${VERBOSE}' = '1' ]
                         then
 	                        env | sort
@@ -56,7 +56,7 @@ spec:
         stage("conntest") {
             container('maven') {
                 try {
-                    sh """
+                    sh """#!/bin/bash -ex
                         mvn -B -ntp clean install -DskipConnTests=false -pl testing/conntest
 
 				        if [ '${VERBOSE}' = '1' ]

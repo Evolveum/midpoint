@@ -12,6 +12,14 @@
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables.scss";
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins/breakpoints.scss";
 
+$grid-breakpoints: map-merge($grid-breakpoints, (
+        xxl: 1650px
+));
+
+$container-max-widths: map-merge($container-max-widths, (
+        xxl: 1600px
+));
+
 $text-label-color: #3c8dbc;
 $text-dimmed-color: #808080;
 $text-dark-dimmed-color: #595959;

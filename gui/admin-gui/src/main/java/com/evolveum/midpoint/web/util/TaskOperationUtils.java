@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class TaskOperationUtils {
@@ -225,6 +226,9 @@ public class TaskOperationUtils {
     }
 
     public static void addArchetypeReferencesList(List<ObjectReferenceType> references) {
+        if (CollectionUtils.isEmpty(references)) {
+            return;
+        }
         if (references.get(0) != null) {
             String oid = references.get(0).getOid();
             if (UTILITY_ARCHETYPES.contains(oid)) {

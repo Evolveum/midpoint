@@ -422,6 +422,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         Class<? extends Panel> panelClass = findObjectPanel(panelType);
         Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
+        panel.add(AttributeAppender.append("class", () -> {
+                List panels = getPanelConfigurations().getObject();
+                if (panels == null || panels.size() <= 1) {
+                    return "flex-grow-1";
+                }
+
+                return null;
+        }));
+
         if (panel != null) {
             form.addOrReplace(panel);
             return;

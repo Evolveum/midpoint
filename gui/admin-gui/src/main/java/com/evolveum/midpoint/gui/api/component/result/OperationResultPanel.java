@@ -299,116 +299,55 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     private void initDetails(WebMarkupContainer box) {
-
         final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
         details.setOutputMarkupId(true);
-        details.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return getModel().getObject().isShowMore();
-            }
-        });
-
+        details.add(new VisibleBehaviour(() -> getModelObject().isShowMore()));
         box.add(details);
 
-        WebMarkupContainer operationPanel = new WebMarkupContainer("type");
-        operationPanel.setOutputMarkupId(true);
-        operationPanel.add(new AttributeAppender("class", new LoadableModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return getLabelCss(getModel());
-            }
-        }, " "));
-        details.add(operationPanel);
-
-        Label operationLabel = new Label("operationLabel",
-                createStringResource("FeedbackAlertMessageDetails.operation"));
+        Label operationLabel = new Label("operationLabel", createStringResource("FeedbackAlertMessageDetails.operation"));
         operationLabel.setOutputMarkupId(true);
-        operationPanel.add(operationLabel);
+        details.add(operationLabel);
 
-        Label operation = new Label("operation", new LoadableModel<Object>() {
-            private static final long serialVersionUID = 1L;
+        Label operation = new Label("operation", () -> {
+            OpResult result = getModelObject();
 
-            @Override
-            protected Object load() {
-                OpResult result = getModelObject();
-
-                String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-                return getPage().getString(resourceKey, null, result.getOperation());
-            }
+            String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
+            return getString(resourceKey, null, result.getOperation());
         });
         operation.setOutputMarkupId(true);
-        operationPanel.add(operation);
+        details.add(operation);
 
         Label count = new Label("countLabel", createStringResource("FeedbackAlertMessageDetails.count"));
-        count.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        count.add(new VisibleBehaviour(() -> getModelObject().getCount() > 1));
+        details.add(count);
+        details.add(initCountPanel(getModel()));
 
-            @Override
-            public boolean isVisible() {
-                OpResult result = getModelObject();
-                return result.getCount() > 1;
-            }
-        });
-        operationPanel.add(count);
-        operationPanel.add(initCountPanel(getModel()));
-
-        Label message = new Label("resultMessage",
-                new PropertyModel<String>(getModel(), "message").getObject());// PageBase.new
-        // PropertyModel<String>(model,
-        // "message"));
+        Label message = new Label("resultMessage", new PropertyModel<String>(getModel(), "message").getObject());
         message.setOutputMarkupId(true);
 
-        message.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        message.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject().getMessage())));
 
-            @Override
-            public boolean isVisible() {
-                return StringUtils.isNotBlank(getModelObject().getMessage());
-            }
-        });
-
-        operationPanel.add(message);
+        details.add(message);
 
         Label messageLabel = new Label("messageLabel", createStringResource("FeedbackAlertMessageDetails.message"));
         messageLabel.setOutputMarkupId(true);
 
-        messageLabel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        messageLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject().getMessage())));
 
-            @Override
-            public boolean isVisible() {
-                return StringUtils.isNotBlank(getModelObject().getMessage());
-            }
-        });
+        details.add(messageLabel);
 
-        operationPanel.add(messageLabel);
-
-        initParams(operationPanel, getModel());
-        initContexts(operationPanel, getModel());
-        initError(operationPanel, getModel());
+        initParams(details, getModel());
+        initContexts(details, getModel());
+        initError(details, getModel());
     }
 
     private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
-
         Label paramsLabel = new Label("paramsLabel", createStringResource("FeedbackAlertMessageDetails.params"));
         paramsLabel.setOutputMarkupId(true);
-        paramsLabel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(model.getObject().getParams());
-            }
-        });
-
+        paramsLabel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getParams())));
         operationContent.add(paramsLabel);
 
-        ListView<Param> params = new ListView<Param>(ID_PARAMS, createParamsModel(model)) {
+        ListView<Param> params = new ListView<>(ID_PARAMS, createParamsModel(model)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -418,18 +357,11 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         };
         params.setOutputMarkupId(true);
-        params.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(model.getObject().getParams());
-            }
-        });
+        params.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getParams())));
 
         operationContent.add(params);
 
-        ListView<OpResult> subresults = new ListView<OpResult>("subresults", createSubresultsModel(model)) {
+        ListView<OpResult> subresults = new ListView<>("subresults", createSubresultsModel(model)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -441,35 +373,17 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         };
         subresults.setOutputMarkupId(true);
-        subresults.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(model.getObject().getSubresults());
-            }
-        });
-
+        subresults.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getSubresults())));
         operationContent.add(subresults);
-
     }
 
     private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {
-
         Label contextsLabel = new Label("contextsLabel", createStringResource("FeedbackAlertMessageDetails.contexts"));
         contextsLabel.setOutputMarkupId(true);
-        contextsLabel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(model.getObject().getContexts());
-            }
-        });
-
+        contextsLabel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getContexts())));
         operationContent.add(contextsLabel);
 
-        ListView<Context> contexts = new ListView<Context>("contexts", createContextsModel(model)) {
+        ListView<Context> contexts = new ListView<>("contexts", createContextsModel(model)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -479,62 +393,27 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
         };
         contexts.setOutputMarkupId(true);
-        contexts.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(model.getObject().getContexts());
-            }
-        });
+        contexts.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(model.getObject().getContexts())));
         operationContent.add(contexts);
     }
 
     private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model) {
         Label errorLabel = new Label("errorLabel", createStringResource("FeedbackAlertMessageDetails.error"));
-        errorLabel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                // return true;
-                return StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace());
-
-            }
-        });
+        errorLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace())));
         errorLabel.setOutputMarkupId(true);
         operationPanel.add(errorLabel);
 
         Label errorMessage = new Label("errorMessage", new PropertyModel<String>(model, "exceptionMessage"));
-        errorMessage.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                // return true;
-                return StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace());
-
-            }
-        });
+        errorMessage.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace())));
         errorMessage.setOutputMarkupId(true);
         operationPanel.add(errorMessage);
 
-        final Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE,
-                new PropertyModel<String>(model, "exceptionsStackTrace"));
-        errorStackTrace.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                // return true;
-                return model.getObject().isShowError();
-
-            }
-        });
+        final Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE, new PropertyModel<String>(model, "exceptionsStackTrace"));
+        errorStackTrace.add(new VisibleBehaviour(() -> model.getObject().isShowError()));
         errorStackTrace.setOutputMarkupId(true);
         operationPanel.add(errorStackTrace);
 
-        AjaxLink<Void> errorStackTraceLink = new AjaxLink<Void>("errorStackTraceLink") {
+        AjaxLink<Void> errorStackTraceLink = new AjaxLink<>("errorStackTraceLink") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -542,38 +421,19 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 OpResult result = OperationResultPanel.this.getModelObject();
                 result.setShowError(!model.getObject().isShowError());
                 result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
-//                model.getObject().setShowError(!model.getObject().isShowError());
                 target.add(OperationResultPanel.this);
             }
 
         };
         errorStackTraceLink.setOutputMarkupId(true);
-        errorStackTraceLink.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace());
-
-            }
-        });
+        errorStackTraceLink.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(model.getObject().getExceptionsStackTrace())));
         operationPanel.add(errorStackTraceLink);
-
     }
 
     private Label initCountPanel(final IModel<OpResult> model) {
         Label count = new Label("count", new PropertyModel<String>(model, "count"));
-        count.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                OpResult result = model.getObject();
-                return result.getCount() > 1;
-            }
-        });
+        count.add(new VisibleBehaviour(() -> model.getObject().getCount() > 1));
         return count;
-
     }
 
     private void showHideAll(final boolean show, AjaxRequestTarget target) {
@@ -583,41 +443,35 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     private IModel<String> createHeaderCss() {
+        return () -> {
+            OpResult result = getModelObject();
 
-        return new IModel<>() {
-            private static final long serialVersionUID = 1L;
+            if (result == null || result.getStatus() == null) {
+                return "card-warning";
+            }
 
-            @Override
-            public String getObject() {
-                OpResult result = getModelObject();
+            switch (result.getStatus()) {
+                case IN_PROGRESS:
+                case NOT_APPLICABLE:
+                    return "card-info";
+                case SUCCESS:
+                    return "card-success";
+                case HANDLED_ERROR:
+                    return "card-default";
+                case FATAL_ERROR:
 
-                if (result == null || result.getStatus() == null) {
+                    return "card-danger";
+                case UNKNOWN:
+                case PARTIAL_ERROR:
+                case WARNING:
+                default:
                     return "card-warning";
-                }
-
-                switch (result.getStatus()) {
-                    case IN_PROGRESS:
-                    case NOT_APPLICABLE:
-                        return "card-info";
-                    case SUCCESS:
-                        return "card-success";
-                    case HANDLED_ERROR:
-                        return "card-default";
-                    case FATAL_ERROR:
-
-                        return "card-danger";
-                    case UNKNOWN:
-                    case PARTIAL_ERROR:
-                    case WARNING:
-                    default:
-                        return "card-warning";
-                }
             }
         };
     }
 
     static IModel<List<Param>> createParamsModel(final IModel<OpResult> model) {
-        return new LoadableModel<List<Param>>(false) {
+        return new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -629,7 +483,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     static IModel<List<Context>> createContextsModel(final IModel<OpResult> model) {
-        return new LoadableModel<List<Context>>(false) {
+        return new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -641,7 +495,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     private IModel<List<OpResult>> createSubresultsModel(final IModel<OpResult> model) {
-        return new LoadableModel<List<OpResult>>(false) {
+        return new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -655,31 +509,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 return subresults;
             }
         };
-    }
-
-    private String getLabelCss(final IModel<OpResult> model) {
-        OpResult result = model.getObject();
-
-        if (result == null || result.getStatus() == null) {
-            return "messages-warn-content";
-        }
-
-        switch (result.getStatus()) {
-            case IN_PROGRESS:
-            case NOT_APPLICABLE:
-                return "left-info";
-            case SUCCESS:
-            case HANDLED_ERROR: // TODO:
-                return "left-success";
-            case FATAL_ERROR:
-
-                return "left-danger";
-            case UNKNOWN:
-            case PARTIAL_ERROR:
-            case WARNING:
-            default:
-                return "left-warning";
-        }
     }
 
     @Override
@@ -711,5 +540,4 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     public StringResourceModel getTitle() {
         return new StringResourceModel("OperationResultPanel.result");
     }
-
 }

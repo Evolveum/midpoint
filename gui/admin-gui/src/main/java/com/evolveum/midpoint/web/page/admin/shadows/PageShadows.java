@@ -74,7 +74,7 @@ public class PageShadows extends PageAdmin {
             }
 
             @Override
-            protected CompiledObjectCollectionView getObjectCollectionView() {
+            public CompiledObjectCollectionView getObjectCollectionView() {
                 return super.getObjectCollectionView();
             }
 

@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.Popover;
+import com.evolveum.midpoint.gui.impl.component.search.Popover;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -169,11 +169,11 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         debug.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && queryPlaygroundAccessible));
         form.add(debug);
 
-        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
-        SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
-        form.add(collectionPanel);
-        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null
-                && getModelObject().isCollectionItemVisible()));
+//        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
+//        SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
+//        form.add(collectionPanel);
+//        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null
+//                && getModelObject().isCollectionItemVisible()));
 
         PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
         SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel) {
