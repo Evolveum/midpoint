@@ -312,6 +312,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         advancedSearchFragment.setOutputMarkupId(true);
         advancedSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode()) ||
                 SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())));
+        advancedSearchFragment.add(AttributeAppender.append("style", "display: flex;"));
         searchItemsRepeatingView.add(advancedSearchFragment);
 
         FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(searchItemsRepeatingView.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
