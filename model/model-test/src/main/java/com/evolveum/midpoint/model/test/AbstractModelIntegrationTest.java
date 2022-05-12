@@ -6127,6 +6127,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .display();
     }
 
+    protected ResourceAsserter<Void> assertResourceAfter(PrismObject<ResourceType> resource) {
+        return assertResource(resource, "after")
+                .display();
+    }
+
+    protected ResourceAsserter<Void> assertResourceAfter(ResourceType resource) {
+        return assertResource(resource, "after")
+                .display();
+    }
+
     protected ResourceAsserter<Void> assertResourceBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertResource(oid, "before")
                 .display();

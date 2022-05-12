@@ -978,8 +978,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
         ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
-        initializeAsserter(asserter);
-        asserter.display();
+        initializeAsserter(asserter); // no display here (intentionally)
         return asserter;
     }
 

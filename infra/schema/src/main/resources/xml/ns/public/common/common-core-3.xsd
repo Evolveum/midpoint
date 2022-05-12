@@ -23985,6 +23985,7 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -24003,6 +24004,7 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -24022,6 +24024,7 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
