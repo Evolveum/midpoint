@@ -600,11 +600,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         capCred = ResourceTypeUtil.getEnabledCapability(resourceType, CredentialsCapabilityType.class);
         assertThat(capCred).isNotNull();
         assertNotNull("password capability not found", capCred.getPassword());
-        // Although connector does not support activation, the resource
-        // specifies a way how to simulate it.
-        // Therefore the following should succeed
-        capAct = ResourceTypeUtil.getEnabledCapability(resourceType, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found", capAct);
+
+        if (supportsActivation()) {
+            capAct = ResourceTypeUtil.getEnabledCapability(resourceType, ActivationCapabilityType.class);
+            assertNotNull("activation capability not found", capAct);
+        }
 
         dumpResourceCapabilities(resourceType);
 

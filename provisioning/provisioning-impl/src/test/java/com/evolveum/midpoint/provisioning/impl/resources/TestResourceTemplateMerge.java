@@ -27,6 +27,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import org.testng.annotations.Test;
@@ -131,8 +134,17 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
                 .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef())
-                .assertGeneratedClasses(new QName("A"), new QName("B"));
-//                .capability(ReadCapabilityType.class)
+                .assertGeneratedClasses(new QName("A"), new QName("B"))
+                .assertConfiguredCapabilities(3) // 1 overridden, 1 inherited, 1 new
+                .configuredCapability(CountObjectsCapabilityType.class)
+                    // overridden in types-1
+                    .assertPropertyEquals(CountObjectsCapabilityType.F_SIMULATE, CountObjectsSimulateType.SEQUENTIAL_SEARCH)
+                .end()
+                .configuredCapability(ReadCapabilityType.class) // new in types-1
+                    .assertPropertyEquals(ReadCapabilityType.F_ENABLED, true)
+                .end()
+                .configuredCapability(CreateCapabilityType.class) // from the template
+                .end();
         // @formatter:on
 
         and("ancestors are OK");

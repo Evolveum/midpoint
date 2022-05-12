@@ -34,6 +34,7 @@
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>
+            <cap:create/>
         </configured>
     </capabilities>
 </resource>
