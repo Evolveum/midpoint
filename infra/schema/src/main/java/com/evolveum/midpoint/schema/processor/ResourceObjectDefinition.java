@@ -359,7 +359,13 @@ public interface ResourceObjectDefinition
 
     //region Capabilities
     /**
-     * TODO
+     * Checks the presence of capability in:
+     *
+     * 1. resource object definition (applicable only to resource object _type_ definitions),
+     * 2. additional connectors in resource (only if enabled there),
+     * 3. the main connector.
+     *
+     * Returns the present capability, but only if it's enabled.
      */
     <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource);
 

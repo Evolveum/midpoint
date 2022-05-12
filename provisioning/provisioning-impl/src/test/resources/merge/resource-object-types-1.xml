@@ -10,6 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
     <name>object-types-1</name>
@@ -74,6 +75,12 @@
                     </q:equal>
                 </filter>
             </protected>
+            <configuredCapabilities>
+                <cap:pagedSearch/>
+                <cap:read>
+                    <cap:enabled>true</cap:enabled>
+                </cap:read>
+            </configuredCapabilities>
             <synchronization>
                 <reaction> <!-- should be added as a new value -->
                     <situation>unmatched</situation>
@@ -96,4 +103,9 @@
             </synchronization>
         </objectType>
     </schemaHandling>
+    <capabilities>
+        <configured>
+            <cap:update/>
+        </configured>
+    </capabilities>
 </resource>
