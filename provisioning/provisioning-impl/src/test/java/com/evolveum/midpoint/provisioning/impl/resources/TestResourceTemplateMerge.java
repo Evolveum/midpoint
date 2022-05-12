@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -130,6 +132,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .end()
                 .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef())
                 .assertGeneratedClasses(new QName("A"), new QName("B"));
+//                .capability(ReadCapabilityType.class)
         // @formatter:on
 
         and("ancestors are OK");

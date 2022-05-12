@@ -6,12 +6,9 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-
-import com.evolveum.midpoint.task.api.*;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +33,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerAware;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateErrorHand
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 
 /**
@@ -60,9 +61,6 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
-
-    private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-            = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
     private ConnectorConfiguration configuration;
 
@@ -174,13 +172,10 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public Collection<Object> fetchCapabilities(OperationResult parentResult) {
+    public CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("capabilities");
-
-        Collection<Object> capabilities = new ArrayList<>();
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createAsyncUpdate(new AsyncUpdateCapabilityType()));
-        return capabilities;
-
+        return new CapabilityCollectionType()
+                .asyncUpdate(new AsyncUpdateCapabilityType());
         // TODO activation, credentials?
     }
 

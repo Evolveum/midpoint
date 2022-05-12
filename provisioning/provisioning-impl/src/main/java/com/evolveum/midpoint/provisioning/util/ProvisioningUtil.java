@@ -149,7 +149,7 @@ public class ProvisioningUtil {
 
         // Password
         CredentialsCapabilityType credentialsCapability =
-                ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+                ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
         if (credentialsCapability != null) {
             if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_PASSWORD_VALUE)) {
                 attributesToReturn.setReturnPasswordExplicit(true);
@@ -167,8 +167,8 @@ public class ProvisioningUtil {
         }
 
         // Activation
-        ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-                ActivationCapabilityType.class);
+        ActivationCapabilityType activationCapability =
+                ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
         if (activationCapability != null) {
             if (CapabilityUtil.isCapabilityEnabled(activationCapability.getStatus())) {
                 if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)) {
@@ -583,7 +583,7 @@ public class ProvisioningUtil {
         ResourceType resource = ctx.getResource();
         CachingPolicyType caching = resource.getCaching();
         if (caching == null || caching.getCachingStrategy() == null) {
-            ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+            ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
             if (readCapabilityType == null) {
                 return CachingStrategyType.NONE;
             }
@@ -621,7 +621,7 @@ public class ProvisioningUtil {
     }
 
     public static boolean resourceReadIsCachingOnly(ResourceType resource) {
-        ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+        ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
         if (readCapabilityType == null) {
             return false;        // TODO reconsider this
         }
@@ -718,20 +718,6 @@ public class ProvisioningUtil {
     private static boolean isPendingDeleteOperation(PendingOperationType pendingOperation) {
         return pendingOperation.getDelta().getChangeType() == ChangeTypeType.DELETE
                 && pendingOperation.getExecutionStatus() != COMPLETED;
-    }
-
-    /**
-     * Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
-     */
-    public static boolean isPrimaryCachingOnly(ResourceType resource) {
-        ReadCapabilityType readCapabilityType = CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), ReadCapabilityType.class);
-        if (readCapabilityType == null) {
-            return false;
-        }
-        if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
-            return false;
-        }
-        return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
     }
 
     public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {

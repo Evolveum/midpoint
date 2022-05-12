@@ -30,4 +30,15 @@
             <generateObjectClass>B</generateObjectClass>
         </generationConstraints>
     </schema>
+    <capabilities>
+        <configured>
+            <!-- Intentionally without namespace; should be parsed in cap: namespace -->
+            <countObjects xmlns=""> <!-- Overriding the existing one -->
+                <simulate>sequentialSearch</simulate>
+            </countObjects>
+            <read xmlns=""> <!-- Adding a new one -->
+                <enabled>true</enabled>
+            </read>
+        </configured>
+    </capabilities>
 </resource>

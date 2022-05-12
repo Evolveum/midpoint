@@ -186,7 +186,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 return false;
             }
             if (resource.getCapabilities().getConfigured() != null) {
-                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), SchemaCapabilityType.class);
+                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured(), SchemaCapabilityType.class);
                 if (configuredCapability == null) {
                     return false;
                 }

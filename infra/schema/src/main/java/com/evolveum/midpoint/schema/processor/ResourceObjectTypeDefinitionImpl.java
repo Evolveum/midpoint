@@ -12,10 +12,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -326,19 +326,8 @@ public final class ResourceObjectTypeDefinitionImpl
 
     //region Capabilities ========================================================
     @Override
-    public @Nullable CapabilitiesType getConfiguredCapabilities() {
-        CapabilityCollectionType configuredCapabilities = definitionBean.getConfiguredCapabilities();
-        if (configuredCapabilities == null) {
-            return null;
-        }
-        CapabilitiesType capabilitiesType = new CapabilitiesType();
-        capabilitiesType.setConfigured(configuredCapabilities);
-        return capabilitiesType;
-    }
-
-    @Override
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resource) {
-        return ResourceTypeUtil.getEffectiveCapability(resource, definitionBean, capabilityClass);
+    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
+        return ResourceTypeUtil.getEnabledCapability(resource, definitionBean, capabilityClass);
     }
     //endregion
 
@@ -605,6 +594,11 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
+    public <T extends CapabilityType> @Nullable T getConfiguredCapability(Class<T> capabilityClass) {
+        return CapabilityUtil.getCapability(definitionBean.getConfiguredCapabilities(), capabilityClass);
+    }
+
+    @Override
     protected void addDebugDumpHeaderExtension(StringBuilder sb) {
         if (isDefaultForKind()) {
             sb.append(",default-for-kind");
@@ -620,9 +614,5 @@ public final class ResourceObjectTypeDefinitionImpl
     protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", definitionBean, indent + 1);
-    }
-
-    @FunctionalInterface
-    private interface FeatureExtractor<X> extends Function<ResourceObjectTypeDefinitionType, X> {
     }
 }

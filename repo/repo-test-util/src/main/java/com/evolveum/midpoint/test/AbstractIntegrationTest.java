@@ -51,6 +51,9 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -4219,5 +4222,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassDefinition().getTypeName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
                 .build();
+    }
+
+    protected void dumpResourceCapabilities(@NotNull ResourceType resource) throws SchemaException {
+        for (CapabilityType capability : ResourceTypeUtil.getEnabledCapabilities(resource)) {
+            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
+        }
     }
 }
