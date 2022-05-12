@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -40,8 +42,6 @@ import java.util.concurrent.Future;
 public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdatePanel.class);
-
-    private static final ResourceReference PRELOADER = new PackageResourceReference(ImgResources.class, "ajax-loader.gif");
 
     public static final int DEFAULT_TIMER_DURATION = 2; // seconds
 
@@ -124,16 +124,7 @@ public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePa
     }
 
     protected Component getLoadingComponent(final String markupId) {
-        Image image = new Image(markupId, PRELOADER);
-        image.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isLoadingVisible();
-            }
-        });
-
-        return image;
+        return new Label(markupId);
     }
 
     protected abstract Component getMainComponent(final String markupId);

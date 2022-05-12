@@ -398,54 +398,13 @@ th.cog, td.cog {
 }
 
 // Summary panel (panel above the edit user/role/org forms)
-
-//@mixin info-box-summary-panel($color) {
-//	border-top: 3px solid $color;
-//    min-height: 95px;
-//}
-//
-//.info-box.summary-panel-user {
-//  @include info-box-summary-panel($object-user-color);
-//}
-//
-//.info-box.summary-panel-role {
-//  @include info-box-summary-panel($object-role-color);
-//}
-//
-//.info-box.summary-panel-org {
-//  @include info-box-summary-panel($object-org-color);
-//}
-//
-//.info-box.summary-panel-service {
-//  @include info-box-summary-panel($object-service-color);
-//}
-//
-//.info-box.summary-panel-resource {
-//  @include info-box-summary-panel($object-resource-color);
-//}
-//
-//.info-box.summary-panel-shadow {
-//  @include info-box-summary-panel($object-shadow-color);
-//}
-//
-//.info-box.summary-panel-task {
-//  @include info-box-summary-panel($object-task-color);
-//}
-
 @mixin info-box-icon-summary-panel($color){
 	color: #FFF !important;
 	background-color: $color;
-	//padding: 3px;
-	//white-space: nowrap;
-	//text-align: center;
-	//line-height: 0px;
-    //border-radius: 0;
 }
 
 .info-box-icon.summary-panel-user {
   @include info-box-icon-summary-panel($object-user-color);
-  //line-height: 105px;
-  //height: 105px;
 }
 
 .info-box-icon.summary-panel-role {
@@ -657,15 +616,6 @@ th.cog, td.cog {
 	float: left;
 	background-color: transparent;
 	margin-top: 3px;
-}
-
-.navbar-ajax {
-	float: left;
-
-	& #ajax_busy {
-		margin-top: 12px;
-		margin-left: 8px;
-	}
 }
 
 .page-title {
