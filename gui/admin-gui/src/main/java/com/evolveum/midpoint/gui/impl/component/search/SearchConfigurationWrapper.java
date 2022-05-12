@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -17,7 +19,7 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
     private Class<C> typeClass;
 
-    private List<QName> allowedTypeList = new ArrayList<>();
+    private List<Class<? extends Containerable>> allowedTypeList = new ArrayList<>();
     private List<AbstractSearchItemWrapper> itemsList = new ArrayList<>();
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
@@ -51,16 +53,21 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 //                searchBoxConfig.getObjectTypeConfiguration() != null ? searchBoxConfig.getObjectTypeConfiguration().getDefaultValue() :
 //                        searchBoxConfig.getDefaultObjectType());
         if (searchBoxConfig.getObjectTypeConfiguration() != null) {
-            allowedTypeList = searchBoxConfig.getObjectTypeConfiguration().getSupportedTypes();
+            searchBoxConfig.getObjectTypeConfiguration().getSupportedTypes()
+                    .forEach(type -> {
+                        allowedTypeList.add((Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), type));
+                    });
+
         }
         defaultSearchBoxMode = searchBoxConfig.getDefaultMode();
-        allowedModeList = searchBoxConfig.getAllowedMode();
+        searchBoxConfig.getAllowedMode().forEach(mode -> allowedModeList.add(mode));
         defaultScope = searchBoxConfig.getScopeConfiguration() != null ? searchBoxConfig.getScopeConfiguration().getDefaultValue()
                 : searchBoxConfig.getDefaultScope();
         if (searchBoxConfig.getRelationConfiguration() != null) {
             defaultRelation = searchBoxConfig.getRelationConfiguration().getDefaultValue() != null ?
                     searchBoxConfig.getRelationConfiguration().getDefaultValue() : RelationTypes.MEMBER.getRelation();
-            supportedRelations = searchBoxConfig.getRelationConfiguration().getSupportedRelations();
+            searchBoxConfig.getRelationConfiguration().getSupportedRelations()
+                    .forEach(relation -> supportedRelations.add(relation));
         }
         if (searchBoxConfig.getIndirectConfiguration() != null && searchBoxConfig.getIndirectConfiguration().isIndirect() != null) {
             indirect = searchBoxConfig.getIndirectConfiguration().isIndirect();
@@ -108,15 +115,8 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         return this;
     }
 
-    public List<QName> getAllowedTypeList() {
+    public List<Class<? extends Containerable>> getAllowedTypeList() {
         return allowedTypeList;
-    }
-
-    public SearchConfigurationWrapper addAllowedType(QName type) {
-        if (!allowedTypeList.contains(type)) {
-            allowedTypeList.add(type);
-        }
-        return this;
     }
 
     public String getCollectionViewName() {
