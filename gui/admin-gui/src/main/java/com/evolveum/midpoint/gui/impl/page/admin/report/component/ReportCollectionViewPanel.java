@@ -146,7 +146,7 @@ public class ReportCollectionViewPanel extends AbstractObjectMainPanel<ReportTyp
                 containerModel, GuiObjectColumnType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-sm-3 col-md-2";
+                return "mp-w-sm-3 mp-w-md-2";
             }
         });
 
@@ -154,7 +154,7 @@ public class ReportCollectionViewPanel extends AbstractObjectMainPanel<ReportTyp
                 containerModel, GuiObjectColumnType.F_PATH, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-md-3";
+                return "mp-w-md-3";
             }
         });
 

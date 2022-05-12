@@ -1709,7 +1709,7 @@ fieldset.objectButtons {
   padding-right: 2rem;
   width: max-content;
   min-width: revert;
-  margin-right: 2rem;
+  margin-right: 1rem;
 
   > legend {
     font-size: 13px;
@@ -1768,13 +1768,13 @@ fieldset.objectButtons {
 }
 
 
-.card-body.p-0 & {
-  thead > tr > th,
-  thead > tr > td,
-  tfoot > tr > th,
-  tfoot > tr > td,
-  tbody > tr > th,
-  tbody > tr > td {
+.card-body.p-0 .table {
+  & > thead > tr > th,
+  & > thead > tr > td,
+  & > tfoot > tr > th,
+  & > tfoot > tr > td,
+  & > tbody > tr > th,
+  & > tbody > tr > td {
     &.icon:first-of-type,
     &.composited-icon:first-of-type,
     &.icon:last-of-type,
