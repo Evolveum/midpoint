@@ -97,6 +97,7 @@ podTemplate(
                         df -h
                     fi
                 """
+            }
         }
         stage("collect-test-results") {
             container('maven') {
