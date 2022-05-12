@@ -17,7 +17,7 @@
     <super>
         <resourceRef oid="873a5483-ded8-4607-ac06-ea5ae92ce755"/>
     </super>
-    <connectorConfiguration >
+    <connectorConfiguration>
         <icfc:configurationProperties>
             <!-- completing the properties -->
             <icfi:instanceId>object-types-1</icfi:instanceId>

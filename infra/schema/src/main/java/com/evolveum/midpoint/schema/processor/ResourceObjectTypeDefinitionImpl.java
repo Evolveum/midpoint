@@ -186,6 +186,11 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
+    public String getDocumentation() {
+        return definitionBean.getDocumentation();
+    }
+
+    @Override
     public boolean isDefaultForObjectClass() {
         // Note that this value cannot be defined on a parent.
         if (definitionBean.isDefaultForObjectClass() != null) {

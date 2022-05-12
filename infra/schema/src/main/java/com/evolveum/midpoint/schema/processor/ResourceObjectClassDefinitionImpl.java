@@ -460,7 +460,12 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public String getDescription() {
-        return null;  // no information in raw object class
+        return null; // no information in raw object class
+    }
+
+    @Override
+    public String getDocumentation() {
+        return null; // no information in raw object class
     }
 
     @Override

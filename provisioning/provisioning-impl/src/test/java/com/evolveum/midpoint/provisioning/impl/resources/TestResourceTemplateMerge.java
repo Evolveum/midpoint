@@ -79,6 +79,10 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
             TEST_DIR, "resource-object-types-1.xml", RESOURCE_OBJECT_TYPES_1_RAW.oid,
             "object-types-1", DummyResourceContoller::extendSchemaPirate);
 
+    private static final DummyTestResource RESOURCE_EXPLICIT_TYPE_INHERITANCE = new DummyTestResource(
+            TEST_DIR, "resource-explicit-type-inheritance.xml", "eb2f35d9-8147-413c-bfe0-f0890c14e702",
+            "explicit-type-inheritance", DummyResourceContoller::extendSchemaPirate);
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -509,6 +513,60 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(phases.getPhase())
                 .as("default inbound mapping evaluation phases")
                 .containsExactlyInAnyOrder(CLOCKWORK, BEFORE_CORRELATION);
+    }
+
+    /**
+     * Tests explicit type inheritance (in a single resource).
+     */
+    @Test
+    public void test220ExplicitTypeInheritance() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("resource is initialized");
+        initDummyResource(RESOURCE_EXPLICIT_TYPE_INHERITANCE, result);
+
+        then("resource is successfully tested");
+        testResourceAssertSuccess(RESOURCE_EXPLICIT_TYPE_INHERITANCE, task); // updates the object
+
+        and("schema can be retrieved");
+        PrismObject<ResourceType> current =
+                beans.resourceManager.getResource(RESOURCE_EXPLICIT_TYPE_INHERITANCE.oid, null, task, result);
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(current);
+
+        displayDumpable("schema", schema);
+
+        and("there is a definition of account/employee");
+        ResourceObjectTypeDefinition employeeDef =
+                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, "employee");
+
+        and("drink is updated");
+        ResourceAttributeDefinition<?> employeeDrinkDef =
+                employeeDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        PropertyLimitations drinkModelLimitations = employeeDrinkDef.getLimitations(LayerType.MODEL);
+        assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
+        assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
+        assertThat(drinkModelLimitations.canModify()).as("modify access to drink").isTrue();
+        assertThat(employeeDrinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in this type
+
+        and("there is a definition of account/admin");
+        ResourceObjectTypeDefinition adminDef =
+                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, "admin");
+
+        and("drink is updated");
+        ResourceAttributeDefinition<?> adminDrinkDef =
+                adminDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        assertThat(adminDrinkDef.isTolerant()).as("drink 'tolerant' flag").isTrue(); // default
+        assertThat(adminDrinkDef.isIgnored(LayerType.MODEL)).as("drink 'ignored' flag").isTrue(); // overridden
+        assertThat(adminDrinkDef.getDocumentation()).isEqualTo("Administrators do not drink!");
+
+        and("there is no definition of account/general");
+        ResourceObjectTypeDefinition generalDef =
+                schema.findObjectTypeDefinition(ShadowKindType.ACCOUNT, "general");
+        assertThat(generalDef).as("definition of account/general").isNull();
+
+        List<? extends ResourceObjectTypeDefinition> accountDefs = schema.getObjectTypeDefinitions(ShadowKindType.ACCOUNT);
+        assertThat(accountDefs).as("account definitions").hasSize(2);
     }
 
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */

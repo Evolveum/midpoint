@@ -14,7 +14,7 @@
     <name>basic-template</name>
     <abstract>true</abstract>
     <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
-    <connectorConfiguration >
+    <connectorConfiguration>
         <icfc:configurationProperties>
             <icfi:instanceId>basic</icfi:instanceId>
             <icfi:uselessString>Shiver me timbers!</icfi:uselessString>
