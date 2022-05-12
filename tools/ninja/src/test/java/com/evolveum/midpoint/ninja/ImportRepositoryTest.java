@@ -40,10 +40,10 @@ public class ImportRepositoryTest extends BaseTest {
 
         executeTest(null,
                 context -> {
-                    RepositoryService repo = context.getRepository();
-                    clearDbIfNative(repo);
+                    clearDbIfNative(context);
 
                     OperationResult result = new OperationResult("count objects");
+                    RepositoryService repo = context.getRepository();
                     int count = repo.countObjects(ObjectType.class, null, null, result);
 
                     AssertJUnit.assertEquals(0, count);
@@ -74,10 +74,10 @@ public class ImportRepositoryTest extends BaseTest {
 
         executeTest(null,
                 context -> {
-                    RepositoryService repo = context.getRepository();
-                    clearDbIfNative(repo);
+                    clearDbIfNative(context);
 
                     OperationResult result = new OperationResult("count objects");
+                    RepositoryService repo = context.getRepository();
                     int count = repo.countObjects(ObjectType.class, null, null, result);
 
                     AssertJUnit.assertEquals(0, count);
@@ -104,10 +104,10 @@ public class ImportRepositoryTest extends BaseTest {
 
         executeTest(null,
                 context -> {
-                    RepositoryService repo = context.getRepository();
-                    clearDbIfNative(repo);
+                    clearDbIfNative(context);
 
                     OperationResult result = new OperationResult("count objects");
+                    RepositoryService repo = context.getRepository();
                     int count = repo.countObjects(ObjectType.class, null, null, result);
 
                     AssertJUnit.assertEquals(0, count);
@@ -136,7 +136,7 @@ public class ImportRepositoryTest extends BaseTest {
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
         executeTest(null,
-                context -> clearDbIfNative(context.getRepository()),
+                context -> clearDbIfNative(context),
                 context -> {
                     RepositoryService repo = context.getRepository();
 
@@ -163,7 +163,7 @@ public class ImportRepositoryTest extends BaseTest {
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
         executeTest(null,
-                context -> clearDbIfNative(context.getRepository()),
+                context -> clearDbIfNative(context),
                 context -> {
                     RepositoryService repo = context.getRepository();
 
