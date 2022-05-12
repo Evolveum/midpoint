@@ -1767,6 +1767,23 @@ fieldset.objectButtons {
   text-decoration: line-through;
 }
 
+
+.card-body.p-0 & {
+  thead > tr > th,
+  thead > tr > td,
+  tfoot > tr > th,
+  tfoot > tr > td,
+  tbody > tr > th,
+  tbody > tr > td {
+    &.icon:first-of-type,
+    &.composited-icon:first-of-type,
+    &.icon:last-of-type,
+    &.composited-icon:last-of-type,{
+      width: 52px !important;
+    }
+  }
+}
+
 // todo cleanup
 th, td {
   &.check {

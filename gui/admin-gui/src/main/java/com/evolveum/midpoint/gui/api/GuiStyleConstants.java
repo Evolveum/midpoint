@@ -12,6 +12,8 @@ package com.evolveum.midpoint.gui.api;
  */
 public class GuiStyleConstants {
 
+    public static final String ICON_FAR_COPY="far fa-copy";
+
     public static final String CLASS_BOX = "box";
     public static final String CLASS_BOX_DEFAULT = "box-default";
 
