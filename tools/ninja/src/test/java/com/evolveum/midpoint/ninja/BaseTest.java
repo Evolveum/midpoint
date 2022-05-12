@@ -173,6 +173,8 @@ public class BaseTest extends AbstractUnitTest {
     }
 
     protected void clearDbIfNative(NinjaContext ninjaContext) {
+        LOG.info("Cleaning up the database");
+
         RepositoryService repository = ninjaContext.getRepository();
         if (repository instanceof SqaleRepositoryService) {
             SqaleRepoContext repoCtx = ((SqaleRepositoryService) repository).sqlRepoContext();
@@ -189,10 +191,15 @@ public class BaseTest extends AbstractUnitTest {
             BaseHelper baseHelper = appContext.getBean(BaseHelper.class);
             SchemaService schemaService = appContext.getBean(SchemaService.class);
 
+            SqlRepositoryConfiguration repoConfig = baseHelper.getConfiguration();
+            if (!repoConfig.isDropIfExists() || repoConfig.isEmbedded()) {
+                return;
+            }
+
             SqlRepoContext fakeRepoContext = new SqlRepoContext(
-                    baseHelper.getConfiguration(), baseHelper.dataSource(), schemaService, null);
+                    repoConfig, baseHelper.dataSource(), schemaService, null);
             try (JdbcSession jdbcSession = fakeRepoContext.newJdbcSession().startTransaction()) {
-                jdbcSession.executeStatement(useProcedure(baseHelper.getConfiguration())
+                jdbcSession.executeStatement(useProcedure(repoConfig)
                         ? "{ call cleanupTestDatabaseProc() }"
                         : "select cleanupTestDatabase();");
                 jdbcSession.commit();
