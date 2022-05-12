@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

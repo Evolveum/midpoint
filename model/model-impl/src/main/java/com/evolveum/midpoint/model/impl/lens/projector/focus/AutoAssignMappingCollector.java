@@ -33,7 +33,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
-import static org.apache.commons.lang.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Collects auto-assignment mappings from auto-assignable roles.

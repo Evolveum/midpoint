@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.security.api;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public enum RestAuthenticationMethod {
 

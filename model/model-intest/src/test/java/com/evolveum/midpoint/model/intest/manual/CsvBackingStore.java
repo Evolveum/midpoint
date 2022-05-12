@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;

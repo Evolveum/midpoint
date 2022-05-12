@@ -11,7 +11,7 @@ import java.util.Date;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;

@@ -54,7 +54,7 @@ import ch.qos.logback.classic.LoggerContext;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.Entry;

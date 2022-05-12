@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

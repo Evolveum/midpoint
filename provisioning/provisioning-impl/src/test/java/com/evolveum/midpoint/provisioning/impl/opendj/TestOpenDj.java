@@ -22,7 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;

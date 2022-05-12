@@ -20,7 +20,7 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.schema.traces.TraceWriter;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

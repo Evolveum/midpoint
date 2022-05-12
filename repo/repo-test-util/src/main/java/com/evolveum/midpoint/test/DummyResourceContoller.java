@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.BreakMode;

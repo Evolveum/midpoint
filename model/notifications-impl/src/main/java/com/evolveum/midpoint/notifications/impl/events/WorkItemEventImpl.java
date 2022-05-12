@@ -10,7 +10,7 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.schema.util.WorkItemId;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
