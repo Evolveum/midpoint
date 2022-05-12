@@ -13,8 +13,10 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -22,7 +24,11 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 /**
@@ -74,12 +80,12 @@ public class BaseTest extends AbstractUnitTest {
     }
 
     /**
-    TODO: Messing with stdout/err is not ideal, Maven also complains:
-     [WARNING] Corrupted STDOUT by directly writing to native stream in forked JVM 1. See FAQ web page and the dump file ...
-     It would be better to use PrintStream variables in Ninja directly, by default these would be System.out/err,
-     but the can be provided from the outside too (for tests).
-     Also, the test stream could do double duty - add the output to the list for asserts (or even work as asserter!),
-     and still print it to the original stream as well for better log output from the maven (test.log).
+     * TODO: Messing with stdout/err is not ideal, Maven also complains:
+     * [WARNING] Corrupted STDOUT by directly writing to native stream in forked JVM 1. See FAQ web page and the dump file ...
+     * It would be better to use PrintStream variables in Ninja directly, by default these would be System.out/err,
+     * but the can be provided from the outside too (for tests).
+     * Also, the test stream could do double duty - add the output to the list for asserts (or even work as asserter!),
+     * and still print it to the original stream as well for better log output from the maven (test.log).
      */
     protected void executeTest(ExecutionValidator preInit,
             ExecutionValidator preExecution,
@@ -166,9 +172,10 @@ public class BaseTest extends AbstractUnitTest {
         AssertJUnit.fail(message + ": " + ex.getMessage());
     }
 
-    protected void clearDbIfNative(RepositoryService repo) {
-        if (repo instanceof SqaleRepositoryService) {
-            SqaleRepoContext repoCtx = ((SqaleRepositoryService) repo).sqlRepoContext();
+    protected void clearDbIfNative(NinjaContext ninjaContext) {
+        RepositoryService repository = ninjaContext.getRepository();
+        if (repository instanceof SqaleRepositoryService) {
+            SqaleRepoContext repoCtx = ((SqaleRepositoryService) repository).sqlRepoContext();
             // Just like in model-intest TestSqaleRepositoryBeanConfig.clearDatabase()
             try (JdbcSession jdbcSession = repoCtx.newJdbcSession().startTransaction()) {
                 jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
@@ -176,6 +183,26 @@ public class BaseTest extends AbstractUnitTest {
                 jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
                 jdbcSession.commit();
             }
+        } else {
+            // Logic adapted from TestSqlRepositoryBeanPostProcessor, we just need to get all those beans
+            ApplicationContext appContext = ninjaContext.getApplicationContext();
+            BaseHelper baseHelper = appContext.getBean(BaseHelper.class);
+            SchemaService schemaService = appContext.getBean(SchemaService.class);
+
+            SqlRepoContext fakeRepoContext = new SqlRepoContext(
+                    baseHelper.getConfiguration(), baseHelper.dataSource(), schemaService, null);
+            try (JdbcSession jdbcSession = fakeRepoContext.newJdbcSession().startTransaction()) {
+                jdbcSession.executeStatement(useProcedure(baseHelper.getConfiguration())
+                        ? "{ call cleanupTestDatabaseProc() }"
+                        : "select cleanupTestDatabase();");
+                jdbcSession.commit();
+            }
         }
+    }
+
+    // Only for generic repo, eventually goes away...
+    private boolean useProcedure(SqlRepositoryConfiguration config) {
+        return StringUtils.containsIgnoreCase(config.getHibernateDialect(), "oracle")
+                || StringUtils.containsIgnoreCase(config.getHibernateDialect(), "SQLServer");
     }
 }
