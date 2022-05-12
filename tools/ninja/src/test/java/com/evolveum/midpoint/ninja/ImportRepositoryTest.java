@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -146,7 +146,7 @@ public class ImportRepositoryTest extends BaseTest {
 
                     try {
                         repo.getObject(RoleType.class, ROLE_2_OID, null, result);
-                        AssertJUnit.fail("This role should get to repository because of default polystring normalizer (name collision failure)");
+                        AssertJUnit.fail("This role should not get to repository because of default polystring normalizer (name collision failure)");
                     } catch (ObjectNotFoundException ex) {
                         // ignored
                     }
