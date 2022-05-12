@@ -588,7 +588,7 @@ public abstract class PageBase extends PageAdminLTE {
             }
 
             if (StringUtils.isNotEmpty(pageTitleKey)) {
-                return getString(pageTitleKey);
+                return createStringResource(pageTitleKey).getString();
             }
 
             return super.createPageTitleModel().getObject();
