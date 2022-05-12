@@ -872,7 +872,7 @@ public class ResourceObjectConverter {
                     fetchResourceObject(ctx, identifiers, attributesToReturn, currentShadow, false, result);
             operationsWave = convertToReplace(ctx, operationsWave, fetchedShadow, false);
         }
-        UpdateCapabilityType updateCapability = ctx.getEffectiveCapability(UpdateCapabilityType.class);
+        UpdateCapabilityType updateCapability = ctx.getCapability(UpdateCapabilityType.class);
         if (updateCapability != null) {
             AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
@@ -948,7 +948,7 @@ public class ResourceObjectConverter {
         // READ+REPLACE mode is if addRemoveAttributeCapability is NOT present. Try to determine from the capabilities. We may still need to force it.
 
         UpdateCapabilityType updateCapabilityType =
-                objectDefinition.getEffectiveCapability(UpdateCapabilityType.class, ctx.getResource());
+                objectDefinition.getEnabledCapability(UpdateCapabilityType.class, ctx.getResource());
         if (updateCapabilityType == null) {
             // Strange. We are going to update, but we cannot update? Anyway, let it go, it should throw an error on a more appropriate place.
             return false;
@@ -960,7 +960,7 @@ public class ResourceObjectConverter {
         if (updateCapabilityType.isAddRemoveAttributeValues() == null) {
             // Deprecated. Legacy.
             readReplace =
-                    objectDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
+                    objectDefinition.getEnabledCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
         } else {
             readReplace = !updateCapabilityType.isAddRemoveAttributeValues();
         }
@@ -1659,9 +1659,8 @@ public class ResourceObjectConverter {
     }
 
     @Nullable
-    private Integer getMaxChanges(@Nullable Integer maxChangesConfigured, ProvisioningContext ctx) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
+    private Integer getMaxChanges(@Nullable Integer maxChangesConfigured, ProvisioningContext ctx) {
+        LiveSyncCapabilityType capability = ctx.getCapability(LiveSyncCapabilityType.class);
         if (capability != null) {
             if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
                 return maxChangesConfigured;
@@ -1873,8 +1872,9 @@ public class ResourceObjectConverter {
         result.setAsynchronousOperationReference(asyncRef);
     }
 
-    private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        C capability = ctx.getEffectiveCapability(capabilityClass);
+    private <C extends CapabilityType> void checkForCapability(
+            ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) {
+        C capability = ctx.getCapability(capabilityClass);
         if (capability == null || BooleanUtils.isFalse(capability.isEnabled())) {
             UnsupportedOperationException e = new UnsupportedOperationException("Operation not supported "+ctx.getDesc()+" as "+capabilityClass.getSimpleName()+" is missing");
             if (result != null) {

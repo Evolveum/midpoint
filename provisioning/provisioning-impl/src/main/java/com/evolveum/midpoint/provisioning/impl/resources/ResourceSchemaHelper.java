@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -61,6 +60,7 @@ class ResourceSchemaHelper {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
+    @Autowired private ResourceConnectorsManager connectorSelector;
 
     /**
      * Applies proper definition (connector schema) to the resource.
@@ -69,7 +69,7 @@ class ResourceSchemaHelper {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
         checkMutable(resource);
         PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
-        for (ConnectorSpec connectorSpec : resourceManager.getAllConnectorSpecs(resource)) {
+        for (ConnectorSpec connectorSpec : connectorSelector.getAllConnectorSpecs(resource)) {
             try {
                 applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
             } catch (CommunicationException | ConfigurationException | SecurityViolationException e) {

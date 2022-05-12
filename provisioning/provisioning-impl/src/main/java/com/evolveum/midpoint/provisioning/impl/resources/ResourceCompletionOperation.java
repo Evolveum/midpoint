@@ -13,8 +13,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityS
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -85,11 +86,28 @@ class ResourceCompletionOperation {
      */
     private boolean isSchemaFreshlyLoaded;
 
-    /** TODO */
-    private final Map<String, Collection<Object>> capabilityMap;
+    /**
+     * Native capabilities of individual connectors. Keyed by the local connector name.
+     *
+     * May be provided by the client. (E.g. test connection does that.)
+     *
+     * Not updated here, just used.
+     */
+    private final NativeConnectorsCapabilities nativeConnectorsCapabilities;
+
+    /**
+     * Whether the capabilities stored in the resource object should be ignored.
+     * Currently true if {@link #nativeConnectorsCapabilities} is present.
+     */
+    private final boolean ignoreStoredCapabilities;
 
     @NotNull private final Task task;
+
     @NotNull private final CommonBeans beans;
+
+    @NotNull private final ResourceConnectorsManager resourceConnectorsManager;
+    @NotNull private final ResourceSchemaHelper schemaHelper;
+    @NotNull private final SchemaFetcher schemaFetcher;
 
     @Nullable private ResourceExpansionOperation expansionOperation;
 
@@ -102,19 +120,38 @@ class ResourceCompletionOperation {
     ResourceCompletionOperation(
             @NotNull PrismObject<ResourceType> resource,
             @Nullable GetOperationOptions options,
-            @Nullable ResourceSchema rawResourceSchema,
-            boolean isSchemaFreshlyLoaded,
-            @Nullable Map<String, Collection<Object>> capabilityMap,
             @NotNull Task task,
             @NotNull CommonBeans beans) {
+        this(resource,
+                options,
+                null,
+                false,
+                null,
+                false,
+                task,
+                beans);
+    }
 
+    ResourceCompletionOperation(
+            @NotNull PrismObject<ResourceType> resource,
+            @Nullable GetOperationOptions options,
+            @Nullable ResourceSchema rawResourceSchema,
+            boolean isSchemaFreshlyLoaded,
+            @Nullable NativeConnectorsCapabilities nativeConnectorsCapabilities,
+            boolean ignoreStoredCapabilities,
+            @NotNull Task task,
+            @NotNull CommonBeans beans) {
         this.resource = resource.cloneIfImmutable();
         this.options = options;
         this.rawResourceSchema = rawResourceSchema;
         this.isSchemaFreshlyLoaded = isSchemaFreshlyLoaded;
-        this.capabilityMap = capabilityMap;
+        this.nativeConnectorsCapabilities = nativeConnectorsCapabilities;
+        this.ignoreStoredCapabilities = ignoreStoredCapabilities;
         this.task = task;
         this.beans = beans;
+        this.resourceConnectorsManager = beans.resourceManager.connectorSelector;
+        this.schemaHelper = beans.resourceManager.schemaHelper;
+        this.schemaFetcher = beans.resourceManager.schemaFetcher;
     }
 
     /**
@@ -171,7 +208,7 @@ class ResourceCompletionOperation {
 
     private void applyConnectorSchema() throws StopException {
         try {
-            beans.resourceManager.applyConnectorSchemasToResource(resource, task, result);
+            schemaHelper.applyConnectorSchemasToResource(resource, task, result);
         } catch (Throwable t) {
             String message =
                     "An error occurred while applying connector schema to connector configuration of " + resource + ": "
@@ -214,7 +251,7 @@ class ResourceCompletionOperation {
         expand(reloaded);
 
         // Schema is applied, but expressions in configuration need to be resolved.
-        beans.resourceManager.applyConnectorSchemasToResource(reloaded, task, result);
+        schemaHelper.applyConnectorSchemasToResource(reloaded, task, result);
 
         LOGGER.trace("Completed resource after reload:\n{}", reloaded.debugDumpLazily(1));
 
@@ -244,7 +281,7 @@ class ResourceCompletionOperation {
         // Capabilities
         // we need to process capabilities first. Schema is one of the connector capabilities.
         // We need to determine this capability to select the right connector for schema retrieval.
-        completeCapabilities(capabilityMap != null, capabilityMap, modifications, result);
+        completeCapabilities(modifications, result);
 
         if (rawResourceSchema == null) {
             // Try to get existing schema from resource. We do not want to override this if it exists
@@ -312,7 +349,7 @@ class ResourceCompletionOperation {
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
         LOGGER.trace("Fetching resource schema for {}", resource);
-        rawResourceSchema = beans.resourceManager.fetchResourceSchema(resource, capabilityMap, result);
+        rawResourceSchema = schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, result);
         if (rawResourceSchema == null) {
             LOGGER.warn("No resource schema fetched from {}", resource);
         } else if (rawResourceSchema.isEmpty()) {
@@ -323,78 +360,89 @@ class ResourceCompletionOperation {
         }
     }
 
-    private void completeCapabilities(boolean forceRefresh, Map<String,Collection<Object>> capabilityMap, Collection<ItemDelta<?, ?>> modifications,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        ResourceType resourceType = resource.asObjectable();
-        ConnectorSpec defaultConnectorSpec = beans.resourceManager.getDefaultConnectorSpec(resource);
-        CapabilitiesType resourceCapType = resourceType.getCapabilities();
-        if (resourceCapType == null) {
-            resourceCapType = new CapabilitiesType();
-            resourceType.setCapabilities(resourceCapType);
-        }
-        completeConnectorCapabilities(defaultConnectorSpec, resourceCapType, ResourceType.F_CAPABILITIES, forceRefresh,
-                capabilityMap==null?null:capabilityMap.get(null),
-                modifications, result);
+    private void completeCapabilities(
+            Collection<ItemDelta<?, ?>> modifications,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
-        for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
-            ConnectorSpec connectorSpec = beans.resourceManager.getConnectorSpec(resource, additionalConnectorType);
-            CapabilitiesType connectorCapType = additionalConnectorType.getCapabilities();
-            if (connectorCapType == null) {
-                connectorCapType = new CapabilitiesType();
-                additionalConnectorType.setCapabilities(connectorCapType);
+        ResourceType resourceBean = resource.asObjectable();
+        if (resourceBean.getCapabilities() == null) {
+            resourceBean.setCapabilities(new CapabilitiesType());
+        }
+        completeConnectorCapabilities(
+                resourceConnectorsManager.createDefaultConnectorSpec(resource),
+                resourceBean.getCapabilities(),
+                ResourceType.F_CAPABILITIES,
+                modifications,
+                result);
+
+        for (ConnectorInstanceSpecificationType additionalConnectorBean : resource.asObjectable().getAdditionalConnector()) {
+            if (additionalConnectorBean.getCapabilities() == null) {
+                additionalConnectorBean.setCapabilities(new CapabilitiesType());
             }
-            ItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().append(ConnectorInstanceSpecificationType.F_CAPABILITIES);
-            completeConnectorCapabilities(connectorSpec, connectorCapType, itemPath, forceRefresh,
-                    capabilityMap==null?null:capabilityMap.get(additionalConnectorType.getName()),
-                    modifications, result);
+            completeConnectorCapabilities(
+                    resourceConnectorsManager.createConnectorSpec(resource, additionalConnectorBean),
+                    additionalConnectorBean.getCapabilities(),
+                    additionalConnectorBean.asPrismContainerValue().getPath().append(ConnectorInstanceSpecificationType.F_CAPABILITIES),
+                    modifications,
+                    result);
         }
     }
 
-    private void completeConnectorCapabilities(ConnectorSpec connectorSpec, CapabilitiesType capType, ItemPath itemPath, boolean forceRefresh,
-            Collection<Object> retrievedCapabilities, Collection<ItemDelta<?, ?>> modifications, OperationResult result)
+    /**
+     * Fetches the connector capabilities (if needed) and prepares appropriate deltas to update the resource object.
+     */
+    private void completeConnectorCapabilities(
+            @NotNull ConnectorSpec connectorSpec,
+            @NotNull CapabilitiesType capabilitiesBean,
+            @NotNull ItemPath itemPath,
+            @NotNull Collection<ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
-        if (capType.getNative() != null && !capType.getNative().getAny().isEmpty()) {
-            if (!forceRefresh) {
-                CachingMetadataType cachingMetadata = capType.getCachingMetadata();
-                if (cachingMetadata == null) {
-                    cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+        if (capabilitiesBean.getNative() != null && !capabilitiesBean.getNative().asPrismContainerValue().hasNoItems()) {
+            if (ignoreStoredCapabilities) {
+                LOGGER.trace("There are capabilities in resource object, but we ignore them; for {}", connectorSpec);
+            } else {
+                LOGGER.trace("Using capabilities that are cached in the resource object; for {}", connectorSpec);
+                if (capabilitiesBean.getCachingMetadata() == null) {
+                    LOGGER.trace("No caching metadata present, creating them");
                     modifications.add(
                             PrismContext.get().deltaFactory().property().createModificationReplaceProperty(
-                                    ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA),
+                                    itemPath.append(CapabilitiesType.F_CACHING_METADATA),
                                     connectorSpec.getResource().getDefinition(),
-                                    cachingMetadata)
-                    );
+                                    MiscSchemaUtil.generateCachingMetadata()));
                 }
                 return;
             }
+        } else {
+            LOGGER.trace("No native capabilities cached in the resource object; for {}", connectorSpec);
         }
 
-        if (retrievedCapabilities == null) {
+        CapabilityCollectionType nativeCapabilities =
+                nativeConnectorsCapabilities != null ? nativeConnectorsCapabilities.get(connectorSpec.getConnectorName()) : null;
+        if (nativeCapabilities == null) {
             try {
-
                 InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-
-                ConnectorInstance connector = beans.connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
-                retrievedCapabilities = connector.fetchCapabilities(result);
-
+                nativeCapabilities = beans.connectorManager
+                        .getConfiguredConnectorInstance(connectorSpec, false, result)
+                        .fetchCapabilities(result);
             } catch (GenericFrameworkException e) {
-                throw new GenericConnectorException("Generic error in connector " + connectorSpec + ": "
-                        + e.getMessage(), e);
+                throw new GenericConnectorException("Couldn't fetch capabilities because of a generic error in connector "
+                        + connectorSpec + ": " + e.getMessage(), e);
             }
         }
 
-        CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
-        capType.setNative(nativeCapType);
-        nativeCapType.getAny().addAll(retrievedCapabilities);
-
-        CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-        capType.setCachingMetadata(cachingMetadata);
+        capabilitiesBean.setNative(CloneUtil.clone(nativeCapabilities));
+        capabilitiesBean.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
         //noinspection unchecked
         ObjectDelta<ResourceType> capabilitiesReplaceDelta = PrismContext.get().deltaFactory().object()
-                .createModificationReplaceContainer(ResourceType.class, connectorSpec.getResource().getOid(),
-                        itemPath, capType.asPrismContainerValue().clone());
+                .createModificationReplaceContainer(
+                        ResourceType.class,
+                        connectorSpec.getResource().getOid(),
+                        itemPath,
+                        capabilitiesBean.asPrismContainerValue().clone());
 
         modifications.addAll(capabilitiesReplaceDelta.getModifications());
     }
@@ -447,9 +495,8 @@ class ResourceCompletionOperation {
         if (resourceBean.getCapabilities() == null || resourceBean.getCapabilities().getConfigured() == null) {
             return;
         }
-        ActivationCapabilityType activationCapability =
-                CapabilityUtil.getCapability(
-                        resourceBean.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
+        // TODO what if activation as a whole is disabled?
+        ActivationCapabilityType activationCapability = resourceBean.getCapabilities().getConfigured().getActivation();
         if (CapabilityUtil.getEnabledActivationStatus(activationCapability) != null) {
             QName attributeName = activationCapability.getStatus().getAttribute();
             Boolean ignore = activationCapability.getStatus().isIgnoreAttribute();

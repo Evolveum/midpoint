@@ -153,13 +153,10 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     default PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
         return delegate().createBlankShadow(resourceOid, tag);
     }
+
     @Override
-    default @Nullable CapabilitiesType getConfiguredCapabilities() {
-        return delegate().getConfiguredCapabilities();
-    }
-    @Override
-    default <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resource) {
-        return delegate().getEffectiveCapability(capabilityClass, resource);
+    default <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
+        return delegate().getEnabledCapability(capabilityClass, resource);
     }
 
     @Override

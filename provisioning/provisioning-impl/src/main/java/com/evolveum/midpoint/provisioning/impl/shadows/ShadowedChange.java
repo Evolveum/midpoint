@@ -305,7 +305,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
             LOGGER.trace("-> current object was taken from ADD delta:\n{}", resourceObject.debugDumpLazily());
         } else {
             boolean passiveCaching = context.getCachingStrategy() == CachingStrategyType.PASSIVE;
-            ReadCapabilityType readCapability = context.getEffectiveCapability(ReadCapabilityType.class);
+            ReadCapabilityType readCapability = context.getCapability(ReadCapabilityType.class);
             boolean canReadFromResource = readCapability != null && !Boolean.TRUE.equals(readCapability.isCachingOnly());
             if (canReadFromResource && (!passiveCaching || isNotificationOnly())) {
                 // Either we don't use caching or we have a notification-only change. Such changes mean that we want to

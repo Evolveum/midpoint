@@ -12,6 +12,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,9 +81,8 @@ public class TestLimitedResources extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
-        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(configuredCapabilities,
-                UpdateCapabilityType.class);
+        CapabilityCollectionType configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured();
+        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(configuredCapabilities, UpdateCapabilityType.class);
         assertNotNull("No configured UpdateCapabilityType", capUpdate);
         assertTrue("Configured addRemoveAttributeValues is not disabled", Boolean.FALSE.equals(capUpdate.isAddRemoveAttributeValues()));
     }

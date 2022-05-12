@@ -16,7 +16,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -243,5 +248,34 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
         }
         SchemaGenerationConstraintsType constraints = schema.getGenerationConstraints();
         return constraints != null ? constraints.getGenerateObjectClass() : List.of();
+    }
+
+    // FIXME fix for expected == 0
+    public ResourceAsserter<RA> assertConfiguredCapabilities(int expected) {
+        assertThat(CapabilityUtil.size(getConfiguredCapabilities()))
+                .as("number of configured capabilities")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public PrismContainerValueAsserter<CapabilityType, ResourceAsserter<RA>> configuredCapability(
+            Class<? extends CapabilityType> type) throws ConfigurationException {
+        CapabilityType capability = CapabilityUtil.getCapability(getConfiguredCapabilities(), type);
+        assertThat(capability).withFailMessage(() -> "no capability of " + type).isNotNull();
+        //noinspection unchecked,rawtypes,ConstantConditions
+        PrismContainerValueAsserter<CapabilityType, ResourceAsserter<RA>> asserter =
+                new PrismContainerValueAsserter<>(capability.asPrismContainerValue(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private CapabilityCollectionType getConfiguredCapabilities() {
+        CapabilitiesType capabilities =
+                MiscUtil.requireNonNull(
+                        getObjectable().getCapabilities(),
+                        () -> new AssertionError("no capabilities"));
+        return MiscUtil.requireNonNull(
+                capabilities.getConfigured(),
+                () -> new AssertionError("no configured capabilities"));
     }
 }

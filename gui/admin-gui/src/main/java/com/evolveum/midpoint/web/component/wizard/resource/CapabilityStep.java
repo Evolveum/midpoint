@@ -20,12 +20,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,7 +34,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.Capability;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -58,13 +55,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -119,11 +111,12 @@ public class CapabilityStep extends WizardStep {
         List<CapabilityDto<CapabilityType>> capabilityList = new ArrayList<>();
 
         try {
-            Collection<Class<? extends CapabilityType>> nativeClasses = ResourceTypeUtil.getNativeCapabilityClasses(resource);
-            List<Object> objects = ResourceTypeUtil.getAllCapabilities(resource);
+            CapabilitiesType capabilitiesBean = resource.getCapabilities();
+            Collection<Class<? extends CapabilityType>> nativeClasses =
+                    CapabilityUtil.getNativeCapabilityClasses(capabilitiesBean);
+            List<CapabilityType> capabilities = CapabilityUtil.getCapabilities(capabilitiesBean, true);
 
-            for (Object capabilityObject : objects) {
-                CapabilityType capability = CapabilityUtil.asCapabilityType(capabilityObject);
+            for (CapabilityType capability : capabilities) {
                 if (Capability.supports(capability.getClass())) {
                     capability = fillDefaults(capability);
                     capabilityList.add(new CapabilityDto<>(capability, nativeClasses.contains(capability.getClass())));
@@ -132,7 +125,7 @@ public class CapabilityStep extends WizardStep {
                 }
             }
 
-        } catch (SchemaException|RuntimeException e) {
+        } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load capabilities", e);
             getPageBase().error(getString("CapabilityStep.message.cantLoadCaps") + e);
         }
@@ -364,27 +357,19 @@ public class CapabilityStep extends WizardStep {
             final PrismObject<ResourceType> resourceObject = resourceModel.getObject();
             ResourceType resource = resourceObject.asObjectable();
 
-            List<Object> unsupportedCapabilities = new ArrayList<>();
+            List<CapabilityType> allConfiguredCapabilities = new ArrayList<>();
             if (resource.getCapabilities().getConfigured() != null) {
-                for (Object o : resource.getCapabilities().getConfigured().getAny()) {
-                    CapabilityType capabilityType = CapabilityUtil.asCapabilityType(o);
-                    if (!Capability.supports(capabilityType.getClass())) {
-                        unsupportedCapabilities.add(o);
+                for (CapabilityType cap : CapabilityUtil.getAllCapabilities(resource.getCapabilities().getConfigured())) {
+                    if (!Capability.supports(cap.getClass())) {
+                        allConfiguredCapabilities.add(cap);
                     }
                 }
             }
-            // AnyArrayList that is used to implement getAny() is really strange (e.g. doesn't support iterator.remove();
-            // and its support for clear() is questionable) -- so let's recreate it altogether
-            resource.getCapabilities().setConfigured(new CapabilityCollectionType());
-            resource.getCapabilities().getConfigured().getAny().addAll(unsupportedCapabilities);
-
-            ObjectFactory capabilityFactory = new ObjectFactory();
-            for (CapabilityDto dto : dtoModel.getObject().getCapabilities()) {
-                JAXBElement<? extends CapabilityType> jaxbCapability = createJAXBCapability(dto.getCapability(), capabilityFactory);
-                if (jaxbCapability != null) {
-                    resource.getCapabilities().getConfigured().getAny().add(jaxbCapability);
-                }
+            for (CapabilityDto<?> dto : dtoModel.getObject().getCapabilities()) {
+                allConfiguredCapabilities.add(dto.getCapability());
             }
+            resource.getCapabilities().setConfigured(
+                    CapabilityUtil.createCapabilityCollection(allConfiguredCapabilities));
 
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
             if (oldResource != null) {
@@ -409,23 +394,5 @@ public class CapabilityStep extends WizardStep {
         if (parentPage.showSaveResultInPage(saved, result)) {
             getPageBase().showResult(result);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private JAXBElement<? extends CapabilityType> createJAXBCapability(CapabilityType capability, ObjectFactory factory) {
-        for (Method method : factory.getClass().getMethods()) {
-            Type returnType = method.getGenericReturnType();
-            if (returnType instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType) returnType;
-                if (JAXBElement.class.equals(pt.getRawType()) && pt.getActualTypeArguments().length == 1 && capability.getClass().equals(pt.getActualTypeArguments()[0])) {
-                    try {
-                        return (JAXBElement<? extends CapabilityType>) method.invoke(factory, capability);
-                    } catch (IllegalAccessException|InvocationTargetException e) {
-                        throw new SystemException("Couldn't instantiate JAXBElement for capability " + capability);
-                    }
-                }
-            }
-        }
-        throw new IllegalStateException("No factory method for creating JAXBElement for capability " + capability);
     }
 }

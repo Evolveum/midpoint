@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -1435,8 +1433,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (focusPasswordPs != null && focusPasswordPs.canGetCleartext()) {
             return null;
         }
-        CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil
-                .getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        CredentialsCapabilityType credentialsCapabilityType =
+                ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
         if (credentialsCapabilityType == null) {
             return null;
         }

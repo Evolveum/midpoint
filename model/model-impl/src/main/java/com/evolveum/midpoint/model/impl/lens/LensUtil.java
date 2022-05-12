@@ -993,8 +993,8 @@ public class LensUtil {
     }
 
     public static boolean isPasswordReturnedByDefault(LensProjectionContext projCtx) {
-        CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
-        return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
+        return CapabilityUtil.isPasswordReturnedByDefault(
+                ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class));
     }
 
     public static boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,

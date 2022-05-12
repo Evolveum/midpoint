@@ -359,18 +359,18 @@ public interface ResourceObjectDefinition
 
     //region Capabilities
     /**
-     * Returns configured capabilities for given refined object class definition.
-     * Returned object is freely modifiable copy of the original information.
+     * Checks the presence of capability in:
+     *
+     * 1. resource object definition (applicable only to resource object _type_ definitions),
+     * 2. additional connectors in resource (only if enabled there),
+     * 3. the main connector.
+     *
+     * Returns the present capability, but only if it's enabled.
      */
-    @Nullable CapabilitiesType getConfiguredCapabilities();
-
-    /**
-     * TODO
-     */
-    <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resource);
+    <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource);
 
     default PagedSearchCapabilityType getPagedSearches(ResourceType resource) {
-        return getEffectiveCapability(PagedSearchCapabilityType.class, resource);
+        return getEnabledCapability(PagedSearchCapabilityType.class, resource);
     }
 
     default boolean isPagedSearchEnabled(ResourceType resourceType) {
@@ -378,7 +378,7 @@ public interface ResourceObjectDefinition
     }
 
     default boolean isObjectCountingEnabled(ResourceType resourceType) {
-        return getEffectiveCapability(CountObjectsCapabilityType.class, resourceType) != null;
+        return getEnabledCapability(CountObjectsCapabilityType.class, resourceType) != null;
     }
     //endregion
 

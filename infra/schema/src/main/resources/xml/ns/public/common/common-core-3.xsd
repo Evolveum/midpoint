@@ -14,6 +14,7 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
@@ -25,6 +26,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
@@ -4146,7 +4148,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="configuredCapabilities" type="c:CapabilityCollectionType" minOccurs="0">
+            <xsd:element name="configuredCapabilities" type="cap:CapabilityCollectionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The configured capabilities of the resource specific to this object type.
@@ -6865,7 +6867,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="native" type="c:CapabilityCollectionType" minOccurs="0">
+            <xsd:element name="native" type="cap:CapabilityCollectionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The capabilities natively supported by the connector without any simulation or any
@@ -6879,7 +6881,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="configured" type="c:CapabilityCollectionType" minOccurs="0">
+            <xsd:element name="configured" type="cap:CapabilityCollectionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The configured capabilities of the resource. This part contains "tweaks" of the native capabilities.
@@ -6899,31 +6901,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="capabilities" type="tns:CapabilitiesType"/>
-
-    <xsd:complexType name="CapabilityCollectionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Collection of resource capabilities. Each element in this collection defines a specific resource
-                capability. Standard midpoint capabilities are defined in a separate namespace. But that is not
-                a closed set. Resource may also specify additional capabilities. If the code that is processing
-                capabilities encounters unknown capability it must ignore it.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:defaultNamespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</a:defaultNamespace>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Elements defining individual capabilities.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:any>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
 
     <xsd:complexType name="OperationProvisioningScriptsType">
         <xsd:annotation>

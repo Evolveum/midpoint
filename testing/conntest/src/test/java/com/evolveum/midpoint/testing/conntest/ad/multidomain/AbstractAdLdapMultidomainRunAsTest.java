@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad.multidomain;
 
-import java.util.List;
-
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -17,7 +13,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 
 /**
@@ -27,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
 public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapMultidomainTest {
 
     @Override
-    protected void assertAdditionalCapabilities(List<Object> nativeCapabilities) {
+    protected void assertAdditionalCapabilities(CapabilityCollectionType nativeCapabilities) {
         super.assertAdditionalCapabilities(nativeCapabilities);
 
         assertCapability(nativeCapabilities, RunAsCapabilityType.class);

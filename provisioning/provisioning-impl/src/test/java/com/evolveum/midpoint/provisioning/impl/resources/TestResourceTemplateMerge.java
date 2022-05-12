@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -129,7 +131,17 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
                 .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef())
-                .assertGeneratedClasses(new QName("A"), new QName("B"));
+                .assertGeneratedClasses(new QName("A"), new QName("B"))
+                .assertConfiguredCapabilities(3) // 1 overridden, 1 inherited, 1 new
+                .configuredCapability(CountObjectsCapabilityType.class)
+                    // overridden in types-1
+                    .assertPropertyEquals(CountObjectsCapabilityType.F_SIMULATE, CountObjectsSimulateType.SEQUENTIAL_SEARCH)
+                .end()
+                .configuredCapability(ReadCapabilityType.class) // new in types-1
+                    .assertPropertyEquals(ReadCapabilityType.F_ENABLED, true)
+                .end()
+                .configuredCapability(CreateCapabilityType.class) // from the template
+                .end();
         // @formatter:on
 
         and("ancestors are OK");
@@ -391,6 +403,36 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(addFocusAction.getName()).isEqualTo("add-focus");
         assertThat(addFocusAction.isSynchronize()).isTrue(); // types-1
         assertThat(addFocusAction.getDocumentation()).isEqualTo("Adding a focus"); // parent
+
+        ReadCapabilityType read = accountDef.getEnabledCapability(ReadCapabilityType.class, current.asObjectable());
+        assertThat(read).as("read capability").isNotNull();
+
+        // Note that resource-level and object-type-level capabilities are currently NOT combined (merged) together.
+        // They are being replaced. This is years-old behavior that we won't change today.
+        // (In this particular case, caching-only is set at the resource level in the template.)
+        assertThat(read.isCachingOnly()).as("caching-only flag").isNull();
+
+        // Here we check that
+        // @formatter:off
+        assertResource(current, "after")
+                .assertConfiguredCapabilities(2)
+                .configuredCapability(ReadCapabilityType.class) // inherited
+                    .assertPropertyEquals(ReadCapabilityType.F_ENABLED, false)
+                    .assertPropertyEquals(ReadCapabilityType.F_CACHING_ONLY, true)
+                .end()
+                .configuredCapability(UpdateCapabilityType.class) // types-1
+                .end();
+        // @formatter:on
+
+        // This one is object-class specific and is inherited from the template
+        AsyncUpdateCapabilityType asyncUpdate =
+                accountDef.getEnabledCapability(AsyncUpdateCapabilityType.class, current.asObjectable());
+        assertThat(asyncUpdate).as("async update capability").isNotNull();
+
+        // And this one is new in types-1/account/default
+        PagedSearchCapabilityType pagedSearch =
+                accountDef.getEnabledCapability(PagedSearchCapabilityType.class, current.asObjectable());
+        assertThat(pagedSearch).as("paged search capability").isNotNull();
     }
 
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */
