@@ -8,13 +8,13 @@ package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanWrapper;
@@ -43,7 +43,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     private PrismContainerValue<?> connectorConfiguration;
     private ResourceSchema resourceSchema = null;
-    private Collection<Object> capabilities = null;
+    private CapabilityCollectionType capabilities = null;
     private boolean configured = false;
 
     private String instanceName; // resource name
@@ -55,10 +55,6 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     public void setConnectorObject(ConnectorType connectorObject) {
         this.connectorObject = connectorObject;
-    }
-
-    public PrismSchema getConnectorConfigurationSchema() {
-        return connectorConfigurationSchema;
     }
 
     public void setConnectorConfigurationSchema(PrismSchema connectorConfigurationSchema) {
@@ -97,16 +93,19 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
         this.resourceSchema = resourceSchema;
     }
 
-    protected Collection<Object> getCapabilities() {
+    protected CapabilityCollectionType getCapabilities() {
         return capabilities;
     }
 
-    protected void setCapabilities(Collection<Object> capabilities) {
+    protected void setCapabilities(CapabilityCollectionType capabilities) {
         this.capabilities = capabilities;
     }
 
     @Override
-    public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames,
+    public void initialize(
+            ResourceSchema resourceSchema,
+            CapabilityCollectionType capabilities,
+            boolean caseIgnoreAttributeNames,
             OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
@@ -164,8 +163,8 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     protected PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
         QName configContainerQName = new QName(getConnectorObject().getNamespace(),
                 ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-        PrismContainerDefinition<?> configContainerDef = getConnectorConfigurationSchema()
-                .findContainerDefinitionByElementName(configContainerQName);
+        PrismContainerDefinition<?> configContainerDef =
+                connectorConfigurationSchema.findContainerDefinitionByElementName(configContainerQName);
         if (configContainerDef == null) {
             throw new SchemaException("No definition of container " + configContainerQName
                     + " in configuration schema for connector " + this);

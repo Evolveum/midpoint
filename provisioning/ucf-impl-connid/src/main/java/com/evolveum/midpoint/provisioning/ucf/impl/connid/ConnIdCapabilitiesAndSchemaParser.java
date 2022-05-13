@@ -6,48 +6,28 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import static com.evolveum.midpoint.schema.processor.ObjectFactory.createRawResourceAttributeDefinition;
+import static com.evolveum.midpoint.schema.processor.ObjectFactory.createResourceSchema;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.*;
 
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
-import org.identityconnectors.framework.api.operations.APIOperation;
-import org.identityconnectors.framework.api.operations.CreateApiOp;
-import org.identityconnectors.framework.api.operations.DeleteApiOp;
-import org.identityconnectors.framework.api.operations.GetApiOp;
-import org.identityconnectors.framework.api.operations.SchemaApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
-import org.identityconnectors.framework.api.operations.SearchApiOp;
-import org.identityconnectors.framework.api.operations.SyncApiOp;
-import org.identityconnectors.framework.api.operations.TestApiOp;
-import org.identityconnectors.framework.api.operations.UpdateApiOp;
-import org.identityconnectors.framework.api.operations.UpdateDeltaApiOp;
-import org.identityconnectors.framework.common.objects.AttributeInfo;
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.OperationOptionInfo;
-import org.identityconnectors.framework.common.objects.OperationOptions;
-import org.identityconnectors.framework.common.objects.OperationalAttributes;
-import org.identityconnectors.framework.common.objects.PredefinedAttributes;
-import org.identityconnectors.framework.common.objects.Schema;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.api.operations.*;
+import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -59,31 +39,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.schema.processor.ObjectFactory.*;
 
 /**
  * Class that can parse ConnId capabilities and schema into midPoint format.
@@ -96,10 +55,8 @@ import static com.evolveum.midpoint.schema.processor.ObjectFactory.*;
  * @author Radovan Semancik
  *
  */
-public class ConnIdCapabilitiesAndSchemaParser {
+class ConnIdCapabilitiesAndSchemaParser {
 
-    private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-            = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
     private static final Trace LOGGER = TraceManager.getTrace(ConnIdCapabilitiesAndSchemaParser.class);
 
     private static final String OP_GET_SUPPORTED_OPERATIONS = ConnectorFacade.class.getName() + ".getSupportedOperations";
@@ -138,7 +95,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
     /**
      * Parsed capabilities.
      */
-    private final Collection<Object> capabilities = new ArrayList<>();
+    private final CapabilityCollectionType capabilities = new CapabilityCollectionType();
 
     ConnIdCapabilitiesAndSchemaParser(
             ConnIdNameMapper connIdNameMapper,
@@ -161,7 +118,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
     /**
      * Returns parsed capabilities or null if they were not available.
      */
-    public Collection<Object> getCapabilities() {
+    public CapabilityCollectionType getCapabilities() {
         return capabilities;
     }
 
@@ -293,26 +250,22 @@ public class ConnIdCapabilitiesAndSchemaParser {
     private void processOperationCapabilities() {
 
         if (connIdSupportedOperations.contains(SchemaApiOp.class)) {
-            SchemaCapabilityType capSchema = new SchemaCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createSchema(capSchema));
+            capabilities.setSchema(new SchemaCapabilityType());
             supportsSchema = true;
         } else {
             supportsSchema = false;
         }
 
         if (connIdSupportedOperations.contains(SyncApiOp.class)) {
-            LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createLiveSync(capSync));
+            capabilities.setLiveSync(new LiveSyncCapabilityType());
         }
 
         if (connIdSupportedOperations.contains(TestApiOp.class)) {
-            TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createTestConnection(capTest));
+            capabilities.setTestConnection(new TestConnectionCapabilityType());
         }
 
         if (connIdSupportedOperations.contains(CreateApiOp.class)){
-            CreateCapabilityType capCreate = new CreateCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(capCreate));
+            capabilities.setCreate(new CreateCapabilityType());
         }
 
         // GetApiOp is processed later. We need supported options (from schema) to fully process it.
@@ -324,19 +277,18 @@ public class ConnIdCapabilitiesAndSchemaParser {
             // (Currently there is no way how to obtain it from the connector.)
             // It can be disabled manually.
             capUpdate.setAddRemoveAttributeValues(true);
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
+            capabilities.setUpdate(capUpdate);
         } else if (connIdSupportedOperations.contains(UpdateApiOp.class)) {
             UpdateCapabilityType capUpdate = new UpdateCapabilityType();
             // This is the default for all resources.
             // (Currently there is no way how to obtain it from the connector.)
             // It can be disabled manually.
             capUpdate.setAddRemoveAttributeValues(true);
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
+            capabilities.setUpdate(capUpdate);
         }
 
-        if (connIdSupportedOperations.contains(DeleteApiOp.class)){
-            DeleteCapabilityType capDelete = new DeleteCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(capDelete));
+        if (connIdSupportedOperations.contains(DeleteApiOp.class)) {
+            capabilities.setDelete(new DeleteCapabilityType());
         }
 
         if (connIdSupportedOperations.contains(ScriptOnResourceApiOp.class)
@@ -354,9 +306,8 @@ public class ConnIdCapabilitiesAndSchemaParser {
                 capScript.getHost().add(host);
                 // language is unknown here
             }
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
+            capabilities.setScript(capScript);
         }
-
     }
 
     private void addBasicReadCapability() {
@@ -364,8 +315,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
         // because it depends on schema options. But if there is no schema we need to add read capability
         // anyway. We do not want to end up with non-readable resource.
         if (connIdSupportedOperations.contains(GetApiOp.class) || connIdSupportedOperations.contains(SearchApiOp.class)) {
-            ReadCapabilityType capRead = new ReadCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
+            capabilities.setRead(new ReadCapabilityType());
         }
     }
 
@@ -633,7 +583,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 
         // TODO: activation and credentials should be per-objectclass capabilities
         if (capAct != null) {
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createActivation(capAct));
+            capabilities.setActivation(capAct);
         }
 
         if (specialAttributes.passwordAttributeInfo != null) {
@@ -646,12 +596,11 @@ public class ConnIdCapabilitiesAndSchemaParser {
                 capPass.setReadable(true);
             }
             capCred.setPassword(capPass);
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createCredentials(capCred));
+            capabilities.setCredentials(capCred);
         }
 
         if (specialAttributes.auxiliaryObjectClassAttributeInfo != null) {
-            AuxiliaryObjectClassesCapabilityType capAux = new AuxiliaryObjectClassesCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createAuxiliaryObjectClasses(capAux));
+            capabilities.setAuxiliaryObjectClasses(new AuxiliaryObjectClassesCapabilityType());
         }
 
         boolean canPageSize = false;
@@ -675,14 +624,13 @@ public class ConnIdCapabilitiesAndSchemaParser {
             }
         }
         if (canPageSize || canPageOffset || canSort) {
-            PagedSearchCapabilityType capPage = new PagedSearchCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createPagedSearch(capPage));
+            capabilities.setPagedSearch(new PagedSearchCapabilityType());
         }
 
         if (connIdSupportedOperations.contains(GetApiOp.class) || connIdSupportedOperations.contains(SearchApiOp.class)) {
             ReadCapabilityType capRead = new ReadCapabilityType();
             capRead.setReturnDefaultAttributesOption(supportsReturnDefaultAttributes);
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
+            capabilities.setRead(capRead);
         }
         if (connIdSupportedOperations.contains(UpdateDeltaApiOp.class)) {
             processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateDeltaApiOp.class));
@@ -749,8 +697,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
             }
         }
         if (canRunAsUser) {
-            RunAsCapabilityType capRunAs = new RunAsCapabilityType();
-            capabilities.add(CAPABILITY_OBJECT_FACTORY.createRunAs(capRunAs));
+            capabilities.setRunAs(new RunAsCapabilityType());
         }
     }
 

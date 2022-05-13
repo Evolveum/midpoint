@@ -13,8 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

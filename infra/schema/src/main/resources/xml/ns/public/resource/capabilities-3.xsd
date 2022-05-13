@@ -52,6 +52,39 @@
         </xsd:annotation>
     </xsd:import>
 
+    <xsd:complexType name="CapabilityCollectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Collection of resource capabilities. Each element in this collection defines a specific resource capability.
+                In the future, an extension element could be added here to cover deployment-specific capabilities. (If such need
+                arises.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:defaultNamespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</a:defaultNamespace>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="schema" type="tns:SchemaCapabilityType" minOccurs="0"/>
+            <xsd:element name="activation" type="tns:ActivationCapabilityType" minOccurs="0"/>
+            <xsd:element name="credentials" type="tns:CredentialsCapabilityType" minOccurs="0"/>
+            <xsd:element name="liveSync" type="tns:LiveSyncCapabilityType" minOccurs="0"/>
+            <xsd:element name="asyncUpdate" type="tns:AsyncUpdateCapabilityType" minOccurs="0"/>
+            <xsd:element name="create" type="tns:CreateCapabilityType" minOccurs="0"/>
+            <xsd:element name="read" type="tns:ReadCapabilityType" minOccurs="0"/>
+            <xsd:element name="update" type="tns:UpdateCapabilityType" minOccurs="0"/>
+            <xsd:element name="delete" type="tns:DeleteCapabilityType" minOccurs="0"/>
+            <xsd:element name="testConnection" type="tns:TestConnectionCapabilityType" minOccurs="0"/>
+            <xsd:element name="script" type="tns:ScriptCapabilityType" minOccurs="0"/>
+            <xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType" minOccurs="0"/>
+            <xsd:element name="countObjects" type="tns:CountObjectsCapabilityType" minOccurs="0"/>
+            <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType" minOccurs="0"/>
+            <xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType" minOccurs="0"/>
+            <xsd:element name="runAs" type="tns:RunAsCapabilityType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
     <!-- Abstract supertype -->
 
     <xsd:complexType name="CapabilityType" abstract="true">
@@ -61,6 +94,9 @@
                 to introduce common "enabled" flag. As custom capabilities are expected to be in a
                 dynamic schema this has probably very little conceptual value.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:enabled" minOccurs="0"/>
@@ -87,6 +123,9 @@
             <xsd:documentation>
                 Describes capability to discover resource schema.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -104,6 +143,9 @@
                 enable/disable of accounts, dates for scheduled enable/disable
                 and similar things related to make the account active.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -128,6 +170,9 @@
             <xsd:documentation>
                 Describes capability to provide activation status (e.g. account enable and disable).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -196,6 +241,9 @@
             <xsd:documentation>
                 Describes capability to provide activation validity dates (validFrom, validTo)
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -211,6 +259,9 @@
             <xsd:documentation>
                 Describes capability to provide lockout status (e.g. account temporarily disabled due to many failed login attempts).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -278,6 +329,9 @@
             <xsd:documentation>
                 Describes capability to present credentials in a structured way.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -295,6 +349,9 @@
             <xsd:documentation>
                 Describes capability to present password in a structured way.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -312,6 +369,9 @@
             <xsd:documentation>
                 Describes capability to detect changes in almost real time (live synchronization).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -342,6 +402,9 @@
                 Describes capability to process asynchronous updates. Note that this is currently supported only
                 by the built-in AsyncUpdateConnector.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -356,6 +419,9 @@
             <xsd:documentation>
                 Base type for all write capabilities.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -380,6 +446,9 @@
             <xsd:documentation>
                 Describes create capability.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWriteCapabilityType">
@@ -394,6 +463,9 @@
             <xsd:documentation>
                 Describes read capability.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -430,6 +502,9 @@
             <xsd:documentation>
                 Describes update capability.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWriteCapabilityType">
@@ -545,6 +620,9 @@
             <xsd:documentation>
                 Describes delete capability.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWriteCapabilityType">
@@ -560,6 +638,9 @@
             <xsd:documentation>
                 Describes capability to test connection to the resource once the connector is configured.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -570,6 +651,11 @@
     <xsd:element name="testConnection" type="tns:TestConnectionCapabilityType"/>
 
     <xsd:complexType name="ScriptCapabilityHostType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="type" type="c:ProvisioningScriptHostType"/>
             <xsd:element name="language" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
@@ -587,6 +673,9 @@
             <xsd:documentation>
                 Describes capability to execute scripts (short pieces of program) on the connector or resource.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -609,6 +698,9 @@
 
                 EXPERIMENTAL.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -642,6 +734,9 @@
                 Although deals primarily with GUI issues, may be useful for other kinds of access as well.
                 EXPERIMENTAL.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -708,6 +803,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:deprecated>true</a:deprecated>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -724,6 +820,9 @@
                 Describes capability to specify additional (auxiliary) object classes in addition to the
                 primary object class.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
@@ -740,6 +839,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.9</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -755,7 +855,3 @@
     <xsd:element name="runAs" type="tns:RunAsCapabilityType"/>
 
 </xsd:schema>
-
-
-
-

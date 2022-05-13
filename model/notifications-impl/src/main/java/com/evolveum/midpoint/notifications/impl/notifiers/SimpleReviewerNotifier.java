@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

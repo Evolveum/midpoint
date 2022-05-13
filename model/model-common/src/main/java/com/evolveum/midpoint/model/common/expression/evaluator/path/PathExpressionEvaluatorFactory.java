@@ -15,7 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;

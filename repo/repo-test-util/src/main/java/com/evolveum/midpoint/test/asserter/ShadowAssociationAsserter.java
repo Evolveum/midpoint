@@ -9,7 +9,7 @@ package com.evolveum.midpoint.test.asserter;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;

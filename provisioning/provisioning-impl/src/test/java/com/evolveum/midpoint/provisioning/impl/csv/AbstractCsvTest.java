@@ -15,8 +15,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -241,25 +243,20 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
                 PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
 
         // Connector cannot do activation, this should be null
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it", capAct);
 
-        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilities, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
         List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
         assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
         assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
-        for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
-        }
-
+        dumpResourceCapabilities(resource);
     }
 
     private void assertScriptHost(ScriptCapabilityType capScript, ProvisioningScriptHostType expectedHostType) {

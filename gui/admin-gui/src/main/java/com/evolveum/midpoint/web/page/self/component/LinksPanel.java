@@ -53,9 +53,7 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
         initLayout();
     }
 
-
     protected void initLayout() {
-
         final List<RichHyperlinkType> linksList = getModel().getObject();
         RepeatingView rowView = new RepeatingView(ID_LINKS_ROW);
         add(rowView);
@@ -64,7 +62,6 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
         if (linksListSize == 0) {
             return;
         }
-
 
         int currentColumn = 0;
         RepeatingView columnView = null;
@@ -117,7 +114,6 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
                 }
             };
 
-
             linkItem.add(new Label(ID_IMAGE) {
 
                 @Override
@@ -133,7 +129,7 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
                 }
             });
 
-            linkItem.add(new Label(ID_LABEL, (IModel<String>) () -> {
+            linkItem.add(new Label(ID_LABEL, () -> {
                 String key = link.getLabel();
                 if (key == null) {
                     return null;
@@ -141,7 +137,7 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
                 return getString(key, null, key);
             }));
 
-            Label description = new Label(ID_DESCRIPTION, (IModel<String>) () -> {
+            Label description = new Label(ID_DESCRIPTION, () -> {
                 String desc = link.getDescription();
                 if (desc == null) {
                     return null;
@@ -163,7 +159,7 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
             }
         }
 
-        if (row != null && !isRowAdded){
+        if (row != null && !isRowAdded) {
             row.add(columnView);
             rowView.add(row);
         }

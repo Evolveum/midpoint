@@ -16,8 +16,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;

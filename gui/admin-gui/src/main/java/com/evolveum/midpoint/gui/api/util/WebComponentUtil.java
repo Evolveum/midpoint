@@ -4049,7 +4049,7 @@ public final class WebComponentUtil {
     private static void appendTriggerInfo(String title, boolean isColumn, CompositedIconBuilder builder) {
         if (StringUtils.isNotBlank(title)) {
             IconType icon = new IconType();
-            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
+            icon.setCssClass(GuiStyleConstants.ICON_FAR_CLOCK + " " + GuiStyleConstants.BLUE_COLOR);
             if (isColumn) {
                 builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
             } else {

@@ -14,7 +14,7 @@
     <super>
         <resourceRef oid="b6f77fb9-8bdf-42de-b7d4-639c77fa6805"/> <!-- Derives from Basic 1 -->
     </super>
-    <connectorConfiguration >
+    <connectorConfiguration>
         <icfc:configurationProperties>
             <!-- overriding existing value -->
             <icfi:uselessString>False!</icfi:uselessString>

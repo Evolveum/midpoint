@@ -1,21 +1,10 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.icf.dummy.connector;
-
-import org.apache.commons.lang.StringUtils;
-import org.identityconnectors.framework.spi.operations.*;
-import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
-import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
-import org.identityconnectors.framework.common.objects.*;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
@@ -23,20 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.*;
+import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.PoolableConnector;
+import org.identityconnectors.framework.spi.operations.*;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.icf.dummy.resource.DummyOrg;
-import com.evolveum.icf.dummy.resource.DummyPrivilege;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.icf.dummy.resource.*;
 
 /**
  * Connector for the Dummy Resource, Legacy version.
@@ -70,10 +55,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (account == null) {
-                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Account with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(account, options);
 
@@ -82,7 +67,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
 
                 for (Attribute attr : replaceAttributes) {
                     if (attr.is(Name.NAME)) {
-                        String newName = (String)attr.getValue().get(0);
+                        String newName = (String) attr.getValue().get(0);
                         try {
                             resource.renameAccount(account.getId(), account.getName(), newName);
                         } catch (ObjectDoesNotExistException e) {
@@ -97,7 +82,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                             uid = new Uid(newName);
                         }
                     } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-                        changePassword(account,attr);
+                        changePassword(account, attr);
 
                     } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
                         account.setEnabled(getBoolean(attr));
@@ -121,7 +106,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
                             // The framework should deal with it ... somehow
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
@@ -134,16 +119,16 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     group = resource.getGroupById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (group == null) {
-                    throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Group with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(group, options);
 
                 for (Attribute attr : replaceAttributes) {
                     if (attr.is(Name.NAME)) {
-                        String newName = (String)attr.getValue().get(0);
+                        String newName = (String) attr.getValue().get(0);
                         try {
                             resource.renameGroup(group.getId(), group.getName(), newName);
                         } catch (ObjectDoesNotExistException e) {
@@ -166,15 +151,15 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         List<Object> values = attr.getValue();
                         if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
                             List<Object> newValues = new ArrayList<>(values.size());
-                            for (Object val: values) {
-                                newValues.add(StringUtils.upperCase((String)val));
+                            for (Object val : values) {
+                                newValues.add(StringUtils.upperCase((String) val));
                             }
                             values = newValues;
                         }
                         try {
                             group.replaceAttributeValues(name, values);
                         } catch (SchemaViolationException e) {
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
@@ -187,16 +172,16 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     priv = resource.getPrivilegeById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (priv == null) {
-                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Privilege with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(priv, options);
 
                 for (Attribute attr : replaceAttributes) {
                     if (attr.is(Name.NAME)) {
-                        String newName = (String)attr.getValue().get(0);
+                        String newName = (String) attr.getValue().get(0);
                         try {
                             resource.renamePrivilege(priv.getId(), priv.getName(), newName);
                         } catch (ObjectDoesNotExistException e) {
@@ -219,7 +204,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         try {
                             priv.replaceAttributeValues(name, attr.getValue());
                         } catch (SchemaViolationException e) {
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
@@ -232,16 +217,16 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     org = resource.getOrgById(uid.getUidValue(), false);
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (org == null) {
-                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Org with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(org, options);
 
                 for (Attribute attr : replaceAttributes) {
                     if (attr.is(Name.NAME)) {
-                        String newName = (String)attr.getValue().get(0);
+                        String newName = (String) attr.getValue().get(0);
                         try {
                             resource.renameOrg(org.getId(), org.getName(), newName);
                         } catch (ObjectDoesNotExistException e) {
@@ -264,30 +249,29 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         try {
                             org.replaceAttributeValues(name, attr.getValue());
                         } catch (SchemaViolationException e) {
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
 
-
             } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
+                throw new ConnectorException("Unknown object class " + objectClass);
             }
 
         } catch (ConnectException e) {
-            LOG.info("update::exception "+e);
+            LOG.info("update::exception " + e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            LOG.info("update::exception "+e);
+            LOG.info("update::exception " + e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            LOG.info("update::exception "+e);
+            LOG.info("update::exception " + e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            LOG.info("update::exception "+e);
+            LOG.info("update::exception " + e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            LOG.info("update::exception "+e);
+            LOG.info("update::exception " + e);
             throw new OperationTimeoutException(e);
         }
 
@@ -313,10 +297,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (account == null) {
-                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Account with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(account, options);
 
@@ -329,7 +313,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         if (account.getPassword() != null) {
                             throw new InvalidAttributeValueException("Attempt to add value for password while password is already set");
                         }
-                        changePassword(account,attr);
+                        changePassword(account, attr);
 
                     } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
                         throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
@@ -359,10 +343,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     group = resource.getGroupById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (group == null) {
-                    throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Group with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(group, options);
 
@@ -379,8 +363,8 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         List<Object> values = attr.getValue();
                         if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
                             List<Object> newValues = new ArrayList<>(values.size());
-                            for (Object val: values) {
-                                newValues.add(StringUtils.upperCase((String)val));
+                            for (Object val : values) {
+                                newValues.add(StringUtils.upperCase((String) val));
                             }
                             values = newValues;
                         }
@@ -404,10 +388,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     priv = resource.getPrivilegeById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (priv == null) {
-                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Privilege with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(priv, options);
 
@@ -428,7 +412,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
                             // The framework should deal with it ... somehow
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
@@ -441,10 +425,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     org = resource.getOrgById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (org == null) {
-                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Org with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(org, options);
 
@@ -471,23 +455,23 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 }
 
             } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
+                throw new ConnectorException("Unknown object class " + objectClass);
             }
 
         } catch (ConnectException e) {
-            LOG.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception " + e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            LOG.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception " + e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            LOG.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception " + e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            LOG.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception " + e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            LOG.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception " + e);
             throw new OperationTimeoutException(e);
         }
 
@@ -512,10 +496,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (account == null) {
-                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Account with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(account, options);
 
@@ -551,10 +535,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     group = resource.getGroupById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (group == null) {
-                    throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Group with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(group, options);
 
@@ -568,8 +552,8 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         List<Object> values = attr.getValue();
                         if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
                             List<Object> newValues = new ArrayList<>(values.size());
-                            for (Object val: values) {
-                                newValues.add(StringUtils.upperCase((String)val));
+                            for (Object val : values) {
+                                newValues.add(StringUtils.upperCase((String) val));
                             }
                             values = newValues;
                         }
@@ -580,7 +564,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
                             // The framework should deal with it ... somehow
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
@@ -593,10 +577,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     priv = resource.getPrivilegeById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (priv == null) {
-                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Privilege with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(priv, options);
 
@@ -614,7 +598,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
                             // The framework should deal with it ... somehow
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
@@ -627,10 +611,10 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                 } else if (configuration.isUidSeparateFromName()) {
                     org = resource.getOrgById(uid.getUidValue());
                 } else {
-                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                    throw new IllegalStateException("Unknown UID mode " + configuration.getUidMode());
                 }
                 if (org == null) {
-                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
+                    throw new UnknownUidException("Org with UID " + uid + " does not exist on resource");
                 }
                 applyModifyMetadata(org, options);
 
@@ -648,29 +632,29 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
                             // The framework should deal with it ... somehow
-                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
                         }
                     }
                 }
 
             } else {
-                throw new ConnectorException("Unknown object class "+objectClass);
+                throw new ConnectorException("Unknown object class " + objectClass);
             }
 
         } catch (ConnectException e) {
-            LOG.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception " + e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            LOG.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception " + e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            LOG.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception " + e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            LOG.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception " + e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            LOG.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception " + e);
             throw new OperationTimeoutException(e);
         }
 

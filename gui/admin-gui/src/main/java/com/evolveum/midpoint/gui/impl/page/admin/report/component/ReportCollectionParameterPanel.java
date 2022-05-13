@@ -6,9 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.report.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -32,17 +42,6 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @PanelType(name = "reportCollectionParameter")
 @PanelInstance(identifier = "reportCollectionParameter", applicableForOperation = OperationTypeType.MODIFY,
@@ -70,7 +69,7 @@ public class ReportCollectionParameterPanel extends AbstractObjectMainPanel<Repo
 
             @Override
             protected String getContainerNameForNewButton() {
-                return getPageBase().createStringResource("ObjectCollectionReportEngineConfigurationType.parameter").getString();
+                return getString("ObjectCollectionReportEngineConfigurationType.parameter");
             }
 
             @Override
@@ -128,10 +127,11 @@ public class ReportCollectionParameterPanel extends AbstractObjectMainPanel<Repo
                                 PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), SearchFilterParameterType.F_DISPLAY), DisplayType.COMPLEX_TYPE) {
 
                             @Override
-                            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-                                if (ItemPath.create(itemWrapper.getParent().getPath(), DisplayType.F_LABEL).equivalent(itemWrapper.getPath())
-                                        || ItemPath.create(itemWrapper.getParent().getPath(), DisplayType.F_HELP).equivalent(itemWrapper.getPath())) {
-                                    return super.getVisibility(itemWrapper);
+                            protected ItemVisibility getVisibility(ItemWrapper wrapper) {
+                                ItemPath parentPath = wrapper.getParent().getPath();
+                                if (ItemPath.create(parentPath, DisplayType.F_LABEL).equivalent(wrapper.getPath())
+                                        || ItemPath.create(parentPath, DisplayType.F_HELP).equivalent(wrapper.getPath())) {
+                                    return super.getVisibility(wrapper);
                                 }
                                 return ItemVisibility.HIDDEN;
                             }
@@ -152,7 +152,7 @@ public class ReportCollectionParameterPanel extends AbstractObjectMainPanel<Repo
                 containerModel, SearchFilterParameterType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-sm-3 col-md-2";
+                return "mp-w-sm-3 mp-w-md-2";
             }
         });
 
@@ -160,7 +160,7 @@ public class ReportCollectionParameterPanel extends AbstractObjectMainPanel<Repo
                 containerModel, SearchFilterParameterType.F_TYPE, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-md-3";
+                return "mp-w-md-3";
             }
         });
 

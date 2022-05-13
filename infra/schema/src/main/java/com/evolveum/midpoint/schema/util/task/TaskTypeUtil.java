@@ -12,7 +12,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 

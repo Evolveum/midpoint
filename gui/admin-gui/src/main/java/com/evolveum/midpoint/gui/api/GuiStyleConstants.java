@@ -12,6 +12,13 @@ package com.evolveum.midpoint.gui.api;
  */
 public class GuiStyleConstants {
 
+    public static final String ICON_FAR_COPY="far fa-copy";
+    public static final String ICON_FAR_ADDRESS_CARD = "far fa-address-card";
+    public static final String ICON_FAR_CLOCK = "far fa-clock";
+    public static final String ICON_FA_BED = "fa fa-bed";
+    public static final String ICON_FA_POWER_OFF = "fa fa-power-off";
+    public static final String ICON_FA_SPINNER = "fa fa-spinner";
+
     public static final String CLASS_BOX = "box";
     public static final String CLASS_BOX_DEFAULT = "box-default";
 
@@ -109,7 +116,7 @@ public class GuiStyleConstants {
     public static final String CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED = "fa fa-times text-danger";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_SKIPPED_COLORED = "fa fa-step-forward text-success";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_FORWARDED_COLORED = "fa  fa-fast-forward text-success";
-    public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
+    public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = GuiStyleConstants.ICON_FAR_CLOCK + " text-info";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED = "fa fa-ban text-warning";
 
@@ -142,7 +149,7 @@ public class GuiStyleConstants {
     public static final String CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED = "fa fa-times-circle text-danger";
     public static final String CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED = "fa fa-minus-circle text-warning";
     public static final String CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED = "fa fa-check-circle text-muted";
-    public static final String CLASS_OP_RESULT_STATUS_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
+    public static final String CLASS_OP_RESULT_STATUS_ICON_IN_PROGRESS_COLORED = GuiStyleConstants.ICON_FAR_CLOCK + " text-info";
 
     //menu items icons classes
     public static final String CLASS_THREE_DOTS = "fa fa-ellipsis-h";
@@ -156,7 +163,7 @@ public class GuiStyleConstants {
     public static final String CLASS_START_MENU_ITEM = "fa fa-play";
     public static final String CLASS_IMPORT_MENU_ITEM = "fa fa-download";
     public static final String CLASS_NAVIGATE_ARROW = "fa fa-share";
-    public static final String CLASS_SELECTION_HAND = "fa fa-hand-o-up";
+    public static final String CLASS_SELECTION_HAND = "far fa-hand-point-up";
 
     public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
     public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";

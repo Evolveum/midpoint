@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -117,7 +119,7 @@ public class TestDBTable extends AbstractIntegrationTest {
         display("Resource after test", resource);
         displayValue("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
-        List<Object> nativeCapabilities = resource.getCapabilities().getNative().getAny();
+        CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         CredentialsCapabilityType credentialsCapabilityType = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
         assertNotNull("No credentials capability", credentialsCapabilityType);
         PasswordCapabilityType passwordCapabilityType = credentialsCapabilityType.getPassword();

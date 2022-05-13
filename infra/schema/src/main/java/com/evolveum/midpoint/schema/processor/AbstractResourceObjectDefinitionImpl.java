@@ -401,11 +401,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public String getDocumentation() {
-        return null;
-    }
-
-    @Override
     public String getDocumentationPreview() {
         return null;
     }

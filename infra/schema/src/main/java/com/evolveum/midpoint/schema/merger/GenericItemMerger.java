@@ -80,7 +80,13 @@ public class GenericItemMerger implements ItemMerger {
                 SynchronizationReactionNewType.class,
                     () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(SynchronizationReactionNewType.F_NAME)),
                 AbstractSynchronizationActionType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME))
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME)),
+                AbstractCorrelatorType.class,
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractCorrelatorType.F_NAME)),
+                CorrelationItemDefinitionType.class,
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemDefinitionType.F_NAME)),
+                CorrelationItemTargetDefinitionType.class,
+                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemTargetDefinitionType.F_QUALIFIER))
                 );
         // @formatter:on
     }

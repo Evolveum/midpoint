@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.util.exception.SystemException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;

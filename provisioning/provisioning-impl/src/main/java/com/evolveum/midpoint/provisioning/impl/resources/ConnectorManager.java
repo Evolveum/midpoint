@@ -29,7 +29,9 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -304,7 +306,8 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
                     result);
 
             ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
-            Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+            CapabilityCollectionType capabilities =
+                    ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
 
             connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
         } catch (GenericFrameworkException e) {

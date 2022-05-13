@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -186,7 +188,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
     @Test
     public void test050Capabilities() {
-        Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
+        CapabilityCollectionType nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);
 
         assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));

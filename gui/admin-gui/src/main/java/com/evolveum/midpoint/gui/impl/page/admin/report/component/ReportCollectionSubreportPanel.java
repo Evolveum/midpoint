@@ -103,7 +103,7 @@ public class ReportCollectionSubreportPanel extends AbstractObjectMainPanel<Repo
                 containerModel, SubreportParameterType.F_NAME, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-sm-3 col-md-2";
+                return "mp-w-sm-3 mp-w-md-2";
             }
         });
 
@@ -111,7 +111,7 @@ public class ReportCollectionSubreportPanel extends AbstractObjectMainPanel<Repo
                 containerModel, SubreportParameterType.F_TYPE, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-md-3";
+                return "mp-w-md-3";
             }
         });
 
@@ -119,7 +119,7 @@ public class ReportCollectionSubreportPanel extends AbstractObjectMainPanel<Repo
                 containerModel, SubreportParameterType.F_EXPRESSION, AbstractItemWrapperColumn.ColumnType.EXISTENCE_OF_VALUE, getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-sm-3 col-md-2";
+                return "mp-w-sm-3 mp-w-md-2";
             }
         });
 

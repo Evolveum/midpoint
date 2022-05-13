@@ -12,7 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
