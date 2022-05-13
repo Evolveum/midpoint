@@ -12,7 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.text.StrBuilder;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;

@@ -11,7 +11,7 @@ import static org.testng.AssertJUnit.*;
 import java.util.Collection;
 
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

@@ -10,7 +10,7 @@ import java.util.*;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;

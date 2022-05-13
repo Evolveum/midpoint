@@ -24,8 +24,8 @@ import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;

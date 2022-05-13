@@ -11,7 +11,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;

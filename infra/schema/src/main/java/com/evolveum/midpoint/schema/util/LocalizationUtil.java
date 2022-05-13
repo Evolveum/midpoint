@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageAr
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

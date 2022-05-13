@@ -30,8 +30,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;

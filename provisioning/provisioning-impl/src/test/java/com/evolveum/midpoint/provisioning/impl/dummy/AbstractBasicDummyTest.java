@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
