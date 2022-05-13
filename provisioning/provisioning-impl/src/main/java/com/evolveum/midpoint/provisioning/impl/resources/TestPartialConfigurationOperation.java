@@ -48,7 +48,7 @@ class TestPartialConfigurationOperation extends TestConnectionOperation {
      * availability status).
      */
     public void execute(OperationResult result){
-        ConnectorSpec connectorSpec = beans.resourceManager.getDefaultConnectorSpec(resource);
+        ConnectorSpec connectorSpec = beans.resourceManager.connectorSelector.createDefaultConnectorSpec(resource);
         OperationResult connectorTestResult = createSubresultForTest(connectorSpec, result);
 
         try {

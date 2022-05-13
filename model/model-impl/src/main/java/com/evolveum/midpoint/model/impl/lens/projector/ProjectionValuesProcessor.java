@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -388,18 +387,17 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             return false;
         }
 
-        LOGGER.trace("Trying to find owner using standard correlation.");
-        CorrelationResult correlationResult = correlationService.correlate(
-                fullConflictingShadow, resource, synchronizationPolicy, focus.getClass(), task, iterationResult);
-        LOGGER.trace("Result: {}", correlationResult);
+        LOGGER.trace("Checking if the owner matches (using the correlation service).");
+        boolean matches = correlationService.checkCandidateOwner(
+                fullConflictingShadow, resource, synchronizationPolicy, focus, task, iterationResult);
 
-        boolean match = correlationResult.isExistingOwner(focus.getOid());
-        if (match) {
+        if (matches) {
+            LOGGER.trace("Object {} satisfies correlation rules.", focus);
             treatConflictWithMatchedOwner(
                     context, projContext, iterationResult, rememberedProjectionState, fullConflictingShadow);
             return true;
         } else {
-            LOGGER.trace("User {} does not satisfy correlation rules.", focus);
+            LOGGER.trace("Object {} does not satisfy correlation rules.", focus);
             return false;
         }
     }

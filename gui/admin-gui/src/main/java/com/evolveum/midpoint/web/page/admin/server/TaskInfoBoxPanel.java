@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxPanel;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,8 +18,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
 
-import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.page.admin.server.dto.ActivityInfoBoxDto;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 public class TaskInfoBoxPanel extends InfoBoxPanel<ActivityInfoBoxDto> {
 

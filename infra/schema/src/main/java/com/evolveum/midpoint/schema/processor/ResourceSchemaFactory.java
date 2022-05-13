@@ -17,7 +17,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Element;
 
 public class ResourceSchemaFactory {
@@ -25,7 +27,7 @@ public class ResourceSchemaFactory {
     private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = ResourceSchema.class.getName()+".parsedResourceSchema";
     private static final String USER_DATA_KEY_REFINED_SCHEMA = ResourceSchema.class.getName()+".refinedSchema";
 
-    public static ResourceSchema getCompleteSchema(ResourceType resource)
+    public static ResourceSchema getCompleteSchema(@NotNull ResourceType resource)
             throws SchemaException, ConfigurationException {
         return getCompleteSchema(resource.asPrismObject());
     }
@@ -33,7 +35,7 @@ public class ResourceSchemaFactory {
     /**
      * We assume that missing schema is a configuration (not schema) problem.
      */
-    public static ResourceSchema getCompleteSchemaRequired(ResourceType resource)
+    public static @NotNull ResourceSchema getCompleteSchemaRequired(@NotNull ResourceType resource)
             throws ConfigurationException, SchemaException {
         return MiscUtil.requireNonNull(
                 getCompleteSchema(resource),
@@ -45,35 +47,16 @@ public class ResourceSchemaFactory {
         return getCompleteSchema(resourceType.asPrismObject(), layer);
     }
 
-    public static ResourceSchema getExistingRefinedSchema(PrismObject<ResourceType> resource) {
-        Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
-        if (userDataEntry != null) {
-            if (userDataEntry instanceof ResourceSchema) {
-                return (ResourceSchema)userDataEntry;
-            } else {
-                throw new IllegalStateException("Expected ResourceSchema under user data key "+USER_DATA_KEY_REFINED_SCHEMA+
-                        "in "+resource+", but got "+userDataEntry.getClass());
-            }
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Obtains refined schema for the resource.
      *
      * Returns null if the resource does not contain any (raw) schema.
      *
      * If the resource does NOT contain the schema, it must be mutable.
-     *
-     * TODO rework this -- management of refined resource schemas will be the responsibility of ResourceManager
      */
-    public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource)
+    public static ResourceSchema getCompleteSchema(@NotNull PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
-        if (resource == null) {
-            // TODO Should be illegal argument exception, probably
-            throw new SchemaException("Could not get refined schema, resource does not exist.");
-        }
+        Preconditions.checkNotNull(resource, "Resource must not be null");
 
         ResourceSchema existingRefinedSchema = getExistingRefinedSchema(resource);
         if (existingRefinedSchema != null) {
@@ -91,6 +74,20 @@ public class ResourceSchemaFactory {
         }
     }
 
+    private static ResourceSchema getExistingRefinedSchema(PrismObject<ResourceType> resource) {
+        Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
+        if (userDataEntry != null) {
+            if (userDataEntry instanceof ResourceSchema) {
+                return (ResourceSchema) userDataEntry;
+            } else {
+                throw new IllegalStateException("Expected ResourceSchema under user data key " + USER_DATA_KEY_REFINED_SCHEMA +
+                        "in " + resource + ", but got " + userDataEntry.getClass());
+            }
+        } else {
+            return null;
+        }
+    }
+
     public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer)
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = getCompleteSchema(resource);
@@ -99,11 +96,6 @@ public class ResourceSchemaFactory {
         } else {
             return null;
         }
-    }
-
-    public static boolean hasRefinedSchema(ResourceType resourceType) {
-        PrismObject<ResourceType> resource = resourceType.asPrismObject();
-        return resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA) != null;
     }
 
     public static ResourceSchema getRawSchema(@NotNull ResourceType resource) throws SchemaException {
@@ -121,10 +113,8 @@ public class ResourceSchemaFactory {
      * Obtains "raw" schema for the resource, i.e. the one without `schemaHandling` and similar configuration.
      *
      * If the resource does NOT contain the schema, it must be mutable.
-     *
-     * TODO rework this -- management of resource schemas will be the responsibility of ResourceManager
      */
-    public static ResourceSchema getRawSchema(PrismObject<ResourceType> resource) throws SchemaException {
+    public static ResourceSchema getRawSchema(@NotNull PrismObject<ResourceType> resource) throws SchemaException {
         Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
         if (resourceXsdSchema == null) {
             return null;
@@ -158,6 +148,7 @@ public class ResourceSchemaFactory {
         }
     }
 
+    @VisibleForTesting
     public static boolean hasParsedSchema(ResourceType resourceType) {
         PrismObject<ResourceType> resource = resourceType.asPrismObject();
         return resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA) != null;
@@ -168,6 +159,7 @@ public class ResourceSchemaFactory {
      *
      * Normally internal to this class, but may be called externally from the test code.
      */
+    @VisibleForTesting
     public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         return new RefinedResourceSchemaParser(resource)
                 .parse();

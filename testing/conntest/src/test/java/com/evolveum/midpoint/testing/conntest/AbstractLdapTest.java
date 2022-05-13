@@ -456,11 +456,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         display("Resource capabilities", capabilities);
         assertNotNull("Null capabilities", capabilities);
 
-        CapabilityCollectionType nativeCapabilitiesCollectionType = capabilities.getNative();
-        assertNotNull("Null native capabilities type", nativeCapabilitiesCollectionType);
-        List<Object> nativeCapabilities = nativeCapabilitiesCollectionType.getAny();
+        CapabilityCollectionType nativeCapabilities = capabilities.getNative();
         assertNotNull("Null native capabilities", nativeCapabilities);
-        assertFalse("Empty native capabilities", nativeCapabilities.isEmpty());
+        assertFalse("Empty native capabilities", CapabilityUtil.isEmpty(nativeCapabilities));
 
         assertCapability(nativeCapabilities, ReadCapabilityType.class);
         assertCapability(nativeCapabilities, CreateCapabilityType.class);
@@ -481,11 +479,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         // for subclasses
     }
 
-    protected void assertAdditionalCapabilities(List<Object> nativeCapabilities) {
+    protected void assertAdditionalCapabilities(CapabilityCollectionType nativeCapabilities) {
         // for subclasses
     }
 
-    protected <C extends CapabilityType> void assertCapability(List<Object> capabilities, Class<C> capabilityClass) {
+    protected <C extends CapabilityType> void assertCapability(CapabilityCollectionType capabilities, Class<C> capabilityClass) {
         C capability = CapabilityUtil.getCapability(capabilities, capabilityClass);
         assertNotNull("No " + capabilityClass.getSimpleName() + " capability", capability);
         assertTrue("Capability " + capabilityClass.getSimpleName() + " is disabled", CapabilityUtil.isCapabilityEnabled(capability));

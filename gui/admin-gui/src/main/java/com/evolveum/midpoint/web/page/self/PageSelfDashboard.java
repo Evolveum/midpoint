@@ -12,11 +12,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 
 import java.util.*;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
@@ -26,6 +23,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -46,7 +49,7 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
@@ -58,7 +61,6 @@ import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -92,19 +94,25 @@ public class PageSelfDashboard extends PageSelf {
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 
+    private transient Application application;
+
+    private Session session;
+
     public PageSelfDashboard() {
         setTimeZone();
         initLayout();
-    }
 
-    private transient Application application;
+
+        session = getSession();
+        application = session.getApplication();
+    }
 
     @Override
     protected void createBreadcrumb() {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model<>("fa fa-dashboard"));
+        bc.setIcon(new Model<>("fa fa-tachometer-alt"));
     }
 
     private void initLayout() {
@@ -113,32 +121,18 @@ public class PageSelfDashboard extends PageSelf {
                 AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL);
-        dashboardSearchPanel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
-                return WebComponentUtil.getElementVisibility(visibilityType, searchPanelActions);
-            }
-        });
+        dashboardSearchPanel.add(new VisibleBehaviour(() -> {
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
+            return WebComponentUtil.getElementVisibility(visibility, searchPanelActions);
+        }));
         add(dashboardSearchPanel);
 
         LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
-        linksPanel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-                return WebComponentUtil.getElementVisibility(visibilityType);
-            }
-        });
+        linksPanel.add(new VisibleBehaviour(() -> {
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
+            return WebComponentUtil.getElementVisibility(visibility);
+        }));
         add(linksPanel);
-
-        // TODO is this correct? [med]
-        application = getApplication();
-        final Session session = Session.get();
 
         AsyncDashboardPanel<Object, List<CaseWorkItemType>> workItemsPanel = new AsyncDashboardPanel<>(
                 ID_WORK_ITEMS_PANEL,
@@ -182,13 +176,10 @@ public class PageSelfDashboard extends PageSelf {
             }
         };
 
-        workItemsPanel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_WORKITEMS);
-                return getCaseManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
-            }
-        });
+        workItemsPanel.add(new VisibleBehaviour(() -> {
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.MY_WORKITEMS);
+            return getCaseManager().isEnabled() && WebComponentUtil.getElementVisibility(visibility);
+        }));
         add(workItemsPanel);
 
         AsyncDashboardPanel<Object, List<CaseType>> myRequestsPanel =
@@ -238,32 +229,21 @@ public class PageSelfDashboard extends PageSelf {
                     }
                 };
 
-        myRequestsPanel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_REQUESTS);
-                return getCaseManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
-
-            }
-        });
+        myRequestsPanel.add(new VisibleBehaviour(() -> {
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.MY_REQUESTS);
+            return getCaseManager().isEnabled() && WebComponentUtil.getElementVisibility(visibility);
+        }));
         add(myRequestsPanel);
 
-        initMyAccounts(session);
+        initMyAccounts();
         initAssignments();
     }
 
     private List<RichHyperlinkType> loadLinksList() {
-//        PrismObject<? extends FocusType> focus = principalModel.getObject();
-//        if (focus == null) {
-//            return new ArrayList<>();
-//        } else {
-            return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
-//        }
+        return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
     }
 
-    private void initMyAccounts(Session session) {
+    private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts = new AsyncDashboardPanel<>(ID_ACCOUNTS,
                 createStringResource("PageDashboard.accounts"),
                 GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT,
@@ -281,7 +261,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared() {
-                        setupContext(application, session);    // TODO is this correct? [med]
+                        setupContext(application, session);
                         return loadAccounts();
                     }
                 };
@@ -317,15 +297,10 @@ public class PageSelfDashboard extends PageSelf {
                 }
             }
         };
-        accounts.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_ACCOUNTS);
-                return WebComponentUtil.getElementVisibility(visibilityType);
-            }
-        });
+        accounts.add(new VisibleBehaviour(() -> {
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.MY_ACCOUNTS);
+            return WebComponentUtil.getElementVisibility(visibility);
+        }));
         add(accounts);
     }
 
@@ -400,17 +375,11 @@ public class PageSelfDashboard extends PageSelf {
                         new PropertyModel<>(getModel(), CallableResult.F_VALUE));
             }
         };
-        assignedOrgUnits.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_ASSIGNMENTS);
-                return WebComponentUtil.getElementVisibility(visibilityType);
-            }
-        });
+        assignedOrgUnits.add(new VisibleBehaviour(() -> {
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.MY_ASSIGNMENTS);
+            return WebComponentUtil.getElementVisibility(visibility);
+        }));
         add(assignedOrgUnits);
-
     }
 
     private CallableResult<List<AssignmentItemDto>> loadAssignments() {

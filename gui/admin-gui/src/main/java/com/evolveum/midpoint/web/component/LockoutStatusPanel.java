@@ -6,121 +6,81 @@
  */
 package com.evolveum.midpoint.web.component;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 
 /**
  * Created by honchar
  */
 public class LockoutStatusPanel extends Panel {
+
+    private static final long serialVersionUID = 1L;
     private static final String ID_CONTAINER = "container";
     private static final String ID_LABEL = "label";
     private static final String ID_BUTTON = "button";
-    private static final String ID_FEEDBACK = "feedback";
     private boolean isInitialState = true;
     private LockoutStatusType initialValue;
 
-
-    public LockoutStatusPanel(String id){
+    public LockoutStatusPanel(String id) {
         this(id, null);
     }
 
-    public LockoutStatusPanel(String id, IModel<LockoutStatusType> model){
+    public LockoutStatusPanel(String id, IModel<LockoutStatusType> model) {
         super(id);
-        initialValue = model.getObject(); //TODO: clone
+        initialValue = model.getObject(); //TODO: this is wrong, why do we need value in constructor?
         initLayout(model);
     }
 
-    private void initLayout(final IModel<LockoutStatusType> model){
+    private void initLayout(final IModel<LockoutStatusType> model) {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.setOutputMarkupId(true);
         add(container);
 
-        Label label = new Label(ID_LABEL, new IModel<String>() {
-            @Override
-            public String getObject() {
-                LockoutStatusType object = model != null ? model.getObject() : null;
-
-                String labelValue = object == null ?
-                        ((PageBase)getPage()).createStringResource("LockoutStatusType.UNDEFINED").getString()
-                        : WebComponentUtil.createLocalizedModelForEnum(object, getLabel()).getObject();
-                if (!isInitialState){
-                    labelValue += " " + ((PageBase) getPage()).createStringResource("LockoutStatusPanel.changesSaving").getString();
-                }
-                return labelValue;
-            }
-
-            @Override
-            public void setObject(String s) {
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        });
-        label.setOutputMarkupId(true);
+        Label label = new Label(ID_LABEL, getLabelModel(model));
         container.add(label);
 
         AjaxButton button = new AjaxButton(ID_BUTTON, getButtonModel()) {
             @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (!isInitialState){
+            public void onClick(AjaxRequestTarget target) {
+                if (!isInitialState) {
                     model.setObject(initialValue);
                 } else {
                     model.setObject(LockoutStatusType.NORMAL);
                 }
                 isInitialState = !isInitialState;
-                ajaxRequestTarget.add(getButton());
-                ajaxRequestTarget.add(getLabel());
+
+                target.add(LockoutStatusPanel.this.get(ID_CONTAINER));
             }
         };
-        button.add(new VisibleEnableBehaviour(){
-            @Override
-        public boolean isVisible(){
-                return true;
-            }
-        });
-        button.setOutputMarkupId(true);
         container.add(button);
     }
 
-    private IModel<String> getButtonModel(){
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (isInitialState){
-                    return ((PageBase)getPage()).createStringResource("LockoutStatusPanel.unlockButtonLabel").getString();
-                } else {
-                    return ((PageBase)getPage()).createStringResource("LockoutStatusPanel.undoButtonLabel").getString();
-                }
-            }
+    private IModel<String> getButtonModel() {
+        return () -> {
+            String key = isInitialState ? "LockoutStatusPanel.unlockButtonLabel" : "LockoutStatusPanel.undoButtonLabel";
 
-            @Override
-            public void setObject(String s) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
+            return getString(key);
         };
     }
 
-    private Component getButton(){
-        return get(ID_CONTAINER).get(ID_BUTTON);
-    }
+    private IModel<String> getLabelModel(IModel<LockoutStatusType> model) {
+        return () -> {
+            LockoutStatusType object = model != null ? model.getObject() : null;
 
-    private Component getLabel(){
-        return get(ID_CONTAINER).get(ID_LABEL);
+            String labelValue = object == null ?
+                    getString("LockoutStatusType.UNDEFINED") : getString(WebComponentUtil.createEnumResourceKey(object));
+
+            if (!isInitialState) {
+                labelValue += " " + getString("LockoutStatusPanel.changesSaving");
+            }
+
+            return labelValue;
+        };
     }
 }

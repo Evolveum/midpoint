@@ -10,9 +10,16 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -29,10 +36,55 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     private static final long serialVersionUID = 1L;
 
     private final PrismReferenceDefinition referenceDef;
+    private static final String ID_SELECT_OBJECT_BUTTON = "selectObjectButton";
 
     public ReferenceValueSearchPanel(String id, IModel<ObjectReferenceType> model, PrismReferenceDefinition referenceDef) {
         super(id, model);
         this.referenceDef = referenceDef;
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
+
+    private <O extends ObjectType> void initLayout(){
+        setOutputMarkupId(true);
+
+        AjaxButton selectObject = new AjaxButton(ID_SELECT_OBJECT_BUTTON) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                List<QName> supportedTypes = getSupportedTargetList();
+                if (CollectionUtils.isEmpty(supportedTypes)) {
+                    supportedTypes = WebComponentUtil.createObjectTypeList();
+                }
+                ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
+                        getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
+                        null) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onSelectPerformed(AjaxRequestTarget target, O object) {
+                        getPageBase().hideMainPopup(target);
+                        ReferenceValueSearchPanel.this.getModel().setObject(new ObjectReferenceType());
+                        ReferenceValueSearchPanel.this.getModelObject().setOid(object.getOid());
+                        ReferenceValueSearchPanel.this.getModelObject().setTargetName(object.getName());
+                        ReferenceValueSearchPanel.this.getModelObject().setType(
+                                object.asPrismObject().getComplexTypeDefinition().getTypeName());
+                        target.add(ReferenceValueSearchPanel.this);
+                    }
+                };
+
+                getPageBase().showMainPopup(objectBrowserPanel, target);
+            }
+        };
+        selectObject.setOutputMarkupId(true);
+        selectObject.add(AttributeAppender.append("title", createStringResource("ReferenceValueSearchPopupPanel.selectObject")));
+        add(selectObject);
     }
 
     @Override
@@ -48,10 +100,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
 
             @Override
             protected List<QName> getSupportedTargetList() {
-                if (referenceDef != null) {
-                    return WebComponentUtil.createSupportedTargetTypeList(referenceDef.getTargetTypeName());
-                }
-                return Collections.singletonList(ObjectType.COMPLEX_TYPE);
+                return ReferenceValueSearchPanel.this.getSupportedTargetList();
             }
 
             @Override
@@ -80,6 +129,13 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                 return WebComponentUtil.getReferenceObjectTextValue(getModelObject(), referenceDef, getPageBase());
             }
         };
+    }
+
+    private List<QName> getSupportedTargetList() {
+        if (referenceDef != null) {
+            return WebComponentUtil.createSupportedTargetTypeList(referenceDef.getTargetTypeName());
+        }
+        return Collections.singletonList(ObjectType.COMPLEX_TYPE);
     }
 
     protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {

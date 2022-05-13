@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,17 +29,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
-import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
-import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
-import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
-import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
-import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -58,7 +47,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -106,11 +94,21 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
+import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
+import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
@@ -147,7 +145,10 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.cases.*;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
@@ -167,6 +168,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
@@ -1041,11 +1043,20 @@ public final class WebComponentUtil {
         return concreteTypes;
     }
 
+    public static <T extends Enum> String createEnumResourceKey(T value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.getClass().getSimpleName() + "." + value.name();
+    }
+
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
+        String key = createEnumResourceKey(value);
         if (value == null) {
             return Model.of("");
         }
-        String key = value.getClass().getSimpleName() + "." + value.name();
+
         return new StringResourceModel(key, comp, null);
     }
 
@@ -1135,8 +1146,8 @@ public final class WebComponentUtil {
         };
     }
 
-    public static <E extends Enum> IChoiceRenderer<E> getEnumChoiceRenderer(Component component) {
-        return new IChoiceRenderer<E>() {
+    public static <E extends Enum<E>> IChoiceRenderer<E> getEnumChoiceRenderer(Component component) {
+        return new IChoiceRenderer<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -1353,6 +1364,80 @@ public final class WebComponentUtil {
             return getTranslatedPolyString(name, localizationService);
         }
         return name.getOrig();
+    }
+
+    //todo copied from DashboardServiceImpl; may be move to som util class?
+    public static DisplayType combineDisplay(DisplayType display, DisplayType variationDisplay) {
+        DisplayType combinedDisplay = new DisplayType();
+        if (variationDisplay == null) {
+            return display;
+        }
+        if (display == null) {
+            return variationDisplay;
+        }
+        if (StringUtils.isBlank(variationDisplay.getColor())) {
+            combinedDisplay.setColor(display.getColor());
+        } else {
+            combinedDisplay.setColor(variationDisplay.getColor());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssClass())) {
+            combinedDisplay.setCssClass(display.getCssClass());
+        } else {
+            combinedDisplay.setCssClass(variationDisplay.getCssClass());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssStyle())) {
+            combinedDisplay.setCssStyle(display.getCssStyle());
+        } else {
+            combinedDisplay.setCssStyle(variationDisplay.getCssStyle());
+        }
+        if (variationDisplay.getHelp() == null) {
+            combinedDisplay.setHelp(display.getHelp());
+        } else {
+            combinedDisplay.setHelp(variationDisplay.getHelp());
+        }
+        if (variationDisplay.getLabel() == null) {
+            combinedDisplay.setLabel(display.getLabel());
+        } else {
+            combinedDisplay.setLabel(variationDisplay.getLabel());
+        }
+        if (variationDisplay.getSingularLabel() == null) {
+            combinedDisplay.setSingularLabel(display.getSingularLabel());
+        } else {
+            combinedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
+        }
+        if (variationDisplay.getPluralLabel() == null) {
+            combinedDisplay.setPluralLabel(display.getPluralLabel());
+        } else {
+            combinedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
+        }
+        if (variationDisplay.getTooltip() == null) {
+            combinedDisplay.setTooltip(display.getTooltip());
+        } else {
+            combinedDisplay.setTooltip(variationDisplay.getTooltip());
+        }
+        if (variationDisplay.getIcon() == null) {
+            combinedDisplay.setIcon(display.getIcon());
+        } else if (display.getIcon() != null) {
+            IconType icon = new IconType();
+            if (StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
+                icon.setCssClass(display.getIcon().getCssClass());
+            } else {
+                icon.setCssClass(variationDisplay.getIcon().getCssClass());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
+                icon.setColor(display.getIcon().getColor());
+            } else {
+                icon.setColor(variationDisplay.getIcon().getColor());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
+                icon.setImageUrl(display.getIcon().getImageUrl());
+            } else {
+                icon.setImageUrl(variationDisplay.getIcon().getImageUrl());
+            }
+            combinedDisplay.setIcon(icon);
+        }
+
+        return combinedDisplay;
     }
 
     public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
@@ -1692,17 +1777,14 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Selectable> List<T> getSelectedData(Table table) {
-        DataTable dataTable = table.getDataTable();
-        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
-
-        List<T> selected = new ArrayList<>();
-//        for (T bean : provider.getAvailableData()) {
-//            if (bean.isSelected()) {
-//                selected.add(bean);
-//            }
-//        }
-
-        return selected;
+        List<T> objects = new ArrayList<>();
+        table.getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class,
+                (IVisitor<SelectableDataTable.SelectableRowItem<T>, Void>) (row, visit) -> {
+                    if (row.getModelObject().isSelected()) {
+                        objects.add(row.getModelObject());
+                    }
+                });
+        return objects;
     }
 
     public static void clearProviderCache(IDataProvider provider) {
@@ -3850,7 +3932,7 @@ public final class WebComponentUtil {
             return builder.build();
         }
 
-        if (activationNotSupported(resource) ) {
+        if (activationNotSupported(resource)) {
             appendNotSupportedActivation(title, isColumn, pageBase, builder);
             return builder.build();
         }
@@ -3967,7 +4049,7 @@ public final class WebComponentUtil {
     private static void appendTriggerInfo(String title, boolean isColumn, CompositedIconBuilder builder) {
         if (StringUtils.isNotBlank(title)) {
             IconType icon = new IconType();
-            icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
+            icon.setCssClass(GuiStyleConstants.ICON_FAR_CLOCK + " " + GuiStyleConstants.BLUE_COLOR);
             if (isColumn) {
                 builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
             } else {
@@ -3995,7 +4077,6 @@ public final class WebComponentUtil {
         }
         return null;
     }
-
 
     private static void appendUndefinedIcon(CompositedIconBuilder builder) {
         appendIcon(builder, "fa fa-question " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
@@ -4569,10 +4650,10 @@ public final class WebComponentUtil {
         if (workItem == null) {
             return;
         }
-        CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
+        CaseType parentCase = CaseTypeUtil.getCase(workItem);
         AbstractWorkItemOutputType output = workItem.getOutput();
         if (output == null) {
-            output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
+            output = new AbstractWorkItemOutputType();
         }
         output.setOutcome(ApprovalUtils.toUri(approved));
         if (WorkItemTypeUtil.getComment(workItem) != null) {
@@ -4595,8 +4676,8 @@ public final class WebComponentUtil {
             Task task = pageBase.createSimpleTask(result.getOperation());
             try {
                 try {
-                    ObjectDelta additionalDelta = null;
-                    if (formPanel != null && formPanel instanceof DynamicFormPanel) {
+                    ObjectDelta<?> additionalDelta = null;
+                    if (formPanel instanceof DynamicFormPanel) {
                         if (approved) {
                             boolean requiredFieldsPresent = ((DynamicFormPanel<?>) formPanel).checkRequiredFields(pageBase);
                             if (!requiredFieldsPresent) {
@@ -5154,13 +5235,16 @@ public final class WebComponentUtil {
     }
 
     public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
+            return new ArrayList<>();
+        }
+        return getAllowedValues(parameter.getAllowedValuesExpression(), pageBase);
+    }
+
+    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, PageBase pageBase) {
         List<DisplayableValue<?>> allowedValues = new ArrayList<>();
 
-        if (parameter == null || parameter.getAllowedValuesExpression() == null) {
-            return allowedValues;
-        }
         Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
-        ExpressionType expression = parameter.getAllowedValuesExpression();
         Object value = null;
         try {
 
@@ -5194,6 +5278,51 @@ public final class WebComponentUtil {
                     .map(PrismPropertyValue::getValue).collect(Collectors.toList());
         }
         return allowedValues;
+    }
+
+    public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
+        PageParameters parameters = pageBase.getPageParameters();
+        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+    }
+
+    public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageBase pageBase,
+            FocusType principalFocus, @NotNull Class<C> viewType, boolean createIfNotExist) {
+        if (!(principalFocus instanceof UserType)) {
+            return null;
+        }
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(pageBase);
+        String viewName = collectionViewParameter != null ? collectionViewParameter.toString() : null;
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            adminGui = new AdminGuiConfigurationType();
+            ((UserType) principalFocus).setAdminGuiConfiguration(adminGui);
+        }
+        GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
+        if (views == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            views = new GuiObjectListViewsType();
+            adminGui.objectCollectionViews(views);
+        }
+
+        if (StringUtils.isNoneEmpty(viewName)) {
+            for (GuiObjectListViewType view : views.getObjectCollectionView()) {
+                if (view.getIdentifier().equals(viewName)) {
+                    return view;
+                }
+            }
+        } else {
+            for (GuiObjectListViewType view : views.getObjectCollectionView()) {
+                if (view.getType().equals(WebComponentUtil.containerClassToQName(PrismContext.get(), viewType))) {
+                    return view;
+                }
+            }
+        }
+        return null;
     }
 
     public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,

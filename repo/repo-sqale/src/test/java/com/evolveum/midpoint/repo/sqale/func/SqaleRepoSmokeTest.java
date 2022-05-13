@@ -259,8 +259,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 result))
                 .isInstanceOf(ObjectNotFoundException.class);
 
-        and("operation result is success with minor partial error");
-        assertThatOperationResult(result).isSuccess();
+        and("operation result is handled error");
+        assertThatOperationResult(result).isHandledError();
     }
 
     @Test

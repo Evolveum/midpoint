@@ -18,8 +18,6 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.cases.impl.helpers.NotificationHelper;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,9 +28,9 @@ import com.evolveum.midpoint.cases.api.request.CompleteWorkItemsRequest;
 import com.evolveum.midpoint.cases.api.request.CompleteWorkItemsRequest.SingleCompletion;
 import com.evolveum.midpoint.cases.impl.helpers.CaseExpressionEvaluationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
+import com.evolveum.midpoint.cases.impl.helpers.NotificationHelper;
 import com.evolveum.midpoint.model.api.trigger.MultipleTriggersHandler;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -43,7 +41,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,7 +72,6 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
     @Autowired private NotificationHelper notificationHelper;
     @Autowired private CaseExpressionEvaluationHelper evaluationHelper;
     @Autowired private CaseMiscHelper miscHelper;
-    @Autowired private PrismContext prismContext;
 
     @PostConstruct
     private void initialize() {
@@ -148,7 +145,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                 LOGGER.warn("Trigger without workItemId; ignoring it: {}", trigger);
                 return null;
             }
-            CaseWorkItemType workItem = CaseWorkItemUtil.getWorkItem(aCase, workItemId);
+            CaseWorkItemType workItem = CaseTypeUtil.getWorkItem(aCase, workItemId);
             if (workItem == null) {
                 LOGGER.warn("Work item {} couldn't be found; ignoring the trigger: {}", workItemId, trigger);
             }
@@ -247,7 +244,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                 if (complete != null) {
                     SingleCompletion completion = new SingleCompletion(
                             workItem.getId(),
-                            new AbstractWorkItemOutputType(prismContext)
+                            new AbstractWorkItemOutputType()
                                     .outcome( // TODO remove dependency on approvals
                                             requireNonNullElse(complete.getOutcome(), MODEL_APPROVAL_OUTCOME_REJECT)));
 
@@ -282,7 +279,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                     throws SecurityViolationException, ObjectNotFoundException, SchemaException,
                     ExpressionEvaluationException, CommunicationException, ConfigurationException {
                 LOGGER.trace("Executing delegation/escalation action: {}", delegateAction);
-                WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext);
+                WorkItemDelegationRequestType request = new WorkItemDelegationRequestType();
                 request.getDelegate().addAll(
                         computeDelegateTo(delegateAction, result));
                 request.setMethod(delegateAction.getDelegationMethod());

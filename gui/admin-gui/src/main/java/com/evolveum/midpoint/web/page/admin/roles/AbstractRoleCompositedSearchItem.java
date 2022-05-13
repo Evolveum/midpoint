@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -45,7 +45,8 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
     private boolean org;
 
     public AbstractRoleCompositedSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfig, boolean role, boolean org) {
-        super(search);
+//        super(search);
+        super(null);
         this.searchBoxConfig = searchBoxConfig;
         this.role = role;
         this.org = org;
@@ -54,44 +55,44 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
 
 
     public void create() {
-        if (searchBoxConfig.isRelationVisible()) {
-            searchItems.add(createRelationItem(getSearch()));
-        }
-        if (searchBoxConfig.isIndirectVisible()) {
-            searchItems.add(createIndirectItem(getSearch()));
-        }
-        if (org && searchBoxConfig.isSearchScopeVisible()) {
-            searchItems.add(createScopeItem(getSearch()));
-        }
-        if (role) {
-            if (searchBoxConfig.isTenantVisible()) {
-                searchItems.add(createTenantItem(getSearch()));
-            }
-            if (searchBoxConfig.isProjectVisible()) {
-                searchItems.add(createProjectItem(getSearch()));
-            }
-        }
+//        if (searchBoxConfig.isRelationVisible()) {
+//            searchItems.add(createRelationItem(getSearch()));
+//        }
+//        if (searchBoxConfig.isIndirectVisible()) {
+//            searchItems.add(createIndirectItem(getSearch()));
+//        }
+//        if (org && searchBoxConfig.isSearchScopeVisible()) {
+//            searchItems.add(createScopeItem(getSearch()));
+//        }
+//        if (role) {
+//            if (searchBoxConfig.isTenantVisible()) {
+//                searchItems.add(createTenantItem(getSearch()));
+//            }
+//            if (searchBoxConfig.isProjectVisible()) {
+//                searchItems.add(createProjectItem(getSearch()));
+//            }
+//        }
     }
 
-    private SearchItem createScopeItem(Search search) {
-        return new ScopeSearchItem(search, new PropertyModel<>(searchBoxConfig, SearchBoxConfigurationHelper.F_ORG_SEARCH_SCOPE_ITEM));
-    }
-
-    private SearchItem createIndirectItem(Search search) {
-        return new IndirectSearchItem(search, searchBoxConfig);
-    }
-
-    private SearchItem createTenantItem(Search search) {
-        return new TenantSearchItem(search, searchBoxConfig);
-    }
-
-    private SearchItem createProjectItem(Search search) {
-        return new ProjectSearchItem(search, searchBoxConfig);
-    }
-
-    private RelationSearchItem createRelationItem(Search search) {
-        return new RelationSearchItem(search, searchBoxConfig);
-    }
+//    private SearchItem createScopeItem(Search search) {
+//        return new ScopeSearchItem(search, new PropertyModel<>(searchBoxConfig, SearchBoxConfigurationHelper.F_ORG_SEARCH_SCOPE_ITEM));
+//    }
+//
+//    private SearchItem createIndirectItem(Search search) {
+//        return new IndirectSearchItem(search, searchBoxConfig);
+//    }
+//
+//    private SearchItem createTenantItem(Search search) {
+//        return new TenantSearchItem(search, searchBoxConfig);
+//    }
+//
+//    private SearchItem createProjectItem(Search search) {
+//        return new ProjectSearchItem(search, searchBoxConfig);
+//    }
+//
+//    private RelationSearchItem createRelationItem(Search search) {
+//        return new RelationSearchItem(search, searchBoxConfig);
+//    }
 
     public ObjectFilter createFilter(PageBase pageBase, VariablesMap variables) {
         ObjectReferenceType parentRef = getParentVariables(variables);

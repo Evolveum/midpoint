@@ -30,10 +30,8 @@ import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.execution.CaseOperationExecutionTaskHandler;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -207,7 +205,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         display("approving work items");
         for (CaseWorkItemType workItem : workItems) {
             caseManager.completeWorkItem(WorkItemId.of(workItem),
-                    ApprovalUtils.createApproveOutput(prismContext),
+                    ApprovalUtils.createApproveOutput(),
                     null, task, result);
         }
     }

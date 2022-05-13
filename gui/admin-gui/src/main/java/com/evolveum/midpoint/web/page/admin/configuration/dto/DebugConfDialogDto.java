@@ -58,4 +58,8 @@ public class DebugConfDialogDto implements Serializable {
     public Class<? extends ObjectType> getType() {
         return type;
     }
+
+    public void setType(Class<? extends ObjectType> type) {
+        this.type = type;
+    }
 }

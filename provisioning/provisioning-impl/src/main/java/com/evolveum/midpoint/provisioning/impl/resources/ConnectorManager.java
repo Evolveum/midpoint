@@ -26,9 +26,12 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,8 +81,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
-    private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = ConnectorManager.class.getName()+".parsedSchema";
-
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -114,7 +115,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     /**
      * Contains IMMUTABLE connector objects with connector hosts resolved and schemas parsed.
      */
-    @NotNull private Map<String, ConnectorType> connectorBeanCache = new ConcurrentHashMap<>();
+    @NotNull private Map<String, ConnectorWithSchema> connectorBeanCache = new ConcurrentHashMap<>();
 
     private Consumer<ConnectorType> notInRepoConsumer;
 
@@ -256,7 +257,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     private ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        ConnectorType connectorBean = getConnector(connectorSpec, result);
+        ConnectorType connectorBean = getConnectorWithSchema(connectorSpec, result).getConnector();
 
         ConnectorFactory connectorFactory = determineConnectorFactory(connectorBean);
 
@@ -306,10 +307,15 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 
-            connector.configure(connectorConfigurationVal, ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()), isCaching, result);
+            connector.configure(
+                    connectorConfigurationVal,
+                    ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()),
+                    isCaching,
+                    result);
 
             ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
-            Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+            CapabilityCollectionType capabilities =
+                    ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
 
             connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
         } catch (GenericFrameworkException e) {
@@ -324,22 +330,22 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     /**
-     * @return Connector bean with attached parsed schema. Might be immutable (if returned from cache).
+     * @return Connector bean with attached parsed schema. The connector may be immutable (if returned from cache).
      */
-    ConnectorType getConnector(ConnectorSpec connectorSpec, OperationResult result)
+    @NotNull ConnectorWithSchema getConnectorWithSchema(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         if (connectorSpec.getConnectorOid() == null) {
             result.recordFatalError("Connector OID missing in " + connectorSpec);
-            throw new ObjectNotFoundException("Connector OID missing in " + connectorSpec);
+            throw new ObjectNotFoundException("Connector OID missing in " + connectorSpec); // TODO ConfigurationException?
         }
         String connOid = connectorSpec.getConnectorOid();
 
-        ConnectorType cachedConnector = connectorBeanCache.get(connOid);
-        if (cachedConnector != null) {
-            if (!cachedConnector.asPrismObject().isImmutable()) {
-                throw new IllegalStateException("Cached connector bean is not immutable: " + cachedConnector);
+        ConnectorWithSchema cachedConnectorWithSchema = connectorBeanCache.get(connOid);
+        if (cachedConnectorWithSchema != null) {
+            if (!cachedConnectorWithSchema.getConnector().isImmutable()) {
+                throw new IllegalStateException("Cached connector bean is not immutable: " + cachedConnectorWithSchema);
             }
-            return cachedConnector;
+            return cachedConnectorWithSchema;
         }
 
         PrismObject<ConnectorType> connector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
@@ -348,42 +354,23 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         if (connectorBean.getConnectorHostRef() != null) {
             // We need to resolve the connector host
             String connectorHostOid = connectorBean.getConnectorHostRef().getOid();
-            PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, null, result);
+            PrismObject<ConnectorHostType> connectorHost =
+                    repositoryService.getObject(ConnectorHostType.class, connectorHostOid, null, result);
             connectorBean.getConnectorHostRef().asReferenceValue().setObject(connectorHost);
         }
 
-        Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
-        if (userDataEntry == null) {
-            InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
-            PrismSchema connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorBean);
-            if (connectorSchema == null) {
-                throw new SchemaException("No connector schema in "+connectorBean);
-            }
-            connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
-        }
-        connectorBeanCache.put(connOid, connectorBean.asPrismObject().createImmutableClone().asObjectable());
-        return connectorBean;
-    }
+        InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+        PrismSchema connectorSchema =
+                MiscUtil.requireNonNull(
+                        ConnectorTypeUtil.parseConnectorSchema(connectorBean),
+                        () -> "No connector schema in " + connectorBean);
 
-    /**
-     * Obtains attached parsed schema for the connector. Assumes it exists.
-     *
-     * TODO rework this (we will probably use some other mechanism for passing parsed schemas around)
-     */
-    @NotNull
-    PrismSchema getAttachedConnectorSchema(ConnectorType connectorType) throws SchemaException {
-        PrismObject<ConnectorType> connector = connectorType.asPrismObject();
-        Object parsedConnectorSchema = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
-        if (parsedConnectorSchema == null) {
-            throw new SchemaException("No connector schema attached to "+connectorType);
-        } else {
-            if (parsedConnectorSchema instanceof PrismSchema) {
-                return (PrismSchema)parsedConnectorSchema;
-            } else {
-                throw new IllegalStateException("Expected PrismSchema under user data key "+
-                        USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA+ "in "+connectorType+", but got "+parsedConnectorSchema.getClass());
-            }
-        }
+        ConnectorWithSchema connectorWithSchema = new ConnectorWithSchema(
+                connectorBean.asPrismObject().createImmutableClone().asObjectable(),
+                connectorSchema);
+
+        connectorBeanCache.put(connOid, connectorWithSchema);
+        return connectorWithSchema;
     }
 
     public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
@@ -674,9 +661,9 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         }
     }
 
-    private List<String> getConnectorsForConnectorHost(String oid) {
+    private List<String> getConnectorsForConnectorHost(@NotNull String oid) {
         return connectorBeanCache.entrySet().stream()
-                .filter(entry -> entry.getValue().getConnectorHostRef() != null && oid.equals(entry.getValue().getConnectorHostRef().getOid()))
+                .filter(entry -> oid.equals(entry.getValue().getConnectorHostOid()))
                 .map(Entry::getKey)
                 .collect(Collectors.toList());
     }

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +64,7 @@ public class ShadowDeltaComputer {
 
         ObjectDelta<ShadowType> computedShadowDelta = repoShadow.createModifyDelta();
 
-        CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         Collection<QName> incompleteCacheableItems = new HashSet<>();
 
         processAttributes(ctx, repoShadow, resourceObject, resourceObjectDelta,
@@ -74,9 +74,9 @@ public class ShadowDeltaComputer {
         addAuxiliaryObjectClassDelta(repoShadow, resourceObject, computedShadowDelta);
         addExistsDelta(shadowState, computedShadowDelta);
 
-        if (cachingStrategy == CachingStategyType.NONE) {
+        if (cachingStrategy == CachingStrategyType.NONE) {
             addClearCachingMetadataDelta(repoShadow, computedShadowDelta);
-        } else if (cachingStrategy == CachingStategyType.PASSIVE) {
+        } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
             addCachedActivationDeltas(repoShadow, resourceObject, computedShadowDelta);
             addCachingMetadataDelta(incompleteCacheableItems, computedShadowDelta);
         } else {
@@ -155,7 +155,7 @@ public class ShadowDeltaComputer {
             PrismObject<ShadowType> repoShadow,
             PrismObject<ShadowType> resourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta,
-            CachingStategyType cachingStrategy,
+            CachingStrategyType cachingStrategy,
             Collection<QName> incompleteCacheableAttributes,
             ObjectDelta<ShadowType> computedShadowDelta)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,

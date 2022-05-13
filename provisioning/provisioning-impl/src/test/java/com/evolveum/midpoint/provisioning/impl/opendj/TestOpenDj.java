@@ -22,7 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
@@ -295,19 +295,18 @@ public class TestOpenDj extends AbstractOpenDjTest {
         displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
         assertNotNull("credentials capability not found", capCred);
         PasswordCapabilityType capPassword = capCred.getPassword();
         assertNotNull("password capability not present", capPassword);
         assertPasswordCapability(capPassword);
 
         // Connector cannot do activation, this should be null
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it", capAct);
 
-        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilities, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
         List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
@@ -315,34 +314,31 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong script host type", ProvisioningScriptHostType.CONNECTOR, scriptHost.getType());
 //        assertEquals("Wrong script host language", ....., scriptHost.getLanguage());
 
-        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
+        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilities, ReadCapabilityType.class);
         assertNotNull("No read capability", capRead);
         assertNull("Read capability is caching only", capRead.isCachingOnly());
         assertTrue("Read capability is not 'return default'", capRead.isReturnDefaultAttributesOption());
 
-        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
+        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilities, CreateCapabilityType.class);
         assertNotNull("No create capability", capCreate);
 
-        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
+        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilities, UpdateCapabilityType.class);
         assertNotNull("No update capability", capUpdate);
 
-        DeleteCapabilityType capDelete = CapabilityUtil.getCapability(nativeCapabilitiesList, DeleteCapabilityType.class);
+        DeleteCapabilityType capDelete = CapabilityUtil.getCapability(nativeCapabilities, DeleteCapabilityType.class);
         assertNotNull("No delete capability", capDelete);
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
-        for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
-        }
+        dumpResourceCapabilities(resource);
 
-        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        capCred = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
         assertNotNull("credentials effective capability not found", capCred);
         assertNotNull("password effective capability not found", capCred.getPassword());
         // Although connector does not support activation, the resource specifies a way how to simulate it.
         // Therefore the following should succeed
-        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+        capAct = ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
         assertNotNull("activation capability not found", capAct);
 
-        PagedSearchCapabilityType capPage = ResourceTypeUtil.getEffectiveCapability(resource, PagedSearchCapabilityType.class);
+        PagedSearchCapabilityType capPage = ResourceTypeUtil.getEnabledCapability(resource, PagedSearchCapabilityType.class);
         assertNotNull("paged search capability not present", capPage);
 
         assertShadows(1);

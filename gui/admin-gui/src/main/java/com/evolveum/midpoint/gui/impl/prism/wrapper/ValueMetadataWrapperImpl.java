@@ -121,11 +121,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public Class<?> getTypeClassIfKnown() {
-        return metadataValueWrapper.getTypeClassIfKnown();
-    }
-
-    @Override
     public boolean isExpanded() {
         return metadataValueWrapper.isExpanded();
     }

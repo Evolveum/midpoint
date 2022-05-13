@@ -16,8 +16,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 /**
  * @author katka
@@ -29,8 +29,8 @@ public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapp
 
     List<QName> getTargetTypes();
 
-    Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions();
-    void setSpecialSearchItemFunctions(Set<Function<Search, SearchItem>> specialItems);
+    Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemFunctions();
+    void setSpecialSearchItemFunctions(Set<SerializableSupplier<AbstractSearchItemWrapper>> specialItems);
 
     boolean isOnlyForDeltaComputation();
 }

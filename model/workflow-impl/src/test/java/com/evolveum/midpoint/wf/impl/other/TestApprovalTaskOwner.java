@@ -176,7 +176,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
         CaseWorkItemType caseWorkItemType = caseWorkItems.get(0);
         display("CASEWI: \n" + caseWorkItemType.debugDump());
 
-        AbstractWorkItemOutputType workItemOutputType = ApprovalUtils.createApproveOutput(prismContext);
+        AbstractWorkItemOutputType workItemOutputType = ApprovalUtils.createApproveOutput();
 
         caseManager.completeWorkItem(WorkItemId.of(caseWorkItemType), workItemOutputType, null, task, result);
     }

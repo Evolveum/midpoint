@@ -9,9 +9,8 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 

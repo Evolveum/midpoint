@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -21,13 +19,13 @@ import org.apache.wicket.validation.validator.RangeValidator;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 /**
  * @author lazyman
  */
 public class PageSizePopover extends BasePanel<PageSizePopover> {
-
     private static final String ID_POP_BUTTON = "popButton";
     private static final String ID_POPOVER = "popover";
     private static final String ID_FORM = "form";
@@ -47,7 +45,7 @@ public class PageSizePopover extends BasePanel<PageSizePopover> {
         String buttonId = get(ID_POP_BUTTON).getMarkupId();
 
         response.render(OnDomReadyHeaderItem.forScript(
-                "initPageSizePopover('" + buttonId
+                "MidPointTheme.initPageSizePopover('" + buttonId
                         + "','" + get(ID_POPOVER).getMarkupId()
                         + "','" + buttonId
                         + "');"));
@@ -91,7 +89,7 @@ public class PageSizePopover extends BasePanel<PageSizePopover> {
     }
 
     private IModel<Integer> createInputModel() {
-        return new IModel<Integer>() {
+        return new IModel<>() {
 
             @Override
             public Integer getObject() {

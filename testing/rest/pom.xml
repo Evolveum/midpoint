@@ -39,12 +39,6 @@
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
             <version>${project.version}</version>
-            <exclusions> <!-- we dont want bouncy castle to include into midPoint -->
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

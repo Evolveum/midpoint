@@ -6,32 +6,31 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import java.util.Arrays;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.request.component.IRequestablePage;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBox;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -50,6 +49,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
                         description = "PageDashboard.auth.dashboard.description")
         })
 public class PageDashboardInfo extends PageDashboard {
+
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboardInfo.class);
@@ -68,7 +68,6 @@ public class PageDashboardInfo extends PageDashboard {
         initInfoBoxes();
         initPersonalInfo();
         initSystemInfo();
-
     }
 
     private void initInfoBoxes() {
@@ -93,28 +92,26 @@ public class PageDashboardInfo extends PageDashboard {
 
         add(createResourceInfoBoxPanel(result, task));
         add(createTaskInfoBoxPanel(result, task));
-
     }
 
-    private <F extends FocusType> BasicInfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor,
+    private <F extends FocusType> InfoBox createFocusInfoBoxPanel(String id, Class<F> type, String bgColor,
             String icon, String keyPrefix, Class<? extends IRequestablePage> linkPage, OperationResult result, Task task) {
-        return new BasicInfoBoxPanel(id, getFocusInfoBoxType(type, bgColor, icon, keyPrefix, result, task), linkPage);
+        return new InfoBox(id, getFocusInfoBoxType(type, bgColor, icon, keyPrefix, result, task, linkPage));
     }
 
     private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
-        return new BasicInfoBoxPanel(ID_INFO_BOX_RESOURCES, getObjectInfoBoxTypeModel(ResourceType.class,
+        return new InfoBox(ID_INFO_BOX_RESOURCES, getObjectInfoBoxTypeModel(ResourceType.class,
                 Arrays.asList(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
                 AvailabilityStatusType.UP, "object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
-                "PageDashboard.infobox.resources", result, task), PageResources.class);
+                "PageDashboard.infobox.resources", result, task, PageResources.class));
     }
 
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-        return new BasicInfoBoxPanel(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
+        return new InfoBox(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
                 Arrays.asList(TaskType.F_EXECUTION_STATE), TaskExecutionStateType.RUNNABLE, "object-task-bg",
-                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task),
-                PageTasks.class);
+                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task,
+                PageTasks.class));
     }
-
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
@@ -143,9 +140,4 @@ public class PageDashboardInfo extends PageDashboard {
         };
         add(systemInfo);
     }
-
-
-
-
-
 }

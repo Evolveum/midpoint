@@ -845,7 +845,7 @@ public class ColumnUtils {
 
             @Override
             public String getCssClass() {
-                return isDashboard ? "col-sm-2 col-lg-1" : super.getCssClass();
+                return isDashboard ? "mp-w-sm-2 mp-w-lg-1" : super.getCssClass();
             }
         };
         columns.add(column);
@@ -861,7 +861,7 @@ public class ColumnUtils {
 
                 @Override
                 public String getCssClass() {
-                    return isDashboard ? "col-sm-2 col-lg-1" : super.getCssClass();
+                    return isDashboard ? "mp-w-sm-2 mp-w-lg-1" : super.getCssClass();
                 }
             };
             columns.add(column);
@@ -893,7 +893,7 @@ public class ColumnUtils {
 
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "mp-w-lg-1";
             }
         };
         columns.add(column);
@@ -901,7 +901,7 @@ public class ColumnUtils {
         column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state") {
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "mp-w-lg-1";
             }
 
             @Override
@@ -936,7 +936,7 @@ public class ColumnUtils {
 
                 @Override
                 public String getCssClass() {
-                    return "col-lg-1";
+                    return "mp-w-lg-1";
                 }
 
             };

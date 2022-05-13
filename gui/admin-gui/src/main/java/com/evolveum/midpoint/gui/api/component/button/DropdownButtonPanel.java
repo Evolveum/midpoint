@@ -72,14 +72,8 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         buttonContainer.add(info);
 
         Label label = new Label(ID_LABEL, new PropertyModel<>(getModel(), DropdownButtonDto.F_LABEL));
-        label.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getLabel() != null;
-            }
-        });
-        label.add(AttributeAppender.append("class", getSpecialLabelClass()));
+        label.setRenderBodyOnly(true);
+        label.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getLabel() != null));
         buttonContainer.add(label);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
@@ -128,6 +122,8 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
+        menuItem.setRenderBodyOnly(true);
+
         MenuLinkPanel menuItemBody = new MenuLinkPanel(componentId, menuItem.getModel()){
             @Override
             protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
@@ -155,9 +151,5 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
     protected String getSpecialDropdownMenuClass() {
         return "pull-right";
-    }
-
-    protected String getSpecialLabelClass() {
-        return "";
     }
 }

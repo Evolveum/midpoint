@@ -17,7 +17,7 @@ import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationI
 import com.evolveum.midpoint.cases.api.events.WorkItemOperationInfo;
 import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;

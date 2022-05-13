@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,6 +78,9 @@ public interface ResourceObjectTypeDefinition
 
     ResourceObjectTypeDefinition forLayer(@NotNull LayerType layerType);
 
+    /** Returns the configured capability of given class, if present. */
+    @Nullable <T extends CapabilityType> T getConfiguredCapability(Class<T> capabilityClass);
+
     /**
      * Returns the "raw" configuration bean for this object type.
      *
@@ -104,4 +109,8 @@ public interface ResourceObjectTypeDefinition
 
     /** Temporary? */
     @Nullable ExpressionType getClassificationCondition();
+
+    @NotNull default ResourceObjectTypeIdentification getIdentification() {
+        return ResourceObjectTypeIdentification.of(getKind(), getIntent());
+    }
 }

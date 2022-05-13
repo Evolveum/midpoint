@@ -60,12 +60,11 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
-import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -125,9 +124,9 @@ public class AuditLogViewerPanel extends BasePanel {
 
                     @Override
                     protected Search createSearch(Class<AuditEventRecordType> type) {
-                        AuditLogStorage storage = (AuditLogStorage) getPageStorage(); //TODO: use storage?
-                        Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
-                        DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+                        Search search = SearchFactory.createSearch(type, getPageBase());
+
+                        DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
                         if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
                             Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
                             timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
@@ -144,7 +143,7 @@ public class AuditLogViewerPanel extends BasePanel {
                     protected String getStorageKey() {
                         String collectionNameValue = null;
                         if (isCollectionViewPanelForCompiledView()) {
-                            StringValue collectionName = getCollectionNameParameterValue();
+                            StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
                             collectionNameValue = collectionName != null ? collectionName.toString() : "";
                         }
                         return getAuditStorageKey(collectionNameValue);
@@ -247,7 +246,7 @@ public class AuditLogViewerPanel extends BasePanel {
                                 createReportPerformed(target);
                             }
                         };
-                        createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
+                        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
                         buttonsList.add(createReport);
                         return buttonsList;
                     }

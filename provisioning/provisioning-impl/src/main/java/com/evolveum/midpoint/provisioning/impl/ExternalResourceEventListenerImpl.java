@@ -21,7 +21,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

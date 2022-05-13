@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl;
 
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 public class ExpectedWorkItem {
+
     final String assigneeOid;
     final String targetOid;
     final ExpectedTask task;
@@ -30,7 +30,7 @@ public class ExpectedWorkItem {
         if (targetOid != null && !targetOid.equals(ApprovalContextUtil.getTargetRef(actualWorkItem).getOid())) {
             return false;
         }
-        CaseType actualCase = CaseWorkItemUtil.getCaseRequired(actualWorkItem);
+        CaseType actualCase = CaseTypeUtil.getCaseRequired(actualWorkItem);
         return task.processName.equals(actualCase.getName().getOrig());
     }
 

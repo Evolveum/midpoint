@@ -23,7 +23,7 @@
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
-        <!-- Profile for JDK11 sets additional javadocs options for java 11 (which are removed in java 13+ -->
+        <!-- Profile for JDK11 sets additional javadocs options for java 11 (which are removed in java 13+). -->
         <javadoc.options></javadoc.options>
     </properties>
 

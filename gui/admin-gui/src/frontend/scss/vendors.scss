@@ -1,0 +1,23 @@
+/*!
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+@import "../../../node_modules/famfamfam-flags/dist/sprite/famfamfam-flags.css";
+
+@import "../../../node_modules/@fontsource/source-sans-pro/300.css";
+@import "../../../node_modules/@fontsource/source-sans-pro/400.css";
+@import "../../../node_modules/@fontsource/source-sans-pro/400-italic.css";
+@import "../../../node_modules/@fontsource/source-sans-pro/700.css";
+
+@import "midpoint-theme-variables";
+
+@import "../../../node_modules/admin-lte/build/scss/adminlte";
+@import "../../../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
+@import "../../../node_modules/@fortawesome/fontawesome-free/css/all.css";
+@import "../../../node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
+
+@import "../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
+@import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";

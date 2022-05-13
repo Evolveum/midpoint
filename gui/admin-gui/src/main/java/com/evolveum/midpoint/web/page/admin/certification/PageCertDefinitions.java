@@ -190,7 +190,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-files-o");
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.ICON_FAR_COPY);
             }
 
             @Override

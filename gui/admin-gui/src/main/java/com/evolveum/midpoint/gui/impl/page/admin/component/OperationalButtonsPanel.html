@@ -8,16 +8,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="box box-solid">
-        <div class="box-body">
-            <div class="main-button-bar">
-                <fieldset class="objectButtons col-lg-2">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-3">
+                <fieldset class="objectButtons d-flex flex-wrap gap-1 align-items-start">
                     <legend><wicket:message key="OperationalButtonsPanel.buttons.main"/></legend>
-                    <span class="btn btn-margin-right " wicket:id="buttons"/>
+                    <a class="btn" wicket:id="buttons"/>
                 </fieldset>
                 <wicket:child/>
                 <span class="pull-right button-group">
-                     <span class="btn btn-margin-right " wicket:id="stateButtons"/>
+                    <a class="btn" wicket:id="stateButtons"/>
                 </span>
             </div>
         </div>

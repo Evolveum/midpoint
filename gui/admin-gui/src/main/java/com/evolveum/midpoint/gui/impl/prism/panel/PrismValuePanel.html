@@ -9,8 +9,8 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <form wicket:id="valueForm">
-        <div>
-            <div class="col-xs-10" wicket:id="valueContainer">
+        <div class="row">
+            <div class="col-10" wicket:id="valueContainer">
                 <div wicket:id="input"/>
                 <wicket:enclosure child="feedback">
                     <div>
@@ -18,11 +18,14 @@
                     </div>
                 </wicket:enclosure>
             </div>
-
-            <div class="col-xs-2" wicket:id="header">
+            <div class="col-2" wicket:id="header">
                 <span class="btn-group">
-                    <a class="btn btn-box-tool fa fa-minus-circle" wicket:id="removeButton" wicket:message="title:PageBase.button.delete" />
-                    <a class="btn btn-box-tool fa fa-tag" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata" />
+                    <a class="btn btn-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete">
+                        <i class="fa fa-minus-circle"></i>
+                    </a>
+                    <a class="btn btn-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata">
+                        <i class="fa fa-tag"></i>
+                    </a>
                 </span>
             </div>
         </div>

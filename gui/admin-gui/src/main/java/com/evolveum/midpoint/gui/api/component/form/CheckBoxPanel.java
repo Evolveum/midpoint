@@ -15,6 +15,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -29,13 +30,12 @@ import org.apache.wicket.model.IModel;
 public class CheckBoxPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_CONTAINER = "container";
     private static final String ID_CHECK = "check";
     private static final String ID_LABEL = "label";
 
-    IModel<Boolean> checkboxModel;
-    IModel<String> labelModel;
-    IModel<String> tooltipModel;
+    private IModel<Boolean> checkboxModel;
+    private IModel<String> labelModel;
+    private IModel<String> tooltipModel;
 
     public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
         this(id, checkboxModel, null, null);
@@ -52,8 +52,8 @@ public class CheckBoxPanel extends Panel {
     @Override
     protected void onInitialize(){
         super.onInitialize();
-        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
-        add(container);
+
+        add(AttributeAppender.append("class", "form-check"));
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, checkboxModel) {
             private static final long serialVersionUID = 1L;
@@ -71,20 +71,20 @@ public class CheckBoxPanel extends Panel {
         check.setOutputMarkupId(true);
 
         check.add(new EnableBehaviour(() -> isCheckboxEnabled()));
-        container.add(check);
+        add(check);
 
         Label label = new Label(ID_LABEL, labelModel);
+        label.add(AttributeModifier.replace("for", (IModel<String>) () -> check.getMarkupId()));
         label.add(new VisibleBehaviour(() -> labelModel != null));
-        label.setRenderBodyOnly(true);
-        container.add(label);
+        add(label);
 
         if (tooltipModel != null) {
-            container.add(new AttributeModifier("title", tooltipModel));
+            add(new AttributeModifier("title", tooltipModel));
         }
     }
 
-    private AjaxCheckBox getPanelComponent() {
-        return (AjaxCheckBox) get(ID_CONTAINER).get(ID_CHECK);
+    public AjaxCheckBox getPanelComponent() {
+        return (AjaxCheckBox) get(ID_CHECK);
     }
 
     protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {

@@ -16,6 +16,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +37,6 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -58,8 +63,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -432,9 +436,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
             // TODO add containerable option too
             //noinspection unchecked
-            Search<?> search = SearchFactory.createSearch((Class<? extends ObjectType>) request.getType(), this);
+            Search<?> search = SearchFactory.createSearch(createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()), this);
             search.setAdvancedQuery(filterAsString);
-            search.setSearchType(SearchBoxModeType.ADVANCED);
+//            search.setSearchType(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
@@ -581,5 +585,13 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
         }
         return sb.toString();
+    }
+
+    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> type) {
+        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
+        config.getAllowedMode().add(SearchBoxModeType.ADVANCED);
+        config.setDefaultMode(SearchBoxModeType.ADVANCED);
+        //todo fix
+        return new SearchConfigurationWrapper(type);
     }
 }

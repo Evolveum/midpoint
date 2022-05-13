@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,6 +16,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author lazyman
@@ -39,13 +39,7 @@ public class CountToolbar extends AbstractToolbar {
         super.onInitialize();
 
         WebMarkupContainer td = new WebMarkupContainer(ID_TD);
-        td.add(AttributeModifier.replace("colspan", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return String.valueOf(getTable().getColumns().size());
-            }
-        }));
+        td.add(AttributeModifier.replace("colspan", () -> String.valueOf(getTable().getColumns().size())));
         add(td);
 
         Label count = new Label(ID_COUNT, createModel(this, getTable()));
@@ -59,18 +53,12 @@ public class CountToolbar extends AbstractToolbar {
                 CountToolbar.this.pageSizeChanged(target);
             }
         };
-        popover.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return CountToolbar.this.isPageSizePopupVisible();
-            }
-        });
+        popover.add(new VisibleBehaviour(() -> CountToolbar.this.isPageSizePopupVisible()));
         td.add(popover);
     }
 
     private IModel<String> createModel(Component component, IPageable pageable) {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
 
             @Override
             protected String load() {

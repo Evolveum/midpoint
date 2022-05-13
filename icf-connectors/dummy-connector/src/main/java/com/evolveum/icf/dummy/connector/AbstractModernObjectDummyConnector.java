@@ -7,8 +7,8 @@
 package com.evolveum.icf.dummy.connector;
 
 import com.evolveum.icf.dummy.resource.*;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.spi.InstanceNameAware;

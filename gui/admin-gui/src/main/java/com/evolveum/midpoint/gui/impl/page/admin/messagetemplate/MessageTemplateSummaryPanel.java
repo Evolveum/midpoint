@@ -22,10 +22,9 @@ public class MessageTemplateSummaryPanel extends ObjectSummaryPanel<MessageTempl
     public MessageTemplateSummaryPanel(String id, IModel<MessageTemplateType> model, SummaryPanelSpecificationType specification) {
         super(id, MessageTemplateType.class, model, specification);
     }
-
     @Override
     protected String getDefaultIconCssClass() {
-        return GuiStyleConstants.CLASS_VALUE_POLICY_ICON;
+        return GuiStyleConstants.EVO_MESSAGE_TEMPLATE_TYPE_ICON;
     }
 
     @Override

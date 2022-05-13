@@ -132,8 +132,8 @@ class ShadowCreator {
         ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
         repoShadowType.setPrimaryIdentifierValue(helper.determinePrimaryIdentifierValue(ctx, resourceObjectOrShadow));
 
-        CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
-        if (cachingStrategy == CachingStategyType.NONE) {
+        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        if (cachingStrategy == CachingStrategyType.NONE) {
             // Clean all repoShadow attributes and add only those that should be there
             repoAttributesContainer.clear();
             Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getPrimaryIdentifiers();
@@ -165,7 +165,7 @@ class ShadowCreator {
 
             ProvisioningUtil.cleanupShadowActivation(repoShadowType);
 
-        } else if (cachingStrategy == CachingStategyType.PASSIVE) {
+        } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
             // Do not need to clear anything. Just store all attributes and add metadata.
             CachingMetadataType cachingMetadata = new CachingMetadataType();
             cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
@@ -219,8 +219,8 @@ class ShadowCreator {
         if (passwordValue == null) {
             return;
         }
-        CachingStategyType cachingStrategy = ctx.getPasswordCachingStrategy();
-        if (cachingStrategy != null && cachingStrategy != CachingStategyType.NONE) {
+        CachingStrategyType cachingStrategy = ctx.getPasswordCachingStrategy();
+        if (cachingStrategy != null && cachingStrategy != CachingStrategyType.NONE) {
             if (!passwordValue.isHashed()) {
                 protector.hash(passwordValue);
             }

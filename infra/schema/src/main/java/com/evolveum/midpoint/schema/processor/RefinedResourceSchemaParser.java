@@ -7,33 +7,33 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.SuperReference;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.merger.objdef.ResourceObjectTypeDefinitionMergeOperation;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 
 /**
  * Creates type definitions in {@link ResourceSchemaImpl} objects.
@@ -46,6 +46,8 @@ import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
  * This class is instantiated for each parsing operation.
  */
 public class RefinedResourceSchemaParser {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RefinedResourceSchemaParser.class);
 
     @NotNull private final ResourceType resource;
 
@@ -97,43 +99,138 @@ public class RefinedResourceSchemaParser {
         return completeSchema;
     }
 
-    private void createEmptyObjectTypeDefinitions() throws SchemaException {
+    private void createEmptyObjectTypeDefinitions() throws SchemaException, ConfigurationException {
+        LOGGER.trace("Creating empty object type definitions");
+        int created = 0;
         for (ResourceObjectTypeDefinitionType definitionBean : resource.getSchemaHandling().getObjectType()) {
-            completeSchema.add(createEmptyObjectTypeDefinition(definitionBean));
+            if (!isAbstract(definitionBean)) {
+                ResourceObjectTypeDefinition definition = createEmptyObjectTypeDefinition(definitionBean);
+                LOGGER.trace("Created (empty) object type definition: {}", definition);
+                completeSchema.add(definition);
+                created++;
+            } else {
+                LOGGER.trace("Ignoring abstract definition bean: {}", definitionBean);
+            }
         }
         checkForMultipleDefaults();
+        checkTypeUniqueness(); // We should perhaps check this when adding definitions to the schema.
+        LOGGER.trace("Successfully created {} empty object type definitions", created);
+    }
+
+    private boolean isAbstract(@NotNull ResourceObjectTypeDefinitionType definitionBean) {
+        return Boolean.TRUE.equals(definitionBean.isAbstract());
     }
 
     private ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(@NotNull ResourceObjectTypeDefinitionType definitionBean)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
 
-        ShadowKindType kind = Objects.requireNonNullElse(definitionBean.getKind(), ShadowKindType.ACCOUNT);
-        String intent = Objects.requireNonNullElse(definitionBean.getIntent(), SchemaConstants.INTENT_DEFAULT);
+        ResourceObjectTypeIdentification identification = ResourceObjectTypeIdentification.of(definitionBean);
+
+        ResourceObjectTypeDefinitionType expandedBean = expand(definitionBean);
+
         QName objectClassName = MiscUtil.requireNonNull(
-                definitionBean.getObjectClass(),
-                () -> "Definition of " + kind + "/" + intent + " does not have objectclass, in " + contextDescription);
+                expandedBean.getObjectClass(),
+                () -> "Definition of " + identification + " does not have objectclass, in " + contextDescription);
 
         return new ResourceObjectTypeDefinitionImpl(
-                kind,
-                intent,
+                identification,
                 completeSchema.findObjectClassDefinitionRequired(objectClassName),
-                CloneUtil.toImmutable(definitionBean),
+                CloneUtil.toImmutable(expandedBean),
                 resource.getOid());
+    }
+
+    /**
+     * Expands the definition by resolving its ancestor (if there's any), recursively if needed.
+     *
+     * TODO should we move the expansion code into a separate class?
+     */
+    private @NotNull ResourceObjectTypeDefinitionType expand(
+            @NotNull ResourceObjectTypeDefinitionType definitionBean) throws ConfigurationException, SchemaException {
+        if (definitionBean.getSuper() == null) {
+            return definitionBean;
+        } else {
+            var expanded = expand(definitionBean, Sets.newIdentityHashSet());
+            LOGGER.trace("Expanded object type definition into:\n{}", expanded.debugDumpLazily(1));
+            return expanded;
+        }
+    }
+
+    /**
+     * Expands the definition by resolving its ancestor (if there's any), recursively if needed.
+     *
+     * Does not modify existing {@link #resource} object, so it clones the beans that are being expanded.
+     *
+     * @param seen stores beans that have been seen when resolving the ancestors. Used to detect cycles.
+     */
+    private @NotNull ResourceObjectTypeDefinitionType expand(
+            @NotNull ResourceObjectTypeDefinitionType subBean,
+            @NotNull Set<ResourceObjectTypeDefinitionType> seen) throws ConfigurationException, SchemaException {
+        SuperObjectTypeReferenceType superRef = subBean.getSuper();
+        if (superRef == null) {
+            return subBean;
+        } else {
+            ResourceObjectTypeDefinitionType superBean = find(superRef);
+            if (!seen.add(superBean)) {
+                throw new ConfigurationException("A cycle in super-type hierarchy, detected at " + superBean
+                        + " in " + contextDescription);
+            }
+            ResourceObjectTypeDefinitionType expandedSuperBean = expand(superBean, seen);
+            ResourceObjectTypeDefinitionType expandedSubBean = subBean.clone();
+            merge(expandedSubBean, expandedSuperBean);
+            return expandedSubBean;
+        }
+    }
+
+    /**
+     * Resolves the reference to a super-type. Must be in the same resource.
+     */
+    private @NotNull ResourceObjectTypeDefinitionType find(@NotNull SuperObjectTypeReferenceType superRefBean)
+            throws ConfigurationException {
+        SuperReference superRef = SuperReference.of(superRefBean);
+        List<ResourceObjectTypeDefinitionType> matching = resource.getSchemaHandling().getObjectType().stream()
+                .filter(superRef::matches)
+                .collect(Collectors.toList());
+        return MiscUtil.extractSingletonRequired(matching,
+                () -> new ConfigurationException("Multiple definitions matching " + superRef + " found in " + contextDescription),
+                () -> new ConfigurationException("No definition matching " + superRef + " found in " + contextDescription));
+    }
+
+    /**
+     * Merges "source" (super-type) into "target" (sub-type).
+     */
+    private void merge(
+            @NotNull ResourceObjectTypeDefinitionType target,
+            @NotNull ResourceObjectTypeDefinitionType source) throws SchemaException, ConfigurationException {
+        new ResourceObjectTypeDefinitionMergeOperation(target, source)
+                .execute();
     }
 
     /**
      * Checks that there is at most single default for any kind.
      *
-     * @throws SchemaException If there's a problem. Note that during run time, we throw {@link IllegalStateException}
+     * @throws ConfigurationException If there's a problem. Note that during run time, we throw {@link IllegalStateException}
      * in these cases (as we assume this check was already done).
      */
-    private void checkForMultipleDefaults() throws SchemaException {
+    private void checkForMultipleDefaults() throws ConfigurationException {
         for (ShadowKindType kind : ShadowKindType.values()) {
             var defaults = completeSchema.getObjectTypeDefinitions().stream()
                     .filter(def -> def.matchesKind(kind) && def.isDefaultForKind())
                     .collect(Collectors.toList());
-            schemaCheck(defaults.size() <= 1, "More than one default %s definition in %s: %s",
+            configCheck(defaults.size() <= 1, "More than one default %s definition in %s: %s",
                     kind, contextDescription, defaults);
+        }
+    }
+
+    /**
+     * There should be only a single definition for each kind/intent.
+     */
+    private void checkTypeUniqueness() throws ConfigurationException {
+        Set<ResourceObjectTypeIdentification> identifications = new HashSet<>();
+        for (ResourceObjectTypeDefinition definition : completeSchema.getObjectTypeDefinitions()) {
+            ResourceObjectTypeIdentification identification = definition.getIdentification();
+            if (!identifications.add(identification)) {
+                throw new ConfigurationException("Multiple definitions of " + identification + " in " + contextDescription);
+            }
         }
     }
 
@@ -181,7 +278,7 @@ public class RefinedResourceSchemaParser {
      * Note: this class is instantiated multiple times during parsing of a schema. It should not be
      * a problem, as it is quite lightweight.
      */
-    class ResourceObjectTypeDefinitionParser {
+    private class ResourceObjectTypeDefinitionParser {
 
         /**
          * Specific object type definition being updated. (Empty on the beginning.)
@@ -200,6 +297,7 @@ public class RefinedResourceSchemaParser {
 
         void resolveAuxiliaryObjectClassNames() throws SchemaException {
             for (QName auxObjectClassName : definitionBean.getAuxiliaryObjectClass()) {
+                LOGGER.trace("Resolving auxiliary object class name: {} for {}", auxObjectClassName, definition);
                 definition.addAuxiliaryObjectClassDefinition(
                         MiscUtil.requireNonNull(
                                 completeSchema.findDefinitionForObjectClass(auxObjectClassName),
@@ -228,6 +326,8 @@ public class RefinedResourceSchemaParser {
          * Initializes identifier names and protected objects patterns.
          */
         private void parseAttributes() throws SchemaException {
+
+            LOGGER.trace("Parsing attributes of {}", definition);
 
             parseAttributesFromObjectClass(definition.getObjectClassDefinition(), false);
             for (ResourceObjectDefinition auxDefinition : definition.getAuxiliaryDefinitions()) {
@@ -271,6 +371,8 @@ public class RefinedResourceSchemaParser {
                 @NotNull ResourceAttributeDefinition<?> rawAttrDef, boolean auxiliary) throws SchemaException {
 
             ItemName attrName = rawAttrDef.getItemName();
+
+            LOGGER.trace("Parsing attribute {} (auxiliary = {})", attrName, auxiliary);
 
             // TODO make this context description lazily evaluated
             String attrContextDescription = attrName + ", in " + contextDescription;

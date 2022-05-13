@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
+
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,10 +25,9 @@ import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -46,12 +50,11 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-
-import static java.util.Collections.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationRequestTransformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 /**
  *  Connector that is able to invoke asynchronous provisioning.
@@ -68,9 +71,6 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     private static final String OP_ADD_OBJECT = AsyncProvisioningConnectorInstance.class.getName() + ".addObject";
     private static final String OP_MODIFY_OBJECT = AsyncProvisioningConnectorInstance.class.getName() + ".modifyObject";
     private static final String OP_DELETE_OBJECT = AsyncProvisioningConnectorInstance.class.getName() + ".deleteObject";
-
-    private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-            = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
     private ConnectorConfiguration configuration;
 
@@ -287,16 +287,13 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public Collection<Object> fetchCapabilities(OperationResult parentResult) {
+    public CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("capabilities");
-
-        Collection<Object> capabilities = new ArrayList<>();
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(new CreateCapabilityType()));
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(new UpdateCapabilityType()
-                .addRemoveAttributeValues(true)));
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(new DeleteCapabilityType()));
-        // TODO
-        return capabilities;
+        return new CapabilityCollectionType()
+                .create(new CreateCapabilityType())
+                .update(new UpdateCapabilityType()
+                        .addRemoveAttributeValues(true))
+                .delete(new DeleteCapabilityType());
     }
 
     @Override

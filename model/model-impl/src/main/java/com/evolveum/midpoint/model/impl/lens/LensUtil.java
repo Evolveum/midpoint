@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
@@ -80,6 +80,8 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Collections.emptySet;
 
 /**
@@ -476,7 +478,7 @@ public class LensUtil {
     }
 
     public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
-        return iterationSpecType != null ? iterationSpecType.getMaxIterations() : 0;
+        return iterationSpecType != null ? or0(iterationSpecType.getMaxIterations()) : 0;
     }
 
     public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,
@@ -991,8 +993,8 @@ public class LensUtil {
     }
 
     public static boolean isPasswordReturnedByDefault(LensProjectionContext projCtx) {
-        CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
-        return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
+        return CapabilityUtil.isPasswordReturnedByDefault(
+                ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class));
     }
 
     public static boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,

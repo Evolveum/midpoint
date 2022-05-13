@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
@@ -17,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -514,14 +517,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         OperationResult result = new OperationResult(contextName());
 
         // WHEN
-        Collection<Object> capabilities = cc.fetchCapabilities(result);
+        CapabilityCollectionType capabilities = cc.fetchCapabilities(result);
 
         // THEN
         result.computeStatus("getCapabilities failed");
         TestUtil.assertSuccess("getCapabilities failed (result)", result);
-        assertFalse("Empty capabilities returned", capabilities.isEmpty());
-        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities,
-                CredentialsCapabilityType.class);
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(capabilities));
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+        assertThat(capCred).isNotNull();
         assertNotNull("password capability not present", capCred.getPassword());
 
         PagedSearchCapabilityType capPage = CapabilityUtil.getCapability(capabilities, PagedSearchCapabilityType.class);

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -458,19 +458,19 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertResource(resourceRepoAfter, "Resource after test")
                 .display()
                 .operationalState()
-                    .assertAny()
-                    .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
-                    .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                    .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
-                    .end()
+                .assertAny()
+                .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
+                .end()
                 .operationalStateHistory()
-                    .assertSize(1)
-                    .value(0)
-                        .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
-                        .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                        .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
+                .assertSize(1)
+                .value(0)
+                .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
@@ -587,7 +587,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         if (property != null) {
             if (property.getRealValue() instanceof RawType) {
                 try {
-                    value = ((RawType)property.getRealValue()).getValue();
+                    value = ((RawType) property.getRealValue()).getValue();
                 } catch (SchemaException e) {
                     //ignore exception
                     value = null;
@@ -798,12 +798,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
         displayValue("Native capabilities", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
         display("Resource", resourceType);
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
+        assertThat(capCred).isNotNull();
         assertNativeCredentialsCapability(capCred);
 
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
         if (supportsActivation()) {
             assertNotNull("native activation capability not present", capAct);
             assertNotNull("native activation status capability not present", capAct.getStatus());
@@ -811,21 +811,21 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNull("native activation capability sneaked in", capAct);
         }
 
-        TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList, TestConnectionCapabilityType.class);
+        TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilities, TestConnectionCapabilityType.class);
         assertNotNull("native test capability not present", capTest);
-        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilities, ScriptCapabilityType.class);
         assertNotNull("native script capability not present", capScript);
         assertNotNull("No host in native script capability", capScript.getHost());
         assertFalse("No host in native script capability", capScript.getHost().isEmpty());
         // TODO: better look inside
 
-        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
+        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilities, UpdateCapabilityType.class);
         assertUpdateCapability(capUpdate);
 
-        AddRemoveAttributeValuesCapabilityType capAddRemove = CapabilityUtil.getCapability(nativeCapabilitiesList, AddRemoveAttributeValuesCapabilityType.class);
+        AddRemoveAttributeValuesCapabilityType capAddRemove = CapabilityUtil.getCapability(nativeCapabilities, AddRemoveAttributeValuesCapabilityType.class);
         assertAddRemoveAttributeValuesCapability(capAddRemove);
 
-        RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilitiesList, RunAsCapabilityType.class);
+        RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilities, RunAsCapabilityType.class);
         assertRunAsCapability(capRunAs);
 
         capabilitiesCachingMetadataType = resourceType.getCapabilities().getCachingMetadata();
@@ -839,26 +839,22 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         if (configuredCapabilities == null) {
             assertCountConfiguredCapability(null);
         } else {
-            List<Object> configuredCapabilitiesList = configuredCapabilities.getAny();
-            CountObjectsCapabilityType capCount = CapabilityUtil.getCapability(configuredCapabilitiesList,
-                    CountObjectsCapabilityType.class);
+            CountObjectsCapabilityType capCount =
+                    CapabilityUtil.getCapability(configuredCapabilities, CountObjectsCapabilityType.class);
             assertCountConfiguredCapability(capCount);
         }
 
-        // Check effective capabilites
-        capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
+        // Check effective capabilities
+        capCred = ResourceTypeUtil.getEnabledCapability(resourceType, CredentialsCapabilityType.class);
+        assertThat(capCred).isNotNull();
         assertNotNull("password capability not found", capCred.getPassword());
-        // Although connector does not support activation, the resource
-        // specifies a way how to simulate it.
-        // Therefore the following should succeed
-        capAct = ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found", capCred.getPassword());
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
-        for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : "
-                    + capability);
+        if (supportsActivation()) {
+            capAct = ResourceTypeUtil.getEnabledCapability(resourceType, ActivationCapabilityType.class);
+            assertNotNull("activation capability not found", capAct);
         }
+
+        dumpResourceCapabilities(resourceType);
 
         assertSteadyResource();
         dummyResource.assertConnections(4);
@@ -932,13 +928,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
         System.out.println("Native capabilities: " + PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
         System.out.println("resource: " + resourceType.asPrismObject().debugDump());
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                CredentialsCapabilityType.class);
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
+        assertThat(capCred).isNotNull();
         assertNotNull("password native capability not present", capCred.getPassword());
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
 
         if (supportsActivation()) {
             assertNotNull("native activation capability not present", capAct);
@@ -947,11 +941,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNull("native activation capability sneaked in", capAct);
         }
 
-        TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                TestConnectionCapabilityType.class);
+        TestConnectionCapabilityType capTest =
+                CapabilityUtil.getCapability(nativeCapabilities, TestConnectionCapabilityType.class);
         assertNotNull("native test capability not present", capTest);
-        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                ScriptCapabilityType.class);
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilities, ScriptCapabilityType.class);
         assertNotNull("native script capability not present", capScript);
         assertNotNull("No host in native script capability", capScript.getHost());
         assertFalse("No host in native script capability", capScript.getHost().isEmpty());

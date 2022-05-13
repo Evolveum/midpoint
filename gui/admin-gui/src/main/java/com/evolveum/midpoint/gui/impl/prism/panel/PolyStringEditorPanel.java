@@ -130,6 +130,7 @@ public class PolyStringEditorPanel extends InputPanel {
 
         WebMarkupContainer originValueContainer = new WebMarkupContainer(ID_ORIGIN_VALUE_CONTAINER);
         originValueContainer.setOutputMarkupId(true);
+        originValueContainer.add(AttributeAppender.prepend("class", () -> showFullData ? "property-stripe" : null));
         originValueContainer.add(getInputFieldClassAppenderForContainer());
         originValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isEmpty(localizedValue)));
         add(originValueContainer);
@@ -145,7 +146,7 @@ public class PolyStringEditorPanel extends InputPanel {
         originValueContainer.add(origValueWithButton);
 
         InputPanel origValuePanel;
-        IModel<String> origValueModel = new IModel<String>() {
+        IModel<String> origValueModel = new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -187,7 +188,6 @@ public class PolyStringEditorPanel extends InputPanel {
         origValueWithButton.add(origValuePanel);
 
         WebMarkupContainer fullDataContainer = new WebMarkupContainer(ID_FULL_DATA_CONTAINER);
-        fullDataContainer.setOutputMarkupId(true);
         fullDataContainer.add(new VisibleBehaviour(() -> showFullData));
         add(fullDataContainer);
 
@@ -271,7 +271,7 @@ public class PolyStringEditorPanel extends InputPanel {
         newLanguageValue.setOutputMarkupId(true);
         languageEditorContainer.add(newLanguageValue);
 
-        AjaxLink<Void> addLanguageButton = new AjaxLink<Void>(ID_ADD_LANGUAGE_VALUE_BUTTON) {
+        AjaxLink<Void> addLanguageButton = new AjaxLink<>(ID_ADD_LANGUAGE_VALUE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -288,8 +288,7 @@ public class PolyStringEditorPanel extends InputPanel {
         addLanguageButton.setOutputMarkupId(true);
         languageEditorContainer.add(addLanguageButton);
 
-        ListView<String> languagesContainer =
-                new ListView<String>(ID_LANGUAGES_REPEATER, getLanguagesListModel()) {
+        ListView<String> languagesContainer = new ListView<>(ID_LANGUAGES_REPEATER, getLanguagesListModel()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -346,9 +345,7 @@ public class PolyStringEditorPanel extends InputPanel {
             }
         };
         showHideLanguagesButton.setOutputMarkupId(true);
-//        showHideLanguagesButton.add(AttributeAppender.append("style", "cursor: pointer;"));
         origValueWithButton.add(showHideLanguagesButton);
-
     }
 
     private String getLocalizedPolyStringValue() {
@@ -395,21 +392,11 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private AttributeAppender getInputFieldClassAppenderForContainer() {
-        return AttributeModifier.append("class", new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return showFullData ? "prism-property" : "";
-            }
-        });
+        return AttributeModifier.append("class", () -> showFullData ? "prism-property" : "");
     }
 
     private AttributeAppender getInputFieldClassAppender() {
-        return AttributeModifier.append("class", new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return showFullData ? "col-lg-9 col-md-9 col-sm-9" : "col-lg-12 col-md-12 col-sm-12";
-            }
-        });
+        return AttributeModifier.append("class", () -> showFullData ? "col-9" : "col-12");
     }
 
     private InputPanel getOrigValuePanel() {
@@ -421,18 +408,24 @@ public class PolyStringEditorPanel extends InputPanel {
         if (StringUtils.isEmpty(language)) {
             return;
         }
-        if (getModelObject() == null) {
-            Map<String, String> languagesMap = new HashMap<>();
-            getModel().setObject(new PolyString(null, null, null, languagesMap));
+
+        PolyString poly = getModelObject();
+        if (poly == null) {
+            poly = new PolyString(null, null, null, new HashMap<>());
+            getModel().setObject(poly);
             return;
         }
-        if (getModelObject().getLang() == null) {
-            getModelObject().setLang(new HashMap<>());
+
+        Map<String, String> lang = poly.getLang();
+        if (lang == null) {
+            lang = new HashMap<>();
+            poly.setLang(lang);
         }
-        if (getModelObject().getLang().containsKey(language)) {
-            getModelObject().getLang().replace(language, value);
+
+        if (lang.containsKey(language)) {
+            lang.replace(language, value);
         } else {
-            getModelObject().getLang().put(language, value);
+            lang.put(language, value);
         }
     }
 
@@ -494,5 +487,4 @@ public class PolyStringEditorPanel extends InputPanel {
         model.detach();
         super.onDetach();
     }
-
 }

@@ -101,19 +101,14 @@
 
         <!-- webjars -->
         <dependency>
-            <groupId>com.evolveum.webjars</groupId>
-            <artifactId>AdminLTE</artifactId>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>respond</artifactId>
-            <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>html5shiv</artifactId>
-            <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
+            <groupId>com.evolveum.webjars</groupId>
+            <artifactId>AdminLTE</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -129,99 +124,6 @@
             <groupId>com.evolveum.webjars</groupId>
             <artifactId>password-score</artifactId>
             <scope>runtime</scope>
-        </dependency>
-
-        <!-- WRO4J-->
-        <dependency>
-            <groupId>ro.isdc.wro4j</groupId>
-            <artifactId>wro4j-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>less</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>ro.isdc.wro4j</groupId>
-            <artifactId>wro4j-extensions</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.webjars</groupId>
-                    <artifactId>less</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (13mb) -->
-                    <groupId>org.jruby</groupId>
-                    <artifactId>jruby-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.jruby</groupId>
-                    <artifactId>jruby-stdlib</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (500kb) -->
-                    <groupId>me.n4u.sass</groupId>
-                    <artifactId>sass-gems</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (200kb) -->
-                    <groupId>nz.co.edmi</groupId>
-                    <artifactId>bourbon-gem-jar</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library (3.5mb) -->
-                    <groupId>com.google.javascript</groupId>
-                    <artifactId>closure-compiler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars</groupId>
-                    <artifactId>coffee-script</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.codehaus.gmaven.runtime</groupId>
-                    <artifactId>gmaven-runtime-1.7</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>com.github.lltyk</groupId>
-                    <artifactId>dojo-shrinksafe</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars</groupId>
-                    <artifactId>emberjs</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars.npm</groupId>
-                    <artifactId>handlebars</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars</groupId>
-                    <artifactId>json2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.darrinholst</groupId>
-                    <artifactId>sass-java-gems</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>org.webjars.npm</groupId>
-                    <artifactId>jshint</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- JDBC DRIVERS -->
@@ -791,6 +693,10 @@
                     <include>**/*.properties</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>target/generated-resources/webpack</directory>
+                <filtering>false</filtering>
+            </resource>
         </resources>
         <testResources>
             <testResource>
@@ -928,6 +834,63 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <attachClasses>true</attachClasses>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>./node_modules</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.1</version>
+
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <!-- TODO temporary -->
+                    <execution>
+                        <id>npm ignore certs</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>config set strict-ssl false</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm build with webpack</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>v16.15.0</nodeVersion>
+                    <npmVersion>8.8.0</npmVersion>
+                    <installDirectory>target</installDirectory>
+                    <!-- todo enable downloading from nexus, currently it doesn't work -->
+                    <!--<npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npm/</npmDownloadRoot>-->
                 </configuration>
             </plugin>
         </plugins>

@@ -391,7 +391,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 createReportPerformed(target);
             }
         };
-        createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
+        createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
         createReport.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI)));
         return createReport;
     }
@@ -410,7 +410,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 target.add(getTable());
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return refreshIcon;
     }
 

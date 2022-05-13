@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="dcf805dc-afff-46c1-bf8c-876777ef4af5"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <name>With additional connectors 1</name>
+    <super>
+        <resourceRef oid="e17dfe38-727f-41b6-ab1c-9106c0bb046d"/>
+    </super>
+    <connectorConfiguration>
+        <icfc:configurationProperties>
+            <!-- adding new value -->
+            <icfi:supportValidity>true</icfi:supportValidity>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <additionalConnector>
+        <!-- merged with the configuration from the template -->
+        <name>first</name>
+        <connectorConfiguration>
+            <icfc:configurationProperties>
+                <icfi:uselessString>merged</icfi:uselessString>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    </additionalConnector>
+    <additionalConnector>
+        <!-- our own-->
+        <name>third</name>
+        <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
+        <connectorConfiguration>
+            <icfc:configurationProperties>
+                <icfi:instanceId>third</icfi:instanceId>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    </additionalConnector>
+</resource>

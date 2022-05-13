@@ -844,8 +844,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class,
                 RESOURCE_DUMMY_BLACK_OID, getOperationOptionsBuilder().noFetch().build(), task, result);
-        assertResource(resourceAfter, "after (no fetch)")
-                .display()
+        assertResourceAfter(resourceAfter)
                 .assertHasNoSchema();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,16 +8,17 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -39,7 +40,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
         if (needsInitialization(instanceAssignmentCreateApprover, repositoryContext)) {
             instanceAssignmentCreateApprover = new QAssignmentReferenceMapping<>(
                     "m_assignment_ref_create_approver", "arefca", repositoryContext,
-                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
+                    QUserMapping::getUserMapping);
         }
         return getForAssignmentCreateApprover();
     }
@@ -56,7 +57,7 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
         if (needsInitialization(instanceAssignmentModifyApprover, repositoryContext)) {
             instanceAssignmentModifyApprover = new QAssignmentReferenceMapping<>(
                     "m_assignment_ref_modify_approver", "arefma", repositoryContext,
-                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
+                    QUserMapping::getUserMapping);
         }
         return getForAssignmentModifyApprover();
     }
@@ -72,9 +73,9 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
             String tableName,
             String defaultAliasName,
             @NotNull SqaleRepoContext repositoryContext,
-            RefTableTargetResolver<QAssignmentReference, MAssignmentReference, TQ, TR> targetResolver) {
+            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
         super(tableName, defaultAliasName, QAssignmentReference.class,
-                repositoryContext, targetResolver);
+                repositoryContext, targetMappingSupplier);
 
         // assignmentCid probably can't be mapped directly
     }

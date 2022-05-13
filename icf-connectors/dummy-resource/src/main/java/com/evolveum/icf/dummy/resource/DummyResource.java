@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;

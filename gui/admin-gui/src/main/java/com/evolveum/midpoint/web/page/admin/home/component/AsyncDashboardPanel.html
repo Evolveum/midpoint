@@ -8,15 +8,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="box" wicket:id="dashboardParent">
-        <div class="box-header with-border" wicket:id="dashboardTitle">
-            <i wicket:id="icon"/>
-            <h3 class="box-title"><span wicket:id="title"/></h3>
+    <div class="card card-outline card-secondary" wicket:id="dashboardParent">
+        <div class="card-header" wicket:id="dashboardTitle">
+            <h3 class="card-title"><i class="mr-2" wicket:id="icon"/> <span wicket:id="title"/></h3>
         </div>
-        <div class="box-body" wicket:id="dashboardContent">
-            <div wicket:id="preloaderContainer" style="margin: 10px 0; text-align: center;">
-                <img wicket:id="preloader"/>
-                <wicket:message key="AsyncDashboardPanel.loading"/>
+        <div class="card-body" wicket:id="dashboardContent">
+            <div class="m-3" wicket:id="preloaderContainer">
+                <div class="text-center">
+                    <i wicket:id="preloader" class="fas fa-sync fa-spin fa-lg text-secondary"></i>
+                </div>
+                <div class="m-2 text-center"><wicket:message key="AsyncDashboardPanel.loading"/></div>
             </div>
             <div wicket:id="content"/>
         </div>

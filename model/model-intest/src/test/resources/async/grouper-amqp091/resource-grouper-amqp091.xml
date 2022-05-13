@@ -321,6 +321,6 @@
         <!--</configured>-->
     <!--</capabilities>-->
     <caching>
-        <cachingStategy>passive</cachingStategy>
+        <cachingStrategy>passive</cachingStrategy>
     </caching>
 </resource>

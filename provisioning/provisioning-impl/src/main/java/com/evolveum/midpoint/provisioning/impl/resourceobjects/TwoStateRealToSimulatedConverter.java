@@ -12,7 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -226,10 +226,9 @@ class TwoStateRealToSimulatedConverter<N> {
     }
 
     @NotNull
-    private <T> Class<T> getAttributeValueClass(ResourceAttribute<T> attribute)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private <T> Class<T> getAttributeValueClass(ResourceAttribute<T> attribute) {
         ResourceAttributeDefinition<T> attributeDefinition = attribute.getDefinition();
-        Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
+        Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClass() : null;
         if (attributeValueClass != null) {
             //noinspection unchecked
             return (Class<T>) attributeValueClass;

@@ -10,6 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -90,9 +93,18 @@ public class ConnectorTypeUtil {
         return connectorSchema;
     }
 
-    public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefinition(ConnectorType connectorType, PrismSchema connectorSchema) {
-        QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-        return connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+    public static @NotNull PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefinitionRequired(
+            ConnectorType connector, PrismSchema connectorSchema) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                findConfigurationContainerDefinition(connector, connectorSchema),
+                () -> "No configuration container definition in schema of " + connector);
     }
 
+    public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefinition(
+            ConnectorType connector, PrismSchema connectorSchema) {
+        return connectorSchema.findContainerDefinitionByElementName(
+                new QName(
+                        connector.getNamespace(),
+                        ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()));
+    }
 }

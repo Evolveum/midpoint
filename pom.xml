@@ -197,7 +197,6 @@
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.9.0</commons.io.version>
-        <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.4</commons.cli>
         <cxf.version>3.4.4</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
@@ -226,7 +225,7 @@
         -->
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
-        <wicket.version>9.7.0</wicket.version>
+        <wicket.version>9.10.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.10 is also default for Spring Boot 2.6.6 -->
         <groovy.version>3.0.10</groovy.version>
@@ -251,6 +250,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.69</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
+        <keycloak.version>18.0.0</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <surefire.version>3.0.0-M6</surefire.version>
@@ -548,6 +548,11 @@
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
+                    <!-- Use org.apache.commons:commons-collections4 instead, not required by our usages of validator. -->
+                    <exclusion>
+                        <groupId>commons-collections</groupId>
+                        <artifactId>commons-collections</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>commons-digester</groupId>
                         <artifactId>commons-digester</artifactId>
@@ -566,15 +571,17 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>1.15</version>
-            </dependency>
+            <!-- TODO: We want to get rid of this, which requires removal of beanutils as well. -->
             <dependency>
                 <groupId>commons-collections</groupId>
                 <artifactId>commons-collections</artifactId>
                 <version>3.2.2</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>1.15</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -603,11 +610,6 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${commons.lang.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
@@ -1473,6 +1475,11 @@
 
             <!-- webjars -->
             <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>jquery</artifactId>
+                <version>3.6.0</version>
+            </dependency>
+            <dependency>
                 <groupId>com.evolveum.webjars</groupId>
                 <artifactId>AdminLTE</artifactId>
                 <version>2.4.18</version>
@@ -1664,13 +1671,13 @@
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-authz-client</artifactId>
-                <version>16.1.1</version>
+                <version>${keycloak.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-core</artifactId>
-                <version>16.1.1</version>
+                <version>${keycloak.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

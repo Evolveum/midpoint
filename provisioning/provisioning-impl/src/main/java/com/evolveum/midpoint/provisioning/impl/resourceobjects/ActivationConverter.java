@@ -70,7 +70,7 @@ class ActivationConverter {
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ShadowType resourceObjectBean = resourceObject.asObjectable();
 
-        ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
+        ActivationCapabilityType activationCapability = ctx.getCapability(ActivationCapabilityType.class);
 
         if (!CapabilityUtil.isCapabilityEnabled(activationCapability) && resourceObjectBean.getActivation() == null) {
             LOGGER.trace("No activation capability and also no activation information in the resource object.");
@@ -210,7 +210,7 @@ class ActivationConverter {
             return;
         }
 
-        ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
+        ActivationCapabilityType activationCapability = ctx.getCapability(ActivationCapabilityType.class);
 
         if (activation.getAdministrativeStatus() != null) {
             transformActivationStatusOnAdd(shadow, activationCapability, result);
@@ -286,7 +286,7 @@ class ActivationConverter {
         Collection<Operation> operations = new ArrayList<>();
         ResourceType resource = ctx.getResource();
 
-        ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
+        ActivationCapabilityType activationCapability = ctx.getCapability(ActivationCapabilityType.class);
         LOGGER.trace("Found activation capability: {}", PrettyPrinter.prettyPrint(activationCapability));
 
         // using simulating attributes, if defined

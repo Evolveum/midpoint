@@ -30,8 +30,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
@@ -3877,7 +3877,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskBefore;
     }
 
-    protected <O extends ObjectType> String addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> String addObject(File file)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = prismContext.parseObject(file);
         return addObject(object);
     }
@@ -6125,6 +6127,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .display();
     }
 
+    protected ResourceAsserter<Void> assertResourceAfter(PrismObject<ResourceType> resource) {
+        return assertResource(resource, "after")
+                .display();
+    }
+
+    protected ResourceAsserter<Void> assertResourceAfter(ResourceType resource) {
+        return assertResource(resource, "after")
+                .display();
+    }
+
     protected ResourceAsserter<Void> assertResourceBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertResource(oid, "before")
                 .display();
@@ -6711,14 +6723,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     public interface TracedFunctionCall<X> {
-        X execute() throws CommonException, PreconditionViolationException;
+        X execute() throws CommonException, PreconditionViolationException, IOException;
     }
 
     public interface TracedProcedureCall {
         void execute() throws CommonException, PreconditionViolationException;
     }
 
-    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommonException, PreconditionViolationException {
+    protected <X> X traced(TracedFunctionCall<X> tracedCall)
+            throws CommonException, PreconditionViolationException, IOException {
         setGlobalTracingOverride(createModelLoggingTracingProfile());
         try {
             return tracedCall.execute();
