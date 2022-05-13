@@ -4,7 +4,18 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
+
+import java.util.List;
+
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -32,14 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.List;
 
 public abstract class PageAuthenticationBase extends AbstractPageLogin {
 
@@ -75,7 +78,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         if (securityPolicy == null) {
             LOGGER.error("No security policy defined.");
             getSession()
-                    .error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
+                    .error(createStringResource("PageSelfRegistrationOld.securityPolicy.notFound").getString());
             throw new RestartResponseException(PageLogin.class);
         }
 
@@ -106,7 +109,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
         return formRef;
     }
 
-    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageBase parentPage) {
+    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageAdminLTE parentPage) {
         WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
         dynamicLayout.setOutputMarkupId(true);
         mainForm.add(dynamicLayout);

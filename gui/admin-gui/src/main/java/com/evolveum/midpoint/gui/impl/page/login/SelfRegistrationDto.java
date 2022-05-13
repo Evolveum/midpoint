@@ -4,22 +4,20 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
 
 import java.io.Serializable;
 import java.util.List;
-
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
