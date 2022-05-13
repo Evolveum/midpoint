@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
@@ -993,8 +993,8 @@ public class LensUtil {
     }
 
     public static boolean isPasswordReturnedByDefault(LensProjectionContext projCtx) {
-        CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
-        return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
+        return CapabilityUtil.isPasswordReturnedByDefault(
+                ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class));
     }
 
     public static boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,

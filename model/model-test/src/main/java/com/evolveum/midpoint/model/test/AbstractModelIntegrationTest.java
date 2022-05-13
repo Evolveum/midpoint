@@ -30,8 +30,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
@@ -6124,6 +6124,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertResource(oid, "after")
+                .display();
+    }
+
+    protected ResourceAsserter<Void> assertResourceAfter(PrismObject<ResourceType> resource) {
+        return assertResource(resource, "after")
+                .display();
+    }
+
+    protected ResourceAsserter<Void> assertResourceAfter(ResourceType resource) {
+        return assertResource(resource, "after")
                 .display();
     }
 

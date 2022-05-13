@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefine
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

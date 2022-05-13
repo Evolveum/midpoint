@@ -10,13 +10,14 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
     <name>object-types-1</name>
     <super>
         <resourceRef oid="873a5483-ded8-4607-ac06-ea5ae92ce755"/>
     </super>
-    <connectorConfiguration >
+    <connectorConfiguration>
         <icfc:configurationProperties>
             <!-- completing the properties -->
             <icfi:instanceId>object-types-1</icfi:instanceId>
@@ -74,6 +75,58 @@
                     </q:equal>
                 </filter>
             </protected>
+            <configuredCapabilities>
+                <cap:pagedSearch/>
+                <cap:read>
+                    <cap:enabled>true</cap:enabled>
+                </cap:read>
+            </configuredCapabilities>
+            <mappingsEvaluation>
+                <inbound>
+                    <defaultEvaluationPhases>
+                        <!-- Beware, this is added to the "clockwork" phase in the parent. See comment in the test. -->
+                        <phase>beforeCorrelation</phase>
+                    </defaultEvaluationPhases>
+                </inbound>
+            </mappingsEvaluation>
+            <correlation>
+                <correlators>
+                    <definitions>
+                        <places>
+                            <source>
+                                <path>source-2</path> <!-- should override source-1 in parent -->
+                            </source>
+                            <target>
+                                <path>target-2</path> <!-- should override target-1 in parent -->
+                                <qualifier>qualifier-1</qualifier>
+                            </target>
+                        </places>
+                        <items>
+                            <item>
+                                <name>test-item-1</name>
+                                <path>item-2</path> <!-- should override item-1 in parent -->
+                                <target>
+                                    <path>item-2-target-2</path> <!-- should override item-1-target-1 in parent -->
+                                    <qualifier>qualifier-1</qualifier>
+                                </target>
+                            </item>
+                        </items>
+                    </definitions>
+                    <items> <!-- overriding authority for this one -->
+                        <authority>authoritative</authority>
+                        <name>empNo</name>
+                    </items>
+                    <items> <!-- this is a new one -->
+                        <authority>nonAuthoritative</authority>
+                        <item>
+                            <path>givenName</path>
+                        </item>
+                        <item>
+                            <path>fullName</path>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
             <synchronization>
                 <reaction> <!-- should be added as a new value -->
                     <situation>unmatched</situation>
@@ -96,4 +149,9 @@
             </synchronization>
         </objectType>
     </schemaHandling>
+    <capabilities>
+        <configured>
+            <cap:update/>
+        </configured>
+    </capabilities>
 </resource>

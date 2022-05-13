@@ -8,15 +8,10 @@
 package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.provisioning.impl.resources.ResourceCompletionOperation.*;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -25,7 +20,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -44,7 +38,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -56,9 +49,11 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 
 @Component
@@ -74,8 +69,11 @@ public class ResourceManager {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private CommonBeans beans;
-    @Autowired private ResourceSchemaHelper schemaHelper;
     @Autowired private ResourceCapabilitiesHelper capabilitiesHelper;
+
+    @Autowired ResourceSchemaHelper schemaHelper;
+    @Autowired SchemaFetcher schemaFetcher;
+    @Autowired ResourceConnectorsManager connectorSelector;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
@@ -134,8 +132,7 @@ public class ResourceManager {
                     repositoryObject, repositoryObject.getVersion(), beans.resourceCache.getVersion(oid), options);
         }
 
-        ResourceCompletionOperation completionOperation = new ResourceCompletionOperation(
-                repositoryObject, options, null, false, null, task, beans);
+        ResourceCompletionOperation completionOperation = new ResourceCompletionOperation(repositoryObject, options, task, beans);
         PrismObject<ResourceType> completedResource =
                 completionOperation.execute(result);
 
@@ -189,29 +186,6 @@ public class ResourceManager {
         return provisioningService.getSystemConfiguration();
     }
 
-    ResourceSchema fetchResourceSchema(
-            @NotNull PrismObject<ResourceType> resource,
-            Map<String, Collection<Object>> capabilityMap,
-            OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-            SchemaException {
-        ConnectorSpec connectorSpec = selectConnectorSpec(resource, capabilityMap, SchemaCapabilityType.class);
-        if (connectorSpec == null) {
-            LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
-            return null;
-        }
-        InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
-        List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
-        ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
-
-        LOGGER.debug("Trying to get schema from {}, objectClasses to generate: {}", connectorSpec, generateObjectClasses);
-        ResourceSchema rawResourceSchema = connectorInstance.fetchResourceSchema(parentResult);
-
-        if (ResourceTypeUtil.isValidateSchema(resource.asObjectable())) {
-            ResourceTypeUtil.validateSchema(rawResourceSchema, resource);
-        }
-        return rawResourceSchema;
-    }
 
     /**
      * Test the connection.
@@ -303,14 +277,6 @@ public class ResourceManager {
     }
 
     /**
-     * Applies proper definition (connector schema) to the resource.
-     */
-    void applyConnectorSchemasToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
-        schemaHelper.applyConnectorSchemasToResource(resource, task, result);
-    }
-
-    /**
      * Apply proper definition (connector schema) to the resource.
      */
     void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition,
@@ -324,10 +290,11 @@ public class ResourceManager {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         PrismObject<ResourceType> resource = getResource(resourceOid, null, task, result);
-        ConnectorSpec connectorSpec = selectConnectorSpec(resource, ScriptCapabilityType.class);
-        if (connectorSpec == null) {
-            throw new UnsupportedOperationException("No connector supports script capability");
-        }
+        ConnectorSpec connectorSpec = connectorSelector.selectConnector(resource, ScriptCapabilityType.class);
+        //  TODO!
+//        if (connectorSpec == null) {
+//            throw new UnsupportedOperationException("No connector supports script capability");
+//        }
         ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
         try {
@@ -345,7 +312,7 @@ public class ResourceManager {
             PrismObject<ResourceType> resource, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         List<ConnectorOperationalStatus> statuses = new ArrayList<>();
-        for (ConnectorSpec connectorSpec: getAllConnectorSpecs(resource)) {
+        for (ConnectorSpec connectorSpec : connectorSelector.getAllConnectorSpecs(resource)) {
             ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
             ConnectorOperationalStatus operationalStatus = connectorInstance.getOperationalStatus();
             if (operationalStatus != null) {
@@ -356,27 +323,15 @@ public class ResourceManager {
         return statuses;
     }
 
-    List<ConnectorSpec> getAllConnectorSpecs(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        List<ConnectorSpec> connectorSpecs = new ArrayList<>();
-        connectorSpecs.add(getDefaultConnectorSpec(resource));
-        for (ConnectorInstanceSpecificationType additionalConnector: resource.asObjectable().getAdditionalConnector()) {
-            connectorSpecs.add(getConnectorSpec(resource, additionalConnector));
-        }
-        return connectorSpecs;
-    }
-
     // Should be used only internally (private). But it is public, because it is accessed from the tests.
     @VisibleForTesting
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstance(
             PrismObject<ResourceType> resource,
-            Class<T> operationCapabilityClass,
+            Class<T> capabilityClass,
             boolean forceFresh,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
-        if (connectorSpec == null) {
-            return null;
-        }
+        ConnectorSpec connectorSpec = connectorSelector.selectConnector(resource, capabilityClass);
         return connectorManager.getConfiguredConnectorInstance(connectorSpec, forceFresh, parentResult);
     }
 
@@ -384,72 +339,18 @@ public class ResourceManager {
     @SuppressWarnings("SameParameterValue")
     @VisibleForTesting
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(
-            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException, ConfigurationException {
-        ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
-        return connectorSpec != null ? connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec) : null;
+            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws ConfigurationException {
+        ConnectorSpec connectorSpec = connectorSelector.selectConnector(resource, operationCapabilityClass);
+        return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec);
     }
 
     /**
-     * Returns connector capabilities merged with capabilities defined at object type level.
+     * Gets a specific capability from resource/connectors/object-class.
      */
-    public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(
-            ResourceType resource, ResourceObjectTypeDefinition objectTypeDefinition, Class<T> operationCapabilityClass) {
-        return capabilitiesHelper.getConnectorCapabilities(resource, objectTypeDefinition, operationCapabilityClass);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(
-            PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass)
-            throws SchemaException, ConfigurationException {
-        if (capabilityMap == null) {
-            return selectConnectorSpec(resource, capabilityClass);
-        }
-        for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
-            if (capabilitiesHelper.supportsCapability(
-                    additionalConnectorType, capabilityMap.get(additionalConnectorType.getName()), capabilityClass)) {
-                return getConnectorSpec(resource, additionalConnectorType);
-            }
-        }
-        return getDefaultConnectorSpec(resource);
-    }
-
-    private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(
-            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException, ConfigurationException {
-        for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
-            if (capabilitiesHelper.supportsCapability(additionalConnectorType, operationCapabilityClass)) {
-                return getConnectorSpec(resource, additionalConnectorType);
-            }
-        }
-        return getDefaultConnectorSpec(resource);
-    }
-
-    ConnectorSpec getDefaultConnectorSpec(PrismObject<ResourceType> resource) {
-        return new ConnectorSpec(
-                resource,
-                null,
-                ResourceTypeUtil.getConnectorOid(resource),
-                resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION));
-    }
-
-    ConnectorSpec getConnectorSpec(
-            PrismObject<ResourceType> resource, ConnectorInstanceSpecificationType additionalConnectorSpecBean)
-            throws ConfigurationException {
-        String connectorName = additionalConnectorSpecBean.getName();
-        configCheck(StringUtils.isNotBlank(connectorName), "No connector name in additional connector in %s", resource);
-
-        // connector OID is not required here, as it may come from the super-resource
-        String connectorOid = getConnectorOid(additionalConnectorSpecBean);
-
-        //noinspection unchecked
-        PrismContainer<ConnectorConfigurationType> connectorConfiguration =
-                additionalConnectorSpecBean.asPrismContainerValue().findContainer(
-                        ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
-
-        return new ConnectorSpec(resource, connectorName, connectorOid, connectorConfiguration);
-    }
-
-    private String getConnectorOid(@NotNull ConnectorInstanceSpecificationType bean) {
-        ObjectReferenceType ref = bean.getConnectorRef();
-        return ref != null ? ref.getOid() : null;
+    public <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource,
+            @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull Class<T> operationCapabilityClass) {
+        return capabilitiesHelper.getCapability(resource, objectTypeDefinition, operationCapabilityClass);
     }
 }

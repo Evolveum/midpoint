@@ -6,116 +6,128 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-
 /**
- * TODO naming: effective vs. enabled
+ * Various useful methods related to capabilities.
+ *
+ * Notes:
+ *
+ * - To minimize confusion, the term "effective" has been removed from the methods' names, as it somehow implied that
+ * the capability in question is enabled. We now use either names without adjective (like {@link #getCapability(CapabilitiesType,
+ * Class)}) or explicitly mention "enabled" if enabled capabilities are to be returned, like
+ * {@link #getEnabledActivationStatus(ActivationCapabilityType)}.
  *
  * @author semancik
  */
 public class CapabilityUtil {
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static <T extends CapabilityType> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
-        if (capabilities == null) {
-            return null;
+    /**
+     * Selects a capability of given type from a {@link CapabilityCollectionType}.
+     *
+     * NOTE: Instead of calling this method with a specific capabilityClass, it is now easier to simply
+     * call the appropriate getter method on the {@link CapabilityCollectionType} (after a non-null check).
+     *
+     * @throws IllegalArgumentException in the case of ambiguity, because this means that either the capabilityClass
+     * is too "wide", and matches multiple capabilities. Or the capabilityCollection is malformed, and contains multiple
+     * values of the given capability type. (Although this is currently not possible according to the schema.)
+     */
+    public static <T extends CapabilityType> @Nullable T getCapability(
+            @Nullable CapabilityCollectionType capabilityCollection,
+            @NotNull Class<T> capabilityClass) {
+        List<CapabilityType> matching = getAllCapabilitiesStream(capabilityCollection)
+                .filter(c -> capabilityClass.isAssignableFrom(c.getClass()))
+                .collect(Collectors.toList());
+        //noinspection unchecked
+        return (T) MiscUtil.extractSingleton(
+                matching,
+                () -> new IllegalArgumentException("Multiple capabilities of type " + capabilityClass + ": " + matching));
+    }
+
+    /**
+     * Returns a stream of all capabilities in this collection. Assumes that there are no items besides the capabilities!
+     * E.g. after adding `extension`, this method will have to be adapted.
+     */
+    private static @NotNull Stream<CapabilityType> getAllCapabilitiesStream(@Nullable CapabilityCollectionType capabilityCollection) {
+        if (capabilityCollection == null) {
+            return Stream.of();
+        } else {
+            //noinspection unchecked
+            PrismContainerValue<CapabilityCollectionType> pcv = capabilityCollection.asPrismContainerValue();
+            return pcv.getItems().stream()
+                    .map(i -> i.getRealValue(CapabilityType.class));
         }
-        for (Object cap : capabilities) {
-            if (cap instanceof JAXBElement) {
-                JAXBElement element = (JAXBElement) cap;
-                if (capabilityClass.isAssignableFrom(element.getDeclaredType())) {
-                    return (T) element.getValue();
+    }
+
+    /** Returns all the capabilities from particular {@link CapabilityCollectionType}. */
+    public static @NotNull List<CapabilityType> getAllCapabilities(@Nullable CapabilityCollectionType capabilityCollection) {
+        return getAllCapabilitiesStream(capabilityCollection)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a combination of native and configured capabilities from given {@link CapabilitiesType} bean.
+     *
+     * @param includeDisabled Whether we want to obtain also capabilities with `enabled` set to `false`.
+     */
+    public static @NotNull List<CapabilityType> getCapabilities(@Nullable CapabilitiesType capabilities, boolean includeDisabled) {
+        if (capabilities == null) {
+            return List.of();
+        }
+        List<CapabilityType> rv = new ArrayList<>();
+        List<CapabilityType> configuredCaps = getAllCapabilities(capabilities.getConfigured());
+        List<CapabilityType> nativeCaps = getAllCapabilities(capabilities.getNative());
+        for (CapabilityType configuredCapability : configuredCaps) {
+            if (includeDisabled || isCapabilityEnabled(configuredCapability)) {
+                rv.add(configuredCapability);
+            }
+        }
+        for (CapabilityType nativeCapability : nativeCaps) {
+            if (!containsCapability(configuredCaps, nativeCapability.getClass())) {
+                if (includeDisabled || isCapabilityEnabled(nativeCapability)) {
+                    rv.add(nativeCapability);
                 }
-            } else if (capabilityClass.isAssignableFrom(cap.getClass())) {
-                return (T) cap;
             }
         }
-        return null;
+        return rv;
     }
 
-    public static boolean isCapabilityEnabled(Object capability) {
-        if (capability == null) {
-            return false;
-        }
-        if (capability instanceof JAXBElement<?>) {
-            capability = ((JAXBElement<?>)capability).getValue();
-        }
-
-        if (capability instanceof CapabilityType) {
-            return CapabilityUtil.isCapabilityEnabled((CapabilityType)capability);
-        } else if (capability instanceof Element) {
-            return CapabilityUtil.isCapabilityEnabled((Element)capability);
-        } else {
-            throw new IllegalArgumentException("Unexpected capability type "+capability.getClass());
-        }
+    public static boolean isCapabilityEnabled(@Nullable CapabilityType capability) {
+        return capability != null && !Boolean.FALSE.equals(capability.isEnabled());
     }
 
-    private static boolean isCapabilityEnabled(Element capability) {
-        if (capability == null) {
-            return false;
-        }
-        ObjectFactory capabilitiesObjectFactory = new ObjectFactory();
-        QName enabledElementName = capabilitiesObjectFactory.createEnabled(true).getName();
-        Element enabledElement = DOMUtil.getChildElement(capability, enabledElementName);
-        return enabledElement == null || Boolean.parseBoolean(enabledElement.getTextContent());
+    private static boolean containsCapability(
+            @NotNull List<CapabilityType> capabilities,
+            @NotNull Class<? extends CapabilityType> type) {
+        return capabilities.stream()
+                .anyMatch(c -> type.isAssignableFrom(c.getClass()));
     }
 
-    public static <T extends CapabilityType> boolean isCapabilityEnabled(T capability) {
-        if (capability == null) {
-            return false;
-        }
-        if (capability.isEnabled() == null) {
-            return true;
-        }
-        return capability.isEnabled();
-    }
-
-    public static Object getCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
-        if (capabilities == null) {
-            return false;
-        }
-        QName capabilityElementName = JAXBUtil.getElementQName(capability);
-        for (Object cap: capabilities) {
-            QName capElementName = JAXBUtil.getElementQName(cap);
-            if (capabilityElementName.equals(capElementName)) {
-                return cap;
-            }
-        }
-        return null;
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean containsCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
-        return getCapabilityWithSameElementName(capabilities, capability) != null;
-    }
-
-    public static String getCapabilityDisplayName(Object capability) {
+    public static String getCapabilityDisplayName(@NotNull CapabilityType capability) {
         // TODO: look for schema annotation
-        String className;
-        if (capability instanceof JAXBElement) {
-            className = ((JAXBElement<?>) capability).getDeclaredType().getSimpleName();
-        } else {
-            className = capability.getClass().getSimpleName();
-        }
-        if (className.endsWith("CapabilityType")) {
+        String className = capability.getClass().getSimpleName();
+        if (className.endsWith("CapabilityType")) { // should be always the case
             return className.substring(0, className.length() - "CapabilityType".length());
+        } else {
+            return className;
         }
-        return className;
     }
 
     public static boolean isPasswordReturnedByDefault(CredentialsCapabilityType capability) {
@@ -136,16 +148,13 @@ public class CapabilityUtil {
         if (capabilityType == null) {
             return false;
         }
-
         PasswordCapabilityType passwordCapabilityType = capabilityType.getPassword();
         if (passwordCapabilityType == null) {
             return false;
         }
-
         if (BooleanUtils.isFalse(passwordCapabilityType.isEnabled())) {
             return false;
         }
-
         Boolean readable = passwordCapabilityType.isReadable();
         return BooleanUtils.isTrue(readable);
     }
@@ -206,13 +215,20 @@ public class CapabilityUtil {
         return valCap.isReturnedByDefault();
     }
 
-    @SuppressWarnings("unchecked")
-    public static CapabilityType asCapabilityType(Object capabilityObject) {
-        return capabilityObject instanceof CapabilityType ?
-                (CapabilityType) capabilityObject :
-                ((JAXBElement<? extends CapabilityType>) capabilityObject).getValue();
+    /** Returns a set of classes of native capabilities. */
+    public static Collection<Class<? extends CapabilityType>> getNativeCapabilityClasses(@Nullable CapabilitiesType capabilities) {
+        if (capabilities == null) {
+            return Set.of();
+        } else {
+            return getAllCapabilitiesStream(capabilities.getNative())
+                    .map(CapabilityType::getClass)
+                    .collect(Collectors.toSet());
+        }
     }
 
+    /**
+     * TODO what's the use of this method? It is currently called only from the Resource wizard. We should perhaps delete it.
+     */
     public static void fillDefaults(@NotNull CapabilityType capability) {
         if (capability.isEnabled() == null) {
             capability.setEnabled(true);
@@ -222,7 +238,7 @@ public class CapabilityUtil {
             if (act.getStatus() == null) {
                 ActivationStatusCapabilityType st = new ActivationStatusCapabilityType();
                 act.setStatus(st);
-                st.setEnabled(false);                // TODO check if all midPoint code honors this flag!
+                st.setEnabled(false); // TODO check if all midPoint code honors this flag!
                 st.setReturnedByDefault(false);
                 st.setIgnoreAttribute(true);
             } else {
@@ -278,6 +294,7 @@ public class CapabilityUtil {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static Boolean def(Boolean originalValue, boolean defaultValue) {
         return originalValue != null ? originalValue : defaultValue;
     }
@@ -288,19 +305,21 @@ public class CapabilityUtil {
      * 1. first from configured capabilities,
      * 2. if not present, then from native capabilities.
      */
-    public static <T extends CapabilityType> T getEffectiveCapability(CapabilitiesType capabilitiesType, Class<T> capabilityClass) {
-        if (capabilitiesType == null) {
+    public static <T extends CapabilityType> T getCapability(
+            @Nullable CapabilitiesType capabilities,
+            @NotNull Class<T> capabilityClass) {
+        if (capabilities == null) {
             return null;
         }
-        if (capabilitiesType.getConfigured() != null) {
-            T configuredCapability = CapabilityUtil.getCapability(capabilitiesType.getConfigured().getAny(), capabilityClass);
+        if (capabilities.getConfigured() != null) {
+            T configuredCapability = CapabilityUtil.getCapability(capabilities.getConfigured(), capabilityClass);
             if (configuredCapability != null) {
                 return configuredCapability;
             }
         }
         // No configured capability entry, fallback to native capability
-        if (capabilitiesType.getNative() != null) {
-            T nativeCapability = CapabilityUtil.getCapability(capabilitiesType.getNative().getAny(), capabilityClass);
+        if (capabilities.getNative() != null) {
+            T nativeCapability = CapabilityUtil.getCapability(capabilities.getNative(), capabilityClass);
             //noinspection RedundantIfStatement
             if (nativeCapability != null) {
                 return nativeCapability;
@@ -309,7 +328,7 @@ public class CapabilityUtil {
         return null;
     }
 
-    // TODO what if act is disabled?
+    // TODO what if act itself is disabled?
     public static ActivationStatusCapabilityType getEnabledActivationStatus(ActivationCapabilityType act) {
         if (act != null && isEnabled(act.getStatus())) {
             return act.getStatus();
@@ -383,25 +402,47 @@ public class CapabilityUtil {
         }
     }
 
-    public static <T extends CapabilityType>  boolean hasNativeCapability(CapabilitiesType capabilities, Class<T> capabilityClass) {
-        if (capabilities == null) {
-            return false;
+    /**
+     * Creates {@link CapabilityCollectionType} from a plain list of capabilities.
+     *
+     * TODO consider whether we shouldn't return `null` if the list is empty.
+     */
+    public static @NotNull CapabilityCollectionType createCapabilityCollection(@NotNull List<CapabilityType> capabilities) {
+        try {
+            SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
+            var def =
+                    MiscUtil.requireNonNull(
+                            schemaRegistry.findComplexTypeDefinitionByCompileTimeClass(CapabilityCollectionType.class),
+                            () -> new IllegalStateException("No CTD for CapabilityCollectionType"));
+            CapabilityCollectionType capabilityCollectionBean = new CapabilityCollectionType();
+            for (CapabilityType capability : capabilities) {
+                PrismContainerDefinition<?> capDef = findCapabilityDefinition(def, capability.getClass());
+                PrismContainer<?> capContainer = capDef.instantiate();
+                //noinspection unchecked
+                capContainer.add(capability.asPrismContainerValue());
+                //noinspection unchecked
+                capabilityCollectionBean.asPrismContainerValue().add(capContainer);
+            }
+            return capabilityCollectionBean;
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "When creating capability collection bean");
         }
-        CapabilityCollectionType nativeCaps = capabilities.getNative();
-        if (nativeCaps == null) {
-            return false;
-        }
-        return getCapability(nativeCaps.getAny(), capabilityClass) != null;
     }
 
-    public static <T extends CapabilityType>  boolean hasConfiguredCapability(CapabilitiesType capabilities, Class<T> capabilityClass) {
-        if (capabilities == null) {
-            return false;
-        }
-        CapabilityCollectionType configuredCaps = capabilities.getConfigured();
-        if (configuredCaps == null) {
-            return false;
-        }
-        return getCapability(configuredCaps.getAny(), capabilityClass) != null;
+    private static @NotNull PrismContainerDefinition<?> findCapabilityDefinition(
+            ComplexTypeDefinition def, Class<? extends CapabilityType> type) {
+        return (PrismContainerDefinition<?>) def.getDefinitions().stream()
+                .filter(itemDef -> type.equals(itemDef.getTypeClass()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No definition for capability " + type));
+    }
+
+    public static boolean isEmpty(CapabilityCollectionType capabilities) {
+        return capabilities == null
+                || capabilities.asPrismContainerValue().hasNoItems(); // Adapt after some non-capability items are added
+    }
+
+    public static int size(CapabilityCollectionType capabilities) {
+        return capabilities != null ? capabilities.asPrismContainerValue().size() : 0;
     }
 }

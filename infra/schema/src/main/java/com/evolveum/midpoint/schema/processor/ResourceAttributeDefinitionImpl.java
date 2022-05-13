@@ -614,6 +614,9 @@ public class ResourceAttributeDefinitionImpl<T>
 
     @Override
     public String getDocumentation() {
+        if (customizationBean.getDocumentation() != null) {
+            return customizationBean.getDocumentation();
+        }
         return rawDefinition.getDocumentation();
     }
 

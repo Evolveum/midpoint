@@ -206,7 +206,7 @@ class ResourceObjectReferenceResolver {
 
         try {
 
-            ReadCapabilityType readCapability = ctx.getEffectiveCapability(ReadCapabilityType.class);
+            ReadCapabilityType readCapability = ctx.getCapability(ReadCapabilityType.class);
             if (readCapability == null) {
                 throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
             }

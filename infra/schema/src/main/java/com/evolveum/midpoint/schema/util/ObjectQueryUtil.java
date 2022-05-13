@@ -15,8 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

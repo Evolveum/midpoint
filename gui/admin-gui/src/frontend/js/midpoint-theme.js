@@ -8,13 +8,13 @@
 export default class MidPointTheme {
 
     constructor() {
-        var self = this;
+        const self = this;
 
         $(window).on('load', function() {
             //dom not only ready, but everything is loaded MID-3668
             $("body").removeClass("custom-hold-transition");
 
-            // initAjaxStatusSigns();
+           self.initAjaxStatusSigns();
 
             Wicket.Event.subscribe('/ajax/call/failure', function( attrs, jqXHR, textStatus, jqEvent, errorThrown ) {
                 console.error("Ajax call failure:\n" + JSON.stringify(attrs.target.location)
@@ -151,10 +151,6 @@ export default class MidPointTheme {
         });
     }
 
-    abc() {
-        alert('abc');
-    }
-
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
     fixContentHeight() {
         if ($(".main-footer").length > 0) {
@@ -184,13 +180,18 @@ export default class MidPointTheme {
     }
 
     initAjaxStatusSigns() {
-        document.getElementsByTagName('body')[0].onclick = clickFuncWicket6;
-        hideAjaxStatusSign();
+        document.getElementsByTagName('body')[0].onclick = this.clickFuncWicket6;
+
+        this.hideAjaxStatusSign();
+
+        const self = this;
+
         Wicket.Event.subscribe('/ajax/call/beforeSend', function( attributes, jqXHR, settings ) {
-            showAjaxStatusSign();
+            self.showAjaxStatusSign();
         });
+
         Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
-            hideAjaxStatusSign();
+            self.hideAjaxStatusSign();
         });
     }
 
@@ -205,17 +206,7 @@ export default class MidPointTheme {
             for (i = 0; i < tooltips.length; ++i) {
                 tooltips[i].style.display = 'none';
             }
-            // document.querySelectorAll("[role='tooltip']").style.display = 'none';
         };
-    }
-
-    hideAjaxStatusSignAndUnblock() {
-        hideAjaxStatusSign();
-        // $("#div").fadeIn();
-        // $('html, body').css({
-        //     overflow: 'auto',
-        //     height: 'auto'
-        // });
     }
 
     /**

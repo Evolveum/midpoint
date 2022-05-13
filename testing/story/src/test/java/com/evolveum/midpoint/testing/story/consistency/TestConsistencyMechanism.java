@@ -26,6 +26,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.CapabilityUtil;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.DirectoryException;
@@ -3107,12 +3111,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             // This is generated on the fly in provisioning
             assertNotNull("Resource from " + source + " has null native capabilities",
                     resource.getCapabilities().getNative());
-            assertFalse("Resource from " + source + " has empty native capabilities", resource
-                    .getCapabilities().getNative().getAny().isEmpty());
+            assertFalse("Resource from " + source + " has empty native capabilities",
+                    CapabilityUtil.isEmpty(resource.getCapabilities().getNative()));
         }
-        assertNotNull("Resource from " + source + " has null configured capabilities", resource.getCapabilities().getConfigured());
-        assertFalse("Resource from " + source + " has empty configured capabilities", resource.getCapabilities().getConfigured()
-                .getAny().isEmpty());
+        CapabilityCollectionType configured = resource.getCapabilities().getConfigured();
+        assertNotNull("Resource from " + source + " has null configured capabilities", configured);
+        assertFalse("Resource from " + source + " has empty configured capabilities", CapabilityUtil.isEmpty(configured));
         assertNotNull("Resource from " + source + " has null synchronization", resource.getSynchronization());
         checkOpenDjConfiguration(resource.asPrismObject(), source);
     }
@@ -3125,7 +3129,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertFalse("No account identifiers (resource from " + source + ")", identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
-        ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(resource,
+        ActivationCapabilityType capActivation = ResourceTypeUtil.getEnabledCapability(resource,
                 ActivationCapabilityType.class);
         if (capActivation != null && capActivation.getStatus() != null && capActivation.getStatus().getAttribute() != null) {
             // There is simulated activation capability, check if the attribute is in schema.

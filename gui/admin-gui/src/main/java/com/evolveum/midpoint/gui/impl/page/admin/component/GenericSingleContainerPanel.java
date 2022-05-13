@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -14,6 +16,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -178,6 +181,22 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
     @Override
     protected void initLayout() {
-        add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()));
+        add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+                ContainerPanelConfigurationType config = getPanelConfiguration();
+                if (config == null || config.getContainer() == null) {
+                    return ItemVisibility.AUTO;
+                }
+                for (VirtualContainersSpecificationType container : config.getContainer()) {
+                    if (container.getPath() != null && itemWrapper.getPath().equivalent(container.getPath().getItemPath()) &&
+                            !WebComponentUtil.getElementVisibility(container.getVisibility())) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                }
+                return ItemVisibility.AUTO;
+            }
+        });
     }
 }

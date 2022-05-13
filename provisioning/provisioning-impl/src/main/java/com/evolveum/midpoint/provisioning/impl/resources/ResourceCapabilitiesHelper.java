@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import java.util.Collection;
+import static com.evolveum.midpoint.schema.CapabilityUtil.isCapabilityEnabled;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -25,111 +26,85 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
  * Helps {@link ResourceManager} with managing capabilities. (A Spring bean for now.)
  *
  * To be used only from the local package only. All external access should be through {@link ResourceManager}.
+ *
+ * TODO this class has shrunken a bit; reconsider its fate!
  */
 @Component
 class ResourceCapabilitiesHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceCapabilitiesHelper.class);
-
     /**
-     * Returns connector capabilities merged with capabilities defined at object type level.
+     * Gets a specific capability from resource/connectors/object-class.
+     *
+     * Notes:
+     *
+     * - Resource vs connector: The capability from specific connector is used only if it's enabled.
      */
-    public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
-            ResourceObjectTypeDefinition objectTypeDefinition, Class<T> operationCapabilityClass) {
-        if (resource == null) {
-            return null;
-        }
+    <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource,
+            @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull Class<T> capabilityClass) {
 
-        CapabilitiesType connectorCapabilities = null;
-        for (ConnectorInstanceSpecificationType additionalConnectorType : resource.getAdditionalConnector()) {
-            if (supportsCapability(additionalConnectorType, operationCapabilityClass)) {
-                connectorCapabilities = additionalConnectorType.getCapabilities();
+        if (objectTypeDefinition != null) {
+            T inType = objectTypeDefinition.getConfiguredCapability(capabilityClass);
+            if (inType != null) {
+                return inType;
             }
         }
 
-        if (connectorCapabilities == null) {
-            connectorCapabilities = resource.getCapabilities();
+        for (ConnectorInstanceSpecificationType additionalConnectorBean : resource.getAdditionalConnector()) {
+            T inConnector = getEnabledCapability(additionalConnectorBean, capabilityClass);
+            if (inConnector != null) {
+                return inConnector;
+            }
+
         }
 
-        CapabilitiesType finalCapabilities = applyObjectClassCapabilities(connectorCapabilities, objectTypeDefinition);
-        LOGGER.trace("Returning final capabilities:\n{} ", finalCapabilities);
-        return finalCapabilities;
+        return CapabilityUtil.getCapability(resource.getCapabilities(), capabilityClass);
     }
 
-    <T extends CapabilityType> boolean supportsCapability(
-            ConnectorInstanceSpecificationType additionalConnectorSpecBean, Class<T> capabilityClass) {
-        return CapabilityUtil.isCapabilityEnabled(
-                CapabilityUtil.getEffectiveCapability(
-                        additionalConnectorSpecBean.getCapabilities(), capabilityClass));
+    /**
+     * Returns the additional connector capability - but only if it's enabled.
+     */
+    private <T extends CapabilityType> T getEnabledCapability(
+            @NotNull ConnectorInstanceSpecificationType additionalConnectorSpecBean,
+            @NotNull Class<T> capabilityClass) {
+        T capability = CapabilityUtil.getCapability(additionalConnectorSpecBean.getCapabilities(), capabilityClass);
+        return isCapabilityEnabled(capability) ? capability : null;
     }
 
-    <T extends CapabilityType> boolean supportsCapability(
-            ConnectorInstanceSpecificationType additionalConnectorSpecBean,
-            Collection<Object> nativeCapabilities,
-            Class<T> capabilityClass) {
-        CapabilitiesType specifiedCapabilitiesType = additionalConnectorSpecBean.getCapabilities();
-        if (specifiedCapabilitiesType != null) {
-            CapabilityCollectionType configuredCapCollectionType = specifiedCapabilitiesType.getConfigured();
+    /**
+     * Returns `true` if the additional connector supports given capability.
+     *
+     * Looks only at capabilities stored in the connector spec bean.
+     */
+    boolean supportsCapability(
+            @NotNull ConnectorInstanceSpecificationType additionalConnectorSpecBean,
+            @NotNull Class<? extends CapabilityType> capabilityClass) {
+        return getEnabledCapability(additionalConnectorSpecBean, capabilityClass) != null;
+    }
+
+    /**
+     * Returns `true` if the additional connector supports given capability.
+     *
+     * Looks first at configured capabilities (from bean), and then at provided (fresh) native capabilities.
+     */
+    boolean supportsCapability(
+            ConnectorInstanceSpecificationType additionalConnectorBean,
+            NativeConnectorsCapabilities nativeConnectorsCapabilities,
+            Class<? extends CapabilityType> capabilityClass) {
+        CapabilitiesType connectorCapabilitiesBean = additionalConnectorBean.getCapabilities();
+        if (connectorCapabilitiesBean != null) {
+            CapabilityCollectionType configuredCapCollectionType = connectorCapabilitiesBean.getConfigured();
             if (configuredCapCollectionType != null) {
-                T configuredCap = CapabilityUtil.getCapability(configuredCapCollectionType.getAny(), capabilityClass);
-                if (configuredCap != null && !CapabilityUtil.isCapabilityEnabled(configuredCap)) {
+                CapabilityType configuredCap = CapabilityUtil.getCapability(configuredCapCollectionType, capabilityClass);
+                if (configuredCap != null && !isCapabilityEnabled(configuredCap)) {
                     return false;
                 }
             }
         }
-        return CapabilityUtil.isCapabilityEnabled(
-                CapabilityUtil.getCapability(nativeCapabilities, capabilityClass));
-    }
-
-    /**
-     * Merges object class specific capabilities with capabilities defined at connector level.
-     * The specific capabilities take precedence over the connector-level ones.
-     * (A unit of comparison is the whole capability, identified by its root level element.)
-     */
-    private CapabilitiesType applyObjectClassCapabilities(CapabilitiesType connectorCapabilities,
-            ResourceObjectTypeDefinition objectTypeDefinition) {
-
-        if (objectTypeDefinition == null) {
-            LOGGER.trace("No object type definition, skipping merge.");
-            return connectorCapabilities;
-        }
-
-        CapabilitiesType objectTypeCapabilities = objectTypeDefinition.getConfiguredCapabilities();
-        if (objectTypeCapabilities == null) {
-            LOGGER.trace("No capabilities for {} specified, skipping merge.", objectTypeDefinition);
-            return connectorCapabilities;
-        }
-
-        CapabilityCollectionType configuredObjectTypeCapabilities = objectTypeCapabilities.getConfigured();
-        if (configuredObjectTypeCapabilities == null) {
-            LOGGER.trace("No configured capabilities in {} specified, skipping merge", objectTypeDefinition);
-            return connectorCapabilities;
-        }
-
-        CapabilitiesType finalCapabilities = new CapabilitiesType();
-        if (connectorCapabilities.getNative() != null) {
-            finalCapabilities.setNative(connectorCapabilities.getNative());
-        }
-
-        if (!hasConfiguredCapabilities(connectorCapabilities)) {
-            LOGGER.trace("No configured capabilities found for connector, replacing with capabilities defined for {}",
-                    objectTypeDefinition);
-            finalCapabilities.setConfigured(configuredObjectTypeCapabilities);
-            return finalCapabilities;
-        }
-
-        for (Object capability : connectorCapabilities.getConfigured().getAny()) {
-            if (!CapabilityUtil.containsCapabilityWithSameElementName(configuredObjectTypeCapabilities.getAny(), capability)) {
-                configuredObjectTypeCapabilities.getAny().add(capability);
-            }
-        }
-
-        finalCapabilities.setConfigured(configuredObjectTypeCapabilities);
-        return finalCapabilities;
-    }
-
-    private boolean hasConfiguredCapabilities(CapabilitiesType supportedCapabilities) {
-        CapabilityCollectionType configured = supportedCapabilities.getConfigured();
-        return configured != null && !configured.getAny().isEmpty();
+        return isCapabilityEnabled(
+                CapabilityUtil.getCapability(
+                        nativeConnectorsCapabilities.get(additionalConnectorBean.getName()),
+                        capabilityClass));
     }
 }

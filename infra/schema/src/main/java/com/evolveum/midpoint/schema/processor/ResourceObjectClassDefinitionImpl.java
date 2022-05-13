@@ -421,14 +421,9 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @Nullable CapabilitiesType getConfiguredCapabilities() {
-        return null; // Not available for raw classes
-    }
-
-    @Override
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resource) {
-        // we have no refinements here, so type definition in the following call is null
-        return ResourceTypeUtil.getEffectiveCapability(resource, null, capabilityClass);
+    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
+        // we have no refinements here, so we look only at the level of resource
+        return ResourceTypeUtil.getEnabledCapability(resource, capabilityClass);
     }
 
     @Override
@@ -465,7 +460,12 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public String getDescription() {
-        return null;  // no information in raw object class
+        return null; // no information in raw object class
+    }
+
+    @Override
+    public String getDocumentation() {
+        return null; // no information in raw object class
     }
 
     @Override

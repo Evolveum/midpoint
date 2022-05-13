@@ -11,11 +11,15 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -34,9 +38,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class TestResourceSchema extends AbstractSchemaTest {
@@ -305,42 +306,38 @@ public class TestResourceSchema extends AbstractSchemaTest {
         assertCapabilities(resourceType);
     }
 
-    private void assertCapabilities(ResourceType resourceType) throws SchemaException {
-        if (resourceType.getCapabilities() != null) {
-            if (resourceType.getCapabilities().getNative() != null) {
-                for (Object capability : resourceType.getCapabilities().getNative().getAny()) {
-                    System.out.println("Native Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
-                }
-            }
+    private void assertCapabilities(ResourceType resource) throws SchemaException {
+        CapabilitiesType capabilities = resource.getCapabilities();
+        assertThat(capabilities).as("capabilities").isNotNull();
 
-            if (resourceType.getCapabilities().getConfigured() != null) {
-                for (Object capability : resourceType.getCapabilities().getConfigured().getAny()) {
-                    System.out.println("Configured Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
-                }
-            }
+        CapabilityCollectionType nativeCapabilities = capabilities.getNative();
+        CapabilityCollectionType configuredCapabilities = capabilities.getConfigured();
+
+        for (CapabilityType capability : CapabilityUtil.getAllCapabilities(nativeCapabilities)) {
+            System.out.println("Native Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
-        for (Object capability : effectiveCapabilities) {
-            System.out.println("Efective Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
+        for (CapabilityType capability : CapabilityUtil.getAllCapabilities(configuredCapabilities)) {
+            System.out.println("Configured Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
-        assertNotNull("null native capabilities", resourceType.getCapabilities().getNative());
-        assertFalse("empty native capabilities", resourceType.getCapabilities().getNative().getAny().isEmpty());
-        assertEquals("Unexpected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
+        List<CapabilityType> enabledCapabilities = ResourceTypeUtil.getEnabledCapabilities(resource);
+        for (CapabilityType capability : enabledCapabilities) {
+            System.out.println("Enabled capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
+        }
 
-        assertNotNull("null configured capabilities", resourceType.getCapabilities().getConfigured());
-        assertFalse("empty configured capabilities", resourceType.getCapabilities().getConfigured().getAny().isEmpty());
-        assertEquals("Unexpected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
+        assertNotNull("null native capabilities", nativeCapabilities);
+        assertEquals("Unexpected number of native capabilities", 3, CapabilityUtil.size(nativeCapabilities));
 
-        assertEquals("Unexpected number of effective capabilities", 3, effectiveCapabilities.size());
+        assertNotNull("null configured capabilities", configuredCapabilities);
+        assertEquals("Unexpected number of configured capabilities", 2, CapabilityUtil.size(configuredCapabilities));
+
+        assertEquals("Unexpected number of enabled capabilities", 3, enabledCapabilities.size());
         assertNotNull("No credentials effective capability",
-                ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class));
+                ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class));
         assertNotNull("No activation effective capability",
-                ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class));
+                ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class));
         assertNull("Unexpected liveSync effective capability",
-                ResourceTypeUtil.getEffectiveCapability(resourceType, LiveSyncCapabilityType.class));
-
+                ResourceTypeUtil.getEnabledCapability(resource, LiveSyncCapabilityType.class));
     }
-
 }

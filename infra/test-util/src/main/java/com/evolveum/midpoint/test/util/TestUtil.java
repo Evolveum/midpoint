@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 
@@ -137,7 +137,7 @@ public class TestUtil {
     public static void assertExceptionSanity(ObjectAlreadyExistsException e) {
         LOGGER.debug("Exception (expected) {}", e, e);
         System.out.println("Exception (expected)");
-        System.out.println(ExceptionUtils.getFullStackTrace(e));
+        System.out.println(ExceptionUtils.getStackTrace(e));
         assert !e.getMessage().isEmpty() : "Empty exception message";
         assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
                 + e.getMessage().length() + " characters): " + e.getMessage();

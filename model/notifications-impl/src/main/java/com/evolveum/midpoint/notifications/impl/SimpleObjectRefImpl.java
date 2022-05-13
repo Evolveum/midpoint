@@ -8,7 +8,7 @@ package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.impl.util.ApplicationContextHolder;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.prism.PrismObject;

@@ -293,7 +293,7 @@ class SearchHelper {
         ResourceObjectDefinition objectClassDef = ctx.getObjectDefinitionRequired();
         ResourceType resourceType = ctx.getResource();
         CountObjectsCapabilityType countObjectsCapabilityType = objectClassDef
-                .getEffectiveCapability(CountObjectsCapabilityType.class, resourceType);
+                .getEnabledCapability(CountObjectsCapabilityType.class, resourceType);
         if (countObjectsCapabilityType == null) {
             // Unable to count. Return null which means "I do not know"
             LOGGER.trace("countObjects: cannot count (no counting capability)");

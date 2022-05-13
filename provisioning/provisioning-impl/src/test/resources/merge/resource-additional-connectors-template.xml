@@ -13,7 +13,7 @@
     <name>additional-connectors-template</name>
     <abstract>true</abstract>
     <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
-    <connectorConfiguration >
+    <connectorConfiguration>
         <icfc:configurationProperties>
             <icfi:instanceId>main</icfi:instanceId>
         </icfc:configurationProperties>

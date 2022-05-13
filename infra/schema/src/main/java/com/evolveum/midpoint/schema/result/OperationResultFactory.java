@@ -13,7 +13,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Element;
 
 /**

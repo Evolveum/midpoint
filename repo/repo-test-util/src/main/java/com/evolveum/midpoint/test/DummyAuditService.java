@@ -14,8 +14,8 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -139,10 +139,10 @@ public class LiveSynchronizer {
                 ctx.tokenStorage.getToken());
     }
 
-    private void updateTokenValue(LiveSyncCtx ctx, OperationResult result) throws SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException {
+    private void updateTokenValue(LiveSyncCtx ctx, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        LiveSyncCapabilityType capability = ctx.context.getEffectiveCapability(LiveSyncCapabilityType.class);
+        LiveSyncCapabilityType capability = ctx.context.getCapability(LiveSyncCapabilityType.class); // TODO only if enabled?
         boolean preciseTokenValue = capability != null && isTrue(capability.isPreciseTokenValue());
         boolean isDryRun = ctx.isDryRun();
         boolean updateTokenInDryRun = ctx.isUpdateLiveSyncTokenInDryRun();

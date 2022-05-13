@@ -24,8 +24,8 @@ import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
@@ -125,7 +125,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
      * The resource schema here is raw.
      */
     private ResourceSchema rawResourceSchema = null;
-    private Collection<Object> capabilities = null;
+    private CapabilityCollectionType capabilities = null;
     private Boolean legacySchema = null;
 
     private String description;
@@ -329,7 +329,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+    public void initialize(ResourceSchema resourceSchema, CapabilityCollectionType capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
         // Result type for this operation
@@ -406,7 +406,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult)
+    public synchronized CapabilityCollectionType fetchCapabilities(OperationResult parentResult)
         throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
         // Result type for this operation
@@ -450,17 +450,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         parsedCapabilitiesAndSchema = parser;
     }
 
+     @SuppressWarnings("SameParameterValue")
      private synchronized <C extends CapabilityType> C getCapability(Class<C> capClass) {
-        if (capabilities == null) {
-            return null;
-        }
-        for (Object cap: capabilities) {
-            if (capClass.isAssignableFrom(cap.getClass())) {
-                //noinspection unchecked
-                return (C) cap;
-            }
-        }
-        return null;
+         return CapabilityUtil.getCapability(capabilities, capClass);
     }
 
     @Override
@@ -873,8 +865,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return AsynchronousOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
     }
 
-    private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation,
-            boolean requireUid) {
+    private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation, boolean requireUid) {
         if (shadow == null) {
             throw new IllegalArgumentException("Cannot " + operation + " null " + shadow);
         }

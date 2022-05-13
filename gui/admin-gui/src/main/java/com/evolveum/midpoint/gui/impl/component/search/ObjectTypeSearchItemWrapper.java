@@ -21,22 +21,32 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName> {
+public class ObjectTypeSearchItemWrapper<C extends Containerable> extends AbstractSearchItemWrapper<QName> {
 
     private QName oldType;
     private boolean typeChanged;
     private boolean allowAllTypesSearch;
 
-    private List<QName> supportedTypeList = new ArrayList<>();
+    private List<Class<C>> supportedTypeList = new ArrayList<>();
 
     private QName defaultObjectType;
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
-        this(config.getSupportedTypes(), config.getDefaultValue());
+        convertSupportedTypeList(config.getSupportedTypes());
+        this.defaultObjectType = config.getDefaultValue();
     }
 
-    public ObjectTypeSearchItemWrapper(List<QName> supportedTypeList, QName defaultObjectType) {
+    public ObjectTypeSearchItemWrapper(List<Class<C>> supportedTypeList, QName defaultObjectType) {
         this.supportedTypeList = supportedTypeList;
         this.defaultObjectType = defaultObjectType;
+    }
+
+    private void convertSupportedTypeList(List<QName> supportedTypeList) {
+        if (supportedTypeList == null) {
+            return;
+        }
+        supportedTypeList.forEach(qname -> {
+            this.supportedTypeList.add((Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), qname));
+        });
     }
 
     public Class<ObjectTypeSearchItemPanel> getSearchItemPanelClass() {
@@ -44,7 +54,11 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
     }
 
     public List<QName> getAvailableValues() {
-        return getSupportedTypeList();
+        List<QName> availableValues = new ArrayList<>();
+        supportedTypeList.forEach(type -> {
+            availableValues.add(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
+        });
+        return availableValues;
     }
 
     public boolean isTypeChanged() {
@@ -60,12 +74,8 @@ public class ObjectTypeSearchItemWrapper extends AbstractSearchItemWrapper<QName
         return new SearchValue(getDefaultObjectType());
     }
 
-    public List<QName> getSupportedTypeList() {
+    public List<Class<C>> getSupportedTypeList() {
         return supportedTypeList;
-    }
-
-    public void setSupportedTypeList(List<QName> supportedTypeList) {
-        this.supportedTypeList = supportedTypeList;
     }
 
     public QName getDefaultObjectType() {

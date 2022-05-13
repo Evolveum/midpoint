@@ -9,6 +9,14 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.AUTHORITATIVE;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.CLOCKWORK;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.DUMMY_CONNECTOR_TYPE;
@@ -23,9 +31,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.testng.annotations.Test;
 
@@ -67,6 +78,10 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     private static final DummyTestResource RESOURCE_OBJECT_TYPES_1 = new DummyTestResource(
             TEST_DIR, "resource-object-types-1.xml", RESOURCE_OBJECT_TYPES_1_RAW.oid,
             "object-types-1", DummyResourceContoller::extendSchemaPirate);
+
+    private static final DummyTestResource RESOURCE_EXPLICIT_TYPE_INHERITANCE = new DummyTestResource(
+            TEST_DIR, "resource-explicit-type-inheritance.xml", "eb2f35d9-8147-413c-bfe0-f0890c14e702",
+            "explicit-type-inheritance", DummyResourceContoller::extendSchemaPirate);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -129,7 +144,17 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                     .assertPropertyEquals(F_ENABLE_NORMALIZING_RESULTS_HANDLER, false) // from template
                 .end()
                 .assertConnectorRef(RESOURCE_BASIC_TEMPLATE.getObjectable().getConnectorRef())
-                .assertGeneratedClasses(new QName("A"), new QName("B"));
+                .assertGeneratedClasses(new QName("A"), new QName("B"))
+                .assertConfiguredCapabilities(3) // 1 overridden, 1 inherited, 1 new
+                .configuredCapability(CountObjectsCapabilityType.class)
+                    // overridden in types-1
+                    .assertPropertyEquals(CountObjectsCapabilityType.F_SIMULATE, CountObjectsSimulateType.SEQUENTIAL_SEARCH)
+                .end()
+                .configuredCapability(ReadCapabilityType.class) // new in types-1
+                    .assertPropertyEquals(ReadCapabilityType.F_ENABLED, true)
+                .end()
+                .configuredCapability(CreateCapabilityType.class) // from the template
+                .end();
         // @formatter:on
 
         and("ancestors are OK");
@@ -304,10 +329,11 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         displayDumpable("schema", schema);
 
+        and("there is a definition of account/default");
         ResourceObjectTypeDefinition accountDef =
                 schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
-        // gossip is added in types-1
+        and("gossip is added in types-1");
         ResourceAttributeDefinition<?> gossipDef =
                 accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
         PropertyLimitations gossipModelLimitations = gossipDef.getLimitations(LayerType.MODEL);
@@ -315,6 +341,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(gossipModelLimitations.canAdd()).as("add access to gossip").isTrue();
         assertThat(gossipModelLimitations.canModify()).as("modify access to gossip").isTrue();
 
+        and("drink is updated");
         ResourceAttributeDefinition<?> drinkDef =
                 accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = drinkDef.getLimitations(LayerType.MODEL);
@@ -323,6 +350,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(drinkModelLimitations.canModify()).as("modify access to drink").isTrue();
         assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
 
+        and("inbound mapping in weapon is updated");
         ResourceAttributeDefinition<?> weaponDef =
                 accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
         List<InboundMappingType> weaponInbounds = weaponDef.getInboundMappingBeans();
@@ -332,6 +360,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(weaponInbound.getStrength()).as("weapon mapping strength").isEqualTo(MappingStrengthType.STRONG);
         assertThat(weaponInbound.getName()).as("weapon mapping name").isEqualTo("weapon-mapping"); // this is the key
 
+        and("one protected pattern is added (there are two, but one is exactly the same as one in parent)");
         Collection<ResourceObjectPattern> protectedPatterns = accountDef.getProtectedObjectPatterns();
         assertThat(protectedPatterns).as("protected object patterns").hasSize(3); // 2 inherited, 1 added
         Set<String> names = protectedPatterns.stream().map(this::getFilterValue).collect(Collectors.toSet());
@@ -339,6 +368,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .as("protected objects names")
                 .containsExactlyInAnyOrder("root", "daemon", "extra");
 
+        and("association ri:group is updated");
         Collection<ResourceAssociationDefinition> associationDefinitions = accountDef.getAssociationDefinitions();
         displayCollection("associations", associationDefinitions);
         assertThat(associationDefinitions).as("association definitions").hasSize(2);
@@ -352,6 +382,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .as("group name")
                 .isEqualTo(groupQName); // i.e. it's qualified
 
+        and("synchronization reactions are correctly merged");
         Collection<SynchronizationReactionDefinition> reactions = accountDef.getSynchronizationReactions();
         assertThat(reactions).as("sync reactions").hasSize(2);
         SynchronizationReactionDefinition unnamed =
@@ -391,6 +422,151 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(addFocusAction.getName()).isEqualTo("add-focus");
         assertThat(addFocusAction.isSynchronize()).isTrue(); // types-1
         assertThat(addFocusAction.getDocumentation()).isEqualTo("Adding a focus"); // parent
+
+        and("capabilities are OK");
+        ReadCapabilityType read = accountDef.getEnabledCapability(ReadCapabilityType.class, current.asObjectable());
+        assertThat(read).as("read capability").isNotNull();
+
+        // Note that resource-level and object-type-level capabilities are currently NOT combined (merged) together.
+        // They are being replaced. This is years-old behavior that we won't change today.
+        // (In this particular case, caching-only is set at the resource level in the template.)
+        assertThat(read.isCachingOnly()).as("caching-only flag").isNull();
+
+        // Here we check that
+        // @formatter:off
+        assertResource(current, "after")
+                .assertConfiguredCapabilities(2)
+                .configuredCapability(ReadCapabilityType.class) // inherited
+                    .assertPropertyEquals(ReadCapabilityType.F_ENABLED, false)
+                    .assertPropertyEquals(ReadCapabilityType.F_CACHING_ONLY, true)
+                .end()
+                .configuredCapability(UpdateCapabilityType.class) // types-1
+                .end();
+        // @formatter:on
+
+        // This one is object-class specific and is inherited from the template
+        AsyncUpdateCapabilityType asyncUpdate =
+                accountDef.getEnabledCapability(AsyncUpdateCapabilityType.class, current.asObjectable());
+        assertThat(asyncUpdate).as("async update capability").isNotNull();
+
+        // And this one is new in types-1/account/default
+        PagedSearchCapabilityType pagedSearch =
+                accountDef.getEnabledCapability(PagedSearchCapabilityType.class, current.asObjectable());
+        assertThat(pagedSearch).as("paged search capability").isNotNull();
+
+        and("there are two 'items' correlators");
+        CorrelationDefinitionType correlationDefinitionBean = Objects.requireNonNull(accountDef.getCorrelationDefinitionBean());
+        List<ItemsCorrelatorType> itemsCorrelators = correlationDefinitionBean.getCorrelators().getItems();
+        assertThat(itemsCorrelators).as("items correlators").hasSize(2);
+        ItemsCorrelatorType empNo = MiscUtil.extractSingletonRequired(
+                itemsCorrelators.stream()
+                        .filter(c -> "empNo".equals(c.getName()))
+                        .collect(Collectors.toList()),
+                () -> new AssertionError("multiple empNo correlators"),
+                () -> new AssertionError("no empNo correlator"));
+        assertThat(empNo.getAuthority()).isEqualTo(AUTHORITATIVE); // overridden in types-1
+        // Use of toString() is a hack (it's hard to compare paths using equals())
+        assertThat(empNo.getItem().get(0).getPath().getItemPath().toString()).as("empNo path")
+                .isEqualTo(prismContext.toUniformPath(UserType.F_EMPLOYEE_NUMBER).toString());
+        ItemsCorrelatorType unnamedCorrelator = MiscUtil.extractSingletonRequired(
+                itemsCorrelators.stream()
+                        .filter(c -> c.getName() == null)
+                        .collect(Collectors.toList()),
+                () -> new AssertionError("multiple unnamed correlators"),
+                () -> new AssertionError("no unnamed correlator"));
+        assertThat(unnamedCorrelator.getAuthority()).isEqualTo(NON_AUTHORITATIVE);
+        assertThat(unnamedCorrelator.getItem()).hasSize(2);
+
+        and("'items' in correlation definitions are correctly merged");
+        List<CorrelationItemDefinitionType> items =
+                correlationDefinitionBean.getCorrelators().getDefinitions().getItems().getItem();
+        assertThat(items).hasSize(1);
+        CorrelationItemDefinitionType item = items.get(0);
+        assertThat(item.getName()).isEqualTo("test-item-1");
+        assertThat(item.getPath().toString()).isEqualTo("item-2"); // overridden in types-1
+
+        and("'places' in correlation definitions are correctly merged");
+        List<CorrelationItemTargetDefinitionType> targets = item.getTarget();
+        assertThat(targets).as("targets").hasSize(1); // should be merged on qualifier-1
+        CorrelationItemTargetDefinitionType target = targets.get(0);
+        assertThat(target.getQualifier()).isEqualTo("qualifier-1");
+        assertThat(target.getPath().toString()).isEqualTo("item-2-target-2");
+
+        CorrelationItemSourceDefinitionType sourcePlace =
+                correlationDefinitionBean.getCorrelators().getDefinitions().getPlaces().getSource();
+        assertThat(sourcePlace.getPath().toString()).isEqualTo("source-2"); // overridden in types-1
+
+        List<CorrelationItemTargetDefinitionType> targetPlaces =
+                correlationDefinitionBean.getCorrelators().getDefinitions().getPlaces().getTarget();
+        assertThat(targetPlaces).hasSize(1);
+        CorrelationItemTargetDefinitionType targetPlace = targetPlaces.get(0);
+        assertThat(targetPlace.getQualifier()).isEqualTo("qualifier-1"); // merging based on this key
+        assertThat(targetPlace.getPath().toString()).isEqualTo("target-2"); // overridden in types-1
+
+        and("default inbound mappings phases are merged");
+        // This is a bit counter-intuitive, but according to the general merging algorithm.
+        // Maybe we should create a special rule that would allow overriding these phases, but I think
+        // that the current approach is OK. If some overriding would be needed, it should be more generic,
+        // to be usable also for other cases.
+        DefaultInboundMappingEvaluationPhasesType phases = accountDef.getDefaultInboundMappingEvaluationPhases();
+        assertThat(phases).isNotNull();
+        assertThat(phases.getPhase())
+                .as("default inbound mapping evaluation phases")
+                .containsExactlyInAnyOrder(CLOCKWORK, BEFORE_CORRELATION);
+    }
+
+    /**
+     * Tests explicit type inheritance (in a single resource).
+     */
+    @Test
+    public void test220ExplicitTypeInheritance() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("resource is initialized");
+        initDummyResource(RESOURCE_EXPLICIT_TYPE_INHERITANCE, result);
+
+        then("resource is successfully tested");
+        testResourceAssertSuccess(RESOURCE_EXPLICIT_TYPE_INHERITANCE, task); // updates the object
+
+        and("schema can be retrieved");
+        PrismObject<ResourceType> current =
+                beans.resourceManager.getResource(RESOURCE_EXPLICIT_TYPE_INHERITANCE.oid, null, task, result);
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(current);
+
+        displayDumpable("schema", schema);
+
+        and("there is a definition of account/employee");
+        ResourceObjectTypeDefinition employeeDef =
+                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, "employee");
+
+        and("drink is updated");
+        ResourceAttributeDefinition<?> employeeDrinkDef =
+                employeeDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        PropertyLimitations drinkModelLimitations = employeeDrinkDef.getLimitations(LayerType.MODEL);
+        assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
+        assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
+        assertThat(drinkModelLimitations.canModify()).as("modify access to drink").isTrue();
+        assertThat(employeeDrinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in this type
+
+        and("there is a definition of account/admin");
+        ResourceObjectTypeDefinition adminDef =
+                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, "admin");
+
+        and("drink is updated");
+        ResourceAttributeDefinition<?> adminDrinkDef =
+                adminDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        assertThat(adminDrinkDef.isTolerant()).as("drink 'tolerant' flag").isTrue(); // default
+        assertThat(adminDrinkDef.isIgnored(LayerType.MODEL)).as("drink 'ignored' flag").isTrue(); // overridden
+        assertThat(adminDrinkDef.getDocumentation()).isEqualTo("Administrators do not drink!");
+
+        and("there is no definition of account/general");
+        ResourceObjectTypeDefinition generalDef =
+                schema.findObjectTypeDefinition(ShadowKindType.ACCOUNT, "general");
+        assertThat(generalDef).as("definition of account/general").isNull();
+
+        List<? extends ResourceObjectTypeDefinition> accountDefs = schema.getObjectTypeDefinitions(ShadowKindType.ACCOUNT);
+        assertThat(accountDefs).as("account definitions").hasSize(2);
     }
 
     /** Hacked: gets the value of (assuming) single property value filter in the pattern. */

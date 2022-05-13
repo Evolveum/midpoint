@@ -26,9 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,7 @@ class TestConnectionOperation {
 
         List<ConnectorSpec> allConnectorSpecs;
         try {
-            allConnectorSpecs = beans.resourceManager.getAllConnectorSpecs(resource);
+            allConnectorSpecs = beans.resourceManager.connectorSelector.getAllConnectorSpecs(resource);
         } catch (SchemaException | ConfigurationException e) {
             if (LOGGER.isTraceEnabled()) {
                 // TODO why logging at error level only if trace is enabled?
@@ -78,7 +79,7 @@ class TestConnectionOperation {
             return;
         }
 
-        Map<String, Collection<Object>> capabilityMap = new HashMap<>();
+        Map<String, CapabilityCollectionType> capabilityMap = new HashMap<>();
         for (ConnectorSpec connectorSpec: allConnectorSpecs) {
 
             OperationResult connectorTestResult = result
@@ -104,7 +105,8 @@ class TestConnectionOperation {
         ResourceSchema rawSchema;
         try {
 
-            rawSchema = beans.resourceManager.fetchResourceSchema(resource, capabilityMap, schemaResult);
+            rawSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
+                    resource, NativeConnectorsCapabilities.of(capabilityMap), schemaResult);
 
         } catch (CommunicationException e) {
             String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
@@ -156,7 +158,15 @@ class TestConnectionOperation {
             // Re-fetching from repository to get up-to-date availability status (to avoid phantom state change records).
             PrismObject<ResourceType> repoResource = beans.cacheRepositoryService.getObject(
                     ResourceType.class, resourceOid, null, schemaResult);
-            completedResource = new ResourceCompletionOperation(repoResource, null, rawSchema, true, capabilityMap, task, beans)
+            completedResource = new ResourceCompletionOperation(
+                    repoResource,
+                    null,
+                    rawSchema,
+                    true,
+                    NativeConnectorsCapabilities.of(capabilityMap),
+                    true,
+                    task,
+                    beans)
                     .execute(schemaResult);
         } catch (ObjectNotFoundException e) {
             String msg = "Object not found (unexpected error, probably a bug): " + e.getMessage();
@@ -237,7 +247,7 @@ class TestConnectionOperation {
 
     private void testConnectionConnector(
             ConnectorSpec connectorSpec,
-            Map<String, Collection<Object>> capabilityMap,
+            Map<String, CapabilityCollectionType> capabilityMap,
             OperationResult parentResult) throws ObjectNotFoundException {
 
         // === test INITIALIZATION ===
@@ -310,7 +320,8 @@ class TestConnectionOperation {
             //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
             //
             ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
-            Collection<Object> previousCapabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+            CapabilityCollectionType previousCapabilities =
+                    ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
             connector.initialize(previousResourceSchema, previousCapabilities,
                     ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
 
@@ -381,7 +392,7 @@ class TestConnectionOperation {
                 .createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
         try {
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-            Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
+            CapabilityCollectionType retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
 
             capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
             capabilitiesResult.recordSuccess();

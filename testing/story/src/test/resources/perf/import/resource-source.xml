@@ -171,7 +171,7 @@
                             <relativityMode>absolute</relativityMode>
                             <code>
                                 import java.util.Arrays
-                                import org.apache.commons.lang.StringUtils
+                                import org.apache.commons.lang3.StringUtils
 
                                 retVal = []
                                 if(!basic.isEmpty(input))
@@ -197,7 +197,7 @@
                             <relativityMode>absolute</relativityMode>
                             <code>
                                 import java.util.Arrays
-                                import org.apache.commons.lang.StringUtils
+                                import org.apache.commons.lang3.StringUtils
 
                                 retVal = []
                                 if(!basic.isEmpty(input))
@@ -223,7 +223,7 @@
                             <relativityMode>absolute</relativityMode>
                             <code>
                                 import java.util.Arrays
-                                import org.apache.commons.lang.StringUtils
+                                import org.apache.commons.lang3.StringUtils
 
                                 retVal = []
                                 if(!basic.isEmpty(input))

@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -47,10 +49,6 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -323,25 +321,20 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
 
-        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
+        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilities, CreateCapabilityType.class);
         assertNotNull("Missing create capability", capCreate);
         assertManual(capCreate);
 
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
         assertNotNull("Missing activation capability", capAct);
 
-        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
+        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilities, ReadCapabilityType.class);
         assertNotNull("Missing read capability", capRead);
         assertEquals("Wrong caching-only setting in read capability", Boolean.TRUE, capRead.isCachingOnly());
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
-        for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
-        }
-
+        dumpResourceCapabilities(resource);
     }
 
     @Test

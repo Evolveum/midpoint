@@ -183,10 +183,10 @@ public class PageDebugList extends PageAdminConfiguration {
 //        return choices;
 //    }
 
-    private List<QName> getAllowedTypes() {
-        List<QName> choices = new ArrayList<>();
+    private List<Class<ObjectType>> getAllowedTypes() {
+        List<Class<ObjectType>> choices = new ArrayList<>();
         WebComponentUtil.createObjectTypesList().stream()
-                .forEach(type -> choices.add(type.getTypeQName()));
+                .forEach(type -> choices.add(type.getClassDefinition()));
         return choices;
     }
 
@@ -523,10 +523,10 @@ public class PageDebugList extends PageAdminConfiguration {
         return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private void listObjectsPerformed(AjaxRequestTarget target) {
+    private <C extends Containerable> void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
         if (searchModel.getObject().isTypeChanged()) {
-            ObjectTypeSearchItemWrapper objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
+            ObjectTypeSearchItemWrapper<C> objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
             Class<? extends Containerable> type =
                     (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
             Search search = SearchFactory.createSearch(createSearchConfigWrapper(type, objectType.getValue().getValue()), PageDebugList.this);
