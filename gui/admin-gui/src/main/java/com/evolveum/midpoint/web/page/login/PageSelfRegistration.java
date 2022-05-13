@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -52,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") },
-        permitAll = true, loginPage = true)
+        permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
 public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final long serialVersionUID = 1L;
