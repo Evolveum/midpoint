@@ -1160,32 +1160,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private boolean isSubtreeScope() {
-        Search<FocusType> search = getSearch();
-        //todo fix this
-//        SearchItem compositedItem = search.getCompositedSpecialItem();
-//        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
-//            List<SearchItem> items = ((AbstractRoleCompositedSearchItem) compositedItem).getSearchItems();
-//            for (SearchItem item : items) {
-//                if (item instanceof ScopeSearchItem) {
-//                    return SearchBoxScopeType.SUBTREE.equals(((ScopeSearchItem) item).getScopeType());
-//                }
-//            }
-//        }
         return getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE);
     }
 
     private boolean isIndirect() {
-        Search<FocusType> search = getSearch();
-        //todo fix this
-//        SearchItem compositedItem = search.getCompositedSpecialItem();
-//        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
-//            List<SearchItem> items = ((AbstractRoleCompositedSearchItem)compositedItem).getSearchItems();
-//            for (SearchItem item : items) {
-//                if (item instanceof IndirectSearchItem) {
-//                    return ((IndirectSearchItem) item).isIndirect();
-//                }
-//            }
-//        }
         return getSearchBoxConfiguration().isIndirect();
     }
 
