@@ -8,19 +8,17 @@
 package com.evolveum.midpoint.schema.merger.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ABSTRACT;
 
 import java.util.Map;
 
-import com.evolveum.midpoint.schema.merger.*;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
+import com.evolveum.midpoint.schema.merger.GenericItemMerger;
+import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
+import com.evolveum.midpoint.schema.merger.RequiredItemMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 /**
  * Merges {@link ResourceType} objects.
@@ -35,12 +33,7 @@ public class ResourceMergeOperation extends BaseMergeOperation<ResourceType> {
                 source,
                 new GenericItemMerger(createPathMap(Map.of(
                         F_NAME, RequiredItemMerger.INSTANCE,
-                        // connectorRef - default
-                        // connectorConfiguration - default
-                        F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE,
-                        F_ADDITIONAL_CONNECTOR, new GenericItemMerger(
-                                DefaultNaturalKeyImpl.of(ConnectorInstanceSpecificationType.F_NAME),
-                                emptyPathMap())
+                        F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE // otherwise this would propagate to specific resources
                 ))));
     }
 }

@@ -11,17 +11,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.key.NaturalKey;
-import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
-import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,42 +54,21 @@ public class GenericItemMerger implements ItemMerger {
     /** Mergers to be used universally. Indexed by the value class. */
     @NotNull private final Map<Class<?>, Supplier<ItemMerger>> typeSpecificMergers;
 
-    public GenericItemMerger(
+    private GenericItemMerger(
             @Nullable NaturalKey naturalKey,
             @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this.naturalKey = naturalKey;
         this.childrenMergers = childrenMergers;
-        this.typeSpecificMergers = createStandardTypeSpecificMergersMap();
-    }
 
-    /** In the future this may be parameterized on instance creation. */
-    private Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap() {
-        // @formatter:off
-        return Map.of(
-                PropertyLimitationsType.class,
-                    LimitationsMerger::new,
-                ResourceObjectTypeDefinitionType.class,
-                    ObjectTypeDefinitionMerger::new,
-                MappingType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(MappingType.F_NAME)),
-                SynchronizationReactionNewType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(SynchronizationReactionNewType.F_NAME)),
-                AbstractSynchronizationActionType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME)),
-                AbstractCorrelatorType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractCorrelatorType.F_NAME)),
-                CorrelationItemDefinitionType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemDefinitionType.F_NAME)),
-                CorrelationItemTargetDefinitionType.class,
-                    () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemTargetDefinitionType.F_QUALIFIER))
-                );
-        // @formatter:on
+        // In the future this may be parameterized on instance creation.
+        this.typeSpecificMergers = TypeSpecificMergersConfigurator.createStandardTypeSpecificMergersMap();
     }
 
     public GenericItemMerger(@NotNull PathKeyedMap<ItemMerger> childrenMergers) {
         this(null, childrenMergers);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public GenericItemMerger(NaturalKey naturalKey) {
         this(naturalKey, new PathKeyedMap<>());
     }
