@@ -979,9 +979,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     @Override
                     public String getObject() {
                         String subscriptionId = getSubscriptionId();
-                        if (StringUtils.isEmpty(subscriptionId)) {
-                            return "";
-                        }
                         if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
