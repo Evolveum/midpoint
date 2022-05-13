@@ -330,9 +330,6 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                     @Override
                     public String getObject() {
                         String subscriptionId = getSubscriptionId();
-                        if (StringUtils.isEmpty(subscriptionId)) {
-                            return "";
-                        }
                         if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
