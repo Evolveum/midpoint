@@ -6,18 +6,20 @@
  */
 @import "midpoint-theme-variables";
 
-@import "../../../node_modules/admin-lte/build/scss/adminlte";
-@import "../../../node_modules/overlayscrollbars/css/OverlayScrollbars.css";
-@import "../../../node_modules/@fortawesome/fontawesome-free/css/all.css";
-@import "../../../node_modules/datatables.net-bs4/css/dataTables.bootstrap4";
-
-@import "../../../node_modules/bootstrap-select/dist/css/bootstrap-select.css";
-@import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
+// AdminLTE and Bootstrap
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions";
+@import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables";
+@import "../../../node_modules/admin-lte/build/scss/variables";
+@import "../../../node_modules/admin-lte/build/scss/variables-alt";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
+// AdminLTE and Bootstrap end
 
 @import "icon-style";
 @import "prism-forms";
 @import "midpoint-utils";
 @import "details-menu";
+@import "wicket";
 
 //@import "midpoint/prism-container";
 //@import "midpoint/wizard";
@@ -28,7 +30,6 @@
 //@import "midpoint/tree-theme-basic.less";
 //@import "midpoint/operation-result.less";
 //@import "midpoint/icon-style.less";
-
 
 body.custom-hold-transition {
 	.content-wrapper,
@@ -66,31 +67,6 @@ body.custom-hold-transition {
 	}
   }
 
-}
-
-#wicketDebugLink {
-  bottom: 55px !important;
-}
-
-#wicketDebugBar img {
-  vertical-align: unset;
-}
-
-div.wicket-debug-buttons {
-  border: 1px solid #000000;
-  background-color: #ffffff;
-  opacity: 0.7;
-  bottom: 85px;
-  display: block;
-  position: fixed;
-  right: 10px;
-  z-index: 1000000;
-
-  a {
-    color: #0000ff;
-    display: block;
-    padding: 3px 20px;
-  }
 }
 
 div.navbar-custom-menu {
@@ -422,54 +398,13 @@ th.cog, td.cog {
 }
 
 // Summary panel (panel above the edit user/role/org forms)
-
-//@mixin info-box-summary-panel($color) {
-//	border-top: 3px solid $color;
-//    min-height: 95px;
-//}
-//
-//.info-box.summary-panel-user {
-//  @include info-box-summary-panel($object-user-color);
-//}
-//
-//.info-box.summary-panel-role {
-//  @include info-box-summary-panel($object-role-color);
-//}
-//
-//.info-box.summary-panel-org {
-//  @include info-box-summary-panel($object-org-color);
-//}
-//
-//.info-box.summary-panel-service {
-//  @include info-box-summary-panel($object-service-color);
-//}
-//
-//.info-box.summary-panel-resource {
-//  @include info-box-summary-panel($object-resource-color);
-//}
-//
-//.info-box.summary-panel-shadow {
-//  @include info-box-summary-panel($object-shadow-color);
-//}
-//
-//.info-box.summary-panel-task {
-//  @include info-box-summary-panel($object-task-color);
-//}
-
 @mixin info-box-icon-summary-panel($color){
 	color: #FFF !important;
 	background-color: $color;
-	//padding: 3px;
-	//white-space: nowrap;
-	//text-align: center;
-	//line-height: 0px;
-    //border-radius: 0;
 }
 
 .info-box-icon.summary-panel-user {
   @include info-box-icon-summary-panel($object-user-color);
-  //line-height: 105px;
-  //height: 105px;
 }
 
 .info-box-icon.summary-panel-role {
@@ -547,12 +482,10 @@ th.cog, td.cog {
 	}
 }
 
-// Admin dashboard
-
-.dashboard-info-box {
-	> div > .info-box {
-		cursor: pointer;
-	}
+.info-box {
+  &.info-box-link {
+    cursor: pointer;
+  }
 }
 
 // capability buttons in resource details page
@@ -578,77 +511,28 @@ th.cog, td.cog {
 	padding-left: 0px;
 }
 
-// Feedback messages ???
-
-.feedback-message.box {
-	box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
-	word-break: inherit;
-}
-
-.feedback-message.box-body {
-	padding-top : 5px;
-	padding-left : 10px;
-	padding-right : 0px;
-	padding-bottom : 0px;
-}
-
-.feedback-message.box.box-solid.box-danger {
-	border-left: 3px solid #dd4b39;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-
-.feedback-message.box.box-solid.box-success {
-	border-left: 3px solid #00a65a;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-.feedback-message.box.box-solid.box-info {
-	border-left: 3px solid #00c0ef;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-.feedback-message.box.box-solid.box-warning {
-	border-left: 3px solid #f39c12;
-	border-right : 0px;
-	border-top : 0px;
-	border-bottom : 0px;
-}
-
-.feedback-message.dl-horizontal {
-
-	& dt {
-		width: 100px;
-	}
-}
-
-
-.feedback-message.dl-horizontal {
-
-	& dd {
-		margin-left: 130px;
-		word-break: break-word;
-	}
-}
-
-.feedback-message .icon {
-	margin-right: 10px;
+// Feedback messages
+@each $name, $color in $theme-colors {
+  .feedback-message.card.card-#{$name} > .card-body {
+    border-color: $color;
+  }
 }
 
 .feedback-message {
-	& .box-header .box-title {
-		font-size: 14px;
-	}
 
-	& .box-header {
-		border-radius: 0 3px 3px 0;
-	}
+  &.card {
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
+
+    & > .card-header {
+      border-bottom-right-radius: valid-radius($border-radius);
+    }
+  }
+
+  &.card-body {
+    border: 0px;
+    border-left: 3px solid;
+    padding: 0.5rem 0 0 0.5rem;
+  }
 }
 
 .summary-panel-display-name {
@@ -734,15 +618,6 @@ th.cog, td.cog {
 	margin-top: 3px;
 }
 
-.navbar-ajax {
-	float: left;
-
-	& #ajax_busy {
-		margin-top: 12px;
-		margin-left: 8px;
-	}
-}
-
 .page-title {
 	color: #fff;
 	background-color: transparent;
@@ -788,36 +663,6 @@ th.cog, td.cog {
 .prism-multivalue-container {
     margin-left: 15px; // aligning multivalue container with superior container
 }
-
-
-// Common styles for object detail pages
-
-// TODO: probably not used
-//.assignable-header {
-//  border-bottom: 2px solid $table-divider-color;
-//  margin: 0px;
-//  margin-bottom: 10px;
-//  padding-left: 5px; // align with the checkboxes below
-//
-//  div.col-xs-10 {
-//    padding: 0 5px;
-//
-//    & > input {
-//      display: inline-block;
-//    }
-//
-//    > h3 {
-//      display: inline-block;
-//      margin-bottom: 5px;
-//      margin-left: 5px;
-//    }
-//  }
-//
-//  & > div.cog {
-//    margin-top: 18px;
-//    padding-right: 5px;
-//  }
-//}
 
 .check-table-header {
 	padding-left: 20px;
@@ -1141,13 +986,9 @@ span.tree-content > table tr td:first-child {
 }
 
 .stacktrace {
-	font-family: monospace;
+    font-family: $font-family-monospace !important;
+    font-size: $font-size-sm !important;
     white-space: pre-wrap;
-    font-size: 11px;
-}
-
-dd.stacktrace::before {
-	content: none;
 }
 
 // Shopping cart
@@ -1378,14 +1219,6 @@ th.countLabel{
 	cursor: pointer;
 }
 
-.buttons-panel-marging{
-	margin-right: 10px;
-}
-
-.position-relative{
-	position: relative;
-}
-
 .small-box h3{
 	white-space: normal;
 	font-size: 28px;
@@ -1402,13 +1235,6 @@ th.countLabel{
 	.small-box h3 {
 		font-size: 35px;
 	}
-}
-
-.dashboard-widgets{
-	display: flex;
-	flex-flow: row wrap;
-	display: -webkit-flex;
-    -webkit-flex-flow: row wrap;
 }
 
 .dashboard-info-box > .small-box {
@@ -1454,10 +1280,6 @@ td .prism-property-value {
 	width: 38px;
 }
 
-.ace-editor-left-aligning {
-  margin-left: -15px;
-}
-
 .search-form {
 
 }
@@ -1481,8 +1303,12 @@ td .prism-property-value {
   }
 
   .search-item-field {
-    padding-right: 3px !important;
     padding-left: 3px !important;
+  }
+
+  & > a.btn,
+  & > a.btn:hover {
+    border-top: 0 !important;
   }
 }
 
@@ -1820,23 +1646,26 @@ td .prism-property-value {
 
 fieldset.objectButtons {
 
-  //border-right: 1px solid $legend-border-color;
-  padding: revert;
+  border-right: 1px solid $legend-border-color;
+  padding: 0;
+  padding-right: 2rem;
   width: max-content;
-  margin-right: 10px;
+  min-width: revert;
+  margin-right: 1rem;
 
   > legend {
     font-size: 13px;
     border-bottom: none;
-    margin-bottom: auto;
+    margin-bottom: 0.25rem;
     width: auto;
     //color: $legend-color;
   }
-}
 
-.operationalButtonLabel {
-  font-size: 13px;
-  margin-left:5px;
+  &:last-of-type {
+    border-right: 0;
+    padding-right: 0;
+    margin-right: 0;
+  }
 }
 
 .execute-options {
@@ -1880,6 +1709,23 @@ fieldset.objectButtons {
   text-decoration: line-through;
 }
 
+
+.card-body.p-0 .table {
+  & > thead > tr > th,
+  & > thead > tr > td,
+  & > tfoot > tr > th,
+  & > tfoot > tr > td,
+  & > tbody > tr > th,
+  & > tbody > tr > td {
+    &.icon:first-of-type,
+    &.composited-icon:first-of-type,
+    &.icon:last-of-type,
+    &.composited-icon:last-of-type,{
+      width: 52px !important;
+    }
+  }
+}
+
 // todo cleanup
 th, td {
   &.check {
@@ -1903,23 +1749,15 @@ th, td {
   text-transform: uppercase;
 }
 
-div.search-popover {
+div.search-popover > dl {
+  height: 150px;
+  max-height: 150px;
+  overflow: auto;
 
-  & > div.more-input,
-  & > div.buttons {
-    margin: 6px;
-  }
+  & > dd > label {
+    margin-bottom: 0;
 
-  & > div.properties {
-    padding: 0 5px;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    height: 150px;
-    max-height: 150px;
-    overflow: auto;
-    vertical-align: top;
-
-    & label {
+    & > a {
       font-weight: normal;
     }
   }
@@ -1953,13 +1791,9 @@ th:not(.sortable) > .icon {
  * fix for yui calendar
  */
 span.yui-skin-sam {
-  //  position: absolute;
-  //  right: 24px;
-  //  top: 3px;
-
   position: relative;
   right: 35px;
-  top: -2px;
+  top: 2px;
 }
 
 .form-control-sized {
@@ -1969,4 +1803,24 @@ span.yui-skin-sam {
 
 .popover {
   max-width: unset;
+}
+
+.info-box.info-box-resource {
+
+  height: 100%;
+  margin-bottom: 0;
+
+  &> .info-box-content {
+    justify-content: start !important;
+  }
+}
+
+.main-button-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem;
+}
+
+.card-footer {
+  background-color: $white;
 }

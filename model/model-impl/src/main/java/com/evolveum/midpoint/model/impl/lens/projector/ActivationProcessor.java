@@ -329,7 +329,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), ActivationCapabilityType.class);
+        ActivationCapabilityType capActivation = ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), ActivationCapabilityType.class);
         if (capActivation == null) {
             LOGGER.trace("Skipping activation status and validity processing because {} has no activation capability", projCtx.getResource());
             return;
@@ -485,7 +485,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(accCtx.getResource(), ActivationCapabilityType.class);
+        ActivationCapabilityType capActivation = ResourceTypeUtil.getEnabledCapability(accCtx.getResource(), ActivationCapabilityType.class);
         if (capActivation == null) {
             return;
         }

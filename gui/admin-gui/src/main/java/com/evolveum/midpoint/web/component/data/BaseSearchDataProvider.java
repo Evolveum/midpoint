@@ -18,7 +18,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 /**
  * @author lazyman

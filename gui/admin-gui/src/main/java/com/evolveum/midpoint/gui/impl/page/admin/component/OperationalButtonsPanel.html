@@ -10,14 +10,14 @@
 <wicket:panel>
     <div class="card">
         <div class="card-body">
-            <div class="d-flex flex-wrap">
-                <fieldset class="objectButtons">
+            <div class="d-flex flex-wrap gap-3">
+                <fieldset class="objectButtons d-flex flex-wrap gap-1 align-items-start">
                     <legend><wicket:message key="OperationalButtonsPanel.buttons.main"/></legend>
-                    <span class="m-1 m-sm-0 mr-sm-2 btn" wicket:id="buttons"/>
+                    <a class="btn" wicket:id="buttons"/>
                 </fieldset>
                 <wicket:child/>
                 <span class="pull-right button-group">
-                     <span class="m-1 m-sm-0 mr-sm-2 btn" wicket:id="stateButtons"/>
+                    <a class="btn" wicket:id="stateButtons"/>
                 </span>
             </div>
         </div>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -40,10 +40,10 @@ public class ImportRepositoryTest extends BaseTest {
 
         executeTest(null,
                 context -> {
-                    RepositoryService repo = context.getRepository();
-                    clearDbIfNative(repo);
+                    clearDbIfNative(context);
 
                     OperationResult result = new OperationResult("count objects");
+                    RepositoryService repo = context.getRepository();
                     int count = repo.countObjects(ObjectType.class, null, null, result);
 
                     AssertJUnit.assertEquals(0, count);
@@ -74,10 +74,10 @@ public class ImportRepositoryTest extends BaseTest {
 
         executeTest(null,
                 context -> {
-                    RepositoryService repo = context.getRepository();
-                    clearDbIfNative(repo);
+                    clearDbIfNative(context);
 
                     OperationResult result = new OperationResult("count objects");
+                    RepositoryService repo = context.getRepository();
                     int count = repo.countObjects(ObjectType.class, null, null, result);
 
                     AssertJUnit.assertEquals(0, count);
@@ -104,10 +104,10 @@ public class ImportRepositoryTest extends BaseTest {
 
         executeTest(null,
                 context -> {
-                    RepositoryService repo = context.getRepository();
-                    clearDbIfNative(repo);
+                    clearDbIfNative(context);
 
                     OperationResult result = new OperationResult("count objects");
+                    RepositoryService repo = context.getRepository();
                     int count = repo.countObjects(ObjectType.class, null, null, result);
 
                     AssertJUnit.assertEquals(0, count);
@@ -136,7 +136,7 @@ public class ImportRepositoryTest extends BaseTest {
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
         executeTest(null,
-                context -> clearDbIfNative(context.getRepository()),
+                context -> clearDbIfNative(context),
                 context -> {
                     RepositoryService repo = context.getRepository();
 
@@ -146,7 +146,7 @@ public class ImportRepositoryTest extends BaseTest {
 
                     try {
                         repo.getObject(RoleType.class, ROLE_2_OID, null, result);
-                        AssertJUnit.fail("This role should get to repository because of default polystring normalizer (name collision failure)");
+                        AssertJUnit.fail("This role should not get to repository because of default polystring normalizer (name collision failure)");
                     } catch (ObjectNotFoundException ex) {
                         // ignored
                     }
@@ -163,7 +163,7 @@ public class ImportRepositoryTest extends BaseTest {
         final String ROLE_2_OID = "3ed7c747-ff1b-4b45-90c6-b158bc844e2b";
 
         executeTest(null,
-                context -> clearDbIfNative(context.getRepository()),
+                context -> clearDbIfNative(context),
                 context -> {
                     RepositoryService repo = context.getRepository();
 

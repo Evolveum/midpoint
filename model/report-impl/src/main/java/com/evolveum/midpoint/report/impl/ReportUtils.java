@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,12 +66,12 @@ import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
- * "prism" object and anything related to them. Methods has to work with both,
- * common schema types and extended schema types (prism)
+ * "prism" object and anything related to them.
+ * Methods have to work with both common schema types and extended schema types (prism).
  *
  * @author Katarina Valalikova
  * @author Martin Lizner

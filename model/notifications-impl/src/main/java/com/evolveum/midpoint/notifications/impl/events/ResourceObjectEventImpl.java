@@ -8,7 +8,7 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import java.util.Collection;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;

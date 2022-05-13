@@ -10,16 +10,17 @@
 <body>
 <wicket:panel>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-12">
             <h3><wicket:message key="PageInternals.title.cache"/></h3>
 
-            <textarea wicket:id="information"></textarea>
-            <p></p>
+            <div class="form-group">
+                <textarea class="border" wicket:id="information"></textarea>
+            </div>
+
             <div class="main-button-bar">
                 <a class="btn btn-primary" wicket:id="clearCaches"/>
                 <a class="btn btn-primary" wicket:id="dumpContent"/>
             </div>
-
         </div>
     </div>
 </wicket:panel>

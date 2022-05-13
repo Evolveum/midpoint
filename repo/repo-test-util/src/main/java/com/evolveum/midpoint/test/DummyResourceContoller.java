@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -27,7 +29,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -75,8 +77,11 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME = "enlistTimestamp";
 
-    public static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
-    public static final QName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
 
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME = "givenName";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME = "sn";
@@ -350,7 +355,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         // MID-4751
         ResourceAttributeDefinition<?> enlistTimestampDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
         PrismAsserts.assertDefinition(enlistTimestampDef,
-                new QName(MidPointConstants.NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
+                new QName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
                 DOMUtil.XSD_DATETIME, 0, 1);
 
         assertTrue("Account definition in not default", accountObjectClassDef.isDefaultAccountDefinition());
@@ -404,12 +409,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public QName getAccountObjectClass() {
         getResourceType();
-        return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+        return new QName(NS_RI, "AccountObjectClass");
     }
 
     public QName getGroupObjectClass() {
         getResourceType();
-        return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
+        return new QName(NS_RI, "GroupObjectClass");
     }
 
     public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException, InterruptedException {

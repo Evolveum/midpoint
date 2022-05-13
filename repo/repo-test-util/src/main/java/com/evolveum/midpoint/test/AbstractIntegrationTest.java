@@ -51,7 +51,10 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import org.apache.commons.lang.SystemUtils;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.Entry;
@@ -728,10 +731,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             ObjectAlreadyExistsException {
         for (int i = 0; i < connectorTypes.size(); i++) {
             String type = connectorTypes.get(i);
-            if (i == 0) {
-                fillInConnectorRef(resource, type, result);
-            } else {
-                fillInAdditionalConnectorRef(resource, i - 1, type, result);
+            if (type != null) {
+                if (i == 0) {
+                    fillInConnectorRef(resource, type, result);
+                } else {
+                    fillInAdditionalConnectorRef(resource, i - 1, type, result);
+                }
             }
         }
         CryptoUtil.encryptValues(protector, resource);
@@ -973,8 +978,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
         ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
-        initializeAsserter(asserter);
-        asserter.display();
+        initializeAsserter(asserter); // no display here (intentionally)
         return asserter;
     }
 
@@ -4217,5 +4221,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassDefinition().getTypeName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
                 .build();
+    }
+
+    protected void dumpResourceCapabilities(@NotNull ResourceType resource) throws SchemaException {
+        for (CapabilityType capability : ResourceTypeUtil.getEnabledCapabilities(resource)) {
+            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
+        }
     }
 }

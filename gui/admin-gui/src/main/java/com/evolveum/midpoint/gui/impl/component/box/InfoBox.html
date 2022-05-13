@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <span class="info-box-icon" wicket:id="iconContainer"><i wicket:id="icon"></i></span>
+    <div class="info-box-content">
+        <span class="info-box-text" wicket:id="text"/>
+        <span class="info-box-number" wicket:id="number"/>
+        <wicket:enclosure child="progress">
+            <div class="progress">
+                <div class="progress-bar" wicket:id="progress" style="width: 70%"></div>
+            </div>
+        </wicket:enclosure>
+        <span class="progress-description" wicket:id="description"/>
+    </div>
+</wicket:panel>
+</html>

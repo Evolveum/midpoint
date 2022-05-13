@@ -24,8 +24,8 @@ import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
@@ -110,7 +110,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     final ConnIdNameMapper connIdNameMapper;
     final ConnIdConvertor connIdConvertor;
 
-    private List<QName> generateObjectClasses;
+    /** If not null and not empty, specifies what object classes should be put into schema (empty means "no limitations"). */
+    @Nullable private List<QName> generateObjectClasses;
 
     /**
      * Builder and holder object for parsed ConnId schema and capabilities. By using
@@ -124,7 +125,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
      * The resource schema here is raw.
      */
     private ResourceSchema rawResourceSchema = null;
-    private Collection<Object> capabilities = null;
+    private CapabilityCollectionType capabilities = null;
     private Boolean legacySchema = null;
 
     private String description;
@@ -175,7 +176,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized void configure(@NotNull PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
+    public synchronized void configure(
+            @NotNull PrismContainerValue<?> configurationOriginal,
+            @Nullable List<QName> generateObjectClasses,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
@@ -325,7 +329,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+    public void initialize(ResourceSchema resourceSchema, CapabilityCollectionType capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
         // Result type for this operation
@@ -340,7 +344,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 
             if (resourceSchema == null || capabilities == null) {
-                retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+                retrieveAndParseResourceCapabilitiesAndSchema(result);
 
                 this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
                 setRawResourceSchema(parsedCapabilitiesAndSchema.getRawResourceSchema());
@@ -381,7 +385,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         try {
 
             if (parsedCapabilitiesAndSchema == null) {
-                retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+                retrieveAndParseResourceCapabilitiesAndSchema(result);
             }
 
             legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
@@ -402,7 +406,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult)
+    public synchronized CapabilityCollectionType fetchCapabilities(OperationResult parentResult)
         throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
         // Result type for this operation
@@ -414,7 +418,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             // Always refresh capabilities and schema here, even if we have already parsed that before.
             // This method is used in "test connection". We want to force fresh fetch here
             // TODO: later: clean up this mess. Make fresh fetch somehow explicit?
-            retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+            retrieveAndParseResourceCapabilitiesAndSchema(result);
 
             legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
             setRawResourceSchema(parsedCapabilitiesAndSchema.getRawResourceSchema());
@@ -430,7 +434,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return capabilities;
     }
 
-    private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult result)
+    private void retrieveAndParseResourceCapabilitiesAndSchema(OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 
         ConnIdCapabilitiesAndSchemaParser parser =
@@ -446,17 +450,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         parsedCapabilitiesAndSchema = parser;
     }
 
+     @SuppressWarnings("SameParameterValue")
      private synchronized <C extends CapabilityType> C getCapability(Class<C> capClass) {
-        if (capabilities == null) {
-            return null;
-        }
-        for (Object cap: capabilities) {
-            if (capClass.isAssignableFrom(cap.getClass())) {
-                //noinspection unchecked
-                return (C) cap;
-            }
-        }
-        return null;
+         return CapabilityUtil.getCapability(capabilities, capClass);
     }
 
     @Override
@@ -869,8 +865,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return AsynchronousOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
     }
 
-    private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation,
-            boolean requireUid) {
+    private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation, boolean requireUid) {
         if (shadow == null) {
             throw new IllegalArgumentException("Cannot " + operation + " null " + shadow);
         }

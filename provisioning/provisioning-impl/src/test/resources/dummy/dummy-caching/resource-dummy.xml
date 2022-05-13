@@ -127,7 +127,7 @@
                 <password>
                     <compareStrategy>cached</compareStrategy>
                        <caching>
-                        <cachingStategy>passive</cachingStategy>
+                        <cachingStrategy>passive</cachingStrategy>
                     </caching>
                 </password>
             </credentials>
@@ -210,7 +210,7 @@
     </capabilities>
 
     <caching>
-        <cachingStategy>passive</cachingStategy>
+        <cachingStrategy>passive</cachingStrategy>
     </caching>
 
 </resource>

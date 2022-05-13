@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.conntest;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -80,7 +80,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
     }
 
     @Override
-    protected void assertAdditionalCapabilities(List<Object> nativeCapabilities) {
+    protected void assertAdditionalCapabilities(CapabilityCollectionType nativeCapabilities) {
         super.assertAdditionalCapabilities(nativeCapabilities);
 
         assertCapability(nativeCapabilities, LiveSyncCapabilityType.class);

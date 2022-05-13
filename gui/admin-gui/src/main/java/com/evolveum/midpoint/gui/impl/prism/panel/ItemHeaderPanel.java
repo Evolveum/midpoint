@@ -115,10 +115,8 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
             @Override
             public String getCssClass() {
-                return "fa fa-fw  fa-lightbulb-o text-warning";
+                return "far fa-lightbulb text-warning";
             }
-
-
         });
         experimental.add(AttributeModifier.replace("title", createStringResource("ItemHeaderPanel.experimentalFeature")));
         experimental.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExperimental()));

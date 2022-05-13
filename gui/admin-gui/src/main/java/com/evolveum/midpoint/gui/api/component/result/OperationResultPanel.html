@@ -35,46 +35,43 @@
             </div>
         </div>
         <div class="feedback-message card-body" wicket:id="details">
-            <div class="left-margin" wicket:id="type">
-                <dl class="feedback-message dl-horizontal">
-                    <dt wicket:id="operationLabel"></dt>
-                    <dd>
-                        <b wicket:id="operation"> </b>
-<!--                         <b style="margin-left: 20px;">Status:</b> -->
-<!--                         <i title="Info" class="fa fa-info-circle" wicket:id="iconType"></i> text-info -->
-                    </dd>
-                    <dt wicket:id="messageLabel"></dt>
-                    <dd wicket:id="resultMessage"></dd>
-                    <dt wicket:id="paramsLabel"></dt>
-                    <dd>
-                        <table class="paramtable">
-                            <tr class="paramtable-row" wicket:id="params">
-                                <th class="paramtable-name" wicket:id="paramName"/><td class="paramtable-value" wicket:id="paramValue"/>
-                            </tr>
-                        </table>
-                    </dd>
-                    <dt wicket:id="contextsLabel"></dt>
-                    <dd>
-                        <table class="paramtable">
-                            <tr class="paramtable-row"  wicket:id="contexts">
-                                <th class="paramtable-name" wicket:id="contextName"/><td class="paramtable-value" wicket:id="contextValue"/>
-                            </tr>
-                        </table>
-                    </dd>
-                    <dt wicket:id="countLabel"></dt>
-                    <dd  wicket:id="count"></dd>
-
-                    <dt wicket:id="errorLabel"></dt>
-                    <dd  wicket:id="errorMessage"></dd>
-                    <dd > <a wicket:id="errorStackTraceLink" >show</a></dd>
-                    <dd  class="stacktrace" wicket:id="errorStackTrace"></dd>
-
-
-                </dl>
-                <div class="left-margin" wicket:id="subresults">
-                    <div wicket:id="subresult" />
-                </div>
-            </div>
+            <dl class="feedback-message row">
+                <wicket:container wicket:id="operation">
+                    <b wicket:id="operationBody"/>
+                </wicket:container>
+                <wicket:container wicket:id="message">
+                    <span wicket:id="resultMessage"/>
+                </wicket:container>
+                <wicket:container wicket:id="paramsContainer">
+                    <table class="paramtable">
+                        <tr class="paramtable-row" wicket:id="params">
+                            <th class="paramtable-name" wicket:id="paramName"/>
+                            <td class="paramtable-value" wicket:id="paramValue"/>
+                        </tr>
+                    </table>
+                </wicket:container>
+                <wicket:container wicket:id="contextsContainer">
+                    <table class="paramtable">
+                        <tr class="paramtable-row"  wicket:id="contexts">
+                            <th class="paramtable-name" wicket:id="contextName"/>
+                            <td class="paramtable-value" wicket:id="contextValue"/>
+                        </tr>
+                    </table>
+                </wicket:container>
+                <wicket:container wicket:id="countContainer">
+                    <span wicket:id="count"/>
+                </wicket:container>
+                <wicket:container wicket:id="errorContainer">
+                    <div class="d-flex flex-column gap-1">
+                        <span wicket:id="errorMessage"/>
+                        <a wicket:id="errorStackTraceLink"><span wicket:id="linkText"/></a>
+                        <span class="stacktrace" wicket:id="errorStackTrace"/>
+                    </div>
+                </wicket:container>
+            </dl>
+            <wicket:container wicket:id="subresults">
+                <div wicket:id="subresult" />
+            </wicket:container>
         </div>
     </div>
 </wicket:panel>

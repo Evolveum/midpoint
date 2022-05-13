@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -20,9 +21,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
@@ -36,8 +35,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -55,6 +52,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
@@ -78,7 +76,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -253,10 +250,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
 
-        // WHEN
+        when();
         PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
 
-        // THEN
+        then();
         ResourceType resourceTypeAgain = resourceAgain.asObjectable();
         assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
         assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
@@ -283,31 +280,30 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test005Capabilities() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
+        when();
         ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
 
-        // THEN
+        then();
         display("Resource from provisioninig", resource);
         displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
         assertNotNull("credentials capability not found", capCred);
         PasswordCapabilityType capPassword = capCred.getPassword();
         assertNotNull("password capability not present", capPassword);
         assertPasswordCapability(capPassword);
 
         // Connector cannot do activation, this should be null
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it", capAct);
 
-        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilities, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
         List<ScriptCapabilityHostType> scriptHosts = capScript.getHost();
         assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
@@ -315,34 +311,31 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong script host type", ProvisioningScriptHostType.CONNECTOR, scriptHost.getType());
 //        assertEquals("Wrong script host language", ....., scriptHost.getLanguage());
 
-        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
+        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilities, ReadCapabilityType.class);
         assertNotNull("No read capability", capRead);
         assertNull("Read capability is caching only", capRead.isCachingOnly());
         assertTrue("Read capability is not 'return default'", capRead.isReturnDefaultAttributesOption());
 
-        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
+        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilities, CreateCapabilityType.class);
         assertNotNull("No create capability", capCreate);
 
-        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
+        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilities, UpdateCapabilityType.class);
         assertNotNull("No update capability", capUpdate);
 
-        DeleteCapabilityType capDelete = CapabilityUtil.getCapability(nativeCapabilitiesList, DeleteCapabilityType.class);
+        DeleteCapabilityType capDelete = CapabilityUtil.getCapability(nativeCapabilities, DeleteCapabilityType.class);
         assertNotNull("No delete capability", capDelete);
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
-        for (Object capability : effectiveCapabilities) {
-            System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
-        }
+        dumpResourceCapabilities(resource);
 
-        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        capCred = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
         assertNotNull("credentials effective capability not found", capCred);
         assertNotNull("password effective capability not found", capCred.getPassword());
         // Although connector does not support activation, the resource specifies a way how to simulate it.
         // Therefore the following should succeed
-        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+        capAct = ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
         assertNotNull("activation capability not found", capAct);
 
-        PagedSearchCapabilityType capPage = ResourceTypeUtil.getEffectiveCapability(resource, PagedSearchCapabilityType.class);
+        PagedSearchCapabilityType capPage = ResourceTypeUtil.getEnabledCapability(resource, PagedSearchCapabilityType.class);
         assertNotNull("paged search capability not present", capPage);
 
         assertShadows(1);
@@ -354,7 +347,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test006Schema() throws Exception {
-        // WHEN
+        when();
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceBean);
         displayDumpable("Resource schema", resourceSchema);
 
@@ -544,9 +537,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test007RefinedSchema() throws Exception {
-        // GIVEN
-
-        // WHEN
+        when();
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceBean);
         displayDumpable("Refined schema", refinedSchema);
 
@@ -690,11 +681,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, task, result);
         assertEquals(ACCOUNT_JBOND_OID, addedObjectOid);
 
-        // WHEN
         when();
         ShadowType provisioningShadow = provisioningService.getObject(ShadowType.class, ACCOUNT_JBOND_OID, null, task, result).asObjectable();
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -800,13 +789,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_BAD_OID, null, task, result);
 
-        // THEN
-        when();
-
+        then();
         ShadowAsserter.forShadow(shadow, "provisioning")
                 .assertTombstone();
     }
@@ -831,11 +817,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Account before", accountBefore);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(accountBefore, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -879,18 +863,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     @Test
-    public void test125AddObjectNull() throws Exception {
+    public void test125AddObjectNull() {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        try {
-            String addedObjectOid = provisioningService.addObject(null, null, null, task, result);
-
-            Assert.fail("Expected IllegalArgumentException but haven't got one.");
-            assertShadows(1 + getNumberOfBaseContextShadows());
-        } catch (IllegalArgumentException ex) {
-            assertEquals("Object to add must not be null.", ex.getMessage());
-        }
+        assertThatThrownBy(() -> provisioningService.addObject(null, null, null, task, result))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Object to add must not be null.");
     }
 
     @Test
@@ -906,11 +885,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
         assertEquals(ACCOUNT_SPARROW_OID, addedObjectOid);
 
-        // WHEN
         when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, null, task, result);
 
-        // THEN
         then();
 
         try {
@@ -949,20 +926,18 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 
         ItemPath icfNamePath = ItemPath.create(ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
-        PrismPropertyDefinition icfNameDef = object
+        PrismPropertyDefinition<?> icfNameDef = object
                 .asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
-        ItemDelta renameDelta = prismContext.deltaFactory().property()
+        ItemDelta<?, ?> renameDelta = prismContext.deltaFactory().property()
                 .createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
         ((Collection) delta.getModifications()).add(renameDelta);
 
         displayDumpable("Object change", delta);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
                 delta.getModifications(), null, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1017,12 +992,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -1075,12 +1048,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1132,11 +1103,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, accountType.asPrismObject().getDefinition());
         displayDumpable("Object change", delta);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(), null, null, task, result);
 
-        // THEN
         then();
 
         // Check if object was modified in LDAP
@@ -1200,7 +1169,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test160SearchAccountsIterative() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1211,41 +1180,35 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         final Collection<ObjectType> objects = new HashSet<>();
 
-        ResultHandler handler = new ResultHandler<ObjectType>() {
+        ResultHandler handler = (ResultHandler<ObjectType>) (prismObject, parentResult) -> {
+            ObjectType objectType = prismObject.asObjectable();
+            objects.add(objectType);
 
-            @Override
-            public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
-                ObjectType objectType = prismObject.asObjectable();
-                objects.add(objectType);
+            display("Found object", objectType);
 
-                display("Found object", objectType);
-
-                assertTrue(objectType instanceof ShadowType);
-                ShadowType shadow = (ShadowType) objectType;
-                assertNotNull(shadow.getOid());
-                assertNotNull(shadow.getName());
-                assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
-                assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
-                String idPrimaryVal = getAttributeValue(shadow, getPrimaryIdentifierQName());
-                assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ")", idPrimaryVal);
-                String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
-                assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
-                assertEquals("Wrong shadow name", idSecondaryVal.toLowerCase(), shadow.getName().getOrig().toLowerCase());
-                assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
-                assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
-                assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));
-                assertNotNull("Missing activation", shadow.getActivation());
-                assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
-                assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
-                return true;
-            }
+            assertTrue(objectType instanceof ShadowType);
+            ShadowType shadow = (ShadowType) objectType;
+            assertNotNull(shadow.getOid());
+            assertNotNull(shadow.getName());
+            assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
+            assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
+            String idPrimaryVal = getAttributeValue(shadow, getPrimaryIdentifierQName());
+            assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ")", idPrimaryVal);
+            String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
+            assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
+            assertEquals("Wrong shadow name", idSecondaryVal.toLowerCase(), shadow.getName().getOrig().toLowerCase());
+            assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
+            assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
+            assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));
+            assertNotNull("Missing activation", shadow.getActivation());
+            assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
+            assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+            return true;
         };
 
-        // WHEN
         when();
         SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
-        // THEN
         then();
         displayValue("Count", objects.size());
         assertEquals("Unexpected number of shadows", 9, objects.size());
@@ -1262,7 +1225,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test161SearchAccountsIterativeOffset2Page3() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1286,11 +1249,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
             }
         };
 
-        // WHEN
         when();
         SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
-        // THEN
         then();
         displayValue("Count", objects.size());
         assertEquals("Unexpected number of shadows", 3, objects.size());
@@ -1307,7 +1268,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test162SearchAccountsIterativeOffsetNullPage5() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1331,11 +1292,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
             }
         };
 
-        // WHEN
         when();
         SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
-        // THEN
         then();
         displayValue("Count", objects.size());
         assertEquals("Unexpected number of shadows", 3, objects.size());
@@ -1382,12 +1341,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
         displayDumpable("Object change", delta);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
                 delta.getModifications(), null, null, task, result);
 
-        // THEN
         then();
         ShadowType accountAfter = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_DISABLE_SIMULATED_OID, null, task, result).asObjectable();
@@ -1431,10 +1388,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         IntegrationTestTools.display("Adding object", object);
 
-        // WHEN
+        when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 
-        // THEN
+        then();
         assertEquals(ACCOUNT_NEW_DISABLED_OID, addedObjectOid);
 
         ShadowType accountType = getShadowRepo(ACCOUNT_NEW_DISABLED_OID).asObjectable();
@@ -1479,10 +1436,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         IntegrationTestTools.display("Adding object", object);
 
-        // WHEN
+        when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 
-        // THEN
+        then();
         assertEquals(ACCOUNT_NEW_ENABLED_OID, addedObjectOid);
 
         ShadowType accountType = getShadowRepo(ACCOUNT_NEW_ENABLED_OID).asObjectable();
@@ -1509,11 +1466,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
+        when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
                 null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         assertSuccess(result);
 
@@ -1533,11 +1490,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
                         "pager: 1"
         );
 
-        // WHEN
+        when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
                 null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         assertSuccess(result);
 
@@ -1553,11 +1510,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
 
-        // WHEN
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(),
                 delta.getModifications(), null, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         assertSuccess(result);
 
@@ -1599,14 +1556,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-        provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
-
-            @Override
-            public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-
-                return objectTypeList.add(object.asObjectable());
-            }
-        }, task, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, null,
+                (object1, parentResult) -> objectTypeList.add(object1.asObjectable()), task, result);
 
         // TODO: check result
         System.out.println("ObjectType list size: " + objectTypeList.size());
@@ -1638,10 +1589,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
+        when();
         SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         assertSuccess(result);
         display("Search results", searchResults);
@@ -1667,12 +1618,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         List<PrismObject<ShadowType>> objListType =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -1698,12 +1647,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         List<PrismObject<ShadowType>> objListType =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -1737,12 +1684,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         List<PrismObject<ShadowType>> objListType =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -1772,12 +1717,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         List<PrismObject<ShadowType>> objListType =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -1834,12 +1777,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> searchResults =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         display("Search results", searchResults);
@@ -1867,12 +1808,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> searchResults =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         display("Search results", searchResults);
@@ -1900,11 +1839,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         assertSuccess(result);
@@ -1935,12 +1872,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> searchResults =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         assertSuccess(result);
@@ -1970,12 +1905,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         List<PrismObject<ShadowType>> searchResults =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         assertSuccess(result);
@@ -2013,11 +1946,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-        // WHEN
         when();
         Integer count = provisioningService.countObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         displayValue("All accounts count", count);
@@ -2037,11 +1968,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_LDAP_GROUPS_FILE, QueryType.COMPLEX_TYPE);
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-        // WHEN
         when();
         Integer count = provisioningService.countObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         displayValue("All LDAP groups count", count);
@@ -2065,7 +1994,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         display("Account to add", account);
 
         try {
-            // WHEN
+            when();
             provisioningService.addObject(account, null, null, task, result);
 
             AssertJUnit.fail("Expected addObject operation to fail but it was successful");
@@ -2090,7 +2019,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         display("Account to add", account);
 
         try {
-            // WHEN
+            when();
             provisioningService.addObject(account, null, null, task, result);
 
             AssertJUnit.fail("Expected addObject operation to fail but it was successful");
@@ -2117,11 +2046,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ShadowType object = parseObjectType(ACCOUNT_POSIX_MCMUTTON_FILE, ShadowType.class);
         display("Adding account", object);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
-        // THEN
         then();
         assertEquals(ACCOUNT_POSIX_MCMUTTON_OID, addedObjectOid);
 
@@ -2167,12 +2094,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         displayDumpable("Object change", delta);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
                 delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 
-        // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -2205,11 +2130,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, null, task, result);
 
-        // THEN
         then();
 
         try {
@@ -2251,12 +2174,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
-        // WHEN
         when();
         List<PrismObject<ShadowType>> objListType =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         for (PrismObject<ShadowType> objType : objListType) {
             assertNotNull("Null search result", objType);
@@ -2286,11 +2207,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
         display("Adding object", object);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
-        // THEN
         then();
         assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
 
@@ -2325,11 +2244,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ShadowType object = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
         IntegrationTestTools.display("Adding object", object);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
-        // THEN
         then();
         assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
@@ -2374,7 +2291,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         ObjectModificationType modification = prismContext.parserFor(FILE_MODIFY_ASSOCIATION_REPLACE).parseRealValue(ObjectModificationType.class);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class, prismContext);
@@ -2385,9 +2301,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             //expected exception because replace delta is not supported for association
         }
 
-        // THEN
         then();
-
         assertRepoShadow(ACCOUNT_MORGAN_OID)
                 .assertName(ACCOUNT_MORGAN_DN);
 
@@ -2424,12 +2338,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
                 null, task, result);
 
-        // THEN
         then();
         ShadowType provisioningShadowType = provisioningShadow.asObjectable();
         assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN),
@@ -2463,11 +2375,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
                 RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> resultList = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         assertSuccess(result);
@@ -2495,11 +2405,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectQueryUtil.createResourceAndObjectClassQuery(
                 RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
 
-        // WHEN
         when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         display("Account shadow after", shadow);
@@ -2523,11 +2431,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ShadowType object = parseObjectType(GROUP_CORSAIRS_FILE, ShadowType.class);
         IntegrationTestTools.display("Adding object", object);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
-        // THEN
         then();
         assertEquals(GROUP_CORSAIRS_OID, addedObjectOid);
 
@@ -2549,14 +2455,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
-        // THEN
         then();
-
         Entry groupEntry = openDJController.fetchEntry(GROUP_CORSAIRS_DN);
         display("LDAP group", groupEntry);
         assertNotNull("No LDAP group entry", groupEntry);
@@ -2570,11 +2473,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
 
-        // THEN
         then();
         result.computeStatus();
         assertSuccess(result);
@@ -2665,7 +2566,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, null, task, result);
 
         ShadowType objType = null;
@@ -2706,11 +2607,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
         displayDumpable("query", query);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         display("found objects", objects);
         result.computeStatus();
@@ -2730,11 +2629,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ShadowKindType.ENTITLEMENT, "ldapGroup");
         displayDumpable("query", query);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         display("found objects", objects);
         result.computeStatus();
@@ -2754,11 +2651,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ShadowKindType.ENTITLEMENT, "specialGroup");
         displayDumpable("query", query);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         display("found objects", objects);
         result.computeStatus();
@@ -2779,11 +2674,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ShadowType object = parseObjectType(GROUP_SPECIALISTS_FILE, ShadowType.class);
         display("Adding object", object);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
-        // THEN
         then();
         assertEquals(GROUP_SPECIALISTS_OID, addedObjectOid);
 
@@ -2819,11 +2712,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ShadowKindType.ENTITLEMENT, "ldapGroup");
         displayDumpable("query", query);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         display("found objects", objects);
         result.computeStatus();
@@ -2843,11 +2734,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ShadowKindType.ENTITLEMENT, "specialGroup");
         displayDumpable("query", query);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         display("found objects", objects);
         result.computeStatus();
@@ -2879,11 +2768,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ShadowKindType.GENERIC, "ou-people");
         displayDumpable("query", query);
 
-        // WHEN
         when();
         SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
-        // THEN
         then();
         display("found objects", objects);
         result.computeStatus();
@@ -2908,11 +2795,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Account before", accountBefore);
 
-        // WHEN
         when();
         provisioningService.addObject(accountBefore, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -2958,12 +2843,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3007,12 +2890,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3056,12 +2937,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3105,12 +2984,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3153,12 +3030,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3204,12 +3079,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("Modifications", modifications);
 
-        // WHEN
         when();
         provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
                 modifications, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3239,11 +3112,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ShadowType object = parseObjectType(OU_SUPER_FILE, ShadowType.class);
         display("Adding object", object);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
-        // THEN
         then();
         assertEquals(OU_SUPER_OID, addedObjectOid);
 
@@ -3283,11 +3154,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         createSubOrg();
 
-        // WHEN
         when();
         provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -3378,17 +3247,17 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test710AddResourceOpenDjBadCredentials() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
         fillInConnectorRef(resource, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
-        // WHEN
+        when();
         String addedObjectOid = provisioningService.addObject(resource, null, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display(result);
         assertSuccess(result);
@@ -3400,7 +3269,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test713ConnectionBadCredentials() throws Exception {
         Task task = getTestTask();
 
-        // WHEN
+        when();
         OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID, task);
 
         display("Test connection result (expected failure)", testResult);
@@ -3416,17 +3285,17 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test720AddResourceOpenDjBadBindDn() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
         fillInConnectorRef(resource, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
-        // WHEN
+        when();
         String addedObjectOid = provisioningService.addObject(resource, null, null, task, result);
 
-        // THEN
+        then();
         result.computeStatus();
         display(result);
         assertSuccess(result);
@@ -3438,7 +3307,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test723ConnectionBadBindDn() throws Exception {
         Task task = getTestTask();
 
-        // WHEN
+        when();
         OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID, task);
 
         display("Test connection result (expected failure)", testResult);
@@ -3464,9 +3333,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
             }
         });
         if (abandons.intValue() > 0) {
-            fail("Too many ABANDONs in OpenDJ access log ("+abandons.intValue()+")");
+            fail("Too many ABANDONs in OpenDJ access log (" + abandons.intValue() + ")");
         }
     }
+
     protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
         ShadowAssociationType associationType = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
         PrismContainerValue identifiersCVal = associationType.getIdentifiers().asPrismContainerValue();

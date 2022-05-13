@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,14 +17,15 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.cases.impl.WorkItemManager;
+import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
@@ -40,9 +40,9 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -51,10 +51,8 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.cases.impl.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
@@ -164,7 +162,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void removeAllAssignments(String oid, OperationResult result) throws Exception {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         for (AssignmentType at : user.asObjectable().getAssignment()) {
-            ObjectDelta delta = prismContext.deltaFactory().object()
+            ObjectDelta<?> delta = prismContext.deltaFactory().object()
                     .createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT,
                             at.asPrismContainerValue().clone());
             repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
@@ -238,7 +236,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
             public boolean check() throws CommonException {
                 task.refresh(waitResult);
                 OperationResult result = task.getResult();
-                if (verbose) { display("Check result", result); }
+                if (verbose) {display("Check result", result);}
                 return task.isClosed();
             }
 
@@ -258,7 +256,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     }
 
     protected String getTargetOid(CaseWorkItemType caseWorkItem) {
-        ObjectReferenceType targetRef = CaseWorkItemUtil.getCaseRequired(caseWorkItem).getTargetRef();
+        ObjectReferenceType targetRef = CaseTypeUtil.getCaseRequired(caseWorkItem).getTargetRef();
         assertNotNull("targetRef not found", targetRef);
         String roleOid = targetRef.getOid();
         assertNotNull("requested role OID not found", roleOid);
@@ -278,22 +276,22 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         }
     }
 
-//    private void removeOldValues(ObjectDelta<?> delta) {
-//        if (delta.isModify()) {
-//            delta.getModifications().forEach(mod -> mod.setEstimatedOldValues(null));
-//        }
-//    }
-
-    protected void assertNoObject(ObjectType object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertNoObject(ObjectType object)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         assertNull("Object was created but it shouldn't be",
                 searchObjectByName(object.getClass(), object.getName().getOrig()));
     }
 
-    protected void assertNoObject(PrismObject<? extends ObjectType> object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertNoObject(PrismObject<? extends ObjectType> object)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         assertNoObject(object.asObjectable());
     }
 
-    protected <T extends ObjectType> void assertObject(T object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <T extends ObjectType> void assertObject(T object)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
         assertNotNull("Object " + object + " was not created", objectFromRepo);
         objectFromRepo.removeItem(ObjectType.F_METADATA, Item.class);
@@ -306,7 +304,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     }
 
     protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException {
         S_AtomicFilterExit q = QueryUtils
                 .filterForAssignees(prismContext.queryFor(CaseWorkItemType.class), SecurityUtil.getPrincipal(),
                         OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
@@ -322,18 +321,18 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
                 .build();
     }
 
-    protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
                 new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
                 task, result);
     }
 
-    protected void rejectWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected void rejectWorkItem(CaseWorkItemType workItem, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
                 new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
@@ -352,11 +351,12 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
             return requestCase;
         }
 
-        public RelatedCases find(Task task, OperationResult result) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-                ExpressionEvaluationException, CommunicationException {
+        public RelatedCases find(Task task, OperationResult result)
+                throws SchemaException, SecurityViolationException, ConfigurationException,
+                ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
             CaseWorkItemType workItem = getWorkItem(task, result);
             display("Work item", workItem);
-            approvalCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+            approvalCase = getCase(CaseTypeUtil.getCaseRequired(workItem).getOid());
             display("Approval case", approvalCase);
             assertHasArchetype(approvalCase.asPrismObject(), SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
             ObjectReferenceType parentRef = approvalCase.getParentRef();
@@ -372,7 +372,9 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     /**
      * Takes case OID from the operation result (via asynchronous identifier).
      */
-    protected CaseAsserter<Void> assertCase(OperationResult result, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected CaseAsserter<Void> assertCase(OperationResult result, String message)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
         assertThat(caseOid).as("No background case OID").isNotNull();
         return assertCase(caseOid, message);
@@ -381,8 +383,10 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     /**
      * Takes case from the work item (via parent reference).
      */
-    protected CaseAsserter<Void> assertCase(CaseWorkItemType workItem, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        PrismContainerable parent = workItem.asPrismContainerValue().getParent();
+    protected CaseAsserter<Void> assertCase(CaseWorkItemType workItem, String message)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        PrismContainerable<?> parent = workItem.asPrismContainerValue().getParent();
         assertThat(parent).isNotNull();
         //noinspection unchecked
         PrismContainerValue<?> grandParent = ((PrismContainer<CaseWorkItemType>) parent).getParent();

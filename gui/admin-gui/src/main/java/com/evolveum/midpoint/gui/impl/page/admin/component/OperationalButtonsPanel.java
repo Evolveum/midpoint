@@ -8,13 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import java.util.Iterator;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,13 +20,17 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,6 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
@@ -48,6 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMetho
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Use new {@link OperationsPanel} and {@link OperationPanelPart} to create proper HTML for this panel ("card" with fieldsets that are responsive)
+ *
+ * @param <O>
+ */
 public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
     private static final long serialVersionUID = 1L;
 
@@ -55,7 +58,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_STATE_BUTTONS = "stateButtons";
-    private String saveButtonPath = "";
 
     public OperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
         super(id, wrapperModel);
@@ -78,7 +80,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
         createDeleteButton(repeatingView);
         createEditRawButton(repeatingView);
-
 
         RepeatingView stateButtonsView = new RepeatingView(ID_STATE_BUTTONS);
         add(stateButtonsView);
@@ -311,7 +312,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     }
 
-    public boolean buttonsExist(){
+    public boolean buttonsExist() {
         RepeatingView repeatingView = (RepeatingView) get(ID_BUTTONS);
         boolean buttonsExist = repeatingView != null && repeatingView.iterator().hasNext();
         if (buttonsExist) {
@@ -319,7 +320,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             while (buttonsIt.hasNext()) {
                 Component comp = buttonsIt.next();
                 comp.configure();
-                if (comp.isVisible()){
+                if (comp.isVisible()) {
                     return true;
                 }
             }

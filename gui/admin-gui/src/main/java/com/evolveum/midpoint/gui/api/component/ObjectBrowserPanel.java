@@ -7,20 +7,22 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -239,17 +241,27 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
             @Override
             protected Search createSearch(Class<O> type) {
-                Search search = super.createSearch(type);
-                getSpecialSearchItemFunctions()
-                        .forEach(function -> search.addSpecialItem(function.apply(search)));
-                return search;
+                String collectionName = isCollectionViewPanelForCompiledView() ?
+                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
+                return SearchFactory.createSearch(createSearchConfigWrapper(type, collectionName), getPageBase());
+//                Search search = super.createSearch(type);
+//                getSpecialSearchItemWrappers()
+//                        .forEach(function -> search.addSpecialItem(function.apply(search)));
+//                return search;
             }
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;
     }
 
-    protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+    private SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type, String collectionViewName) {
+        SearchConfigurationWrapper searchConfigWrapper = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
+        searchConfigWrapper.setCollectionViewName(collectionViewName);
+        searchConfigWrapper.getItemsList().addAll(new ArrayList(getSpecialSearchItemWrappers()));
+        return searchConfigWrapper;
+    }
+
+    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
         return Collections.emptySet();
     }
 

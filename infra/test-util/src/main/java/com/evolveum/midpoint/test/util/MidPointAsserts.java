@@ -15,7 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.SerializationUtil;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;

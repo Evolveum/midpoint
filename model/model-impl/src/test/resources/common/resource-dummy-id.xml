@@ -481,7 +481,7 @@ return tmpSuffix
     </consistency>
 
     <caching>
-        <cachingStategy>passive</cachingStategy>
+        <cachingStrategy>passive</cachingStrategy>
     </caching>
 
 

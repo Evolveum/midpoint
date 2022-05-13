@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="e17dfe38-727f-41b6-ab1c-9106c0bb046d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <name>additional-connectors-template</name>
+    <abstract>true</abstract>
+    <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
+    <connectorConfiguration>
+        <icfc:configurationProperties>
+            <icfi:instanceId>main</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <additionalConnector>
+        <name>first</name>
+        <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
+        <connectorConfiguration>
+            <icfc:configurationProperties>
+                <icfi:instanceId>first</icfi:instanceId>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    </additionalConnector>
+    <additionalConnector>
+        <name>second</name>
+        <connectorRef oid="provided-by-test-code" type="ConnectorType"/>
+        <connectorConfiguration>
+            <icfc:configurationProperties>
+                <icfi:instanceId>second</icfi:instanceId>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    </additionalConnector>
+</resource>

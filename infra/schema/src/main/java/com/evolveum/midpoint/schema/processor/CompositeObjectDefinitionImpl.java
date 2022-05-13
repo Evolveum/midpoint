@@ -297,13 +297,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable CapabilitiesType getConfiguredCapabilities() {
-        return structuralDefinition.getConfiguredCapabilities();
-    }
-
-    @Override
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resource) {
-        return structuralDefinition.getEffectiveCapability(capabilityClass, resource);
+    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
+        return structuralDefinition.getEnabledCapability(capabilityClass, resource);
     }
 
     @NotNull
@@ -400,11 +395,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public void merge(ComplexTypeDefinition otherComplexTypeDef) {
         throw new UnsupportedOperationException("TODO implement if needed");
-    }
-
-    @Override
-    public Class<?> getTypeClassIfKnown() {
-        return ShadowAttributesType.class;
     }
 
     @Override

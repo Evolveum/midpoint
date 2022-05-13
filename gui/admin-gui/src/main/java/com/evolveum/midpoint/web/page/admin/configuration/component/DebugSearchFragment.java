@@ -19,8 +19,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.StringResourceModel;
@@ -46,12 +46,10 @@ public class DebugSearchFragment extends Fragment {
     private void initLayout(IModel<Boolean> showAllItemsModel) {
         CheckBoxPanel zipCheck = new CheckBoxPanel(ID_ZIP_CHECK, new Model<>(false),
                 new StringResourceModel("pageDebugList.zipCheck"), null);
-        zipCheck.setRenderBodyOnly(true);
         add(zipCheck);
 
         CheckBoxPanel showAllItemsCheck = new CheckBoxPanel(ID_SHOW_ALL_ITEMS_CHECK, showAllItemsModel,
                 new StringResourceModel("pageDebugList.showAllItems"), null);
-        showAllItemsCheck.setRenderBodyOnly(true);
         add(showAllItemsCheck);
 
         SearchPanel searchPanel = new SearchPanel<>(ID_SEARCH, getModel()) {

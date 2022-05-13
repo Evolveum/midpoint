@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.util.task.TaskInformation;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -139,16 +140,30 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         if (status == null) {
             return "fa fa-fw fa-question-circle text-warning";
         }
+
+        String css;
         switch (status) {
-            //TODO move to the GUI style constants?
-            case RUNNING: return "fa fa-fw fa-spinner";
-            case RUNNABLE: return "fa fa-fw fa-hand-o-up";
-            case SUSPENDED: return "fa fa-fw fa-bed";
-            case SUSPENDING: return "fa fa-fw fa-bed";
-            case WAITING: return "fa fa-fw fa-clock-o";
-            case CLOSED: return "fa fa-fw fa-power-off";
-            default: return "";
+            case RUNNING:
+                css = GuiStyleConstants.ICON_FA_SPINNER;
+                break;
+            case RUNNABLE:
+                css = GuiStyleConstants.CLASS_SELECTION_HAND + " fa-fw";
+                break;
+            case SUSPENDED:
+            case SUSPENDING:
+                css =  GuiStyleConstants.ICON_FA_BED;
+                break;
+            case WAITING:
+                css = GuiStyleConstants.ICON_FAR_CLOCK;
+                break;
+            case CLOSED:
+                css =  GuiStyleConstants.ICON_FA_POWER_OFF;
+                break;
+            default:
+                css =  "";
         }
+
+        return StringUtils.isNotEmpty(css) ? css + " fa-fw" : "";
     }
 
     @Override

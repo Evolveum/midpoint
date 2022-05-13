@@ -404,42 +404,17 @@ public class ProvisioningContext {
     }
 
     /**
-     * Check connector capabilities in this order:
+     * Gets a specific capability, looking in this order:
      *
      * 1. take additional connector capabilities if exist, if not, take resource capabilities,
      * 2. apply object class specific capabilities to the one selected in step 1,
      * 3. in the returned capabilities, check first configured capabilities and then native capabilities.
      *
-     * TODO why we call this method "effective"? It implies that the capability is enabled. But it is not the case
-     *  according to the code.
+     * TODO check if the clients assume that the returned capability is enabled
      */
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-        CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
-        if (connectorCapabilities == null) {
-            return null;
-        }
-        return CapabilityUtil.getEffectiveCapability(connectorCapabilities, capabilityClass);
-    }
-
-    public <T extends CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) {
-        CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
-        if (connectorCapabilities == null) {
-            return false;
-        }
-        return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
-    }
-
-    public <T extends  CapabilityType> boolean hasConfiguredCapability(Class<T> capabilityClass) {
-        CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
-        if (connectorCapabilities == null) {
-            return false;
-        }
-        return CapabilityUtil.hasConfiguredCapability(connectorCapabilities, capabilityClass);
-    }
-
-    private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
-        return getResourceManager().getConnectorCapabilities(
-                resource, getRefinedObjectClassDefinitionIfPresent(), operationCapabilityClass);
+    public <T extends CapabilityType> T getCapability(@NotNull Class<T> capabilityClass) {
+        return getResourceManager().getCapability(
+                resource, getRefinedObjectClassDefinitionIfPresent(), capabilityClass);
     }
 
     @Override
@@ -451,9 +426,7 @@ public class ProvisioningContext {
         return ItemPath.create(components);
     }
 
-    public CachingStategyType getCachingStrategy()
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    public CachingStrategyType getCachingStrategy() {
         return ProvisioningUtil.getCachingStrategy(this);
     }
 
@@ -500,7 +473,7 @@ public class ProvisioningContext {
         return resourceObjectDefinition instanceof ResourceObjectTypeDefinition;
     }
 
-    public @Nullable CachingStategyType getPasswordCachingStrategy() {
+    public @Nullable CachingStrategyType getPasswordCachingStrategy() {
         return ProvisioningUtil.getPasswordCachingStrategy(
                 getObjectDefinitionRequired());
     }

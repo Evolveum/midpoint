@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -40,6 +41,8 @@ public class SimpleAceEditorPanel extends BasePanel<String> {
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "border rounded"));
+
         AceEditor editor = createEditor(ID_EDITOR, getModel(), minSize);
         add(editor);
     }

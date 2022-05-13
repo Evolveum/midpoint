@@ -63,9 +63,10 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
         if (isSimilarAsPropertyPanel) {
-            labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
+            // todo why is here size class (col-*) and prism-property-label (used in prism form) ...this should be generally usable component, such stuff should be only when needed. The F...
+            labelContainer.add(AttributeAppender.prepend("class", "col-2 prism-property-label"));
         } else {
-            labelContainer.add(AttributeAppender.prepend("class", " control-label "));
+            labelContainer.add(AttributeAppender.prepend("class", "control-label"));
         }
         labelContainer.add(l);
 

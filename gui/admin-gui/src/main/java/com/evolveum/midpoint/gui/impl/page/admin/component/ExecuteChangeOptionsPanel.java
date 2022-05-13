@@ -117,7 +117,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                     }
                 };
                 panel.add(new EnableBehaviour(() -> isOptionEnabled(model, checkboxMenuItem)));
-                panel.setRenderBodyOnly(true);
                 menuItem.add(panel);
             }
 

@@ -7,20 +7,38 @@
   -->
 
 <resource oid="b6f77fb9-8bdf-42de-b7d4-639c77fa6805"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
     <name>Basic 1</name>
     <super>
         <resourceRef oid="2d1bbd38-8292-4895-af07-15de1ae423ec"/>
     </super>
-    <!--<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"-->
-    <!--        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">-->
-    <!--    <icfc:configurationProperties>-->
-    <!--        &lt;!&ndash; overriding existing value &ndash;&gt;-->
-    <!--        <icfi:supportValidity>false</icfi:supportValidity>-->
-    <!--    </icfc:configurationProperties>-->
-    <!--    <icfc:resultsHandlerConfiguration>-->
-    <!--        &lt;!&ndash; adding new item &ndash;&gt;-->
-    <!--        <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>-->
-    <!--    </icfc:resultsHandlerConfiguration>-->
-    <!--</connectorConfiguration>-->
+    <connectorConfiguration>
+        <icfc:configurationProperties>
+            <!-- overriding existing value -->
+            <icfi:supportValidity>false</icfi:supportValidity>
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <!-- adding new item -->
+            <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
+        </icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>A</generateObjectClass>
+            <generateObjectClass>B</generateObjectClass>
+        </generationConstraints>
+    </schema>
+    <capabilities>
+        <configured>
+            <!-- Intentionally without namespace; should be parsed in cap: namespace -->
+            <countObjects xmlns=""> <!-- Overriding the existing one -->
+                <simulate>sequentialSearch</simulate>
+            </countObjects>
+            <read xmlns=""> <!-- Adding a new one -->
+                <enabled>true</enabled>
+            </read>
+        </configured>
+    </capabilities>
 </resource>

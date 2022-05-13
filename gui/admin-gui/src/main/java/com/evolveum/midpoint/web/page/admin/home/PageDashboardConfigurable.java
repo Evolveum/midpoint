@@ -6,29 +6,56 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.box.SmallInfoBoxPanel;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
+import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
+import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.shadows.PageShadows;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author skublik
@@ -46,7 +73,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
                         description = "PageDashboard.auth.dashboard.description")
         })
 public class PageDashboardConfigurable extends PageDashboard {
+
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageDashboardConfigurable.class);
+
+    private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
+
+    static {
+        Map<String, Class<? extends WebPage>> map = new HashMap<>();
+
+        map.put(ResourceType.COMPLEX_TYPE.getLocalPart(), PageResources.class);
+        map.put(AuditEventRecordType.COMPLEX_TYPE.getLocalPart(), PageAuditLogViewer.class);
+        map.put(TaskType.COMPLEX_TYPE.getLocalPart(), PageTasks.class);
+        map.put(UserType.COMPLEX_TYPE.getLocalPart(), PageUsers.class);
+        map.put(RoleType.COMPLEX_TYPE.getLocalPart(), PageRoles.class);
+        map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgTree.class);
+        map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageServices.class);
+
+        LINKS_REF_COLLECTIONS = map;
+    }
 
     private IModel<DashboardType> dashboardModel;
 
@@ -78,7 +124,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private IModel<DashboardType> initDashboardObject() {
-        return new LoadableModel<DashboardType>(false) {
+        return new LoadableModel<>(false) {
 
             @Override
             public DashboardType load() {
@@ -90,36 +136,269 @@ public class PageDashboardConfigurable extends PageDashboard {
                 Task task = createSimpleTask("Search dashboard");
                 return WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid.toString(), PageDashboardConfigurable.this, task, task.getResult()).getRealValue();
             }
-
         };
     }
 
     protected void initLayout() {
         initInfoBoxes();
-
     }
 
     private void initInfoBoxes() {
-
         add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                SmallInfoBoxPanel box = new SmallInfoBoxPanel(ID_WIDGET, item.getModel(),
-                        PageDashboardConfigurable.this) {
+                IModel<DashboardWidgetDto> widgetModel = loadWidgetData(item.getModel());
+
+                SmallBox box = new SmallBox(ID_WIDGET, () -> {
+                    DashboardWidgetDto widget = widgetModel.getObject();
+
+                    SmallBoxData data = new SmallBoxData();
+                    data.setTitle(widget.getNumberLabel());
+                    data.setDescription(widget.getMessage());
+                    data.setIcon(widget.getIconCssClass());
+
+                    return data;
+                }) {
+
                     @Override
-                    public String getDashboardOid() {
-                        return dashboardModel.getObject().getOid();
+                    protected boolean isLinkVisible() {
+                        return existLinkRef(item.getModelObject());
+                    }
+
+                    @Override
+                    protected void onClickLink(AjaxRequestTarget target) {
+                        navigateToPage(item.getModelObject());
                     }
                 };
-                box.add(new VisibleEnableBehaviour() {
-                    @Override
-                    public boolean isVisible() {
-                        return WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility());
-                    }
-                });
-                item.add(AttributeAppender.append("class", "col-lg-3 col-md-4 col-xs-6"));
+                box.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                box.add(AttributeAppender.append("style", () -> StringUtils.join(
+                        widgetModel.getObject().getStyleColor(),
+                        " ",
+                        widgetModel.getObject().getStyleCssStyle())));
+
                 item.add(box);
             }
         });
+    }
+
+    private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {
+        return new LoadableModel<>(false) {
+            @Override
+            protected DashboardWidgetDto load() {
+                Task task = createSimpleTask("Get DashboardWidget");
+                OperationResult result = task.getResult();
+                try {
+                    getPrismContext().adopt(model.getObject());
+
+                    DashboardWidget dashboardWidget = getDashboardService().createWidgetData(model.getObject(), true, task, result);
+                    result.computeStatusIfUnknown();
+
+                    return new DashboardWidgetDto(dashboardWidget, PageDashboardConfigurable.this);
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
+                    result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                }
+
+                result.computeStatusIfUnknown();
+                showResult(result);
+
+                return null;
+            }
+        };
+    }
+
+    private boolean existLinkRef(DashboardWidgetType widget) {
+        if (widget == null) {
+            return false;
+        }
+        DashboardWidgetSourceTypeType source = DashboardUtils.getSourceType(widget);
+        if (source == null) {
+            return false;
+        }
+        switch (source) {
+            case OBJECT_COLLECTION:
+                ObjectCollectionType collection = getObjectCollectionType(widget);
+                if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
+                    if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
+                        String oid = getResourceOid(collection.getFilter());
+                        return StringUtils.isNotBlank(oid);
+                    }
+                    return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart());
+                } else {
+                    return false;
+                }
+            case AUDIT_SEARCH:
+                Task task = createSimpleTask("Is audit collection");
+                if (DashboardUtils.isAuditCollection(getObjectCollectionRef(widget), getModelService(), task, task.getResult())) {
+                    return LINKS_REF_COLLECTIONS.containsKey(AuditEventRecordType.COMPLEX_TYPE.getLocalPart());
+                } else {
+                    return false;
+                }
+            case OBJECT:
+                ObjectType object = getObjectFromObjectRef(widget);
+                if (object == null) {
+                    return false;
+                }
+                return WebComponentUtil.hasDetailsPage(object.getClass());
+        }
+        return false;
+    }
+
+    private CollectionRefSpecificationType getObjectCollectionRef(DashboardWidgetType model) {
+        if (isCollectionRefOfCollectionNull(model)) {
+            return null;
+        }
+        return model.getData().getCollection();
+    }
+
+    private ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget) {
+        CollectionRefSpecificationType collectionRef = getObjectCollectionRef(widget);
+        if (collectionRef == null) {
+            return null;
+        }
+        ObjectReferenceType ref = collectionRef.getCollectionRef();
+        Task task = createSimpleTask("Search collection");
+        PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(ref, this, task, task.getResult());
+        if (objectCollection == null) {
+            return null;
+        }
+
+        return objectCollection.asObjectable();
+    }
+
+    private boolean isCollectionRefOfCollectionNull(DashboardWidgetType model) {
+        if (isDataNull(model)) {
+            return true;
+        }
+        if (isCollectionOfDataNull(model)) {
+            return true;
+        }
+        ObjectReferenceType ref = model.getData().getCollection().getCollectionRef();
+        if (ref == null) {
+            LOGGER.error("CollectionRef of collection is not found in widget " + model.getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isCollectionOfDataNull(DashboardWidgetType model) {
+        if (isDataNull(model)) {
+            return true;
+        }
+        if (model.getData().getCollection() == null) {
+            LOGGER.error("Collection of data is not found in widget " + model.getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isDataNull(DashboardWidgetType dashboardWidgetType) {
+        if (dashboardWidgetType.getData() == null) {
+            LOGGER.error("Data is not found in widget " + dashboardWidgetType.getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
+    private String getResourceOid(SearchFilterType searchFilterType) {
+        ResourceShadowDiscriminator discriminator = getResourceShadowDiscriminator(searchFilterType);
+        if (discriminator == null) {
+            return null;
+        }
+        return discriminator.getResourceOid();
+    }
+
+    private ResourceShadowDiscriminator getResourceShadowDiscriminator(SearchFilterType searchFilterType) {
+        try {
+            ObjectFilter filter = getPrismContext().getQueryConverter().createObjectFilter(ShadowType.class, searchFilterType);
+            return ObjectQueryUtil.getCoordinates(filter, getPrismContext());
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot convert filter: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    private <O extends ObjectType> O getObjectFromObjectRef(DashboardWidgetType model) {
+        if (isDataNull(model)) {
+            return null;
+        }
+        ObjectReferenceType ref = model.getData().getObjectRef();
+        if (ref == null) {
+            LOGGER.error("ObjectRef of data is not found in widget " + model.getIdentifier());
+            return null;
+        }
+        Task task = createSimpleTask("Search domain collection");
+        PrismObject<O> object = WebModelServiceUtils.loadObject(ref, this, task, task.getResult());
+        if (object == null) {
+            LOGGER.error("Object from ObjectRef " + ref + " is null in widget " + model.getIdentifier());
+            return null;
+        }
+        return object.asObjectable();
+    }
+
+    private void navigateToPage(DashboardWidgetType widget) {
+        if (widget == null) {
+            return;
+        }
+        DashboardWidgetSourceTypeType source = DashboardUtils.getSourceType(widget);
+        if (source == null) {
+            return;
+        }
+
+        switch (source) {
+            case OBJECT_COLLECTION:
+            case AUDIT_SEARCH:
+                navigateToObjectCollectionPage(widget);
+                break;
+            case OBJECT:
+                navigateToObjectPage(widget);
+                break;
+        }
+    }
+
+    private void navigateToObjectCollectionPage(DashboardWidgetType widget) {
+        ObjectCollectionType collection = getObjectCollectionType(widget);
+        if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
+            Class<? extends WebPage> pageType = LINKS_REF_COLLECTIONS.get(collection.getType().getLocalPart());
+            PageParameters parameters = new PageParameters();
+            if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
+                pageType = PageShadows.class;
+//                pageType = PageResource.class;
+//                String oid = getResourceOid(collection.getFilter());
+//                if (oid != null) {
+//                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+//                    Integer tab = getResourceTab(collection.getFilter());
+//                    if (tab != null) {
+//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
+//                    } else {
+//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, 2);
+//                    }
+//                }
+            }
+            if (pageType == null) {
+                return;
+            }
+            parameters.add(PageBase.PARAMETER_DASHBOARD_TYPE_OID, dashboardModel.getObject().getOid());
+            parameters.add(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME, widget.getIdentifier());
+
+            navigateToNext(pageType, parameters);
+        } else {
+            LOGGER.error("CollectionType from collectionRef is null in widget " + widget.getIdentifier());
+        }
+    }
+
+    private void navigateToObjectPage(DashboardWidgetType widget) {
+        ObjectType object = getObjectFromObjectRef(widget);
+        if (object == null) {
+            return;
+        }
+        Class<? extends WebPage> pageType = WebComponentUtil.getObjectDetailsPage(object.getClass());
+        if (pageType == null) {
+            return;
+        }
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+
+        navigateToNext(pageType, parameters);
     }
 }

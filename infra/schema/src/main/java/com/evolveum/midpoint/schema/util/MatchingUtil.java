@@ -161,7 +161,7 @@ public class MatchingUtil {
 
     /** Can we copy the attribute to the target (knowing its definition)? */
     private static boolean isCompatible(PrismProperty<?> attribute, PrismPropertyDefinition<?> targetDef) {
-        Class<?> targetType = targetDef.getTypeClassIfKnown();
+        Class<?> targetType = targetDef.getTypeClass();
         if (targetType == null) {
             return true; // most probably ok
         }
@@ -177,7 +177,7 @@ public class MatchingUtil {
     @NotNull private static PrismProperty<?> createPropertyClone(
             PrismProperty<?> attribute, PrismPropertyDefinition<?> directDef) throws SchemaException {
         PrismProperty<Object> property = (PrismProperty<Object>) directDef.instantiate();
-        Class<?> targetType = directDef.getTypeClassIfKnown();
+        Class<?> targetType = directDef.getTypeClass();
         if (targetType == null) {
             //noinspection unchecked,rawtypes
             property.addAll((Collection) CloneUtil.cloneCollectionMembers(attribute.getValues()));

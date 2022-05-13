@@ -45,7 +45,7 @@ public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
         add(form);
         CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,
             new PropertyModel<>(getModel(), InternalsConfigDto.F_DETAILED_DEBUG_DUMP),
-                createStringResource("PageInternals.detailedDebugDump"), LABEL_SIZE, INPUT_SIZE);
+                createStringResource("PageInternals.detailedDebugDump"));
         form.add(detailed);
 
 

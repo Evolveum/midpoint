@@ -4,6 +4,7 @@
   "description": "Evolveum midPoint admin-gui module npm project for css/javascript code",
   "main": "index.js",
   "scripts": {
+    "postinstall": "patch-package",
     "build": "webpack build --env production --config ./webpack.config.js --progress --profile --bail",
     "watch": "webpack watch --env development --config ./webpack.config.js --progress --profile"
   },
@@ -12,7 +13,7 @@
   "devDependencies": {
     "@fontsource/source-sans-pro": "^4.5.9",
     "ace-builds": "^1.4.14",
-    "admin-lte": "3.1.0",
+    "admin-lte": "3.2.0",
     "babel-loader": "^8.2.4",
     "bootstrap-multiselect": "^1.1.0",
     "bootstrap-select": "^1.13.18",
@@ -23,6 +24,7 @@
     "file-loader": "^6.2.0",
     "knockout": "^3.5.1",
     "mini-css-extract-plugin": "^2.6.0",
+    "patch-package": "^6.4.7",
     "postcss-loader": "^6.2.1",
     "sass": "^1.50.0",
     "sass-loader": "^12.6.0",

@@ -8,17 +8,17 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -477,7 +477,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null,
                 result)
                 .asObjectable();
-        XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
         Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
         AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
@@ -674,43 +673,35 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
         displayValue("Native capabilities ", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
         display("Resource", resourceType.asPrismObject());
-        List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-        assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
+        assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));
 
-        TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                TestConnectionCapabilityType.class);
+        TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilities, TestConnectionCapabilityType.class);
         assertNotNull("native test capability not present", capTest);
 
-        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                ReadCapabilityType.class);
+        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilities, ReadCapabilityType.class);
         assertNotNull("native read capability not present", capRead);
 
-        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                ScriptCapabilityType.class);
+        ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilities, ScriptCapabilityType.class);
         assertNotNull("native script capability not present", capScript);
         assertNotNull("No host in native script capability", capScript.getHost());
         assertFalse("No host in native script capability", capScript.getHost().isEmpty());
 
-        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                CredentialsCapabilityType.class);
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
         assertNull("Unexpected native credentials capability", capCred);
-        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
-                ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
         assertNull("Unexpected native activation capability", capAct);
 
         // Check effective capabilites
-        capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
+        capCred = ResourceTypeUtil.getEnabledCapability(resourceType, CredentialsCapabilityType.class);
+        assertThat(capCred).isNotNull();
         assertNotNull("password capability not found", capCred.getPassword());
         // Although connector does not support activation, the resource
         // specifies a way how to simulate it.
         // Therefore the following should succeed
-        capAct = ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found", capCred.getPassword());
+        capAct = ResourceTypeUtil.getEnabledCapability(resourceType, ActivationCapabilityType.class);
+        assertNotNull("activation capability not found", capAct);
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
-        for (Object capability : effectiveCapabilities) {
-            displayValue("Capability " + CapabilityUtil.getCapabilityDisplayName(capability), capability);
-        }
+        dumpResourceCapabilities(resourceType);
     }
 
     /**

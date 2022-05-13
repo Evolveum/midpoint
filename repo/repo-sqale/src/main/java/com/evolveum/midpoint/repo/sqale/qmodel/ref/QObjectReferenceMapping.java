@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,12 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -61,7 +62,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceArchetype, repositoryContext)) {
             instanceArchetype = new QObjectReferenceMapping<>(
                     "m_ref_archetype", "refa", repositoryContext,
-                    new RefTableTargetResolver<>(QArchetypeMapping::getArchetypeMapping));
+                    QArchetypeMapping::getArchetypeMapping);
         }
         return getForArchetype();
     }
@@ -77,7 +78,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceDelegated, repositoryContext)) {
             instanceDelegated = new QObjectReferenceMapping<>(
                     "m_ref_delegated", "refd", repositoryContext,
-                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
+                    QFocusMapping::getFocusMapping);
         }
         return getForDelegated();
     }
@@ -93,7 +94,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceInclude, repositoryContext)) {
             instanceInclude = new QObjectReferenceMapping<>(
                     "m_ref_include", "refi", repositoryContext,
-                    new RefTableTargetResolver<>(QObjectTemplateMapping::getObjectTemplateMapping));
+                    QObjectTemplateMapping::getObjectTemplateMapping);
         }
         return instanceInclude;
     }
@@ -107,7 +108,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceProjection, repositoryContext)) {
             instanceProjection = new QObjectReferenceMapping<>(
                     "m_ref_projection", "refpj", repositoryContext,
-                    new RefTableTargetResolver<>(QShadowMapping::getShadowMapping));
+                    QShadowMapping::getShadowMapping);
         }
         return getForProjection();
     }
@@ -123,7 +124,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceCreateApprover, repositoryContext)) {
             instanceCreateApprover = new QObjectReferenceMapping<>(
                     "m_ref_object_create_approver", "refca", repositoryContext,
-                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
+                    QUserMapping::getUserMapping);
         }
         return getForCreateApprover();
     }
@@ -139,7 +140,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceModifyApprover, repositoryContext)) {
             instanceModifyApprover = new QObjectReferenceMapping<>(
                     "m_ref_object_modify_approver", "refma", repositoryContext,
-                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
+                    QUserMapping::getUserMapping);
         }
         return getForModifyApprover();
     }
@@ -155,7 +156,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceParentOrg, repositoryContext)) {
             instanceParentOrg = new QObjectReferenceMapping<>(
                     "m_ref_object_parent_org", "refpo", repositoryContext,
-                    new RefTableTargetResolver<>(QOrgMapping::getOrgMapping));
+                    QOrgMapping::getOrgMapping);
         }
         return getForParentOrg();
     }
@@ -171,7 +172,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instancePersona, repositoryContext)) {
             instancePersona = new QObjectReferenceMapping<>(
                     "m_ref_persona", "refp", repositoryContext,
-                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
+                    QFocusMapping::getFocusMapping);
         }
         return getForPersona();
     }
@@ -187,7 +188,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceResourceBusinessConfigurationApprover, repositoryContext)) {
             instanceResourceBusinessConfigurationApprover = new QObjectReferenceMapping<>(
                     "m_ref_resource_business_configuration_approver", "refrbca", repositoryContext,
-                    new RefTableTargetResolver<>(QObjectMapping::getObjectMapping));
+                    QObjectMapping::getObjectMapping);
         }
         return instanceResourceBusinessConfigurationApprover;
     }
@@ -202,7 +203,7 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
         if (needsInitialization(instanceRoleMembership, repositoryContext)) {
             instanceRoleMembership = new QObjectReferenceMapping<>(
                     "m_ref_role_membership", "refrm", repositoryContext,
-                    new RefTableTargetResolver<>(QAbstractRoleMapping::getAbstractRoleMapping));
+                    QAbstractRoleMapping::getAbstractRoleMapping);
         }
         return getForRoleMembership();
     }
@@ -214,15 +215,14 @@ public class QObjectReferenceMapping<OQ extends QObject<OR>, OR extends MObject>
     }
     // endregion
 
-    // Sad but true, we can't declare Class<QObjectReference<OR>>.class, we declare defeat instead.
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     private <TQ extends QObject<TR>, TR extends MObject> QObjectReferenceMapping(
             String tableName,
             String defaultAliasName,
             @NotNull SqaleRepoContext repositoryContext,
-            RefTableTargetResolver<QObjectReference<OR>, MReference, TQ, TR> targetResolver) {
+            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
+        //noinspection unchecked,rawtypes
         super(tableName, defaultAliasName, (Class) QObjectReference.class,
-                repositoryContext, targetResolver);
+                repositoryContext, targetMappingSupplier);
     }
 
     @Override

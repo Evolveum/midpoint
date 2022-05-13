@@ -155,6 +155,6 @@
         </objectSynchronization>
     </synchronization>
     <caching>
-        <cachingStategy>passive</cachingStategy>
+        <cachingStrategy>passive</cachingStrategy>
     </caching>
 </resource>

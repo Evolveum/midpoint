@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.function.Consumer;
 
 public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMetadataType> {
 
@@ -118,11 +116,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public String getDocumentationPreview() {
         return metadataValueWrapper.getDocumentationPreview();
-    }
-
-    @Override
-    public Class<?> getTypeClassIfKnown() {
-        return metadataValueWrapper.getTypeClassIfKnown();
     }
 
     @Override
@@ -562,8 +555,8 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public boolean checkRequired(PageBase pageBase) {
-        return metadataValueWrapper.checkRequired(pageBase);
+    public boolean checkRequired() {
+        return metadataValueWrapper.checkRequired();
     }
 
     @Override

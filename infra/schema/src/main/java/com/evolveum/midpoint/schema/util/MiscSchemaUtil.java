@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
-import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -38,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -239,33 +240,42 @@ public class MiscSchemaUtil {
     }
 
     /**
-     * Selects appropriate limitations definition (for a given layer) from a list of definitions.
+     * Given a list of limitation definitions, select the one with appropriate "layer label".
      *
-     * If given layer of `null`, selects a definition that has no layers provided.
+     * * Layer label of `null` means we want to obtain the record that has (multivalued) "layer" property empty.
+     * * Non-null label means we want to obtain the record that has that specific value among the "layer" values.
+     *
+     * In both cases, there can be at most one matching record.
+     *
+     * NOTE: This method has been renamed from the original `getLimitationsForLayer` because the original name
+     * was a bit misleading. The effective limitations for a given layer may be different from the ones returned
+     * by this method. See also MID-7929.
      */
-    public static PropertyLimitationsType getLimitationsForLayer(
-            List<PropertyLimitationsType> definitions, LayerType layer) throws SchemaException {
+    public static @Nullable PropertyLimitationsType getLimitationsLabeled(
+            @Nullable Collection<PropertyLimitationsType> definitions,
+            @Nullable LayerType layerLabel) throws SchemaException {
         if (definitions == null) {
             return null;
         }
         PropertyLimitationsType found = null;
         for (PropertyLimitationsType limitType : definitions) {
-            if (contains(limitType.getLayer(), layer)) {
+            if (hasLayerLabel(limitType.getLayer(), layerLabel)) {
                 if (found == null) {
                     found = limitType;
                 } else {
-                    throw new SchemaException("Duplicate definition of limitations for layer '" + layer + "'");
+                    throw new SchemaException("Duplicate definition of limitations for layer '" + layerLabel + "'");
                 }
             }
         }
         return found;
     }
 
-    private static boolean contains(List<LayerType> layers, LayerType layer) {
-        if (layers == null || layers.isEmpty()) {
-            return layer == null;
+    private static boolean hasLayerLabel(@NotNull List<LayerType> layers, @Nullable LayerType layer) {
+        if (layer == null) {
+            return layers.isEmpty();
+        } else {
+            return layers.contains(layer);
         }
-        return layers.contains(layer);
     }
 
     public static boolean contains(Collection<ObjectReferenceType> collection, ObjectReferenceType item) {

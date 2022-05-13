@@ -62,7 +62,7 @@ class CommonHelper {
         if (runAsAccountOid == null) {
             return null;
         }
-        RunAsCapabilityType capRunAs = ctx.getEffectiveCapability(RunAsCapabilityType.class);
+        RunAsCapabilityType capRunAs = ctx.getCapability(RunAsCapabilityType.class); // TODO check it's enabled!
         if (capRunAs == null) {
             LOGGER.trace("Operation runAs requested, but resource does not have the capability. Ignoring runAs");
             return null;

@@ -12,9 +12,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +47,11 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 public final class ResourceObjectTypeDefinitionImpl
         extends AbstractResourceObjectDefinitionImpl
         implements ResourceObjectTypeDefinition {
+
+    /**
+     * Kind + intent.
+     */
+    @NotNull private final ResourceObjectTypeIdentification identification;
 
     /**
      * Kind of objects covered by this type.
@@ -88,22 +95,14 @@ public final class ResourceObjectTypeDefinitionImpl
     /**
      * The "source" bean for this definition.
      *
-     * - For object type definition, this is relevant `objectType` value in `schemaHandling`.
+     * - For object type definition, this is relevant `objectType` value in `schemaHandling`, expanded by resolving
+     * object type inheritance.
      * - For object class definition, this is (currently) an empty value. It is here to avoid writing two
      * variants of various getter methods like {@link #getDisplayName()}.
      *
      * Immutable.
      */
     @NotNull private final ResourceObjectTypeDefinitionType definitionBean;
-
-    /**
-     * Parent source beans for this definition.
-     *
-     * They are here to implement resource object type inheritance.
-     *
-     * Frozen after parsing.
-     */
-    @NotNull private final DeeplyFreezableList<ResourceObjectTypeDefinitionType> parentBeans = new DeeplyFreezableList<>();
 
     /**
      * Compiled patterns denoting protected objects.
@@ -133,24 +132,23 @@ public final class ResourceObjectTypeDefinitionImpl
     private final String resourceOid;
 
     ResourceObjectTypeDefinitionImpl(
-            @NotNull ShadowKindType kind,
-            @NotNull String intent,
+            @NotNull ResourceObjectTypeIdentification identification,
             @NotNull ResourceObjectClassDefinition rawDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
             String resourceOid) {
-        this(DEFAULT_LAYER, kind, intent, rawDefinition, definitionBean, resourceOid);
+        this(DEFAULT_LAYER, identification, rawDefinition, definitionBean, resourceOid);
     }
 
     private ResourceObjectTypeDefinitionImpl(
             @NotNull LayerType layer,
-            @NotNull ShadowKindType kind,
-            @NotNull String intent,
+            @NotNull ResourceObjectTypeIdentification identification,
             @NotNull ResourceObjectClassDefinition rawDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
             String resourceOid) {
         super(layer);
-        this.kind = kind;
-        this.intent = intent;
+        this.identification = identification;
+        this.kind = identification.getKind();
+        this.intent = identification.getIntent();
         this.rawObjectClassDefinition = rawDefinition;
         this.definitionBean = definitionBean;
         this.resourceOid = resourceOid;
@@ -178,15 +176,18 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @Nullable String getDisplayName() {
         return getFirstNonNull(
-                extractFeature(
-                        ResourceObjectTypeDefinitionType::getDisplayName),
+                definitionBean.getDisplayName(),
                 rawObjectClassDefinition.getDisplayName());
     }
 
     @Override
     public String getDescription() {
-        return extractFeature(
-                ResourceObjectTypeDefinitionType::getDescription);
+        return definitionBean.getDescription();
+    }
+
+    @Override
+    public String getDocumentation() {
+        return definitionBean.getDocumentation();
     }
 
     @Override
@@ -251,8 +252,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull ResourceObjectVolatilityType getVolatility() {
         return Objects.requireNonNullElse(
-                extractFeature(
-                        ResourceObjectTypeDefinitionType::getVolatility),
+                definitionBean.getVolatility(),
                 ResourceObjectVolatilityType.NONE);
     }
 
@@ -260,7 +260,7 @@ public final class ResourceObjectTypeDefinitionImpl
     public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
         // In the future we may define the value also on resource or even global system level
         ResourceMappingsEvaluationConfigurationType definition = // TODO consider merging the values
-                extractFeature(ResourceObjectTypeDefinitionType::getMappingsEvaluation);
+                definitionBean.getMappingsEvaluation();
         if (definition == null) {
             return null;
         }
@@ -272,14 +272,12 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
-        return extractFeature(
-                ResourceObjectTypeDefinitionType::getMultiplicity);
+        return definitionBean.getMultiplicity();
     }
 
     @Override
     public ProjectionPolicyType getProjectionPolicy() {
-        return extractFeature(
-                ResourceObjectTypeDefinitionType::getProjection);
+        return definitionBean.getProjection();
     }
     //endregion
 
@@ -333,19 +331,8 @@ public final class ResourceObjectTypeDefinitionImpl
 
     //region Capabilities ========================================================
     @Override
-    public @Nullable CapabilitiesType getConfiguredCapabilities() {
-        CapabilityCollectionType configuredCapabilities = definitionBean.getConfiguredCapabilities();
-        if (configuredCapabilities == null) {
-            return null;
-        }
-        CapabilitiesType capabilitiesType = new CapabilitiesType();
-        capabilitiesType.setConfigured(configuredCapabilities);
-        return capabilitiesType;
-    }
-
-    @Override
-    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resource) {
-        return ResourceTypeUtil.getEffectiveCapability(resource, definitionBean, capabilityClass);
+    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
+        return ResourceTypeUtil.getEnabledCapability(resource, definitionBean, capabilityClass);
     }
     //endregion
 
@@ -384,7 +371,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     protected ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
         ResourceObjectTypeDefinitionImpl clone = new ResourceObjectTypeDefinitionImpl(
-                layer, kind, intent, rawObjectClassDefinition, definitionBean, resourceOid);
+                layer, identification, rawObjectClassDefinition, definitionBean, resourceOid);
         clone.copyDefinitionDataFrom(layer, this);
         return clone;
     }
@@ -612,6 +599,11 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
+    public <T extends CapabilityType> @Nullable T getConfiguredCapability(Class<T> capabilityClass) {
+        return CapabilityUtil.getCapability(definitionBean.getConfiguredCapabilities(), capabilityClass);
+    }
+
+    @Override
     protected void addDebugDumpHeaderExtension(StringBuilder sb) {
         if (isDefaultForKind()) {
             sb.append(",default-for-kind");
@@ -623,22 +615,9 @@ public final class ResourceObjectTypeDefinitionImpl
         sb.append(",intent=").append(getIntent());
     }
 
-    /** Extracts a feature (e.g. `description`) from the main definition bean or one of the parents. */
-    private <X> @Nullable X extractFeature(@NotNull FeatureExtractor<X> extractor) {
-        X fromMain = extractor.apply(definitionBean);
-        if (fromMain != null) {
-            return fromMain;
-        }
-        for (ResourceObjectTypeDefinitionType parentBean : parentBeans) {
-            X fromParent = extractor.apply(parentBean);
-            if (fromParent != null) {
-                return fromParent;
-            }
-        }
-        return null;
-    }
-
-    @FunctionalInterface
-    private interface FeatureExtractor<X> extends Function<ResourceObjectTypeDefinitionType, X> {
+    @Override
+    protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", definitionBean, indent + 1);
     }
 }

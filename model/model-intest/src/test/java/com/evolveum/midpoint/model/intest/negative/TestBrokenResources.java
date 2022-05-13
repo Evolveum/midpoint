@@ -298,8 +298,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         // THEN
         String localNodeId = taskManager.getNodeId();
-        assertResource(resource, "resource after")
-                .display()
+        assertResourceAfter(resource)
                 .operationalState()
                 .assertAny()
                 .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)

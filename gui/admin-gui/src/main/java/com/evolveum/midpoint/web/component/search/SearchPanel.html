@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
+    <form wicket:id="form" class="search-form d-flex flex-wrap justify-content-end">
 
         <div class="my-1" wicket:id="fullTextContainer">
             <input wicket:id="fullTextField" type="text" class="form-control form-control-sm" style="width: 150px; min-width: 150px;">
@@ -40,11 +40,11 @@
         </div>
 
         <div class="d-flex my-1">
-            <a wicket:id="more" class="btn btn-sm btn-default mx-1">
+            <button wicket:id="more" class="btn btn-sm btn-default mx-1">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="fa fa-caret-down"></span>
-            </a>
+            </button>
 
             <div wicket:id="searchContainer">
                 <div class="btn-group btn-group-sm">
@@ -70,26 +70,22 @@
 
     <div wicket:id="popover">
         <div class="search-popover">
-            <div class="more-input">
-                <input wicket:id="addText" type="text" class="form-control form-control-sm" style="width: auto;" size="20">
-            </div>
+            <input wicket:id="addText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
 
-            <div class="properties">
-                <dl wicket:id="propList">
-                    <dt>
-                        <wicket:message key="SearchPanel.properties"/>
-                    </dt>
-                    <dd wicket:id="properties">
-                        <label>
-                            <input wicket:id="check" type="checkbox">&nbsp;
-                            <a wicket:id="propLink"><span wicket:id="propName"/></a>
-                            <i wicket:id="help"/>
-                        </label>
-                    </dd>
-                </dl>
-            </div>
+            <dl class="border-bottom mb-2" wicket:id="propList">
+                <dt class="mb-1">
+                    <wicket:message key="SearchPanel.properties"/>
+                </dt>
+                <dd wicket:id="properties">
+                    <label>
+                        <input wicket:id="check" type="checkbox">&nbsp;
+                        <a wicket:id="propLink"><span wicket:id="propName"/></a>
+                        <i wicket:id="help"/>
+                    </label>
+                </dd>
+            </dl>
 
-            <div class="buttons">
+            <div class="mt-2 mb-1">
                 <a wicket:id="add" class="btn btn-sm btn-success"/>
                 <a wicket:id="close" class="btn btn-sm btn-default"/>
             </div>

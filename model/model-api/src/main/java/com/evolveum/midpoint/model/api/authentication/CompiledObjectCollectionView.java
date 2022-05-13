@@ -213,7 +213,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
             return false;
         }
         if (expectedViewIdentifier == null) {
-            return isAllObjectsView();
+            return isDefaultView();
         }
         return expectedViewIdentifier.equals(viewIdentifier);
     }

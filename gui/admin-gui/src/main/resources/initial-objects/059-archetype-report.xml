@@ -16,7 +16,7 @@
                 <orig>Report</orig>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-pie-chart</cssClass>
+                <cssClass>fa fa-chart-pie</cssClass>
                 <color>#001F3F</color>
             </icon>
         </display>

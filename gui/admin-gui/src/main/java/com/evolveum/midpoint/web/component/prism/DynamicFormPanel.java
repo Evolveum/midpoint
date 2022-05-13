@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -20,7 +22,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -59,24 +60,24 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
     private FormType form;
 
     public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
-            Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+            Task task, final PageAdminLTE parentPage, boolean enforceRequiredFields) {
         this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage, enforceRequiredFields);
     }
 
     public DynamicFormPanel(String id, final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-            Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+            Task task, final PageAdminLTE parentPage, boolean enforceRequiredFields) {
         super(id);
         initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
     }
 
     public DynamicFormPanel(String id, final QName objectType, String formOid, Form<?> mainForm,
-            Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+            Task task, final PageAdminLTE parentPage, boolean enforceRequiredFields) {
         super(id);
         PrismObject<O> prismObject = instantiateObject(objectType, parentPage);
         initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
     }
 
-    private PrismObject<O> instantiateObject(QName objectType, PageBase parentPage) {
+    private PrismObject<O> instantiateObject(QName objectType, PageAdminLTE parentPage) {
         PrismObjectDefinition<O> objectDef = parentPage.getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByType(objectType);
         PrismObject<O> prismObject;
@@ -90,7 +91,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
     }
 
     private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-            final Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+            final Task task, final PageAdminLTE parentPage, boolean enforceRequiredFields) {
 
         if (prismObject == null) {
             getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
@@ -142,14 +143,14 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
         return wrapperModel;
     }
 
-    private void initLayout(Form<?> mainForm, PageBase parenPage) {
+    private void initLayout(Form<?> mainForm, PageAdminLTE parenPage) {
         DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<O>(ID_FORM_FIELDS, getModel(),
                 form.getFormDefinition(), mainForm, parenPage);
         formFields.setOutputMarkupId(true);
         add(formFields);
     }
 
-    private FormType loadForm(String formOid, Task task, PageBase parentPage) {
+    private FormType loadForm(String formOid, Task task, PageAdminLTE parentPage) {
         OperationResult result = new OperationResult("some some operation");
         return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
                 parentPage, task, result));
@@ -159,8 +160,8 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
         return wrapperModel.getObject().getObjectDelta();
     }
 
-    public boolean checkRequiredFields(PageBase pageBase) {
-        return getFormFields().checkRequiredFields(pageBase);
+    public boolean checkRequiredFields(PageAdminLTE pageBase) {
+        return getFormFields().checkRequiredFields();
     }
 
     @SuppressWarnings("unchecked")

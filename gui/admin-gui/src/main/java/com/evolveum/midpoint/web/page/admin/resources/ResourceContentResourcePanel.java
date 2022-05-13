@@ -11,12 +11,18 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -28,8 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ResourceContentResourcePanel extends ResourceContentPanel {
@@ -54,14 +59,20 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        List<SearchItemDefinition> availableDefs = new ArrayList<>();
-        availableDefs.addAll(createAttributeDefinitionList());
-        return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
+        return SearchFactory.createSearch(createSearchConfigWrapper(), false, getPageBase());
     }
 
-    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
+    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
+        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
+        config.getItemsList().clear();
+        config.getItemsList().addAll(createAttributeSearchItemWrappers());
+        return config;
+    }
 
-        List<SearchItemDefinition> map = new ArrayList<>();
+
+    private <T extends ObjectType> List<AbstractSearchItemWrapper> createAttributeSearchItemWrappers() {
+
+        List<AbstractSearchItemWrapper> itemsList = new ArrayList<>();
 
         ResourceObjectDefinition ocDef = null;
         try {
@@ -76,18 +87,19 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
             }
         } catch (SchemaException | ConfigurationException e) {
             warn("Could not get determine object class definition");
-            return map;
+            return itemsList;
         }
 
         if (ocDef == null) {
-            return map;
+            return itemsList;
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
+            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def,
+                    ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))));
         }
 
-        return map;
+        return itemsList;
     }
 
     private ItemName getAttributeName(ResourceAttributeDefinition def) {

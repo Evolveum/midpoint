@@ -91,7 +91,7 @@
                 </administrativeStatus>
             </activation>
 
-            <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:CapabilityCollectionType">
+            <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="cap:CapabilityCollectionType">
                 <cap:activation>
                     <cap:status>
                         <!-- MID-5400 -->

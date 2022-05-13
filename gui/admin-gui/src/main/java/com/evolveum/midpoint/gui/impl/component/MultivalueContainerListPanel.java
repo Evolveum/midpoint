@@ -11,10 +11,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.web.component.*;
 
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
@@ -44,6 +47,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -67,10 +71,22 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected Search createSearch(Class<C> type) {
-        PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
-        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), getTypeDefinitionForSearch(),
-                getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
+        return SearchFactory.createSearch(createSearchConfigWrapper(type), getPageBase());
+//        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), getTypeDefinitionForSearch(),
+//                getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
     }
+
+    private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
+//        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, null, getPageBase());
+        SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<C>(type);
+        PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
+        List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>) initSearchableItemWrappers(containerDefinition);
+        if (items != null) {
+            searchConfigWrapper.getItemsList().addAll(items);
+        }
+        return searchConfigWrapper;
+    }
+
 
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
@@ -80,7 +96,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName()));
     }
 
+    @Deprecated
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
+        return null;
+    }
+
+    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<C> containerDef){
         return null;
     }
 

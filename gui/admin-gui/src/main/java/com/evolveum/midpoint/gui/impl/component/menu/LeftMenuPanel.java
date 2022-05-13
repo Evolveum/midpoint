@@ -14,7 +14,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -690,7 +692,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 return;
             }
 
-            if (objectView.getCollection() == null) {
+            if (objectView.isDefaultView()) {
                 return;
             }
             DisplayType viewDisplayType = objectView.getDisplay();

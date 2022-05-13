@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -598,7 +598,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
             resourceManager.testConnection(resource, task, testResult);
 
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException ex) { // TODO is this ok?
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
         testResult.computeStatus("Test resource has failed");

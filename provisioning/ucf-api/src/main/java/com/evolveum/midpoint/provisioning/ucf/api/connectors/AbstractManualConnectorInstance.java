@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
-import java.util.ArrayList;
 import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -20,29 +22,12 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 /**
  * Common abstract superclass for all manual connectors. There are connectors that do not
@@ -58,9 +43,6 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
     private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";
     private static final String OPERATION_DELETE = AbstractManualConnectorInstance.class.getName() + ".deleteObject";
-
-    private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-    = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
     // test(), connect() and dispose() are lifecycle operations to be implemented in the subclasses
 
@@ -110,7 +92,6 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
         ret.setOperationResult(result);
         return ret;
     }
-
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
@@ -194,44 +175,22 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public Collection<Object> fetchCapabilities(OperationResult parentResult) {
-        Collection<Object> capabilities = new ArrayList<>();
-
+    public CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("capabilities");
-
-        // caching-only read capabilities
-        ReadCapabilityType readCap = new ReadCapabilityType();
-        readCap.setCachingOnly(true);
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(readCap));
-
-        CreateCapabilityType createCap = new CreateCapabilityType();
-        setManual(createCap);
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
-
-        UpdateCapabilityType updateCap = new UpdateCapabilityType();
-        updateCap.setAddRemoveAttributeValues(true);
-        setManual(updateCap);
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-
-        DeleteCapabilityType deleteCap = new DeleteCapabilityType();
-        setManual(deleteCap);
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(deleteCap));
-
-        ActivationCapabilityType activationCap = new ActivationCapabilityType();
-        ActivationStatusCapabilityType activationStatusCap = new ActivationStatusCapabilityType();
-        activationCap.setStatus(activationStatusCap);
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createActivation(activationCap));
-
-        CredentialsCapabilityType credentialsCap = new CredentialsCapabilityType();
-        PasswordCapabilityType passwordCapabilityType = new PasswordCapabilityType();
-        credentialsCap.setPassword(passwordCapabilityType);
-        capabilities.add(CAPABILITY_OBJECT_FACTORY.createCredentials(credentialsCap));
-
-        return capabilities;
-    }
-
-    private void setManual(AbstractWriteCapabilityType cap) {
-        cap.setManual(true);
+        return new CapabilityCollectionType()
+                .read(new ReadCapabilityType()
+                        .cachingOnly(true))
+                .create(new CreateCapabilityType()
+                        .manual(true))
+                .update(new UpdateCapabilityType()
+                        .manual(true)
+                        .addRemoveAttributeValues(true))
+                .delete(new DeleteCapabilityType()
+                        .manual(true))
+                .activation(new ActivationCapabilityType()
+                        .status(new ActivationStatusCapabilityType()))
+                .credentials(new CredentialsCapabilityType()
+                        .password(new PasswordCapabilityType()));
     }
 
     @Override

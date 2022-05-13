@@ -70,7 +70,6 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         };
         test.showTitleAsLabel(true);
         test.add(new VisibleBehaviour(() -> isEditingObject()));
-        test.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(test);
 
         AjaxIconButton setMaintenance = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE),
@@ -84,15 +83,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
             }
         };
         setMaintenance.showTitleAsLabel(true);
-        setMaintenance.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isEditingObject() && canEdit(getObjectType());
-            }
-        });
-        setMaintenance.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        setMaintenance.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
         resourceButtons.add(setMaintenance);
 
         AjaxIconButton refreshSchema = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA),
@@ -104,16 +95,8 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 WebComponentUtil.refreshResourceSchema(getPrismObject(), OPERATION_REFRESH_SCHEMA, target, getPageBase());
             }
         };
-        refreshSchema.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isVisibleRefresSchemaButton(getObjectType());
-            }
-        });
+        refreshSchema.add(new VisibleBehaviour(() -> isVisibleRefresSchemaButton(getObjectType())));
         refreshSchema.showTitleAsLabel(true);
-        refreshSchema.add(AttributeAppender.append("class", "btn-default btn-sm"));
         resourceButtons.add(refreshSchema);
 
         AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
@@ -126,15 +109,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
             }
         };
         wizardShow.showTitleAsLabel(true);
-        wizardShow.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isEditingObject() && canEdit(getObjectType());
-            }
-        });
-        wizardShow.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        wizardShow.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
         resourceButtons.add(wizardShow);
         AjaxIconButton wizardEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
                 createStringResource("pageResource.button.wizardEdit")) {
@@ -146,17 +121,8 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
             }
         };
         wizardEdit.showTitleAsLabel(true);
-        wizardEdit.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isEditingObject() && canEdit(getObjectType());
-            }
-        });
-        wizardEdit.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        wizardEdit.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
         resourceButtons.add(wizardEdit);
-
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
@@ -220,7 +186,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 return false;
             }
             if (resource.getCapabilities().getConfigured() != null) {
-                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), SchemaCapabilityType.class);
+                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured(), SchemaCapabilityType.class);
                 if (configuredCapability == null) {
                     return false;
                 }
@@ -235,5 +201,4 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
     protected void refreshStatus(AjaxRequestTarget target) {
 
     }
-
 }

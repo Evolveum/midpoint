@@ -197,7 +197,6 @@
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.9.0</commons.io.version>
-        <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.4</commons.cli>
         <cxf.version>3.4.4</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
@@ -226,13 +225,13 @@
         -->
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
-        <wicket.version>9.9.1</wicket.version>
+        <wicket.version>9.10.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.10 is also default for Spring Boot 2.6.6 -->
         <groovy.version>3.0.10</groovy.version>
         <xmlsec.version>2.2.3</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.5.0.18</connid.version>
+        <connid.version>1.5.1.0</connid.version>
         <derby.version>10.15.2.0</derby.version>
         <wro4j.version>1.10.1</wro4j.version>
         <!-- Version for classgraph must the one declared in Prism -->
@@ -611,11 +610,6 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${commons.lang.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
