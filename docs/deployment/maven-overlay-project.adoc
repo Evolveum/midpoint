@@ -15,10 +15,9 @@
 There are many ways how to customize midPoint behavior.
 MidPoint is designed with practicality in mind and therefore the most frequent customizations can be done by configuration.
 But it is not possible to make everything configurable.
-Some customizations needs extension or even modification of midPoint code.
+Some customizations require extension or even modification of midPoint code.
 
 This page describes how to set up and maintain an _overlay project_ that contains midPoint customizations.
-
 
 == How Overlay Works?
 
@@ -39,7 +38,6 @@ As the overlay project only contains customizations it can easily be maintained 
 Overlay project is combination of link:https://maven.apache.org/plugins/maven-war-plugin/overlays.html[Maven WAR Overlay] with link:https://docs.spring.io/spring-boot/docs/current/maven-plugin/repackage-mojo.html[Spring Boot repackaging]. Before Spring Boot adoption it was only the first, and in the future, we hope it will be mainly (and only) Spring Boot packaging - in the meantime, both parts are important.
 ====
 
-
 == Example Overlay Projects
 
 Following overlay examples are maintained by midPoint team for demonstration and documentation purposes:
@@ -58,8 +56,7 @@ link:https://github.com/Evolveum/midpoint-custom-service/blob/master/README.adoc
 
 * link:https://github.com/Evolveum/midpoint-custom-soap-service[Evolveum/midpoint-custom-soap-service] is simplified SOAP web-service using code-first approach using basic authentication from midPoint.
 
-* Finally there is link:https://github.com/Evolveum/midpoint-custom-rest-service[Evolveum/midpoint-custom-rest-service] showing REST service also implemented with CXF, but from version 4.2 also experimental (but much simpler) Spring MVC endpoint.
-
+* Finally, there is link:https://github.com/Evolveum/midpoint-custom-rest-service[Evolveum/midpoint-custom-rest-service] showing REST service also implemented with CXF, but from version 4.2 also experimental (but much simpler) Spring MVC endpoint.
 
 == Overlay development
 
@@ -67,14 +64,16 @@ Development document is now part of the link:https://github.com/Evolveum/midpoin
 
 The document also includes link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc#overlay-upgrade-notes[overlay upgrade notes] (starting with upgrade to midPoint 4.1).
 
-
+////
 == TODO Describe
 
 * bundling connectors
-
+////
 
 == See Also
 
 * xref:/midpoint/devel/gui/gui-development-guide/[GUI Development Guide]
 
 * xref:/midpoint/reference/admin-gui/look-feel-customization/[Look & Feel Customization HOWTO]
+
+* https://github.com/Evolveum/midpoint-overlay-example[Evolveum/midpoint-overlay-example]

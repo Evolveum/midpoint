@@ -1,6 +1,5 @@
 = Axiom Query Language
 :page-since: "4.3"
-:page-experimental: true
 :page-toc: top
 
 //TODO: User-friendly documentation of a user-friendly language.
@@ -289,9 +288,12 @@ Axiom Query Language is replacing an old xref:../xml-query-language/[XML-based q
 The new language is more natural, user-friendly and better aligned with foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
 
 Axiom query language is a relative new development, introduced in midPoint 4.3.
-It is expected to be fully supported in midPoint 4.4 LTS, where it should become a recommended option.
-The Axiom query language should replace the XML-based language as soon as possible.
-The XML-based language will be still supported for several years, but it will be dropped eventually.
+It was almost fully supported in midPoint 4.4 LTS, except for embedded expression.
+Since midPoint 4.5, Axiom query language is fully supported and recommended option.
+
+The Axiom query language is a full replacement for XML-based language.
+The XML-based language will be still supported for some time, but it will be dropped eventually.
+Users of XML-based query language should migrate to Axiom query language as soon as possible.
 
 == See Also
 

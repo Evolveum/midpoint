@@ -4,9 +4,24 @@
 :page-nav-title: Usage
 :page-since: "4.4"
 
+== Overview
+
+To use midPoint with Native PostgreSQL repository you need to:
+
+. Get the midPoint distribution and install it as described xref:/midpoint/install/distribution/[here];
+you can stop after unpacking the archive and setting up `MIDPOINT_HOME` environment variable.
+. Install and set up the PostgreSQL database - this is the part covered by the bulk of this document.
+. Prepare `config.xml` to configure midPoint for the Native repository.
+Read xref:/midpoint/reference/repository/configuration/[Repository Configuration] for more information,
+including a complete example of `config.xml` for Native repository.
+. Finally, you can run midPoint; this is described in the rest of the xref:/midpoint/install/distribution/[installation document] mentioned in the first step.
+
 == Database setup
 
-=== Installation
+PostgreSQL versions 13 and newer are supported.
+We always recommend using the latest stable version, which as of writing this document is 14.x.
+
+=== Installation and configuration
 
 This guide does not cover the installation process as there are many possible combinations.
 To install PG 13 on Ubuntu 20.04 one can use https://gist.github.com/luizomf/1a7994cf4263e10dce416a75b9180f01[these steps] for an inspiration.
@@ -16,7 +31,7 @@ which is typical for production setup.
 
 The short checklist:
 
-* Install PostgreSQL 13 on your OS or server or VM.
+* Install PostgreSQL 14 on your OS or server or VM.
 * Setup `listen_addresses = '*'` in `postgresql.conf`.
 * While in `postgresql.conf` it's also good to add statements statistics extension and query logging
 for better visibility (the latter may not be a good option for production and small disks).
@@ -25,7 +40,9 @@ See the snippet lower.
 connect to the database remotely.
 * Restart PostgreSQL.
 
-In short, this can all be added to the end `postgresql.conf` (then restart the server):
+==== postgresql.conf
+
+In short, this can all be added to the end `postgresql.conf`:
 
 ----
 listen_addresses = '*'
@@ -33,26 +50,60 @@ listen_addresses = '*'
 # this is necessary for pg_stat_statements extension
 shared_preload_libraries = 'pg_stat_statements'
 
-# this is to log all the queries, just be aware of the free disk space
-log_directory = 'pg_log'
-log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
-log_statement = 'all'
-logging_collector = on
+# To log all queries, uncomment the lines below.
+# Monitor the free disk space afterwards, there is no automatic cleanup!
+#log_directory = 'pg_log'
+#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+#log_statement = 'all'
+#logging_collector = on
 ----
 
 [NOTE]
 Sizing the database server and adjust PostgreSQL configuration parameters is not part
 of this document at this moment - but we plan to add it.
 In the meantime rely on other online resources.
-Be aware that default Postgres server sizing is rather small.
+Be aware that the default Postgres server sizing is rather small.
+You can use a configuration calculator like https://pgtune.leopard.in.ua/[this] to get reasonable
+defaults if you know the DB hardware (use "Mixed type of application" as DB type).
+
+For more information regarding this configuration file read https://www.postgresql.org/docs/current/config-setting.html[this document] from official PostgreSQL documentation.
+
+==== pg_hba.conf
+
+To make things simple, we will allow all connections to the database; password is still required.
+Add the following lines at the end of the `pg_hba.conf` file:
+
+----
+# Allow connections from outside (with password)
+host    all             all             0.0.0.0/0            md5
+----
+
+For more information regarding this configuration file read the https://www.postgresql.org/docs/current/auth-pg-hba-conf.html[official documentation].
+
+==== Restart the server
+
+Any chanes to `postgresql.conf` or `pg_hba.conf` requires PostgreSQL server restart.
+Do so now to apply the configration changes.
 
 === Database preparation
 
-First command is to be executed in `bash` on the server with Postgres, the rest is executed inside `psql`:
+[WARNING]
+Don't use https://www.pgadmin.org/[pgAdmin] for midPoint SQL scripts!
+Explanation is in one of the important blocks below.
 
+Assuming we start in `bash` as a root or sudo capable user, let's first run `psql` as database admin:
+
+[source,bash]
 ----
 sudo -i -u postgres psql
+----
 
+Next we will create a user and a database for midPoint.
+In the following example, we create `midpoint` user as database superuser.
+If you require non-superuser, follow link:#installing-as-non-superuser[this section] instead.
+
+[source,sql]
+----
 CREATE USER midpoint WITH PASSWORD 'password' LOGIN SUPERUSER;
 CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
 ----
@@ -67,6 +118,10 @@ the fastest way to replace any previous schema (obviously, not recommended for p
 * `postgres-new-audit.sql` is the content of audit schema.
 It can be applied on top of the main repository schema or separately to another database.
 If both schemas are to be applied, first apply main repository schema followed by audit schema.
+* `postgres-new-quartz.sql` is the script with tables necessary for midPoint scheduler (using
+http://www.quartz-scheduler.org/[Quartz Schduler]).
+These tables are optional, but it is recommended to create them in case you need them.
+The tables must be created in the main repository schema.
 
 See xref:/midpoint/reference/repository/native-audit[Native PostgreSQL Audit Trail] for details how
 to set it up in a database xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[separate from the main repository].
@@ -80,14 +135,15 @@ set the ID sequence in the new database as described in xref:/midpoint/reference
 We recommend using `psql` for database initialization like this:
 
 ----
-export PGPASSWORD=password
+export PGPASSWORD=password # password for psql, you can skip it and enter it interactively
 # If you want to replace any previous tables in the schema, uncomment this drop too:
-#psql -h localhost midpoint midpoint -c "drop schema public cascade"
-psql -h localhost midpoint midpoint -f postgres-new.sql -f postgres-new-audit.sql
+#psql -h localhost -d midpoint -U midpoint -c "drop schema public cascade"
+psql -h localhost -d midpoint -U midpoint -f postgres-new.sql -f postgres-new-audit.sql -f postgres-new-quartz.sql
 ----
 
 If you want to use different schema name than `public` you have to adjust the initialization commands.
 
+.Prefer psql command
 [IMPORTANT]
 ====
 You can use other client than `psql`, but the client must send the commands to the server separately.
@@ -102,34 +158,23 @@ Alternatively, it seems that wrapping the content of the file with an https://ww
 works, but we still recommend using tools that can execute files properly - that is `psql`.
 ====
 
-If you plan to use https://www.postgresql.org/docs/current/pgstatstatements.html[statement statistics extension]
-(not discussed here), initialize it like this:
-
-----
-psql -h localhost midpoint midpoint -c "create extension pg_stat_statements"
-----
-
-=== Quartz tables
-
+.Quartz tables
+[NOTE]
+====
 Quartz scheduler in midPoint can be configured to use a database with `taskManager/jdbcJobStore`
 option in `config.xml` set to `true`.
 This is also the default if `clustered` is set to `true`.
 See xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
 for further details.
 
-In that case Quartz requires that its tables are ready in the database.
-By default, the same database is used for repository and for Quartz, which can be changed by
-using `jdbcUrl` and other options inside `taskManager` section (see the link above).
+Even if not required, it is best to create these tables in case the scheduler configuration changes later.
+====
 
-Let's simplify things and assume that we need the tables, and the same database is used.
-Connect to the `midpoint` database with `midpoint` user and execute the commands stored in
-`doc/config/sql/native-new/postgres-new-quartz.sql` in the distribution package.
-
-The following commands can be used in the bash on the database VM:
+If you plan to use https://www.postgresql.org/docs/current/pgstatstatements.html[statement statistics extension]
+(not discussed here), initialize it like this:
 
 ----
-wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/native-new/postgres-new-quartz.sql
-psql -h localhost midpoint midpoint -f postgres-new-quartz.sql
+psql -h localhost -d midpoint -U midpoint -c "create extension pg_stat_statements"
 ----
 
 === Installing As Non-Superuser
@@ -190,7 +235,7 @@ $$;
 +
 [source,bash]
 ----
-psql -h localhost -U midpoint midpoint -f doc/config/sql/native-new/postgres-new.sql
+psql -h localhost -d midpoint -U midpoint -f doc/config/sql/native-new/postgres-new.sql
 ----
 +
 There may be errors indicating problems with creating database extensions, caused by the script attempting to execute a privileged operation.
@@ -199,70 +244,17 @@ You can ignore such errors, as the extensions were created by superuser in previ
 . Continue installation process normally, which means executing the audit SQL script `postgres-new-audit.sql`
 and script for Quartz tables `postgres-new-quartz.sql`.
 
+== midPoint Configuration
 
-== Example config.xml
+At this moment the database is prepared and it's time to configure midPoint appropriately.
+This typically preparing proper repository configuration in `config.xml` file.
+Configuration options related to repository as well as an example of `config.xml` file can be found
+in xref:/midpoint/reference/repository/configuration/[Repository Configuration] article.
+The article references this page, but if you finished the steps above in this document, you can focus just on the config options.
 
-One example is the configuration file `config-native.xml` which is included in the distribution under `doc/config`.
-You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
-If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
-
-Another example is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
-
-.Example config.xml for Native repository
-----
-<?xml version="1.0"?>
-<configuration>
-    <midpoint>
-        <webApplication>
-            <importFolder>${midpoint.home}/import</importFolder>
-        </webApplication>
-        <repository>
-            <type>native</type> <1>
-            <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
-            <jdbcUsername>midpoint</jdbcUsername>
-            <jdbcPassword>password</jdbcPassword>
-        </repository>
-        <audit>
-            <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
-            </auditService>
-            <auditService> <2>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
-            </auditService>
-        </audit>
-        <icf>
-            <scanClasspath>true</scanClasspath>
-            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
-        </icf>
-        <keystore>
-            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
-            <keyStorePassword>changeit</keyStorePassword>
-            <encryptionKeyAlias>default</encryptionKeyAlias>
-        </keystore>
-    </midpoint>
-</configuration>
-----
-
-1. The main difference when comparing it to the old repository is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
-Set the value of `type` element to `native` (values `sqale` or `scale` are also supported).
-*Do not* use `sql` which indicates old repo!
-
-2. Native repository comes with native SQL audit, so we need to change the audit factory class in
-`auditServiceFactoryClass` element from old repository value containing
-`...SqlAuditServiceFactory` to `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
-
-With this `config.xml` you can start midPoint as usual.
-Consult xref:/midpoint/reference/repository/configuration/[Repository Configuration] article for more details.
-
-[TIP]
-====
-The setup for the new repo is also available in the `config.xml` automatically generated
-when the midPoint starts for the first time - it's just commented out.
-Stop the midPoint, remove the created H2 database files, adjust the config file and start the midPoint again.
-However, using the provided `config-native.xml` from `doc/config` is probably easier, just rename it properly.
-
-Of course, you still need the installed and prepared PostgreSQL database!
-====
+With the database ready and midPoint configuration file referencing the Native repository,
+you can finally run midPoint, e.g. by running `bin/start.sh`.
+More details on running midPoint are mentioned in the xref:/midpoint/install/distribution/[installation document].
 
 == Versioning and upgrading
 

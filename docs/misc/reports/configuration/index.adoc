@@ -8,19 +8,17 @@
 
 This feature is available only in midPoint 4.4 and later. For configuration before 4.4 please see xref:../configuration-before-4-4/[Report Configuration before midPoint version 4.4].
 
-Native reports are intended to be native reporting mechanism for midPoint. The aim is to use what midPoint provides without the need for Jasper framework. Using Jasper framework was removed in midPoint 4.4. It is recommended to use reports based on midPoint concepts, namely dashboards or objectCollection. Current implementation support exporting reports to CSV and HTML file, other formats such as XSLX are planned to be added later.
+Native reports are intended to be native reporting mechanism for midPoint. The aim is to use what midPoint provides without the need for Jasper framework. Jasper framework was removed in midPoint 4.4. It is recommended to use reports based on midPoint concepts, namely dashboards or objectCollection. Current implementation supports exporting reports to CSV and HTML file, other formats such as XSLX are planned to be added later.
 
-One of the requirements for new Native report was supporting multithreading and bucketing. Now multitreading is supported for all possible kinds of reported objects such as containers, objects and audit records. Bucketing is supported for objects and audit records, because currently bucketing of task  don't support containers.
+One of the requirements for _Native reports_ was supporting multithreading and bucketing. Since 4.4, multithreading is fully supported for all possible kinds of reported objects such as containers, objects and audit records. Bucketing is supported for objects and audit records, because currently bucketing of task  don't support containers.
 
-Every report output is stored in ‚export‘ directory in MidPoint_home. It is possible to send generated reports to mail using notifier handler.
+Every report output is stored in _export_ directory in `midPoint.home`. It is possible to send generated reports via email using notifier handler.
 
-Every report object contains three basic attributes for  behavior, engine and file format.
+Every report object consists of configuration of three basic parts:
 
-Behavior represent direction of report. Midpoint knows two types of behavior. Export is common report like the previous version 4.4, which generated file with reported objects. Import has an opposite  way, file with objects will be on input and Midpoint create object base-on row of file. Import behaviour is now experimental. Default behavior is export.
-
-Engine define object, which will be used for generating of report. We have two choices dashboard and object collection.
-
-And finally, element file format represent format of generated file. Default file format for dashboard engine is HTML and for object collection engine is CSV.
+* `behavior` - represents the direction of the report. There are two possible types of `behavior`, _export_ and _import_. _Export_ behavior represents basic reporting mechanism, where the file with reported objects is generated. This behavior is default and was common also in versions before 4.4. _Import_ behavior can be used in situations, when the objects need to be imported to the midPoint from external file. Supported format is the CSV. Import behavior is experimental.
+* `engine` - defines the reports generation base. There are two supported options, reports based on object collections and reports based on dashboard. Only one can be defined at the same time.
+* `fileFormat` - represents format of the generated report file. Supported formats for now are CSV and HTML. Default format for the dashboard-based reports is HTML and for objecy collection based reports is CSV.
 
 All configuration attributes of report:
 
@@ -36,14 +34,12 @@ All configuration attributes of report:
 
 | _dashboard_
 | *DashboardReportEngineConfigurationType*
-| Configuration for dashboard-based reports.
-Only applicable if reportEngine=dashboard.
+| Configuration for dashboard-based reports. When defined, dashboard engine is used to generate reports.
 
 
 | _objectCollection_
 | *ObjectCollectionReportEngineConfigurationType*
-| Configuration for object collection-based reports.
-Only applicable if reportEngine=collection.
+| Configuration for object collection-based reports. When defined, object collection engine is used to generate report.
 
 
 | _defaultScriptConfiguration_
@@ -88,11 +84,11 @@ Possible _csv_ and _html_.
 
 === HTML
 
-Configuration of html file format doesn't contain any other attributes.
+Configuration for HTML file format doesn't contain any other attributes.
 
 === CSV
 
-Configuration to CSV file contains attributes:
+Configuration for CSV file format contains attributes:
 
 [%autowidth]
 |===
@@ -100,13 +96,13 @@ Configuration to CSV file contains attributes:
 
 | _multivalueDelimiter_
 | *string*
-| Delimiter for multivalue property.
+| Multi-value delimiter.
 | ,
 
 
 | _fieldDelimiter_
 | *string*
-| Delimiter for field of csv file.
+| Field delimiter.
 | ;
 
 
@@ -163,25 +159,25 @@ Possible values is _all, allNonNull, minimal, nonNumeric_ and _none._
 
 *QuoteModeType*
 
-* all - Quotes all fields.
+* `all` - Quotes all fields.
 
-* allNonNull - Quotes all non-null fields.
+* `allNonNull` - Quotes all non-null fields.
 
-* minimal - Quotes fields which contain special characters such as a the field delimiter, quote character or any of the characters in the line separator string.
+* `minimal` - Quotes fields which contain special characters such as the field delimiter, quotes character or any of the characters in the line separator string.
 
-* nonNumeric - Quotes all non-numeric fields.
+* `nonNumeric` - Quotes all non-numeric fields.
 
-* none - Never quotes fields.
+* `none` - Never quotes fields.
 When the delimiter occurs in data, the printer prefixes it with the escape character.
 If the escape character is not set, format validation throws an exception.
 
 == Report engine
 
-Report engine define type of report.
+Report engine is defined with the configuring either `objectCollection` or `dashboard` element in report.
 
 === Collection report
 
-Collection reports generate reports based on Object collection configuration. Collection reports support audit records, containers and objects for example users, roles, organizations and so on. Basic part of configuration for Collection reports are query, columns, parameters, subreports and condition. We look at this on the next slides.
+Collection reports generate reports based on Object collection configuration. Collection reports support audit records, containers and objects, such as users, roles, organizations and so on. Basic part of configuration for Collection reports are query, columns, parameters, sub-reports and condition.
 
 [%autowidth]
 |===
@@ -189,21 +185,21 @@ Collection reports generate reports based on Object collection configuration. Co
 
 | _collection_
 | *CollectionRefSpecificationType*
-| Specification of an explicit or implicit object collection that will be used to select objects in report.
+| Specification of an explicit or implicit object collection that will be used to select objects for report.
 
 
 | _view_
 | *GuiObjectListViewType*
-| Specifies a view of an object collection that is be reported.
+| Specifies a view of an object collection that is reported.
 
 
 | _useOnlyReportView_
 | *boolean*
-| Specifies that during creating of report will be used only view in report without merging with other view.
+| Specifies that during report creation, only view defined in report will be used. No other views defined outside the report will merger or considered.
 
 | _condition_
 | *ExpressionType*
-| Condition for the searched objects. Searched object will be shown if the condition evaluates to true. This condition use only for reports and as last option because of performance.
+| Condition for the searched objects. Generated report will contain only objects satisfying the condition. Condition is used only for generated reports. Use wisely, performance might suffer.
 
 | _parameter_
 | *SearchFilterParameterType*
@@ -215,13 +211,17 @@ Collection reports generate reports based on Object collection configuration. Co
 
 |===
 
-==== Query
+==== Objects to be reported
 
-Now we can take a closer look at the engine Collection object. First important part of collection object report configuration is query for reported objects. Query represent attribute 'collection'.
+Objects to be reported for object collection based reports are defined using `collection` configuration property. There are three possibilities how the `collection` can be defined:
 
-We have three variants at the disposal. We can use reference to existing object collection. We can write filter directly in collection attribute without base collection or we write filter and use reference to existing collection as base collection for filter.
+* using reference to the existing collection,
+* writing filter directly in collection attribute without reference to base collection,
+* combination of previous two options, and so writing filter directly in collection attribute and using reference to existing collection.
 
-.Object collection report with object collection reference
+Following are the examples for what the collection definition might look like.
+
+.Object collection report with object collection reference.
 [source,xml]
 ----
 <report>
@@ -235,7 +235,7 @@ We have three variants at the disposal. We can use reference to existing object 
 </report>
 ----
 
-.Object collection report with filter
+.Object collection report with filter.
 [source,xml]
 ----
 <report>
@@ -254,28 +254,30 @@ We have three variants at the disposal. We can use reference to existing object 
 </report>
 ----
 
-If we use filter with base collection, Midpoint has two filters for report, one from report and one from base collection. Midpoint concat this filters with logical and. On the slide we can see the example: First filter say that we want to see users with membership in Organization Evolveum. Second is for users with role End user. In the result we will see users that concurrently have memberships in organization ‚Evolveum‘ and role 'End user'.
+If `collection` contains reference to existing collection and custom filter, midPoint has two filters for report, one from report and one from base collection. MidPoint makes the conjunction with the filters. Let's have an example where the first filter says that we want to see users with membership in Organization Evolveum. The second filter is for users with role End user. As the result we will see users that have memberships in organization Evolveum and role 'End user' at the same time.
 
 image::collection-query.png[]
 
 ==== Columns
 
-Next part of collection report configuration is columns. Definitions for columns contains attribute _view_. View contains definition for type of reported objects and definition of columns. Configuration of view is used on more places in Midpoint for example in adminGui configuration.
+Columns are defined using `view`. Configuration for `view` can be used at more places in midpoint, such as configuration in `adminGuiConfiguration`. For reports, there might be a view defined in report and view defined in object collection. When the view is defined in both places, merging of these two definitions is performed.
 
-Columns for generated report are merged from two views, view defined in report and view defined in object collection used for generated of report. In example on the slide we can see that view in report has configuration for columns name and email and view in object collection has configuration for columns given and family names. The resulting report will have columns for name, email, given and family names.
+For example, let's have a view defined for report and also view defined for object collection used to generate the report. Report view contains definition for _Name_ and _Email_ column, while view in object collection contains definition for _Given name_ and _Family name_ columns. The report generated based on this configuration will contain columns for _Name_, _Email_, _Given name_ and _Family name_.
 
 image::collection-columns.png[]
 
 Of course when we want to use only view in report it is possible by attribute useOnlyReportView.
 
-We can skip definition of columns, then midPoint use default view for current type of object. MidPoint contains default view for audit records and for native objects, for example UserType, RoleType, OrgType and so on. But when we want to create report of containers, then we have to define columns configuration.
+Defining columns can be skipped when report in meant for audit records or any of the midPoint objects (such as UserType, RoleType, ServiceType,...). If no custom columns are defined for report, midPoint will use default (system defined) view for specific type of object. However, then the report is defined for containers, the columns definition cannot be omitted.
 
 ==== Parameters
 
-When we want run some report, sometimes we need define some information for input for example role, organization, resource, etc.
-For this situation we can define parameter, which user set before running of the report. For example we want report of all user
-who have accounts on concrete resource. We won't create one report for each resource with different filter but use parameter
-which define resource in filter and we set it before run of report.
+There are situation when we want to run report with slightly different settings.
+In such cases, we don't want to define the report for each case separately.
+Rather, we want to have one report definition and run the report with different parameters.
+Imagine that you need to report all users who have account on specific resources.
+In such a case, _resource_ will be a parameter to the report, so we don't need to prepare report definition for each resource.
+The resource parameter will be set before the report is run.
 
 Usage of the parameter is very simple. We just use the name of the parameter in expression of query.
 
@@ -358,7 +360,7 @@ We can use following attributes for parameter:
 
 | _allowedValuesLookupTable_
 | *ObjectReferenceType*
-| Reference of Lookup Table, which define possible values of parameter.
+| Reference of Lookup Table which defines possible values of parameter.
 
 | _allowedValuesExpression_
 | *ExpressionType*
@@ -368,12 +370,17 @@ We can use following attributes for parameter:
 
 ==== Subreports
 
-Subreport defines some object, which we can get from expression. Next we can use this object in column expression,
-so we don't have to search this object in every column expression. For example we need report with accounts(shadows) but we need some columns with attributes from owner of account, so we use subreport where in expression we define search of owner. Next in columns expressions we use owner and we get attributes from it.
-
-Type of subreport is collection, but in this case we know that contains only one value so we directly use it.
+Subreport is defined by expression and can be used in situations when we need to collect additional information for the processed object (row).
+To avoid performing expensive operations (such as search) for each column, there is a possibility to define it once per row and use it later in the column expression as in the example below.
 
 image::collection-subreport.png[]
+
+In the example above, we have the report, where for each shadow (row) we want to search for the owner of the shadow.
+Therefore, the subreport is defined with the expression to look for the shadow owner.
+The result of the expression is stored to the property called `user` and later used in the column expression to pull the desired information.
+In this case, we need to get the e-mail address of the user.
+
+The return from the expression in subreport is represented by the collection.
 
 We can use following attributes for subreport:
 
@@ -399,15 +406,16 @@ We can use following attributes for subreport:
 
 ==== Example of generated report
 
-On screenshot we can see example of generated HTML report of all users in midPoint. I chose HTML format because of better graphic view. Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
+In the picture below we can see example of generated HTML report of all users in midPoint.
+Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
 
 image::collection-example.png[]
 
 === Dashboard Report
 
-Dashboard engine generates reports by dashboard object. Dashboard object can be shown in GUI. Dashboard contains widgets, which showed actual state of midpoint. Documentation for dashboard configuration can be found on xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration].
+Dashboard engine generates reports by dashboard object. Dashboard object can be shown in GUI. Dashboard contains widgets, which showed actual state of midpoint. Documentation for dashboard configuration can be found in xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration].
 
-Dashboards support both actual supported file formats, but there is a difference. CSV contains only table of widget with basic message and status, unlike HTML, which as default showing table for widgets and one table for every widget with objects which meet the condition in widget. We can turn off this default behaviour via attribute _showOnlyWidgetTable_ and show only table of widgets.
+Dashboards support both currently supported file formats, but there is a difference. CSV contains only table of widget with basic message and status, unlike HTML, which as default showing table for widgets and one table for every widget with objects which meet the condition in widget. We can turn off this default behaviour via attribute _showOnlyWidgetTable_ and show only table of widgets.
 
 Following code shows basic configuration of dashboard report.
 
