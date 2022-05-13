@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.search.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -406,6 +407,8 @@ public class SearchFactory {
                 StringUtils.isEmpty(i1.getName()) ? "" : PageBase.createStringResourceStatic(i1.getName()).getString(),
                 StringUtils.isEmpty(i2.getName()) ? "" : PageBase.createStringResourceStatic(i2.getName()).getString()));
 
+        searchConfWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
+
         Search<C> search = new Search<>(searchConfWrapper);
         QName typeQname = WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfigurationWrapper.getTypeClass());
         searchConfigurationWrapper.setAllowToConfigureSearchItems(
@@ -507,7 +510,7 @@ public class SearchFactory {
                 relation.setName(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getLabel()));
                 relation.setHelp(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getHelp()));
             }
-            searchConfigWrapper.getItemsList().add(new RelationSearchItemWrapper(searchConfigWrapper));
+            searchConfigWrapper.getItemsList().add(relation);
         }
 
         if (config.getIndirectConfiguration() != null) {
@@ -583,14 +586,6 @@ public class SearchFactory {
         }
         config.setIndirect(customConfig.isIndirect());
 
-//        if (customConfig.getProjectConfiguration() != null) {
-//            config.setProjectConfiguration(combineCustomUserInterfaceFeatureType(config.getProjectConfiguration(),
-//                    customConfig.getProjectConfiguration()));
-//        }
-//        if (customConfig.getTenantConfiguration() != null) {
-//            config.setTenantConfiguration(combineCustomUserInterfaceFeatureType(config.getTenantConfiguration(),
-//                    customConfig.getTenantConfiguration()));
-//        }
         if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
             if (replaceSearchItems) {
                 config.getItemsList().clear();
@@ -607,22 +602,24 @@ public class SearchFactory {
 
     private static void addOrReplaceSearchItemWrapper(SearchConfigurationWrapper config, AbstractSearchItemWrapper customItem) {
         List<AbstractSearchItemWrapper> items = config.getItemsList();
-        boolean isProcessed = false;
+        boolean execute = false;
         if (customItem instanceof PropertySearchItemWrapper) {
             Iterator<AbstractSearchItemWrapper> itemsIterator = items.iterator();
             while (itemsIterator.hasNext()) {
                 AbstractSearchItemWrapper item = itemsIterator.next();
-                if (!(item instanceof PropertySearchItemWrapper)) {
-                    continue;
+                if (item instanceof PropertySearchItemWrapper &&
+                        ((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
+                    execute = true;
+                } else if (item instanceof AbstractRoleSearchItemWrapper && customItem.getClass().equals(item.getClass())) {
+                    execute = true;
                 }
-                if (((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
+                if (execute) {
                     itemsIterator.remove();
                     items.add(customItem);
-                    isProcessed = true;
                     break;
                 }
             }
-            if (!isProcessed) {
+            if (!execute) {
                 items.add(customItem);
             }
             return;
@@ -632,11 +629,11 @@ public class SearchFactory {
             if (item.getClass().equals(customItem.getClass())) {
                 items.remove(item);
                 items.add(customItem);
-                isProcessed = true;
+                execute = true;
                 break;
             }
         }
-        if (!isProcessed) {
+        if (!execute) {
             items.add(customItem);
         }
     }

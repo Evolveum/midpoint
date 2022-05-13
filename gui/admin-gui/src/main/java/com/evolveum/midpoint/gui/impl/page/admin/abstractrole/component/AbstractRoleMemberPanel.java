@@ -376,8 +376,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
         if (memberPanelStorage == null) { //normally, this should not happen
             return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type), getPageBase());
-//            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
-//                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         }
 
         if (memberPanelStorage.getSearch() != null) {
