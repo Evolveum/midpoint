@@ -1,27 +1,30 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.Validate;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,24 +36,26 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
-@PageDescriptor(urls = { @Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRMATION_PREFIX) }, permitAll = true)
-public class PageRegistrationConfirmation extends PageRegistrationBase {
+@PageDescriptor(urls = {@Url(mountUrl = "/registration/result")}, action = {
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_REGISTRATION_FINISH_URL,
+                label = "PageSelfCredentials.auth.registration.finish.label",
+                description = "PageSelfCredentials.auth.registration.finish.description")})
+public class PageRegistrationFinish extends PageRegistrationBase {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationFinish.class);
 
-    private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
+    private static final String DOT_CLASS = PageRegistrationFinish.class.getName() + ".";
 
     private static final String ID_LABEL_SUCCESS = "successLabel";
     private static final String ID_LABEL_ERROR = "errorLabel";
@@ -66,39 +71,26 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 
     private static final long serialVersionUID = 1L;
 
-    public PageRegistrationConfirmation() {
+    public PageRegistrationFinish() {
         super();
-        init(null);
+        init();
     }
 
-    public PageRegistrationConfirmation(PageParameters params) {
-        super();
-        init(params);
-    }
-
-    private void init(final PageParameters pageParameters) {
-        PageParameters params = pageParameters;
-        if (params == null) {
-            params = getPageParameters();
-        }
+    private void init() {
 
         OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
-        if (params == null) {
-            LOGGER.error("Confirmation link is not valid. No credentials provided in it");
-            String msg = createStringResource("PageSelfRegistration.invalid.registration.link").getString();
-            getSession().error(createStringResource(msg));
-            result.recordFatalError(msg);
-            initLayout(result);
-            return;
-        }
-
-        StringValue userNameValue = params.get(SchemaConstants.USER_ID);
-        Validate.notEmpty(userNameValue.toString());
-        StringValue tokenValue = params.get(SchemaConstants.TOKEN);
-        Validate.notEmpty(tokenValue.toString());
 
         try {
-            UserType user = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (!authentication.isAuthenticated()) {
+                LOGGER.error("Unauthenticated request");
+                String msg = createStringResource("PageSelfRegistration.unauthenticated").getString();
+                getSession().error(createStringResource(msg));
+                result.recordFatalError(msg);
+                initLayout(result);
+                throw new RestartResponseException(PageSelfRegistration.class);
+            }
+            FocusType user = ((MidPointPrincipal)authentication.getPrincipal()).getFocus();
             PrismObject<UserType> administrator = getAdministratorPrivileged(result);
 
             assignDefaultRoles(user.getOid(), administrator, result);
@@ -112,30 +104,9 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 result.computeStatus();
             }
             initLayout(result);
-        } catch (CommonException | AuthenticationException e) {
+        } catch (CommonException|AuthenticationException e) {
             result.computeStatus();
             initLayout(result);
-        }
-    }
-
-    private UserType checkUserCredentials(String username, String nonce, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
-        try {
-            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-            return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username, UserType.class,
-                    nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
-        } catch (AuthenticationException ex) {
-            getSession().error(getString(ex.getMessage()));
-            result.recordFatalError(getString("PageRegistrationConfirmation.message.failedValidUser.fatalError"), ex);
-            LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-            throw ex;
-        } catch (Exception ex) {
-            getSession().error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
-            result.recordFatalError(getString("PageRegistrationConfirmation.message.failedconfirmRegistration.fatalError"), ex);
-            LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
-            throw ex;
-        } finally {
-            result.computeStatusIfUnknown();
         }
     }
 
@@ -156,10 +127,10 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                     .asObjectDelta(userOid);
             runAsChecked(() -> {
                 Task task = createSimpleTask(OPERATION_ASSIGN_DEFAULT_ROLES);
-                WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
+                WebModelServiceUtils.save(delta, result, task, PageRegistrationFinish.this);
                 return null;
             }, administrator);
-        } catch (CommonException | RuntimeException e) {
+        } catch (CommonException|RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.assignDefaultRoles.fatalError"), e);
             throw e;
         } finally {
@@ -175,13 +146,13 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
                 ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object()
                         .createModificationDeleteContainer(UserType.class, userOid,
-                                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+                        ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
                                 nonce);
                 delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
-                WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
+                WebModelServiceUtils.save(delta, result, task, PageRegistrationFinish.this);
                 return null;
             }, administrator);
-        } catch (CommonException | RuntimeException e) {
+        } catch (CommonException|RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.removeNonceAndSetLifecycleState.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove nonce and set lifecycle state", e);
             throw e;
@@ -209,10 +180,10 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 assignRoleDelta = getPrismContext().deltaFactory().object().createModifyDelta(userOid, userDeltas, UserType.class
                 );
                 assignRoleDelta.setPrismContext(getPrismContext());
-                WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
+                WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationFinish.this);
                 return null;
             }, administrator);
-        } catch (CommonException | RuntimeException e) {
+        } catch (CommonException|RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.assignAdditionalRoleIfPresent.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign additional role", e);
             throw e;
@@ -250,6 +221,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                AuthUtil.clearMidpointAuthentication();
                 setResponsePage(PageLogin.class);
             }
         };
@@ -282,4 +254,8 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         // don't create breadcrumb for registration confirmation page
     }
 
+    @Override
+    protected boolean isSideMenuVisible() {
+        return false;
+    }
 }

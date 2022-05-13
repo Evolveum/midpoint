@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.model.IModel;
@@ -175,12 +177,12 @@ public class OpResult implements Serializable, Visitable {
 
     // This method should be called along with getOpResult for root operationResult. However, it might take some time,
     // and there might be situations in which it is not required -- so we opted for calling it explicitly.
-    public void determineObjectsVisibility(PageBase pageBase) {
+    public void determineObjectsVisibility(PageAdminLTE pageBase) {
         determineBackgroundTaskVisibility(pageBase);
         determineCaseVisibility(pageBase);
     }
 
-    private void determineBackgroundTaskVisibility(PageBase pageBase) {
+    private void determineBackgroundTaskVisibility(PageAdminLTE pageBase) {
         if (backgroundTaskOid == null) {
             return;
         }
@@ -205,7 +207,7 @@ public class OpResult implements Serializable, Visitable {
         }
     }
 
-    private void determineCaseVisibility(PageBase pageBase) {
+    private void determineCaseVisibility(PageAdminLTE pageBase) {
         if (getStatus().equals(OperationResultStatus.FATAL_ERROR)) {
             caseVisible = false;
             return;
