@@ -45,7 +45,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
     }
 
     @Override
-    protected void initCustomLayer() {
+    protected void initCustomLayout() {
         List<IdentityProvider> providers = getProviders();
         add(new ListView<IdentityProvider>(ID_PROVIDERS, providers) {
             @Override

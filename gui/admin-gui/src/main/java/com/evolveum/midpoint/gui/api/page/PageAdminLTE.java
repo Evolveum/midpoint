@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -137,6 +138,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private static final String ID_DEBUG_BAR = "debugBar";
     private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_DEBUG_PANEL = "debugPanel";
+
+    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_VERSION = "version";
+    private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
+    private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
@@ -274,6 +280,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         title.setRenderBodyOnly(true);
         add(title);
 
+        addFooter();
         initDebugBarLayout();
     }
 
@@ -292,6 +299,89 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                 return info.getSkin();
             }
         }));
+    }
+
+    private void addFooter() {
+        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
+        add(footerContainer);
+
+        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Deprecated
+            public String getDescribe() {
+                return PageAdminLTE.this.getDescribe();
+            }
+        };
+        version.add(new VisibleBehaviour(() ->
+                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
+        footerContainer.add(version);
+
+        WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
+        copyrightMessage.add(getFooterVisibleBehaviour());
+        footerContainer.add(copyrightMessage);
+
+        Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
+                new IModel<String>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getObject() {
+                        String subscriptionId = getSubscriptionId();
+                        if (StringUtils.isEmpty(subscriptionId)) {
+                            return "";
+                        }
+                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
+                            return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
+                        }
+                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+                            return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+                        }
+                        return "";
+                    }
+                });
+        subscriptionMessage.setOutputMarkupId(true);
+        subscriptionMessage.add(getFooterVisibleBehaviour());
+        footerContainer.add(subscriptionMessage);
+    }
+
+    private VisibleEnableBehaviour getFooterVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isFooterVisible();
+            }
+        };
+    }
+
+    private boolean isFooterVisible() {
+        String subscriptionId = getSubscriptionId();
+        if (StringUtils.isEmpty(subscriptionId)) {
+            return true;
+        }
+        return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+                (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+                        && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+    }
+
+    private String getSubscriptionId() {
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        return info != null ? info.getSubscriptionIdentifier() : null;
+    }
+
+    /**
+     * It's here only because of some IDEs - it's not properly filtering
+     * resources during maven build. "describe" variable is not replaced.
+     *
+     * @return "unknown" instead of "git describe" for current build.
+     */
+    @Deprecated
+    public String getDescribe() {
+        return getString("pageBase.unknownBuildNumber");
     }
 
     private void initDebugBarLayout() {
