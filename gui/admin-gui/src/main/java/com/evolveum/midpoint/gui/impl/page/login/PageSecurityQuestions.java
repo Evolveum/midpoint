@@ -90,7 +90,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     @Override
-    protected void initCustomLayer() {
+    protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override

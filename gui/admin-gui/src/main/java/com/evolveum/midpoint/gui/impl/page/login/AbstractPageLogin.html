@@ -35,6 +35,13 @@
                     <a wicket:id="switchToDefaultSequence" class="text-center"/>
                 </p>
             </div>
+            <div class="card-footer login-footer" wicket:id="footerContainer">
+                <span class="pull-right hidden-xs" wicket:id="version">
+                    <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="midpoint.system.build"/>
+                </span>
+                <span wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copyright" /></span>
+                <div wicket:id="subscriptionMessage"/>
+            </div>
         </div>
     </div>
 </wicket:extend>

@@ -107,7 +107,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
     private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
     private static final String ID_PAGE_TITLE = "pageTitle";
-    private static final String ID_VERSION = "version";
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_CART_BUTTON = "cartButton";
@@ -121,9 +120,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_BC_ICON = "bcIcon";
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
-    private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
-    private static final String ID_FOOTER_CONTAINER = "footerContainer";
-    private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
@@ -437,49 +433,7 @@ public abstract class PageBase extends PageAdminLTE {
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
 
-        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
-        add(footerContainer);
 
-        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Deprecated
-            public String getDescribe() {
-                return PageBase.this.getDescribe();
-            }
-        };
-        version.add(new VisibleBehaviour(() ->
-                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
-        footerContainer.add(version);
-
-        WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
-        copyrightMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(copyrightMessage);
-
-        Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
-                new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        String subscriptionId = getSubscriptionId();
-                        if (StringUtils.isEmpty(subscriptionId)) {
-                            return "";
-                        }
-                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
-                            return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
-                        }
-                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
-                            return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
-                        }
-                        return "";
-                    }
-                });
-        subscriptionMessage.setOutputMarkupId(true);
-        subscriptionMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(subscriptionMessage);
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
@@ -757,17 +711,6 @@ public abstract class PageBase extends PageAdminLTE {
 
     public String createPropertyModelExpression(String... components) {
         return StringUtils.join(components, ".");
-    }
-
-    /**
-     * It's here only because of some IDEs - it's not properly filtering
-     * resources during maven build. "describe" variable is not replaced.
-     *
-     * @return "unknown" instead of "git describe" for current build.
-     */
-    @Deprecated
-    public String getDescribe() {
-        return getString("pageBase.unknownBuildNumber");
     }
 
     // returns to previous page via restart response exception
@@ -1053,32 +996,6 @@ public abstract class PageBase extends PageAdminLTE {
 
     public boolean isLogoLinkEnabled() {
         return true;
-    }
-
-    private String getSubscriptionId() {
-        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-        return info != null ? info.getSubscriptionIdentifier() : null;
-    }
-
-    private VisibleEnableBehaviour getFooterVisibleBehaviour() {
-        return new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isFooterVisible();
-            }
-        };
-    }
-
-    private boolean isFooterVisible() {
-        String subscriptionId = getSubscriptionId();
-        if (StringUtils.isEmpty(subscriptionId)) {
-            return true;
-        }
-        return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
-                (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-                        && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
     }
 
     protected String determineDataLanguage() {
