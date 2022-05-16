@@ -590,10 +590,9 @@ public class ColumnUtils {
                 CaseType parentCase = CaseTypeUtil.getCase(unwrapRowModel(rowModel));
                 return Model.of(parentCase != null ? parentCase.getState() : "");
             }
-
         });
 
-        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
+        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
             private static final long serialVersionUID = 1L;
 
             @Override

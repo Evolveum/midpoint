@@ -47,7 +47,6 @@ public class CountIconPanel extends BasePanel<List<DisplayType>> {
     }
 
     private void initLayout() {
-
         getModelObject().sort((d1, d2) -> {
             if (d1 == null || d1.getIcon() == null || d1.getIcon().getCssClass() == null
                     || d2 == null || d2.getIcon() == null || d2.getIcon().getCssClass() == null) {
@@ -56,7 +55,7 @@ public class CountIconPanel extends BasePanel<List<DisplayType>> {
             return d1.getIcon().getCssClass().compareTo(d2.getIcon().getCssClass());
         });
 
-        ListView<DisplayType> iconsPanel = new ListView<DisplayType>(ID_ICONS, getModel()) {
+        ListView<DisplayType> iconsPanel = new ListView<>(ID_ICONS, getModel()) {
 
             private static final long serialVersionUID = 1L;
 
