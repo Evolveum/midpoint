@@ -19,6 +19,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.SerializationOptions;
+
 import com.google.common.base.Strings;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -233,8 +235,14 @@ public final class RUtil {
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         if (repo instanceof ROperationResultFull) {
             try {
+                // Operation result can contain some "wild" objects within traces (e.g. AuditEventRecord).
+                // Also invalid XML characters may be present here.
+                // So let's be a little bit tolerant here. This is consistent with the new (native) repo implementation.
+                SerializationOptions options = new SerializationOptions()
+                        .serializeUnsupportedTypesAsString(true)
+                        .escapeInvalidCharacters(true);
                 // TODO MID-6303 should this be affected by configured fullObjectFormat?
-                String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
+                String full = prismContext.xmlSerializer().options(options).serializeRealValue(jaxb, itemName);
                 byte[] data = RUtil.getBytesFromSerializedForm(full, true);
                 ((ROperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {

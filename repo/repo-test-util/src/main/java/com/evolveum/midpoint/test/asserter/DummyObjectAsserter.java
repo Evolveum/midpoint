@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -62,6 +63,17 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 
     public DummyObjectAsserter<D,R> assertId(String expected) {
         assertEquals("Wrong id in "+desc(), expected, getDummyObjectAssertExists().getId());
+        return this;
+    }
+
+    public <T> DummyObjectAsserter<D,R> assertBinaryAttribute(String attributeName, byte[] expectedAttributeValue) {
+        Set<byte[]> values = getDummyObjectAssertExists().getAttributeValues(attributeName, byte[].class);
+        if (expectedAttributeValue != null) {
+            assertThat(values).as("values of " + attributeName).hasSize(1);
+            assertThat(values.iterator().next()).containsExactly(expectedAttributeValue);
+        } else {
+            assertThat(values).as("values of " + attributeName).isEmpty();
+        }
         return this;
     }
 
