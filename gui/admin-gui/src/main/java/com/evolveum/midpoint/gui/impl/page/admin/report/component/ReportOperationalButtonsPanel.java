@@ -105,9 +105,9 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         String showPreviewInPopupId = repeatingView.newChildId();
 
         IconType iconType = new IconType();
-        iconType.setCssClass("fa fa-address-card-o");
+        iconType.setCssClass(GuiStyleConstants.ICON_FAR_ADDRESS_CARD);
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon("fa fa-refresh", IconCssStyle.IN_ROW_STYLE)
+                .setBasicIcon("fa fa-sync-alt", IconCssStyle.IN_ROW_STYLE)
                 .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconButton refresh = new AjaxCompositedIconButton(refreshId, iconBuilder.build(),
                 createStringResource("pageCreateCollectionReport.button.refresh")) {
@@ -127,12 +127,12 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
             }
         };
         refresh.add(new VisibleBehaviour(isShowingPreview::getObject));
-        refresh.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        refresh.add(AttributeAppender.append("class", "btn-default"));
         refresh.setOutputMarkupId(true);
         repeatingView.add(refresh);
 
         iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon("fa fa-address-card-o", IconCssStyle.IN_ROW_STYLE);
+                .setBasicIcon(GuiStyleConstants.ICON_FAR_ADDRESS_CARD, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconButton showPreview = new AjaxCompositedIconButton(showPreviewId, iconBuilder.build(),
                 createStringResource("pageCreateCollectionReport.button.showPreview.${}", isShowingPreview)) {
 
@@ -161,14 +161,14 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         };
         showPreview.titleAsLabel(true);
         showPreview.add(new VisibleBehaviour(this::isCollectionReport));
-        showPreview.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        showPreview.add(AttributeAppender.append("class", "btn-default"));
         showPreview.setOutputMarkupId(true);
         repeatingView.add(showPreview);
 
         iconType = new IconType();
         iconType.setCssClass("fa fa-window-maximize");
         iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon("fa fa-address-card-o", IconCssStyle.IN_ROW_STYLE);
+                .setBasicIcon(GuiStyleConstants.ICON_FAR_ADDRESS_CARD, IconCssStyle.IN_ROW_STYLE);
 //                .appendLayerIcon(iconType, IconCssStyle.BOTTOM_RIGHT_STYLE);
         AjaxCompositedIconButton showPreviewInPopup = new AjaxCompositedIconButton(showPreviewInPopupId, iconBuilder.build(),
                 createStringResource("pageCreateCollectionReport.button.showPreviewInPopup")) {
@@ -187,7 +187,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         };
         showPreviewInPopup.titleAsLabel(true);
         showPreviewInPopup.add(new VisibleBehaviour(() -> isCollectionReport() && !isShowingPreview.getObject()));
-        showPreviewInPopup.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        showPreviewInPopup.add(AttributeAppender.append("class", "btn-default"));
         showPreviewInPopup.setOutputMarkupId(true);
         repeatingView.add(showPreviewInPopup);
 
@@ -203,7 +203,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         };
         runReport.titleAsLabel(true);
         runReport.add(new VisibleBehaviour(() -> isEditObject() && !WebComponentUtil.isImportReport(getOriginalReport().asObjectable())));
-        runReport.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        runReport.add(AttributeAppender.append("class", "btn-default"));
         runReport.setOutputMarkupId(true);
         repeatingView.add(runReport);
 
@@ -219,7 +219,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
             }
         };
         importReport.add(new VisibleBehaviour(() -> isEditObject() && WebComponentUtil.isImportReport(getOriginalReport().asObjectable())));
-        importReport.add(AttributeAppender.append("class", "btn-default btn-sm"));
+        importReport.add(AttributeAppender.append("class", "btn-default"));
         importReport.setOutputMarkupId(true);
         repeatingView.add(importReport);
     }

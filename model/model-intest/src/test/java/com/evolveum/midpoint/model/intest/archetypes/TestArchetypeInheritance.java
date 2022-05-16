@@ -68,7 +68,7 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
                     .assertPluralLabel("Reconciliation tasks")
                     .icon()
                         .assertColor("green")
-                        .assertCssClass("fa fa-exchange")
+                        .assertCssClass("fa fa-exchange-alt")
                     .end()
                 .end()
                 .assertItemConstraints(7)

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -592,14 +592,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         testResult.addParam("resourceOid", resourceOid);
         testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        PrismObject<ResourceType> resource;
         try {
-            resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
-        } catch (SchemaException ex) {
+            PrismObject<ResourceType> resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
+            return testResource(resource, task, testResult);
+        } catch (SchemaException | ConfigurationException ex) { // TODO is this ok?
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
-
-        return testResource(resource, task, testResult);
     }
 
     @Override
@@ -611,7 +609,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         OperationResult testResult = createOpResultForTestOfResource(resource);
 
-        return testResource(resource, task, testResult);
+        try {
+            return testResource(resource, task, testResult);
+        } catch (SchemaException | ConfigurationException ex) { // TODO is this ok?
+            throw new IllegalArgumentException(ex.getMessage(), ex);
+        }
     }
 
     private OperationResult createOpResultForTestOfResource(@NotNull PrismObject<ResourceType> resource) {
@@ -624,7 +626,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     private OperationResult testResource(
             @NotNull PrismObject<ResourceType> resource, Task task, OperationResult testResult)
-            throws ObjectNotFoundException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
         Object resourceParam = getResourceParam(resource);
 
         LOGGER.trace("Start testing resource {} ", resourceParam);

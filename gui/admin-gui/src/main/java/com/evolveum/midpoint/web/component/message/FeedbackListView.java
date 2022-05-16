@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -15,12 +16,13 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
-import com.evolveum.midpoint.gui.api.component.result.ValidationErrorPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import java.io.Serializable;
 
 /**
  * @author lazyman
@@ -64,7 +66,31 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
         } else {
 
             message.markRendered();
-            ValidationErrorPanel validationPanel = new ValidationErrorPanel("message", item.getModel()) {
+
+            IModel<MessagePanel.MessagePanelType> type = () -> {
+                FeedbackMessage result = item.getModelObject();
+
+                if (result == null) {
+                    return MessagePanel.MessagePanelType.INFO;
+                }
+
+                switch (result.getLevel()) {
+                    case FeedbackMessage.INFO:
+                    case FeedbackMessage.DEBUG:
+                        return MessagePanel.MessagePanelType.INFO;
+                    case FeedbackMessage.SUCCESS:
+                        return MessagePanel.MessagePanelType.SUCCESS;
+                    case FeedbackMessage.ERROR:
+                    case FeedbackMessage.FATAL:
+                        return MessagePanel.MessagePanelType.ERROR;
+                    case FeedbackMessage.UNDEFINED:
+                    case FeedbackMessage.WARNING:
+                    default:
+                        return MessagePanel.MessagePanelType.WARN;
+                }
+            };
+
+            MessagePanel messagePanel = new MessagePanel("message", type, (IModel<Serializable>) () -> item.getModelObject().getMessage()) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -73,11 +99,9 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                     super.close(target);
                     message.markRendered();
                 }
-
             };
-            validationPanel.setOutputMarkupId(true);
-            item.add(validationPanel);
-
+            messagePanel.setOutputMarkupId(true);
+            item.add(messagePanel);
         }
     }
 }

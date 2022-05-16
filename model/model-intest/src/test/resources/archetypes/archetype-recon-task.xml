@@ -15,7 +15,7 @@
             <label>Reconciliation task</label>
             <pluralLabel>Reconciliation tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-exchange</cssClass>
+                <cssClass>fa fa-exchange-alt</cssClass>
             </icon>
         </display>
         <itemConstraint>

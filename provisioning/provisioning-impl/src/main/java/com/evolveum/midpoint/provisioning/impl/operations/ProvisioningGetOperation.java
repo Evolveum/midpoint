@@ -45,9 +45,8 @@ public class ProvisioningGetOperation<T extends ObjectType> {
     @NotNull private final OperationsHelper operationsHelper;
 
     /**
-     * See the comment in error handling code in {@link ProvisioningServiceImpl#getObject(java.lang.Class, java.lang.String,
-     * java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)}
-     * where this flag is used.
+     * See the comment in error handling code in {@link ProvisioningServiceImpl#getObject(Class, String, Collection,
+     * Task, OperationResult)} where this flag is used.
      */
     private boolean exceptionRecorded;
 

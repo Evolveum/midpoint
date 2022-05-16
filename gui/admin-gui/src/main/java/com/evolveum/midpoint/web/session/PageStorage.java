@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 /**

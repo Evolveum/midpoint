@@ -12,14 +12,17 @@
     <div class="row">
         <div class="col-md-6">
             <h3><wicket:message key="PageInternals.title.threads"/></h3>
-            <textarea wicket:id="result"></textarea>
-            <p/>
+            <wicket:enclosure child="result">
+                <div class="form-group">
+                    <textarea class="border" wicket:id="result"></textarea>
+                </div>
+            </wicket:enclosure>
             <div class="main-button-bar">
                 <a class="btn btn-primary" wicket:id="showAllThreads"/>
                 <a class="btn btn-primary" wicket:id="showTasksThreads"/>
                 <a class="btn btn-primary" wicket:id="recordTasksThreads"/>
-                <a class="btn btn-margin-left btn-danger" wicket:id="deactivateServiceThreads"/>
-                <a class="btn btn-margin-left btn-success" wicket:id="reactivateServiceThreads"/>
+                <a class="mx-2 btn btn-danger" wicket:id="deactivateServiceThreads"/>
+                <a class="btn btn-success" wicket:id="reactivateServiceThreads"/>
             </div>
         </div>
     </div>

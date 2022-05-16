@@ -77,7 +77,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardParent.add(new AttributeAppender("class", " " + boxCssClasses));
 
         WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
-        iconI.add(AttributeModifier.replace("class", icon));
+        iconI.add(AttributeModifier.append("class", icon));
         dashboardTitle.add(iconI);
     }
 
@@ -95,7 +95,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardParent.add(dashboardContent);
 
         if (noPadding) {
-            dashboardContent.add(AttributeAppender.append("class", "no-padding"));
+            dashboardContent.add(AttributeAppender.append("class", "p-0"));
         }
 
         dashboardContent.add(new Label(ID_CONTENT));

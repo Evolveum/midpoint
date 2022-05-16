@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,18 +8,19 @@ package com.evolveum.midpoint.repo.sqale.qmodel.accesscert;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.mapping.RefTableTargetResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -39,7 +40,7 @@ public class QAccessCertificationWorkItemReferenceMapping
         if (needsInitialization(instanceAssignee, repositoryContext)) {
             instanceAssignee = new QAccessCertificationWorkItemReferenceMapping(
                     "m_access_cert_wi_assignee", "acwirefa", repositoryContext,
-                    new RefTableTargetResolver<>(QUserMapping::getUserMapping));
+                    QUserMapping::getUserMapping);
         }
         return getForCaseWorkItemAssignee();
     }
@@ -53,7 +54,7 @@ public class QAccessCertificationWorkItemReferenceMapping
         if (needsInitialization(instanceCandidate, repositoryContext)) {
             instanceCandidate = new QAccessCertificationWorkItemReferenceMapping(
                     "m_access_cert_wi_candidate", "acwirefc", repositoryContext,
-                    new RefTableTargetResolver<>(QFocusMapping::getFocusMapping));
+                    QFocusMapping::getFocusMapping);
         }
         return getForCaseWorkItemCandidate();
     }
@@ -66,9 +67,9 @@ public class QAccessCertificationWorkItemReferenceMapping
             String tableName,
             String defaultAliasName,
             @NotNull SqaleRepoContext repositoryContext,
-            RefTableTargetResolver<QAccessCertificationWorkItemReference, MAccessCertificationWorkItemReference, TQ, TR> targetResolver) {
+            @NotNull Supplier<QueryTableMapping<?, TQ, TR>> targetMappingSupplier) {
         super(tableName, defaultAliasName, QAccessCertificationWorkItemReference.class,
-                repositoryContext, targetResolver);
+                repositoryContext, targetMappingSupplier);
 
         // workItemCid probably can't be mapped directly
     }

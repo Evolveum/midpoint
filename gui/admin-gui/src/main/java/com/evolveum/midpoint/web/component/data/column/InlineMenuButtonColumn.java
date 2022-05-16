@@ -47,7 +47,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     private static final long serialVersionUID = 1L;
 
-    protected List<InlineMenuItem> menuItems = new ArrayList<>();
+    protected List<InlineMenuItem> menuItems;
 
     private PageBase pageBase;
 
@@ -125,7 +125,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                     }
                 };
 
-                btn.add(AttributeAppender.append("class", " btn btn-default btn-xs"));
+                btn.add(AttributeAppender.append("class", "btn btn-default btn-xs"));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
 
                 return btn;

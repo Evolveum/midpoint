@@ -14,14 +14,24 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
-
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -75,6 +85,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class LeftMenuPanel extends BasePanel<Void> {
 
     private static final String ID_MENU = "menu";
+    private static final String ID_LOGO = "logo";
+    private static final String ID_CUSTOM_LOGO = "customLogo";
+    private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
+    private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
+
     private static final Trace LOGGER = TraceManager.getTrace(LeftMenuPanel.class);
 
     private static final String DOT_CLASS = LeftMenuPanel.class.getName() + ".";
@@ -153,8 +168,102 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void initLayout() {
+        AjaxLink<String> logo = new AjaxLink<>(ID_LOGO) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                Class<? extends Page> page = MidPointApplication.get().getHomePage();
+                setResponsePage(page);
+            }
+        };
+        logo.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !isCustomLogoVisible();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return getPageBase().isLogoLinkEnabled();
+            }
+        });
+        add(logo);
+
+        AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO may be this should lead to customerUrl ?
+                Class<? extends Page> page = MidPointApplication.get().getHomePage();
+                setResponsePage(page);
+            }
+        };
+        customLogo.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isCustomLogoVisible();
+            }
+        });
+        add(customLogo);
+
+        IModel<IconType> logoModel = new IModel<>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IconType getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                return info != null ? info.getLogo() : null;
+            }
+        };
+
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC) {
+
+            @Override
+            protected void buildSrcAttribute(ComponentTag tag, IModel<?> srcModel) {
+                tag.put("src", WebComponentUtil.getIconUrlModel(logoModel.getObject()).getObject());
+            }
+        };
+        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
+        customLogo.add(customLogoImgSrc);
+
+        WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
+        customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
+        customLogoImgCss.add(new AttributeAppender("class", new IModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return logoModel.getObject() != null ? logoModel.getObject().getCssClass() : null;
+            }
+        }));
+        customLogo.add(customLogoImgCss);
+
+        logo.add(PageBase.createHeaderColorStyleModel(false));
+        customLogo.add(PageBase.createHeaderColorStyleModel(false));
+
         SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_MENU, sideBarMenuModel);
         add(sidebarMenu);
+    }
+
+    private boolean isCustomLogoVisible() {
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info == null || info.getLogo() == null) {
+            return false;
+        }
+
+        IconType logo = info.getLogo();
+        return StringUtils.isNotEmpty(logo.getImageUrl()) || StringUtils.isNotEmpty(logo.getCssClass());
     }
 
     protected List<SideBarMenuItem> createMenuItems() {
@@ -542,7 +651,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createRepositoryObjectsMenu() {
-        MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-text");
+        MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-alt");
         repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class));
         boolean editActive = classMatches(PageDebugView.class);
         if (editActive) {

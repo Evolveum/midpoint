@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -87,15 +88,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         };
         labelShowEmpty.setOutputMarkupId(true);
         labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
-        labelShowEmpty.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isShowMoreButtonVisible(nonContainerWrappers);
-            }
-        });
+        labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
         propertiesLabel.add(labelShowEmpty);
     }
 
@@ -135,17 +128,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
-            item.add(new VisibleEnableBehaviour() {
-                @Override
-                public boolean isVisible() {
-                    return itemWrapper.isVisible(getModelObject(), getVisibilityHandler());
-                }
-
-//                @Override
-//                public boolean isEnabled() {
-//                    return !itemWrapper.isReadOnly();
-//                }
-            });
+            item.add(new VisibleBehaviour(() -> itemWrapper.isVisible(getModelObject(), getVisibilityHandler())));
             item.add(panel);
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
@@ -162,6 +145,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         try {
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
+//            panel.add(AttributeAppender.replace("class", "w-100"));
             panel.setOutputMarkupId(true);
             container.add(new VisibleEnableBehaviour() {
                 @Override
@@ -187,11 +171,9 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     private void onShowEmptyClick(AjaxRequestTarget target) {
-
         CVW wrapper = getModelObject();
         wrapper.setShowEmpty(!wrapper.isShowEmpty());
         target.add(DefaultContainerablePanel.this);
-
     }
 
     private ItemPanelSettings getSettings() {

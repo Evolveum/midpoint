@@ -3443,8 +3443,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 null, result))
                 .isInstanceOf(ObjectNotFoundException.class);
 
-        then("operation is not fatal error (nothing happens really)");
-        assertThatOperationResult(result).isSuccess();
+        and("operation result is handled error");
+        assertThatOperationResult(result).isHandledError();
     }
 
     // endregion

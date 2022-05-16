@@ -207,7 +207,7 @@
                         </expression>
                     </outbound>
                        <caching>
-                        <cachingStategy>passive</cachingStategy>
+                        <cachingStrategy>passive</cachingStrategy>
                     </caching>
                 </password>
             </credentials>

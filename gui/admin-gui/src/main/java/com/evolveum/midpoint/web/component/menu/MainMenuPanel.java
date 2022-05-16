@@ -96,10 +96,11 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         item.add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), MainMenuItem.F_ICON_CLASS)));
+        icon.add(AttributeModifier.append("class", new PropertyModel<>(getModel(), MainMenuItem.F_ICON_CLASS)));
         link.add(icon);
 
         Label label = new Label(ID_LABEL, new StringResourceModel("${nameModel}", getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel")));
+        label.setRenderBodyOnly(true);
         link.add(label);
 
         final PropertyModel<String> bubbleModel = new PropertyModel<>(getModel(), MainMenuItem.F_BUBBLE_LABEL);

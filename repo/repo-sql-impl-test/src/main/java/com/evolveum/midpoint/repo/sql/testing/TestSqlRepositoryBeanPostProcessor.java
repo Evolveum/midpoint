@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.testing;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;

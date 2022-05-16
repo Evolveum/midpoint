@@ -54,8 +54,8 @@ if "%MIDPOINT_PORT%" NEQ "8080" (
 
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
-if not exist "%LIB_DIR%\midpoint.war" (
-    echo Error: The midpoint.war is not in the lib directory
+if not exist "%LIB_DIR%\midpoint.jar" (
+    echo Error: The midpoint.jar is not in the lib directory
     goto end
 )
 
@@ -79,7 +79,7 @@ echo.
 echo Starting midPoint.
 start /b "midPoint" "%RUN_JAVA%"^
  %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%"^
- -jar "%LIB_DIR%\midpoint.war" %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
+ -jar "%LIB_DIR%\midpoint.jar" %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop

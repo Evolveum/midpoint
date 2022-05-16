@@ -26,6 +26,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.CapabilityUtil;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.DirectoryException;
@@ -78,7 +82,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
- * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.
+ * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test across all subsystems.
  *
  * @author Katarina Valalikova
  */
@@ -2369,7 +2373,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     /**
-     * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
+     * Adding a user (chuck) that has an OpenDJ assignment. But the equivalent account already exists on
      * OpenDJ and there is also corresponding shadow in the repo. The account should be linked.
      */
     @Test
@@ -2396,12 +2400,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         result.computeStatus();
 //        assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
 
-        PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_CHUCK_OID, null, task, result);
-        display("User morgan after", userMorgan);
-        UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
-        String accountOid = accountRefType.getOid();
+        PrismObject<UserType> userChuck = modelService.getObject(UserType.class, USER_CHUCK_OID, null, task, result);
+        display("User chuck after", userChuck);
+        UserType userChuckBean = userChuck.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userChuckBean.getLinkRef().size());
+        ObjectReferenceType accountRef = userChuckBean.getLinkRef().get(0);
+        String accountOid = accountRef.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         assertEquals("old oid not used..", accOid, accountOid);
 
@@ -3107,12 +3111,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             // This is generated on the fly in provisioning
             assertNotNull("Resource from " + source + " has null native capabilities",
                     resource.getCapabilities().getNative());
-            assertFalse("Resource from " + source + " has empty native capabilities", resource
-                    .getCapabilities().getNative().getAny().isEmpty());
+            assertFalse("Resource from " + source + " has empty native capabilities",
+                    CapabilityUtil.isEmpty(resource.getCapabilities().getNative()));
         }
-        assertNotNull("Resource from " + source + " has null configured capabilities", resource.getCapabilities().getConfigured());
-        assertFalse("Resource from " + source + " has empty configured capabilities", resource.getCapabilities().getConfigured()
-                .getAny().isEmpty());
+        CapabilityCollectionType configured = resource.getCapabilities().getConfigured();
+        assertNotNull("Resource from " + source + " has null configured capabilities", configured);
+        assertFalse("Resource from " + source + " has empty configured capabilities", CapabilityUtil.isEmpty(configured));
         assertNotNull("Resource from " + source + " has null synchronization", resource.getSynchronization());
         checkOpenDjConfiguration(resource.asPrismObject(), source);
     }
@@ -3125,7 +3129,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertFalse("No account identifiers (resource from " + source + ")", identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
-        ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(resource,
+        ActivationCapabilityType capActivation = ResourceTypeUtil.getEnabledCapability(resource,
                 ActivationCapabilityType.class);
         if (capActivation != null && capActivation.getStatus() != null && capActivation.getStatus().getAttribute() != null) {
             // There is simulated activation capability, check if the attribute is in schema.

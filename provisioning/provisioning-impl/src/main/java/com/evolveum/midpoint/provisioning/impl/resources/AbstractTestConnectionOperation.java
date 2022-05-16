@@ -12,11 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -66,8 +67,8 @@ abstract class AbstractTestConnectionOperation {
 
         List<ConnectorSpec> allConnectorSpecs;
         try {
-            allConnectorSpecs = beans.resourceManager.getAllConnectorSpecs(resource);
-        } catch (SchemaException e) {
+            allConnectorSpecs = beans.resourceManager.connectorSelector.getAllConnectorSpecs(resource);
+        } catch (SchemaException | ConfigurationException e) {
             if (LOGGER.isTraceEnabled()) {
                 // TODO why logging at error level only if trace is enabled?
                 LOGGER.error("Configuration error: {}", e.getMessage(), e);
@@ -77,7 +78,7 @@ abstract class AbstractTestConnectionOperation {
             return;
         }
 
-        Map<String, Collection<Object>> capabilityMap = new HashMap<>();
+        Map<String, CapabilityCollectionType> capabilityMap = new HashMap<>();
         for (ConnectorSpec connectorSpec : allConnectorSpecs) {
 
             OperationResult connectorTestResult = createSubresultForTest(connectorSpec, result);
@@ -100,7 +101,8 @@ abstract class AbstractTestConnectionOperation {
         ResourceSchema rawSchema;
         try {
 
-            rawSchema = beans.resourceManager.fetchResourceSchema(resource, capabilityMap, schemaResult);
+            rawSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
+                    resource, NativeConnectorsCapabilities.of(capabilityMap), schemaResult);
 
         } catch (CommunicationException e) {
             String statusChangeReason = operationDesc + " failed while fetching schema: " + e.getMessage();
@@ -186,7 +188,7 @@ abstract class AbstractTestConnectionOperation {
         schemaResult.recordSuccess();
 
         try {
-            beans.resourceManager.updateResourceSchema(allConnectorSpecs, result, completedResource);
+            updateResourceSchema(completedResource, allConnectorSpecs, result);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
                 RuntimeException e) {
             String statusChangeReason = operationDesc + " failed while updating resource schema: " + e.getMessage();
@@ -199,10 +201,31 @@ abstract class AbstractTestConnectionOperation {
         // TODO: connector sanity (e.g. refined schema, at least one account type, identifiers in schema, etc.)
     }
 
+    private void updateResourceSchema(
+            PrismObject<ResourceType> resource, List<ConnectorSpec> allConnectorSpecs, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        if (resourceSchema != null) {
+            for (ConnectorSpec connectorSpec : allConnectorSpecs) {
+                ConnectorInstance instance = beans.connectorManager.getConfiguredConnectorInstance(
+                        connectorSpec, false, result);
+                instance.updateSchema(resourceSchema);
+            }
+        }
+    }
+
     private PrismObject<ResourceType> completeResource(
-            ResourceSchema rawSchema, Map<String, Collection<Object>> capabilityMap, OperationResult schemaResult) throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
+            ResourceSchema rawSchema, Map<String, CapabilityCollectionType> capabilityMap, OperationResult schemaResult) throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
         PrismObject<ResourceType> resourceToComplete = getResourceToComplete(schemaResult);
-        return new ResourceCompletionOperation(resourceToComplete, null, rawSchema, true, capabilityMap, task, beans)
+        return new ResourceCompletionOperation(
+                resourceToComplete,
+                null,
+                rawSchema,
+                true,
+                NativeConnectorsCapabilities.of(capabilityMap),
+                true,
+                task,
+                beans)
                 .execute(schemaResult);
     }
 
@@ -227,7 +250,7 @@ abstract class AbstractTestConnectionOperation {
 
     protected void testConnector(
             ConnectorSpec connectorSpec,
-            Map<String, Collection<Object>> capabilityMap,
+            Map<String, CapabilityCollectionType> capabilityMap,
             OperationResult parentResult) throws ObjectNotFoundException {
 
         // === test INITIALIZATION ===
@@ -277,7 +300,11 @@ abstract class AbstractTestConnectionOperation {
             PrismObject<ResourceType> resource = connectorSpec.getResource();
             PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
             beans.resourceManager.applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, configResult);
-            PrismContainerValue<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration().getValue();
+            PrismContainer<ConnectorConfigurationType> connectorConfigurationContainer = connectorSpec.getConnectorConfiguration();
+            PrismContainerValue<ConnectorConfigurationType> connectorConfiguration =
+                    connectorConfigurationContainer != null ?
+                            connectorConfigurationContainer.getValue() :
+                            PrismContext.get().itemFactory().createContainerValue(); // TODO or should UCF accept null config PCV?
 
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 
@@ -295,7 +322,8 @@ abstract class AbstractTestConnectionOperation {
             //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
             //
             ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
-            Collection<Object> previousCapabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+            CapabilityCollectionType previousCapabilities =
+                    ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
             connector.initialize(previousResourceSchema, previousCapabilities,
                     ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
 
@@ -367,7 +395,7 @@ abstract class AbstractTestConnectionOperation {
                     .createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
             try {
                 InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-                Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
+                CapabilityCollectionType retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
 
                 capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
                 capabilitiesResult.recordSuccess();

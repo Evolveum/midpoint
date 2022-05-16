@@ -786,7 +786,7 @@
 
         <!-- A whole bunch of configured capabilities. This are pretty much the same as native capabilities.
              We just want to make sure that this explicit configuration works as well. MID-5798 -->
-        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:CapabilityCollectionType">
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="cap:CapabilityCollectionType">
             <cap:liveSync>
                 <cap:enabled>true</cap:enabled>
             </cap:liveSync>

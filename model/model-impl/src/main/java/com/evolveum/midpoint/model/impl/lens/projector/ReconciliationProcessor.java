@@ -50,7 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingAndDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -343,16 +342,13 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         PropertyLimitations limitations = attributeDefinition.getLimitations(LayerType.MODEL);
         if (limitations != null) {
-            PropertyAccessType access = limitations.getAccess();
-            if (access != null) {
-                if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
-                    LOGGER.trace("Skipping reconciliation of attribute {} because it is non-createable", attrName);
-                    return;
-                }
-                if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
-                    LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable", attrName);
-                    return;
-                }
+            if (projCtx.isAdd() && !limitations.canAdd()) {
+                LOGGER.trace("Skipping reconciliation of attribute {} because it is non-createable", attrName);
+                return;
+            }
+            if (projCtx.isModify() && !limitations.canModify()) {
+                LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable", attrName);
+                return;
             }
         }
 

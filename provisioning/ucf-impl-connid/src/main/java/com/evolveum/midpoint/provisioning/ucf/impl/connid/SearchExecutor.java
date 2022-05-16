@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.google.common.base.MoreObjects;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.Filter;

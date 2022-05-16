@@ -325,7 +325,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
     }
 
     private boolean getEvaluateWeak(LensProjectionContext projCtx) {
-        CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
+        CredentialsCapabilityType credentialsCapabilityType =
+                ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class);
         if (CapabilityUtil.isPasswordReadable(credentialsCapabilityType)) {
             return true;
         }

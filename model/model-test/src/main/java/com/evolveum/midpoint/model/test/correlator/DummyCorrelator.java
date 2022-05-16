@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.test.correlator;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -36,5 +38,13 @@ class DummyCorrelator implements Correlator {
         return CorrelationResult.uncertain(
                 new ResourceObjectOwnerOptionsType(),
                 List.of());
+    }
+
+    @Override
+    public boolean checkCandidateOwner(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) {
+        return false;
     }
 }

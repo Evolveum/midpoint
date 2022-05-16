@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;

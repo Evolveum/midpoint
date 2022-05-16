@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,7 +149,7 @@ public class ProvisioningUtil {
 
         // Password
         CredentialsCapabilityType credentialsCapability =
-                ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+                ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
         if (credentialsCapability != null) {
             if (ctx.isFetchingNotDisabled(SchemaConstants.PATH_PASSWORD_VALUE)) {
                 attributesToReturn.setReturnPasswordExplicit(true);
@@ -167,8 +167,8 @@ public class ProvisioningUtil {
         }
 
         // Activation
-        ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-                ActivationCapabilityType.class);
+        ActivationCapabilityType activationCapability =
+                ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
         if (activationCapability != null) {
             if (CapabilityUtil.isCapabilityEnabled(activationCapability.getStatus())) {
                 if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)) {
@@ -397,8 +397,8 @@ public class ProvisioningUtil {
     }
 
     public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,
-            CachingStategyType cachingStrategy) throws ConfigurationException {
-        if (cachingStrategy == null || cachingStrategy == CachingStategyType.NONE) {
+            CachingStrategyType cachingStrategy) throws ConfigurationException {
+        if (cachingStrategy == null || cachingStrategy == CachingStrategyType.NONE) {
             if (objectDefinition.isPrimaryIdentifier(attributeName) || objectDefinition.isSecondaryIdentifier(attributeName)) {
                 return true;
             }
@@ -412,7 +412,7 @@ public class ProvisioningUtil {
             }
             return false;
 
-        } else if (cachingStrategy == CachingStategyType.PASSIVE) {
+        } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
             return objectDefinition.findAttributeDefinition(attributeName) != null;
 
         } else {
@@ -420,8 +420,8 @@ public class ProvisioningUtil {
         }
     }
 
-    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStategyType cachingStrategy) {    // MID-2585
-        if (cachingStrategy == CachingStategyType.PASSIVE) {
+    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {    // MID-2585
+        if (cachingStrategy == CachingStrategyType.PASSIVE) {
             return true;
         } else {
             return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
@@ -579,22 +579,21 @@ public class ProvisioningUtil {
         }
     }
 
-    public static CachingStategyType getCachingStrategy(ProvisioningContext ctx)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static CachingStrategyType getCachingStrategy(ProvisioningContext ctx) {
         ResourceType resource = ctx.getResource();
         CachingPolicyType caching = resource.getCaching();
-        if (caching == null || caching.getCachingStategy() == null) {
-            ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+        if (caching == null || caching.getCachingStrategy() == null) {
+            ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
             if (readCapabilityType == null) {
-                return CachingStategyType.NONE;
+                return CachingStrategyType.NONE;
             }
             Boolean cachingOnly = readCapabilityType.isCachingOnly();
             if (cachingOnly == Boolean.TRUE) {
-                return CachingStategyType.PASSIVE;
+                return CachingStrategyType.PASSIVE;
             }
-            return CachingStategyType.NONE;
+            return CachingStrategyType.NONE;
         }
-        return caching.getCachingStategy();
+        return caching.getCachingStrategy();
     }
 
     public static boolean isResourceModification(ItemDelta modification) {
@@ -622,7 +621,7 @@ public class ProvisioningUtil {
     }
 
     public static boolean resourceReadIsCachingOnly(ResourceType resource) {
-        ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+        ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
         if (readCapabilityType == null) {
             return false;        // TODO reconsider this
         }
@@ -719,20 +718,6 @@ public class ProvisioningUtil {
     private static boolean isPendingDeleteOperation(PendingOperationType pendingOperation) {
         return pendingOperation.getDelta().getChangeType() == ChangeTypeType.DELETE
                 && pendingOperation.getExecutionStatus() != COMPLETED;
-    }
-
-    /**
-     * Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
-     */
-    public static boolean isPrimaryCachingOnly(ResourceType resource) {
-        ReadCapabilityType readCapabilityType = CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), ReadCapabilityType.class);
-        if (readCapabilityType == null) {
-            return false;
-        }
-        if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
-            return false;
-        }
-        return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
     }
 
     public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -870,7 +855,7 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
-    public static CachingStategyType getPasswordCachingStrategy(ResourceObjectDefinition objectDefinition) {
+    public static CachingStrategyType getPasswordCachingStrategy(ResourceObjectDefinition objectDefinition) {
         ResourcePasswordDefinitionType passwordDefinition = objectDefinition.getPasswordDefinition();
         if (passwordDefinition == null) {
             return null;
@@ -879,7 +864,7 @@ public class ProvisioningUtil {
         if (passwordCachingPolicy == null) {
             return null;
         }
-        return passwordCachingPolicy.getCachingStategy();
+        return passwordCachingPolicy.getCachingStrategy();
     }
 
     // TODO better place?

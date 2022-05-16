@@ -9,12 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.*;
-
-import com.evolveum.midpoint.web.page.admin.roles.IndirectSearchItem;
-
-import com.evolveum.midpoint.web.page.admin.roles.ScopeSearchItem;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -43,6 +37,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
@@ -80,6 +76,9 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
@@ -376,24 +375,67 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
         if (memberPanelStorage == null) { //normally, this should not happen
-            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
-                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
+            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type), getPageBase());
+//            return SearchFactory.createSearch(new ContainerTypeSearchItem<>(type), null, null,
+//                    null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         }
 
         if (memberPanelStorage.getSearch() != null) {
             return memberPanelStorage.getSearch();
         }
 
-        SearchBoxConfigurationHelper searchBoxConfig = getSearchBoxConfiguration();
-        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(searchBoxConfig), null, null,
-                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
-        search.addCompositedSpecialItem(createMemberSearchPanel(search, searchBoxConfig));
+        return SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(), getPageBase());
+//        SearchBoxConfigurationHelper searchBoxConfig = getSearchBoxConfiguration();
+//        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(searchBoxConfig), null, null,
+//                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
+//        search.addCompositedSpecialItem(createMemberSearchPanel(search, searchBoxConfig));
+//
+//        if (additionalPanelConfig != null){
+//            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
+//        }
+//        memberPanelStorage.setSearch(search);
+//        return search;
+    }
 
-        if (additionalPanelConfig != null){
-            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
+    private SearchConfigurationWrapper createSearchConfigWrapper() {
+        SearchBoxConfigurationType searchConfig = getAdditionalPanelConfig();
+        if (searchConfig == null) {
+            searchConfig = new SearchBoxConfigurationType();
         }
-        memberPanelStorage.setSearch(search);
-        return search;
+        if (searchConfig.getObjectTypeConfiguration() == null) {
+            ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
+            objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
+            objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+            searchConfig.setObjectTypeConfiguration(objTypeConfig);
+        }
+
+        if (searchConfig.getRelationConfiguration() == null) {
+            RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
+            relationConfig.getSupportedRelations().addAll(getSupportedRelations());
+            searchConfig.setRelationConfiguration(relationConfig);
+        }
+
+        SearchBoxConfigurationHelper searchBoxCofig = getSearchBoxConfiguration();
+        if (searchConfig.getIndirectConfiguration() == null) {
+            searchConfig.setIndirectConfiguration(searchBoxCofig.getDefaultIndirectConfiguration());
+        }
+
+        if (searchConfig.getScopeConfiguration() == null && isOrg()) {
+            searchConfig.setScopeConfiguration(searchBoxCofig.getDefaultSearchScopeConfiguration());
+        }
+        if (searchConfig.getProjectConfiguration() == null && !isNotRole()) {
+            searchConfig.setProjectConfiguration(searchBoxCofig.getDefaultProjectConfiguration());
+        }
+        if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
+            searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
+        }
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectType(), searchConfig);
+        SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
+        if (additionalPanelConfig != null) {
+            searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
+        }
+        searchConfigWrapper.setAllowAllTypeSearch(true);
+        return searchConfigWrapper;
     }
 
     private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper searchBoxConfigurationHelper) {
@@ -1121,29 +1163,31 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private boolean isSubtreeScope() {
         Search<FocusType> search = getSearch();
-        SearchItem compositedItem = search.getCompositedSpecialItem();
-        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
-            List<SearchItem> items = ((AbstractRoleCompositedSearchItem) compositedItem).getSearchItems();
-            for (SearchItem item : items) {
-                if (item instanceof ScopeSearchItem) {
-                    return SearchBoxScopeType.SUBTREE.equals(((ScopeSearchItem) item).getScopeType());
-                }
-            }
-        }
+        //todo fix this
+//        SearchItem compositedItem = search.getCompositedSpecialItem();
+//        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+//            List<SearchItem> items = ((AbstractRoleCompositedSearchItem) compositedItem).getSearchItems();
+//            for (SearchItem item : items) {
+//                if (item instanceof ScopeSearchItem) {
+//                    return SearchBoxScopeType.SUBTREE.equals(((ScopeSearchItem) item).getScopeType());
+//                }
+//            }
+//        }
         return getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE);
     }
 
     private boolean isIndirect() {
         Search<FocusType> search = getSearch();
-        SearchItem compositedItem = search.getCompositedSpecialItem();
-        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
-            List<SearchItem> items = ((AbstractRoleCompositedSearchItem)compositedItem).getSearchItems();
-            for (SearchItem item : items) {
-                if (item instanceof IndirectSearchItem) {
-                    return ((IndirectSearchItem) item).isIndirect();
-                }
-            }
-        }
+        //todo fix this
+//        SearchItem compositedItem = search.getCompositedSpecialItem();
+//        if (compositedItem instanceof AbstractRoleCompositedSearchItem ) {
+//            List<SearchItem> items = ((AbstractRoleCompositedSearchItem)compositedItem).getSearchItems();
+//            for (SearchItem item : items) {
+//                if (item instanceof IndirectSearchItem) {
+//                    return ((IndirectSearchItem) item).isIndirect();
+//                }
+//            }
+//        }
         return getSearchBoxConfiguration().isIndirect();
     }
 

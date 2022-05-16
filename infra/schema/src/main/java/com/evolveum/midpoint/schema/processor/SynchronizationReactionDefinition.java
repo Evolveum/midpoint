@@ -60,13 +60,13 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
         if (bean.getAction().isEmpty()) {
             if (Boolean.TRUE.equals(bean.isSynchronize())) {
                 return List.of(
-                        new SynchronizationActionDefinition(
+                        new SynchronizationActionDefinition.New(
                                 new SynchronizeSynchronizationActionType(), defaultSettings));
             }
         }
         // Intentionally not sorting these (there's no order in legacy configuration).
         return bean.getAction().stream()
-                .map(a -> new SynchronizationActionDefinition(a, defaultSettings))
+                .map(a -> new SynchronizationActionDefinition.Legacy(a, defaultSettings))
                 .collect(Collectors.toList());
     }
 
@@ -85,7 +85,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
             @NotNull SynchronizationReactionNewType bean,
             @NotNull ClockworkSettings syncLevelSettings) {
         return getAllActionBeans(bean).stream()
-                .map(a -> new SynchronizationActionDefinition(a, syncLevelSettings))
+                .map(a -> new SynchronizationActionDefinition.New(a, syncLevelSettings))
                 .sorted()
                 .collect(Collectors.toList());
     }
@@ -156,5 +156,15 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
 
     public @NotNull List<SynchronizationActionDefinition> getActions() {
         return actions;
+    }
+
+    @Override
+    public String toString() {
+        return "SynchronizationReactionDefinition{" +
+                "name='" + name + '\'' +
+                ", order=" + order +
+                ", situations=" + situations +
+                ", # of actions: " + actions.size() +
+                '}';
     }
 }

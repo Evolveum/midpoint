@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.session.PageStorage;
 
 /**

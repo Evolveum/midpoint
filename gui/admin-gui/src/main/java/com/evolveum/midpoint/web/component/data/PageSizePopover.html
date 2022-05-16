@@ -12,15 +12,15 @@
         <i class="fa fa-cog"></i>
     </button>
 
-    <div wicket:id="popover" class="popover fade left in">
+    <div wicket:id="popover" class="popover fade down in">
         <div class="arrow"></div>
-        <h3 class="popover-title"><wicket:message key="PageSizePopover.title"/></h3>
-        <div class="popover-content">
+        <h3 class="popover-header"><wicket:message key="PageSizePopover.title"/></h3>
+        <div class="popover-body">
             <form wicket:id="form">
-                <div class="input-group">
+                <div class="input-group flex-nowrap">
                     <input wicket:id="input" type="text" size="1" style="display: inline-block; width: auto;"
-                           class="form-control input-sm">
-                    <span class="input-group-btn">
+                           class="form-control form-control-sm">
+                    <span class="input-group-append">
                         <button wicket:id="button" type="button" class="btn btn-sm btn-success">
                             <i class="fa fa-check"></i>
                         </button>

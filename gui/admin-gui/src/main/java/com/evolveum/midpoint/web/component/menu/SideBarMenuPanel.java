@@ -83,7 +83,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     }
 
     private Component createMenuItems(IModel<SideBarMenuItem> model) {
-        ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS, new PropertyModel<>(model, SideBarMenuItem.F_ITEMS)) {
+        ListView<MainMenuItem> items = new ListView<>(ID_ITEMS, new PropertyModel<>(model, SideBarMenuItem.F_ITEMS)) {
 
             @Override
             protected void populateItem(final ListItem<MainMenuItem> listItem) {

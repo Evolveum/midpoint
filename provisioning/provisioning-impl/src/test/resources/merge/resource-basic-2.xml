@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="969d0587-b049-4067-a749-2fe61d5fb2f6"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <name>Basic 2</name>
+    <super>
+        <resourceRef oid="b6f77fb9-8bdf-42de-b7d4-639c77fa6805"/> <!-- Derives from Basic 1 -->
+    </super>
+    <connectorConfiguration>
+        <icfc:configurationProperties>
+            <!-- overriding existing value -->
+            <icfi:uselessString>False!</icfi:uselessString>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>C</generateObjectClass> <!-- should be added to A and B in the parent -->
+        </generationConstraints>
+    </schema>
+</resource>

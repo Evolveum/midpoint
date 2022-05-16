@@ -1,26 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2021 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-        <div class="row">
-            <div wicket:id="lastStatus" />
-            <div wicket:id="sourceTarget" />
-            <div wicket:id="schemaStatus" />
+    <div class="row mt-1 mb-3">
+        <div class="col-12 col-md-4">
+            <div class="info-box-resource" wicket:id="lastStatus"/>
         </div>
-
-        <div calss="row">
-            <div wicket:id="capabilities" />
+        <div class="col-12 col-md-4">
+            <div class="info-box-resource" wicket:id="sourceTarget"/>
         </div>
-
-        <div>
-            <div wicket:id="resourceConfig" />
+        <div class="col-12 col-md-4">
+            <div class="info-box-resource" wicket:id="schemaStatus"/>
         </div>
+    </div>
 
-    </wicket:panel>
+    <div class="row">
+        <div wicket:id="capabilities"/>
+    </div>
+
+    <div class="row">
+        <div wicket:id="resourceConfig"/>
+    </div>
+</wicket:panel>
+</html>
 
 

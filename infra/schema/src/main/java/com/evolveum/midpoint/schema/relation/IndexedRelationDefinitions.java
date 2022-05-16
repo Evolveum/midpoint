@@ -18,7 +18,7 @@ import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.CollectionUtils;
 

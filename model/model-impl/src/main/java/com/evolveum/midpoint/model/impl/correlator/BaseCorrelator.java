@@ -14,6 +14,8 @@ import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> implements Correlator {
 
     private static final String OP_CORRELATE_SUFFIX = ".correlate";
+    private static final String OP_CHECK_CANDIDATE_OWNER_SUFFIX = ".checkCandidateOwner";
 
     /** Correlator-specific logger. */
     @NotNull private final Trace logger;
@@ -88,6 +91,43 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
 
     protected abstract @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext, @NotNull OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException;
+
+    @Override
+    public boolean checkCandidateOwner(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.subresult(getClass().getName() + OP_CHECK_CANDIDATE_OWNER_SUFFIX)
+                .build();
+        try {
+            logger.trace("Checking owner:\n{}\nin context:\n{}",
+                    candidateOwner.debugDumpLazily(1),
+                    correlationContext.debugDumpLazily(1));
+
+            boolean matches = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
+
+            logger.trace("Result: {}", matches);
+
+            result.addArbitraryObjectAsReturn("matches", matches);
+
+            return matches;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    protected abstract boolean checkCandidateOwnerInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 

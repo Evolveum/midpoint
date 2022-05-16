@@ -627,7 +627,7 @@ end
     </consistency>
 
     <caching>
-        <cachingStategy>passive</cachingStategy>
+        <cachingStrategy>passive</cachingStrategy>
     </caching>
 
     <synchronization>

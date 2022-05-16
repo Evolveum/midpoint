@@ -131,7 +131,7 @@ public class MidpointWebSecurityConfigurerAdapter extends WebSecurityConfigurerA
         web.ignoring().antMatchers("/img/**");
         web.ignoring().antMatchers("/fonts/**");
 
-        web.ignoring().antMatchers("/wro/**");
+        web.ignoring().antMatchers("/static/**");
         web.ignoring().antMatchers("/static-web/**");
         web.ignoring().antMatchers("/less/**");
 

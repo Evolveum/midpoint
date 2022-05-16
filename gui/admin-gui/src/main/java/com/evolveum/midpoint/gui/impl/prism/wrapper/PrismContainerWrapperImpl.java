@@ -369,12 +369,6 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public Class<C> getTypeClassIfKnown() {
-        //noinspection unchecked
-        return (Class<C>) super.getTypeClassIfKnown();
-    }
-
-    @Override
     public Class<C> getTypeClass() {
         //noinspection unchecked
         return (Class<C>) super.getTypeClass();

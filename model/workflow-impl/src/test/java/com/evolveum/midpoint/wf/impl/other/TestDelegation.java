@@ -1,36 +1,37 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.other;
+
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
-import static org.testng.AssertJUnit.assertEquals;
-
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestDelegation extends AbstractWfTestPolicy {
 
@@ -80,7 +81,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         workItemId = WorkItemId.of(workItem);
-        caseOid = CaseWorkItemUtil.getCaseRequired(workItem).getOid();
+        caseOid = CaseTypeUtil.getCaseRequired(workItem).getOid();
 
         display("work item", workItem);
         display("case", getObjectViaRepo(CaseType.class, caseOid));
@@ -96,7 +97,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         try {
-            WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+            WorkItemDelegationRequestType request = new WorkItemDelegationRequestType()
                     .delegate(ort(USER_GIRTH_OID))
                     .method(ADD_ASSIGNEES);
             caseService.delegateWorkItem(workItemId, request, task, result);
@@ -116,7 +117,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType()
                 .delegate(ort(USER_GIRTH_OID))
                 .method(ADD_ASSIGNEES)
                 .comment("check this");
@@ -148,7 +149,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType()
                 .delegate(ort(USER_KEEN_OID))
                 .method(REPLACE_ASSIGNEES);
         caseService.delegateWorkItem(workItemId, request, task, result);
@@ -177,7 +178,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType()
                 .method(REPLACE_ASSIGNEES);
         caseService.delegateWorkItem(workItemId, request, task, result);
 

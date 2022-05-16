@@ -13,6 +13,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationPanelPart;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationsPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -71,6 +74,10 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
 
     private static final String ID_FORM = "mainForm";
+
+    private static final String ID_OPERATIONS_PANEL="operationsPanel";
+    private static final String ID_MAIN = "main";
+    private static final String ID_OPTIONS = "options";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugView.class);
 
@@ -179,13 +186,23 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        final MidpointForm<?> mainForm = new MidpointForm<>(ID_FORM);
+        MidpointForm<?> mainForm = new MidpointForm<>(ID_FORM);
         add(mainForm);
-        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_ENCRYPT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_ENCRYPT), "pageDebugView.encrypt", "pageDebugView.encrypt.help"));
-        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_VALIDATE_SCHEMA, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_VALIDATE_SCHEMA), "pageDebugView.validateSchema", "pageDebugView.validateSchema.help"));
-        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_SAVE_AS_RAW, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SAVE_AS_RAW), "pageDebugView.saveAsRaw", "pageDebugView.saveAsRaw.help"));
-        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS), "pageDebugView.reevaluateSearchFilters", "pageDebugView.reevaluateSearchFilters.help"));
-        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SWITCH_TO_PLAINTEXT), "pageDebugView.switchToPlainText", "pageDebugView.switchToPlainText.help"));
+
+        OperationsPanel operationsPanel = new OperationsPanel(ID_OPERATIONS_PANEL);
+        mainForm.add(operationsPanel);
+
+        OperationPanelPart main = new OperationPanelPart(ID_MAIN, createStringResource("OperationalButtonsPanel.buttons.main"));
+        operationsPanel.add(main);
+
+        OperationPanelPart options = new OperationPanelPart(ID_OPTIONS, createStringResource("pageDebugView.options"));
+        operationsPanel.add(options);
+
+        options.add(createOptionCheckbox(DebugViewOptions.ID_ENCRYPT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_ENCRYPT), "pageDebugView.encrypt", "pageDebugView.encrypt.help"));
+        options.add(createOptionCheckbox(DebugViewOptions.ID_VALIDATE_SCHEMA, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_VALIDATE_SCHEMA), "pageDebugView.validateSchema", "pageDebugView.validateSchema.help"));
+        options.add(createOptionCheckbox(DebugViewOptions.ID_SAVE_AS_RAW, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SAVE_AS_RAW), "pageDebugView.saveAsRaw", "pageDebugView.saveAsRaw.help"));
+        options.add(createOptionCheckbox(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS), "pageDebugView.reevaluateSearchFilters", "pageDebugView.reevaluateSearchFilters.help"));
+        options.add(createOptionCheckbox(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SWITCH_TO_PLAINTEXT), "pageDebugView.switchToPlainText", "pageDebugView.switchToPlainText.help"));
 
         TextArea<String> plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         plainTextarea.add(new VisibleBehaviour(() -> isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
@@ -195,9 +212,8 @@ public class PageDebugView extends PageAdminConfiguration {
 
         initAceEditor(mainForm);
 
-        initButtons(mainForm);
+        initButtons(main);
         initViewButton(mainForm);
-
     }
 
     private CheckBoxPanel createOptionCheckbox(String id, IModel<Boolean> model, String labelKey, String helpKey) {
@@ -263,7 +279,7 @@ public class PageDebugView extends PageAdminConfiguration {
         mainForm.add(dataLanguagePanel);
     }
 
-    private void initButtons(final MidpointForm<?> mainForm) {
+    private void initButtons(OperationPanelPart set) {
         AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
                 createStringResource("pageDebugView.button.save")) {
             private static final long serialVersionUID = 1L;
@@ -278,7 +294,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
             }
         };
-        mainForm.add(saveButton);
+        set.add(saveButton);
 
         AjaxButton backButton = new AjaxButton("backButton",
                 createStringResource("pageDebugView.button.back")) {
@@ -289,7 +305,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 redirectBack();
             }
         };
-        mainForm.add(backButton);
+        set.add(backButton);
     }
 
     public void savePerformed(AjaxRequestTarget target) {

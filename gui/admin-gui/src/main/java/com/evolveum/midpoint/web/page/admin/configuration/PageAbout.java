@@ -123,7 +123,6 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_PROVISIONING_DETAIL_VALUE = "provisioningDetailValue";
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
     private static final String ID_COPY_ENVIRONMENT_INFO = "copyEnvironmentInfo";
-    private static final String ID_CLEAR_CSS_JS_CACHE = "clearCssJsCache";
     private static final String ID_FACTORY_DEFAULT = "factoryDefault";
     private static final String ID_NODE_NAME = "nodeName";
     private static final String ID_NODE_ID = "nodeId";
@@ -354,17 +353,6 @@ public class PageAbout extends PageAdminConfiguration {
         };
         checkWorkflowProcesses.setVisible(false);
         add(checkWorkflowProcesses);
-
-        AjaxButton clearCssJsCache = new AjaxButton(ID_CLEAR_CSS_JS_CACHE,
-                createStringResource("PageAbout.button.clearCssJsCache")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                clearLessJsCache(target);
-            }
-        };
-        add(clearCssJsCache);
 
         AjaxButton copyEnvironmentInfo = new AjaxButton(ID_COPY_ENVIRONMENT_INFO,
                 createStringResource("PageAbout.button.copyEnvironmentInfo")) {

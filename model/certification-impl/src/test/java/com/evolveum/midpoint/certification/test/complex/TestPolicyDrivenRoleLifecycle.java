@@ -1,15 +1,30 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.certification.test.complex;
 
+import static java.util.Collections.*;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.certification.test.AbstractUninitializedCertificationTest;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.CaseService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,34 +35,18 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * A complex policy-drive role lifecycle scenario (see https://docs.evolveum.com/midpoint/devel/design/policy-constraints/sample-scenario/).
  */
-@ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-certification-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertificationTest {
 
@@ -107,8 +106,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         Holder<LensContext<?>> contextHolder = new Holder<>();
 
-        when();
-        then();
+        expect();
         activateRoleAssertFailure(ROLE_EMPTY.oid, contextHolder, result, task);
 
         dumpRules(contextHolder);
@@ -141,8 +139,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         Holder<LensContext<?>> contextHolder = new Holder<>();
 
-        when();
-        then();
+        expect();
         activateRoleAssertFailure(ROLE_HIGH_RISK_EMPTY.oid, contextHolder, result, task);
 
         dumpRules(contextHolder);
@@ -163,8 +160,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         Holder<LensContext<?>> contextHolder = new Holder<>();
 
-        when();
-        then();
+        expect();
         activateRoleAssertFailure(ROLE_CORRECT.oid, contextHolder, result, task);
 
         dumpRules(contextHolder);
@@ -247,7 +243,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
         waitForCaseClose(rootCase, 60000);
 
@@ -261,14 +257,12 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test060AssignOwnerAndApproverToCorrectHighRiskRole() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
-        // WHEN+THEN
-        when();
-        then();
+        expect();
         ModelExecuteOptions noApprovals = executeOptions().partialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
         assignRole(userJackOid, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
@@ -280,19 +274,16 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test070ActivateCorrectHighRiskRole() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRole(roleCorrectHighRiskOid, contextHolder, task, result);
 
-        // THEN
         then();
-
         PrismObject<RoleType> roleAfter = getRole(roleCorrectHighRiskOid);
         display("role after", roleAfter);
         assertEquals("Wrong (changed) lifecycle state", SchemaConstants.LIFECYCLE_DRAFT, roleAfter.asObjectable().getLifecycleState());
@@ -318,7 +309,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         approvalCase = modelService.getObject(CaseType.class, approvalCase.getOid(), options, task, result).asObjectable();
@@ -328,7 +319,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         workItem = openWorkItems.get(0);
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         CaseType rootCase = getRootCase(cases);

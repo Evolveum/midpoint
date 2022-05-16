@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2022 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -11,21 +11,32 @@
 <body>
     <wicket:extend>
         <div class="row">
-            <div wicket:id="infoBoxUsers" />
-            <div wicket:id="infoBoxOrgs" />
-            <div wicket:id="infoBoxRoles" />
+            <div class="col-12 col-lg-4">
+                <div wicket:id="infoBoxUsers" />
+            </div>
+            <div class="col-12 col-lg-4">
+                <div wicket:id="infoBoxOrgs" />
+            </div>
+            <div class="col-12 col-lg-4">
+                <div wicket:id="infoBoxRoles" />
+            </div>
         </div>
         <div class="row">
-            <div wicket:id="infoBoxServices" />
-            <div wicket:id="infoBoxResources" />
-            <div wicket:id="infoBoxTasks" />
+            <div class="col-12 col-lg-4">
+                <div wicket:id="infoBoxServices" />
+            </div>
+            <div class="col-12 col-lg-4">
+                <div wicket:id="infoBoxResources" />
+            </div>
+            <div class="col-12 col-lg-4">
+                <div wicket:id="infoBoxTasks" />
+            </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-12 col-lg-6">
                 <div wicket:id="personalInfo" />
             </div>
-
-            <div class="col-md-6">
+            <div class="col-12 col-lg-6">
                 <div wicket:id="systemInfo" />
             </div>
         </div>

@@ -96,6 +96,36 @@ public class CorrelationServiceImpl implements CorrelationService {
         return correlate(shadowedResourceObject, preInboundsContext.getPreFocus(), task, result);
     }
 
+    @Override
+    public boolean checkCandidateOwner(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull FocusType candidateOwner,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException {
+        Class<? extends FocusType> focusType = candidateOwner.getClass();
+        SimplePreInboundsContextImpl<?> preInboundsContext = new SimplePreInboundsContextImpl<>(
+                shadowedResourceObject,
+                resource,
+                PrismContext.get().createObjectable(focusType),
+                ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)),
+                task,
+                synchronizationPolicy.getResourceObjectDefinition(),
+                beans);
+        new PreMappingsEvaluation<>(preInboundsContext, beans)
+                .evaluate(result);
+        FocusType preFocus = preInboundsContext.getPreFocus();
+
+        FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
+        return correlatorFactoryRegistry
+                .instantiateCorrelator(correlatorContext, task, result)
+                .checkCandidateOwner(correlationContext, candidateOwner, result);
+    }
+
     private @NotNull FullCorrelationContext getFullCorrelationContext(
             @NotNull CaseType aCase,
             @NotNull Task task,

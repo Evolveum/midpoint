@@ -28,7 +28,6 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
     private static final String ID_POPOVER_FORM = "popoverForm";
     private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
-
     public PopoverSearchPopupPanel(String id) {
         super(id);
     }
@@ -64,7 +63,6 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
             }
         };
         midpointForm.add(confirm);
-
     }
 
     protected void customizationPopoverForm(MidpointForm midpointForm){

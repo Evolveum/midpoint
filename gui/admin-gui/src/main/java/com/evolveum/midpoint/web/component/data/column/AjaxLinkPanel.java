@@ -7,15 +7,13 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import javax.xml.namespace.QName;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 /**
  * @author lazyman
@@ -29,7 +27,7 @@ public class AjaxLinkPanel extends Panel {
     public AjaxLinkPanel(String id, IModel labelModel) {
         super(id);
 
-        AjaxLink<String> link = new AjaxLink<String>(ID_LINK) {
+        AjaxLink<String> link = new AjaxLink<>(ID_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -41,14 +39,7 @@ public class AjaxLinkPanel extends Panel {
         Label label = new Label(ID_LABEL, labelModel);
 
         link.add(label);
-        link.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return AjaxLinkPanel.this.isEnabled();
-            }
-        });
+        link.add(new EnableBehaviour(() -> AjaxLinkPanel.this.isEnabled()));
         add(link);
     }
 

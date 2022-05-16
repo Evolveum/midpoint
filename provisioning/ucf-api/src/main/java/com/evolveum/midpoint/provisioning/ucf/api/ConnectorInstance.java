@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,8 +80,13 @@ public interface ConnectorInstance {
      *
      * @param configuration new connector configuration (prism container value)
      * @param generateObjectClasses the list of the object classes which should be generated in schema
+     * (null or empty means "all")
      */
-    void configure(@NotNull PrismContainerValue<?> configuration, List<QName> generateObjectClasses, boolean isCaching, OperationResult parentResult)
+    void configure(
+            @NotNull PrismContainerValue<?> configuration,
+            @Nullable List<QName> generateObjectClasses,
+            boolean isCaching,
+            @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
     ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
@@ -106,7 +112,7 @@ public interface ConnectorInstance {
      *
      * TODO: caseIgnoreAttributeNames is probably not correct here. It should be provided in schema or capabilities?
      */
-    void initialize(ResourceSchema previousResourceSchema, Collection<Object> previousCapabilities,
+    void initialize(ResourceSchema previousResourceSchema, CapabilityCollectionType previousCapabilities,
             boolean caseIgnoreAttributeNames, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
@@ -124,7 +130,7 @@ public interface ConnectorInstance {
      *
      * It may return null. Such case means that the capabilities cannot be determined.
      */
-    Collection<Object> fetchCapabilities(OperationResult parentResult)
+    CapabilityCollectionType fetchCapabilities(OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**

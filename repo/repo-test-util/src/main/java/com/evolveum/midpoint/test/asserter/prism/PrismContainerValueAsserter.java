@@ -39,6 +39,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.jetbrains.annotations.Nullable;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -265,6 +266,13 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> asserter = new PrismPropertyAsserter<>(property, this, path + " in " + desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public PrismContainerValueAsserter<C, RA> assertAllItemsHaveCompleteDefinition() {
+        assertThat(getPrismValue().hasCompleteDefinition())
+                .withFailMessage("Some items have no complete definition") // we should tell which ones (some day)
+                .isTrue();
+        return this;
     }
 
     // TODO

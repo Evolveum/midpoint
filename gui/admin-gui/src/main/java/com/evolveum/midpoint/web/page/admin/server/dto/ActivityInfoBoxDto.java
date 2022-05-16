@@ -6,8 +6,7 @@
  */
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
-
-import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxType;
 
 public class ActivityInfoBoxDto extends InfoBoxType {
 

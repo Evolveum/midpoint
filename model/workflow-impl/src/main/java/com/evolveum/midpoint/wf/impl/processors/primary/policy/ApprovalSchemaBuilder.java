@@ -20,7 +20,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

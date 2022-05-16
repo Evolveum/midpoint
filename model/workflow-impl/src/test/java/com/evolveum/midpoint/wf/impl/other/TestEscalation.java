@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.other;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
-import com.evolveum.midpoint.schema.util.cases.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -115,7 +114,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         assertNotAssignedRole(userJackOid, ROLE_E1_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
-        approvalCaseOid = CaseWorkItemUtil.getCaseRequired(workItem).getOid();
+        approvalCaseOid = CaseTypeUtil.getCaseRequired(workItem).getOid();
         CaseType aCase = getCase(approvalCaseOid);
 
         displayAllNotifications();
@@ -296,7 +295,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work items", workItems);
 
-        approvalCaseOid = CaseWorkItemUtil.getCaseRequired(workItems.get(0)).getOid();
+        approvalCaseOid = CaseTypeUtil.getCaseRequired(workItems.get(0)).getOid();
 
         displayAllNotifications();
 

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -333,7 +332,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public String getCssClass() {
-                return "col-lg-1";
+                return "mp-w-lg-1";
             }
         };
         columns.add(enabled);
@@ -370,7 +369,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public String getCssClass() {
-                return "col-lg-2";
+                return "mp-w-lg-2";
             }
         });
 
@@ -442,7 +441,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             public String getCssClass() {
-                return "col-lg-2";
+                return "mp-w-lg-2";
             }
         });
 
@@ -661,13 +660,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     }
 
     private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, ResourceType resource, ResourceObjectDefinition rOCDef) {
-        List<MappingType> passwordOutbound = rOCDef.getPasswordOutbound();
-        if (passwordOutbound == null) {
-            return false;
-        }
-        for (MappingType mapping : passwordOutbound) {
+        for (MappingType mapping : rOCDef.getPasswordOutbound()) {
             if (MappingStrengthType.WEAK == mapping.getStrength()) {
-                CredentialsCapabilityType capability = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+                CredentialsCapabilityType capability = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
                 if (CapabilityUtil.isPasswordReadable(capability)) {
                     return true;
                 }

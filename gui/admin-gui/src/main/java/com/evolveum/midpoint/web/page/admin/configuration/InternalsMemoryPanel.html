@@ -11,12 +11,16 @@
 <body>
 <wicket:panel>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-12">
             <h3><wicket:message key="PageInternals.title.memory"/></h3>
-            <textarea wicket:id="information"></textarea>
-            <p/>
-            <wicket:message key="InternalsMemoryPanel.text.explanation"/>
-            <p/>
+            <wicket:enclosure child="information">
+                <div class="form-group">
+                    <textarea class="border" wicket:id="information"></textarea>
+                </div>
+            </wicket:enclosure>
+            <div class="form-group">
+                <wicket:message key="InternalsMemoryPanel.text.explanation"/>
+            </div>
             <div class="main-button-bar">
                 <a class="btn btn-primary" wicket:id="show"/>
             </div>

@@ -16,7 +16,7 @@ public @interface PanelDisplay {
 
     String singularLabel() default "";
 
-    String icon() default "fa fa-circle-o";
+    String icon() default "far fa-circle";
 
     int order() default 1000;
 

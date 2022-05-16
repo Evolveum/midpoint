@@ -10,12 +10,27 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
+<wicket:head>
+    <script type="text/javascript">
+        $(".focus-username").focus();
+    </script>
+    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
+    <style type="text/css">
+        .content-wrapper, .right-side, .main-footer, .main-header {
+            margin-left: 0px !important;
 
+            -moz-transition: none !important;;
+            -webkit-transition: none !important;;
+            -o-transition: color 0 ease-in !important;;
+            transition: none !important;;
+        }
+    </style>
+</wicket:head>
+<wicket:extend>
     <div class="row">
-        <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
-            <div class="panel panel-default" style="margin-top: 120px;">
-                <div class="panel-body">
+        <div class="offset-sm-2 col-sm-8 offset-md-2 col-md-8 offset-lg-3 col-lg-6 offset-xl-4 col-xl-4">
+            <div class="card" style="margin-top: 120px;">
+                <div class="card-body">
                     <div class="col-md-12" style="text-align: right;padding-bottom: 30px; padding-right: 0px;">
                         <span wicket:id="sequence" style="padding-right: 30px;"/>
                         <a class="btn btn-default" wicket:id="switchToDefaultSequence" />
@@ -25,24 +40,6 @@
             </div>
         </div>
     </div>
-
-
-    <script type="text/javascript">
-        $(".focus-username").focus();
-    </script>
-
-    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
-
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
 </wicket:extend>
-
 </body>
 </html>

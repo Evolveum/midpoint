@@ -41,7 +41,8 @@ public class ResourceSchemaUtil {
         if (limitations == null) {
             return false;
         }
-        PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsForLayer(limitations, LayerType.MODEL);
+        // TODO review as part of MID-7929 resolution
+        PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsLabeled(limitations, LayerType.MODEL);
         if (limitationsType == null) {
             return false;
         }

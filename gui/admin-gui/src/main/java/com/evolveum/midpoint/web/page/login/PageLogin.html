@@ -11,30 +11,30 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form method="post" class="form-horizontal" wicket:id="form">
-        <div class="form-group">
-            <label class="col-md-4 col-lg-4 control-label">
+    <form method="post" wicket:id="form">
+        <div class="row mb-3">
+            <label class="col-md-4 col-lg-4 col-form-label">
                 <wicket:message key="PageLogin.username"/>
             </label>
 
             <div class="col-md-8 col-lg-8">
-                <input name="username" type="text" class="form-control input-sm focus-username"
+                <input name="username" type="text" class="form-control form-control-sm focus-username"
                         wicket:message="placeholder:PageLogin.username" >
             </div>
         </div>
-        <div class="form-group">
-            <label class="col-md-4 col-lg-4 control-label">
+        <div class="row mb-3">
+            <label class="col-md-4 col-lg-4 col-form-label">
                 <wicket:message key="PageLogin.password"/>
             </label>
 
             <div class="col-md-8 col-lg-8">
                 <div class="password-parent" style="height:30px; position: relative;">
                     <div class="col-md-12" style="padding: 0px !important;">
-                        <input name="password" type="password" class="form-control input-sm"
+                        <input name="password" type="password" class="form-control form-control-sm"
                             wicket:message="placeholder:PageLogin.password" style="padding-right: 26px;">
                     </div>
                     <div style="position: absolute; right: 8px; top: 8px; z-index: 5;">
-                        <i class="fa fa-eye" style="float:right;cursor: pointer; color: #555555;" onclick="showPassword(this)"></i>
+                        <i class="fa fa-eye" style="float:right; cursor: pointer; color: #555555;" onclick="MidPointTheme.showPassword(this)"></i>
                     </div>
                 </div>
             </div>
@@ -42,21 +42,21 @@
 
         <div wicket:id="csrfField"/>
 
-        <wicket:link>
-            <a class="btn" role="button" href="forgetpassword" wicket:id="forgetpassword">
-                <wicket:message key="PageLogin.forgetPassword"/>
-            </a>
-        </wicket:link>
+        <div class="d-flex flex-wrap gap-1">
+            <wicket:link>
+                <a class="btn btn-link px-0" role="button" href="forgetpassword" wicket:id="forgetpassword">
+                    <wicket:message key="PageLogin.forgetPassword"/>
+                </a>
+            </wicket:link>
 
-        <div class="pull-right">
-            <a class="btn btn-default" role="button" wicket:id="selfRegistration">
-                <wicket:message key="PageLogin.selfRegistration"/>
-            </a>
-
-            <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
+            <div class="d-flex justify-content-end flex-grow-1 gap-1">
+                <a class="btn btn-default" role="button" wicket:id="selfRegistration">
+                    <wicket:message key="PageLogin.selfRegistration"/>
+                </a>
+                <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
+            </div>
         </div>
     </form>
 </wicket:extend>
-
 </body>
 </html>

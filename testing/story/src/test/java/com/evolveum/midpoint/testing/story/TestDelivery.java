@@ -225,7 +225,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
@@ -252,7 +252,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         CaseWorkItemType workItem2 = getWorkItem(task, result);
@@ -262,7 +262,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem2),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
@@ -289,7 +289,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         waitForCaseClose(rootCase, 60000);
@@ -316,7 +316,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         caseService.completeWorkItem(
                 WorkItemId.of(workItem),
-                ApprovalUtils.createApproveOutput(prismContext),
+                ApprovalUtils.createApproveOutput(),
                 task, result);
 
         waitForCaseClose(rootCase, 60000);

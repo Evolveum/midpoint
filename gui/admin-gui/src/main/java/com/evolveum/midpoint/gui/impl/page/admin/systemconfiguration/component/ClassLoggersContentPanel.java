@@ -37,7 +37,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -136,7 +136,7 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanel<Class
 
             @Override
             public String getCssClass() {
-                return " col-md-5 ";
+                return "mp-w-5";
             }
         });
         columns.add(new PrismPropertyWrapperColumn<>(model, ClassLoggerConfigurationType.F_LEVEL, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()));
@@ -147,7 +147,7 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanel<Class
 
             @Override
             public String getCssClass() {
-                return " col-md-1 ";
+                return "mp-w-1";
             }
         });
 

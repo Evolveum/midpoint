@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -2917,7 +2917,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         }
         modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
-        assertEquals("Unexpected number of search results (raw=" + raw + ")", expected, count.getValue());
+        assertEquals("Unexpected number of search results (raw=" + raw + ")", expected, (int) count.getValue());
     }
 
     private void assertImportAuditModifications(int expectedModifications) {
