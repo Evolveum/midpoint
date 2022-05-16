@@ -62,6 +62,10 @@ public class ClockworkSettings {
         }
     }
 
+    public static ClockworkSettings empty() {
+        return new ClockworkSettings();
+    }
+
     public Boolean getReconcileAll() {
         return reconcileAll;
     }

@@ -32,5 +32,6 @@ public class StandardActionsRegistrar {
         synchronizationActionFactory.register(InactivateShadowAction.class);
         synchronizationActionFactory.register(LinkAction.class);
         synchronizationActionFactory.register(UnlinkAction.class);
+        synchronizationActionFactory.register(CreateCorrelationCaseAction.class);
     }
 }

@@ -9064,7 +9064,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlationDefinition" type="tns:CorrelationDefinitionType" minOccurs="0">
+            <xsd:element name="correlationDefinition" type="tns:LegacyCorrelationDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of the correlation process.
@@ -23612,20 +23612,40 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="cases" type="tns:CorrelationCasesDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether and how should we create correlation cases.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.5</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="correlationDefinition" type="tns:CorrelationDefinitionType"/>
+
+    <xsd:complexType name="LegacyCorrelationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This type exists just to allow (deprecated) "cases" element in legacy synchronization bean.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CorrelationDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="cases" type="tns:CorrelationCasesDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether and how should we create correlation cases.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="legacyCorrelationDefinition" type="tns:LegacyCorrelationDefinitionType"/>
 
     <xsd:complexType name="CorrelationCasesDefinitionType">
         <xsd:annotation>

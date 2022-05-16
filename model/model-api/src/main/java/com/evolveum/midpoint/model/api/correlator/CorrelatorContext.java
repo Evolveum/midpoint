@@ -80,12 +80,6 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         return configuration;
     }
 
-    public boolean shouldCreateCases() {
-        return correlationDefinitionBean != null
-                && correlationDefinitionBean.getCases() != null
-                && !Boolean.FALSE.equals(correlationDefinitionBean.getCases().isEnabled());
-    }
-
     /**
      * Returns the path to the "source place" in the object being correlated.
      */
