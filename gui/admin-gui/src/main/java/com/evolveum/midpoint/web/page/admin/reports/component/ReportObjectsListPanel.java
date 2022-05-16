@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -377,6 +378,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected String getStringValueForObject(ObjectType object) {
-        return super.getStringValueForObject(object) + " (" + object.getOid() + ")";
+        String displayName = super.getStringValueForObject(object);
+        return StringUtils.isEmpty(displayName) ? object.getOid() : displayName;
     }
 }

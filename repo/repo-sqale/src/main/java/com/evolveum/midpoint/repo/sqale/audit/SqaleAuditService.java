@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.*;
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
@@ -716,30 +715,11 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
      * TODO, lots of possible improvements:
      *
      * * Just like in repo iterative search this is added to the original filter with `AND`.
-     * However, if `timestamp` is used in the original filter, it could be replaced by stricter
-     * `timestamp` condition based on the `lastProcessedObject` - this is not implemented yet.
-     * ** TODO: If provided, do we want to add another timestamp condition?
-     * Would it help with partitions?
-     * Probably, with ID condition + ordering, it's not a big deal to leave it out.
      *
      * * Support for multiple order specifications from the client is not supported.
      * Perhaps some short-term stateful filter/order object would be better to construct this,
      * especially if it could be used in both repo and audit (with strict order attribute
      * provided in constructor for example).
-     *
-     * [NOTE]
-     * ====
-     * Both `timestamp` and `repoId` is used for iterative search condition, but *only `repoId`*
-     * is used for additional ordering to assure strict reliable ordering.
-     * This can be further complicated by the fact that both `repoId` and `timestamp`
-     * can be part of custom ordering from client (this is different from repository, where `oid`
-     * is not valid for filter and ordering on the model level, even when it's usable for repository).
-     * If used on the top-level `AND` group, they can be be replaced by next iteration condition,
-     * which is likely more selective.
-     *
-     * As for the ordering, if multiple ordering is used (*not supported yet*) if `repoId` is used,
-     * anything after it can be omitted as irrelevant.
-     * ====
      *
      * TODO: Currently, single path ordering is supported. Finish multi-path too.
      * TODO: What about nullable columns?
@@ -752,20 +732,14 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             return null;
         }
 
-        // TODO inspect originalFilter to detect timestamp/repoId conditions.
-        //  Only top level AND filter should be checked, anything else is irrelevant
-        //  for the decision whether to skip additional timestamp condition.
-        //  BTW: We CANNOT skip repoId condition, that one is CRITICAL for proper iterating.
+        // It may seem like a good idea to include timestamp for better partition pruning, but order by timestamp
+        // can be different from order by id; for correct behavior only id must be used for order. See MID-7928.
 
         Long lastProcessedId = lastProcessedObject.getRepoId();
-        XMLGregorianCalendar lastProcessedTimestamp = lastProcessedObject.getTimestamp();
         if (providedOrdering == null || providedOrdering.isEmpty()) {
             return prismContext()
                     .queryFor(AuditEventRecordType.class)
                     .item(AuditEventRecordType.F_REPO_ID).gt(lastProcessedId)
-                    .and()
-                    // timestamp of the next entry can be the same, we need greater-or-equal here
-                    .item(AuditEventRecordType.F_TIMESTAMP).ge(lastProcessedTimestamp)
                     .buildFilter();
         }
 

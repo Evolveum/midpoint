@@ -292,7 +292,7 @@ public class ReportUtils {
                 name = PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
             }
         }
-        return name + " (" + object.getOid() + ")";
+        return StringUtils.isEmpty(name) ? object.getOid() : name;
     }
 
     public static String prettyPrintUsersForReport(List<ObjectReferenceType> userRefList) {

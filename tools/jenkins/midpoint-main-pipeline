@@ -1,0 +1,89 @@
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
+podTemplate(
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 1,
+        // Secret volume with maven settings.xml for deploy, see also sim-link in "build" stage.
+        volumes: [ secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus")],
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'maven',
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: '4',
+                        resourceLimitCpu: '4',
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        stage("checkout") {
+            git branch: "${params.BRANCH ?: 'support-4.4'}",
+                    url: 'https://github.com/Evolveum/midpoint.git'
+        }
+        stage("build") {
+            container('maven') {
+                sh """#!/bin/bash -ex
+                    # .m2 is mutable and short-term, we just sym-link the settings.xml there.
+                    mkdir -p /root/.m2
+                    ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        env | sort
+                        mvn --version
+                        df -h
+                    fi
+
+                    mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            }
+        }
+        stage("tests-default") {
+            container('maven') {
+                sh """#!/bin/bash -ex
+                    mvn -B -ntp -Dmaven.test.failure.ignore verify
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            }
+        }
+        stage("tests-extra") {
+            container('maven') {
+                // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                sh """#!/bin/bash -ex
+                    mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED" -rf testing
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+
+                // Collects results for all tests (main + extra).
+                // Using this step in each phase produces multiple graphs, but all have the same results from the last run.
+                step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+            }
+        }
+    }
+}

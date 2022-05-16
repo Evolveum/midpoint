@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<shadow xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="1ff68c92-d526-4cfb-8df5-539bc5fdd097">
+    <name>mapmakers</name>
+    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    <dead>true</dead>
+    <objectClass>ri:GroupObjectClass</objectClass>
+    <kind>entitlement</kind>
+    <intent>unknown</intent>
+    <exists>false</exists>
+    <attributes>
+        <icfs:name>mapmakers</icfs:name>
+        <icfs:uid>mapmakers</icfs:uid>
+    </attributes>
+</shadow>

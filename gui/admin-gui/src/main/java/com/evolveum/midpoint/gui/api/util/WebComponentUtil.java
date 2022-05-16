@@ -32,6 +32,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 
+import com.evolveum.midpoint.web.component.data.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -47,7 +49,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -788,7 +789,10 @@ public final class WebComponentUtil {
     }
 
     public static boolean isReport(TaskType task) {
-        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK) || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK) || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK);
+        return isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_TASK)
+                || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK)
+                || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK)
+                || isArchetypedTask(task, SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK);
     }
 
     public static boolean isImport(TaskType task) {
@@ -1706,17 +1710,14 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Selectable> List<T> getSelectedData(Table table) {
-        DataTable dataTable = table.getDataTable();
-        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
-
-        List<T> selected = new ArrayList<>();
-//        for (T bean : provider.getAvailableData()) {
-//            if (bean.isSelected()) {
-//                selected.add(bean);
-//            }
-//        }
-
-        return selected;
+        List<T> objects = new ArrayList<>();
+        table.getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class,
+                (IVisitor<SelectableDataTable.SelectableRowItem<T>, Void>) (row, visit) -> {
+                    if (row.getModelObject().isSelected()) {
+                        objects.add(row.getModelObject());
+                    }
+                });
+        return objects;
     }
 
     public static void clearProviderCache(IDataProvider provider) {

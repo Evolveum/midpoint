@@ -76,7 +76,7 @@ public class ReconciliationActivityHandler
             Activity<ReconciliationWorkDefinition, ReconciliationActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().clone(),
+                parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new OperationCompletionActivityRun(context,
                         "Reconciliation (operation completion)"),
                 null,
@@ -100,7 +100,7 @@ public class ReconciliationActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().clone(),
+                parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new ResourceObjectsReconciliationActivityRun(context,
                         "Reconciliation (on resource)" + modeSuffix(context)),
                 this::beforeResourceObjectsReconciliation,
@@ -108,7 +108,7 @@ public class ReconciliationActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().clone(),
+                parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new RemainingShadowsActivityRun(context,
                         "Reconciliation (remaining shadows)" + modeSuffix(context)),
                 null,
@@ -120,7 +120,7 @@ public class ReconciliationActivityHandler
 
     private ActivityDefinition<ReconciliationWorkDefinition> createPreviewDefinition(
             @NotNull ActivityDefinition<ReconciliationWorkDefinition> original) {
-        ActivityDefinition<ReconciliationWorkDefinition> clone = original.clone();
+        ActivityDefinition<ReconciliationWorkDefinition> clone = original.cloneWithoutId();
         clone.getWorkDefinition().setExecutionMode(ExecutionModeType.PREVIEW);
         clone.getControlFlowDefinition().setSkip();
         return clone;
