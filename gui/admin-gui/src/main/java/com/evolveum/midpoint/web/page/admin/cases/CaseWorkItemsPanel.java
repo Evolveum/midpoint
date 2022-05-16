@@ -99,6 +99,13 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                 new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
 
                     @Override
+                    protected void onBeforeRender() {
+                        super.onBeforeRender();
+
+                        getTable().setShowAsCard(!View.DASHBOARD.equals(view));
+                    }
+
+                    @Override
                     protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
                         return CaseWorkItemsPanel.this.createDefaultColumns();
                     }

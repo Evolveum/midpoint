@@ -65,10 +65,9 @@ public class CountIconPanel extends BasePanel<List<DisplayType>> {
                 Label icon = new Label(ID_ICON);
                 icon.add(AttributeModifier.replace("class", new PropertyModel<>(item.getModel(), "icon.cssClass")));
                 if (item.getModelObject() != null && item.getModelObject().getTooltip() != null) {
-                    icon.add(AttributeModifier.replace("title", getPageBase().createStringResource(item.getModelObject().getTooltip().getOrig())));
+                    icon.add(AttributeModifier.replace("title", () -> getString(item.getModelObject().getTooltip().getOrig())));
                 }
-                icon.add(AttributeAppender.append("style",
-                        new ReadOnlyModel<>(() -> StringUtils.isNotBlank(getColor(item.getModelObject())) ? "color: " + getColor(item.getModelObject()) + ";" : "")));
+                icon.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor(item.getModelObject())) ? "color: " + getColor(item.getModelObject()) + ";" : ""));
                 icon.setOutputMarkupId(true);
                 icon.add(new VisibleBehaviour(() -> item.getModelObject() != null && item.getModelObject().getIcon() != null && StringUtils.isNotEmpty(item.getModelObject().getIcon().getCssClass())));
                 item.add(icon);

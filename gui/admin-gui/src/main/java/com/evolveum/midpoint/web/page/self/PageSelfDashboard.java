@@ -209,6 +209,13 @@ public class PageSelfDashboard extends PageSelf {
                         return new CasesTablePanel(markupId) {
 
                             @Override
+                            protected void onBeforeRender() {
+                                super.onBeforeRender();
+
+                                getTable().setShowAsCard(false);
+                            }
+
+                            @Override
                             protected ObjectFilter getCasesFilter() {
                                 return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
                                                 AuthUtil.getPrincipalUser().getOid())
