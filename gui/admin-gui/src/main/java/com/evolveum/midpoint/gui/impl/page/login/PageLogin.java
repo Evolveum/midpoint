@@ -79,7 +79,7 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     @Override
-    protected void initCustomLayer() {
+    protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_FORM);
         form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         add(form);

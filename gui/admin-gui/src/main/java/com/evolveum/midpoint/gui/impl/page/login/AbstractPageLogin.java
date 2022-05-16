@@ -30,7 +30,6 @@ import org.springframework.security.web.WebAttributes;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -66,10 +65,10 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayer();
+        initLayout();
     }
 
-    private void initLayer() {
+    private void initLayout() {
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
         feedbackContainer.setOutputMarkupPlaceholderTag(true);
@@ -95,7 +94,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         };
         toDefault.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(toDefault);
-        initCustomLayer();
+        initCustomLayout();
     }
 
     private String getSequenceName() {
@@ -113,13 +112,12 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         return null;
     }
 
-    protected abstract void initCustomLayer();
+    protected abstract void initCustomLayout();
 
     @Override
     protected void onConfigure() {
         super.onConfigure();
         showExceptionMessage();
-//        clearBreadcrumbs();
     }
 
     private void showExceptionMessage() {
@@ -145,11 +143,6 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
-//    @Override
-//    protected void createBreadcrumb() {
-//        //don't create breadcrumb for login page
-//    }
-
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
@@ -172,8 +165,4 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 
-//    @Override
-//    protected boolean isSideMenuVisible() {
-//        return false;
-//    }
 }

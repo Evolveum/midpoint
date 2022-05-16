@@ -72,7 +72,7 @@ public class ChildCasesPanel extends AbstractObjectMainPanel<CaseType, Assignmen
                 column = new PropertyColumn<SelectableBeanImpl<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
                     @Override
                     public String getCssClass() {
-                        return "col-sm-2 col-md-1";
+                        return "mp-w-sm-2 mp-w-md-1";
                     }
                 };
                 columns.add(column);

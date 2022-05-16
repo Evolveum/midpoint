@@ -75,7 +75,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
     public PageEmailNonce() {
     }
 
-    protected void initCustomLayer() {
+    protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(new VisibleEnableBehaviour() {
 
