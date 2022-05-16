@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!--
   ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
@@ -16,46 +16,44 @@
         <version>4.6-SNAPSHOT</version>
     </parent>
 
-    <artifactId>midpoint-jar</artifactId>
-    <name>midPoint Spring Boot JAR</name>
+    <artifactId>midpoint-war</artifactId>
+    <packaging>war</packaging>
 
-    <properties>
-        <!-- We don't want analysis, as admin-gui is not used in any code in this module -->
-        <mdep.analyze.skip>true</mdep.analyze.skip>
-        <maven.test.skip>true</maven.test.skip>
-    </properties>
+    <name>midPoint executable WAR - obsolete</name>
 
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- JDBC DRIVERS -->
+        <!-- deps going to lib-provided -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tomcat</groupId>
+                    <artifactId>tomcat-annotations-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <!--
-        Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
-        TODO: in admin-gui they are provided, because it's handy for developer
-         but perhaps we can just delete it here and recheck whether they are packaged.
-         This may actually be useless here, because developer runs main class from the GUI module (at least now).
-         But we leave it here + the exclusion in repackage, so no harm done.
-        -->
         <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-el</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-websocket</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -93,25 +91,16 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>
-                    <!-- This excludes these deps, including their transitive dependencies. -->
-                    <excludes>
-                        <exclude>
-                            <groupId>com.microsoft.sqlserver</groupId>
-                            <artifactId>mssql-jdbc</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>com.oracle.database.jdbc</groupId>
-                            <artifactId>ojdbc11</artifactId>
-                        </exclude>
-                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>repackage-war</id>
                         <goals>
                             <goal>repackage</goal>
                         </goals>
+                        <phase>package</phase>
                         <configuration>
-                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointJarLayoutFactory"/>
+                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointWarLayoutFactory"/>
                         </configuration>
                     </execution>
                 </executions>
@@ -122,6 +111,12 @@
                         <version>${project.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                </configuration>
             </plugin>
         </plugins>
     </build>
