@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -256,6 +257,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         searchContainer.add(li);
 
         WebMarkupContainer saveSearchContainer = new WebMarkupContainer(ID_SAVE_SEARCH_CONTAINER);
+        saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow()));
         saveSearchContainer.setOutputMarkupId(true);
         form.add(saveSearchContainer);
         AjaxButton saveSearchButton = new AjaxButton(ID_SAVE_SEARCH_BUTTON) {
@@ -297,6 +299,17 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
         saveSearchContainer.add(savedSearchItems);
 
+    }
+
+    private boolean isPopupWindow() {
+        Component parent = SearchPanel.this.getParent();
+        while (parent != null) {
+            if (parent instanceof Popupable) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 
     protected void initSearchItemsPanel(RepeatingView searchItemsRepeatingView) {
