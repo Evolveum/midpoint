@@ -532,7 +532,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel) {
         if (panel instanceof AbstractAssignmentPopupTabPanel) {
-            return ((AbstractAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
+            return ((AbstractAssignmentPopupTabPanel) panel).getPreselectedObjects().size();
         }
         return 0;
     }

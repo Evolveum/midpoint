@@ -137,8 +137,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     if (memberPanel.getObjectType().equals(ObjectTypes.ORG) && orgPanelProcessed){
                         continue;
                     }
-                    List<ObjectType> selectedObjects = memberPanel.getObjectType().equals(ObjectTypes.ORG) ? memberPanel.getPreselectedObjects() :
-                            memberPanel.getSelectedObjectsList();
+                    List<ObjectType> selectedObjects = memberPanel.getPreselectedObjects();
 
                     if (selectedObjects == null || selectedObjects.size() == 0){
                         continue;
@@ -364,7 +363,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     protected int getTabPanelSelectedCount(WebMarkupContainer panel){
         if (panel != null && panel instanceof MemberPopupTabPanel){
-            return ((MemberPopupTabPanel) panel).getSelectedObjectsList().size();
+            return ((MemberPopupTabPanel) panel).getPreselectedObjects().size();
         }
         return 0;
     }
