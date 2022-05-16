@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
 import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
 import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
 import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.error.*;
-import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -188,6 +188,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
     @Autowired private AccessCertificationService certificationService;
+    @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
 
@@ -323,6 +324,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             taskManager.setWebContextPath(servletContext.getContextPath());
         }
 
+        // Additional wicket configuration
+        wicketConfigurators.forEach(c -> c.configure(this));
     }
 
     public DeploymentInformationType getDeploymentInfo() {

@@ -8,7 +8,9 @@ package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -216,28 +217,28 @@ public class WebModelServiceUtils {
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
-            PageBase page, Task task, OperationResult result) {
+            PageAdminLTE page, Task task, OperationResult result) {
         Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         return loadObject(type, objectReference.getOid(), null, page, task, result);
     }
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-            PageBase page, Task task, OperationResult result) {
+            PageAdminLTE page, Task task, OperationResult result) {
         return loadObject(type, oid, null, page, task, result);
     }
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            PageBase page, Task task, OperationResult result) {
+            PageAdminLTE page, Task task, OperationResult result) {
         return loadObject(type, oid, options, true, page, task, result);
     }
 
     @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, boolean allowNotFound,
-            PageBase page, Task task, OperationResult result) {
+            PageAdminLTE page, Task task, OperationResult result) {
         LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
@@ -426,16 +427,16 @@ public class WebModelServiceUtils {
         save(delta, result, null, page);
     }
 
-    public static void save(ObjectDelta delta, OperationResult result, Task task, PageBase page) {
+    public static void save(ObjectDelta delta, OperationResult result, Task task, PageAdminLTE page) {
         save(delta, null, result, task, page);
     }
 
-    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
+    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageAdminLTE page) {
         save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-            OperationResult result, Task task, PageBase page) {
+            OperationResult result, Task task, PageAdminLTE page) {
         LOGGER.debug("Saving deltas {}, options {}", deltas, options);
 
         OperationResult subResult;

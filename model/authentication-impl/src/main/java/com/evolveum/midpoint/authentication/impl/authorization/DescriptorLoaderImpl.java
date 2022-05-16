@@ -102,7 +102,7 @@ public final class DescriptorLoaderImpl implements DescriptorLoader {
         if (StringUtils.isNotEmpty(descriptor.authModule())) {
             List<String> urls = new ArrayList<>();
             foreachUrl(descriptor, urls::add);
-            mapForAuthPages.put(descriptor.authModule(), urls);
+            addAuthPage(descriptor, urls);
         }
 
         if (descriptor.permitAll()) {
@@ -134,6 +134,14 @@ public final class DescriptorLoaderImpl implements DescriptorLoader {
         }
 
         foreachUrl(descriptor, url -> DescriptorLoaderImpl.actions.put(url, actions.toArray(new AuthorizationActionValue[0])));
+    }
+
+    private void addAuthPage(PageDescriptor descriptor, List<String> urls) {
+        if (existPageUrlByAuthName(descriptor.authModule())) {
+            mapForAuthPages.get(descriptor.authModule()).addAll(urls);
+        } else {
+            mapForAuthPages.put(descriptor.authModule(), urls);
+        }
     }
 
     private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {

@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * An action that is executed during synchronization - like add focus, link, unlink, and so on.
@@ -20,5 +19,5 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  */
 public interface SynchronizationAction {
 
-    <F extends FocusType> void handle(@NotNull OperationResult parentResult) throws CommonException;
+    void handle(@NotNull OperationResult parentResult) throws CommonException;
 }

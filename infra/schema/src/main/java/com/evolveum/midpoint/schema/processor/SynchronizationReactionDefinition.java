@@ -37,21 +37,31 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     @NotNull private final List<SynchronizationActionDefinition> actions;
 
     private SynchronizationReactionDefinition(
-            @NotNull SynchronizationReactionType bean, @NotNull ClockworkSettings syncLevelSettings)
+            @NotNull SynchronizationReactionType legacyBean,
+            boolean addCreateCasesAction,
+            @NotNull ClockworkSettings syncLevelSettings)
             throws ConfigurationException {
         this.order = null;
-        this.name = bean.getName();
+        this.name = legacyBean.getName();
         this.situations = Set.of(
                 MiscUtil.requireNonNull(
-                        bean.getSituation(),
-                        () -> new ConfigurationException("Situation is not defined in " + bean)));
-        this.channels = bean.getChannel();
-        this.condition = bean.getCondition();
+                        legacyBean.getSituation(),
+                        () -> new ConfigurationException("Situation is not defined in " + legacyBean)));
+        this.channels = legacyBean.getChannel();
+        this.condition = legacyBean.getCondition();
         this.legacySynchronizeOff =
-                Boolean.FALSE.equals(bean.isSynchronize())
-                        || bean.isSynchronize() == null && bean.getAction().isEmpty();
-        ClockworkSettings reactionLevelSettings = syncLevelSettings.updateFrom(bean);
-        this.actions = createActions(bean, reactionLevelSettings);
+                !addCreateCasesAction &&
+                        (Boolean.FALSE.equals(legacyBean.isSynchronize())
+                                || legacyBean.isSynchronize() == null && legacyBean.getAction().isEmpty());
+        ClockworkSettings reactionLevelSettings = syncLevelSettings.updateFrom(legacyBean);
+        this.actions = createActions(legacyBean, reactionLevelSettings);
+        // Instead of "<cases>" in the correlation definition we create a special "create correlation cases" action.
+        // We are sure that no such action is there yet, as it's not possible to formulate such an action using action URIs.
+        if (addCreateCasesAction) {
+            actions.add(new SynchronizationActionDefinition.New(
+                    new CreateCorrelationCaseSynchronizationActionType(),
+                    ClockworkSettings.empty()));
+        }
     }
 
     private List<SynchronizationActionDefinition> createActions(
@@ -104,15 +114,17 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
         all.addAll(actions.getInactivateFocus());
         all.addAll(actions.getDeleteShadow());
         all.addAll(actions.getInactivateShadow());
+        all.addAll(actions.getCreateCorrelationCase());
         // TODO support extensions
         return all;
     }
 
     public static @NotNull SynchronizationReactionDefinition of(
-            @NotNull SynchronizationReactionType bean,
+            @NotNull SynchronizationReactionType legacyBean,
+            boolean addCreateCasesAction,
             @NotNull ClockworkSettings defaultSettings)
             throws ConfigurationException {
-        return new SynchronizationReactionDefinition(bean, defaultSettings);
+        return new SynchronizationReactionDefinition(legacyBean, addCreateCasesAction, defaultSettings);
     }
 
     public static @NotNull SynchronizationReactionDefinition of(

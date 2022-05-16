@@ -112,11 +112,7 @@ class CorrelationProcessing<F extends FocusType> {
             CorrelationResult correlationResult = correlateInRootCorrelator(result);
             applyResultToShadow(correlationResult);
 
-            if (correlationResult.isUncertain()) {
-                processUncertainResult(result);
-            } else if (correlationResult.isError()) {
-                // Nothing to do here
-            } else {
+            if (correlationResult.isDone()) {
                 processFinalResult(result);
             }
             result.addArbitraryObjectAsReturn("correlationResult", correlationResult);
@@ -203,24 +199,6 @@ class CorrelationProcessing<F extends FocusType> {
     @NotNull
     private Correlator instantiateRootCorrelator(OperationResult result) throws ConfigurationException {
         return beans.correlatorFactoryRegistry.instantiateCorrelator(rootCorrelatorContext, task, result);
-    }
-
-    private void processUncertainResult(OperationResult result) throws SchemaException {
-        if (rootCorrelatorContext.shouldCreateCases()) {
-            if (getShadowCorrelationCaseOpenTimestamp() == null) {
-                syncCtx.addShadowDeltas(
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
-                                .replace(XmlTypeConverter.createXMLGregorianCalendar())
-                                .asItemDeltas());
-            }
-            beans.correlationCaseManager.createOrUpdateCase(
-                    shadow,
-                    syncCtx.getResource(),
-                    syncCtx.getPreFocus(),
-                    task,
-                    result);
-        }
     }
 
     private void processFinalResult(OperationResult result) throws SchemaException {
