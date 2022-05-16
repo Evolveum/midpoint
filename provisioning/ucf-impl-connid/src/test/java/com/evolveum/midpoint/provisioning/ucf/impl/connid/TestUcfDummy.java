@@ -164,7 +164,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         displayDumpable("Configuration container", configContainer);
 
         // WHEN
-        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
+        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), true, result);
 
         // THEN
         result.computeStatus();
@@ -205,7 +205,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
         //ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
-        cc.configure(configContainer, null, result);
+        cc.configure(configContainer, null, true, result);
 
         // WHEN
         resourceSchema = cc.fetchResourceSchema(result);
@@ -245,7 +245,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         QName accountObjectClass = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
         objectClassesToGenerate.add(accountObjectClass);
 
-        cc.configure(configContainer, objectClassesToGenerate, result);
+        cc.configure(configContainer, objectClassesToGenerate, true, result);
 
         // WHEN
         resourceSchema = cc.fetchResourceSchema(result);

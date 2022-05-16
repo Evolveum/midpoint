@@ -16,6 +16,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Responsible for "completing" a resource object, i.e. transforming the raw value fetched from the repository
@@ -245,17 +248,21 @@ class ResourceCompletionOperation {
             throw new StopException();
         }
 
-        // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
-        // cache the correct version and that we avoid race conditions, etc.
-        PrismObject<ResourceType> reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
-        expand(reloaded);
+        if (isRepoResource()) {
+            // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
+            // cache the correct version and that we avoid race conditions, etc.
+            PrismObject<ResourceType> reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
+            expand(reloaded);
 
-        // Schema is applied, but expressions in configuration need to be resolved.
-        schemaHelper.applyConnectorSchemasToResource(reloaded, task, result);
+            // Schema is applied, but expressions in configuration need to be resolved.
+            schemaHelper.applyConnectorSchemasToResource(reloaded, task, result);
 
-        LOGGER.trace("Completed resource after reload:\n{}", reloaded.debugDumpLazily(1));
+            LOGGER.trace("Completed resource after reload:\n{}", reloaded.debugDumpLazily(1));
 
-        return reloaded;
+            return reloaded;
+        } else {
+            return resource;
+        }
     }
 
     private void parseSchema(PrismObject<ResourceType> reloaded) {
@@ -275,8 +282,7 @@ class ResourceCompletionOperation {
     private void completeSchemaAndCapabilities()
             throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
             ConfigurationException {
-
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
         // Capabilities
         // we need to process capabilities first. Schema is one of the connector capabilities.
@@ -293,6 +299,26 @@ class ResourceCompletionOperation {
             fetchResourceSchema();
         }
 
+        if (isRepoResource()) {
+            completeSchemaRepoResource(modifications);
+
+            if (!modifications.isEmpty()) {
+                try {
+                    LOGGER.trace("Applying completion modifications to {}:\n{}",
+                            resource, DebugUtil.debugDumpLazily(modifications, 1));
+                    beans.cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+                    InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
+                } catch (ObjectAlreadyExistsException ex) {
+                    throw SystemException.unexpected(ex, "when updating resource during completion");
+                }
+            }
+        } else {
+            completeSchemaResourceObject();
+        }
+    }
+
+    private void completeSchemaRepoResource(Collection<ItemDelta<?, ?>> modifications)
+            throws SchemaException {
         if (rawResourceSchema != null) {
             if (isSchemaFreshlyLoaded) {
                 adjustSchemaForSimulatedCapabilities();
@@ -322,15 +348,33 @@ class ResourceCompletionOperation {
                 }
             }
         }
+    }
 
-        if (!modifications.isEmpty()) {
-            try {
-                LOGGER.trace("Applying completion modifications to {}:\n{}",
-                        resource, DebugUtil.debugDumpLazily(modifications, 1));
-                beans.cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
-                InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
-            } catch (ObjectAlreadyExistsException ex) {
-                throw SystemException.unexpected(ex, "when updating resource during completion");
+    private void completeSchemaResourceObject()
+            throws SchemaException {
+        if (rawResourceSchema != null) {
+            if (isSchemaFreshlyLoaded) {
+                adjustSchemaForSimulatedCapabilities();
+                resource.asObjectable().schema(createSchemaUpdateValue());
+
+                // Update the operational state (we know we are up, as the schema was freshly loaded).
+                AvailabilityStatusType previousStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
+                if (previousStatus != UP) {
+                    resource.asObjectable().operationalState(
+                            beans.operationalStateManager.createAndLogOperationalState(
+                                    previousStatus,
+                                    UP,
+                                    resource.toString(),
+                                    "resource schema was successfully fetched"));
+                } else {
+                    // just for sure (if the status changed in the meanwhile)
+                    resource.asObjectable().getOperationalState().lastAvailabilityStatus(UP);
+                }
+            } else {
+                CachingMetadataType schemaCachingMetadata = getCurrentCachingMetadata();
+                if (schemaCachingMetadata == null) {
+                    resource.asObjectable().getSchema().cachingMetadata(MiscSchemaUtil.generateCachingMetadata());
+                }
             }
         }
     }
@@ -407,11 +451,16 @@ class ResourceCompletionOperation {
                 LOGGER.trace("Using capabilities that are cached in the resource object; for {}", connectorSpec);
                 if (capabilitiesBean.getCachingMetadata() == null) {
                     LOGGER.trace("No caching metadata present, creating them");
-                    modifications.add(
-                            PrismContext.get().deltaFactory().property().createModificationReplaceProperty(
-                                    itemPath.append(CapabilitiesType.F_CACHING_METADATA),
-                                    connectorSpec.getResource().getDefinition(),
-                                    MiscSchemaUtil.generateCachingMetadata()));
+                    CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+                    if (isRepoResource()) {
+                        modifications.add(
+                                PrismContext.get().deltaFactory().property().createModificationReplaceProperty(
+                                        itemPath.append(CapabilitiesType.F_CACHING_METADATA),
+                                        connectorSpec.getResource().getDefinition(),
+                                        cachingMetadata));
+                    } else {
+                        resource.asObjectable().getCapabilities().cachingMetadata(cachingMetadata);
+                    }
                 }
                 return;
             }
@@ -436,18 +485,28 @@ class ResourceCompletionOperation {
         capabilitiesBean.setNative(CloneUtil.clone(nativeCapabilities));
         capabilitiesBean.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
-        //noinspection unchecked
-        ObjectDelta<ResourceType> capabilitiesReplaceDelta = PrismContext.get().deltaFactory().object()
-                .createModificationReplaceContainer(
-                        ResourceType.class,
-                        connectorSpec.getResource().getOid(),
-                        itemPath,
-                        capabilitiesBean.asPrismContainerValue().clone());
+        if (isRepoResource()) {
+            //noinspection unchecked
+            ObjectDelta<ResourceType> capabilitiesReplaceDelta = PrismContext.get().deltaFactory().object()
+                    .createModificationReplaceContainer(
+                            ResourceType.class,
+                            connectorSpec.getResource().getOid(),
+                            itemPath,
+                            capabilitiesBean.asPrismContainerValue().clone());
 
-        modifications.addAll(capabilitiesReplaceDelta.getModifications());
+            modifications.addAll(capabilitiesReplaceDelta.getModifications());
+        }
     }
 
     private ItemDelta<?, ?> createSchemaUpdateDelta() throws SchemaException {
+        XmlSchemaType schemaBean = createSchemaUpdateValue();
+
+        return PrismContext.get().deltaFor(ResourceType.class)
+                .item(ResourceType.F_SCHEMA).replace(schemaBean)
+                .asItemDelta();
+    }
+
+    private XmlSchemaType createSchemaUpdateValue() throws SchemaException {
         SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
         schemaDefinition.setSchema(getSchemaRootElement());
 
@@ -455,10 +514,7 @@ class ResourceCompletionOperation {
                 .cachingMetadata(MiscSchemaUtil.generateCachingMetadata())
                 .definition(schemaDefinition)
                 .generationConstraints(getCurrentSchemaGenerationConstraints());
-
-        return PrismContext.get().deltaFor(ResourceType.class)
-                .item(ResourceType.F_SCHEMA).replace(schemaBean)
-                .asItemDelta();
+        return schemaBean;
     }
 
     @NotNull
@@ -571,5 +627,10 @@ class ResourceCompletionOperation {
 
     /** Stopping the evaluation, and returning the {@link #resource}. */
     private static class StopException extends Exception {
+    }
+
+    private boolean isRepoResource() {
+        String resourceOid = resource.getOid();
+        return StringUtils.isNotEmpty(resourceOid);
     }
 }

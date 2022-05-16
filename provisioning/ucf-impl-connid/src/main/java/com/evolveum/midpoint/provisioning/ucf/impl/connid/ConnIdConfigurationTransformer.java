@@ -11,11 +11,21 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
@@ -26,10 +36,6 @@ import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ResultsHandlerConfiguration;
 import org.identityconnectors.framework.api.operations.APIOperation;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -43,9 +49,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.identityconnectors.framework.common.objects.SuggestedValues;
+import org.identityconnectors.framework.common.objects.ValueListOpenness;
+
 /**
  * @author semancik
- *
  */
 public class ConnIdConfigurationTransformer {
 
@@ -74,7 +82,7 @@ public class ConnIdConfigurationTransformer {
      * @throws SchemaException
      * @throws ConfigurationException
      */
-    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration)
+    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration, boolean isCaching)
             throws SchemaException, ConfigurationException {
 
         APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
@@ -99,7 +107,7 @@ public class ConnIdConfigurationTransformer {
                 SchemaConstants.NS_ICF_CONFIGURATION,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
         ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
-        transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
+        transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer, isCaching);
 
         PrismProperty producerBufferSizeProperty = configuration.findProperty(new ItemName(
                 SchemaConstants.NS_ICF_CONFIGURATION,
@@ -121,6 +129,99 @@ public class ConnIdConfigurationTransformer {
 
         return apiConfig;
 
+    }
+
+    public <T> Collection<PrismProperty<T>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
+            throws SchemaException {
+        APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
+        ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
+
+        // The namespace of all the configuration properties specific to the
+        // connector instance will have a connector instance namespace.
+        String connectorConfNs = connectorType.getNamespace();
+        PrismSchema schema;
+        try {
+            schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
+        }
+        PrismContainerDefinition<ConnectorConfigurationType> connectorConfigDef = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
+        if (connectorConfigDef == null) {
+            throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorType.getConnectorType());
+        }
+
+        Collection<PrismProperty<T>> convertedSuggestions = new ArrayList<>();
+        for (Map.Entry<String, SuggestedValues> entry : suggestions.entrySet()) {
+
+            String propertyName = entry.getKey();
+            SuggestedValues values = entry.getValue();
+
+            if (values == null || values.getValues().isEmpty()) {
+                throw new SystemException("Suggestions for configuration property " + propertyName + " is empty");
+            }
+
+            ConfigurationProperty configProperty = configProps.getProperty(propertyName);
+            if (configProperty == null) {
+                LOGGER.debug("Couldn't find configuration property for suggestion with name " + propertyName);
+                continue;
+            }
+
+            QName qNameOfProperty = new QName(connectorConfNs, propertyName);
+            PrismPropertyDefinition<?> propertyDef = connectorConfigDef.findPropertyDefinition(
+                    ItemPath.create(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, qNameOfProperty));
+            if (propertyDef == null) {
+                LOGGER.debug("Couldn't find property definition of configuration property for suggestion with name " + propertyName);
+                continue;
+            }
+
+            PrismContext prismContext = PrismContext.get();
+            QName qNameOfType = propertyDef.getTypeName();
+            MutableItemDefinition def;
+            if (ValueListOpenness.OPEN.equals(values.getOpenness())) {
+                def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType);
+            } else if (ValueListOpenness.CLOSED.equals(values.getOpenness())) {
+                Collection allowedValues = values.getValues().stream()
+                        .map((value) -> new DisplayableValueImpl<>(value, null, null)).collect(Collectors.toList());
+                def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType, allowedValues, null).toMutable();
+            } else {
+                LOGGER.debug("Suggestion " + propertyName + " contains unsupported type of ValueListOpenness: " + values.getOpenness());
+                continue;
+            }
+
+            if (propertyDef.isMandatory()) {
+                def.setMinOccurs(1);
+            } else {
+                def.setMinOccurs(0);
+            }
+
+            def.setDynamic(true);
+            def.setRuntimeSchema(true);
+            def.setDisplayName(propertyDef.getDisplayName());
+            def.setHelp(propertyDef.getHelp());
+            def.setDisplayOrder(propertyDef.getDisplayOrder());
+            def.setDocumentation(propertyDef.getDocumentation());
+
+            if (propertyDef.isMultiValue()) {
+                def.setMaxOccurs(-1);
+                PrismProperty<T> property = (PrismProperty<T>) def.instantiate();
+                for (Object value : values.getValues()) {
+                    PrismPropertyValue<T> propertyValue = prismContext.itemFactory().createPropertyValue();
+                    propertyValue.setValue((T) value);
+                    property.add(propertyValue);
+                }
+                convertedSuggestions.add(property);
+            } else {
+                def.setMaxOccurs(1);
+                for (Object value : values.getValues()) {
+                    PrismProperty<T> property = (PrismProperty<T>) def.instantiate();
+                    PrismPropertyValue<T> propertyValue = prismContext.itemFactory().createPropertyValue();
+                    propertyValue.setValue((T) value);
+                    property.add(propertyValue);
+                    convertedSuggestions.add(property);
+                }
+            }
+        }
+        return convertedSuggestions;
     }
 
     private void transformConnectorConfigurationProperties(ConfigurationProperties configProps,
@@ -154,7 +255,7 @@ public class ConnIdConfigurationTransformer {
                 ConfigurationProperty property = configProps.getProperty(propertyName);
 
                 if (property == null) {
-                    throw new ConfigurationException("Unknown configuration property "+propertyName);
+                    throw new ConfigurationException("Unknown configuration property " + propertyName);
                 }
 
                 Class<?> type = property.getType();
@@ -180,34 +281,38 @@ public class ConnIdConfigurationTransformer {
     }
 
     private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,
-            PrismContainer<?> connectorPoolContainer) throws SchemaException {
+            PrismContainer<?> connectorPoolContainer, boolean isCaching) throws SchemaException {
 
-        if (connectorPoolContainer == null || connectorPoolContainer.getValue() == null) {
-            return;
-        }
-
-        for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
-            QName propertyQName = prismProperty.getElementName();
-            if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
-                String subelementName = propertyQName.getLocalPart();
-                if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
-                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS
-                        .equals(subelementName)) {
-                    connectorPoolConfiguration.setMaxIdleTimeMillis(parseLong(prismProperty));
+        if (connectorPoolConfiguration != null && connectorPoolContainer != null) {
+            for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
+                QName propertyQName = prismProperty.getElementName();
+                if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
+                    String subelementName = propertyQName.getLocalPart();
+                    if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
+                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS
+                            .equals(subelementName)) {
+                        connectorPoolConfiguration.setMaxIdleTimeMillis(parseLong(prismProperty));
+                    } else {
+                        throw new SchemaException(
+                                "Unexpected element "
+                                        + propertyQName
+                                        + " in "
+                                        + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+                    }
                 } else {
                     throw new SchemaException(
                             "Unexpected element "
@@ -215,13 +320,10 @@ public class ConnIdConfigurationTransformer {
                                     + " in "
                                     + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
                 }
-            } else {
-                throw new SchemaException(
-                        "Unexpected element "
-                                + propertyQName
-                                + " in "
-                                + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
             }
+        }
+        if (!isCaching) {
+            connectorPoolConfiguration.setMinIdle(0);
         }
     }
 
@@ -251,7 +353,7 @@ public class ConnIdConfigurationTransformer {
     }
 
     private void transformResultsHandlerConfiguration(ResultsHandlerConfiguration resultsHandlerConfiguration,
-                                                     PrismContainer<?> resultsHandlerConfigurationContainer) throws SchemaException {
+            PrismContainer<?> resultsHandlerConfigurationContainer) throws SchemaException {
 
         if (resultsHandlerConfigurationContainer == null || resultsHandlerConfigurationContainer.getValue() == null) {
             return;
@@ -293,7 +395,6 @@ public class ConnIdConfigurationTransformer {
         }
     }
 
-
     private int parseInt(PrismProperty<?> prop) {
         return prop.getRealValue(Integer.class);
     }
@@ -328,7 +429,7 @@ public class ConnIdConfigurationTransformer {
         for (int j = 0; j < values.size(); ++j) {
             Object icfValue = convertToConnId(values.get(j), componentType);
             if (icfValue != null && icfValue instanceof RawType) {
-                throw new SchemaException("Cannot convert value of "+prismProperty.getElementName().getLocalPart()+" because it is still raw. Missing definition in connector schema?");
+                throw new SchemaException("Cannot convert value of " + prismProperty.getElementName().getLocalPart() + " because it is still raw. Missing definition in connector schema?");
             }
             Array.set(valuesArrary, j, icfValue);
         }
@@ -356,14 +457,14 @@ public class ConnIdConfigurationTransformer {
 //            return new GuardedByteArray(Base64.decodeBase64((ProtectedByteArrayType) pval.getValue()));
             return new GuardedByteArray(((ProtectedByteArrayType) pval.getValue()).getClearBytes());
         } else if (midPointRealValue instanceof PolyString) {
-            return ((PolyString)midPointRealValue).getOrig();
+            return ((PolyString) midPointRealValue).getOrig();
         } else if (midPointRealValue instanceof PolyStringType) {
-            return ((PolyStringType)midPointRealValue).getOrig();
+            return ((PolyStringType) midPointRealValue).getOrig();
         } else if (expectedType.equals(File.class) && midPointRealValue instanceof String) {
-            return new File((String)midPointRealValue);
+            return new File((String) midPointRealValue);
         } else if (expectedType.equals(String.class) && midPointRealValue instanceof ProtectedStringType) {
             try {
-                return protector.decryptString((ProtectedStringType)midPointRealValue);
+                return protector.decryptString((ProtectedStringType) midPointRealValue);
             } catch (EncryptionException e) {
                 throw new ConfigurationException(e);
             }
@@ -375,6 +476,4 @@ public class ConnIdConfigurationTransformer {
             return midPointRealValue;
         }
     }
-
-
 }

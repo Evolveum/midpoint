@@ -102,7 +102,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ConnectorManager.class.getName() + ".content");
 
-    private static final String CONNECTOR_INSTANCE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorInstanceCache";
+    public static final String CONNECTOR_INSTANCE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorInstanceCache";
     private static final String CONNECTOR_TYPE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorTypeCache";
 
     private Collection<ConnectorFactory> connectorFactories;
@@ -153,20 +153,25 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     ConnectorInstance getConfiguredConnectorInstance(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+        return getConfiguredConnectorInstance(connectorSpec, forceFresh, true, result);
+    }
+
+    ConnectorInstance getConfiguredConnectorInstance(ConnectorSpec connectorSpec, boolean forceFresh, boolean isCaching, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
         ConfiguredConnectorInstanceEntry connectorCacheEntry = getOrCreateConnectorInstanceCacheEntry(connectorSpec, result);
         ConnectorInstance connectorInstance = connectorCacheEntry.getConnectorInstance();
 
         if (forceFresh && connectorCacheEntry.isConfigured()) {
             LOGGER.debug("FORCE in connector cache: reconfiguring cached connector {}", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, result);
+            configureConnector(connectorInstance, connectorSpec, isCaching, result);
             // Connector is cached already. No need to put it into cache.
             return connectorInstance;
         }
 
         if (connectorCacheEntry.isConfigured() && !isFresh(connectorCacheEntry, connectorSpec)) {
             LOGGER.trace("Reconfiguring connector {} because the configuration is not fresh", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, result);
+            configureConnector(connectorInstance, connectorSpec, isCaching, result);
             // Connector is cached already. No need to put it into cache. We just need to update the configuration.
             connectorCacheEntry.setConfiguration(connectorSpec.getConnectorConfiguration());
             return connectorInstance;
@@ -174,8 +179,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         if (!connectorCacheEntry.isConfigured()) {
             LOGGER.trace("Configuring new connector {}", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, result);
-            cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
+            configureConnector(connectorInstance, connectorSpec, isCaching, result);
+            if (isCaching) {
+                cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
+            }
         }
 
         return connectorInstance;
@@ -283,7 +290,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     }
 
-    private void configureConnector(ConnectorInstance connector, ConnectorSpec connectorSpec, OperationResult result)
+    private void configureConnector(ConnectorInstance connector, ConnectorSpec connectorSpec, boolean isCaching, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException {
         PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration() != null ?
                 connectorSpec.getConnectorConfiguration().getValue() : null;
@@ -303,6 +310,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             connector.configure(
                     connectorConfigurationVal,
                     ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()),
+                    isCaching,
                     result);
 
             ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
@@ -354,7 +362,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
         PrismSchema connectorSchema =
                 MiscUtil.requireNonNull(
-                        ConnectorTypeUtil.parseConnectorSchema(connectorBean, prismContext),
+                        ConnectorTypeUtil.parseConnectorSchema(connectorBean),
                         () -> "No connector schema in " + connectorBean);
 
         ConnectorWithSchema connectorWithSchema = new ConnectorWithSchema(

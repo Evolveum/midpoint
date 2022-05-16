@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -451,6 +453,54 @@ public interface ProvisioningService {
      * @see ConnectorTestOperation
      */
     OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException;
+
+    /**
+     * Test the resource connection and basic resource connector functionality.
+     *
+     * This operation will NOT throw exception in case the resource connection
+     * fails. It such case it will indicate the failure in the return message,
+     * but the operation itself succeeds. The operations fails only if the
+     * provided arguments are wrong, in case of system error, system
+     * misconfiguration, etc.
+     *
+     * The operation codes in the return value are defined by ConnectorTestOperation enumeration class.
+     *
+     * When resource contains OID (so mP excepts that resource is in repository), then save all changes to repository object.
+     *
+     * @param resource
+     *            resource to test
+     * @return results of executed tests
+     *
+     * @throws GenericConnectorException
+     *             unknown connector framework error
+     *
+     * @see ConnectorTestOperation
+     */
+    OperationResult testResource(PrismObject<ResourceType> resource, Task task) throws ObjectNotFoundException;
+
+    /**
+     * Test basic resource connection.
+     *
+     * This operation will NOT throw exception in case the resource connection
+     * fails. It such case it will indicate the failure in the return message,
+     * but the operation itself succeeds. The operations fails only if the
+     * provided arguments are wrong, in case of system error, system
+     * misconfiguration, etc.
+     *
+     * The operation codes in the return value are defined by ConnectorTestOperation enumeration class.
+     *
+     * @param resource
+     *            resource to test
+     * @return results of executed tests
+     *
+     * @throws GenericConnectorException
+     *             unknown connector framework error
+     *
+     * @see ConnectorTestOperation
+     */
+    OperationResult testPartialConfigurationResource(PrismObject<ResourceType> resource, Task task);
+
+    <T> Collection<PrismProperty<T>> discoverConfiguration(PrismObject<ResourceType> resource, OperationResult parentResult);
 
     /**
      * Discovers local or remote connectors.

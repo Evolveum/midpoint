@@ -52,13 +52,11 @@ class SyncDeltaConverter {
     private final ConnectorInstanceConnIdImpl connectorInstance;
     private final ConnIdNameMapper nameMapper;
     private final ConnIdConvertor connIdConvertor;
-    private final PrismContext prismContext;
     private final ResourceObjectDefinition requestedObjectDefinition;
 
     SyncDeltaConverter(ConnectorInstanceConnIdImpl connectorInstance, ResourceObjectDefinition requestedObjectDefinition) {
         this.connectorInstance = connectorInstance;
         this.nameMapper = connectorInstance.connIdNameMapper;
-        this.prismContext = connectorInstance.prismContext;
         this.connIdConvertor = connectorInstance.connIdConvertor;
         this.requestedObjectDefinition = requestedObjectDefinition;
     }
@@ -90,7 +88,7 @@ class SyncDeltaConverter {
                 identifiers.addAll(
                         ConnIdUtil.convertToIdentifiers(
                                 uid, actualObjectDefinition, connectorInstance.getRawResourceSchema()));
-                objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
+                objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 
             } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
@@ -109,7 +107,7 @@ class SyncDeltaConverter {
                 identifiers.addAll(emptyIfNull(ShadowUtil.getAllIdentifiers(resourceObject)));
 
                 if (icfDeltaType == SyncDeltaType.CREATE) {
-                    objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
+                    objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
                     objectDelta.setObjectToAdd(resourceObject);
                 }
 

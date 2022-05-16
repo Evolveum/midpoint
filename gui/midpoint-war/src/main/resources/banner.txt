@@ -1,0 +1,13 @@
+
+                   _ _____              _
+             _    | |  _  \     _     _| |_
+   ___ ____ (_) __| | |_) |___ (_)___|_   _|
+  |  _ ` _ `| |/ _  |  __/  _ \| |  _` | |
+  | | | | | | | (_| | |  | (_) | | | | | |_
+  |_| |_| |_|_|\____|_|  \____/|_|_| |_|\__|  by Evolveum and partners
+
+  Dual-licensed under Apache License 2.0 and European Union Public License.
+  Version: ${project.version}
+  Sources: ${project.scm.connection}, branch: ${git.branch}, build: ${git.describe}
+  Bug reporting system: ${project.issueManagement.url}
+  Product information: https://midpoint.evolveum.com

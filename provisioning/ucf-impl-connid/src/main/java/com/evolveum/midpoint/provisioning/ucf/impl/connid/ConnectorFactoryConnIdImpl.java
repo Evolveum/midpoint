@@ -214,7 +214,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType,
-                connectorSchema, protector, prismContext, localizationService);
+                connectorSchema, protector, localizationService);
         connectorImpl.setDescription(instanceDescription);
         connectorImpl.setInstanceName(instanceName);
 

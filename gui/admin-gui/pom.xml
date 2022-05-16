@@ -17,18 +17,9 @@
     </parent>
 
     <artifactId>admin-gui</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <name>midPoint User Interface - admin web gui</name>
-
-    <properties>
-        <server.port></server.port>
-        <midpoint.host></midpoint.host>
-        <midpoint.home></midpoint.home>
-        <midpoint.schrodinger>false</midpoint.schrodinger>
-        <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
-        <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -56,12 +47,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.tomcat</groupId>
@@ -72,7 +62,6 @@
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -132,9 +121,7 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <!--
-        Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
-        -->
+        <!-- Following drivers are provided here for developers, but not repackaged in midpoint-jar. -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
@@ -591,7 +578,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Dependencies to connectors, just to add to good place in WAR -->
+        <!-- Dependencies to connectors -->
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-ldap</artifactId>
@@ -601,9 +588,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-jdk14</artifactId>
                 </exclusion>
-                <!-- Exclude api-all and connector-common as that would be included in the WAR as a transitive
-                     dependency. We do not want that. We only want the api-all from the connector
-                     jar that would be loaded by the ConnId. -->
+                <!--
+                Exclude api-all and connector-common, we don't want these in the final archive.
+                We only want the api-all from the connector jar that would be loaded by the ConnId.
+                -->
                 <exclusion>
                     <groupId>org.apache.directory.api</groupId>
                     <artifactId>api-all</artifactId>
@@ -653,7 +641,6 @@
     </dependencies>
 
     <build>
-        <finalName>midpoint</finalName>
         <resources>
             <resource>
                 <filtering>false</filtering>
@@ -736,80 +723,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
-                    <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
-                    <!--
-                    TODO: exclude does NOT work for WAR repackaging: https://github.com/spring-projects/spring-boot/issues/15808
-                    Also, exclude does NOT exclude transitive dependencies (as of Boot 2.3.3). How crazy is that?!
-                    See truezip-maven-plugin plugin lower.
-                    <excludes>
-                        <exclude>
-                            <groupId>com.microsoft.sqlserver</groupId>
-                            <artifactId>mssql-jdbc</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>com.oracle.database.jdbc</groupId>
-                            <artifactId>ojdbc11</artifactId>
-                        </exclude>
-                    </excludes>
-                    -->
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>repackage-war</id>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <classifier>executable</classifier>
-                            <layoutFactory implementation="com.evolveum.midpoint.launcher.MidPointWarLayoutFactory"/>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.evolveum.midpoint.tools</groupId>
-                        <artifactId>midpoint-boot-layout</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>truezip-maven-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <id>remove-unwanted-libs</id>
-                        <goals>
-                            <goal>remove</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <fileset>
-                                <!-- note how the archive is treated as a normal file directory -->
-                                <directory>${project.build.directory}/midpoint-executable.war/WEB-INF/lib-provided</directory>
-                                <includes>
-                                    <include>ojdbc11-*.jar</include>
-                                    <include>ucp-*.jar</include>
-                                    <include>oraclepki-*.jar</include>
-                                    <include>osdt_cert-*.jar</include>
-                                    <include>osdt_core-*.jar</include>
-                                    <include>simplefan-*.jar</include>
-                                    <include>ons-*.jar</include>
-                                    <include>mssql-jdbc-*.jar</include>
-                                </includes>
-                            </fileset>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- reference failsafe to run integration tests (surefire/units run by default) -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -829,12 +742,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <attachClasses>true</attachClasses>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

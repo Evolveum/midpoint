@@ -5,6 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+import '../../../node_modules/popper.js/dist/umd/popper';
 import '../../../node_modules/admin-lte/plugins/bootstrap/js/bootstrap';
 import '../../../node_modules/admin-lte/dist/js/adminlte';
 

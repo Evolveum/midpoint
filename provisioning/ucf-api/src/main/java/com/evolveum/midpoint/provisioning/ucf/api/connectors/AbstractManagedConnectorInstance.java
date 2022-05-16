@@ -127,6 +127,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     public void configure(
             @NotNull PrismContainerValue<?> configuration,
             @Nullable List<QName> generateObjectClasses,
+            boolean isCaching,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException {
 

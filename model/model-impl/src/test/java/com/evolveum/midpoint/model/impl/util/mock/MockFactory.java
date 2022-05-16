@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -97,6 +98,20 @@ public class MockFactory {
             @Override
             public OperationResult testResource(String resourceOid, Task task) {
                 return null;
+            }
+            @Override
+            public OperationResult testResource(PrismObject<ResourceType> resource, Task task) {
+                return null;
+            }
+
+            @Override
+            public OperationResult testPartialConfigurationResource(PrismObject<ResourceType> resource, Task task) {
+                return null;
+            }
+
+            @Override
+            public <T> Collection<PrismProperty<T>> discoverConfiguration(PrismObject<ResourceType> resource, OperationResult parentResult) {
+                return Collections.emptySet();
             }
 
             @Override

@@ -24,6 +24,11 @@
             <source>../gui/midpoint-jar/target/midpoint.jar</source>
             <destName>lib/midpoint.jar</destName>
         </file>
+        <!-- TODO: temporary, will go away during 2022-06 -->
+        <file>
+            <source>../gui/midpoint-war/target/midpoint.war</source>
+            <destName>lib/midpoint.war</destName>
+        </file>
     </files>
     <fileSets>
         <fileSet>
@@ -94,14 +99,6 @@
         </fileSet>
     </fileSets>
     <dependencySets>
-        <dependencySet>
-            <outputDirectory>lib</outputDirectory>
-            <includes>
-                <include>com.evolveum.midpoint.gui:admin-gui</include>
-            </includes>
-            <outputFileNameMapping>midpoint.war</outputFileNameMapping>
-            <unpack>false</unpack>
-        </dependencySet>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
             <includes>
