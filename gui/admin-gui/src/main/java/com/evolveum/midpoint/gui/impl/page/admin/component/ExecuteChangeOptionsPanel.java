@@ -100,6 +100,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 getPageBase().createStringResource("ExecuteChangeOptionsPanel.options").getString(), items);
         DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_OPTIONS, model) {
 
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
                 InlineMenuItem item = menuItem.getModelObject();
@@ -111,12 +113,23 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 CheckboxMenuItem checkboxMenuItem = (CheckboxMenuItem) item;
                 CheckBoxPanel panel = new CheckBoxPanel(componentId, checkboxMenuItem.getCheckBoxModel(), checkboxMenuItem.getLabel(), null) {
 
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onUpdate(AjaxRequestTarget target) {
+                        getOptionsButtonPanel().visitChildren(new IVisitor<Component, Object>() {
+                            @Override
+                            public void component(Component component, IVisit<Object> objectIVisit) {
+                                if (component instanceof CheckBoxPanel) {
+                                    target.add(component);
+                                }
+                            }
+                        });
                         target.add(this.getPanelComponent());
                     }
                 };
                 panel.add(new EnableBehaviour(() -> isOptionEnabled(model, checkboxMenuItem)));
+                panel.setOutputMarkupId(true);
                 menuItem.add(panel);
             }
 

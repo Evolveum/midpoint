@@ -128,7 +128,7 @@ export default class MidPointTheme {
         jQuery(function ($) {
             $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e, t) {
                 if (typeof $(this).tooltip === "function") {
-                    var wl = $.fn.tooltip.Constructor.DEFAULTS.whiteList;
+                    var wl = $.fn.tooltip.Constructor.Default.whiteList;
                     wl['xsd:documentation'] = [];
                     var parent = $(this).closest('.modal-dialog-content');
                     var container = "body";

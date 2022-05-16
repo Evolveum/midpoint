@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.Item;
@@ -38,7 +37,7 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     UserInterfaceElementVisibilityType getVisibleOverwrite();
     boolean isVisible(PrismContainerValueWrapper<?> parentContainer, ItemVisibilityHandler visibilityHandler);
 
-    boolean checkRequired(PageBase pageBase);
+    boolean checkRequired();
 
     PrismContainerValueWrapper<?> getParent();
 

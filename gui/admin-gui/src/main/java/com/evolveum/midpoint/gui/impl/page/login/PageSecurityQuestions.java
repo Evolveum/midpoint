@@ -5,7 +5,30 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.HiddenField;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -28,29 +51,6 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.HiddenField;
-import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -90,7 +90,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     @Override
-    protected void initCustomLayer() {
+    protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override

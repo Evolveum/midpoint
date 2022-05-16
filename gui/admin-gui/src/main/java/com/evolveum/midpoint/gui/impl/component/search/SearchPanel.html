@@ -9,7 +9,6 @@
     <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
         <div wicket:id="searchItemsPanel"></div>
 
-<!--        <div class="d-flex my-1">-->
             <div wicket:id="searchContainer" class="my-1">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="submitSearchButton">
@@ -44,41 +43,34 @@
                     </ul>
                 </div>
             </div>
-<!--        </div>-->
     </form>
     <wicket:fragment wicket:id="basicSearchFragment">
         <wicket:container wicket:id="items">
             <div wicket:id="item" class="my-1"/>
         </wicket:container>
-<!--        <div class="d-flex my-1">-->
-            <a wicket:id="more" class="btn btn-sm btn-default mx-1 my-1">
+            <button wicket:id="more" class="btn btn-sm btn-default mx-1 my-1">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="fa fa-caret-down"></span>
-            </a>
-<!--        </div>-->
+            </button>
         <div wicket:id="popover">
             <div class="search-popover">
-                <div class="more-input">
-                    <input wicket:id="addText" type="text" class="form-control form-control-sm" style="width: auto;" size="20">
-                </div>
+                <input wicket:id="addText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
 
-                <div class="properties">
-                    <dl wicket:id="propList">
-                        <dt>
-                            <wicket:message key="SearchPanel.properties"/>
-                        </dt>
-                        <dd wicket:id="properties">
-                            <label>
-                                <input wicket:id="check" type="checkbox">&nbsp;
-                                <a wicket:id="propLink"><span wicket:id="propName"/></a>
-                                <i wicket:id="help"/>
-                            </label>
-                        </dd>
-                    </dl>
-                </div>
+                <dl class="border-bottom mb-2" wicket:id="propList">
+                    <dt class="mb-1">
+                        <wicket:message key="SearchPanel.properties"/>
+                    </dt>
+                    <dd wicket:id="properties">
+                        <label>
+                            <input wicket:id="check" type="checkbox">&nbsp;
+                            <a wicket:id="propLink"><span wicket:id="propName"/></a>
+                            <i wicket:id="help"/>
+                        </label>
+                    </dd>
+                </dl>
 
-                <div class="buttons">
+                <div class="mt-2 mb-1">
                     <a wicket:id="add" class="btn btn-sm btn-success"/>
                     <a wicket:id="close" class="btn btn-sm btn-default"/>
                 </div>
@@ -88,38 +80,22 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="advancedSearchFragment">
-        <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid; width: 60px;">
-            <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
+        <div class="d-flex my-1">
+            <a class="btn btn-sm btn-link" wicket:id="debug" />
         </div>
         <div class="my-1 has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
-            <label class="control-label pull-left" style="vertical-align: top; float:right; padding-right: 5px;">
+            <textarea class="form-control form-control-sm" rows="2" wicket:id="advancedArea"
+                    style="width: 220px; height: 60px; overflow: hidden;"></textarea>
+            <input wicket:id="axiomQueryField" type="text" class="form-control form-control-sm"
+                    style="width: 91.6666667%; min-width: 300px; float:right;">
+            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
                 <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
             </label>
-            <div wicket:id="advancedErrorGroup" class="pull-left" style="float:right">
+            <div wicket:id="advancedErrorGroup" style="float:right">
                 <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
             </div>
-            <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                    style="margin-right: 30px; width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
-            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"
-                    style="margin-right: 30px; min-width: 600px; float:right;">
         </div>
     </wicket:fragment>
-
-    <!--    <wicket:fragment wicket:id="axiomSearchFragment" >-->
-    <!--        <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">-->
-    <!--            <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>-->
-    <!--        </div>-->
-    <!--        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">-->
-    <!--            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">-->
-    <!--                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>-->
-    <!--            </label>-->
-    <!--            <div wicket:id="advancedErrorGroup" style="float:right">-->
-    <!--                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>-->
-    <!--            </div>-->
-    <!--            <input wicket:id="axiomQueryField" type="text" class="form-control input-sm"-->
-    <!--                    style="width: 91.6666667%; min-width: 300px; float:right;">-->
-    <!--        </div>-->
-    <!--    </wicket:fragment>-->
 
     <wicket:fragment wicket:id="fulltextSearchFragment">
         <div class="my-1" wicket:id="fullTextContainer">

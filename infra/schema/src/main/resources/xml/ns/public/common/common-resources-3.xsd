@@ -261,6 +261,7 @@
             <xsd:element name="inactivateFocus" type="tns:InactivateFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="deleteShadow" type="tns:DeleteShadowSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="inactivateShadow" type="tns:InactivateShadowSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="createCorrelationCase" type="tns:CreateCorrelationCaseSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -478,6 +479,25 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractClockworkBasedSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CreateCorrelationCaseSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Creates (or updates) a correlation case for resource object in "disputed"
+                synchronization state, i.e. one whose owner cannot be reliably determined.
+
+                TODO Is it OK that correlation case is updated only when this action is configured?
+                Shouldn't that be automatic (if the situation is DISPUTED, and a case already exists)?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
 

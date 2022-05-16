@@ -111,6 +111,7 @@
             </mappingsEvaluation>
         </objectType>
     </schemaHandling>
+    <!-- intentionally legacy -->
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>
@@ -404,24 +405,6 @@
                     </filter>
                 </correlators>
                 <cases/>
-                <!--<correlationProperties>-->
-                <!--    <property>-->
-                <!--        <source>assignment/extension/givenName</source>-->
-                <!--        <primaryTarget>givenName</primaryTarget>-->
-                <!--    </property>-->
-                <!--    <property>-->
-                <!--        <source>assignment/extension/familyName</source>-->
-                <!--        <primaryTarget>familyName</primaryTarget>-->
-                <!--    </property>-->
-                <!--    <property>-->
-                <!--        <source>assignment/extension/dateOfBirth</source>-->
-                <!--        <primaryTarget>extension/dateOfBirth</primaryTarget>-->
-                <!--    </property>-->
-                <!--    <property>-->
-                <!--        <source>assignment/extension/nationalId</source>-->
-                <!--        <primaryTarget>extension/nationalId</primaryTarget>-->
-                <!--    </property>-->
-                <!--</correlationProperties>-->
             </correlationDefinition>
             <reaction>
                 <situation>linked</situation>

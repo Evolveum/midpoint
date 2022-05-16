@@ -4,16 +4,15 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class PageRegistrationBase extends PageBase {
 
@@ -96,7 +96,7 @@ public class PageRegistrationBase extends PageBase {
         if (securityPolicy == null) {
             LOGGER.error("No security policy defined.");
             getSession()
-                    .error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
+                    .error(createStringResource("PageSelfRegistrationOld.securityPolicy.notFound").getString());
             throw new RestartResponseException(PageLogin.class);
         }
 

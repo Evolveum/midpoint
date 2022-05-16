@@ -5,7 +5,23 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.WebAttributes;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -35,21 +51,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 /**
  * @author lskublik
@@ -74,7 +75,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
     public PageEmailNonce() {
     }
 
-    protected void initCustomLayer() {
+    protected void initCustomLayout() {
         MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(new VisibleEnableBehaviour() {
 
@@ -302,13 +303,6 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        clearBreadcrumbs();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
     }
 
     @Override

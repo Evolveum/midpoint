@@ -11,10 +11,28 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.SubscriptionType;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -94,17 +112,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -126,6 +139,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_DEBUG_PANEL = "debugPanel";
 
+    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_VERSION = "version";
+    private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
+    private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
@@ -256,6 +273,18 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 //        body.add(new AttributeAppender("class", "hold-transition ", " "));
 //        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
+        addDefaultBodyStyle(body);
+        add(body);
+
+        Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.setRenderBodyOnly(true);
+        add(title);
+
+        addFooter();
+        initDebugBarLayout();
+    }
+
+    protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
         body.add(AttributeAppender.append("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
@@ -270,13 +299,86 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                 return info.getSkin();
             }
         }));
-        add(body);
+    }
 
-        Label title = new Label(ID_TITLE, createPageTitleModel());
-        title.setRenderBodyOnly(true);
-        add(title);
+    private void addFooter() {
+        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
+        add(footerContainer);
 
-        initDebugBarLayout();
+        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Deprecated
+            public String getDescribe() {
+                return PageAdminLTE.this.getDescribe();
+            }
+        };
+        version.add(new VisibleBehaviour(() ->
+                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
+        footerContainer.add(version);
+
+        WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
+        copyrightMessage.add(getFooterVisibleBehaviour());
+        footerContainer.add(copyrightMessage);
+
+        Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
+                new IModel<String>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getObject() {
+                        String subscriptionId = getSubscriptionId();
+                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
+                            return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
+                        }
+                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+                            return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+                        }
+                        return "";
+                    }
+                });
+        subscriptionMessage.setOutputMarkupId(true);
+        subscriptionMessage.add(getFooterVisibleBehaviour());
+        footerContainer.add(subscriptionMessage);
+    }
+
+    private VisibleEnableBehaviour getFooterVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isFooterVisible();
+            }
+        };
+    }
+
+    private boolean isFooterVisible() {
+        String subscriptionId = getSubscriptionId();
+        if (StringUtils.isEmpty(subscriptionId)) {
+            return true;
+        }
+        return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+                (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+                        && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+    }
+
+    private String getSubscriptionId() {
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        return info != null ? info.getSubscriptionIdentifier() : null;
+    }
+
+    /**
+     * It's here only because of some IDEs - it's not properly filtering
+     * resources during maven build. "describe" variable is not replaced.
+     *
+     * @return "unknown" instead of "git describe" for current build.
+     */
+    @Deprecated
+    public String getDescribe() {
+        return getString("pageBase.unknownBuildNumber");
     }
 
     private void initDebugBarLayout() {
@@ -720,5 +822,160 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public boolean isNativeRepo() {
         return getRepositoryService().isNative();
+    }
+
+    public String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
+    }
+
+    public OpResult showResult(OperationResult result, String errorMessageKey) {
+        return showResult(result, errorMessageKey, true);
+    }
+
+    public OpResult showResult(OperationResult result, boolean showSuccess) {
+        return showResult(result, null, showSuccess);
+    }
+
+    public OpResult showResult(OperationResult result) {
+        return showResult(result, null, true);
+    }
+
+    public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+
+        OperationResult scriptResult = executeResultScriptHook(result);
+        if (scriptResult == null) {
+            return null;
+        }
+
+        result = scriptResult;
+
+        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        opResult.determineObjectsVisibility(this);
+        switch (opResult.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                getSession().error(opResult);
+
+                break;
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                getSession().info(opResult);
+                break;
+            case SUCCESS:
+                if (!showSuccess) {
+                    break;
+                }
+                getSession().success(opResult);
+
+                break;
+            case UNKNOWN:
+            case WARNING:
+            default:
+                getSession().warn(opResult);
+
+        }
+        return opResult;
+    }
+
+    private OperationResult executeResultScriptHook(OperationResult result) {
+        CompiledGuiProfile adminGuiConfiguration = getCompiledGuiProfile();
+        if (adminGuiConfiguration.getFeedbackMessagesHook() == null) {
+            return result;
+        }
+
+        FeedbackMessagesHookType hook = adminGuiConfiguration.getFeedbackMessagesHook();
+        ExpressionType expressionType = hook.getOperationResultHook();
+        if (expressionType == null) {
+            return result;
+        }
+
+        String contextDesc = "operation result (" + result.getOperation() + ") script hook";
+
+        Task task = getPageTask();
+        OperationResult topResult = task.getResult();
+        try {
+            ExpressionFactory factory = getExpressionFactory();
+            PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
+            Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, topResult);
+
+            VariablesMap variables = new VariablesMap();
+
+            OperationResultType resultType = result.createOperationResultType();
+
+            variables.put(ExpressionConstants.VAR_INPUT, resultType, OperationResultType.class);
+
+            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+            PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple = expression.evaluate(context, topResult);
+            if (outputTriple == null) {
+                return null;
+            }
+
+            Collection<PrismPropertyValue<OperationResultType>> values = outputTriple.getNonNegativeValues();
+            if (values == null || values.isEmpty()) {
+                return null;
+            }
+
+            if (values.size() > 1) {
+                throw new SchemaException("Expression " + contextDesc + " produced more than one value");
+            }
+
+            OperationResultType newResultType = values.iterator().next().getRealValue();
+            if (newResultType == null) {
+                return null;
+            }
+
+            return OperationResult.createOperationResult(newResultType);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
+            topResult.recordFatalError(e);
+            if (StringUtils.isEmpty(result.getMessage())) {
+                topResult.setMessage("Couldn't process operation result script hook.");
+            }
+            topResult.addSubresult(result);
+            LoggingUtils.logUnexpectedException(LOGGER, contextDesc, e);
+            if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
+                throw new SystemException(e.getMessage(), e);
+            } else {
+                return topResult;
+            }
+        }
+    }
+
+    public <O extends ObjectType> boolean isAuthorized(ModelAuthorizationAction action, PrismObject<O> object) {
+        try {
+            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
+                    || isAuthorized(action.getUrl(), null, object, null, null, null);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
+            return true;            // it is only GUI thing
+        }
+    }
+
+    public boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return isAuthorized(operationUrl, null, null, null, null, null);
+    }
+
+    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
+            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Task task = getPageTask();
+        AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
+                .oldObject(object)
+                .delta(delta)
+                .target(target)
+                .build();
+        boolean isAuthorized = getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
+        if (!isAuthorized && (ModelAuthorizationAction.GET.getUrl().equals(operationUrl) || ModelAuthorizationAction.SEARCH.getUrl().equals(operationUrl))) {
+            isAuthorized = getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(), phase, params, ownerResolver, task, task.getResult());
+        }
+        return isAuthorized;
+    }
+
+    public void redirectToNotFoundPage() {
+        PageError404 notFound = new PageError404();
+        throw new RestartResponseException(notFound);
     }
 }

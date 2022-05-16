@@ -106,6 +106,7 @@
             </mappingsEvaluation>
         </objectType>
     </schemaHandling>
+    <!-- intentionally keeping the legacy variant, to test also this style of configuration -->
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>

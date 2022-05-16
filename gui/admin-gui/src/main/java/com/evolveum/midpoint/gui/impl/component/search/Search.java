@@ -151,7 +151,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public Class<C> getTypeClass() {
-        ObjectTypeSearchItemWrapper objectTypeWrapper = findObjectTypeSearchItemWrapper();
+        ObjectTypeSearchItemWrapper<C> objectTypeWrapper = findObjectTypeSearchItemWrapper();
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             return (Class<C> )  ObjectType.class;
         }

@@ -5,52 +5,81 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.login;
+package com.evolveum.midpoint.gui.impl.page.login;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
  * @author lskublik
  */
-public abstract class AbstractPageLogin extends PageBase {
+public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEQUENCE = "sequence";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
 
+    public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
+
+    public AbstractPageLogin(PageParameters parameters) {
+        super(parameters);
+    }
+
     public AbstractPageLogin() {
+        super(null);
+    }
+
+    @Override
+    protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
+        body.add(AttributeModifier.replace("class", "login-page"));
+        body.add(AttributeModifier.replace("style", "")); //TODO hack :) because PageBase has min-height defined.
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayer();
+        initLayout();
     }
 
-    private void initLayer() {
+    private void initLayout() {
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        add(feedbackContainer);
+
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
+
+
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
         sequence.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
@@ -65,7 +94,7 @@ public abstract class AbstractPageLogin extends PageBase {
         };
         toDefault.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(toDefault);
-        initCustomLayer();
+        initCustomLayout();
     }
 
     private String getSequenceName() {
@@ -83,13 +112,12 @@ public abstract class AbstractPageLogin extends PageBase {
         return null;
     }
 
-    protected abstract void initCustomLayer();
+    protected abstract void initCustomLayout();
 
     @Override
     protected void onConfigure() {
         super.onConfigure();
         showExceptionMessage();
-        clearBreadcrumbs();
     }
 
     private void showExceptionMessage() {
@@ -116,11 +144,6 @@ public abstract class AbstractPageLogin extends PageBase {
     }
 
     @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
-    }
-
-    @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
         confirmUserPrincipal();
@@ -138,8 +161,8 @@ public abstract class AbstractPageLogin extends PageBase {
         }
     }
 
-    @Override
-    protected boolean isSideMenuVisible() {
-        return false;
+    public WebMarkupContainer getFeedbackPanel() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
+
 }

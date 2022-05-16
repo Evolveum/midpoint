@@ -58,6 +58,7 @@
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
+        <ignoredLocalPath>/actuator/health</ignoredLocalPath>
     </authentication>
     <credentials>
         <password>
