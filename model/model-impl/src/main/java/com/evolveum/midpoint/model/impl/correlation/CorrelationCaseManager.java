@@ -91,11 +91,13 @@ public class CorrelationCaseManager {
             @NotNull FocusType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws SchemaException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         checkOid(resourceObject);
         CaseType aCase = findCorrelationCase(resourceObject, true, result);
         if (aCase == null) {
-            createCase(resourceObject, resource, preFocus, task, result);
+            XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+            createCase(resourceObject, resource, preFocus, now, task, result);
+            recordCaseCreationInShadow(resourceObject, now, result);
         } else {
             updateCase(aCase, preFocus, result);
         }
@@ -109,6 +111,7 @@ public class CorrelationCaseManager {
             ShadowType resourceObject,
             ResourceType resource,
             FocusType preFocus,
+            XMLGregorianCalendar now,
             Task task,
             OperationResult result)
             throws SchemaException {
@@ -125,7 +128,7 @@ public class CorrelationCaseManager {
                         .schema(createCaseSchema(resource.getBusiness())))
                 .state(SchemaConstants.CASE_STATE_CREATED)
                 .metadata(new MetadataType()
-                    .createTimestamp(clock.currentTimeXMLGregorianCalendar()));
+                    .createTimestamp(now));
         try {
             repositoryService.addObject(newCase.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -173,6 +176,18 @@ public class CorrelationCaseManager {
         return new ObjectReferenceType()
                 .oid(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value())
                 .type(ArchetypeType.COMPLEX_TYPE);
+    }
+
+    private void recordCaseCreationInShadow(ShadowType shadow, XMLGregorianCalendar now, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ShadowType.class,
+                shadow.getOid(),
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_OPEN_TIMESTAMP)
+                        .replace(now)
+                        .asItemDeltas(),
+                result);
     }
 
     private void updateCase(

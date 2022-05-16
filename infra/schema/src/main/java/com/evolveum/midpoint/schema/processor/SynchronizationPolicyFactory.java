@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
+
 import static java.util.Objects.requireNonNullElse;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
@@ -164,15 +166,49 @@ public class SynchronizationPolicyFactory {
                 objectDefinition);
     }
 
+    /**
+     * Converts legacy synchronization definition bean ({@link ObjectSynchronizationType}) into a list of parsed
+     * {@link SynchronizationReactionDefinition} objects.
+     *
+     * Especially treats the existence of `correlationDefinition/cases` item. If such an item is present,
+     * "create correlation cases" action is added to "disputed" reaction (or such reaction is created, if there's none).
+     */
     private static List<SynchronizationReactionDefinition> getSynchronizationReactions(
-            ObjectSynchronizationType synchronizationBean) throws ConfigurationException {
+            @NotNull ObjectSynchronizationType synchronizationBean) throws ConfigurationException {
         ClockworkSettings defaultSettings = ClockworkSettings.of(synchronizationBean);
+        boolean legacyCorrelationCasesEnabled = isLegacyCorrelationCasesSettingOn(synchronizationBean);
+
         List<SynchronizationReactionDefinition> list = new ArrayList<>();
-        for (SynchronizationReactionType synchronizationReactionType : synchronizationBean.getReaction()) {
+
+        boolean createCasesActionAdded = false;
+        for (SynchronizationReactionType synchronizationReactionBean : synchronizationBean.getReaction()) {
+            boolean addCreateCasesActionHere =
+                    legacyCorrelationCasesEnabled && synchronizationReactionBean.getSituation() == DISPUTED;
             list.add(
-                    SynchronizationReactionDefinition.of(synchronizationReactionType, defaultSettings));
+                    SynchronizationReactionDefinition.of(
+                            synchronizationReactionBean, addCreateCasesActionHere, defaultSettings));
+            if (addCreateCasesActionHere) {
+                createCasesActionAdded = true;
+            }
         }
+
+        if (legacyCorrelationCasesEnabled && !createCasesActionAdded) {
+            list.add(SynchronizationReactionDefinition.of(
+                    new SynchronizationReactionType().situation(DISPUTED),
+                    true,
+                    ClockworkSettings.empty()));
+        }
+
         return list;
+    }
+
+    private static boolean isLegacyCorrelationCasesSettingOn(@NotNull ObjectSynchronizationType synchronizationBean) {
+        LegacyCorrelationDefinitionType correlationDefinition = synchronizationBean.getCorrelationDefinition();
+        return correlationDefinition != null && isEnabled(correlationDefinition.getCases());
+    }
+
+    private static boolean isEnabled(CorrelationCasesDefinitionType cases) {
+        return cases != null && !Boolean.FALSE.equals(cases.isEnabled());
     }
 
     private static @NotNull CorrelationDefinitionType getCorrelationDefinitionBean(

@@ -132,14 +132,7 @@
                     </defaultEvaluationPhases>
                 </inbound>
             </mappingsEvaluation>
-        </objectType>
-    </schemaHandling>
-    <synchronization>
-        <objectSynchronization>
-            <enabled>true</enabled>
-            <kind>account</kind>
-            <intent>default</intent>
-            <correlationDefinition>
+            <correlation>
                 <correlators>
                     <name>composite</name>
                     <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
@@ -220,26 +213,27 @@
                         </ownerFilter>
                     </filter>
                 </correlators>
-                <cases/>
-            </correlationDefinition>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>false</synchronize> <!-- no need to sync (no inbounds) -->
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>false</synchronize> <!-- no need to sync (no inbounds); unlinking is automatic (is it?) -->
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>false</synchronize> <!-- we want to do nothing for these accounts -->
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
+            </correlation>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <situation>deleted</situation>
+                    <situation>unmatched</situation>
+                    <!-- nothing to do here -->
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
 </resource>
