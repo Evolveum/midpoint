@@ -1781,17 +1781,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
                     "Operation not supported by the connector", ex);
             // Do not rethrow. Recording the status is just OK.
-            return Collections.emptySet();
         } catch (Throwable icfEx) {
             Throwable midPointEx = processConnIdException(icfEx, this, result);
             result.recordFatalError(midPointEx);
-            //TODO
-            try {
-                throw midPointEx;
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
         }
+        return Collections.emptySet();
     }
 
     @Override
