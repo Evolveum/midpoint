@@ -127,7 +127,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
             @Override
             public String getCssClass() {
-                return "col-md-1";
+                return "mp-w-md-1";
             }
         });
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getContainerModel(), AssignmentType.F_DESCRIPTION, ColumnType.STRING, getPageBase()){
@@ -150,7 +150,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
             @Override
             public String getCssClass() {
-                return "col-md-1";
+                return "mp-w-md-1";
             }
         });
         return columns;
