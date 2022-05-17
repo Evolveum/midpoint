@@ -274,6 +274,10 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
         return oldObject;
     }
 
+    boolean hasOldObject() {
+        return oldObject != null;
+    }
+
     PrismObject<O> getCurrentObject() {
         return currentObject;
     }
@@ -661,24 +665,18 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
      *
      * Should be used only by the context loader.
      */
-    public void setLoadedObject(@NotNull PrismObject<O> object, boolean add) {
+    void setCurrentAndOptionallyOld(@NotNull PrismObject<O> object, boolean setAlsoOld) {
         setCurrentObject(object.cloneIfImmutable());
-        if (oldObject == null && !add) {
+        if (setAlsoOld) {
             setOldObject(object.clone());
         }
     }
 
     /**
-     * Sets both current and (if applicable) the old object.
-     *
-     * Almost the same as {@link #setLoadedObject(PrismObject, boolean)} but the old object is updated
-     * regardless of whether it was already set or not.
+     * Sets both current and (if the operation is not `ADD`) also the old object.
      */
-    public void setInitialObject(@NotNull PrismObject<O> object, boolean add) {
-        setCurrentObject(object.cloneIfImmutable());
-        if (!add) {
-            setOldObject(object.clone());
-        }
+    public void setInitialObject(@NotNull PrismObject<O> object, boolean isAdd) {
+        setCurrentAndOptionallyOld(object, !isAdd);
     }
 
     /**

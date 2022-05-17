@@ -120,7 +120,7 @@ public class FocusLoadOperation<F extends ObjectType> {
         }
     }
 
-    private PrismObject<F> reallyLoadFocus(LensFocusContext<F> focusContext, OperationResult result)
+    private @NotNull PrismObject<F> reallyLoadFocus(LensFocusContext<F> focusContext, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         String focusOid = focusContext.getOid();

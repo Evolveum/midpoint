@@ -289,14 +289,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     /**
      * Sets current and possibly also old object. This method is used with
      * freshly loaded object. The object is set as current object.
-     * If the old object was not initialized yet (and if it should be initialized)
-     * then the object is also set as old object.
+     * If the old object should be initialized, then the object is also set as old object.
      *
      * Should be used only from the context loader!
      */
-    public void setLoadedObject(PrismObject<O> object) {
-        state.setLoadedObject(object, isAdd());
-    }
+    public abstract void setLoadedObject(@NotNull PrismObject<O> object);
 
     /**
      * Updates the current object.

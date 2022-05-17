@@ -315,6 +315,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         state.invalidate(); // sync delta is a parameter for adjuster
     }
 
+    @Override
+    public void setLoadedObject(@NotNull PrismObject<ShadowType> object) {
+        state.setCurrentAndOptionallyOld(object, !state.hasOldObject() && !isAdd());
+    }
+
     /**
      * Returns {@link ObjectDeltaObject} to be used e.g. expression evaluation regarding this projection.
      *

@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME;
+
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +21,7 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -69,8 +71,8 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final TestResource<RoleType> ROLE_WHEEL = new TestResource<>(TEST_DIR, "role-wheel.xml", "ad1782d5-48ae-4f86-a26b-efea45d88f3c");
     private static final String GROUP_WHEEL_NAME = "wheel";
 
-    private static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
-    private static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
+    private static final TestTask TASK_LIVE_SYNC_DUMMY_TEA_GREEN = new TestTask(
+            TEST_DIR, "task-dumy-tea-green-livesync.xml", "10000000-0000-0000-5555-55550000c404");
 
     private static final String LOCKER_BIG_SECRET = "BIG secret";
 
@@ -108,6 +110,18 @@ public class TestMappingInbound extends AbstractMappingTest {
             }
     );
 
+    private static final String ATTR_PHOTO = "photo";
+
+    private static final DummyTestResource RESOURCE_DUMMY_TARGET_PHOTOS = new DummyTestResource(
+            TEST_DIR, "resource-target-photos.xml", "8d181eee-458a-439d-a9f7-d7256a91f557", "target-photos",
+            controller ->
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            ATTR_PHOTO, byte[].class, false, false)
+                            .setReturnedByDefault(false));
+
+    private static final TestResource<TaskType> TASK_IMPORT_TARGET_PHOTOS = new TestResource<>(
+            TEST_DIR, "task-import-target-photos.xml", "734cca6b-0012-4e43-888b-9717deedd8bc");
+
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
 
@@ -120,8 +134,12 @@ public class TestMappingInbound extends AbstractMappingTest {
         repoAdd(ARCHETYPE_PIRATE, initResult);
 
         initDummyResource(RESOURCE_DUMMY_TEA_GREEN, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_TARGET_PHOTOS, initTask, initResult);
 
         addObject(ROLE_WHEEL, initTask, initResult); // creates a resource object as well
+
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.initialize(this, initTask, initResult);
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(initResult); // to get the token
     }
 
     @Test
@@ -149,15 +167,6 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertDummyGroup(RESOURCE_DUMMY_TEA_GREEN.name, GROUP_WHEEL_NAME, "This is the wheel group", true);
     }
 
-    @Test
-    public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
-        when();
-        importSyncTask();
-
-        then();
-        waitForSyncTaskNextRun();
-    }
-
     /**
      * Create mancomb's account and run the live sync.
      *
@@ -174,7 +183,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, LOCKER_BIG_SECRET); // MID-5197
-        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, "simple");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, "pirate");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, "x-x-x");
@@ -185,7 +194,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).addAccount(account);
 
-        waitForSyncTaskNextRun();
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
         then();
 
@@ -242,10 +251,10 @@ public class TestMappingInbound extends AbstractMappingTest {
         when();
 
         DummyAccount account = getMancombAccount();
-        account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
-        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
-        waitForSyncTaskNextRun();
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
         then();
 
@@ -259,8 +268,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     /**
      * The same as test120 but using reconcile instead of LS.
      *
-     * *Here we SUSPEND the LS task!*
-     *
      * MID-5912
      */
     @Test
@@ -271,12 +278,9 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         when();
 
-        // stop the task to avoid interference with the reconciliations
-        suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
-
         DummyAccount account = getMancombAccount();
-        account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
-        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
+        account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -457,8 +461,6 @@ public class TestMappingInbound extends AbstractMappingTest {
      * We intentionally skip the maintenance checks that occurs on the start of LS activity
      * and on the start of synchronization processing.
      *
-     * *Here the LS task runs only during the test. Then it's suspended again.*
-     *
      * MID-7062
      */
     @Test
@@ -472,7 +474,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         // This is a dummy change
         getMancombAccount()
-                .addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+                .addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -481,17 +483,16 @@ public class TestMappingInbound extends AbstractMappingTest {
         SyncTaskHelper.setSkipMaintenanceCheck(true);
         SynchronizationContext.setSkipMaintenanceCheck(true);
         try {
-            resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 30000);
+            TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerunErrorsOk(result);
         } finally {
             SyncTaskHelper.setSkipMaintenanceCheck(false);
             SynchronizationContext.setSkipMaintenanceCheck(false);
             turnMaintenanceModeOff(task, result);
-            suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
         }
 
         then();
 
-        assertTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, "after")
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.assertAfter()
                 .assertFatalError(); // there's an extra check for maintenance mode in ProvisioningServiceImpl#synchronize
 
         // In the current state of the code no synchronization takes place, so technically the following check is not needed.
@@ -549,14 +550,15 @@ public class TestMappingInbound extends AbstractMappingTest {
      */
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         when();
         getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         displayValue("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).debugDump());
 
-        // Make sure we have steady state
-        resumeTaskAndWaitForNextFinish(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
-        waitForSyncTaskNextRun();
+        when("live sync task is run");
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
         then();
 
@@ -573,20 +575,6 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .assertTombstone()
                         .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
         // @formatter:on
-    }
-
-    // Remove livesync task so it won't get into the way for next tests
-    @Test
-    public void test399DeleteLiveSyncTask() throws Exception {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        when();
-        deleteObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, task, result);
-
-        then();
-        assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
 
     /**
@@ -996,12 +984,50 @@ public class TestMappingInbound extends AbstractMappingTest {
         // @formatter:on
     }
 
-    protected void importSyncTask() throws FileNotFoundException {
-        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE);
-    }
+    /**
+     * Testing the propagation of user photo from the source resource to the user and then to outbound resource.
+     *
+     * 1. There is a source account (`test520` on `tea-green`) with the photo (drink) attribute set to `water`.
+     * 2. After an import, the user is created.
+     * 3. There is an (unlinked) corresponding account (`test520`) on `target-photos` resource, with no photo (yet).
+     * 4. The import from `target-photos` should cause the propagation of the photo to the target.
+     *
+     * MID-7916
+     */
+    @Test
+    public void test520PhotoPropagation() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
-    private void waitForSyncTaskNextRun() throws Exception {
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
+        String name = "test520";
+
+        String water = "water";
+        byte[] waterBytes = water.getBytes(StandardCharsets.UTF_8);
+
+        given("there is an account on the source resource");
+        DummyAccount sourceAccount = new DummyAccount(name);
+        sourceAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, water);
+        RESOURCE_DUMMY_TEA_GREEN.controller.getDummyResource().addAccount(sourceAccount);
+
+        and("it is imported via LS");
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
+
+        and("the user is created and has a photo");
+        String oid = assertUserAfterByUsername(name).getOid();
+        assertJpegPhoto(UserType.class, oid, waterBytes, result);
+
+        and("corresponding account exists on the target-photo resource");
+        DummyAccount targetAccount = new DummyAccount(name);
+        RESOURCE_DUMMY_TARGET_PHOTOS.controller.getDummyResource().addAccount(targetAccount);
+
+        when("import from target resource is run");
+        addObject(TASK_IMPORT_TARGET_PHOTOS, task, result);
+        rerunTask(TASK_IMPORT_TARGET_PHOTOS.oid, result);
+
+        then("photo on target resource is set");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TARGET_PHOTOS.name, name)
+                .display()
+                .assertBinaryAttribute(ATTR_PHOTO, waterBytes);
     }
 
     private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {

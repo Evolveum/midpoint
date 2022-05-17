@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefin
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -169,6 +170,9 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> i
             }
         }
 
+        checkItemCompleteness(itemOld, path, "old");
+        checkItemCompleteness(itemNew, path, "new");
+
         ID sourceItemDefinition = typedSourceObject != null ? typedSourceObject.getDefinition() : null;
 
         // apply domain
@@ -213,6 +217,18 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> i
         source.setResolvePath(resolvePath);
         source.setSubItemDeltas(subItemDeltas);
         return source;
+    }
+
+    private <ID extends ItemDefinition<?>, IV extends PrismValue> void checkItemCompleteness(
+            @Nullable Item<IV, ID> item,
+            @NotNull ItemPath path,
+            @NotNull String description) {
+        if (item != null && item.isIncomplete()) {
+            // An alternative would be to log a warning here. But that could be easily overlooked, resulting
+            // in having corrupted data with no obvious reason. Throwing an exception is a more clean solution.
+            throw new IllegalStateException("Cannot evaluate a mapping because " + description + " state of source item '"
+                    + path + "' is incomplete. This indicates a midPoint bug. Context: " + m.getMappingContextDescription());
+        }
     }
 
     private void unwrapTunnelException(TunnelException te)

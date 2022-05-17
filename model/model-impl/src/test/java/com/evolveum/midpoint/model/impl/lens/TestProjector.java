@@ -720,14 +720,23 @@ public class TestProjector extends AbstractLensTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION));
+        // @formatter:off
+        repositoryService.modifyObject(
+                UserType.class,
+                USER_BARBOSSA_OID,
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ORGANIZATION)
+                            .replace(PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION))
+                        .item(UserType.F_ASSIGNMENT)
+                            .add(new AssignmentType()
+                                .targetRef(ORG_BRETHREN_OID, OrgType.COMPLEX_TYPE))
+                        .asItemDeltas(),
+                result);
+        // @formatter:on
+
         LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> focus = repositoryService.getObject(UserType.class, USER_BARBOSSA_OID, null, result);
-        ObjectDelta<UserType> addAssignmentDelta = createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID,
-                OrgType.COMPLEX_TYPE, null, null, true);
-        addAssignmentDelta.applyTo(focus);
         fillContextWithFocus(context, focus);
-
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
 
         addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID,
@@ -757,6 +766,19 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         assertSerializable(context);
+
+        // Delete the assignment, to restore the environment for further tests
+        // @formatter:off
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                            .delete(new AssignmentType()
+                                .targetRef(ORG_BRETHREN_OID, OrgType.COMPLEX_TYPE))
+                        .asObjectDelta(USER_BARBOSSA_OID),
+                null,
+                task,
+                result);
+        // @formatter:on
     }
 
     @Test
