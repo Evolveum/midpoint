@@ -10,20 +10,13 @@
 <wicket:extend>
     <wicket:child/>
     <wicket:fragment wicket:id="parametersPanelFragment">
-        <div class="form-inline">
-            <div class="row">
-                <div class="col-md-4">
-                    <label>
-                        <wicket:message key="AssignmentPanel.newAssignmentParameters"/>
-                    </label>
-                </div>
-            </div>
-            <div wicket:id="relationContainer" class="row">
-                <div class="form-group col-md-12">
-                    <div class="col-md-3">
-                        <span wicket:id="relation"/>
-                    </div>
-                </div>
+        <label>
+            <wicket:message key="AssignmentPanel.newAssignmentParameters"/>
+        </label>
+        <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2 mr-4">
+                <span class="col-form-label-sm"><wicket:message key="ObjectReferenceType.relation"/></span>
+                <select class="form-control form-control-sm w-auto" wicket:id="relation"/>
             </div>
         </div>
     </wicket:fragment>

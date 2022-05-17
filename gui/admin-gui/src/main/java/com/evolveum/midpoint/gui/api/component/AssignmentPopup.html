@@ -8,15 +8,14 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="warningMessage"/>
     <form wicket:id="form">
-        <div wicket:id="compositedButtons"></div>
+        <div wicket:id="compositedButtons"/>
         <div wicket:id="tabsPanel"/>
-        <p align="right">
+        <div class="main-button-bar justify-content-end">
             <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
             <a class="btn btn-primary btn-sm" wicket:id="assignButton"/>
             <a class="btn btn-default btn-sm" wicket:id="backButton">
                 <i class="fa fa-arrow-left"></i>
             </a>
-        </p>
-
+        </div>
     </form>
 </wicket:panel>

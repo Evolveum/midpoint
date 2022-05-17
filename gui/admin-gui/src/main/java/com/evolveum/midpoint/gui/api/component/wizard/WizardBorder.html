@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:border>
+    <div class="bs-stepper-header" role="tablist" wicket:id="header">
+        <wicket:container wicket:id="steps">
+            <div wicket:id="step"/>
+            <div class="line" wicket:id="line"/>
+        </wicket:container>
+        <wicket:remove>
+            <div class="step" data-target="#logins-part">
+                <button type="button" class="step-trigger" role="tab" aria-controls="logins-part" id="logins-part-trigger">
+                    <span class="bs-stepper-circle">1</span>
+                    <span class="bs-stepper-label">Logins</span>
+                </button>
+            </div>
+            <div class="line"></div>
+            <div class="step" data-target="#information-part">
+                <button type="button" class="step-trigger" role="tab" aria-controls="information-part" id="information-part-trigger">
+                    <span class="bs-stepper-circle">2</span>
+                    <span class="bs-stepper-label">Various information</span>
+                </button>
+            </div>
+        </wicket:remove>
+    </div>
+    <div class="bs-stepper-content">
+        <wicket:body/>
+    </div>
+</wicket:border>
+</html>

@@ -159,7 +159,7 @@ public class ClockworkClick<F extends ObjectType> {
         if (!context.isFresh()) {
             LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
             recompute = true;
-        } else if (context.getExecutionWave() > context.getProjectionWave()) {        // should not occur
+        } else if (context.getExecutionWave() > context.getProjectionWave()) { // should not occur
             LOGGER.warn("Execution wave is greater than projection wave -- forcing cleanup and recomputation");
             recompute = true;
         } else if (context.isInPrimary() && ModelExecuteOptions.getInitialPartialProcessing(context.getOptions()) != null) {

@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -48,7 +49,6 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
 
     private static final String DOT_CLASS = FocusTypeAssignmentPopupTabPanel.class.getName();
@@ -61,15 +61,11 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
 
     @Override
     protected void initParametersPanel(Fragment parametersPanel) {
-        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
-        relationContainer.setOutputMarkupId(true);
-        parametersPanel.add(relationContainer);
-
         List<QName> relationsList = getPredefinedRelation() != null
                 ? Collections.singletonList(getPredefinedRelation())
                 : getSupportedRelations();
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getDefaultRelationIfInList(relationsList),
-                relationsList, false) {
+
+        parametersPanel.add(new RelationDropDownChoice(ID_RELATION, getDefaultRelationIfInList(relationsList), relationsList, false) {
             @Override
             protected IModel<QName> createValueModel(QName defaultRelation) {
                 return createQNameModel(defaultRelation);
@@ -105,7 +101,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         Map<String, AssignmentType> assignmentsMap = new HashMap<>();
 
 //        List<F> selectedObjects = getObjectType().equals(ObjectTypes.ORG) ? getPreselectedObjects() : getSelectedObjectsList();
-        List<F> selectedObjects = getSelectedObjectsList();
+        List<F> selectedObjects = getPreselectedObjects();
         QName relation = getRelationValue();
         selectedObjects.forEach(selectedObject -> assignmentsMap.put(
                 selectedObject.getOid(),
@@ -114,12 +110,12 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     public QName getRelationValue() {
-        RelationDropDownChoicePanel relationPanel = getRelationDropDown();
+        RelationDropDownChoice relationPanel = getRelationDropDown();
         return relationPanel.getRelationValue();
     }
 
-    private RelationDropDownChoicePanel getRelationDropDown() {
-        return (RelationDropDownChoicePanel) get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    private RelationDropDownChoice getRelationDropDown() {
+        return (RelationDropDownChoice) get(ID_PARAMETERS_PANEL).get(ID_RELATION);
     }
 
     @Override
