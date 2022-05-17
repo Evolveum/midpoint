@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.model.intest.manual;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
@@ -180,5 +182,14 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
         connectionResult.recordSuccess();
     }
 
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        // no-op
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        return Collections.emptySet();
+    }
 
 }

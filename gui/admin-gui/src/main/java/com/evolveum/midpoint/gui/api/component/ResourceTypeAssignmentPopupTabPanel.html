@@ -9,45 +9,21 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
     <wicket:fragment wicket:id="parametersPanelFragment">
-        <div class="form-inline search-form">
-            <div class="row">
-                <div class="col-md-4">
-                    <label>
-                        <wicket:message key="AssignmentPanel.newAssignmentParameters"/>
-                    </label>
-                </div>
+        <label>
+            <wicket:message key="AssignmentPanel.newAssignmentParameters"/>
+        </label>
+        <div class="d-flex flex-wrap gap-2">
+            <div wicket:id="kindContainer" class="d-flex flex-wrap gap-2 mr-4">
+                <span class="col-form-label-sm"><wicket:message key="TypedAssignablePanel.Kind"/></span>
+                <div wicket:id="kind"/>
             </div>
-            <div class="row">
-                <div wicket:id="kindContainer" class="form-group col-md-4">
-                    <div class="col-md-3">
-                        <div>
-                            <wicket:message key="TypedAssignablePanel.Kind"/>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <span wicket:id="kind"/>
-                    </div>
-                </div>
-                <div wicket:id="intentContainer" class="form-group col-md-4">
-                    <div class="col-md-3">
-                        <div>
-                            <wicket:message key="TypedAssignablePanel.Intent"/>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <span wicket:id="intent"/>
-                    </div>
-                </div>
-                <div wicket:id="associationContainer" class="form-group col-md-4">
-                    <div class="col-md-3">
-                        <div>
-                            <wicket:message key="ConstructionType.association"/>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <span wicket:id="association"/>
-                    </div>
-                </div>
+            <div wicket:id="intentContainer" class="d-flex flex-wrap gap-2 mr-4">
+                <span class="col-form-label-sm"><wicket:message key="TypedAssignablePanel.Intent"/></span>
+                <div wicket:id="intent"/>
+            </div>
+            <div wicket:id="associationContainer" class="d-flex flex-wrap gap-2 mr-4">
+                <span class="col-form-label-sm"><wicket:message key="ConstructionType.association"/></span>
+                <div wicket:id="association"/>
             </div>
         </div>
     </wicket:fragment>

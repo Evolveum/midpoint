@@ -23,12 +23,9 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
 
     public SelectableDataTable(String id, List<IColumn<T, String>> columns, IDataProvider<T> dataProvider, int rowsPerPage) {
         super(id, columns, dataProvider, rowsPerPage);
-        visitChildren(new IVisitor<Component, Object>() {
-            @Override
-            public void component(Component component, IVisit<Object> objectIVisit) {
-                if (component.getId() != null && component.getId().equals("body")) {
-                    component.setOutputMarkupId(true);
-                }
+        visitChildren((component, objectIVisit) -> {
+            if (component.getId() != null && component.getId().equals("body")) {
+                component.setOutputMarkupId(true);
             }
         });
     }

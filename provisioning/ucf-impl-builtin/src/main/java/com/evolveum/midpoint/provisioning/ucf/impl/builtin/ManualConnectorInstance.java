@@ -7,9 +7,12 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.PrismProperty;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.Nullable;
@@ -359,6 +362,16 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         }
 
         connectionResult.recordSuccess();
+    }
+
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        // no-op
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        return Collections.emptySet();
     }
 
     @Override

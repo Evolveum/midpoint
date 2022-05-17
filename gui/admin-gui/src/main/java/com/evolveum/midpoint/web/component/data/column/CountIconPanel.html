@@ -8,11 +8,9 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="icons">
-        <div style="display: inline-block; float: left; padding-right: 10px;" >
-            <i style="float: left; margin-top: 2px;" wicket:id="icon"/>
-            <div style="float: left;" wicket:id="count"/>
-        </div>
+    <div class="d-flex align-items-center" wicket:id="icons">
+        <i wicket:id="icon"/>
+        <span class="ml-1" wicket:id="count"/>
     </div>
 </wicket:panel>
 </html>

@@ -17,17 +17,6 @@
     </parent>
 
     <artifactId>midpoint-jar</artifactId>
-    <!--
-    TODO: EXPERIMENTAL AT THE MOMENT:
-     Support of midPoint as JAR is experimental at the moment but should work, perhaps even faster than WAR!
-
-    To try midPoint as a JAR:
-    - enable "mpjar" profile (defined in gui/pom.xml) during Maven build (mvn ... -P mpjar ...)
-    - then run: java -jar gui/midpoint-jar/target/midpoint.jar
-    It seems JAR is booting faster than WAR, first tests indicate start in 80% of time for WAR.
-    This is probably caused by more efficient class loader which helps with resource loading/scanning.
-    -->
-
     <name>midPoint Spring Boot JAR</name>
 
     <properties>
@@ -43,7 +32,7 @@
             <version>${project.version}</version>
             <type>jar</type>
             <classifier>classes</classifier>
-            <scope>compile</scope>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- JDBC DRIVERS -->
@@ -73,6 +62,15 @@
 
     <build>
         <finalName>midpoint</finalName>
+        <resources>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>banner.txt</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>pl.project13.maven</groupId>

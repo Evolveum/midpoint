@@ -231,7 +231,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     protected Map<String, AssignmentType> getSelectedAssignmentsMap() {
         Map<String, AssignmentType> assignmentList = new HashMap<>();
 
-        List<ResourceType> selectedObjects = getSelectedObjectsList();
+        List<ResourceType> selectedObjects = getPreselectedObjects();
         ShadowKindType kind = getKindValue();
         String intent = getIntentValue();
         selectedObjects.forEach(selectedObject -> {

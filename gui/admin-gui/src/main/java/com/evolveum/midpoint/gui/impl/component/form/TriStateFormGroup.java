@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.form;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -71,27 +73,15 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title",
-                (IModel<String>) () -> getString(tooltipKey)));
+        tooltipLabel.add(new AttributeAppender("data-original-title", (IModel<String>) () -> getString(tooltipKey)));
         tooltipLabel.add(new InfoTooltipBehavior());
-        tooltipLabel.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return tooltipKey != null;
-            }
-        });
+        tooltipLabel.add(new VisibleBehaviour(() ->  tooltipKey != null));
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
 
         WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
-        requiredContainer.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return required;
-            }
-        });
+        requiredContainer.add(new VisibleBehaviour(() -> required));
         labelContainer.add(requiredContainer);
 
         WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);

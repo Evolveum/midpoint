@@ -62,13 +62,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         add(buttonContainer);
 
         Label info = new Label(ID_INFO, new PropertyModel<>(getModel(), DropdownButtonDto.F_INFO));
-        info.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getInfo() != null;
-            }
-        });
+        info.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getInfo() != null));
         buttonContainer.add(info);
 
         Label label = new Label(ID_LABEL, new PropertyModel<>(getModel(), DropdownButtonDto.F_LABEL));

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.form;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -75,6 +76,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
+
+        // todo this should not be here, this should be generic panel that can be used everywhere, no size classes or anything that's custom to one use case
         if (isSimilarAsPropertyPanel) {
             labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
         } else {
@@ -85,29 +88,13 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", tooltipModel));
         tooltipLabel.add(new InfoTooltipBehavior());
-        tooltipLabel.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return tooltipModel != null && StringUtils.isNotEmpty(tooltipModel.getObject());
-            }
-        });
+        tooltipLabel.add(new VisibleBehaviour(() -> tooltipModel != null && StringUtils.isNotEmpty(tooltipModel.getObject())));
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
 
         WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
-        requiredContainer.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return required;
-            }
-        });
+        requiredContainer.add(new VisibleBehaviour(() -> required));
         labelContainer.add(requiredContainer);
 
         WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);

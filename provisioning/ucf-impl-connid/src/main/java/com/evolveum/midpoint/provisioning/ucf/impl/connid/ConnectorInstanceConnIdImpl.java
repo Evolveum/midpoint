@@ -106,7 +106,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     private APIConfiguration apiConfig = null;
 
     private final Protector protector;
-    final PrismContext prismContext;
     final ConnIdNameMapper connIdNameMapper;
     final ConnIdConvertor connIdConvertor;
 
@@ -132,14 +131,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     private String instanceName; // resource name
     private boolean caseIgnoreAttributeNames = false;
 
+    private boolean isCaching = true;
+
     ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
-            PrismSchema connectorSchema, Protector protector,
-            PrismContext prismContext, LocalizationService localizationService) {
+            PrismSchema connectorSchema, Protector protector, LocalizationService localizationService) {
         this.connectorInfo = connectorInfo;
         this.connectorType = connectorType;
         this.connectorSchema = connectorSchema;
         this.protector = protector;
-        this.prismContext = prismContext;
         connIdNameMapper = new ConnIdNameMapper();
         connIdConvertor = new ConnIdConvertor(protector, localizationService, connIdNameMapper);
     }
@@ -179,6 +178,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     public synchronized void configure(
             @NotNull PrismContainerValue<?> configurationOriginal,
             @Nullable List<QName> generateObjectClasses,
+            boolean isCaching,
             @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
@@ -199,7 +199,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
             // Transform XML configuration from the resource to the ConnId connector configuration
             try {
-                apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
+                apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned, isCaching);
             } catch (SchemaException e) {
                 result.recordFatalError(e.getMessage(), e);
                 throw e;
@@ -1066,7 +1066,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 if (definition == null) {
                     throw new SchemaException("Returned delta references attribute '" + name + "' that has no definition.");
                 }
-                PropertyDelta<Object> delta = prismContext.deltaFactory().property()
+                PropertyDelta<Object> delta = PrismContext.get().deltaFactory().property()
                         .create(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()), definition);
                 if (executedDelta.getValuesToReplace() != null) {
                     delta.setRealValuesToReplace(executedDelta.getValuesToReplace().get(0));
@@ -1339,14 +1339,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
-        PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
+        PropertyDelta<String> uidDelta = PrismContext.get().deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
                 nameDefinition);
         uidDelta.setRealValuesToReplace(name.getNameValue());
         return uidDelta;
     }
 
     private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-        PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getItemName()),
+        PropertyDelta<String> uidDelta = PrismContext.get().deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getItemName()),
                 uidDefinition);
         uidDelta.setRealValuesToReplace(uid.getUidValue());
         return uidDelta;
@@ -1726,6 +1726,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public void test(OperationResult parentResult) {
+        testConnection(false, parentResult);
+    }
+
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        testConnection(true, parentResult);
+    }
+
+    private void testConnection(boolean isPartialTest, OperationResult parentResult) {
 
         OperationResult connectionResult = parentResult
                 .createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
@@ -1733,8 +1742,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         connectionResult.addContext("connector", connectorType);
 
         try {
-            InternalMonitor.recordConnectorOperation("test");
-            connIdConnectorFacade.test();
+            if (isPartialTest) {
+                InternalMonitor.recordConnectorOperation("testPartialConfiguration");
+                connIdConnectorFacade.testPartialConfiguration();
+            } else {
+                InternalMonitor.recordConnectorOperation("test");
+                connIdConnectorFacade.test();
+            }
             connectionResult.recordSuccess();
         } catch (UnsupportedOperationException ex) {
             // Connector does not support test connection.
@@ -1745,6 +1759,33 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             Throwable midPointEx = processConnIdException(icfEx, this, connectionResult);
             connectionResult.recordFatalError(midPointEx);
         }
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(ConnectorFacade.class.getName() + ".discoverConfiguration");
+        result.addContext("connector", connectorType);
+
+        InternalMonitor.recordConnectorOperation("discoverConfiguration");
+
+        try {
+            Map<String, SuggestedValues> suggestions = connIdConnectorFacade.discoverConfiguration();
+
+            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
+            // Transform suggested configuration from the ConnId connector configuration to prism properties
+            Collection<PrismProperty<T>> convertedSuggestions = configTransformer.transformSuggestedConfiguration(suggestions);
+            result.recordSuccess();
+            return convertedSuggestions;
+        } catch (UnsupportedOperationException ex) {
+            // Connector does not support discover configuration.
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
+                    "Operation not supported by the connector", ex);
+            // Do not rethrow. Recording the status is just OK.
+        } catch (Throwable icfEx) {
+            Throwable midPointEx = processConnIdException(icfEx, this, result);
+            result.recordFatalError(midPointEx);
+        }
+        return Collections.emptySet();
     }
 
     @Override

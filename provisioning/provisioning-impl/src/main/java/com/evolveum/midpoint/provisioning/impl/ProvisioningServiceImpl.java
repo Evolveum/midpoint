@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.operations.OperationsHelper;
 import com.evolveum.midpoint.provisioning.impl.operations.ProvisioningGetOperation;
 import com.evolveum.midpoint.provisioning.impl.operations.ProvisioningSearchLikeOperation;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -586,26 +588,98 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         Validate.notNull(resourceOid, "Resource OID to test is null.");
 
-        LOGGER.trace("Start testing resource with oid {} ", resourceOid);
-
         OperationResult testResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
         testResult.addParam("resourceOid", resourceOid);
         testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        PrismObject<ResourceType> resource;
-
         try {
-            resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
-            resourceManager.testConnection(resource, task, testResult);
-
+            PrismObject<ResourceType> resource = operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, testResult);
+            return testResource(resource, task, testResult);
         } catch (SchemaException | ConfigurationException ex) { // TODO is this ok?
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    public OperationResult testResource(@NotNull PrismObject<ResourceType> resource, Task task) throws ObjectNotFoundException {
+        // We are not going to create parent result here. We don't want to
+        // pollute the result with
+        // implementation details, as this will be usually displayed in the
+        // table of "test resource" results.
+
+        OperationResult testResult = createOpResultForTestOfResource(resource);
+
+        try {
+            return testResource(resource, task, testResult);
+        } catch (SchemaException | ConfigurationException ex) { // TODO is this ok?
+            throw new IllegalArgumentException(ex.getMessage(), ex);
+        }
+    }
+
+    private OperationResult createOpResultForTestOfResource(@NotNull PrismObject<ResourceType> resource) {
+        String resourceParam = getResourceParam(resource);
+        OperationResult testResult = new OperationResult(ConnectorTestOperation.TEST_CONNECTION.getOperation());
+        testResult.addParam("resource", resourceParam);
+        testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        return testResult;
+    }
+
+    private OperationResult testResource(
+            @NotNull PrismObject<ResourceType> resource, Task task, OperationResult testResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        Object resourceParam = getResourceParam(resource);
+
+        LOGGER.trace("Start testing resource {} ", resourceParam);
+
+        resourceManager.testConnection(resource, task, testResult);
+
         testResult.computeStatus("Test resource has failed");
 
-        LOGGER.debug("Finished testing {}, result: {} ", resource,
+        LOGGER.debug("Finished testing {}, result: {} ", resourceParam,
                 testResult.getStatus());
         return testResult;
+    }
+
+    @Override
+    public OperationResult testPartialConfigurationResource(@NotNull PrismObject<ResourceType> resource, Task task) {
+        // We are not going to create parent result here. We don't want to
+        // pollute the result with
+        // implementation details, as this will be usually displayed in the
+        // table of "test resource" results.
+
+        String resourceParam = getResourceParam(resource);
+
+        LOGGER.trace("Start testing partial configuration resource {} ", resourceParam);
+
+        OperationResult testResult = createOpResultForTestOfResource(resource);
+
+        resourceManager.testPartialConfiguration(resource, task, testResult);
+
+        testResult.computeStatus("Test partial configuration resource has failed");
+
+        LOGGER.debug("Finished testing partial configuration {}, result: {} ", resourceParam,
+                testResult.getStatus());
+        return testResult;
+    }
+
+    private String getResourceParam(PrismObject<ResourceType> resource) {
+        if (StringUtils.isNotEmpty(resource.getOid())) {
+            return resource.getOid();
+        }
+        return resource.asObjectable().getName() != null ? resource.asObjectable().getName().getOrig() : resource.toString();
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(PrismObject<ResourceType> resource, OperationResult parentResult) {
+        String resourceParam = getResourceParam(resource);
+
+        LOGGER.trace("Start discovering configuration of resource {} ", resourceParam);
+
+        Collection<PrismProperty<T>> suggestions = resourceManager.discoverConfiguration(resource, parentResult);
+
+        LOGGER.debug("Finished discovering configuration of resource{}, result: {} ", resourceParam,
+                parentResult.getStatus());
+        return suggestions;
     }
 
     @Override

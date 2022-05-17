@@ -71,7 +71,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(
             LensContext<O> context, PrismObject<O> focus) {
         LensFocusContext<O> focusContext = context.getOrCreateFocusContext();
-        focusContext.setLoadedObject(focus);
+        focusContext.setInitialObject(focus);
         return focusContext;
     }
 
@@ -141,7 +141,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
                 ShadowKindType.ACCOUNT, ShadowUtil.getIntent(accountType), null, false);
         LensProjectionContext accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
-        accountSyncContext.setLoadedObject(account);
+        accountSyncContext.setInitialObject(account);
         accountSyncContext.setResource(resourceType);
         accountSyncContext.setExists(true);
         context.rememberResource(resourceType);

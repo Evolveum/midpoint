@@ -36,7 +36,6 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_BOX = "box";
     private static final String ID_HEADER = "header";
     private static final String ID_FOOTER = "footer";
     private static final String ID_TABLE = "table";
@@ -48,6 +47,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_MENU = "menu";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
+
+    private boolean showAsCard = true;
 
     private UserProfileStorage.TableId tableId;
     private boolean showPaging;
@@ -76,23 +77,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         initLayout(columns, provider);
     }
 
+    public void setShowAsCard(boolean showAsCard) {
+        this.showAsCard = showAsCard;
+    }
+
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {
         setOutputMarkupId(true);
-        WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-        box.add(new AttributeAppender("class", new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                String boxCssClasses = getAdditionalBoxCssClasses();
-                if (boxCssClasses == null) {
-                    return "";
-                } else {
-                    return " " + boxCssClasses;
-                }
-            }
-        }));
-        add(box);
+        add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
+        add(AttributeAppender.append("class", () -> getAdditionalBoxCssClasses()));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
@@ -109,13 +101,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         };
         table.setOutputMarkupId(true);
         tableContainer.add(table);
-        box.add(tableContainer);
-//        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(computeRefreshInterval())) {
-//            @Override
-//            protected boolean shouldTrigger() {
-//                return isAutoRefreshEnabled();
-//            }
-//        });
+        add(tableContainer);
 
         TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider) {
 
@@ -128,10 +114,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         headersTop.setOutputMarkupId(true);
         table.addTopToolbar(headersTop);
 
-        box.add(createHeader(ID_HEADER));
+        add(createHeader(ID_HEADER));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
-        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() ||  provider.size() > pageSize));
-        box.add(footer);
+        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
+        add(footer);
     }
 
     private int computeRefreshInterval() {
@@ -163,17 +149,17 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return item;
     }
 
-    protected boolean hideFooterIfSinglePage(){
+    protected boolean hideFooterIfSinglePage() {
         return false;
     }
 
     @Override
     public DataTable getDataTable() {
-        return (DataTable) get(ID_BOX).get(ID_TABLE_CONTAINER).get(ID_TABLE);
+        return (DataTable) get(ID_TABLE_CONTAINER).get(ID_TABLE);
     }
 
     public WebMarkupContainer getDataTableContainer() {
-        return (WebMarkupContainer) get(ID_BOX).get(ID_TABLE_CONTAINER);
+        return (WebMarkupContainer) get(ID_TABLE_CONTAINER);
     }
 
     @Override
@@ -218,11 +204,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     public WebMarkupContainer getHeader() {
-        return (WebMarkupContainer) get(ID_BOX).get(ID_HEADER);
+        return (WebMarkupContainer) get(ID_HEADER);
     }
 
     public WebMarkupContainer getFooter() {
-        return (WebMarkupContainer) get(ID_BOX).get(ID_FOOTER);
+        return (WebMarkupContainer) get(ID_FOOTER);
     }
 
     protected Component createHeader(String headerId) {
@@ -294,9 +280,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 }
 
                 @Override
-                protected boolean isCountingDisabled(){
-                    if (dataTable.getDataProvider() instanceof SelectableBeanContainerDataProvider){
-                        return !((SelectableBeanContainerDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
+                protected boolean isCountingDisabled() {
+                    if (dataTable.getDataProvider() instanceof SelectableBeanContainerDataProvider) {
+                        return !((SelectableBeanContainerDataProvider) dataTable.getDataProvider()).isUseObjectCounting();
                     }
                     return super.isCountingDisabled();
                 }
