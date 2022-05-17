@@ -45,7 +45,7 @@ public class WizardStepPanel extends BasePanel<String> {
     private void initLayout() {
         add(AttributeAppender.prepend("class", "step"));
 
-        add(new Label(ID_CIRCLE, () -> index));
+        add(new Label(ID_CIRCLE, () -> index + 1));
         add(new Label(ID_LABEL, () -> getModelObject()));
     }
 }

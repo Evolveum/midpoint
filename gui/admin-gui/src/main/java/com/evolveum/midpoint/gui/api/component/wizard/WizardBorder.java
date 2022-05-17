@@ -7,18 +7,15 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -71,5 +68,9 @@ public class WizardBorder extends Border {
             }
         };
         header.add(steps);
+    }
+
+    public VisibleBehaviour createWizardStepVisibleBehaviour(int index) {
+        return new VisibleBehaviour(() -> model.getObject().getActiveStepIndex() == index);
     }
 }

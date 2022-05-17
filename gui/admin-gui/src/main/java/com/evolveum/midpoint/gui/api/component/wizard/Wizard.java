@@ -18,6 +18,8 @@ import org.apache.wicket.model.IModel;
  */
 public class Wizard implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private List<IModel<String>> stepLabels;
 
     private int activeStepIndex;
@@ -38,6 +40,28 @@ public class Wizard implements Serializable {
     }
 
     public void setActiveStepIndex(int activeStepIndex) {
+        if (activeStepIndex < 0) {
+            activeStepIndex = 0;
+        }
+        if (activeStepIndex >= getStepLabels().size()) {
+            activeStepIndex = getStepLabels().size() - 1;
+        }
+
         this.activeStepIndex = activeStepIndex;
+    }
+
+    public void nextStep() {
+        if (activeStepIndex + 1 >= getStepLabels().size()) {
+            return;
+        }
+
+        activeStepIndex++;
+    }
+
+    public void previousStep() {
+        if (activeStepIndex <= 0) {
+            return;
+        }
+        activeStepIndex--;
     }
 }
