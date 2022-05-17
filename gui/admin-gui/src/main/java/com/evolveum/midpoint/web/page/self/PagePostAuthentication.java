@@ -169,11 +169,6 @@ public class PagePostAuthentication extends PageAbstractFlow {
     }
 
     @Override
-    protected boolean isSideMenuVisible() {
-        return false;
-    }
-
-    @Override
     protected void submitRegistration(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE_USER);
         ObjectDelta<UserType> userDelta = null;
@@ -210,7 +205,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
             MidPointPrincipal principal = AuthUtil.getPrincipalUser();
             try {
                 getModelInteractionService().refreshPrincipal(principal.getOid(), principal.getFocus().getClass());
-                navigateToNext(getMidpointApplication().getHomePage());
+                setResponsePage(getMidpointApplication().getHomePage());
             } catch (CommonException e) {
                 LOGGER.error("Error while refreshing user: ", e);
                 target.add(PagePostAuthentication.this);
@@ -241,8 +236,4 @@ public class PagePostAuthentication extends PageAbstractFlow {
         return getPostAuthenticationConfiguration().getFormRef();
     }
 
-    @Override
-    public boolean isLogoLinkEnabled() {
-        return false;
-    }
 }

@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
@@ -263,18 +266,19 @@ public class PasswordPanel extends InputPanel {
         return !isReadOnly && !passwordInputVisible && model != null && model.getObject() != null;
     }
 
-    private boolean isRemovePasswordVisible() {
+    protected boolean isRemovePasswordVisible() {
+        return model.getObject() != null && AuthUtil.getPrincipalUser() != null;
         // todo wrong code, panel should be stupid, it must not know about different pages and subpages...
-        PageBase pageBase = getPageBase();
-        if (pageBase == null) {
-            return false;
-        }
-        if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
-                || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
-            return false;
-        }
-        return pageBase instanceof PageFocusDetails && !((PageFocusDetails) pageBase).isLoggedInFocusPage()
-                && model.getObject() != null;
+//        PageBase pageBase = getPageBase();
+//        if (pageBase == null) {
+//            return false;
+//        }
+//        if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
+//                || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
+//            return false;
+//        }
+//        return pageBase instanceof PageFocusDetails && !((PageFocusDetails) pageBase).isLoggedInFocusPage()
+//                && model.getObject() != null;
     }
 
     private String initPasswordValidation() {

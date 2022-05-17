@@ -45,9 +45,6 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final String ID_SEQUENCE = "sequence";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
 
-    public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
-    private static final String ID_FEEDBACK = "feedback";
-
     public AbstractPageLogin(PageParameters parameters) {
         super(parameters);
     }
@@ -69,16 +66,6 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private void initLayout() {
-        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
-        feedbackContainer.setOutputMarkupId(true);
-        feedbackContainer.setOutputMarkupPlaceholderTag(true);
-        add(feedbackContainer);
-
-        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
-        feedbackList.setOutputMarkupId(true);
-        feedbackList.setOutputMarkupPlaceholderTag(true);
-        feedbackContainer.add(feedbackList);
-
 
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
@@ -95,6 +82,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         toDefault.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(toDefault);
         initCustomLayout();
+
+        addFeedbackPanel();
     }
 
     private String getSequenceName() {
@@ -159,10 +148,6 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }
-    }
-
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 
 }
