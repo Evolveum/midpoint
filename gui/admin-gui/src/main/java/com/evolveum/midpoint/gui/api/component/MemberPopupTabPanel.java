@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
+
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,7 +37,6 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
     private static final Trace LOGGER = TraceManager.getTrace(MemberPopupTabPanel.class);
 
-    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
 
     private PageBase pageBase;
@@ -64,9 +63,9 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
     @Override
     protected void initParametersPanel(Fragment parametersPanel) {
-        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
-        relationContainer.setOutputMarkupId(true);
-        relationContainer.add(new VisibleEnableBehaviour() {
+        RelationDropDownChoice relation = new RelationDropDownChoice(ID_RELATION, getDefaultRelation(),
+                relationConfig.getSupportedRelations(), false);
+        relation.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -80,10 +79,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
                         && relationConfig.getSupportedRelations().size() > 1;
             }
         });
-        parametersPanel.add(relationContainer);
-
-        relationContainer.add(new RelationDropDownChoicePanel(
-                ID_RELATION, getDefaultRelation(), relationConfig.getSupportedRelations(), false));
+        parametersPanel.add(relation);
     }
 
     private QName getDefaultRelation() {
@@ -127,11 +123,10 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     }
 
     public @NotNull QName getRelationValue() {
-        return getRelationDropDown()
-                .getRelationValue();
+        return getRelationDropDown().getRelationValue();
     }
 
-    private RelationDropDownChoicePanel getRelationDropDown() {
-        return (RelationDropDownChoicePanel) get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    private RelationDropDownChoice getRelationDropDown() {
+        return (RelationDropDownChoice) get(ID_PARAMETERS_PANEL).get(ID_RELATION);
     }
 }

@@ -10,14 +10,13 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -26,11 +25,16 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
+ *
+ *  todo change name? this is not "choice panel", it contains whole "form-group" with label and everything
+ *  not very reusable, contains whole form-group html with label, sizing and other html stuff. Even though main "functionality"
+ *  added is to create specific combobox populated with relations.
+ *  better reusable alternative was written as {@link RelationDropDownChoice}
  */
+@Deprecated
 public class RelationDropDownChoicePanel extends BasePanel<QName> {
     private static final long serialVersionUID = 1L;
 
@@ -55,9 +59,8 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         if (!allowNull && defaultRelation == null) {
             defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, createValueModel(defaultRelation), supportedRelationsModel, getRenderer(),
-                getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", "col-md-4",
-                getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull) {
+        DropDownFormGroup<QName> input = new DropDownFormGroup<>(ID_INPUT, createValueModel(defaultRelation), supportedRelationsModel, getRenderer(),
+                getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", null, null, !allowNull) {
             private static final long serialVersionUID = 1L;
 
             @Override
