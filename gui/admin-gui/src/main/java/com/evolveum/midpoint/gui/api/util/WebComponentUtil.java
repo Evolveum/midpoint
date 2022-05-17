@@ -29,6 +29,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -4825,7 +4827,7 @@ public final class WebComponentUtil {
         return sceneDto;
     }
 
-    public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey) {
+    public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
         DeploymentInformationType deploymentInfo = MidPointApplication.get().getDeploymentInfo();
         String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
         if (!isSubscriptionIdCorrect(subscriptionId) ||

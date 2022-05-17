@@ -212,9 +212,4 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
                 createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_DYNAMIC_FORM));
     }
 
-    @Override
-    protected void createBreadcrumb() {
-        // don't create breadcrumb for registration page
-    }
-
 }

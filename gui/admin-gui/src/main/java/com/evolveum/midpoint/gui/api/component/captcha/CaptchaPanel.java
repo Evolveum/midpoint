@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.api.component.captcha;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
@@ -39,7 +41,7 @@ public class CaptchaPanel extends BasePanel<Void> {
      *
      * @param id The component id
      */
-    public CaptchaPanel(String id, PageBase pageBase) {
+    public CaptchaPanel(String id, PageAdminLTE pageBase) {
         super(id);
 
         FeedbackAlerts feedback = new FeedbackAlerts("feedback");

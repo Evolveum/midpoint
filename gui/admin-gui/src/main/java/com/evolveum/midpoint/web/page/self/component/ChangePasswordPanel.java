@@ -170,6 +170,11 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
             protected boolean canEditPassword() {
                 return ChangePasswordPanel.this.canEditPassword();
             }
+
+            @Override
+            protected boolean isRemovePasswordVisible() {
+                return false;
+            }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);

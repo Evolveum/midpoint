@@ -61,7 +61,6 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
     private void initLayout(final NonEmptyModel<Boolean> readOnlyModel, final boolean emptyStringToNull) {
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
-        placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.add(new VisibleEnableBehaviour(){
 
             @Override
