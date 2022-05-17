@@ -12,6 +12,7 @@
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables-alt";
+@import "../../../node_modules/admin-lte/build/scss/mixins/_miscellaneous";
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
 // AdminLTE and Bootstrap end
 
@@ -115,21 +116,21 @@ th.cog, td.cog {
 	width: 20px;
 }
 
-.sidebar-menu {
+.nav-sidebar {
 
-  li.header {
-    //> i.fa-chevron-down {
-    //  width: auto;
-    //  height: auto;
-    //  padding: 0;
-    //  @include transition(transform $transition-fn $transition-speed);
-    //}
+  li.nav-header {
+    > i.fa-chevron-down {
+      width: auto;
+      height: auto;
+      padding: 0;
+      @include transition(transform $transition-fn $transition-speed);
+    }
 
-    //&.closed {
-    //  > i.fa-chevron-down {
-    //    @include rotate(90deg);
-    //  }
-    //}
+    &.closed {
+      > i.fa-chevron-down {
+        @include rotate(90deg);
+      }
+    }
 
   }
 }
