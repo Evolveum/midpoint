@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME;
+
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -105,6 +107,18 @@ public class TestMappingInbound extends AbstractMappingTest {
             }
     );
 
+    private static final String ATTR_PHOTO = "photo";
+
+    private static final DummyTestResource RESOURCE_DUMMY_TARGET_PHOTOS = new DummyTestResource(
+            TEST_DIR, "resource-target-photos.xml", "8d181eee-458a-439d-a9f7-d7256a91f557", "target-photos",
+            controller ->
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            ATTR_PHOTO, byte[].class, false, false)
+                            .setReturnedByDefault(false));
+
+    private static final TestResource<TaskType> TASK_IMPORT_TARGET_PHOTOS = new TestResource<>(
+            TEST_DIR, "task-import-target-photos.xml", "734cca6b-0012-4e43-888b-9717deedd8bc");
+
     private ProtectedStringType mancombLocker;
     private String userLeelooOid;
 
@@ -117,6 +131,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         repoAdd(ARCHETYPE_PIRATE, initResult);
 
         initDummyResource(RESOURCE_DUMMY_TEA_GREEN, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_TARGET_PHOTOS, initTask, initResult);
 
         addObject(ROLE_WHEEL, initTask, initResult); // creates a resource object as well
 
@@ -165,7 +180,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, LOCKER_BIG_SECRET); // MID-5197
-        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME, "simple");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME, "pirate");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, "x-x-x");
@@ -233,8 +248,8 @@ public class TestMappingInbound extends AbstractMappingTest {
         when();
 
         DummyAccount account = getMancombAccount();
-        account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
-        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
 
@@ -261,8 +276,8 @@ public class TestMappingInbound extends AbstractMappingTest {
         when();
 
         DummyAccount account = getMancombAccount();
-        account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
-        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
+        account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -456,7 +471,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         // This is a dummy change
         getMancombAccount()
-                .addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+                .addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -964,6 +979,52 @@ public class TestMappingInbound extends AbstractMappingTest {
                         .assertPropertyEquals(DataProtectionType.F_CONTROLLER_NAME, "new-controller")
                         .assertPropertyEquals(DataProtectionType.F_CONTROLLER_CONTACT, "new-controller@evolveum.com");
         // @formatter:on
+    }
+
+    /**
+     * Testing the propagation of user photo from the source resource to the user and then to outbound resource.
+     *
+     * 1. There is a source account (`test520` on `tea-green`) with the photo (drink) attribute set to `water`.
+     * 2. After an import, the user is created.
+     * 3. There is an (unlinked) corresponding account (`test520`) on `target-photos` resource, with no photo (yet).
+     * 4. The import from `target-photos` should cause the propagation of the photo to the target.
+     *
+     * MID-7916
+     */
+    @Test
+    public void test520PhotoPropagation() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String name = "test520";
+
+        String water = "water";
+        byte[] waterBytes = water.getBytes(StandardCharsets.UTF_8);
+
+        given("there is an account on the source resource");
+        DummyAccount sourceAccount = new DummyAccount(name);
+        sourceAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, water);
+        RESOURCE_DUMMY_TEA_GREEN.controller.getDummyResource().addAccount(sourceAccount);
+
+        and("it is imported via LS");
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(result);
+
+        and("the user is created and has a photo");
+        String oid = assertUserAfterByUsername(name).getOid();
+        assertJpegPhoto(UserType.class, oid, waterBytes, result);
+
+        and("corresponding account exists on the target-photo resource");
+        DummyAccount targetAccount = new DummyAccount(name);
+        RESOURCE_DUMMY_TARGET_PHOTOS.controller.getDummyResource().addAccount(targetAccount);
+
+        when("import from target resource is run");
+        addObject(TASK_IMPORT_TARGET_PHOTOS, task, result);
+        rerunTask(TASK_IMPORT_TARGET_PHOTOS.oid, result);
+
+        then("photo on target resource is set");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_TARGET_PHOTOS.name, name)
+                .display()
+                .assertBinaryAttribute(ATTR_PHOTO, waterBytes);
     }
 
     private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {

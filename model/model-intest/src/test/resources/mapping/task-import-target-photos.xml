@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="734cca6b-0012-4e43-888b-9717deedd8bc">
+    <name>import-target-photos</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState> <!-- run by test code -->
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="8d181eee-458a-439d-a9f7-d7256a91f557"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
