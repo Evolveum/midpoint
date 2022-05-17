@@ -2084,6 +2084,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of search item display properties. This can be used to override the default search item
+                        label or presentation style.
+                        (Only label and help is implemented in midPoint 4.6)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.display</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="parameter" type="c:SearchFilterParameterType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
