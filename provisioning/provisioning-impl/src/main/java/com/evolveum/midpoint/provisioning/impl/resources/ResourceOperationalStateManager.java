@@ -51,21 +51,9 @@ public class ResourceOperationalStateManager {
             AvailabilityStatusType newStatus, String resourceDesc, String statusChangeReason,
             PrismObject<ResourceType> resource) throws SchemaException {
 
-        String stateChangeClause;
-        if (previousStatus != null) {
-            stateChangeClause = "changed from " + previousStatus + " to " + newStatus;
-        } else {
-            stateChangeClause = "set to " + newStatus;
-        }
+        String stateChangeClause = getChangeClauseAndLogState(previousStatus, newStatus, resourceDesc, statusChangeReason);
 
-        // The level is INFO because it's needed for diagnosing the issues with resource availability.
-        LOGGER.info("Availability status {} for {} because {}", stateChangeClause, resourceDesc, statusChangeReason);
-
-        OperationalStateType changeStateRecord = new OperationalStateType(prismContext);
-        changeStateRecord.setLastAvailabilityStatus(newStatus);
-        changeStateRecord.setMessage("Status " + stateChangeClause + " because " + statusChangeReason);
-        changeStateRecord.setNodeId(taskManager.getNodeId());
-        changeStateRecord.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+        OperationalStateType changeStateRecord = createNewOperationalState(newStatus, stateChangeClause, statusChangeReason);
 
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
         deltas.add(createOperationalStateDelta(changeStateRecord.clone()));
@@ -76,6 +64,34 @@ public class ResourceOperationalStateManager {
         }
         deltas.add(createHistoryAddDelta(changeStateRecord));
         return deltas;
+    }
+
+    OperationalStateType createAndLogOperationalState(AvailabilityStatusType previousStatus,
+            AvailabilityStatusType newStatus, String resourceDesc, String statusChangeReason) {
+
+        String stateChangeClause = getChangeClauseAndLogState(previousStatus, newStatus, resourceDesc, statusChangeReason);
+        return createNewOperationalState(newStatus, stateChangeClause, statusChangeReason);
+    }
+
+    private OperationalStateType createNewOperationalState(AvailabilityStatusType newStatus, String stateChangeClause, String statusChangeReason) {
+        return new OperationalStateType()
+                .lastAvailabilityStatus(newStatus)
+                .message("Status " + stateChangeClause + " because " + statusChangeReason)
+                .nodeId(taskManager.getNodeId())
+                .timestamp(clock.currentTimeXMLGregorianCalendar());
+    }
+
+    private String getChangeClauseAndLogState(AvailabilityStatusType previousStatus, AvailabilityStatusType newStatus, String resourceDesc, String statusChangeReason) {
+        String stateChangeClause;
+        if (previousStatus != null) {
+            stateChangeClause = "changed from " + previousStatus + " to " + newStatus;
+        } else {
+            stateChangeClause = "set to " + newStatus;
+        }
+
+        // The level is INFO because it's needed for diagnosing the issues with resource availability.
+        LOGGER.info("Availability status {} for {} because {}", stateChangeClause, resourceDesc, statusChangeReason);
+        return stateChangeClause;
     }
 
     private ItemDelta<?, ?> createOperationalStateDelta(OperationalStateType newState) throws SchemaException {

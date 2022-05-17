@@ -67,6 +67,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
         return false;
     }
 
+    @Override
     protected List<OrgType> getSelectedObjectsList(){
         return getPreselectedObjects();
     }

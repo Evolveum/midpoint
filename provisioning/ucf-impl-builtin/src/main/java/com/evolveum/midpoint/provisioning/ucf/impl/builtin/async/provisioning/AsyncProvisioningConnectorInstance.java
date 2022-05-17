@@ -13,8 +13,18 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
+
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
@@ -34,15 +43,11 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -160,6 +165,16 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't test async provisioning targets: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public void testPartialConfiguration(OperationResult parentResult) {
+        // no-op
+    }
+
+    @Override
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+        return Collections.emptySet();
     }
 
     @Override

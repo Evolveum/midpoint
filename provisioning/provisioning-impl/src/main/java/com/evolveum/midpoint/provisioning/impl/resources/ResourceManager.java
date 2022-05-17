@@ -10,7 +10,13 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 import static com.evolveum.midpoint.provisioning.impl.resources.ResourceCompletionOperation.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.PrismProperty;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,10 +55,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 
@@ -76,6 +78,9 @@ public class ResourceManager {
     @Autowired ResourceConnectorsManager connectorSelector;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
+
+    private static final String DOT_CLASS = ResourceManager.class.getName() + ".";
+    private static final String OPERATION_DISCOVER_CONFIGURATION = DOT_CLASS + "discoverConfiguration";
 
     /**
      * Completes a resource that has been just retrieved from the repository, usually by a search operation.
@@ -190,7 +195,7 @@ public class ResourceManager {
     /**
      * Test the connection.
      *
-     * @param resource Resource object as fetched from the repository. Must NOT be immutable!
+     * @param resource Resource object. Must NOT be immutable!
      *
      * @throws ObjectNotFoundException If the resource object cannot be found in repository (e.g. when trying to set its
      *                                 availability status).
@@ -200,8 +205,55 @@ public class ResourceManager {
         // FIXME temporary code
         new ResourceExpansionOperation(resource.asObjectable(), beans)
                 .execute(parentResult);
-        new TestConnectionOperation(resource, task, beans)
-                .execute(parentResult);
+
+        getTestConnectionOp(resource, task).execute(parentResult);
+    }
+
+    /**
+     * Test partial configuration.
+     *
+     * @param resource Resource object. Must NOT be immutable!
+     */
+    public void testPartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult parentResult) {
+        new TestPartialConfigurationOperation(resource, task, beans).execute(parentResult);
+    }
+
+    public <T> Collection<PrismProperty<T>> discoverConfiguration(PrismObject<ResourceType> resource, OperationResult parentResult) {
+        ConnectorSpec connectorSpec = connectorSelector.createDefaultConnectorSpec(resource);
+
+        OperationResult connectorResult = parentResult
+                .createSubresult(OPERATION_DISCOVER_CONFIGURATION);
+        connectorResult.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
+        connectorResult.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
+
+        ConnectorInstance connector;
+        try {
+            connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, false, connectorResult);
+        } catch (CommunicationException | ConfigurationException | ObjectNotFoundException |
+                SchemaException | RuntimeException e) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.error("Failed while discovering of configuration, error: {}", e.getMessage(), e);
+            }
+            connectorResult.recordFatalError("Failed while discovering of configuration, error: " + e.getMessage(), e);
+            return Collections.emptySet();
+        }
+
+        Collection<PrismProperty<T>> suggestions = connector.discoverConfiguration(connectorResult);
+        connectorResult.recordSuccess();
+        return suggestions;
+    }
+
+    private AbstractTestConnectionOperation getTestConnectionOp(PrismObject<ResourceType> resource, Task task) {
+        if (isRepoResource(resource)) {
+            return new TestConnectionOperationResourceInRepo(resource, task, beans);
+        } else {
+            return new TestConnectionOperation(resource, task, beans);
+        }
+    }
+
+    private boolean isRepoResource(PrismObject<ResourceType> resource) {
+        String resourceOid = resource.getOid();
+        return org.apache.commons.lang3.StringUtils.isNotEmpty(resourceOid);
     }
 
     /**
@@ -254,6 +306,18 @@ public class ResourceManager {
             } catch (SchemaException | ObjectAlreadyExistsException e) {
                 throw new SystemException("Unexpected exception while recording operation state change: " + e.getMessage(), e);
             }
+        }
+    }
+
+    public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, String statusChangeReason) {
+
+        AvailabilityStatusType currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
+        String resourceDesc = resource.toString();
+
+        if (newStatus != currentStatus) {
+            OperationalStateType newState = operationalStateManager.createAndLogOperationalState(
+                    currentStatus,newStatus, resourceDesc, statusChangeReason);
+            resource.asObjectable().operationalState(newState);
         }
     }
 

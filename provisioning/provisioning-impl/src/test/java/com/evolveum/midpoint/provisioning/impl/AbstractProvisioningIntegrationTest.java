@@ -187,14 +187,13 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertSame("Connector instance has changed", lastConfiguredConnectorInstance, currentConfiguredConnectorInstance);
     }
 
-    protected void assertSteadyResource() throws SchemaException, ConfigurationException {
+    protected void assertSteadyResource(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-        PrismObject<ResourceType> resource = getResource();
         if (resource != null) {
             assertResourceVersionIncrement(resource, 0);
             assertSchemaMetadataUnchanged(resource);
@@ -204,6 +203,10 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         displayDumpable("Resource cache", InternalMonitor.getResourceCacheStats());
         // We do not assert hits, there may be a lot of them
         assertResourceCacheMissesIncrement(0);
+    }
+
+    protected void assertSteadyResource() throws SchemaException, ConfigurationException {
+        assertSteadyResource(getResource());
     }
 
     protected PrismObject<ResourceType> getResource() {

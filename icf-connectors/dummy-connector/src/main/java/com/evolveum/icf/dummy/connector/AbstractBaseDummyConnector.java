@@ -7,10 +7,14 @@
 package com.evolveum.icf.dummy.connector;
 
 import com.evolveum.icf.dummy.resource.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
+import org.identityconnectors.framework.common.objects.SuggestedValues;
+import org.identityconnectors.framework.common.objects.SuggestedValuesBuilder;
+import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
@@ -18,6 +22,7 @@ import org.identityconnectors.framework.spi.operations.*;
 
 import java.util.*;
 
+import static com.evolveum.icf.dummy.connector.Utils.notNull;
 import static com.evolveum.icf.dummy.connector.Utils.notNullArgument;
 
 /**
@@ -33,7 +38,7 @@ import static com.evolveum.icf.dummy.connector.Utils.notNullArgument;
  *
  * @see DummyResource
  */
-public abstract class AbstractBaseDummyConnector implements PoolableConnector, TestOp {
+public abstract class AbstractBaseDummyConnector implements PoolableConnector, TestOp, DiscoverConfigurationOp {
 
     // We want to see if the ICF framework logging works properly
     private static final Log LOG = Log.getLog(AbstractBaseDummyConnector.class);
@@ -42,6 +47,8 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
 
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
+
+    public static final String SUGGESTION_PREFIX = "Suggestion: ";
 
     /**
      * Place holder for the {@link Configuration} passed into the init() method
@@ -120,7 +127,7 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
         resource.setMonsterization(this.configuration.isMonsterized());
         resource.setUidMode(this.configuration.getUidMode());
         if (connected) {
-            throw new IllegalStateException("Double connect in "+this);
+            throw new IllegalStateException("Double connect in " + this);
         }
         connected = true;
         resource.connect();
@@ -151,7 +158,7 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
     @Override
     public void checkAlive() {
         if (!connected) {
-            throw new IllegalStateException("checkAlive on non-connected connector instance "+this);
+            throw new IllegalStateException("checkAlive on non-connected connector instance " + this);
         }
     }
 
@@ -170,7 +177,7 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
         LOG.info("test::begin");
 
         if (!connected) {
-            throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+            throw new IllegalStateException("Attempt to test non-connected connector instance " + this);
         }
 
         LOG.info("Validating configuration.");
@@ -196,11 +203,52 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
         LOG.info("test::end");
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void testPartialConfiguration() {
+        LOG.info("testPartialConfiguration::begin");
+
+        notNull(configuration.getInstanceId(), "Configuration doesn't contain instanceId.");
+
+        LOG.info("testPartialConfiguration::end");
+    }
+
+    @Override
+    public Map<String, SuggestedValues> discoverConfiguration() {
+//        return Map.of(
+//                "UI_UID_MODE",
+//                SuggestedValuesBuilder.build(
+//                        List.of(
+//                                DummyResource.UID_MODE_NAME,
+//                                DummyResource.UID_MODE_UUID,
+//                                DummyResource.UID_MODE_EXTERNAL)),
+//                "UI_INSTANCE_READABLE_PASSWORD",
+//                SuggestedValuesBuilder.build(
+//                        List.of(
+//                                DummyConfiguration.PASSWORD_READABILITY_MODE_UNREADABLE,
+//                                DummyConfiguration.PASSWORD_READABILITY_MODE_INCOMPLETE,
+//                                DummyConfiguration.PASSWORD_READABILITY_MODE_READABLE)),
+//                "pagingStrategy",
+//                SuggestedValuesBuilder.build(
+//                        List.of(
+//                                DummyConfiguration.PAGING_STRATEGY_OFFSET,
+//                                DummyConfiguration.PAGING_STRATEGY_NONE)));
+        SuggestedValuesBuilder builder = new SuggestedValuesBuilder();
+        builder.setOpenness(ValueListOpenness.OPEN);
+        builder.addValues(SUGGESTION_PREFIX + configuration.getInstanceId(),
+                SUGGESTION_PREFIX + configuration.getUselessString());
+        return Map.of(
+                "uselessString",
+                builder.build()
+        );
+    }
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName()+"(resource=" + resource.getInstanceName()
-                + ", instanceNumber=" + instanceNumber + (connected?", connected":"")+ ")";
+        return this.getClass().getSimpleName() + "(resource=" + resource.getInstanceName()
+                + ", instanceNumber=" + instanceNumber + (connected ? ", connected" : "") + ")";
     }
 
 }
