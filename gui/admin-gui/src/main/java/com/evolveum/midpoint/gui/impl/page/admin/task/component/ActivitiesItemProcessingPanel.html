@@ -19,17 +19,17 @@
             <div class="card-body">
                 <div class="row">
                     <wicket:enclosure wicket:child="currentItems">
-                        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
+                        <div class="col-12 col-xl-8 col-xxl-3">
                             <div wicket:id="currentItems"/>
                         </div>
                     </wicket:enclosure>
-                    <div class="col-xs-10 col-sm-6 col-md-5 col-lg-3">
+                    <div class="col-12 col-xl-4 col-xxl-3 mb-3">
                         <canvas wicket:id="chart" width="200" height="100"></canvas>
                     </div>
-                    <div class="col-sm-12 col-md-7 col-lg-6">
-                        <div wicket:id="successItem"/>
-                        <div wicket:id="failedItem"/>
-                        <div wicket:id="skippedItem"/>
+                    <div class="col-xl-12 col-xxl-6">
+                        <div class="activity-item-processing" wicket:id="successItem"/>
+                        <div class="activity-item-processing" wicket:id="failedItem"/>
+                        <div class="activity-item-processing" wicket:id="skippedItem"/>
                     </div>
                 </div>
             </div>
