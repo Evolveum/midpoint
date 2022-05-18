@@ -82,7 +82,10 @@ podTemplate(
 
                 // Collects results for all tests (main + extra).
                 // Using this step in each phase produces multiple graphs, but all have the same results from the last run.
-                step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                step([$class: 'Publisher',
+                    reportFilenamePattern: '**/testng-results.xml',
+                    failureOnFailedTestConfig: true
+                ])
             }
         }
     }
