@@ -32,7 +32,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.InfoBox;
 import com.evolveum.midpoint.gui.impl.component.box.InfoBoxData;
-import com.evolveum.midpoint.gui.impl.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;

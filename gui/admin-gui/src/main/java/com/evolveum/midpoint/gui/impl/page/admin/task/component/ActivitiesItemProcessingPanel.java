@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -22,14 +24,15 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBox;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxData;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.TaskInfoBoxPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ActivitiesItemProcessingDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.ActivityInfoBoxDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.ActivityItemProcessingDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.ProcessedItemDto;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 import com.evolveum.wicket.chartjs.PieChartConfiguration;
 
@@ -97,7 +100,7 @@ public class ActivitiesItemProcessingPanel extends BasePanel<ActivitiesItemProce
 
                     @Override
                     public String getAdditionalBoxCssClasses() {
-                        return " box-info ";
+                        return " card-info ";
                     }
                 };
                 currentItems.setOutputMarkupId(true);
@@ -130,10 +133,34 @@ public class ActivitiesItemProcessingPanel extends BasePanel<ActivitiesItemProce
         return columns;
     }
 
-    private TaskInfoBoxPanel createInfoBoxPanel(IModel<ActivityInfoBoxDto> boxModel, String boxId) {
-        TaskInfoBoxPanel infoBoxPanel = new TaskInfoBoxPanel(boxId, boxModel);
-        infoBoxPanel.setOutputMarkupId(true);
-        infoBoxPanel.add(new VisibleBehaviour(() -> boxModel.getObject() != null));
-        return infoBoxPanel;
+    private InfoBox createInfoBoxPanel(IModel<InfoBoxData> model, String boxId) {
+        InfoBox infoBox = new InfoBox(boxId, () -> {
+            InfoBoxData data = model.getObject();
+            return data != null ? data : new InfoBoxData();
+        }) {
+
+            @Override
+            protected Component createLabel(String id, IModel model) {
+                Component comp = super.createLabel(id, model);
+
+                if (!InfoBox.ID_DESCRIPTION_2.equals(id)) {
+                    return comp;
+                }
+
+                comp.add(AttributeAppender.append("title", model));
+                comp.add(new TooltipBehavior() {
+                    @Override
+                    public String getDataPlacement() {
+                        return "bottom";
+                    }
+                });
+
+                return comp;
+            }
+        };
+        infoBox.setOutputMarkupId(true);
+        infoBox.add(new VisibleBehaviour(() -> model.getObject() != null));
+
+        return infoBox;
     }
 }

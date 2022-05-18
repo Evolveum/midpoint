@@ -9,17 +9,17 @@
 <body>
 <wicket:panel>
     <div class="prism-properties">
-        <div class="box box-default collapsed-box">
-            <div class="box-header with-border">
-                <div class="box-title" wicket:id="boxTitle"/>
-                <div class="box-tools pull-right">
+        <div class="card collapsed-card">
+            <div class="card-header with-border">
+                <div class="card-title" wicket:id="boxTitle"/>
+                <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-widget="collapse"><i class="fa fa-chevron-down"></i>
                     </button>
                     <button wicket:id="removeButton" type="button" class="btn btn-tool" ><i class="fa fa-times-circle fa-lg text-danger"></i>
                     </button>
                 </div>
             </div>
-            <div class="box-body" >
+            <div class="card-body" >
                 <div wicket:id="propertiesContainer" />
             </div>
         </div>

@@ -1818,3 +1818,9 @@ span.yui-skin-sam {
 .login-footer {
   font-size: 13px;
 }
+
+.info-box.activity-item-processing > .info-box-content > .progress-description {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 50vw;
+}
