@@ -9,17 +9,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="prism-properties">
-        <div wicket:id="propertiesLabel">
-            <div class="property-stripe" wicket:id="properties">
-                <div class="row prism-property" wicket:id="property"/>
-            </div>
+        <wicket:container wicket:id="propertiesLabel">
+            <wicket:container wicket:id="properties">
+                <div class="row prism-property mb-3" wicket:id="property"/>
+            </wicket:container>
             <div class="row">
                 <div class="col-md-2"/>
                 <div class="col-md-10" style="padding-left: 70px;">
                     <div class="show-empty-button" wicket:id="showEmptyButton"/>
                 </div>
             </div>
-        </div>
+        </wicket:container>
         <div wicket:id="containersLabel">
             <div class="prism-containers" wicket:id="containers">
                 <div class="row prism-container" wicket:id="container"/>

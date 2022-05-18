@@ -9,26 +9,27 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="property-stripe" wicket:id="localizedValueContainer">
-        <div class="row no-gutters">
-            <div class="col-3" wicket:id="localizedValueLabel" />
-            <div wicket:id="localizedValueWithButton" class="input-group">
-                <div class="w-100" wicket:id="localizedValue"/>
-                <div style="position: absolute; right: 10px; top: 8px; z-index: 5;">
-                    <i class="fa fa-language" style="float:right;cursor: pointer; color: #555555;" wicket:id="showHideLanguagesLocalized"/>
+        <div class="col-3" wicket:id="localizedValueLabel" />
+        <div wicket:id="localizedValueWithButton" class="input-group">
+            <wicket:container wicket:id="localizedValue"/>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <i class="fa fa-language" wicket:id="showHideLanguagesLocalized"/>
                 </div>
             </div>
         </div>
     </div>
+
     <div wicket:id="originValueContainer">
-        <div class="row no-gutters">
             <div class="col-3" wicket:id="originValueLabel" />
             <div wicket:id="origValueWithButton" class="input-group">
-                <div class="w-100" wicket:id="origValue"/>
-                <div style="position: absolute; right: 10px; top: 8px; z-index: 5;">
-                    <i class="fa fa-language" style="float:right;cursor: pointer; color: #555555;" wicket:id="showHideLanguagesOrig"/>
+                <wicket:container wicket:id="origValue"/>
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <i class="fa fa-language" wicket:id="showHideLanguagesOrig"/>
+                    </div>
                 </div>
             </div>
-        </div>
     </div>
     <wicket:container wicket:id="fullDataContainer">
         <div class="property-stripe">
