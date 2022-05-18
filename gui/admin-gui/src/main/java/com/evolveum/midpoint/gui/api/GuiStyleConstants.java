@@ -168,8 +168,8 @@ public class GuiStyleConstants {
     public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
     public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
 
-    public static final String CLASS_BADGE_ACTIVE = "badge-active";
-    public static final String CLASS_BADGE_PASSIVE = "badge-passive";
+    public static final String CLASS_BADGE_ACTIVE = "badge-primary";
+    public static final String CLASS_BADGE_PASSIVE = "badge-secondary";
 
     public static final String DEFAULT_BG_COLOR = "#3c8dbc"; //blue-light theme
 

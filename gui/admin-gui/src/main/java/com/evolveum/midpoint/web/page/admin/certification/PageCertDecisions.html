@@ -10,16 +10,14 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-inline">
-        <div wicket:id="decisionsTable"/>
+        <div class="w-100" wicket:id="decisionsTable"/>
     </form>
 
     <wicket:fragment wicket:id="tableHeader">
-        <form class="form-inline pull-right search-form" wicket:id="searchForm">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" wicket:id="showNotDecidedOnly"/>
-                    <wicket:message key="PageCertDecisions.checkbox.showNoResponseOnly"/>
-                </label>
+        <form class="form-inline search-form justify-content-end" wicket:id="searchForm">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" wicket:id="showNotDecidedOnly"/>
+                <label class="form-check-label"><wicket:message key="PageCertDecisions.checkbox.showNoResponseOnly"/></label>
             </div>
         </form>
     </wicket:fragment>
