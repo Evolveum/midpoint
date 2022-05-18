@@ -8,6 +8,8 @@
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions.scss";
 
 @import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
+@import "../../../node_modules/admin-lte/build/scss/variables";
+@import "../../../node_modules/admin-lte/build/scss/variables-alt";
 
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables.scss";
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins/breakpoints.scss";
@@ -19,6 +21,18 @@ $grid-breakpoints: map-merge($grid-breakpoints, (
 $container-max-widths: map-merge($container-max-widths, (
         xxl: 1600px
 ));
+
+$theme-colors: map-merge(
+                (
+                        "lightblue": $lightblue,
+                        "navy": $navy,
+                        "olive": $olive,
+                        "lime": $lime,
+                        "fuchsia": $fuchsia,
+                        "maroon": $maroon,
+                ),
+                $theme-colors
+);
 
 $text-label-color: #3c8dbc;
 $text-dimmed-color: #808080;
