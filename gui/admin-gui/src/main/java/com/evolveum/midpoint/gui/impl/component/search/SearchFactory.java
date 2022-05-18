@@ -432,8 +432,10 @@ public class SearchFactory {
             return null;
         }
         PropertySearchItemWrapper searchItemWrapper = createPropertySearchItemWrapper(type, itemDef, item.getPath().getItemPath());
-        if (StringUtils.isNotEmpty(item.getDescription())) {
-            searchItemWrapper.setHelp(item.getDescription());
+        String help = item.getDisplay() != null && item.getDisplay().getHelp() != null ?
+                WebComponentUtil.getTranslatedPolyString(item.getDisplay().getHelp()) : null;
+        if (StringUtils.isNotEmpty(help)) {
+            searchItemWrapper.setHelp(help);
         }
         if (item.getDisplayName() != null) {
             searchItemWrapper.setName(WebComponentUtil.getTranslatedPolyString(item.getDisplayName()));

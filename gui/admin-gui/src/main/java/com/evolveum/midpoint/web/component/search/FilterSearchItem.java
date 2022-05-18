@@ -91,7 +91,8 @@ public class FilterSearchItem extends SearchItem {
 
     @Override
     public String getHelp(PageBase pageBase) {
-        return predefinedFilter.getDescription();
+        return predefinedFilter.getDisplay() != null && predefinedFilter.getDisplay().getHelp() != null ?
+                WebComponentUtil.getTranslatedPolyString(predefinedFilter.getDisplay().getHelp()) : null;
     }
 
     public DisplayableValue getInput() {

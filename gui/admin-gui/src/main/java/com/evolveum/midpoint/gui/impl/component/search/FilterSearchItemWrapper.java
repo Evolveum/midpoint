@@ -75,7 +75,8 @@ public class FilterSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     private void initHelp(SearchItemType searchItem) {
-        help = searchItem.getDescription();
+        help = searchItem.getDisplay() != null && searchItem.getDisplay().getHelp() != null
+                ? WebComponentUtil.getTranslatedPolyString(searchItem.getDisplay().getHelp()) : null;
         if (help == null && searchItem.getParameter() != null) {
             DisplayType displayType = searchItem.getParameter().getDisplay();
             if (displayType != null) {
