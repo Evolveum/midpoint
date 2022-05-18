@@ -106,6 +106,8 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             return new FullTextFilterProcessor(this).process((FullTextFilter) filter);
         } else if (filter instanceof ExistsFilter) {
             return new ExistsFilterProcessor<>(this).process((ExistsFilter) filter);
+        } else if (filter instanceof OwnedByFilter) {
+            return new OwnedByFilterProcessor<>(this).process((OwnedByFilter) filter);
         } else if (filter instanceof TypeFilter) {
             return new TypeFilterProcessor<>(this).process((TypeFilter) filter);
         } else {

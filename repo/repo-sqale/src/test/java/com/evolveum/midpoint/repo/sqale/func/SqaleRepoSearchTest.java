@@ -1881,6 +1881,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test602SearchContainerWithOwnedByParent() throws SchemaException {
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent using exists", AccessCertificationWorkItemType.class,
+                f -> f.ownedBy(AccessCertificationCaseType.class)
+                        .block()
+                        .id(1)
+                        .and()
+                        .ownedBy(AccessCertificationCampaignType.class)
+                        .id(accCertCampaign1Oid)
+                        .endBlock());
+        // The resulting query only uses IDs that are available directly in the container table,
+        // but our query uses exists which can be used for anything... we don't optimize this.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12);
+    }
+
+    @Test
     public void test602SearchContainerWithExistsParent() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
@@ -1950,6 +1968,19 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
+    }
+
+    @Test
+    public void test615SearchInducements() throws SchemaException {
+        queryRecorder.clearBufferAndStartRecording();
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "search inducements", AssignmentType.class,
+                f -> f.ownedBy(AbstractRoleType.class, AbstractRoleType.F_INDUCEMENT).block().endBlock());
+        queryRecorder.stopRecording();
+        display(queryRecorder.getQueryBuffer().toString());
+        assertThat(result)
+                .singleElement()
+                .matches(a -> a.getLifecycleState().equals("role-ind-lc"));
     }
 
     @Test
