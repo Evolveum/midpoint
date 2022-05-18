@@ -164,7 +164,6 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
         BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel("resourceConfig",
                 resourceConfigProvider, tableColumns);
-        resourceConfig.setAdditionalBoxCssClasses("box-success");
         add(resourceConfig);
 
     }
