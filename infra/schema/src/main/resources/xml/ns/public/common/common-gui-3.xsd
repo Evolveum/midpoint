@@ -2044,27 +2044,27 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="searchMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For which search mode the filter should be displayed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AvailableFilterType.searchMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of search filter display properties (such as filter name or tooltip)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AvailableFilterType.display</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:element name="searchMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic">
-            <xsd:annotation>
-                <xsd:documentation>
-                    For which search mode the filter should be displayed
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:displayName>AvailableFilterType.searchMode</a:displayName>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:element>
-        <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Specification of search filter display properties (such as filter name or tooltip)
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:displayName>AvailableFilterType.display</a:displayName>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:element>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
