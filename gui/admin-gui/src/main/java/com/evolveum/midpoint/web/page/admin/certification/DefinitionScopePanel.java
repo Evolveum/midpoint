@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -89,18 +90,28 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
         add(filterTextArea);
         add(WebComponentUtil.createHelp(ID_SEARCH_FILTER_HELP));
 
-        add(new CheckBox(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS)));
-        add(new CheckBox(ID_INCLUDE_INDUCEMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_INDUCEMENTS)));
+        add(new CheckBoxPanel(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS),
+                createStringResource("PageCertDefinition.scopeIncludeAssignments")));
+        add(new CheckBoxPanel(ID_INCLUDE_INDUCEMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_INDUCEMENTS),
+                createStringResource("PageCertDefinition.scopeIncludeInducements")));
+
         add(WebComponentUtil.createHelp(ID_ASSIGNMENTS_INDUCEMENTS_HELP));
 
-        add(new CheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
-        add(new CheckBox(ID_INCLUDE_ROLES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ROLES)));
-        add(new CheckBox(ID_INCLUDE_ORGS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS)));
-        add(new CheckBox(ID_INCLUDE_SERVICES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES)));
-        add(new CheckBox(ID_INCLUDE_USERS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_USERS)));
+        add(new CheckBoxPanel(ID_INCLUDE_RESOURCES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES),
+                createStringResource("PageCertDefinition.scopeIncludeResources")));
+        add(new CheckBoxPanel(ID_INCLUDE_ROLES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ROLES),
+                createStringResource("PageCertDefinition.scopeIncludeRoles")));
+        add(new CheckBoxPanel(ID_INCLUDE_ORGS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS),
+                createStringResource("PageCertDefinition.scopeIncludeOrgs")));
+        add(new CheckBoxPanel(ID_INCLUDE_SERVICES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES),
+                createStringResource("PageCertDefinition.scopeIncludeServices")));
+        add(new CheckBoxPanel(ID_INCLUDE_USERS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_USERS),
+                createStringResource("PageCertDefinition.scopeIncludeUsers")));
+
         add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
 
-        add(new CheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)));
+        add(new CheckBoxPanel(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY),
+                createStringResource("PageCertDefinition.scopeEnabledItemsOnly")));
         add(WebComponentUtil.createHelp(ID_INCLUDE_BY_STATUS_HELP));
 
         List<QName> relationsList = WebComponentUtil.getAllRelations(getPageBase());

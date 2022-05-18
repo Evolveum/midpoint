@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.gui.api.component.form;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Checkbox that is supposed to be used in forms - checkbox with label.
@@ -38,7 +36,11 @@ public class CheckBoxPanel extends Panel {
     private IModel<String> tooltipModel;
 
     public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
-        this(id, checkboxModel, null, null);
+        this(id, checkboxModel, null);
+    }
+
+    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel, IModel<String> labelModel) {
+        this(id, checkboxModel, labelModel, null);
     }
 
     public CheckBoxPanel(String id, IModel<Boolean> checkboxModel,
@@ -50,24 +52,12 @@ public class CheckBoxPanel extends Panel {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
 
         add(AttributeAppender.append("class", "form-check"));
 
-        AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, checkboxModel) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                CheckBoxPanel.this.onUpdate(target);
-            }
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                CheckBoxPanel.this.updateAjaxAttributes(attributes);
-            }
-        };
+        AjaxCheckBox check = createCheckbox();
         check.setOutputMarkupId(true);
 
         check.add(new EnableBehaviour(() -> isCheckboxEnabled()));
@@ -81,6 +71,22 @@ public class CheckBoxPanel extends Panel {
         if (tooltipModel != null) {
             add(new AttributeModifier("title", tooltipModel));
         }
+    }
+
+    protected AjaxCheckBox createCheckbox() {
+        return new AjaxCheckBox(ID_CHECK, checkboxModel) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                CheckBoxPanel.this.onUpdate(target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                CheckBoxPanel.this.updateAjaxAttributes(attributes);
+            }
+        };
     }
 
     public AjaxCheckBox getPanelComponent() {
@@ -102,7 +108,11 @@ public class CheckBoxPanel extends Panel {
         return val.booleanValue();
     }
 
-    protected boolean isCheckboxEnabled(){
+    protected boolean isCheckboxEnabled() {
         return true;
+    }
+
+    public IModel<Boolean> getCheckboxModel() {
+        return checkboxModel;
     }
 }
