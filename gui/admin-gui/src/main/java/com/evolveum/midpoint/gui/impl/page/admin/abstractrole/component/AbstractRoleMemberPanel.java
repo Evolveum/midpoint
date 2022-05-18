@@ -666,6 +666,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             });
         }
+        menu.forEach(menuItem -> menuItem.setVisibilityChecker((rowModel, isHeader) -> isHeader));
         return menu;
     }
 

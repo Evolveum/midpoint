@@ -155,7 +155,7 @@ public class GuiDisplayTypeUtil {
                         displayType.getIcon().setColor(def.getDisplay().getIcon().getColor());
                     }
                 }
-                if (def.getDisplay().getLabel() != null) {
+                if (def.getDisplay() != null && def.getDisplay().getLabel() != null) {
                     relationValue = WebComponentUtil.getTranslatedPolyString(def.getDisplay().getLabel());
                 } else {
                     String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
