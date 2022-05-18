@@ -8,13 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -48,7 +46,6 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -73,7 +70,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private static final String ID_EMAIL = "email";
     private static final String ID_PASSWORD = "password";
     private static final String ID_TOOLTIP = "tooltip";
-    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_COMPONENT_FEEDBACK = "componentFeedback";
     private static final String ID_REGISTRATION_SUBMITED = "registrationInfo";
 
     private static final String ID_STATIC_FORM = "staticForm";
@@ -173,10 +170,10 @@ public class PageSelfRegistration extends PageAbstractFlow {
         addMultilineLable(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
                 WebComponentUtil.getMidpointCustomSystemName(PageSelfRegistration.this, "MidPoint")), staticRegistrationForm);
 
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK,
+        FeedbackPanel feedback = new FeedbackPanel(ID_COMPONENT_FEEDBACK,
                 new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
         feedback.setOutputMarkupId(true);
-        add(feedback);
+        staticRegistrationForm.add(feedback);
 
         TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
                 new PropertyModel<>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
@@ -188,7 +185,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                         getUserModel().getObject().setGivenName(new PolyStringType(object));
                     }
                 });
-        initInputProperties(feedback, firstName);
+        initInputProperties(feedback, "UserType.givenName", firstName);
         staticRegistrationForm.add(firstName);
 
         TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
@@ -202,12 +199,12 @@ public class PageSelfRegistration extends PageAbstractFlow {
                     }
 
                 });
-        initInputProperties(feedback, lastName);
+        initInputProperties(feedback, "UserType.familyName", lastName);
         staticRegistrationForm.add(lastName);
 
         TextPanel<String> email = new TextPanel<>(ID_EMAIL,
                 new PropertyModel<>(getUserModel(), UserType.F_EMAIL_ADDRESS.getLocalPart()));
-        initInputProperties(feedback, email);
+        initInputProperties(feedback, "UserType.emailAddress", email);
         staticRegistrationForm.add(email);
 
         createPasswordPanel(staticRegistrationForm);
@@ -221,7 +218,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     }
 
-    private void initInputProperties(FeedbackPanel feedback, TextPanel<String> input) {
+    private void initInputProperties(FeedbackPanel feedback, String placeholderKey, TextPanel<String> input) {
+        input.getBaseFormComponent().add(AttributeAppender.append("placeholder", createStringResource(placeholderKey)));
         input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         input.getBaseFormComponent().setRequired(true);
         feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
@@ -236,31 +234,31 @@ public class PageSelfRegistration extends PageAbstractFlow {
             }
 
         });
+        input.setRenderBodyOnly(true);
 
     }
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
-        // ProtectedStringType initialPassword = null;
         PasswordPanel password = new PasswordPanel(ID_PASSWORD,
                 new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);
 
-        Label help = new Label(ID_TOOLTIP);
-        final StringResourceModel tooltipText = createStringResource("PageSelfRegistration.password.policy");
-        help.add(AttributeModifier.replace("title", tooltipText));
-        help.add(new InfoTooltipBehavior());
-        help.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-
-                return StringUtils.isNotEmpty(tooltipText.getObject());
-            }
-        });
-        staticRegistrationForm.add(help);
+//        Label help = new Label(ID_TOOLTIP);
+//        final StringResourceModel tooltipText = createStringResource("PageSelfRegistration.password.policy");
+//        help.add(AttributeModifier.replace("title", tooltipText));
+//        help.add(new InfoTooltipBehavior());
+//        help.add(new VisibleEnableBehaviour() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//
+//                return StringUtils.isNotEmpty(tooltipText.getObject());
+//            }
+//        });
+//        staticRegistrationForm.add(help);
     }
 
     @Override
