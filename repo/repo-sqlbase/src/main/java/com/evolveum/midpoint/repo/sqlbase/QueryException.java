@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqlbase;
 
+import com.google.common.base.Strings;
+
 /**
  * Query related repository exception.
  */
@@ -21,5 +23,11 @@ public class QueryException extends RepositoryException {
 
     public QueryException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public static void check(boolean condition, String format, Object... args) throws QueryException {
+        if (!condition) {
+            throw new QueryException(Strings.lenientFormat(format, args));
+        }
     }
 }

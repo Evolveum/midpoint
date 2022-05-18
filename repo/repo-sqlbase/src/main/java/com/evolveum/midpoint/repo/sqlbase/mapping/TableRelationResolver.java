@@ -119,7 +119,7 @@ public class TableRelationResolver<
         return new TableRelationResolver(() -> target, correlationPredicate);
     }
 
-    public TableRelationResolver<Q, R, TS, TQ, TR>  forceSubquery() {
+    public TableRelationResolver<Q, R, TS, TQ, TR>  withSubquery() {
 
         return usingSubquery(targetMappingSupplier.get(), correlationPredicate);
     }
@@ -129,5 +129,9 @@ public class TableRelationResolver<
             @NotNull QueryTableMapping<AS, AQ, AR> targetMapping) {
         //noinspection unchecked
         return new TableRelationResolver<>(targetMapping, (t, a) -> correlationPredicate.apply((Q) a, t));
+    }
+
+    public QueryTableMapping<TS, TQ, TR> mapping() {
+        return targetMappingSupplier.get();
     }
 }

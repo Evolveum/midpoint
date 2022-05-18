@@ -62,50 +62,43 @@ public class OwnedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
             @Nullable ComplexTypeDefinition ownerDefinition, ItemPath path, ObjectFilter innerFilter) throws RepositoryException {
 
 
-        ItemRelationResolver<Q, R, TQ, TR> resolver = mapping.relationResolver(PARENT);
+        ItemRelationResolver<Q, R, TQ, TR> itemResolver = mapping.relationResolver(PARENT);
         // Instead of cleaner solution that would follow the code lower we resolve it here and now.
         // "Clean" solution would require more classes/code and would be more confusing.
 
         // Type is explicitly mentioned, we need to change parent type
-        if (!(resolver instanceof TableRelationResolver)) {
+        if (!(itemResolver instanceof TableRelationResolver)) {
             throw new QueryException("Repository supports owned by only for multi-value parent containers (for now)");
         }
+        var resolver = (TableRelationResolver) itemResolver;
 
-        resolver = ((TableRelationResolver) resolver).forceSubquery();
-        ItemRelationResolver.ResolutionResult<TQ, TR> resolution = resolver.resolve(context);
-        //noinspection unchecked
-        SqaleQueryContext<?, TQ, TR> parent = (SqaleQueryContext<?, TQ, TR>) resolution.context;
-
-
+        var parentMapping = resolver.mapping();
+        // User provided more specific definition of type
         if (ownerDefinition != null) {
             var typeClass = ownerDefinition.getCompileTimeClass();
-            var actualMapping = context.repositoryContext().getMappingBySchemaType(ownerDefinition.getCompileTimeClass());
-
-
-            resolver = ((TableRelationResolver) resolver).replaceTable(actualMapping);
+            QueryException.check(parentMapping.schemaType().isAssignableFrom(typeClass),
+                    "Requested type %s is not subtype of %s", typeClass, parentMapping.schemaType());
+            parentMapping = context.repositoryContext().getMappingBySchemaType(typeClass);
+            // Resolver is updated with more specific type, so we search only concrete type and not abstract type
+            resolver = resolver.replaceTable(parentMapping);
         }
-
-        // The resolver should not be join but subquery
-
-        if (!(resolution.mapping instanceof QueryTableMapping)) {
-            throw new QueryException("Repository supports owned by only for multi-value parent containers (for now)");
-        }
-
+        QueryException.check(parentMapping instanceof QueryTableMapping, "Repository supports owned by only for multi-value parent containers (for now)");
+        resolver = resolver.withSubquery();
+        // User provided path different paths may have different corelation queries
+        // so we need to do walk from parent to child in order to obtain correct corelation query
+        // eg. inducement vs assignent
         if (path != null) {
             @NotNull
-            ItemRelationResolver<TQ, TR, FlexibleRelationalPathBase<Object>, Object> actualMapping = parent.mapping().relationResolver(path);
+            ItemRelationResolver<TQ, TR, FlexibleRelationalPathBase<Object>, Object> actualMapping = parentMapping.relationResolver(path);
             if (actualMapping instanceof TableRelationResolver) {
                 // We reverse found mapping from owner -> container to container -> owner
-                resolver = ((TableRelationResolver) actualMapping).reverse((QueryTableMapping) resolution.mapping);
+                resolver = ((TableRelationResolver) actualMapping).reverse(parentMapping);
             }
         }
-        // We resolve context again, since we may need to add distinguisher from forwards mapping (owner to container)
-        resolution = resolver.resolve(context);
-        parent = (SqaleQueryContext<?, TQ, TR>) resolution.context;
+        // Finally we have correctly configured resolver so we can proceed with construction of query.
+        var resolution = resolver.resolve(context);
+        var parent = (SqaleQueryContext<?, TQ, TR>) resolution.context;
         parent.processFilter(innerFilter);
-        if (resolution.subquery) {
-            return parent.sqlQuery().exists();
-        }
-        return QuerydslUtils.EXPRESSION_TRUE;
+        return parent.sqlQuery().exists();
     }
 }
