@@ -498,20 +498,6 @@ th.cog, td.cog {
 	white-space: normal;
 }
 
-// resource content pages (ResourceContentPanel)
-
-.resource-content-selection {
-
-	.form-group {
-		margin-bottom: 5px;
-	}
-}
-
-.control-suffix {
-	text-align: left !important;
-	padding-left: 0px;
-}
-
 // Feedback messages
 @each $name, $color in $theme-colors {
   .feedback-message.card.card-#{$name} > .card-body {
