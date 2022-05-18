@@ -12,7 +12,7 @@
 
         <div wicket:id="eventPanel" class="row">
             <div wicket:id="eventDetailsPanel" class="col-md-6">
-                <div class="box box-success">
+                <div class="card card-success">
                     <table class="table table-striped" style="word-break: break-word;">
                         <tr>
                             <td class="prop-name"><wicket:message key="PageAuditLogDetails.eventTimestamp" /></td>
@@ -105,7 +105,7 @@
                         </tr>
                     </table>
                 </div>
-                <div class="box box-success" wicket:id="additionalItems">
+                <div class="card card-success" wicket:id="additionalItems">
                     <table class="table table-striped">
                         <tr wicket:id="additionalItemLine">
                             <td><span wicket:id="itemName" /></td>
@@ -119,14 +119,6 @@
                         <div wicket:id="delta"></div>
                     </div>
             </div>
-<!--            <div class="col-md-12">-->
-<!--                <div class="box" style="border-top: none; display: inline-block;">-->
-<!--                    <h3 style="font-size: 18px; display: inline-block; line-height: 1; margin: 0; padding: 10px; border-top: none;">-->
-<!--                        <span><wicket:message key="PageAuditLogDetails.auditLogsSameTaskId"/></span>-->
-<!--                    </h3>-->
-<!--                    <div wicket:id="historyPanel" class="col-md-12" />-->
-<!--                </div>-->
-<!--            </div>-->
         </div>
         <div class="row">
         <div class="main-button-bar" style="padding-left: 15px;">

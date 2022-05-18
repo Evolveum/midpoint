@@ -8,8 +8,8 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+    <div wicket:id="itemProcessing"/>
 
-    <div wicket:id="itemProcessing"></div>
     <div class="row">
         <div class="col-12">
             <div wicket:id="synchronizationStatistics">
@@ -25,7 +25,7 @@
     </div>
 
     <wicket:fragment wicket:id="resultingActionsExecutedTitle">
-        <h3 class="box-title">
+        <h3 class="card-title">
             <wicket:message key="TaskOperationStatisticsPanel.resultingEntry"/>
         </h3>
         <div><wicket:message key="TaskOperationStatisticsPanel.resultingEntry.info"/></div>
@@ -33,7 +33,7 @@
 
 
     <wicket:fragment wicket:id="allActionsExecutedTitle">
-        <h3 class="box-title">
+        <h3 class="card-title">
             <wicket:message key="TaskOperationStatisticsPanel.actionEntry"/>
         </h3>
         <div><wicket:message key="TaskOperationStatisticsPanel.actionEntry.info"/></div>

@@ -11,41 +11,21 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-
-<div class="box col-md-8">
-
+<div class="card col-md-8">
     <div style="text-align: center">
         <div wicket:id="successPanel">
-
               <i class="fa fa-check-circle fa-2x text-success"></i>
-              <h2 wicket:id="successLabel">
-
-              </h2>
+              <h2 wicket:id="successLabel"/>
               <a wicket:id="linkToLogin">
                   <wicket:message key="PageRegistrationConfirmation.continueToLogin"/>
               </a>
           </div>
           <div wicket:id="errorPanel">
               <i class="fa fa-times-circle fa-2x text-error"></i>
-              <h3 class="center" wicket:id="errorLabel">
-
-              </h3>
+              <h3 class="center" wicket:id="errorLabel"/>
           </div>
     </div>
 </div>
-
-    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
-
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
 </wicket:extend>
-
 </body>
 </html>

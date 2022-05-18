@@ -112,11 +112,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
                 switch (dto.getChangeType()) {
                     case ADD:
-                        return "box-success";
+                        return "card-success";
                     case DELETE:
-                        return "box-danger";
+                        return "card-danger";
                     case MODIFY:
-                        return "box-info";
+                        return "card-info";
                     default:
                         return null;
                 }

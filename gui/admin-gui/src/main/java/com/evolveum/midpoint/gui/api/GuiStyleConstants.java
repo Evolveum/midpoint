@@ -19,8 +19,8 @@ public class GuiStyleConstants {
     public static final String ICON_FA_POWER_OFF = "fa fa-power-off";
     public static final String ICON_FA_SPINNER = "fa fa-spinner";
 
-    public static final String CLASS_BOX = "box";
-    public static final String CLASS_BOX_DEFAULT = "box-default";
+    public static final String CLASS_BOX = "card";
+    public static final String CLASS_BOX_DEFAULT = "card-default";
 
     public static final String CLASS_DASHBOARD_ICON = "fa fa-tachometer-alt";
 
