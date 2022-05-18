@@ -28,15 +28,15 @@ export default class MidPointTheme {
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
-            $('.sidebar-menu li.header').on("click", function (e) {
+            $('.nav-sidebar li.nav-header').on("click", function (e) {
                 if ($(this).hasClass('closed')) {
                     // expand the panel
-                    $(this).nextUntil('.header').slideDown();
+                    $(this).nextUntil('.nav-header').slideDown();
                     $(this).removeClass('closed');
                 }
                 else {
                     // collapse the panel
-                    $(this).nextUntil('.header').slideUp();
+                    $(this).nextUntil('.nav-header').slideUp();
                     $(this).addClass('closed');
                 }
             });

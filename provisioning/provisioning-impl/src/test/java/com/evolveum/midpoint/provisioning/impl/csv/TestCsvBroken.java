@@ -195,7 +195,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.DOWN)     // todo why DOWN and not BROKEN as before?
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
                     .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to DOWN because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from UP to DOWN because testing connection using"))
                 .end()
                 .operationalStateHistory()
                 .assertSize(3);

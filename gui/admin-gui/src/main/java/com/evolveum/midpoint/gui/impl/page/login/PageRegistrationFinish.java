@@ -249,13 +249,4 @@ public class PageRegistrationFinish extends PageRegistrationBase {
 
     }
 
-    @Override
-    protected void createBreadcrumb() {
-        // don't create breadcrumb for registration confirmation page
-    }
-
-    @Override
-    protected boolean isSideMenuVisible() {
-        return false;
-    }
 }

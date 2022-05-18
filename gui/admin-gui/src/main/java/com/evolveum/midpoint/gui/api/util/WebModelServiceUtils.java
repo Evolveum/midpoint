@@ -423,7 +423,7 @@ public class WebModelServiceUtils {
                 .build();
     }
 
-    public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
+    public static void save(ObjectDelta delta, OperationResult result, PageAdminLTE page) {
         save(delta, result, null, page);
     }
 

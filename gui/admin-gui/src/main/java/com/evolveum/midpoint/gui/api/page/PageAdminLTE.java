@@ -146,6 +146,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
+    public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
+
+
     // Strictly speaking following fields should be transient.
     // But making them transient is causing problems on some
     // JVM version or tomcat configurations (MID-3357).
@@ -977,5 +981,22 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public void redirectToNotFoundPage() {
         PageError404 notFound = new PageError404();
         throw new RestartResponseException(notFound);
+    }
+
+    //Used by subclasses
+    public void addFeedbackPanel() {
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        add(feedbackContainer);
+
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
+    }
+
+    public WebMarkupContainer getFeedbackPanel() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 }

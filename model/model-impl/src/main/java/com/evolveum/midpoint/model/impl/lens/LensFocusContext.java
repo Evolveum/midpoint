@@ -54,6 +54,18 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private boolean primaryDeltaExecuted;
 
+    /**
+     * True if we should set also the "old" object state upon loading the object.
+     *
+     * Reason: When the clockwork is started, it may be provided by the focus object (old/current/new). However, this object
+     * can be (and usually is) incomplete, e.g. a user is without `jpegPhoto`. For various reasons we do our own loading in the
+     * initial stages of the clockwork. To be consistent, we'll set also the "old" object state. But only once! This is
+     * controlled by this flag.
+     *
+     * See also MID-7916.
+     */
+    private boolean rewriteOldObject = true;
+
     // extracted from the template(s)
     // this is not to be serialized into XML, but let's not mark it as transient
     @NotNull private PathKeyedMap<ObjectTemplateItemDefinitionType> itemDefinitionsMap = new PathKeyedMap<>();
@@ -64,6 +76,28 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public LensFocusContext(ElementState<O> elementState, LensContext<O> lensContext) {
         super(elementState, lensContext);
+    }
+
+    @Override
+    public void setLoadedObject(@NotNull PrismObject<O> object) {
+        state.setCurrentAndOptionallyOld(object, shouldSetOldObject());
+        rewriteOldObject = false;
+    }
+
+    private boolean shouldSetOldObject() {
+        if (isAdd()) {
+            LOGGER.trace("Operation is ADD, old state of the object is expected to be null");
+            return false;
+        } else if (rewriteOldObject) {
+            LOGGER.trace("Old state of the object has not been set yet; let's do it now");
+            return true;
+        } else if (state.hasOldObject()) {
+            LOGGER.trace("There's already an old state of the object; not rewriting it");
+            return false;
+        } else {
+            LOGGER.trace("Huh? We should have already set the old state of the object and it's not set. But let's do that.");
+            return true; // Just because this was the pre-4.6 behavior.
+        }
     }
 
     public ArchetypePolicyType getArchetypePolicy() {

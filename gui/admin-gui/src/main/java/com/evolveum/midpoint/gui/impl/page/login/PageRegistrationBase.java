@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
@@ -24,7 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class PageRegistrationBase extends PageBase {
+public class PageRegistrationBase extends PageAdminLTE {
 
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageRegistrationBase.class.getName() + ".";
@@ -41,6 +45,15 @@ public class PageRegistrationBase extends PageBase {
     private SelfRegistrationDto postAuthenticationDto;
 
     public PageRegistrationBase() {
+        super(null);
+
+        addFeedbackPanel();
+    }
+
+    @Override
+    protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
+        body.add(AttributeModifier.replace("class", "register-page"));
+        body.add(AttributeModifier.replace("style", "")); //TODO hack :) because PageBase has min-height defined.
     }
 
     private void initSelfRegistrationConfiguration() {

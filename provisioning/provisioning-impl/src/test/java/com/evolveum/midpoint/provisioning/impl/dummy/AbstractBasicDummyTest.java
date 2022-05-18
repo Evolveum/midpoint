@@ -22,6 +22,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.connector.AbstractBaseDummyConnector;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -521,6 +523,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         dummyResource.assertConnections(3);
 
+        String unlessStringBefore = dummyResource.getUselessString();
+
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
@@ -542,7 +546,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                         SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME,
                         "supportValidity"));
 
-        supportValidity.setRealValue(false);
+        supportValidity.setRealValue(Boolean.valueOf((String)getRealValue(supportValidity)) ? false : true);
+
+        List<String> expectedSuggestions =
+                List.of(getSuggestionForProperty(resource, "instanceId"),
+                        getSuggestionForProperty(resource, "uselessString"));
 
         when();
         Collection<PrismProperty<Object>> suggestions = provisioningService.discoverConfiguration(resource, result);
@@ -552,10 +560,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         assertResourceCacheMissesIncrement(0);
         assertResourceCacheHitsIncrement(0);
-
-        List<String> expectedSuggestions =
-                List.of(getSuggestionForProperty(resource, "instanceId"),
-                        getSuggestionForProperty(resource, "uselessString"));
 
         assertTrue("Suggestions contain more as 2 expected property " + suggestions, suggestions.size() == 2);
         suggestions.forEach(suggestion -> {
@@ -575,6 +579,25 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
         dummyResource.assertConnections(4);
+        dummyResource.setUselessString(unlessStringBefore);
+    }
+
+    private Object getRealValue(PrismProperty<Object> property) {
+        if (property.getRealValue() instanceof RawType) {
+            try {
+                return  ((RawType) property.getRealValue()).getValue();
+            } catch (SchemaException e) {
+                //ignore exception
+                PrimitiveXNode primitiveXNode = ((PrimitiveXNode)((MapXNode) ((RawType) property.getRealValue())
+                        .getXnode()).get(new QName("clearValue")));
+                if (primitiveXNode != null) {
+                    return primitiveXNode.getStringValue();
+                }
+                return null;
+            }
+        } else {
+            return property.getRealValue();
+        }
     }
 
     private String getSuggestionForProperty(PrismObject<ResourceType> resource, String propertyName) {
@@ -585,16 +608,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                         propertyName));
         Object value = null;
         if (property != null) {
-            if (property.getRealValue() instanceof RawType) {
-                try {
-                    value = ((RawType) property.getRealValue()).getValue();
-                } catch (SchemaException e) {
-                    //ignore exception
-                    value = null;
-                }
-            } else {
-                value = property.getRealValue();
-            }
+            value = getRealValue(property);
         }
         return AbstractBaseDummyConnector.SUGGESTION_PREFIX + value;
     }

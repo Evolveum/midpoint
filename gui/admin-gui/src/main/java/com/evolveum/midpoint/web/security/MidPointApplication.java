@@ -12,6 +12,7 @@ import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -203,7 +204,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     public static final String MOUNT_GONE_ERROR = "/error/410";
 
     @Override
-    public Class<? extends PageBase> getHomePage() {
+    public Class<? extends PageAdminLTE> getHomePage() {
         if (AuthUtil.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
             return PagePostAuthentication.class;
         }

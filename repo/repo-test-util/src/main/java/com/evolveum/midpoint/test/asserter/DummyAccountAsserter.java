@@ -42,6 +42,12 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
     }
 
     @Override
+    public <T> DummyObjectAsserter<DummyAccount, R> assertBinaryAttribute(String attributeName, byte[] expectedAttributeValue) {
+        super.assertBinaryAttribute(attributeName, expectedAttributeValue);
+        return this;
+    }
+
+    @Override
     public <T> DummyAccountAsserter<R> assertAttribute(String attrName, T... expected) {
         super.assertAttribute(attrName, expected);
         return this;

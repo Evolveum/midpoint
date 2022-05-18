@@ -116,8 +116,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             @Override
             protected Component createButton(int index, String componentId, IModel<T> model) {
                 CompositedIconBuilder builder = getIconCompositedBuilder(index, buttonMenuItems);
-                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId, builder.build(),
-                        Model.of(getButtonTitle(index, buttonMenuItems))) {
+                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId, builder.build(), () -> getButtonTitle(index, buttonMenuItems)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setRowModelToButtonAction(rowModel, buttonMenuItems);
@@ -204,8 +203,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         if (id >= buttonMenuItems.size()){
             return null;
         }
-        return buttonMenuItems.get(id).getLabel() != null && buttonMenuItems.get(id).getLabel().getObject() != null ?
-                buttonMenuItems.get(id).getLabel().getObject() : "";
+        IModel<String> label = buttonMenuItems.get(id).getLabel();
+        return label != null && label.getObject() != null ?
+                label.getObject() : "";
     }
 
     protected int getNumberOfButtons(boolean isHeaderPanel) {

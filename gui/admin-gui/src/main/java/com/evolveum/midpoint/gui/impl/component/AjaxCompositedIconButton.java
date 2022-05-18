@@ -60,7 +60,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
         add(AttributeModifier.replace("title", () -> {
             if (title != null) {
-                return title;
+                return title.getObject();
             }
 
             return isNotEmptyModel() ? WebComponentUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
