@@ -588,10 +588,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 return  ((RawType) property.getRealValue()).getValue();
             } catch (SchemaException e) {
                 //ignore exception
-                MapXNode mapXNode = ((MapXNode) ((RawType) property.getRealValue())
-                        .getXnode());
-                if (mapXNode.containsKey(new QName("clearValue"))) {
-                    return ((PrimitiveXNode)mapXNode.get(new QName("clearValue"))).getStringValue();
+                PrimitiveXNode primitiveXNode = ((PrimitiveXNode)((MapXNode) ((RawType) property.getRealValue())
+                        .getXnode()).get(new QName("clearValue")));
+                if (primitiveXNode != null) {
+                    return primitiveXNode.getStringValue();
                 }
                 return null;
             }
