@@ -1744,6 +1744,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="availableFilter" type="tns:AvailableFilterType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The list of available (saved or predefined) filters
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchBoxConfigurationType.availableFilter</a:displayName>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="allowToConfigureSearchItems" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2009,6 +2020,51 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AvailableFilterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Available (saved or preconfigured) filter which can be applied during the search.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="searchItem" type="tns:SearchItemType" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search items which define the filter
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AvailableFilterType.searchItem</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:element name="searchMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic">
+            <xsd:annotation>
+                <xsd:documentation>
+                    For which search mode the filter should be displayed
+                </xsd:documentation>
+                <xsd:appinfo>
+                    <a:displayName>AvailableFilterType.searchMode</a:displayName>
+                </xsd:appinfo>
+            </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Specification of search filter display properties (such as filter name or tooltip)
+                </xsd:documentation>
+                <xsd:appinfo>
+                    <a:displayName>AvailableFilterType.display</a:displayName>
+                </xsd:appinfo>
+            </xsd:annotation>
+        </xsd:element>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
