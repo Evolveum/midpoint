@@ -84,7 +84,7 @@ podTemplate(
                 // Using this step in each phase produces multiple graphs, but all have the same results from the last run.
                 step([$class: 'Publisher',
                     reportFilenamePattern: '**/testng-results.xml',
-                    failureOnFailedTestConfig: true
+                    // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
                 ])
             }
         }
