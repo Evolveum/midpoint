@@ -69,7 +69,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     private static final String ID_CHOSE_FILE = "choseFile";
     private static final String ID_NAME_FOR_DATA = "reportDataName";
     private static final String ID_FILE_AS_NAME = "fileAsString";
-
+    private static final String CSV_SUFFIX = ".csv"; //Import report now support only csv format so we use it
 
     public ImportReportPopupPanel(String id, @NotNull ReportType report) {
         super(id, Model.of(report));
@@ -177,7 +177,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         String newFilePath;
         if (uploadedFile != null) {
             String fileName = FilenameUtils.removeExtension(uploadedFile.getClientFileName()) + " " + getDataTime()
-                    + "." + FilenameUtils.getExtension(uploadedFile.getClientFileName());
+                    + CSV_SUFFIX;
             File newFile = new File(importDir, fileName);
             // Check new file, delete if it already exists
             if (newFile.exists()) {
@@ -197,7 +197,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
                 return;
             }
         } else {
-            newFilePath = new File(importDir, dataName).getAbsolutePath();
+            newFilePath = new File(importDir, dataName + CSV_SUFFIX).getAbsolutePath();
             try {
                 Files.write(Paths.get(newFilePath), fileStringImport.getObject().getBytes());
             } catch (IOException e) {
