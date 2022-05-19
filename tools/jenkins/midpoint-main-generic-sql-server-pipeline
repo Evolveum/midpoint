@@ -1,0 +1,154 @@
+// TODO: WIP, DB initialization is not finished yet
+// Our MS SQL Server docs: https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
+podTemplate(
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'db',
+                        image: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                                envVar(key: 'ACCEPT_EULA', value: 'Y'),
+                                envVar(key: 'SA_PASSWORD', value: 'Pa55word!'),
+                                // TODO is separate mount for data necessary?
+                        ],
+                        // TODO needed? ports: [portMapping(name: 'mssql', containerPort: 5432)]
+                ),
+                /* TODO later
+                containerTemplate(name: 'maven',
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: "${params.BUILDER_CPU ?: '4'}",
+                        resourceLimitCpu: "${params.BUILDER_CPU ?: '4'}",
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                        */
+        ]
+) {
+    node(POD_LABEL) {
+        stage("checkout") {
+//            git branch: "${params.BRANCH ?: 'master'}",
+//                    url: 'https://github.com/Evolveum/midpoint.git'
+        }
+        stage("db-init") {
+            container('db') {
+// TODO: update https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/ with this script,
+// mention sqlcmd and few tips from below, like -b and -I flags.
+                sh """#!/bin/bash
+cat > create-db.sql << EOF
+CREATE DATABASE midpoint
+    COLLATE SQL_Latin1_General_CP1_CS_AS;
+GO
+
+ALTER DATABASE midpoint SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+ALTER DATABASE midpoint SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE midpoint SET MULTI_USER;
+
+CREATE LOGIN midpoint WITH PASSWORD = 'password', CHECK_POLICY = OFF;
+GO
+
+USE midpoint;
+GO
+
+CREATE USER [midpoint] FOR LOGIN [midpoint] WITH DEFAULT_SCHEMA=[dbo];
+GO
+ALTER ROLE [db_owner] ADD MEMBER [midpoint];
+GO
+EOF
+
+                    #sleep 30 - sometimes suggested, but it seems to work without it just fine
+                    # -b for sqlcmd is "fail on error"
+                    /opt/mssql-tools/bin/sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql
+
+                    # TODO later take the script from fetched sources (+clean procedure)
+                    wget -q https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/generic-old/sqlserver-4.5-all.sql
+                    # -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
+                    # Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
+                    /opt/mssql-tools/bin/sqlcmd -b -I -S localhost -U midpoint -P password -d midpoint -i sqlserver-4.5-all.sql
+                """
+            }
+        }
+        /* TODO enable after ironing out the DB initialization
+        stage("build-with-tests") {
+            container('maven') {
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        env | sort
+                        mvn --version
+                        df -h
+		            fi
+
+			        mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist clean install \
+			            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+                        -Dmidpoint.repository.jdbcPassword=password \
+                        -Dmidpoint.repository.jdbcUsername=midtest \
+			            -Dmidpoint.repository.driverClassName=org.postgresql.Driver \
+                        -Dmidpoint.repository.hibernateHbm2ddl=validate \
+                        -Dmidpoint.repository.hibernateDialect=com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            }
+        }
+        stage("tests-extra") {
+            container('maven') {
+                // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+		            fi
+
+			        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing \
+			            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+                        -Dmidpoint.repository.jdbcPassword=password \
+                        -Dmidpoint.repository.jdbcUsername=midtest \
+			            -Dmidpoint.repository.driverClassName=org.postgresql.Driver \
+                        -Dmidpoint.repository.hibernateHbm2ddl=validate \
+                        -Dmidpoint.repository.hibernateDialect=com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect \
+			            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            }
+        }
+        stage("collect-test-results") {
+            container('maven') {
+                step([
+                        $class: 'Publisher',
+//                        $class: 'LabeledTestResultGroupPublisher',
+                        reportFilenamePattern: '** /testng-results.xml' // TODO join ** and / when uncommented
+                ])
+            }
+        }
+        */
+    }
+}

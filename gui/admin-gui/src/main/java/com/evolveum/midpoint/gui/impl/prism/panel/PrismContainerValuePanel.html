@@ -9,7 +9,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <form wicket:id="valueForm">
-        <div class="prism-header mb-1" wicket:id="header">
+        <div class="prism-header mb-3" wicket:id="header">
             <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool expand-collapse-button" trigger="hover"></button>
             <a class="prism-title" wicket:id="label"/>
             <wicket:enclosure child="help">
@@ -34,14 +34,14 @@
             </div>
         </wicket:enclosure>
 
-        <div wicket:id="valueContainer">
+        <wicket:container wicket:id="valueContainer">
 
             <span wicket:id="input"></span>
             <div class="row" style="margin-left: 15px;">
                 <span wicket:id="feedback" class="text-danger"/>
             </div>
 
-        </div>
+        </wicket:container>
     </form>
 </wicket:panel>
 </html>

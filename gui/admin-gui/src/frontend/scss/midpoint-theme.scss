@@ -496,20 +496,7 @@ th.cog, td.cog {
 	height: 75px;
 	padding-top: 10px;
 	white-space: normal;
-}
-
-// resource content pages (ResourceContentPanel)
-
-.resource-content-selection {
-
-	.form-group {
-		margin-bottom: 5px;
-	}
-}
-
-.control-suffix {
-	text-align: left !important;
-	padding-left: 0px;
+    margin: 0 !important;
 }
 
 // Feedback messages
@@ -1669,13 +1656,6 @@ fieldset.objectButtons {
   }
 }
 
-.execute-options {
-  &.radio input[type=radio] {
-    margin-left: 0px;
-    display: block;
-  }
-}
-
 .details-panel {
   display: flex;
   flex-direction: row;
@@ -1824,4 +1804,10 @@ span.yui-skin-sam {
 
 .login-footer {
   font-size: 13px;
+}
+
+.info-box.activity-item-processing > .info-box-content > .progress-description {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 50vw;
 }

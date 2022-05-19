@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.component.box;
 
-import org.apache.wicket.request.component.IRequestablePage;
-
 import java.io.Serializable;
+
+import org.apache.wicket.request.component.IRequestablePage;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -23,6 +23,8 @@ public class InfoBoxData implements Serializable {
     private Integer progress;
 
     private String description;
+
+    private String description2;
 
     private String icon;
 
@@ -71,6 +73,14 @@ public class InfoBoxData implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getDescription2() {
+        return description2;
+    }
+
+    public void setDescription2(String description2) {
+        this.description2 = description2;
     }
 
     public String getIcon() {

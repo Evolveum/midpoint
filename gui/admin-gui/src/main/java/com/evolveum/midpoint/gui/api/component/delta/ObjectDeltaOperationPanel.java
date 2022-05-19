@@ -132,34 +132,34 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
     private String getBoxCssClass() {
         if (getModel().getObject() == null) {
-            return " box-primary";
+            return "card-primary";
         }
 
         if (getModel().getObject().getExecutionResult() == null) {
-            return " box-primary";
+            return "card-primary";
         }
 
         if (getModel().getObject().getExecutionResult().getStatus() == null) {
-            return " box-primary";
+            return "card-primary";
         }
 
         OperationResultStatusType status = getModel().getObject().getExecutionResult().getStatus();
         switch (status) {
             case PARTIAL_ERROR:
             case FATAL_ERROR:
-                return " box-danger";
+                return "card-danger";
             case WARNING:
             case UNKNOWN:
             case HANDLED_ERROR:
-                return " box-warning";
+                return "card-warning";
             case IN_PROGRESS:
             case NOT_APPLICABLE:
-                return " box-primary";
+                return "card-primary";
             case SUCCESS:
-                return " box-success";
+                return "card-success";
 
         }
-        return " box-primary";
+        return "card-primary";
 
     }
 

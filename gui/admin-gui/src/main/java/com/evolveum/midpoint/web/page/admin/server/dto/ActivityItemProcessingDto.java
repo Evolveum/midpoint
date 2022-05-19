@@ -11,17 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.box.InfoBoxData;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
-
-import org.apache.wicket.model.StringResourceModel;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * "Items processing" statistics for a single activity.
@@ -100,21 +99,21 @@ public class ActivityItemProcessingDto implements Serializable {
     }
 
     @SuppressWarnings("unused") // accessed dynamically
-    public ActivityInfoBoxDto getSuccessBox() {
+    public InfoBoxData getSuccessBox() {
         return createInfoBoxType("success", successProcessedItemSet, "bg-green", "fa fa-check");
     }
 
     @SuppressWarnings("unused") // accessed dynamically
-    public ActivityInfoBoxDto getFailedBox() {
-        return createInfoBoxType("failure", failureProcessedItemSet, "bg-red", "fa fa-close");
+    public InfoBoxData getFailedBox() {
+        return createInfoBoxType("failure", failureProcessedItemSet, "bg-red", "fa fa-times");
     }
 
     @SuppressWarnings("unused") // accessed dynamically
-    public ActivityInfoBoxDto getSkipBox() {
+    public InfoBoxData getSkipBox() {
         return createInfoBoxType("skip", skippedProcessedItemSet, "bg-gray", "fe fe-skip-step-object");
     }
 
-    private ActivityInfoBoxDto createInfoBoxType(String title, ProcessedItemSetType processedSet, String background, String icon) {
+    private InfoBoxData createInfoBoxType(String title, ProcessedItemSetType processedSet, String background, String icon) {
         if (processedSet == null || processedSet.getLastItem() == null) {
             return null;
         }
@@ -126,17 +125,19 @@ public class ActivityItemProcessingDto implements Serializable {
         return getString("TaskIterativeProgress.box.title." + result, getFormattedDate(processedItemSetType));
     }
 
-    private ActivityInfoBoxDto createInfoBoxType(String title, ProcessedItemType processedItem, String background, String icon) {
-        ActivityInfoBoxDto infoBoxType = new ActivityInfoBoxDto(background, icon, title);
-        infoBoxType.setNumber(processedItem.getName());
+    private InfoBoxData createInfoBoxType(String title, ProcessedItemType processedItem, String background, String icon) {
+        InfoBoxData data = new InfoBoxData(background, icon, title);
+        data.setNumber(processedItem.getName());
 
         Long end = WebComponentUtil.getTimestampAsLong(processedItem.getEndTimestamp(), true);
         Long start = WebComponentUtil.getTimestampAsLong(processedItem.getStartTimestamp(), true);
 
-        infoBoxType.setDuration(end - start);
-
-        infoBoxType.setErrorMessage(processedItem.getMessage());
-        return infoBoxType;
+        Long duration = end-start;
+        if (duration != null) {
+            data.setDescription(WebComponentUtil.formatDurationWordsForLocal(duration, true, true));
+        }
+        data.setDescription2(processedItem.getMessage());
+        return data;
     }
 
     private String getFormattedDate(ProcessedItemSetType processedSetItem) {

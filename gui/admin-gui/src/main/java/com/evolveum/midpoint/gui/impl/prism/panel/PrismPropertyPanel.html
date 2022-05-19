@@ -10,10 +10,9 @@
 <wicket:panel>
     <div class="col-xl-2 col-md-4 col-xs-12 prism-property-label " wicket:id="header"/>
     <div class="col-xl-10 col-md-8 col-xs-12 prism-property-value">
-        <div wicket:id="values">
-                <div wicket:id="value">
-                </div>
-        </div>
+        <wicket:container wicket:id="values">
+                <wicket:container wicket:id="value" />
+        </wicket:container>
     </div>
 </wicket:panel>
 </html>

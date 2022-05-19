@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -21,11 +19,16 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationPanelPart;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationsPanel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
@@ -42,8 +45,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -83,6 +84,8 @@ public class PageCertDefinition extends PageAdminCertification {
 
     private static final String OPERATION_SAVE_DEFINITION = DOT_CLASS + "saveDefinition";
     private static final String ID_TAB_PANEL = "tabPanel";
+    private static final String ID_OPERATIONS_PANEL = "operationsPanel";
+    private static final String ID_MAIN = "main";
 
     private final String definitionOid;
 
@@ -163,7 +166,6 @@ public class PageCertDefinition extends PageAdminCertification {
     }
 
     private void initTabs(Form mainForm) {
-
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageCertDefinition.basic")) {
             @Override
@@ -205,13 +207,19 @@ public class PageCertDefinition extends PageAdminCertification {
     }
 
     private void initButtons(final Form mainForm) {
+        OperationsPanel operationsPanel = new OperationsPanel(ID_OPERATIONS_PANEL);
+        mainForm.add(operationsPanel);
+
+        OperationPanelPart main = new OperationPanelPart(ID_MAIN, createStringResource("OperationalButtonsPanel.buttons.main"));
+        operationsPanel.add(main);
+
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertDefinition.button.back")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 redirectBack();
             }
         };
-        mainForm.add(backButton);
+        main.add(backButton);
 
         AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON,
                 createStringResource("PageCertDefinition.button.save")) {
@@ -220,7 +228,7 @@ public class PageCertDefinition extends PageAdminCertification {
                 savePerformed(target);
             }
         };
-        mainForm.add(saveButton);
+        main.add(saveButton);
     }
     //endregion
 

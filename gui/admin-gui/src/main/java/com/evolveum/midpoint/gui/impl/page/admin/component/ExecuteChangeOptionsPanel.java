@@ -13,7 +13,6 @@ import java.util.List;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -41,8 +40,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
+import org.apache.wicket.util.value.IValueMap;
+import org.apache.wicket.util.value.ValueMap;
 
 /**
  * @author lazyman
@@ -69,7 +68,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -82,7 +81,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         setOutputMarkupId(true);
 
         createOptionsDropdownButton(createDropdownMenuItems());
-        createTracingOptionsPanel();
+        createTracingDropdownButton();
     }
 
     private List<InlineMenuItem> createDropdownMenuItems() {
@@ -97,7 +96,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
     private void createOptionsDropdownButton(List<InlineMenuItem> items) {
         DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_OPTIONS_BUTTON_ICON,
-                getPageBase().createStringResource("ExecuteChangeOptionsPanel.options").getString(), items);
+                getString("ExecuteChangeOptionsPanel.options"), items);
         DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_OPTIONS, model) {
 
             private static final long serialVersionUID = 1L;
@@ -117,12 +116,9 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
                     @Override
                     public void onUpdate(AjaxRequestTarget target) {
-                        getOptionsButtonPanel().visitChildren(new IVisitor<Component, Object>() {
-                            @Override
-                            public void component(Component component, IVisit<Object> objectIVisit) {
-                                if (component instanceof CheckBoxPanel) {
-                                    target.add(component);
-                                }
+                        getOptionsButtonPanel().visitChildren((component, objectIVisit) -> {
+                            if (component instanceof CheckBoxPanel) {
+                                target.add(component);
                             }
                         });
                         target.add(this.getPanelComponent());
@@ -137,11 +133,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
             protected String getSpecialButtonClass() {
                 return "mr-2 btn-sm btn-default";
             }
-
-            @Override
-            protected String getSpecialDropdownMenuClass() {
-                return "execute-options";
-            }
         };
         add(dropdownButtonPanel);
         dropdownButtonPanel.setRenderBodyOnly(true);
@@ -149,97 +140,115 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
     private DropdownButtonPanel getOptionsButtonPanel() {
         return (DropdownButtonPanel) get(ID_OPTIONS);
-     }
+    }
 
     private boolean isOptionEnabled(DropdownButtonDto dropdownButtonDto, CheckboxMenuItem checkboxMenuItem) {
-        if (!(checkboxMenuItem.getLabel().getObject().equals(createStringResource(KEEP_DISPLAYING_RESULTS_LABEL).getString())) &&
-                !(checkboxMenuItem.getLabel().getObject().equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER).getString()))) {
+        String label = checkboxMenuItem.getLabel().getObject();
+
+        if (!(label.equals(getString(KEEP_DISPLAYING_RESULTS_LABEL))) &&
+                !(label.equals(getString(ID_SAVE_IN_BACKGROUND_CONTAINER)))) {
             return true;
         }
+
         List<InlineMenuItem> items = dropdownButtonDto.getMenuItems();
-        if (checkboxMenuItem.getLabel().getObject().equals(createStringResource(KEEP_DISPLAYING_RESULTS_LABEL).getString())) {
+        if (label.equals(getString(KEEP_DISPLAYING_RESULTS_LABEL))) {
             for (InlineMenuItem item : items) {
-                if (item.getLabel().getObject().equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER).getString())) {
-                    return !Boolean.TRUE.equals(((CheckboxMenuItem)item).getCheckBoxModel().getObject());
+                if (item.getLabel().getObject().equals(getString(ID_SAVE_IN_BACKGROUND_CONTAINER))) {
+                    return !Boolean.TRUE.equals(((CheckboxMenuItem) item).getCheckBoxModel().getObject());
                 }
             }
         }
-        if (checkboxMenuItem.getLabel().getObject().equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER).getString())) {
+
+        if (label.equals(createStringResource(ID_SAVE_IN_BACKGROUND_CONTAINER))) {
             for (InlineMenuItem item : items) {
-                if (item.getLabel().getObject().equals(createStringResource(KEEP_DISPLAYING_RESULTS_LABEL).getString())) {
-                    return !Boolean.TRUE.equals(((CheckboxMenuItem)item).getCheckBoxModel().getObject());
+                if (item.getLabel().getObject().equals(getString(KEEP_DISPLAYING_RESULTS_LABEL))) {
+                    return !Boolean.TRUE.equals(((CheckboxMenuItem) item).getCheckBoxModel().getObject());
                 }
             }
         }
+
         return true;
     }
 
-   private void createTracingOptionsPanel() {
+    // todo rework, this now creates only one item in dropdown with multiple input[option], therefore dropdown is not correctly rendered (each item should be created separately, like for options)
+    private void createTracingDropdownButton() {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("Tracing")) {
+        items.add(new InlineMenuItem(createStringResource("ExecuteChangeOptionsPanel.tracing")) {
             @Override
             public InlineMenuItemAction initAction() {
                 return null;
             }
         });
-       DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_TRACING_BUTTON_ICON, "Tracing", items);
-       DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_TRACING, model) {
+        DropdownButtonDto model = new DropdownButtonDto(null, GuiStyleConstants.CLASS_TRACING_BUTTON_ICON, getString("ExecuteChangeOptionsPanel.tracing"), items);
+        DropdownButtonPanel dropdownButtonPanel = new DropdownButtonPanel(ID_TRACING, model) {
 
-           @Override
-           protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
-               menuItem.add(createTracingRadioChoicesFragment(componentId));
-           }
+            @Override
+            protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
+                menuItem.add(createTracingRadioChoicesFragment(componentId));
+            }
 
-           @Override
-           protected String getSpecialButtonClass() {
-               return "mr-2 btn-sm btn-default";
-           }
+            @Override
+            protected String getSpecialButtonClass() {
+                return "mr-2 btn-sm btn-default";
+            }
+        };
+        add(dropdownButtonPanel);
+        dropdownButtonPanel.setOutputMarkupId(true);
+        dropdownButtonPanel.add(new VisibleBehaviour(this::isTracingEnabled));
+    }
 
-           @Override
-           protected String getSpecialDropdownMenuClass() {
-               return "execute-options radio";
-           }
-       };
-       add(dropdownButtonPanel);
-       dropdownButtonPanel.setOutputMarkupId(true);
-       dropdownButtonPanel.add(new VisibleBehaviour(this::isTracingEnabled));
-   }
-
-   private Fragment createTracingRadioChoicesFragment(String componentId) {
+    private Fragment createTracingRadioChoicesFragment(String componentId) {
         Fragment fragment = new Fragment(componentId, ID_TRACING_CONTAINER, ExecuteChangeOptionsPanel.this);
 
-       RadioChoice<TracingProfileType> tracingProfile = new RadioChoice<>(ID_TRACING, PropertyModel.of(ExecuteChangeOptionsPanel.this.getModel(), ExecuteChangeOptionsDto.F_TRACING),
-               PropertyModel.of(ExecuteChangeOptionsPanel.this.getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), createTracinnChoiceRenderer());
+        RadioChoice<TracingProfileType> tracingProfile = new RadioChoice<>(ID_TRACING, PropertyModel.of(ExecuteChangeOptionsPanel.this.getModel(), ExecuteChangeOptionsDto.F_TRACING),
+                PropertyModel.of(ExecuteChangeOptionsPanel.this.getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), createTracingChoiceRenderer()) {
+
+            @Override
+            protected IValueMap getAdditionalAttributesForLabel(int index, TracingProfileType choice) {
+                IValueMap map = new ValueMap();
+                map.put("class", "form-check-label");
+                return map;
+            }
+
+            @Override
+            protected IValueMap getAdditionalAttributes(int index, TracingProfileType choice) {
+                IValueMap map = new ValueMap();
+                map.put("class", "form-check-input");
+                return map;
+            }
+        };
+        tracingProfile.setPrefix("<div class=\"form-check\">");
+        tracingProfile.setSuffix("</div>");
         fragment.add(tracingProfile);
 
-       AjaxLink<Void> resetChoices = new AjaxLink<>(ID_RESET_CHOICES) {
+        AjaxLink<Void> resetChoices = new AjaxLink<>(ID_RESET_CHOICES) {
 
-           @Override
-           public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
                 ExecuteChangeOptionsPanel.this.getModelObject().setTracing(null);
                 target.add(ExecuteChangeOptionsPanel.this);
-           }
-       };
-       fragment.add(resetChoices);
-       return fragment;
-   }
+            }
+        };
+        fragment.add(resetChoices);
+        return fragment;
+    }
 
-   public boolean isTracingEnabled() {
-       boolean canRecordTrace;
-       try {
-           canRecordTrace = getPageBase().isAuthorized(ModelAuthorizationAction.RECORD_TRACE.getUrl());
-       } catch (Throwable t) {
-           LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check trace recording authorization", t);
-           canRecordTrace = false;
-       }
+    public boolean isTracingEnabled() {
+        boolean canRecordTrace;
+        try {
+            canRecordTrace = getPageBase().isAuthorized(ModelAuthorizationAction.RECORD_TRACE.getUrl());
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check trace recording authorization", t);
+            canRecordTrace = false;
+        }
 
-       return canRecordTrace && WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
-   }
+        return canRecordTrace && WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
+    }
 
     protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
     }
 
-    private IChoiceRenderer<TracingProfileType> createTracinnChoiceRenderer() {
+    private IChoiceRenderer<TracingProfileType> createTracingChoiceRenderer() {
         return new IChoiceRenderer<>() {
 
             private static final long serialVersionUID = 1L;
@@ -247,13 +256,13 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
             @Override
             public Object getDisplayValue(TracingProfileType profile) {
                 if (profile == null) {
-                    return "(none)";
+                    return getString("TracingProfileType.none");
                 } else if (profile.getDisplayName() != null) {
                     return profile.getDisplayName();
                 } else if (profile.getName() != null) {
                     return profile.getName();
                 } else {
-                    return "(unnamed profile)";
+                    return getString("TracingProfileType.unnamed");
                 }
             }
 

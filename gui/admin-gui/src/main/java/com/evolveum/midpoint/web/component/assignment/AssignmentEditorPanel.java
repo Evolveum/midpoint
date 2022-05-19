@@ -59,6 +59,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -587,33 +588,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                         .item(OrgType.F_TENANT).eq(true)
                         .build();
             }
-
-            @Override
-            protected boolean isSearchEnabled() {
-                return true;
-            }
-
-            @Override
-            protected QName getSearchProperty() {
-                return OrgType.F_NAME;
-            }
         };
         tenantRef.setPanelEnabled(getModel().getObject().isEditable());
         tenantRefContainer.add(tenantRef);
-        tenantRefContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                AssignmentEditorDto dto = getModel().getObject();
-                if (dto != null) {
-                    if (AssignmentEditorDtoType.ROLE.equals(dto.getType())) {
-                        return true;
-                    }
+        tenantRefContainer.add(new VisibleBehaviour(() -> {
+            AssignmentEditorDto dto = getModel().getObject();
+            if (dto != null) {
+                if (AssignmentEditorDtoType.ROLE.equals(dto.getType())) {
+                    return true;
                 }
-
-                return false;
             }
-        });
+
+            return false;
+        }));
         return tenantRefContainer;
     }
 
@@ -629,47 +616,29 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                         .or().item(OrgType.F_TENANT).isNull()
                         .build();
             }
-
-            @Override
-            protected boolean isSearchEnabled() {
-                return true;
-            }
-
-            @Override
-            protected QName getSearchProperty() {
-                return OrgType.F_NAME;
-            }
         };
         tenantRefContainer.add(tenantRef);
         tenantRef.setEnabled(getModel().getObject().isEditable());
-        tenantRefContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                AssignmentEditorDto dto = getModel().getObject();
-                if (dto != null) {
-                    if (AssignmentEditorDtoType.ROLE.equals(dto.getType())) {
-                        return true;
-                    }
+        tenantRefContainer.add(new VisibleBehaviour(() -> {
+            AssignmentEditorDto dto = getModel().getObject();
+            if (dto != null) {
+                if (AssignmentEditorDtoType.ROLE.equals(dto.getType())) {
+                    return true;
                 }
-
-                return false;
             }
-        });
+
+            return false;
+        }));
         return tenantRefContainer;
     }
 
     private void initAttributesLayout(WebMarkupContainer constructionContainer) {
         WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
         attributes.setOutputMarkupId(true);
-        attributes.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                AssignmentEditorDto dto = getModel().getObject();
-                return AssignmentEditorDtoType.CONSTRUCTION.equals(dto.getType());
-            }
-        });
+        attributes.add(new VisibleBehaviour(() -> {
+            AssignmentEditorDto dto = getModel().getObject();
+            return AssignmentEditorDtoType.CONSTRUCTION.equals(dto.getType());
+        }));
         attributes.setEnabled(getModel().getObject().isEditable());
         constructionContainer.add(attributes);
 
@@ -1084,7 +1053,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             constraints =
                     pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 
-        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex) {
+        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
         }
         return constraints;

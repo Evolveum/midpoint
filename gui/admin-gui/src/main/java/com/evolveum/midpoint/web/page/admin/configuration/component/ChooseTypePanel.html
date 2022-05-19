@@ -10,29 +10,16 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-<div class="row">
-        <div wicket:id="inputContainer">
-            <div class="input-group input-group-sm">
-                <input type="text" class="form-control" disabled="disabled" wicket:id="name" />
-                <span class="input-group-append">
+    <div class="d-flex flex-wrap gap-2">
+        <div class="input-group input-group-sm w-auto">
+            <input type="text" class="form-control" disabled="disabled" wicket:id="name"/>
+            <span class="input-group-append">
                     <button wicket:id="choose" class="btn btn-primary" type="button">
-                        <wicket:message key="objectPolicyConfigurationEditor.button.edit" />
+                        <wicket:message key="objectPolicyConfigurationEditor.button.edit"/>
                     </button>
                 </span>
-            </div>
-
         </div>
-
-        <div class="col-md-2">
-            <span class="btn-group">
-                <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="glyphicon glyphicon-minus"/></a>
-            </span>
-        </div>
-
+        <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="fa fa-minus"></i></a>
     </div>
-
-
 </wicket:panel>
-
 </html>

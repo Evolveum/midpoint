@@ -3606,19 +3606,34 @@ public final class WebComponentUtil {
     }
 
     public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
-            boolean suppressTrailingZeroElements, PageBase pageBase) {
+            boolean suppressTrailingZeroElements) {
+        return formatDurationWordsForLocal(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements, null);
+    }
+
+    /**
+     * uses the one without "comp" parameter
+     * @param durationMillis
+     * @param suppressLeadingZeroElements
+     * @param suppressTrailingZeroElements
+     * @param comp
+     * @return
+     */
+    @Deprecated
+    public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
+            boolean suppressTrailingZeroElements, Component comp) {
+
+        Localizer localizer = comp != null ? comp.getLocalizer() : Application.get().getResourceSettings().getLocalizer();
 
         String duration = formatDuration(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
-//        String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
 
-        duration = StringUtils.replaceOnce(duration, "seconds", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.seconds").getString());
-        duration = StringUtils.replaceOnce(duration, "minutes", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minutes").getString());
-        duration = StringUtils.replaceOnce(duration, "hours", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hours").getString());
-        duration = StringUtils.replaceOnce(duration, "days", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.days").getString());
-        duration = StringUtils.replaceOnce(duration, "second", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.second").getString());
-        duration = StringUtils.replaceOnce(duration, "minute", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minute").getString());
-        duration = StringUtils.replaceOnce(duration, "hour", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hour").getString());
-        duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
+        duration = StringUtils.replaceOnce(duration, "seconds", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.seconds", comp));
+        duration = StringUtils.replaceOnce(duration, "minutes", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.minutes", comp));
+        duration = StringUtils.replaceOnce(duration, "hours", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.hours", comp));
+        duration = StringUtils.replaceOnce(duration, "days", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.days", comp));
+        duration = StringUtils.replaceOnce(duration, "second", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.second", comp));
+        duration = StringUtils.replaceOnce(duration, "minute", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.minute", comp));
+        duration = StringUtils.replaceOnce(duration, "hour", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.hour", comp));
+        duration = StringUtils.replaceOnce(duration, "day", localizer.getString("WebComponentUtil.formatDurationWordsForLocal.day", comp));
 
         return duration;
     }
@@ -4792,27 +4807,27 @@ public final class WebComponentUtil {
             OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<SceneDto> changes = new ArrayList<>();
         if (!changesByState.getApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-success", changesByState.getApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getBeingApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "box-solid box-info", changesByState.getBeingApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-info", changesByState.getBeingApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-warning",
                     changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-primary",
                     changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getRejected().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(),
+            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-danger", changesByState.getRejected(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getCanceled().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(),
+            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-danger", changesByState.getCanceled(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         return changes;
