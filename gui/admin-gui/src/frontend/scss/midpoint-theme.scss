@@ -1275,14 +1275,12 @@ td .prism-property-value {
 
 .search-item {
   display: inline-block;
-  //min-width: 270px;
   border-color: #ddd;
   border-radius: 3px;
   background-color: #f4f4f4;
   vertical-align: middle;
   font-size: 12px;
   padding-left: 3px;
-  margin-left: 3px;
 
   .search-item-label {
     margin-top: 5px;
@@ -1811,4 +1809,8 @@ span.yui-skin-sam {
   overflow-wrap: break-word;
   word-break: break-word;
   max-width: 50vw;
+}
+
+th.debug-list-buttons {
+  width: 160px;
 }

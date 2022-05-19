@@ -6,49 +6,47 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="d-flex flex-wrap justify-content-end">
-        <div wicket:id="searchItemsPanel"></div>
+    <form wicket:id="form" class="d-flex flex-wrap justify-content-end gap-1">
+        <div wicket:id="searchItemsPanel"/>
 
-            <div wicket:id="searchContainer" class="my-1">
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="submitSearchButton">
-                        <i class="fa fa-search flip-icon fa-lg"></i>
-                    </button>
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false" wicket:id="searchTypesMenu">
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu pull-right" role="menu">
-                        <li wicket:id="searchTypeItems">
-                            <div wicket:id="searchType"/>
-                        </li>
-                    </ul>
-                </div>
+        <div wicket:id="searchContainer">
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="submitSearchButton">
+                    <i class="fa fa-search flip-icon fa-lg"></i>
+                </button>
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false" wicket:id="searchTypesMenu">
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu pull-right" role="menu">
+                    <li wicket:id="searchTypeItems">
+                        <div wicket:id="searchType"/>
+                    </li>
+                </ul>
             </div>
-            <div wicket:id="saveSearchContainer" class="my-1">
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-primary" wicket:id="saveSearchButton">
-                        <i class="fa fa-save flip-icon fa-lg"></i>
-                    </button>
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false" wicket:id="savedSearchMenu">
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu pull-right" role="menu">
-                        <li wicket:id="savedSearchItems">
-                            <div wicket:id="savedSearchItem"/>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        </div>
+        <div class="btn-group btn-group-sm" wicket:id="saveSearchContainer">
+            <button type="button" class="btn btn-default" wicket:id="saveSearchButton">
+                <i class="fa fa-save"></i>
+            </button>
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" wicket:id="savedSearchMenu">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu pull-right" role="menu">
+                <li wicket:id="savedSearchItems">
+                    <div wicket:id="savedSearchItem"/>
+                </li>
+            </ul>
+        </div>
     </form>
     <wicket:fragment wicket:id="basicSearchFragment">
         <wicket:container wicket:id="items">
-            <div wicket:id="item" class="my-1"/>
+            <div wicket:id="item"/>
         </wicket:container>
-            <button wicket:id="more" class="btn btn-sm btn-default mx-1 my-1">
+            <button wicket:id="more" class="btn btn-sm btn-default">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
                 <span class="fa fa-caret-down"></span>
@@ -80,10 +78,10 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="advancedSearchFragment">
-        <div class="d-flex my-1">
+        <div class="d-flex">
             <a class="btn btn-sm btn-link" wicket:id="debug" />
         </div>
-        <div class="my-1 has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
+        <div class="has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
             <textarea class="form-control form-control-sm" rows="2" wicket:id="advancedArea"
                     style="width: 220px; height: 60px; overflow: hidden;"></textarea>
             <input wicket:id="axiomQueryField" type="text" class="form-control form-control-sm"
@@ -98,7 +96,7 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="fulltextSearchFragment">
-        <div class="my-1" wicket:id="fullTextContainer">
+        <div wicket:id="fullTextContainer">
             <input wicket:id="fullTextField" type="text" class="form-control form-control-sm" style="width: 150px; min-width: 150px;"/>
         </div>
     </wicket:fragment>
