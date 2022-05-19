@@ -2068,8 +2068,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 DashboardType dashboard = prismObject.getRealValue();
                 Validate.notNull(dashboard, "Dashboard object is null");
 
-                StringResourceModel label = createStringResourceDefault(WebComponentUtil.getTranslatedPolyString(dashboard.getName()),
-                        WebComponentUtil.getCollectionLabel(dashboard.getDisplay(), null, dashboard));
+                String dashboardNameKey = WebComponentUtil.getTranslatedPolyString(dashboard.getName());
+                PolyStringType dashboardDisplayKey = WebComponentUtil.getCollectionLabel(dashboard.getDisplay(), null, dashboard);
+                StringResourceModel label = StringUtils.isNotEmpty(dashboardNameKey) && dashboardDisplayKey != null ?
+                        createStringResourceDefault(dashboardNameKey, dashboardDisplayKey) : createStringResource("PageAdmin.menu.dashboard");
                 PageParameters pageParameters = new PageParameters();
                 pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
                 MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
