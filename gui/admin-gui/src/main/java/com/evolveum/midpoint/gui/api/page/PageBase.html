@@ -53,7 +53,14 @@
                 <li class="nav-item dropdown">
                     <div wicket:id="locale"/>
                 </li>
-                <li class="nav-item dropdown user-menu" wicket:id="rightMenu"/>
+                <li class="nav-item">
+                    <form method="post" wicket:id="logoutForm">
+                        <div wicket:id="csrfField"/>
+                        <button type="submit" class="btn btn-link nav-link">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </form>
+                </li>
             </ul>
         </nav>
 

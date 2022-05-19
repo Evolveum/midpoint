@@ -31,13 +31,12 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.SubscriptionType;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -45,21 +44,15 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -67,7 +60,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
@@ -75,9 +67,9 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
-import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -87,6 +79,7 @@ import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -112,7 +105,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_CART_BUTTON = "cartButton";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
-    private static final String ID_RIGHT_MENU = "rightMenu";
     private static final String ID_LOCALE = "locale";
     private static final String ID_MENU_TOGGLE = "menuToggle";
     private static final String ID_BREADCRUMB = "breadcrumb";
@@ -127,6 +119,8 @@ public abstract class PageBase extends PageAdminLTE {
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
+    private static final String ID_LOGOUT_FORM = "logoutForm";
+    private static final String ID_CSRF_FIELD = "csrfField";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -267,12 +261,26 @@ public abstract class PageBase extends PageAdminLTE {
         menuToggle.add(createUserStatusBehaviour());
         container.add(menuToggle);
 
-        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
-        rightMenu.add(createUserStatusBehaviour());
-        container.add(rightMenu);
-
         LocalePanel locale = new LocalePanel(ID_LOCALE);
         container.add(locale);
+
+        MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
+        form.add(AttributeModifier.replace("action", () ->
+                SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), getAuthenticatedModule().getPrefix())));
+
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        form.add(csrfField);
+        container.add(form);
+    }
+
+    private ModuleAuthentication getAuthenticatedModule() {
+        ModuleAuthentication moduleAuthentication = AuthUtil.getAuthenticatedModule();
+
+        if (moduleAuthentication == null) {
+            String message = "Unauthenticated request";
+            throw new IllegalArgumentException(message);
+        }
+        return moduleAuthentication;
     }
 
     private void initTitleLayout(WebMarkupContainer mainHeader) {
