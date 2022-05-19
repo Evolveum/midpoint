@@ -28,8 +28,6 @@
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
             <scope>runtime</scope>
         </dependency>
 
