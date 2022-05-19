@@ -54,7 +54,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         sidebar.setOutputMarkupId(true);
         add(sidebar);
 
-        ListView<SideBarMenuItem> menuItems = new ListView<SideBarMenuItem>(ID_MENU_ITEMS, getModel()) {
+        ListView<SideBarMenuItem> menuItems = new ListView<>(ID_MENU_ITEMS, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override

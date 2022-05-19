@@ -9,21 +9,14 @@
     <body>
         <wicket:panel>
             <wicket:enclosure child="menu">
-                    <!--<a href="index3.html" class="brand-link navbar-lightblue">
-                        <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-                        <span class="brand-text font-weight-light">AdminLTE 3</span>
-                    </a>-->
-
-                    <a class="brand-link navbar-lightblue custom-logo" wicket:id="customLogo">
+                    <a class="brand-link navbar-lightblue custom-logo border-bottom-0" wicket:id="customLogo">
                         <i wicket:id="customLogoImgCss"/>
                         <img wicket:id="customLogoImgSrc"/>
                     </a>
-                    <a class="brand-link navbar-lightblue logo" wicket:id="logo">
+                    <a class="brand-link navbar-lightblue logo border-bottom-0" wicket:id="logo">
                         <span>&nbsp;</span>
                     </a>
-
-                    <!-- sidebar: style can be found in sidebar.less -->
-                <div class="sidebar"> <!--style="height: auto;"-->
+                <div class="sidebar">
                     <wicket:container wicket:id="menu"/>
                 </div>
             </wicket:enclosure>

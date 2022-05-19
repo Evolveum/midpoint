@@ -25,12 +25,11 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -65,11 +64,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private void initLayout() {
         WebMarkupContainer item = new WebMarkupContainer(ID_ITEM);
         item.setOutputMarkupId(true);
-        item.add(AttributeModifier.append("class", new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
+        item.add(AttributeModifier.append("class", () -> {
                 MainMenuItem mainMenuItem = getModelObject();
                 if (mainMenuItem.isMenuActive(getPageBase())) {
                     return "active";
@@ -79,13 +74,12 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                     return "active menu-open";
                 }
                 return null;
-            }
-        }));
+            }));
         add(item);
 
-        item.add(AttributeModifier.append("style", new ReadOnlyModel<>(() -> isMenuExpanded() ? "" : "display: none;")));
+        item.add(AttributeModifier.append("style", () -> isMenuExpanded() ? "" : "display: none;"));
 
-        WebMarkupContainer link = new AjaxLink<Void>(ID_LINK) {
+        AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -106,31 +100,17 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         final PropertyModel<String> bubbleModel = new PropertyModel<>(getModel(), MainMenuItem.F_BUBBLE_LABEL);
 
         Label bubble = new Label(ID_BUBBLE, bubbleModel);
-        bubble.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return bubbleModel.getObject() != null;
-            }
-        });
+        bubble.add(new VisibleBehaviour(() -> bubbleModel.getObject() != null));
         link.add(bubble);
 
         WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
-        arrow.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return getModelObject().containsSubMenu() && bubbleModel.getObject() == null;
-            }
-        });
+        arrow.add(new VisibleBehaviour(() -> getModelObject().containsSubMenu() && bubbleModel.getObject() == null));
         link.add(arrow);
 
         WebMarkupContainer submenu = new WebMarkupContainer(ID_SUBMENU);
         item.add(submenu);
 
-        ListView<MenuItem> subItem = new ListView<MenuItem>(ID_SUB_ITEM, new PropertyModel<>(getModel(), MainMenuItem.F_ITEMS)) {
+        ListView<MenuItem> subItem = new ListView<>(ID_SUB_ITEM, new PropertyModel<>(getModel(), MainMenuItem.F_ITEMS)) {
 
             @Override
             protected void populateItem(ListItem<MenuItem> listItem) {
@@ -143,14 +123,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private void createSubmenu(final ListItem<MenuItem> listItem) {
         IModel<MenuItem> menuItem = listItem.getModel();
 
-        listItem.add(AttributeModifier.replace("class", new ReadOnlyModel<>(() -> {
-            if (menuItem.getObject().isMenuActive(getPageBase())) {
-                return "active";
-            }
-            return null;
-        })));
+        listItem.add(AttributeModifier.replace("class", () -> menuItem.getObject().isMenuActive(getPageBase()) ? "active" : null));
 
-        Link<String> subLink = new Link<String>(ID_SUB_LINK) {
+        Link<String> subLink = new Link<>(ID_SUB_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -171,8 +146,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private void menuItemPerformed(MenuItem menu) {
         LOGGER.trace("menuItemPerformed: {}", menu);
 
-//        getSession().getSessionStorage().setActiveMenu(menu.getNameModel());
-//        getSession().getSessionStorage().setActiveMainMenu(getModelObject().getNameModel());
         IPageFactory pFactory = Session.get().getPageFactory();
         WebPage page;
         if (menu.getParams() == null) {
