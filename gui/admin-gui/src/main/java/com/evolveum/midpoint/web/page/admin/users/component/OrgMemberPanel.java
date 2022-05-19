@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -92,8 +91,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList,
-                                 List<QName> objectTypes, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes);
+                                 List<QName> objectTypes, boolean isOrgTreePanelVisible, List<ObjectReferenceType> archetypeRefs) {
+        MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes, archetypeRefs);
     }
 
 //    @Override

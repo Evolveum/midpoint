@@ -171,12 +171,12 @@ public class MemberOperationsHelper {
 
     public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
             AvailableRelationDto availableRelationList, List<QName> objectTypes) {
-        assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, true);
+        assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, null, true);
 
     }
 
     public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
+            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefs, boolean isOrgTreePanelVisible) {
 
         ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<O, R>(pageBase.getMainPopupBodyId(), availableRelationList) {
             private static final long serialVersionUID = 1L;
@@ -195,13 +195,18 @@ public class MemberOperationsHelper {
             protected boolean isOrgTreeVisible(){
                 return isOrgTreePanelVisible;
             }
+
+            @Override
+            protected List<ObjectReferenceType> getArchetypeRefList() {
+                return archetypeRefs;
+            }
         };
         browser.setOutputMarkupId(true);
         pageBase.showMainPopup(browser, target);
     }
 
     public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes) {
+            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefs) {
         ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
 
             private static final long serialVersionUID = 1L;
@@ -214,6 +219,11 @@ public class MemberOperationsHelper {
             @Override
             protected List<QName> getAvailableObjectTypes(){
                 return objectTypes;
+            }
+
+            @Override
+            protected List<ObjectReferenceType> getArchetypeRefList() {
+                return archetypeRefs;
             }
         };
 

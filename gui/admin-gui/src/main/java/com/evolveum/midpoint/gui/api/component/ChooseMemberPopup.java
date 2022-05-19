@@ -168,6 +168,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     protected T getAbstractRoleTypeObject(){
                         return ChooseMemberPopup.this.getAssignmentTargetRefObject();
                     }
+
+                    @Override
+                    protected List<ObjectReferenceType> getArchetypeRefList() {
+                        return ChooseMemberPopup.this.getArchetypeRefList();
+                    }
                 };
             }
 
@@ -200,6 +205,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     @Override
                     protected T getAbstractRoleTypeObject(){
                         return ChooseMemberPopup.this.getAssignmentTargetRefObject();
+                    }
+
+                    @Override
+                    protected List<ObjectReferenceType> getArchetypeRefList() {
+                        return ChooseMemberPopup.this.getArchetypeRefList();
                     }
                 };
             }
@@ -242,6 +252,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                                 return selectedOrgsList;
                             }
 
+                            @Override
+                            protected List<ObjectReferenceType> getArchetypeRefList() {
+                                return ChooseMemberPopup.this.getArchetypeRefList();
+                            }
+
                         };
                     }
 
@@ -276,6 +291,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     @Override
                     protected List<OrgType> getPreselectedObjects(){
                         return selectedOrgsList;
+                    }
+
+                    @Override
+                    protected List<ObjectReferenceType> getArchetypeRefList() {
+                        return ChooseMemberPopup.this.getArchetypeRefList();
                     }
                 };
             }
@@ -312,6 +332,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                                 tabLabelPanelUpdate(target);
                             }
 
+                            @Override
+                            protected List<ObjectReferenceType> getArchetypeRefList() {
+                                return ChooseMemberPopup.this.getArchetypeRefList();
+                            }
                         };
                     }
 
@@ -322,6 +346,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 });
 
         return tabs;
+    }
+
+    protected List<ObjectReferenceType> getArchetypeRefList() {
+        return null;
     }
 
     protected List<QName> getAvailableObjectTypes(){
