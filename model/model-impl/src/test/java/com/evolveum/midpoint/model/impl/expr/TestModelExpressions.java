@@ -319,6 +319,15 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         assertExecuteScriptExpressionString(variables, "s-1");
     }
 
+    @Test
+    public void testCustomFunctionUntypedNullValue() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "var1", null, PrimitiveType.STRING,
+                "var2", null, PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionString(variables, "null-null");
+    }
+
     @NotNull
     private PrismContainerValue<Containerable> createCustomValue() throws SchemaException {
         return createCustomContainer().getValue();

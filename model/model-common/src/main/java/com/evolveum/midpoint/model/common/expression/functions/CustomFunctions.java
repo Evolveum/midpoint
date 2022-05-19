@@ -193,7 +193,11 @@ public class CustomFunctions {
 
         Class<?> valueClass;
         if (value == null) {
-            valueClass = expressionParameterClass;
+            if (expressionParameterClass == null) {
+                valueClass = Object.class;
+            } else {
+                valueClass = expressionParameterClass;
+            }
         } else {
             valueClass = value.getClass();
         }
