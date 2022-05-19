@@ -47,7 +47,7 @@ podTemplate(
 
                 step([$class: 'Publisher',
                     reportFilenamePattern: '**/testng-results.xml',
-                    failureOnFailedTestConfig: true
+                    // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
                 ])
             }
         }
