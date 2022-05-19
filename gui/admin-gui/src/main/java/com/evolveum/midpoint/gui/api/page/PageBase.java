@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -114,6 +116,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_MAIN_POPUP = "mainPopup";
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
 
+    private static final String ID_MODE = "mode";
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
@@ -263,6 +266,26 @@ public abstract class PageBase extends PageAdminLTE {
 
         LocalePanel locale = new LocalePanel(ID_LOCALE);
         container.add(locale);
+
+        AjaxIconButton mode = new AjaxIconButton(ID_MODE,
+                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "fas fa-sun" : "fas fa-moon",
+                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "Switch to light mode" : "Switch to dark mode") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                SessionStorage.Mode mode = getSessionStorage().getMode();
+                if (mode == SessionStorage.Mode.DARK) {
+                    mode = SessionStorage.Mode.LIGHT;
+                } else {
+                    mode = SessionStorage.Mode.DARK;
+                }
+
+                getSessionStorage().setMode(mode);
+
+                target.add(PageBase.this);
+            }
+        };
+        mode.add(new VisibleBehaviour(() -> WebModelServiceUtils.isEnableExperimentalFeature(this)));
+        container.add(mode);
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
         form.add(AttributeModifier.replace("action", () ->
@@ -530,11 +553,6 @@ public abstract class PageBase extends PageAdminLTE {
 
     protected boolean isSideMenuVisible() {
         return AuthUtil.getPrincipalUser() != null;
-    }
-
-    public SessionStorage getSessionStorage() {
-        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
-        return session.getSessionStorage();
     }
 
     protected IModel<String> createPageTitleModel() {

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -274,6 +275,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
+        body.add(AttributeAppender.append("class", () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "dark-mode" : null));
 //        body.add(new AttributeAppender("class", "hold-transition ", " "));
 //        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
@@ -998,5 +1000,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public WebMarkupContainer getFeedbackPanel() {
         return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
+    }
+
+    public SessionStorage getSessionStorage() {
+        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+        return session.getSessionStorage();
     }
 }
