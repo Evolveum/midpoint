@@ -84,7 +84,7 @@ GO
 
 CREATE USER [midtest] FOR LOGIN [midtest] WITH DEFAULT_SCHEMA=[dbo];
 GO
-ALTER ROLE [midtest] ADD MEMBER [midtest];
+ALTER ROLE [db_owner] ADD MEMBER [midtest];
 GO
 EOF
 
