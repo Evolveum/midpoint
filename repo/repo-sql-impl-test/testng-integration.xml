@@ -11,7 +11,6 @@
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest"/>
             <class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.DataSourceTest"/>
             <class name="com.evolveum.midpoint.repo.sql.SchemaTest"/>
         </classes>
     </test>
