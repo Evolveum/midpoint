@@ -253,9 +253,10 @@
         <keycloak.version>18.0.0</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
-        <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1, we will try later versions. -->
-        <surefire.version>3.0.0-M5</surefire.version>
-        <failsafe.version>3.0.0-M5</failsafe.version>
+        <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
+        but M5 doesn't work for us anymore either (failing test initialization). -->
+        <surefire.version>3.0.0-M6</surefire.version>
+        <failsafe.version>3.0.0-M6</failsafe.version>
 
         <asciidoclet.version>1.5.6</asciidoclet.version>
     </properties>

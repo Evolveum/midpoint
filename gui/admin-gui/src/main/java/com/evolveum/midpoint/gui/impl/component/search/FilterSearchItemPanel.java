@@ -131,7 +131,7 @@ public class FilterSearchItemPanel extends AbstractSearchItemPanel<FilterSearchI
             }
             if (inputPanel instanceof InputPanel && !(inputPanel instanceof AutoCompleteTextPanel)) {
                 ((InputPanel) inputPanel).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-                ((InputPanel) inputPanel).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
+                ((InputPanel) inputPanel).getBaseFormComponent().add(AttributeAppender.append("style", "max-width: 400px !important;"));
                 ((InputPanel) inputPanel).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             }
             inputPanel.setOutputMarkupId(true);

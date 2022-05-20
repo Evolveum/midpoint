@@ -53,12 +53,22 @@
                 <li class="nav-item dropdown">
                     <div wicket:id="locale"/>
                 </li>
-                <li class="nav-item dropdown user-menu" wicket:id="rightMenu"/>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" wicket:id="mode"/>
+                </li>
+                <li class="nav-item">
+                    <form method="post" wicket:id="logoutForm">
+                        <div wicket:id="csrfField"/>
+                        <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </form>
+                </li>
             </ul>
         </nav>
 
         <wicket:enclosure child="sidebarMenu">
-            <aside class="main-sidebar sidebar-light-lightblue" wicket:id="sidebarMenu"/>
+            <aside class="main-sidebar sidebar-wqlight-lightblue" wicket:id="sidebarMenu"/>
         </wicket:enclosure>
 
         <div class="content-wrapper" style="min-height: 916px; overflow: auto; overflow-x: hidden;">
