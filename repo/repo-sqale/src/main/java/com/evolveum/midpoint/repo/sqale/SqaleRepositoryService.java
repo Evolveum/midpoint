@@ -451,7 +451,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .build();
 
         try {
-            return executeModifyObject(type, oidUuid, modifications, precondition, options, parentResult);
+            return executeModifyObject(type, oidUuid, modifications, precondition, options, operationResult);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -513,7 +513,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         ModifyObjectResult<T> rv = null;
         try {
             rv = executeModifyObjectDynamically(
-                    type, oidUuid, getOptions, modificationsSupplier, modifyOptions, parentResult);
+                    type, oidUuid, getOptions, modificationsSupplier, modifyOptions, operationResult);
             return rv;
         } catch (ObjectNotFoundException e) {
             throw handleObjectNotFound(e, operationResult, getOptions);
