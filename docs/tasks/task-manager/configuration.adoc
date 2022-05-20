@@ -109,6 +109,7 @@ Configuration parameters related to JDBC job store:
 | Credentials used to connect to the database.
 | the value from repository configuration
 
+// TODO remove when 4.4 support ends
 | `dataSource`
 | Alternative way of obtaining the connection.
 | the value from repository configuration

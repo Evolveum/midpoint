@@ -328,6 +328,7 @@ The jdbcUrl from repository config will be used.
 As a result, Quartz tables will be stored in the same database instance as midPoint tables.)
 
 
+// TODO remove when 4.4 support ends
 | dataSource
 | Uses specified data source to obtain DB connections.
 (See xref:/midpoint/reference/repository/configuration/[Repository Configuration]).

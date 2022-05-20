@@ -77,6 +77,7 @@ Example: `password`
 | Ignored by the Native repository and cannot be changed - do not use it.
 | `org.postgresql.Driver`
 
+// TODO remove when 4.4 support ends
 | `dataSource`
 | Uses JNDI DataSource loading, when this option is defined in configuration.
 This is only relevant for WAR deployment which is not recommended anyway.
@@ -425,6 +426,7 @@ Configuration element *auditService* for *SqlAuditServiceFactory* can contain an
 
 * The recommended way is to use *jdbcUrl* with *jdbcUsername*, *jdbcPassword* and *driverClassName* and *database*.
 
+// TODO remove when 4.4 support ends
 * Preconfigured *dataSource* for WAR deployment on application server or Tomcat is also possible - but this is not recommended anymore and not officially supported.
 
 * In both cases the right value for *database* element should be used, e.g. *postgresql*.

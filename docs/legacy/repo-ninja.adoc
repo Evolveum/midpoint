@@ -136,6 +136,7 @@ Use options:
 
 === Known problems
 
+// TODO remove when 4.4 support ends
 . Repository validation fails when MidPoint configuration uses <dataSource> and doesn't contain simple JDBC connection parameters.
 It's because JNDI data source is not available outside tomcat container so Repo Ninja can't see it and therefore can't initialize Repository service.
 
