@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -102,22 +102,24 @@ public class IntegrationTestTools {
     }
 
     private static List<OperationResult> getConnectorSubresults(OperationResult testResult) {
-        return testResult.getSubresults().stream().filter(r -> r.getOperation().equals(ConnectorTestOperation.CONNECTOR_TEST.getOperation())).collect(Collectors.toList());
+        return testResult.getSubresults().stream()
+                .filter(r -> r.getOperation().equals(TestResourceOpNames.CONNECTOR_TEST.getOperation()))
+                .collect(Collectors.toList());
     }
 
-    public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+    public static void assertTestResourceSuccess(OperationResult testResult, TestResourceOpNames operation) {
         OperationResult opResult = testResult.findSubresult(operation.getOperation());
         assertNotNull("No result for " + operation, opResult);
         TestUtil.assertSuccess("Test resource failed (result): " + operation, opResult, 1);
     }
 
-    public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+    public static void assertTestResourceFailure(OperationResult testResult, TestResourceOpNames operation) {
         OperationResult opResult = testResult.findSubresult(operation.getOperation());
         assertNotNull("No result for " + operation, opResult);
         TestUtil.assertFailure("Test resource succeeded while expected failure (result): " + operation, opResult);
     }
 
-    public static void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+    public static void assertTestResourceNotApplicable(OperationResult testResult, TestResourceOpNames operation) {
         OperationResult opResult = testResult.findSubresult(operation.getOperation());
         assertNotNull("No result for " + operation, opResult);
         assertEquals("Test resource status is not 'not applicable', it is " + opResult.getStatus() + ": " + operation,

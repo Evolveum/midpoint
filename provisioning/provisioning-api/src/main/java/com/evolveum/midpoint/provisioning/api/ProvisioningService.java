@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -429,78 +428,79 @@ public interface ProvisioningService {
             CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
-     * Test the resource connection and basic resource connector functionality.
+     * Tests the resource connection and basic resource connector functionality.
      *
-     * This operation will NOT throw exception in case the resource connection
-     * fails. It such case it will indicate the failure in the return message,
-     * but the operation itself succeeds. The operations fails only if the
-     * provided arguments are wrong, in case of system error, system
-     * misconfiguration, etc.
+     * This operation will NOT throw exception in case the resource connection fails. It such case it will indicate
+     * the failure in the return message, but the operation itself succeeds. The operations fails only if the
+     * provided arguments are wrong, in case of system error, system misconfiguration, etc.
      *
-     * The operation codes in the return value are defined by ConnectorTestOperation enumeration class.
+     * Operation result handling: The method records its operation into the provided `parentResult` in a usual way. However,
+     * as the client is usually interested in details of the processing, the method returns the reference to the relevant
+     * part of the operation result tree, representing the actual "test connection" operation. Care is taken to ensure that
+     * part is nicely displayable to the user. The operation codes in the returned {@link OperationResult} are defined by
+     * {@link TestResourceOpNames} enumeration class.
      *
-     * @param resourceOid
-     *            OID of resource to test
+     * @param resourceOid OID of resource to test
      * @return results of executed tests
-     *
-     * @throws ObjectNotFoundException
-     *             specified object does not exist
-     * @throws IllegalArgumentException
-     *             wrong OID format
-     * @throws GenericConnectorException
-     *             unknown connector framework error
-     *
-     * @see ConnectorTestOperation
+     * @throws ObjectNotFoundException resource or other required object (e.g. parent resource) does not exist
+     * @throws IllegalArgumentException wrong OID format
+     * @throws GenericConnectorException unknown connector framework error
+     * @see TestResourceOpNames
      */
-    OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException;
+    @NotNull OperationResult testResource(
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
     /**
      * Test the resource connection and basic resource connector functionality.
      *
-     * This operation will NOT throw exception in case the resource connection
-     * fails. It such case it will indicate the failure in the return message,
-     * but the operation itself succeeds. The operations fails only if the
-     * provided arguments are wrong, in case of system error, system
-     * misconfiguration, etc.
+     * This operation will *not* throw exception in case the resource connection fails. For more information about operation
+     * result handling please see {@link #testResource(String, Task, OperationResult)} method description.
      *
-     * The operation codes in the return value are defined by ConnectorTestOperation enumeration class.
+     * TODO describe the difference to {@link #testResource(String, Task, OperationResult)} and expected use of this method
      *
-     * When resource contains OID (so mP excepts that resource is in repository), then save all changes to repository object.
+     * Notes:
      *
-     * @param resource
-     *            resource to test
+     * 1. The resource object must be mutable.
+     * 2. Normally it is expected that it will not have OID. But if it has, the method will assume the resource exists
+     * in the repository, and will update it there; just like {@link #testResource(String, Task, OperationResult)} does.
+     *
+     * @param resource resource to test
      * @return results of executed tests
-     *
-     * @throws GenericConnectorException
-     *             unknown connector framework error
-     *
-     * @see ConnectorTestOperation
+     * @throws GenericConnectorException unknown connector framework error
+     * @throws ObjectNotFoundException some of required objects (like the parent resource) does not exist
+     * @see TestResourceOpNames
      */
-    OperationResult testResource(PrismObject<ResourceType> resource, Task task) throws ObjectNotFoundException;
+    @NotNull OperationResult testResource(
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
     /**
      * Test basic resource connection.
      *
-     * This operation will NOT throw exception in case the resource connection
-     * fails. It such case it will indicate the failure in the return message,
-     * but the operation itself succeeds. The operations fails only if the
-     * provided arguments are wrong, in case of system error, system
-     * misconfiguration, etc.
+     * This operation will *not* throw exception in case the resource connection fails. For more information about operation
+     * result handling please see {@link #testResource(String, Task, OperationResult)} method description.
      *
-     * The operation codes in the return value are defined by ConnectorTestOperation enumeration class.
+     * TODO describe the exact difference to {@link #testResource(PrismObject, Task, OperationResult)}
      *
-     * @param resource
-     *            resource to test
+     * @param resource resource to test
      * @return results of executed tests
-     *
-     * @throws GenericConnectorException
-     *             unknown connector framework error
-     *
-     * @see ConnectorTestOperation
+     * @throws GenericConnectorException unknown connector framework error
+     * @see TestResourceOpNames
      */
-    OperationResult testPartialConfigurationResource(PrismObject<ResourceType> resource, Task task);
+    @NotNull OperationResult testPartialConfiguration(
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException;
 
-    <T> Collection<PrismProperty<T>> discoverConfiguration(PrismObject<ResourceType> resource, OperationResult parentResult);
+    /**
+     * TODO please document this method
+     */
+    @NotNull DiscoveredConfiguration discoverConfiguration(
+            @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
      * Discovers local or remote connectors.

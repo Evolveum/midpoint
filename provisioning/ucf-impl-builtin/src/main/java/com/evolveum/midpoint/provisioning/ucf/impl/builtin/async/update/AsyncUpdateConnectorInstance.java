@@ -26,7 +26,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConn
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
@@ -117,8 +116,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public void test(OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncUpdateConnectorInstance.class);
+        OperationResult result = parentResult.createSubresult(OP_TEST);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         result.addContext("connector", getConnectorObject().toString());
         Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
         try {
@@ -135,7 +134,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+    public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
         return Collections.emptySet();
     }
 

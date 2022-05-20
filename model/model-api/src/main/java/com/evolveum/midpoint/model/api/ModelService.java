@@ -432,15 +432,12 @@ public interface ModelService {
      * execution of resource tests (that in fact happen in provisioning).
      * </p>
      *
-     * @param resourceOid
-     *            OID of resource to test
+     * @param resourceOid OID of resource to test
      * @return results of executed tests
-     * @throws ObjectNotFoundException
-     *             specified object does not exist
-     * @throws IllegalArgumentException
-     *             wrong OID format
+     * @throws ObjectNotFoundException specified object does not exist
+     * @throws IllegalArgumentException wrong OID format
      */
-    OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException;
+    OperationResult testResource(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
     /**
      * <p>

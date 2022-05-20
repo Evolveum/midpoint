@@ -993,7 +993,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 
         // Evaluate expression, re-apply configuration
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task, result);
         TestUtil.assertSuccess("Dummy resource test", testResult);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);

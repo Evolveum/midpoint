@@ -17,7 +17,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -32,6 +32,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -162,7 +164,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     @Override
     public void test(OperationResult parentResult) {
         OperationResult connectionResult = parentResult
-                .createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+                .createSubresult(TestResourceOpNames.CONNECTOR_CONNECTION.getOperation());
         connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
         connectionResult.addContext("connector", getConnectorObject().toString());
         try {
@@ -188,7 +190,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     }
 
     @Override
-    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+    public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
         return Collections.emptySet();
     }
 

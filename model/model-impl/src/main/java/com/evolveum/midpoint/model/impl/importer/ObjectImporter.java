@@ -393,8 +393,14 @@ public class ObjectImporter {
         }
     }
 
-    private <T extends ObjectType> void addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
-            Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private <T extends ObjectType> void addObject(
+            PrismObject<T> object,
+            boolean overwrite,
+            ImportOptionsType importOptions,
+            Task task,
+            OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
         ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(object);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
@@ -415,13 +421,13 @@ public class ObjectImporter {
         }
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService
-                .executeChanges(deltas, modelOptions, task, parentResult);
+                .executeChanges(deltas, modelOptions, task, result);
         String oidOfAddedObject = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
         if (oidOfAddedObject == null) {
             LOGGER.warn("No OID of added object. Executed deltas:\n{}", DebugUtil.debugDump(executedDeltas));
         } else {
             if (object.canRepresent(ResourceType.COMPLEX_TYPE) && isTrue(importOptions.isFetchResourceSchema())) {
-                modelService.testResource(oidOfAddedObject, task);
+                modelService.testResource(oidOfAddedObject, task, result);
             }
         }
     }

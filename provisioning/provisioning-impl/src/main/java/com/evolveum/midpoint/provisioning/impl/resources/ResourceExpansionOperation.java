@@ -70,8 +70,6 @@ class ResourceExpansionOperation {
     /** Useful beans. */
     @NotNull private final CommonBeans beans;
 
-    @NotNull private final ResourceConnectorsManager resourceConnectorsManager;
-
     /**
      * Cached super-resources. Stored as immutables, because the resolution process heavily modifies the resources used.
      * Keyed by OID.
@@ -85,9 +83,9 @@ class ResourceExpansionOperation {
             new HashMap<>();
 
     ResourceExpansionOperation(@NotNull ResourceType expandedResource, @NotNull CommonBeans beans) {
+        expandedResource.checkMutable();
         this.expandedResource = expandedResource;
         this.beans = beans;
-        this.resourceConnectorsManager = beans.resourceManager.connectorSelector;
     }
 
     public void execute(OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
@@ -137,7 +135,7 @@ class ResourceExpansionOperation {
 
     private void obtainConnectorSchemas(ResourceType resourceForConnectors, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        for (ConnectorSpec connectorSpec : resourceConnectorsManager.getAllConnectorSpecs(resourceForConnectors.asPrismObject())) {
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resourceForConnectors)) {
             var connectorWithSchema = beans.connectorManager.getConnectorWithSchema(connectorSpec, result);
             LOGGER.trace("Stored configuration definition for {}", connectorSpec);
             connectorConfigurationDefinitions.put(
@@ -156,7 +154,7 @@ class ResourceExpansionOperation {
 
     /** Applies all known connector definitions to given resource object. */
     private void applyConnectorDefinitions(@NotNull ResourceType resource) throws SchemaException, ConfigurationException {
-        for (ConnectorSpec connectorSpec : resourceConnectorsManager.getAllConnectorSpecs(resource.asPrismObject())) {
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
             if (configurationContainer == null) {
                 continue;

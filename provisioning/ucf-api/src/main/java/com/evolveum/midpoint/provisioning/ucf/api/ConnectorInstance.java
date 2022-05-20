@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
@@ -64,6 +63,19 @@ import javax.xml.namespace.QName;
  */
 public interface ConnectorInstance {
 
+    String OP_FETCH_OBJECT = ConnectorInstance.class.getName() + ".fetchObject";
+    String OP_FETCH_RESOURCE_SCHEMA = ConnectorInstance.class.getName() + ".fetchResourceSchema";
+    String OP_FETCH_CAPABILITIES = ConnectorInstance.class.getName() + ".fetchCapabilities";
+    String OP_ADD_OBJECT = ConnectorInstance.class.getName() + ".addObject";
+    String OP_MODIFY_OBJECT = ConnectorInstance.class.getName() + ".modifyObject";
+    String OP_DELETE_OBJECT = ConnectorInstance.class.getName() + ".deleteObject";
+    String OP_FETCH_CURRENT_TOKEN = ConnectorInstance.class.getName() + ".fetchCurrentToken";
+    String OP_TEST = ConnectorInstance.class.getName() + ".test";
+    String OP_DISCOVER_CONFIGURATION = ConnectorInstance.class.getName() + ".discoverConfiguration";
+    String OP_SEARCH = ConnectorInstance.class.getName() + ".search";
+    String OP_COUNT = ConnectorInstance.class.getName() + ".count";
+    String OP_EXECUTE_SCRIPT = ConnectorInstance.class.getName() + ".executeScript";
+    String OP_FETCH_CHANGES = ConnectorInstance.class.getName() + ".fetchChanges";
     String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
     String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
     String OPERATION_DISPOSE = ConnectorInstance.class.getName() + ".dispose";
@@ -128,9 +140,10 @@ public interface ConnectorInstance {
      * The set of capabilities may depend on the connector configuration (e.g. if a "disable" or password attribute
      * was specified in the configuration or not).
      *
-     * It may return null. Such case means that the capabilities cannot be determined.
+     * - The `null` return value means the capabilities cannot be determined.
+     * - Empty {@link CapabilityCollectionType} return value means there are no native capabilities.
      */
-    CapabilityCollectionType fetchCapabilities(OperationResult parentResult)
+    @Nullable CapabilityCollectionType fetchCapabilities(OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
@@ -144,7 +157,7 @@ public interface ConnectorInstance {
      *
      * @see PrismSchema
      *
-     * @return Up-to-date resource schema. Only raw information should be there, no refinements.
+     * @return Up-to-date resource schema. Only raw information should be there, no refinements. May be immutable.
      * @throws CommunicationException error in communication to the resource
      *                - nothing was fetched.
      */
@@ -328,13 +341,21 @@ public interface ConnectorInstance {
 
     //public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException;
 
-    // Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
+    /**
+     * This method is not expected to throw any exceptions. It should record any issues to provided operation result
+     * instead.
+     *
+     * Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
+     */
     void test(OperationResult parentResult);
 
     /**
      * Test the very minimal configuration set, which is usually just a set of mandatory configuration properties.
      * For most connectors this will be probably just a hostname, username and password.
      * For example, the test performs a simple connection and authentication to the resource.
+     *
+     * This method is not expected to throw any exceptions. It should record any issues to provided operation result
+     * instead.
      */
     void testPartialConfiguration(OperationResult parentResult);
 
@@ -346,7 +367,7 @@ public interface ConnectorInstance {
      *
      * @return suggested attributes as prism properties
      */
-    <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult);
+    @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult);
 
     /**
      * Dispose of the connector instance. Dispose is a brutal operation. Once the instance is disposed of, it cannot execute

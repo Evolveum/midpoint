@@ -13,9 +13,9 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
-import org.opensaml.xmlsec.signature.Q;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,7 +26,6 @@ import org.w3c.dom.Element;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -131,17 +130,17 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
-        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_NATIVE_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_NATIVE_OID, task, result);
 
         // THEN
         display("Test result", testResult);
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INSTANTIATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CONNECTION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CAPABILITIES);
         assertSuccess(connectorResult);
-        assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+        assertTestResourceSuccess(testResult, TestResourceOpNames.RESOURCE_SCHEMA);
         assertSuccess(testResult);
 
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
@@ -208,17 +207,17 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
-        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_LEGACY_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_LEGACY_OID, task, result);
 
         // THEN
         display("Test result", testResult);
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INSTANTIATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CONNECTION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CAPABILITIES);
         assertSuccess(connectorResult);
-        assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+        assertTestResourceSuccess(testResult, TestResourceOpNames.RESOURCE_SCHEMA);
         assertSuccess(testResult);
 
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,

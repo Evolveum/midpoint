@@ -1450,7 +1450,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         // WHEN
         when();
-        OperationResult testResult = modelService.testResource(getResourceOid(), task);
+        OperationResult testResult = modelService.testResource(getResourceOid(), task, task.getResult());
 
         // THEN
         then();

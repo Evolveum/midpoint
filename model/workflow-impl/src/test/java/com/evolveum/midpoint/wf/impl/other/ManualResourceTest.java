@@ -149,7 +149,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
         // WHEN
         when();
-        OperationResult testResult = modelService.testResource(RESOURCE_MANUAL_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_MANUAL_OID, task, task.getResult());
 
         // THEN
         then();
@@ -215,7 +215,7 @@ public class ManualResourceTest extends AbstractWfTest {
         assertTrue("no admin work item", adminWorkItem.isPresent());
 
         caseManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
-                new AbstractWorkItemOutputType(prismContext)
+                new AbstractWorkItemOutputType()
                         .outcome(OperationResultStatusType.SUCCESS.value()),
                 null, task, result);
 
@@ -239,6 +239,7 @@ public class ManualResourceTest extends AbstractWfTest {
         displayDumpable("dummy transport", dummyTransport);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertAccountWillAfterAssign(String expectedFullName) throws Exception {
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
                 .assertConception()
@@ -279,6 +280,7 @@ public class ManualResourceTest extends AbstractWfTest {
         );
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertWillCase(String expectedCaseState, PendingOperationType pendingOperation) throws ObjectNotFoundException, SchemaException {
         String pendingOperationRef = pendingOperation.getAsynchronousOperationReference();
         // Case number should be in willLastCaseOid. It will get there from operation result.
@@ -330,6 +332,7 @@ public class ManualResourceTest extends AbstractWfTest {
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
     }
 
+    @SafeVarargs
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
         assertAttribute(shadow.asObjectable(), attrName, expectedValues);
     }
@@ -338,6 +341,7 @@ public class ManualResourceTest extends AbstractWfTest {
         assertNoAttribute(shadow.asObjectable(), attrName);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertAttributeFromCache(ShadowAsserter<?> shadowAsserter, QName attrQName, Object... attrVals) {
         assertAttributeFromCache(shadowAsserter.getObject(), attrQName, attrVals);
     }
@@ -346,6 +350,7 @@ public class ManualResourceTest extends AbstractWfTest {
         assertAttribute(shadow, attrQName, attrVals);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertAttributeFromBackingStore(ShadowAsserter<?> shadowAsserter, QName attrQName) {
         assertAttributeFromBackingStore(shadowAsserter.getObject(), attrQName);
     }
@@ -354,6 +359,7 @@ public class ManualResourceTest extends AbstractWfTest {
         assertNoAttribute(shadow, attrQName);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertShadowActivationAdministrativeStatusFromCache(ShadowAsserter<?> shadowAsserter, ActivationStatusType expectedStatus) {
         assertShadowActivationAdministrativeStatusFromCache(shadowAsserter.getObject(), expectedStatus);
     }

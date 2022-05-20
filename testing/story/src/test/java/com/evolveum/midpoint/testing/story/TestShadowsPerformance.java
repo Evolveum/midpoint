@@ -103,7 +103,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
         // WHEN
         when();
-        OperationResult result = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult result = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
 
         // THEN
         then();

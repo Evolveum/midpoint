@@ -7,27 +7,22 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 /**
  * Manages connectors of given resource - e.g. selects appropriate one based on required capability.
@@ -35,102 +30,85 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 @Component
 class ResourceConnectorsManager {
 
-    @Autowired private ResourceCapabilitiesHelper capabilitiesHelper;
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceExpansionOperation.class);
 
-    /**
-     * Returns the default connector plus all additional ones.
-     */
-    List<ConnectorSpec> getAllConnectorSpecs(@NotNull PrismObject<ResourceType> resource)
-            throws SchemaException, ConfigurationException {
-        List<ConnectorSpec> connectorSpecs = new ArrayList<>();
-        connectorSpecs.add(createDefaultConnectorSpec(resource));
-        for (ConnectorInstanceSpecificationType additionalConnector : resource.asObjectable().getAdditionalConnector()) {
-            connectorSpecs.add(createConnectorSpec(resource, additionalConnector));
-        }
-        return connectorSpecs;
-    }
+    @Autowired private ResourceCapabilitiesHelper capabilitiesHelper;
 
     /**
      * Selects the connector that provides given capability.
      * Utilizes (optional) pre-fetched map of native capabilities.
      *
-     * TODO make this nullable
+     * If no connector supports given capability, this method returns `null`.
+     *
+     * An exception to this rule is the situation when the native capabilities of the main connector are not known.
+     * This may mean that the resource is unreachable. We will try return the main connector in this case, to give midPoint
+     * a chance to try the operation. See e.g. `TestOpenDjNegative.test195SynchronizeAllClasses`.
      */
-    @NotNull ConnectorSpec selectConnector(
-            @NotNull PrismObject<ResourceType> resource,
-            @Nullable NativeConnectorsCapabilities capabilityMap,
+    @Nullable ConnectorSpec selectConnector(
+            @NotNull ResourceType resource,
+            @Nullable NativeConnectorsCapabilities nativeConnectorsCapabilities,
             @SuppressWarnings("SameParameterValue") @NotNull Class<? extends CapabilityType> capabilityClass)
             throws ConfigurationException {
-        if (capabilityMap != null) {
-            return selectConnectorUsingExplicitCapabilities(resource, capabilityMap, capabilityClass);
-        } else {
-            return selectConnector(resource, capabilityClass);
-        }
-    }
-
-    /**
-     * Selects connector that provides given capability, based on the provided capabilities. Default: main.
-     *
-     * TODO remove default, make this nullable
-     */
-    private @NotNull ConnectorSpec selectConnectorUsingExplicitCapabilities(
-            @NotNull PrismObject<ResourceType> resource,
-            @NotNull NativeConnectorsCapabilities nativeConnectorsCapabilities,
-            @NotNull Class<? extends CapabilityType> capabilityClass) throws ConfigurationException {
-        for (ConnectorInstanceSpecificationType additionalConnectorBean : resource.asObjectable().getAdditionalConnector()) {
-            if (capabilitiesHelper.supportsCapability(additionalConnectorBean, nativeConnectorsCapabilities, capabilityClass)) {
-                return createConnectorSpec(resource, additionalConnectorBean);
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
+            if (capabilitiesHelper.supportsCapability(connectorSpec, nativeConnectorsCapabilities, capabilityClass)) {
+                return connectorSpec;
             }
         }
-        return createDefaultConnectorSpec(resource);
+        if (isMainConnectorCapabilityUnknown(resource, nativeConnectorsCapabilities, capabilityClass)) {
+            LOGGER.trace("Support of {} by main connector in {} is not known, let us give it a try",
+                    capabilityClass.getSimpleName(), resource);
+            return ConnectorSpec.main(resource);
+        } else {
+            LOGGER.trace("Capability {} is not supported by {}", capabilityClass.getSimpleName(), resource);
+            return null;
+        }
+    }
+
+    private boolean isMainConnectorCapabilityUnknown(
+            @NotNull ResourceType resource,
+            @Nullable NativeConnectorsCapabilities nativeConnectorsCapabilities,
+            @NotNull Class<? extends CapabilityType> capabilityClass) {
+        if (nativeConnectorsCapabilities != null) {
+            if (nativeConnectorsCapabilities.get(null) != null) {
+                LOGGER.trace("Native main connector capabilities present (in a map)");
+                return false;
+            }
+        } else {
+            if (ResourceTypeUtil.hasCapabilitiesCached(resource)) {
+                LOGGER.trace("Main connector capabilities cached (in resource)");
+                return false;
+            }
+        }
+
+        if (CapabilityUtil.getCapability(resource.getCapabilities(), capabilityClass) != null) {
+            LOGGER.trace("Main connector capability {} is explicitly configured", capabilityClass.getSimpleName());
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Selects connector that provides given capability, based on the information in the resource object. Default: main.
-     *
-     * TODO remove default, make this nullable
+     * Convenience variant of {@link #selectConnector(ResourceType, NativeConnectorsCapabilities, Class)}.
      */
-    @NotNull <T extends CapabilityType> ConnectorSpec selectConnector(
+    @SuppressWarnings("unused") // Remove if not used for a longer time
+    @Nullable private <T extends CapabilityType> ConnectorSpec selectConnector(
             @NotNull PrismObject<ResourceType> resource,
             @NotNull Class<T> capabilityClass) throws ConfigurationException {
-        for (ConnectorInstanceSpecificationType additionalConnectorBean : resource.asObjectable().getAdditionalConnector()) {
-            if (capabilitiesHelper.supportsCapability(additionalConnectorBean, capabilityClass)) {
-                return createConnectorSpec(resource, additionalConnectorBean);
-            }
-        }
-        return createDefaultConnectorSpec(resource);
+        return selectConnector(resource.asObjectable(), null, capabilityClass);
     }
 
-    /** Creates the default ("main") connector specification. */
-    @NotNull ConnectorSpec createDefaultConnectorSpec(@NotNull PrismObject<ResourceType> resource) {
-        return new ConnectorSpec(
-                resource,
-                null,
-                ResourceTypeUtil.getConnectorOid(resource),
-                resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION));
-    }
-
-    /** Creates the connector specification for given additional connector. */
-    @NotNull ConnectorSpec createConnectorSpec(
+    /**
+     * Convenience variant of {@link #selectConnector(ResourceType, NativeConnectorsCapabilities, Class)}.
+     *
+     * Throws an exception if no matching connector is found.
+     */
+    @NotNull <T extends CapabilityType> ConnectorSpec selectConnectorRequired(
             @NotNull PrismObject<ResourceType> resource,
-            @NotNull ConnectorInstanceSpecificationType additionalConnectorSpecBean)
-            throws ConfigurationException {
-        String connectorName = additionalConnectorSpecBean.getName();
-        configCheck(StringUtils.isNotBlank(connectorName), "No connector name in additional connector in %s", resource);
-
-        // connector OID is not required here, as it may come from the super-resource
-        String connectorOid = getConnectorOid(additionalConnectorSpecBean);
-
-        //noinspection unchecked
-        PrismContainer<ConnectorConfigurationType> connectorConfiguration =
-                additionalConnectorSpecBean.asPrismContainerValue().findContainer(
-                        ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
-
-        return new ConnectorSpec(resource, connectorName, connectorOid, connectorConfiguration);
-    }
-
-    private String getConnectorOid(@NotNull ConnectorInstanceSpecificationType bean) {
-        ObjectReferenceType ref = bean.getConnectorRef();
-        return ref != null ? ref.getOid() : null;
+            @NotNull Class<T> capabilityClass) throws ConfigurationException {
+        return MiscUtil.requireNonNull(
+                selectConnector(resource.asObjectable(), null, capabilityClass),
+                () -> new UnsupportedOperationException(
+                        "No connector supporting " + capabilityClass.getSimpleName() + " found in " + resource));
     }
 }

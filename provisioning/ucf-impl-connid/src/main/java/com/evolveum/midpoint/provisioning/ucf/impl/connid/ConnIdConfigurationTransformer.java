@@ -131,7 +131,7 @@ public class ConnIdConfigurationTransformer {
 
     }
 
-    public <T> Collection<PrismProperty<T>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
+    public Collection<PrismProperty<?>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
             throws SchemaException {
         APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
         ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
@@ -150,7 +150,7 @@ public class ConnIdConfigurationTransformer {
             throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorType.getConnectorType());
         }
 
-        Collection<PrismProperty<T>> convertedSuggestions = new ArrayList<>();
+        Collection<PrismProperty<?>> convertedSuggestions = new ArrayList<>();
         for (Map.Entry<String, SuggestedValues> entry : suggestions.entrySet()) {
 
             String propertyName = entry.getKey();
@@ -203,19 +203,21 @@ public class ConnIdConfigurationTransformer {
 
             if (propertyDef.isMultiValue()) {
                 def.setMaxOccurs(-1);
-                PrismProperty<T> property = (PrismProperty<T>) def.instantiate();
+                //noinspection unchecked
+                PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
                 for (Object value : values.getValues()) {
-                    PrismPropertyValue<T> propertyValue = prismContext.itemFactory().createPropertyValue();
-                    propertyValue.setValue((T) value);
+                    PrismPropertyValue<Object> propertyValue = prismContext.itemFactory().createPropertyValue();
+                    propertyValue.setValue(value);
                     property.add(propertyValue);
                 }
                 convertedSuggestions.add(property);
             } else {
                 def.setMaxOccurs(1);
                 for (Object value : values.getValues()) {
-                    PrismProperty<T> property = (PrismProperty<T>) def.instantiate();
-                    PrismPropertyValue<T> propertyValue = prismContext.itemFactory().createPropertyValue();
-                    propertyValue.setValue((T) value);
+                    //noinspection unchecked
+                    PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
+                    PrismPropertyValue<Object> propertyValue = prismContext.itemFactory().createPropertyValue();
+                    propertyValue.setValue(value);
                     property.add(propertyValue);
                     convertedSuggestions.add(property);
                 }

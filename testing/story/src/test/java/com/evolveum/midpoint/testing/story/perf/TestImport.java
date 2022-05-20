@@ -113,7 +113,7 @@ public class TestImport extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task);
+        OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultHr);
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();

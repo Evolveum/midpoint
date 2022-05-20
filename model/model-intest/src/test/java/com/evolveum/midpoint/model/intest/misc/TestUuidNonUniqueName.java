@@ -16,7 +16,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -60,7 +59,7 @@ public class TestUuidNonUniqueName extends AbstractMiscTest {
 
         // WHEN
         when();
-        OperationResult result = modelService.testResource(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, task);
+        OperationResult result = modelService.testResource(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID, task, task.getResult());
 
         // THEN
         then();

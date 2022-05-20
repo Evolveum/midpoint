@@ -13,8 +13,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -177,7 +175,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
         dumpOrgTree();

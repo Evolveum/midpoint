@@ -453,7 +453,7 @@ public class PageResources extends PageAdmin {
 
         Task task = createSimpleTask(OPERATION_TEST_RESOURCE);
         try {
-            result = getModelService().testResource(resourceType.getOid(), task);
+            getModelService().testResource(resourceType.getOid(), task, result);
             // todo de-duplicate code (see the same operation in PageResource)
             // this provides some additional tests, namely a test for schema
             // handling section
@@ -462,18 +462,10 @@ public class PageResources extends PageAdmin {
             result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.fatalError").getString(), ex);
         }
 
-        // a bit of hack: result of TestConnection contains a result of
-        // getObject as a subresult
-        // so in case of TestConnection succeeding we recompute the result to
-        // show any (potential) getObject problems
-        if (result.isSuccess()) {
-            result.recomputeStatus();
-        }
+        result.close();
 
-        // if (!result.isSuccess()) {
         showResult(result);
         target.add(getFeedbackPanel());
-        // }
         target.add(getResourceTable());
     }
 

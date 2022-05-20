@@ -37,7 +37,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConn
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
@@ -67,10 +66,6 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(AsyncProvisioningConnectorInstance.class);
-
-    private static final String OP_ADD_OBJECT = AsyncProvisioningConnectorInstance.class.getName() + ".addObject";
-    private static final String OP_MODIFY_OBJECT = AsyncProvisioningConnectorInstance.class.getName() + ".modifyObject";
-    private static final String OP_DELETE_OBJECT = AsyncProvisioningConnectorInstance.class.getName() + ".deleteObject";
 
     private ConnectorConfiguration configuration;
 
@@ -156,8 +151,8 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public void test(OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncProvisioningConnectorInstance.class);
+        OperationResult result = parentResult.createSubresult(OP_TEST);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         result.addContext("connector", getConnectorObject().toString());
         try {
             targetsReference.get().forEach(t -> t.test(result));
@@ -173,7 +168,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+    public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
         return Collections.emptySet();
     }
 
@@ -182,6 +177,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation = new OperationRequested.Add(object.asObjectable(), getPrismContext());
             return createAndSendRequest(operation, ctx.getTask(), result);
@@ -199,6 +195,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
             ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation =
                     new OperationRequested.Modify(identification, asObjectable(shadow), changes, options, getPrismContext());
@@ -217,6 +214,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
             UcfExecutionContext ctx, OperationResult parentResult) throws SchemaException {
         InternalMonitor.recordConnectorOperation("deleteObject");
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation =
                     new OperationRequested.Delete(objectDefinition, asObjectable(shadow), identifiers, getPrismContext());

@@ -61,8 +61,8 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
         importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_INBOUND.file, RESOURCE_ASYNC_INBOUND.oid, initTask, initResult);
 
         // We have to test the resource before async update task is started. See MID-7721.
-        assertSuccess(modelService.testResource(RESOURCE_ASYNC_OUTBOUND.oid, initTask));
-        assertSuccess(modelService.testResource(RESOURCE_ASYNC_INBOUND.oid, initTask));
+        assertSuccess(modelService.testResource(RESOURCE_ASYNC_OUTBOUND.oid, initTask, initResult));
+        assertSuccess(modelService.testResource(RESOURCE_ASYNC_INBOUND.oid, initTask, initResult));
 
         addObject(TASK_ASYNC_UPDATE, initTask, initResult);
     }

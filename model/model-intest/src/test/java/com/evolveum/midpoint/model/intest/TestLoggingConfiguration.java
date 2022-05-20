@@ -360,7 +360,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
                 dummyConnectorJulLogger, dummyConnectorJulLogger.getClass().getClassLoader());
 
         // WHEN
-        modelService.testResource(RESOURCE_DUMMY_OID, task);
+        modelService.testResource(RESOURCE_DUMMY_OID, task, result);
 
         // THEN
         tailer.tail();

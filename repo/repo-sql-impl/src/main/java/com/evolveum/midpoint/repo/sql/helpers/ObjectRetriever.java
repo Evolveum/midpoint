@@ -767,12 +767,13 @@ public class ObjectRetriever {
         return def;
     }
 
-    private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type)
+    private <T extends ObjectType> void validateObjectType(@NotNull PrismObject<T> prismObject, @NotNull Class<T> type)
             throws ObjectNotFoundException {
-        if (prismObject == null || !type.isAssignableFrom(prismObject.getCompileTimeClass())) {
+        Class<T> compileTimeClass = prismObject.getCompileTimeClass();
+        if (compileTimeClass != null && !type.isAssignableFrom(compileTimeClass)) {
             throw new ObjectNotFoundException("Expected to find '" + type.getSimpleName() + "' but found '"
-                    + prismObject.getCompileTimeClass().getSimpleName() + "' (" + prismObject.toDebugName()
-                    + "). Bad OID in a reference?", prismObject.getOid());
+                    + compileTimeClass.getSimpleName() + "' (" + prismObject.toDebugName()
+                    + "). Bad OID in a reference?", type, prismObject.getOid());
         }
         if (InternalsConfig.consistencyChecks) {
             prismObject.checkConsistence();

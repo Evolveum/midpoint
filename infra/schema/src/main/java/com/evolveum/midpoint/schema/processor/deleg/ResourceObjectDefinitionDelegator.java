@@ -285,4 +285,9 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return delegate().getConfiguredAuxiliaryObjectClassNames();
     }
+
+    @Override
+    default void validate() throws SchemaException {
+        delegate().validate();
+    }
 }

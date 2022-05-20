@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -30,9 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.List;
-
 /**
  * Fetches the schema from the "real" resource.
  *
@@ -52,28 +48,26 @@ public class SchemaFetcher {
      * @param capabilityMap Known native capabilities of the connectors (keyed by connector local name).
      * Used to select the schema-aware connector.
      */
-    ResourceSchema fetchResourceSchema(
-            @NotNull PrismObject<ResourceType> resource,
+    @Nullable ResourceSchema fetchResourceSchema(
+            @NotNull ResourceType resource,
             @Nullable NativeConnectorsCapabilities capabilityMap,
             @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
         ConnectorSpec connectorSpec =
                 resourceConnectorsManager.selectConnector(resource, capabilityMap, SchemaCapabilityType.class);
-        // TODO revive this
-//        if (connectorSpec == null) {
-//            LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
-//            return null;
-//        }
+        if (connectorSpec == null) {
+            LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
+            return null;
+        }
         InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
-        List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
         ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
 
-        LOGGER.debug("Trying to get schema from {}, objectClasses to generate: {}", connectorSpec, generateObjectClasses);
+        LOGGER.debug("Trying to get schema from {}", connectorSpec);
         ResourceSchema rawResourceSchema = connectorInstance.fetchResourceSchema(parentResult);
 
-        if (ResourceTypeUtil.isValidateSchema(resource.asObjectable())) {
-            ResourceTypeUtil.validateSchema(rawResourceSchema, resource);
+        if (rawResourceSchema != null && ResourceTypeUtil.isValidateSchema(resource)) {
+            rawResourceSchema.validate();
         }
         return rawResourceSchema;
     }

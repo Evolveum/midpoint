@@ -22,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
+import java.util.Arrays;
+
 /**
  * Helps {@link ResourceManager} with managing capabilities. (A Spring bean for now.)
  *
@@ -73,38 +75,26 @@ class ResourceCapabilitiesHelper {
     }
 
     /**
-     * Returns `true` if the additional connector supports given capability.
+     * Returns `true` if the connector supports given capability.
      *
-     * Looks only at capabilities stored in the connector spec bean.
+     * Uses this order:
+     *
+     * 1. configured capabilities
+     * 2. fresh native capabilities (if present) _or_ stored native capabilities (if fresh ones are not present)
      */
     boolean supportsCapability(
-            @NotNull ConnectorInstanceSpecificationType additionalConnectorSpecBean,
+            @NotNull ConnectorSpec connectorSpec,
+            @Nullable NativeConnectorsCapabilities nativeConnectorsCapabilities,
             @NotNull Class<? extends CapabilityType> capabilityClass) {
-        return getEnabledCapability(additionalConnectorSpecBean, capabilityClass) != null;
-    }
-
-    /**
-     * Returns `true` if the additional connector supports given capability.
-     *
-     * Looks first at configured capabilities (from bean), and then at provided (fresh) native capabilities.
-     */
-    boolean supportsCapability(
-            ConnectorInstanceSpecificationType additionalConnectorBean,
-            NativeConnectorsCapabilities nativeConnectorsCapabilities,
-            Class<? extends CapabilityType> capabilityClass) {
-        CapabilitiesType connectorCapabilitiesBean = additionalConnectorBean.getCapabilities();
-        if (connectorCapabilitiesBean != null) {
-            CapabilityCollectionType configuredCapCollectionType = connectorCapabilitiesBean.getConfigured();
-            if (configuredCapCollectionType != null) {
-                CapabilityType configuredCap = CapabilityUtil.getCapability(configuredCapCollectionType, capabilityClass);
-                if (configuredCap != null && !isCapabilityEnabled(configuredCap)) {
-                    return false;
-                }
-            }
-        }
-        return isCapabilityEnabled(
-                CapabilityUtil.getCapability(
-                        nativeConnectorsCapabilities.get(additionalConnectorBean.getName()),
-                        capabilityClass));
+        CapabilitiesType storedCaps = connectorSpec.getCapabilities();
+        CapabilityCollectionType configuredCaps = storedCaps != null ? storedCaps.getConfigured() : null;
+        CapabilityCollectionType nativeCapsToUse =
+                nativeConnectorsCapabilities != null ?
+                        nativeConnectorsCapabilities.get(connectorSpec.getConnectorName()) :
+                        storedCaps != null ? storedCaps.getNative() : null;
+        CapabilityType matchingCapability = CapabilityUtil.getCapability(
+                Arrays.asList(configuredCaps, nativeCapsToUse), // avoiding List.of(...) because of nullable values
+                capabilityClass);
+        return isCapabilityEnabled(matchingCapability);
     }
 }

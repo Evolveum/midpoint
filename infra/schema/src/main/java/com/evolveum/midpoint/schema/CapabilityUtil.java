@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +21,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Various useful methods related to capabilities.
@@ -59,6 +58,41 @@ public class CapabilityUtil {
         return (T) MiscUtil.extractSingleton(
                 matching,
                 () -> new IllegalArgumentException("Multiple capabilities of type " + capabilityClass + ": " + matching));
+    }
+
+    /**
+     * Returns the first matching capability in given list of capability collections.
+     */
+    public static <T extends CapabilityType> @Nullable T getCapability(
+            @NotNull List<CapabilityCollectionType> capabilityCollectionsList,
+            @NotNull Class<T> capabilityClass) {
+        for (CapabilityCollectionType capabilityCollection : capabilityCollectionsList) {
+            T inCollection = getCapability(capabilityCollection, capabilityClass);
+            if (inCollection != null) {
+                return inCollection;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Selects a matching capability:
+     *
+     * 1. first from configured capabilities,
+     * 2. if not present, then from native capabilities.
+     */
+    public static <T extends CapabilityType> @Nullable T getCapability(
+            @Nullable CapabilitiesType capabilities,
+            @NotNull Class<T> capabilityClass) {
+        if (capabilities == null) {
+            return null;
+        } else {
+            return getCapability(
+                    Arrays.asList( // Not List.of() because of nullability
+                            capabilities.getConfigured(),
+                            capabilities.getNative()),
+                    capabilityClass);
+        }
     }
 
     /**
@@ -299,35 +333,6 @@ public class CapabilityUtil {
         return originalValue != null ? originalValue : defaultValue;
     }
 
-    /**
-     * Selects a matching capability:
-     *
-     * 1. first from configured capabilities,
-     * 2. if not present, then from native capabilities.
-     */
-    public static <T extends CapabilityType> T getCapability(
-            @Nullable CapabilitiesType capabilities,
-            @NotNull Class<T> capabilityClass) {
-        if (capabilities == null) {
-            return null;
-        }
-        if (capabilities.getConfigured() != null) {
-            T configuredCapability = CapabilityUtil.getCapability(capabilities.getConfigured(), capabilityClass);
-            if (configuredCapability != null) {
-                return configuredCapability;
-            }
-        }
-        // No configured capability entry, fallback to native capability
-        if (capabilities.getNative() != null) {
-            T nativeCapability = CapabilityUtil.getCapability(capabilities.getNative(), capabilityClass);
-            //noinspection RedundantIfStatement
-            if (nativeCapability != null) {
-                return nativeCapability;
-            }
-        }
-        return null;
-    }
-
     // TODO what if act itself is disabled?
     public static ActivationStatusCapabilityType getEnabledActivationStatus(ActivationCapabilityType act) {
         if (act != null && isEnabled(act.getStatus())) {
@@ -437,6 +442,11 @@ public class CapabilityUtil {
                 .orElseThrow(() -> new IllegalStateException("No definition for capability " + type));
     }
 
+    /**
+     * Normally, `null` and empty states are substantially different: the former means "unknown", the latter "none".
+     * So this method should be used only for testing, e.g. to check that there are _some_ capabilities present.
+     */
+    @VisibleForTesting
     public static boolean isEmpty(CapabilityCollectionType capabilities) {
         return capabilities == null
                 || capabilities.asPrismContainerValue().hasNoItems(); // Adapt after some non-capability items are added

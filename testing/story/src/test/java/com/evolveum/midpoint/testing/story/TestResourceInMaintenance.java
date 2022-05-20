@@ -128,7 +128,9 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         turnMaintenanceModeOn(task, result);
     }
 
-    private void prepareCsvResource(Task task, OperationResult result) throws com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, com.evolveum.midpoint.util.exception.ExpressionEvaluationException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.PolicyViolationException, com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException {
+    private void prepareCsvResource(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
+            PolicyViolationException, ObjectAlreadyExistsException {
         Object[] newRealValue = { sourceFilePath };
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
@@ -138,7 +140,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);
 
-        OperationResult csvTestResult = modelService.testResource(RESOURCE_OID, task);
+        OperationResult csvTestResult = modelService.testResource(RESOURCE_OID, task, result);
         TestUtil.assertSuccess("CSV resource test result", csvTestResult);
     }
 
