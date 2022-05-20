@@ -19,7 +19,6 @@ public class MetadataContainerValuePanel<C extends Containerable, CCW extends Pr
 
     public MetadataContainerValuePanel(String id, IModel<CCW> model, ItemPanelSettings settings) {
         super(id, model, settings);
-
     }
 
     @Override

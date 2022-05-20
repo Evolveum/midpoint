@@ -1336,7 +1336,8 @@ td .prism-property-value {
 
 .metadata {
 
-  & .nav-item > a.nav-link::before {
+  & .card .nav-item > a.nav-link::before,
+  & .tags > a.btn::before {
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     padding-right: 0.5em;

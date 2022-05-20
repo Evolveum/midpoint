@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,13 +39,20 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+
 public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismValueMetadataPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismValueMetadataPanel.class);
+
+    private static final String ID_BUTTONS_CONTAINER="buttonsContainer";
+    private static final String ID_BUTTONS="buttons";
+    private static final String ID_BUTTON="button";
+    private static final String ID_CARD="card";
 
     private static final String ID_PROVENANCE_METADATA = "provenanceMetadata";
     private static final String ID_METADATA = "metadata";
-    private static final String ID_METADATA_NAVIGATION = "metadataNav";
     private static final String ID_METADATA_LIST = "metadataList";
     private static final String ID_METADATA_QNAME = "metadataQName";
 
@@ -60,21 +67,50 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "card card-primary card-outline card-outline-tabs metadata"));
+        add(AttributeAppender.append("class", "metadata"));
+        setOutputMarkupId(true);
 
-        createMetadataNavigationPanel();
+        IModel<List<ContainersPopupDto>> list = createMetadataListModel();
+
+        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
+        buttonsContainer.setOutputMarkupId(true);
+        buttonsContainer.add(new VisibleBehaviour(() -> list.getObject().stream().filter(c -> c.isSelected()).count() == 0));
+        add(buttonsContainer);
+
+        ListView<ContainersPopupDto> buttons = new ListView<>(ID_BUTTONS, list) {
+            @Override
+            protected void populateItem(ListItem<ContainersPopupDto> item) {
+                AjaxButton button  = new AjaxButton(ID_BUTTON, createStringResource(item.getModelObject().getItemName())) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        item.getModelObject().setSelected(true);
+
+                        setContainersToShow(item.getModelObject(), target);
+                    }
+                };
+                button.add(AttributeAppender.append("class", createButtonClassModel(item.getModel())));
+                item.add(button);
+            }
+        };
+        buttonsContainer.add(buttons);
+
+        WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
+        card.add(new VisibleBehaviour(() -> list.getObject().stream().filter(c -> c.isSelected()).count() > 0));
+        add(card);
+
+        createMetadataNavigationPanel(card, list);
 
         ProvenanceMetadataPanel provenanceMetadataPanel =
                 new ProvenanceMetadataPanel(ID_PROVENANCE_METADATA, getModel(),createItemPanelSettings());
         provenanceMetadataPanel.add(new VisibleBehaviour(this::shouldShowProvenanceMetadataDetails));
         provenanceMetadataPanel.setOutputMarkupId(true);
-        add(provenanceMetadataPanel);
+        card.add(provenanceMetadataPanel);
 
         MetadataContainerPanel<? extends Containerable> valueMetadataPanel =
                 new MetadataContainerPanel<>(ID_METADATA, createMetadataNoProvenanceModel(),createItemPanelSettings());
         valueMetadataPanel.add(new VisibleBehaviour(this::shouldShowMetadataDetails));
         valueMetadataPanel.setOutputMarkupId(true);
-        add(valueMetadataPanel);
+        card.add(valueMetadataPanel);
     }
 
     private ItemPanelSettings createItemPanelSettings() {
@@ -96,34 +132,35 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         return () -> getModelObject() != null ? (PrismContainerWrapper<Containerable>) getModelObject().getSelectedChild() : null;
     }
 
-    private void createMetadataNavigationPanel() {
-        WebMarkupContainer metadataNavigation = new WebMarkupContainer(ID_METADATA_NAVIGATION);
-        add(metadataNavigation);
-        metadataNavigation.setOutputMarkupId(true);
-
-        ListView<ContainersPopupDto> metadataList = new ListView<>(ID_METADATA_LIST, createMetadataListModel()) {
+    private void createMetadataNavigationPanel(WebMarkupContainer card, IModel<List<ContainersPopupDto>> listModel) {
+        ListView<ContainersPopupDto> metadataList = new ListView<>(ID_METADATA_LIST, listModel) {
 
             @Override
             protected void populateItem(ListItem<ContainersPopupDto> listItem) {
-                AjaxButton showMetadataDetails  = new AjaxButton(ID_METADATA_QNAME,
-                        createStringResource(listItem.getModelObject().getItemName())) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        ContainersPopupDto container = listItem.getModelObject();
-                        container.setSelected(true);
-                        setContainersToShow(container, ajaxRequestTarget);
-                    }
-                };
-                showMetadataDetails.add(AttributeAppender.append("class", createButtonClassModel(listItem)));
-                showMetadataDetails.setOutputMarkupId(true);
-                showMetadataDetails.setOutputMarkupPlaceholderTag(true);
+                AjaxButton button  = createNavigationItem(ID_METADATA_QNAME, listItem.getModel());
+
                 listItem.setOutputMarkupId(true);
-                listItem.add(showMetadataDetails);
+                listItem.add(button);
             }
         };
-        metadataNavigation.add(metadataList);
+        card.add(metadataList);
         metadataList.setOutputMarkupId(true);
-        metadataList.setOutputMarkupPlaceholderTag(true);
+    }
+
+    private AjaxButton createNavigationItem(String id, IModel<ContainersPopupDto> model) {
+        AjaxButton button  = new AjaxButton(id, createStringResource(model.getObject().getItemName())) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                ContainersPopupDto container = model.getObject();
+                container.setSelected(true);
+                setContainersToShow(container, ajaxRequestTarget);
+            }
+        };
+        button.add(AttributeAppender.append("class", createButtonClassModel(model)));
+        button.setOutputMarkupId(true);
+        button.setOutputMarkupPlaceholderTag(true);
+
+        return button;
     }
 
     private boolean shouldShowMetadataDetails() {
@@ -163,12 +200,11 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         }
 
         return false;
-
     }
 
-    private IModel<?> createButtonClassModel(ListItem<ContainersPopupDto> selectedContainer) {
+    private IModel<?> createButtonClassModel(IModel<ContainersPopupDto> model) {
         return () -> {
-            String primaryButton = getPrimaryButton(getValueMetadata(), selectedContainer.getModelObject());
+            String primaryButton = getPrimaryButton(getValueMetadata(), model.getObject());
 
             return primaryButton == null ? "" : primaryButton;
         };
@@ -215,26 +251,30 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private IModel<List<ContainersPopupDto>> createMetadataListModel() {
-        return () -> {
-            ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
+        return new LoadableDetachableModel<>() {
 
-            List<PrismContainerDefinition<? extends Containerable>> childContainers;
-            try {
-                childContainers = metadataWrapper != null ? metadataWrapper.getChildContainers() : Collections.emptyList();
-            } catch (SchemaException e) {
-                LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
-                childContainers = Collections.emptyList();
+            @Override
+            protected List<ContainersPopupDto> load() {
+                ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
+
+                List<PrismContainerDefinition<? extends Containerable>> childContainers;
+                try {
+                    childContainers = metadataWrapper != null ? metadataWrapper.getChildContainers() : Collections.emptyList();
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
+                    childContainers = Collections.emptyList();
+                }
+
+                List<ContainersPopupDto> navigation = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
+
+                List<? extends ItemDefinition> childNonContainers = metadataWrapper != null ? metadataWrapper.getChildNonContainers()
+                        : Collections.emptyList();
+                if (!childNonContainers.isEmpty()) {
+                    navigation.add(new ContainersPopupDto(false, metadataWrapper));
+                }
+
+                return navigation;
             }
-
-            List<ContainersPopupDto> navigation = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
-
-            List<? extends ItemDefinition> childNonContainers = metadataWrapper != null ? metadataWrapper.getChildNonContainers()
-                    : Collections.emptyList();
-            if (!childNonContainers.isEmpty()) {
-                navigation.add(new ContainersPopupDto(false, metadataWrapper));
-            }
-
-            return navigation;
         };
     }
 
