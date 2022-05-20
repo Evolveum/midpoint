@@ -453,6 +453,8 @@ public abstract class PageBase extends PageAdminLTE {
         mainHeader.add(createHeaderColorStyleModel(false));
 
         LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
+        sidebarMenu.add(AttributeAppender.append("class",
+                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "sidebar-dark-lightblue" : "sidebar-light-lightblue"));
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
 
