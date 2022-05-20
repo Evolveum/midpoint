@@ -267,7 +267,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
-                        Model.of(SearchPanel.this.getModelObject().createObjectQuery(getPageBase())), SearchPanel.this.getModelObject().getTypeClass());
+                        Model.of(SearchPanel.this.getModelObject()),
+                        SearchPanel.this.getModelObject().getTypeClass());
                 getPageBase().showMainPopup(panel, target);
             }
         };
