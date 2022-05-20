@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -18,7 +20,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -59,6 +60,8 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "card card-primary card-outline card-outline-tabs metadata"));
+
         createMetadataNavigationPanel();
 
         ProvenanceMetadataPanel provenanceMetadataPanel =
@@ -90,7 +93,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private IModel<PrismContainerWrapper<Containerable>> createMetadataNoProvenanceModel() {
-        return new ReadOnlyModel<>(() -> getModelObject() != null ? (PrismContainerWrapper<Containerable>) getModelObject().getSelectedChild() : null);
+        return () -> getModelObject() != null ? (PrismContainerWrapper<Containerable>) getModelObject().getSelectedChild() : null;
     }
 
     private void createMetadataNavigationPanel() {
@@ -98,7 +101,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         add(metadataNavigation);
         metadataNavigation.setOutputMarkupId(true);
 
-        ListView<ContainersPopupDto> metadataList = new ListView<ContainersPopupDto>(ID_METADATA_LIST, createMetadataListModel()) {
+        ListView<ContainersPopupDto> metadataList = new ListView<>(ID_METADATA_LIST, createMetadataListModel()) {
 
             @Override
             protected void populateItem(ListItem<ContainersPopupDto> listItem) {
@@ -106,12 +109,12 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
                         createStringResource(listItem.getModelObject().getItemName())) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        ContainersPopupDto ccontainerToShow = listItem.getModelObject();
-                        ccontainerToShow.setSelected(true);
-                        setContainersToShow(ccontainerToShow, ajaxRequestTarget);
+                        ContainersPopupDto container = listItem.getModelObject();
+                        container.setSelected(true);
+                        setContainersToShow(container, ajaxRequestTarget);
                     }
                 };
-                showMetadataDetails.add(AttributeAppender.replace("class", createButtonClassModel(listItem)));
+                showMetadataDetails.add(AttributeAppender.append("class", createButtonClassModel(listItem)));
                 showMetadataDetails.setOutputMarkupId(true);
                 showMetadataDetails.setOutputMarkupPlaceholderTag(true);
                 listItem.setOutputMarkupId(true);
@@ -119,13 +122,6 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
             }
         };
         metadataNavigation.add(metadataList);
-            ReadOnlyModel<String> activeTab = new ReadOnlyModel<>(() -> {
-                if (getValueMetadata() != null && isAnyMetadataSelected()) {
-                    return "contains-active-tab";
-                }
-                return "";
-            });
-        metadataNavigation.add(AttributeAppender.replace("class", activeTab));
         metadataList.setOutputMarkupId(true);
         metadataList.setOutputMarkupPlaceholderTag(true);
     }
@@ -171,18 +167,16 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private IModel<?> createButtonClassModel(ListItem<ContainersPopupDto> selectedContainer) {
-
-        return new ReadOnlyModel<>(() -> {
-
+        return () -> {
             String primaryButton = getPrimaryButton(getValueMetadata(), selectedContainer.getModelObject());
 
-            return primaryButton == null ? "metadata-tab" : primaryButton;
-        });
+            return primaryButton == null ? "" : primaryButton;
+        };
     }
 
     private String getPrimaryButton(PrismContainerWrapper<ValueMetadataType> valueMetadata, ContainersPopupDto containersPopupDto) {
         if (QNameUtil.match(ValueMetadataType.COMPLEX_TYPE, containersPopupDto.getTypeName()) && valueMetadata.isShowMetadataDetails()) {
-            return "metadata-tab metadata-tab-active";
+            return "active";
         }
 
         for (PrismContainerValueWrapper<ValueMetadataType> value : valueMetadata.getValues()) {
@@ -192,7 +186,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
                 }
 
                 if (container.isShowMetadataDetails()) {
-                    return "metadata-tab metadata-tab-active";
+                    return "active";
                 }
             }
         }
@@ -218,11 +212,10 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         }
 
         ajaxRequestTarget.add(PrismValueMetadataPanel.this);
-
     }
 
-    private ReadOnlyModel<List<ContainersPopupDto>> createMetadataListModel() {
-        return new ReadOnlyModel<>(() -> {
+    private IModel<List<ContainersPopupDto>> createMetadataListModel() {
+        return () -> {
             ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
 
             List<PrismContainerDefinition<? extends Containerable>> childContainers;
@@ -242,7 +235,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
             }
 
             return navigation;
-        });
+        };
     }
 
     private ValueMetadataWrapperImpl getValueMetadata() {
