@@ -32,7 +32,7 @@ podTemplate(
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'db',
-                        image: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04',
+                        image: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04', // DB_IMAGE
                         runAsUser: '0',
                         ttyEnabled: true,
                         resourceRequestCpu: '2',
@@ -66,7 +66,7 @@ podTemplate(
             container('db') {
 // TODO: update https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/ with this script,
 // mention sqlcmd and few tips from below, like -b and -I flags.
-                sh """#!/bin/bash
+                sh """#!/bin/bash -ex
 cat > create-db.sql << EOF
 CREATE DATABASE midtest
     COLLATE SQL_Latin1_General_CP1_CS_AS;
