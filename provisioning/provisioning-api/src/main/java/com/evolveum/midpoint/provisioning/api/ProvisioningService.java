@@ -440,6 +440,8 @@ public interface ProvisioningService {
      * part is nicely displayable to the user. The operation codes in the returned {@link OperationResult} are defined by
      * {@link TestResourceOpNames} enumeration class.
      *
+     * See {@link ResourceTestOptions} for an explanation of the options and their default values.
+     *
      * @param resourceOid OID of resource to test
      * @return results of executed tests
      * @throws ObjectNotFoundException resource or other required object (e.g. parent resource) does not exist
@@ -449,8 +451,16 @@ public interface ProvisioningService {
      */
     @NotNull OperationResult testResource(
             @NotNull String resourceOid,
+            @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+
+    @NotNull default OperationResult testResource(
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        return testResource(resourceOid, null, task, parentResult);
+    }
 
     /**
      * Test the resource connection and basic resource connector functionality.
@@ -463,8 +473,9 @@ public interface ProvisioningService {
      * Notes:
      *
      * 1. The resource object must be mutable.
-     * 2. Normally it is expected that it will not have OID. But if it has, the method will assume the resource exists
-     * in the repository, and will update it there; just like {@link #testResource(String, Task, OperationResult)} does.
+     * 2. Normally it is expected that it will not have OID. But it may have one. The resource is _not_ updated
+     * in the repository, though, unless {@link ResourceTestOptions#skipRepositoryUpdates(Boolean)} is explicitly set
+     * to {@link Boolean#FALSE}.
      *
      * @param resource resource to test
      * @return results of executed tests
@@ -474,27 +485,41 @@ public interface ProvisioningService {
      */
     @NotNull OperationResult testResource(
             @NotNull PrismObject<ResourceType> resource,
+            @Nullable ResourceTestOptions options,
             @NotNull Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
+    default @NotNull OperationResult testResource(
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        return testResource(resource, null, task, parentResult);
+    }
+
     /**
      * Test basic resource connection.
      *
-     * This operation will *not* throw exception in case the resource connection fails. For more information about operation
-     * result handling please see {@link #testResource(String, Task, OperationResult)} method description.
-     *
-     * TODO describe the exact difference to {@link #testResource(PrismObject, Task, OperationResult)}
+     * Actually, this is a convenience method for calling {@link #testResource(PrismObject, Task, OperationResult)} with
+     * the {@link ResourceTestOptions#testMode(ResourceTestOptions.TestMode)} set to {@link ResourceTestOptions.TestMode#BASIC}
+     * (more detailed explanation is in the `BASIC` value documentation).
      *
      * @param resource resource to test
      * @return results of executed tests
      * @throws GenericConnectorException unknown connector framework error
      * @see TestResourceOpNames
      */
-    @NotNull OperationResult testPartialConfiguration(
+    default @NotNull OperationResult testPartialConfiguration(
             @NotNull PrismObject<ResourceType> resource,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return testResource(
+                resource,
+                ResourceTestOptions.basic(),
+                task,
+                parentResult);
+    }
 
     /**
      * TODO please document this method

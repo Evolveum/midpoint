@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode.FULL;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType.*;
 
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,28 +43,26 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 /**
- * Responsible for testing the resource. Provides different flavors of the "test resource" operation:
+ * Responsible for testing the resource. Provides different flavors of the "test resource" operation, according
+ * to {@link ResourceTestOptions} used.
  *
- * - {@link #executeFullTestWithCompletion(OperationResult)}
- * - {@link #executeFullTestWithoutCompletion(OperationResult)}
- * - {@link #executeBasicConnectionTest(OperationResult)}
- *
- * The resource being tested is either a regular one, stored (and updated) in the repository,
- * or an in-memory, "draft" object. TODO
- *
- * To be used only from the local package only. All external access should be through {@link ResourceManager}.
+ * The resource being tested is either a regular one, stored (and updated) in the repository, or an in-memory, "draft" object.
+ * Options drive how it should be updated.
  *
  * Notes to maintainers:
  *
  * - When test failure occurs, {@link OperationResult} should be updated, and {@link TestFailedException} should be thrown.
  * Resource availability status is updated upon catching that exception.
- *
  */
-public class ResourceTestOperation {
+class ResourceTestOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTestOperation.class);
 
     @NotNull protected final ResourceType resource;
+
+    /** No defaults in this object! Everything must be resolved. */
+    @NotNull protected final ResourceTestOptions options;
+
     @NotNull protected final String operationDesc;
 
     @NotNull protected final Task task;
@@ -76,9 +79,6 @@ public class ResourceTestOperation {
      */
     @NotNull protected final NativeConnectorsCapabilities nativeConnectorsCapabilities = NativeConnectorsCapabilities.empty();
 
-    /** Whether we should update the availability status of the resource (typically not for "basic" testing). */
-    private final boolean updateAvailabilityStatus;
-
     /**
      * Resource schema that is fetched during the operation. Should not be modified afterwards. (TODO what about adjusting?)
      */
@@ -91,76 +91,154 @@ public class ResourceTestOperation {
      */
     ResourceTestOperation(
             @NotNull PrismObject<ResourceType> resource,
-            @NotNull String operationDesc,
-            boolean updateAvailabilityStatus,
+            @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull CommonBeans beans)
             throws ConfigurationException {
         resource.checkMutable();
         this.resource = resource.asObjectable();
-        this.operationDesc = operationDesc;
-        this.updateAvailabilityStatus = updateAvailabilityStatus;
+        this.options = resolveDefaultsInOptions(this.resource, options);
+        this.operationDesc = createOperationDesc(this.resource, this.options);
         this.task = task;
         this.beans = beans;
         this.schemaHelper = beans.resourceManager.schemaHelper;
         this.allConnectorSpecs = ConnectorSpec.all(this.resource);
     }
 
+    private String createOperationDesc(ResourceType resource, ResourceTestOptions options) {
+        String name = getOrig(resource.getName());
+        if (options.isFullMode()) {
+            return name != null ?
+                    "test resource " + name :
+                    "test resource";
+        } else {
+            return name != null ?
+                    "test partial configuration of resource " + name :
+                    "test partial resource configuration";
+        }
+    }
+
+    /** Resolves defaults and checks the consistency of the options. */
+    private @NotNull ResourceTestOptions resolveDefaultsInOptions(@NotNull ResourceType resource, ResourceTestOptions options) {
+
+        if (options == null) {
+            options = ResourceTestOptions.DEFAULT;
+        }
+
+        ResourceCompletionMode completionMode = options.getResourceCompletionMode();
+        Boolean skipRepositoryUpdates = options.isSkipRepositoryUpdates();
+
+        if (options.getTestMode() == null) {
+            options = options.testMode(FULL);
+        }
+
+        if (options.isFullMode()) {
+
+            // Note that some defaults may be set in upper layers (ProvisioningServiceImpl).
+
+            boolean skipRepositoryUpdatesDefault;
+            boolean skipInMemoryUpdatesDefault;
+            if (resource.getOid() == null) {
+                skipRepositoryUpdatesDefault = true; // Actually, for non-OID resources, the repo is never updated
+                skipInMemoryUpdatesDefault = false; // TODO decide about this
+            } else {
+                skipRepositoryUpdatesDefault = false;
+                skipInMemoryUpdatesDefault = true; // This is the legacy behavior
+            }
+
+            if (options.isSkipRepositoryUpdates() == null) {
+                options = options.skipRepositoryUpdates(skipRepositoryUpdatesDefault);
+            }
+
+            if (options.isSkipInMemoryUpdates() == null) {
+                options = options.skipInMemoryUpdates(skipInMemoryUpdatesDefault);
+            }
+
+            // Completion mode can be arbitrary; so just set the defaults
+            if (options.getResourceCompletionMode() == null) {
+                if (options.isSkipRepositoryUpdates()) {
+                    options = options.resourceCompletionMode(ResourceCompletionMode.NEVER); // TODO decide about this
+                } else {
+                    options = options.resourceCompletionMode(ResourceCompletionMode.IF_NOT_COMPLETE);
+                }
+            }
+
+        } else {
+
+            // We don't want to fetch schema/capabilities at all.
+            argCheck(completionMode == null || completionMode == ResourceCompletionMode.NEVER,
+                    "Unsupported completion mode for basic test: %s", completionMode);
+            options = options.resourceCompletionMode(ResourceCompletionMode.NEVER);
+
+            // Never update the repository!
+            argCheck(!Boolean.FALSE.equals(skipRepositoryUpdates),
+                    "Repository updates are not supported for basic test: %s", skipRepositoryUpdates);
+            options = options.skipRepositoryUpdates(true);
+
+            // In-memory updates can be on or off, it does not matter here. Just set the default.
+            if (options.isSkipInMemoryUpdates() == null) {
+                options = options.skipInMemoryUpdates(true);
+            }
+        }
+
+        options.checkAllValuesSet();
+
+        return options;
+    }
+
     /**
      * Tests the resource and updates the resource object in repository (with capabilities and schema).
      * (This is what is called a completion.)
      */
-    public @NotNull OperationResult executeFullTestWithCompletion(OperationResult parentResult)
+    public @NotNull OperationResult execute(OperationResult parentResult)
             throws ObjectNotFoundException, ConfigurationException, SchemaException {
 
-        argCheck(resource.getOid() != null, "test with completion not available for in-memory resources");
+        OperationResult testResult;
+        if (options.isFullMode()) {
+            testResult = executeTest(
+                    result -> {
+                        testAllConnectors(result);
+                        testResourceSchema(result);
+                    },
+                    parentResult);
+        } else {
+            testResult = executeTest(
+                    this::testMainConnector,
+                    parentResult);
+        }
 
-        OperationResult testResult = executeFullTestWithoutCompletion(parentResult);
-
-        // This is to preserve pre-4.6 behavior: the resource completion operation was invoked,
-        // but no resource updating was carried out if the resource was already complete.
-        if (!ResourceTypeUtil.isComplete(resource)) {
+        if (shouldComplete()) {
             storeCapabilitiesAndSchema(parentResult);
         }
 
         return testResult;
     }
 
-    /**
-     * Tests the resource without updating the schema and capabilities in the repository.
-     */
-    public @NotNull OperationResult executeFullTestWithoutCompletion(OperationResult parentResult)
-            throws ObjectNotFoundException {
-        return executeInternal(
-                testResult -> {
-                    testAllConnectorsInFullMode(testResult);
-                    testResourceSchema(testResult);
-                },
-                true,
-                parentResult);
+    private boolean shouldComplete() {
+        switch (options.getResourceCompletionMode()) {
+            case ALWAYS:
+                return true;
+            case IF_NOT_COMPLETE:
+                // This is to preserve pre-4.6 behavior: the resource completion operation was invoked,
+                // but no resource updating was carried out if the resource was already complete.
+                return !ResourceTypeUtil.isComplete(resource);
+            case NEVER:
+                return false;
+            default:
+                throw new AssertionError(options.getResourceCompletionMode());
+        }
     }
 
-    /**
-     * Executes the most basic test: {@link ConnectorInstance#testPartialConfiguration(OperationResult)}.
-     */
-    public @NotNull OperationResult executeBasicConnectionTest(OperationResult parentResult)
-            throws ObjectNotFoundException {
-        return executeInternal(
-                this::testMainConnectorInBasicMode,
-                false, // basic test does not ensure resource is UP -- or does it?
-                parentResult);
-    }
-
-    private @NotNull OperationResult executeInternal(
-            TestProcedure testProcedure, boolean upOnSuccess, OperationResult parentResult)
+    private @NotNull OperationResult executeTest(TestProcedure testProcedure, OperationResult parentResult)
             throws ObjectNotFoundException {
         OperationResult testResult =
                 parentResult.subresult(TestResourceOpNames.RESOURCE_TEST.getOperation())
                         .addParam("resource", resource)
+                        .addArbitraryObjectAsParam("options", options)
                         .build();
         try {
             testProcedure.invoke(testResult);
-            if (upOnSuccess) {
+            if (options.isFullMode()) {
                 setResourceAvailabilityStatus(UP, "resource test was successful", testResult);
             }
         } catch (TestFailedException e) {
@@ -178,39 +256,29 @@ public class ResourceTestOperation {
         return testResult;
     }
 
-    /**
-     * Each connector is instantiated, tested, and its capabilities are fetched.
-     * (And stored to {@link #nativeConnectorsCapabilities}.)
-     */
-    private void testAllConnectorsInFullMode(OperationResult result) throws TestFailedException {
+    private void testAllConnectors(OperationResult result) throws TestFailedException {
         for (ConnectorSpec connectorSpec : allConnectorSpecs) {
-            testConnector(connectorSpec, TestMode.FULL, result);
+            testConnector(connectorSpec, result);
         }
     }
 
-    /**
-     * The main connector is instantiated and tested in basic mode using {@link ConnectorInstance#testPartialConfiguration(
-     * OperationResult)} method. No capabilities fetching is done.
-     */
-    private void testMainConnectorInBasicMode(OperationResult result) throws TestFailedException {
+    private void testMainConnector(OperationResult result) throws TestFailedException {
         testConnector(
                 ConnectorSpec.main(resource),
-                TestMode.BASIC,
                 result);
     }
 
     private void testConnector(
             @NotNull ConnectorSpec connectorSpec,
-            @NotNull TestMode testMode,
             @NotNull OperationResult parentResult) throws TestFailedException {
         OperationResult result =
                 parentResult.subresult(TestResourceOpNames.CONNECTOR_TEST.getOperation())
                         .addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName())
                         .addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid())
-                        .addArbitraryObjectAsParam("testMode", testMode)
+                        .addArbitraryObjectAsParam("mode", options.getTestMode())
                         .build();
         try {
-            new TestConnectorOperation(connectorSpec, testMode)
+            new TestConnectorOperation(connectorSpec)
                     .execute(result);
         } catch (Throwable t) {
             // This works even for TestFailedException
@@ -308,7 +376,15 @@ public class ResourceTestOperation {
     private void storeCapabilitiesAndSchema(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-        ResourceUpdater updater = new ResourceUpdater(resource, isResourceInRepository(), beans);
+        if (!shouldUpdateInMemory() && !shouldUpdateRepository()) {
+            return;
+        }
+
+        ResourceUpdater updater = new ResourceUpdater(
+                resource,
+                shouldUpdateRepository(),
+                shouldUpdateInMemory(),
+                beans);
 
         // This ensures that capabilities metadata are updated as well.
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
@@ -337,15 +413,13 @@ public class ResourceTestOperation {
     private class TestConnectorOperation {
 
         @NotNull private final ConnectorSpec connectorSpec;
-        @NotNull private final TestMode testMode;
         @NotNull private final String desc;
 
         private ConfiguredConnectorInstanceEntry connectorCacheEntry;
         private ConnectorInstance connector;
 
-        TestConnectorOperation(@NotNull ConnectorSpec connectorSpec, @NotNull TestMode testMode) {
+        TestConnectorOperation(@NotNull ConnectorSpec connectorSpec) {
             this.connectorSpec = connectorSpec;
-            this.testMode = testMode;
             this.desc = "testing connection using " + connectorSpec;
         }
 
@@ -353,7 +427,7 @@ public class ResourceTestOperation {
             instantiateConnector(result);
             initializeConnector(result);
             testConnector(result);
-            if (testMode == TestMode.FULL) {
+            if (options.isFullMode()) {
                 fetchConnectorCapabilities(result);
                 cacheConfiguredConnector();
             }
@@ -415,7 +489,7 @@ public class ResourceTestOperation {
                 connector.configure(
                         configuration,
                         ResourceTypeUtil.getSchemaGenerationConstraints(resource),
-                        testMode == TestMode.FULL,
+                        options.isFullMode(),
                         result);
 
                 // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
@@ -471,8 +545,11 @@ public class ResourceTestOperation {
         }
 
         private void testConnector(OperationResult parentResult) throws TestFailedException {
+            TestMode testMode = options.getTestMode();
             OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_CONNECTION.getOperation());
+                    .subresult(TestResourceOpNames.CONNECTOR_CONNECTION.getOperation())
+                    .addArbitraryObjectAsParam("mode", testMode)
+                    .build();
             try {
                 switch (testMode) {
                     case FULL:
@@ -544,17 +621,26 @@ public class ResourceTestOperation {
         }
     }
 
+    // TODO move to ResourceUpdater
     protected void setResourceAvailabilityStatus(
             AvailabilityStatusType status, String statusChangeReason, OperationResult result)
             throws ObjectNotFoundException {
-        if (updateAvailabilityStatus) {
-            if (isResourceInRepository()) {
-                beans.resourceManager.modifyResourceAvailabilityStatus(
-                        resource.getOid(), status, statusChangeReason, task, result, false);
-            } else {
-                beans.resourceManager.modifyResourceAvailabilityStatus(resource, status, statusChangeReason);
-            }
+        if (shouldUpdateRepository()) {
+            beans.resourceManager.modifyResourceAvailabilityStatus(
+                    resource.getOid(), status, statusChangeReason, task, result, false);
         }
+        if (shouldUpdateInMemory()) {
+            beans.resourceManager.modifyResourceAvailabilityStatus(resource, status, statusChangeReason);
+        }
+    }
+
+    private boolean shouldUpdateInMemory() {
+        return !options.isSkipInMemoryUpdates();
+    }
+
+    private boolean shouldUpdateRepository() {
+        return !options.isSkipRepositoryUpdates()
+                && isResourceInRepository();
     }
 
     protected String getTestName() {
@@ -567,19 +653,6 @@ public class ResourceTestOperation {
 
     private interface TestProcedure {
         void invoke(OperationResult testResult) throws ObjectNotFoundException, TestFailedException;
-    }
-
-    private enum TestMode {
-        /**
-         * Traditional (full) test.
-         */
-        FULL,
-
-        /**
-         * Only the basic connectivity is tested. Corresponds to
-         * {@link ConnectorInstance#testPartialConfiguration(OperationResult)} method.
-         */
-        BASIC
     }
 
     /**

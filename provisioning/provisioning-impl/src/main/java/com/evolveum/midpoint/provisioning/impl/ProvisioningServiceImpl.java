@@ -101,7 +101,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     private static final String OP_DISCOVER_CONFIGURATION = ProvisioningService.class.getName() + ".discoverConfiguration";
     // TODO reconsider names of these operations
     private static final String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
-    private static final String OP_TEST_PARTIAL_CONFIGURATION = ProvisioningService.class.getName() + ".testPartialConfiguration";
 
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
@@ -583,6 +582,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public @NotNull OperationResult testResource(
             @NotNull String resourceOid,
+            @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
@@ -590,12 +590,13 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         OperationResult result = parentResult.subresult(OP_TEST_RESOURCE)
                 .addParam("resourceOid", resourceOid)
+                .addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options)
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
                 .build();
         try {
             PrismObject<ResourceType> resource =
                     operationsHelper.getRepoObject(ResourceType.class, resourceOid, null, result);
-            return testResourceInternal(resource, task, result);
+            return testResourceInternal(resource, options, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -607,15 +608,25 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public @NotNull OperationResult testResource(
             @NotNull PrismObject<ResourceType> resource,
+            @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         OperationResult result = parentResult.subresult(OP_TEST_RESOURCE)
-                .addParam("resource", resource)
+                .addParam(OperationResult.PARAM_RESOURCE, resource)
+                .addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options)
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
                 .build();
         try {
-            return testResourceInternal(resource, task, result);
+            // The default for skipping repository updates here is "true", even if the resource has an OID.
+            // We update the repository object only if explicitly requested by the client.
+            if (options == null) {
+                options = new ResourceTestOptions().skipRepositoryUpdates(true);
+            } else if (options.isSkipRepositoryUpdates() == null) {
+                options = options.skipRepositoryUpdates(true);
+            }
+
+            return testResourceInternal(resource, options, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -625,36 +636,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     private OperationResult testResourceInternal(
-            @NotNull PrismObject<ResourceType> resource, Task task, OperationResult result)
+            @NotNull PrismObject<ResourceType> resource, @Nullable ResourceTestOptions options, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         LOGGER.trace("Starting testing {}", resource);
-        OperationResult testResult = resourceManager.testResource(resource, task, result);
+        OperationResult testResult = resourceManager.testResource(resource, options, task, result);
         LOGGER.debug("Finished testing {}, result: {}", resource, testResult.getStatus());
         return testResult;
-    }
-
-    @Override
-    public @NotNull OperationResult testPartialConfiguration(
-            @NotNull PrismObject<ResourceType> resource,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
-
-        OperationResult result = parentResult.subresult(OP_TEST_PARTIAL_CONFIGURATION)
-                .addParam("resource", resource)
-                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
-                .build();
-        try {
-            LOGGER.trace("Starting testing partial configuration for {}", resource);
-            OperationResult testResult = resourceManager.testPartialConfiguration(resource, task, result);
-            LOGGER.debug("Finished testing partial configuration for {}, result: {} ", resource, testResult.getStatus());
-            return testResult;
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.close();
-        }
     }
 
     @Override

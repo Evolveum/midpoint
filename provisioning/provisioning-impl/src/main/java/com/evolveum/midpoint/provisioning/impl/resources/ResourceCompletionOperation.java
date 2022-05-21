@@ -235,7 +235,8 @@ class ResourceCompletionOperation {
      */
     private class RealCompletion {
 
-        private final ResourceUpdater resourceUpdater = new ResourceUpdater(resource, true, beans);
+        private final ResourceUpdater resourceUpdater =
+                new ResourceUpdater(resource, true, false, beans);
 
         /** Here we store all we know about the connectors: mix of stored and fetched capabilities. */
         private final NativeConnectorsCapabilities nativeConnectorsCapabilities = NativeConnectorsCapabilities.empty();

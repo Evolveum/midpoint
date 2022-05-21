@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,8 +52,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 @Component
 public class ResourceManager {
@@ -190,38 +189,19 @@ public class ResourceManager {
      */
     public @NotNull OperationResult testResource(
             @NotNull PrismObject<ResourceType> resource,
+            @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         expandResource(resource, result);
-        return getTestConnectionOp(resource, task)
-                .executeFullTestWithCompletion(result);
+        return new ResourceTestOperation(resource, options, task, beans)
+                .execute(result);
     }
 
     private void expandResource(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         new ResourceExpansionOperation(resource.asObjectable(), beans)
                 .execute(result);
-    }
-
-    /**
-     * Test partial configuration.
-     *
-     * @param resource Resource object. Must NOT be immutable!
-     */
-    public @NotNull OperationResult testPartialConfiguration(
-            @NotNull PrismObject<ResourceType> resource,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        expandResource(resource, result);
-        return new ResourceTestOperation(
-                resource,
-                getOperationDesc(resource, false),
-                false,
-                task,
-                beans)
-                .executeBasicConnectionTest(result);
     }
 
     public @NotNull DiscoveredConfiguration discoverConfiguration(
@@ -239,24 +219,6 @@ public class ResourceManager {
                 connectorManager.getConfiguredConnectorInstance(connectorSpec, false, false, result);
         return DiscoveredConfiguration.of(
                 connector.discoverConfiguration(result));
-    }
-
-    private ResourceTestOperation getTestConnectionOp(PrismObject<ResourceType> resource, Task task)
-            throws ConfigurationException {
-        return new ResourceTestOperation(resource, getOperationDesc(resource, true), true, task, beans);
-    }
-
-    private String getOperationDesc(PrismObject<ResourceType> resource, boolean full) {
-        String name = getOrig(resource.asObjectable().getName());
-        if (full) {
-            return name != null ?
-                    "test resource " + name :
-                    "test resource";
-        } else {
-            return name != null ?
-                    "test partial configuration of resource " + name :
-                    "test partial resource configuration";
-        }
     }
 
     /**

@@ -30,6 +30,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * since 4.6 it is more a pointer into the connector definition for given resource. Individual components are determined
  * "on the fly" from the current resource object.
  *
+ * It does even support setting of selected properties in the resource.
+ *
+ * TODO consider changing the name
+ *
  * @author semancik
  */
 public abstract class ConnectorSpec {
@@ -110,6 +114,12 @@ public abstract class ConnectorSpec {
      */
     public abstract @NotNull ItemPath getCapabilitiesItemPath();
 
+    /** Sets the connector capabilities in the resource in-memory object. */
+    public abstract void setCapabilities(CapabilitiesType capabilities);
+
+    /** Sets the connector capabilities caching metadata in the resource in-memory object. */
+    public abstract void setCapabilitiesCachingMetadata(CachingMetadataType cachingMetadata);
+
     private static class Main extends ConnectorSpec {
 
         private Main(@NotNull ResourceType resource) {
@@ -139,6 +149,21 @@ public abstract class ConnectorSpec {
         @Override
         public @NotNull ItemPath getCapabilitiesItemPath() {
             return ResourceType.F_CAPABILITIES;
+        }
+
+        @Override
+        public void setCapabilities(CapabilitiesType capabilities) {
+            resource.setCapabilities(capabilities);
+        }
+
+        @Override
+        public void setCapabilitiesCachingMetadata(CachingMetadataType cachingMetadata) {
+            CapabilitiesType capabilities = resource.getCapabilities();
+            if (capabilities == null) {
+                capabilities = new CapabilitiesType();
+                resource.setCapabilities(capabilities);
+            }
+            capabilities.setCachingMetadata(cachingMetadata);
         }
 
         @Override
@@ -192,6 +217,21 @@ public abstract class ConnectorSpec {
             ItemPath path = definitionBean.asPrismContainerValue().getPath();
             checkPathValid(path);
             return path.append(ConnectorInstanceSpecificationType.F_CAPABILITIES);
+        }
+
+        @Override
+        public void setCapabilities(CapabilitiesType capabilities) {
+            definitionBean.setCapabilities(capabilities);
+        }
+
+        @Override
+        public void setCapabilitiesCachingMetadata(CachingMetadataType cachingMetadata) {
+            CapabilitiesType capabilities = definitionBean.getCapabilities();
+            if (capabilities == null) {
+                capabilities = new CapabilitiesType();
+                definitionBean.setCapabilities(capabilities);
+            }
+            capabilities.setCachingMetadata(cachingMetadata);
         }
 
         private void checkPathValid(ItemPath path) {

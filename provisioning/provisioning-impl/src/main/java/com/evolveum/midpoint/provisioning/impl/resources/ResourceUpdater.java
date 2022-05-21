@@ -50,15 +50,24 @@ class ResourceUpdater {
     @NotNull private final ResourceType resource;
 
     private final boolean updateRepository;
+    private final boolean updateInMemory;
 
     @NotNull private final CommonBeans beans;
 
-    /** Here we collect modifications that are to be applied to the resource. */
+    /**
+     * Here we collect modifications that are to be applied to the resource in repository and/or in memory.
+     * Some special modifications are applied directly (because of missing item paths - no PCV IDs).
+     */
     @NotNull private final Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
-    ResourceUpdater(@NotNull ResourceType resource, boolean updateRepository, @NotNull CommonBeans beans) {
+    ResourceUpdater(
+            @NotNull ResourceType resource,
+            boolean updateRepository,
+            boolean updateInMemory,
+            @NotNull CommonBeans beans) {
         this.resource = resource;
         this.updateRepository = updateRepository;
+        this.updateInMemory = updateInMemory;
         this.beans = beans;
     }
 
@@ -77,8 +86,6 @@ class ResourceUpdater {
         LOGGER.trace("Going to update native capabilities for {}:\n{}",
                 connectorSpec, nativeCapabilities.debugDumpLazily(1));
 
-        ItemPath itemPath = connectorSpec.getCapabilitiesItemPath();
-
         CapabilitiesType newCapabilities = new CapabilitiesType();
 
         CapabilitiesType existingCapabilities = connectorSpec.getCapabilities();
@@ -89,22 +96,32 @@ class ResourceUpdater {
         newCapabilities.setNative(CloneUtil.clone(nativeCapabilities));
         newCapabilities.setCachingMetadata(MiscSchemaUtil.generateCachingMetadata());
 
-        modifications.add(
-                PrismContext.get().deltaFor(ResourceType.class)
-                        .item(itemPath)
-                        .replace(newCapabilities.clone())
-                        .asItemDelta());
+        if (updateRepository) {
+            modifications.add(
+                    PrismContext.get().deltaFor(ResourceType.class)
+                            .item(connectorSpec.getCapabilitiesItemPath())
+                            .replace(newCapabilities.clone())
+                            .asItemDelta());
+        }
+        if (updateInMemory) {
+            connectorSpec.setCapabilities(newCapabilities.clone());
+        }
     }
 
     void updateCapabilitiesCachingMetadata(
             @NotNull ConnectorSpec connectorSpec, @NotNull CapabilitiesType existingCapabilitiesBean)
             throws SchemaException {
-        ItemPath itemPath = connectorSpec.getCapabilitiesItemPath();
-        modifications.add(
-                PrismContext.get().deltaFor(ResourceType.class)
-                        .item(itemPath.append(CapabilitiesType.F_CACHING_METADATA))
-                        .replace(MiscSchemaUtil.generateCachingMetadata())
-                        .asItemDelta());
+        CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+        if (updateRepository) {
+            modifications.add(
+                    PrismContext.get().deltaFor(ResourceType.class)
+                            .item(connectorSpec.getCapabilitiesItemPath().append(CapabilitiesType.F_CACHING_METADATA))
+                            .replace(cachingMetadata.clone())
+                            .asItemDelta());
+        }
+        if (updateInMemory) {
+            connectorSpec.setCapabilitiesCachingMetadata(cachingMetadata);
+        }
     }
 
     void updateSchema(ResourceSchema rawResourceSchema) throws SchemaException {
@@ -155,24 +172,31 @@ class ResourceUpdater {
                         .asItemDelta());
     }
 
+    // TODO fix (generalize) this method
     void markResourceUp() throws SchemaException {
-        // Update the operational state (we know we are up, as the schema was freshly loaded).
-        AvailabilityStatusType previousStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource);
-        if (previousStatus != UP) {
-            modifications.addAll(
-                    beans.operationalStateManager.createAndLogOperationalStateDeltas(
-                            previousStatus,
-                            UP,
-                            resource.toString(),
-                            "resource schema was successfully fetched",
-                            resource));
-        } else {
-            // just for sure (if the status changed in the meanwhile)
-            modifications.add(
-                    beans.operationalStateManager.createAvailabilityStatusDelta(UP));
+        if (updateRepository) {
+            // Update the operational state (we know we are up, as the schema was freshly loaded).
+            AvailabilityStatusType previousStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource);
+            if (previousStatus != UP) {
+                modifications.addAll(
+                        beans.operationalStateManager.createAndLogOperationalStateDeltas(
+                                previousStatus,
+                                UP,
+                                resource.toString(),
+                                "resource schema was successfully fetched",
+                                resource));
+            } else {
+                // just for sure (if the status changed in the meanwhile)
+                modifications.add(
+                        beans.operationalStateManager.createAvailabilityStatusDelta(UP));
+            }
+        }
+        if (updateInMemory) {
+            // currently always false
         }
     }
 
+    /** Beware, some in-memory modifications do not wait until this method is called. */
     void applyModifications(OperationResult result) throws ObjectNotFoundException, SchemaException {
         if (modifications.isEmpty()) {
             return;
