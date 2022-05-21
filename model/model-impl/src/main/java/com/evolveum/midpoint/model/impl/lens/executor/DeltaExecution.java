@@ -854,8 +854,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     /**
      * TODO clarify the role of `object` parameter and why it is used only as a second choice (after ctx.objectAny).
      */
-    private OperationProvisioningScriptsType prepareScripts(PrismObject<E> object,
-            ProvisioningOperationTypeType operation, OperationResult result)
+    private OperationProvisioningScriptsType prepareScripts(
+            PrismObject<E> object, ProvisioningOperationTypeType operation, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 

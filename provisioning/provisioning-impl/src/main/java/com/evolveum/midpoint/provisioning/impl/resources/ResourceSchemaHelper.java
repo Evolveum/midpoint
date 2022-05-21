@@ -74,8 +74,8 @@ class ResourceSchemaHelper {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             try {
                 applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
-            } catch (CommunicationException | ConfigurationException | SecurityViolationException e) {
-                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);      // fixme temporary solution
+            } catch (CommunicationException | SecurityViolationException e) {
+                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e); // fixme temporary solution
             }
         }
         newResourceDefinition.freeze();

@@ -346,6 +346,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     @NotNull ConnectorWithSchema getConnectorWithSchema(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (connectorSpec.getConnectorOid() == null) {
+            // TODO what about runtime-resolved connector OIDs (e.g. XmlImportTest.test033)?
             throw new ConfigurationException("Connector OID missing in " + connectorSpec);
         }
         String connOid = connectorSpec.getConnectorOid();
