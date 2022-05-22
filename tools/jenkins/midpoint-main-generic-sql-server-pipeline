@@ -12,7 +12,8 @@ try {
     verbose = Integer.parseInt(params.VERBOSE ?: '0')
 } catch (Exception e) { /* ignored */ }
 
-def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://localhost:1433;database=midtest' +
+// ; needs to be escaped with \ for bash below (that is \\ in Groovy string)
+def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://localhost:1433\\;database=midtest' +
     ' -Dmidpoint.repository.jdbcPassword=password' +
     ' -Dmidpoint.repository.jdbcUsername=midtest' +
     ' -Dmidpoint.repository.database=sqlserver' +
