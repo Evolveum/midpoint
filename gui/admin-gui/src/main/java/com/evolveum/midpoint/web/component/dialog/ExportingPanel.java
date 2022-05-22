@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -25,6 +23,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.visit.IVisitor;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -41,8 +41,6 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author lskublik
@@ -144,7 +142,6 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
                 exportedColumnsIndex.add(row.getModelObject().getValue());
             }
         });
-//        exportedColumnsIndex.addAll(availableData);
     }
 
     private IModel<String> getWarningMessageModel() {
@@ -185,11 +182,10 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
         columns.add(nameColumn);
 
         SelectableListDataProvider<SelectableBean<Integer>, Integer> provider =
-                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex)) {
+                new SelectableListDataProvider<>(getPageBase(), Model.ofList(exportableColumnIndex)) {
 
                     @Override
                     public Iterator<SelectableBean<Integer>> internalIterator(long first, long count) {
-
                         if (getAvailableData().isEmpty()) {
                             return super.internalIterator(first, count);
                         } else {
@@ -198,40 +194,35 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
                     }
                 };
 
-        BoxedTablePanel<SelectableBean<Integer>> table =
-                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns) {
-                    private static final long serialVersionUID = 1L;
+        BoxedTablePanel<SelectableBean<Integer>> table = new BoxedTablePanel<>(id, provider, columns) {
 
-                    @Override
-                    protected WebMarkupContainer createHeader(String headerId) {
-                        return new WebMarkupContainer(headerId);
-                    }
+            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public String getAdditionalBoxCssClasses() {
-                        return null;
-                    }
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return null;
+            }
 
-                    @Override
-                    protected WebMarkupContainer createButtonToolbar(String id) {
-                        return new WebMarkupContainer(id);
-                    }
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                return new WebMarkupContainer(id);
+            }
 
-                    @Override
-                    protected boolean hideFooterIfSinglePage() {
-                        return true;
-                    }
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return true;
+            }
 
-                    @Override
-                    public int getAutoRefreshInterval() {
-                        return 0;
-                    }
+            @Override
+            public int getAutoRefreshInterval() {
+                return 0;
+            }
 
-                    @Override
-                    public boolean isAutoRefreshEnabled() {
-                        return false;
-                    }
-                };
+            @Override
+            public boolean isAutoRefreshEnabled() {
+                return false;
+            }
+        };
         table.setOutputMarkupId(true);
 
         return table;
