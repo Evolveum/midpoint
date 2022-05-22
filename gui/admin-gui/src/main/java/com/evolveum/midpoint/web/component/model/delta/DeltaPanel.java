@@ -7,14 +7,16 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class DeltaPanel extends BasePanel<DeltaDto> {
 
@@ -34,23 +36,11 @@ public class DeltaPanel extends BasePanel<DeltaDto> {
     }
 
     protected void initLayout() {
-
         Label changeType = new Label(ID_CHANGE_TYPE, new PropertyModel<String>(getModel(), DeltaDto.F_CHANGE_TYPE));
         add(changeType);
 
-        VisibleEnableBehaviour isAdd = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getModel().getObject().isAdd();
-            }
-        };
-
-        VisibleEnableBehaviour isNotAdd = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !getModel().getObject().isAdd();
-            }
-        };
+        VisibleBehaviour isAdd = new VisibleBehaviour(() -> getModel().getObject().isAdd());
+        VisibleEnableBehaviour isNotAdd = new VisibleBehaviour(() -> !getModel().getObject().isAdd());
 
         Label oidLabel = new Label(ID_OID_LABEL, new ResourceModel("DeltaPanel.label.oid"));
         oidLabel.add(isNotAdd);
@@ -59,12 +49,7 @@ public class DeltaPanel extends BasePanel<DeltaDto> {
         oid.add(isNotAdd);
         add(oid);
 
-        VisibleEnableBehaviour never = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return false;
-            }
-        };
+        VisibleBehaviour never = new VisibleBehaviour(() -> false);
 
         Label objectToAddLabel = new Label(ID_OBJECT_TO_ADD_LABEL, new ResourceModel("DeltaPanel.label.objectToAdd"));
         //objectToAddLabel.add(isAdd);
@@ -73,12 +58,11 @@ public class DeltaPanel extends BasePanel<DeltaDto> {
 
         ContainerValuePanel objectToAddPanel =
                 new ContainerValuePanel(ID_OBJECT_TO_ADD,
-                    new PropertyModel<>(getModel(), DeltaDto.F_OBJECT_TO_ADD));
+                        new PropertyModel<>(getModel(), DeltaDto.F_OBJECT_TO_ADD));
         objectToAddPanel.add(isAdd);
         add(objectToAddPanel);
 
         Label modificationsLabel = new Label(ID_MODIFICATIONS_LABEL, new ResourceModel("DeltaPanel.label.modifications"));
-        //modificationsLabel.add(isNotAdd);
         modificationsLabel.add(never);
         add(modificationsLabel);
 
