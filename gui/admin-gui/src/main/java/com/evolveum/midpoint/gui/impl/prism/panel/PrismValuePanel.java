@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
     protected static final String ID_VALUE_FORM = "valueForm";
     private static final String ID_REMOVE_BUTTON = "removeButton";
@@ -79,10 +79,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private WebMarkupContainer createHeaderPanel() {
-
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
 
-        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -99,7 +98,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
         buttonContainer.add(removeButton);
 
-        AjaxLink<Void> showMetadataButton = new AjaxLink<Void>(ID_SHOW_METADATA) {
+        AjaxLink<Void> showMetadataButton = new AjaxLink<>(ID_SHOW_METADATA) {
             private static final long serialVersionUID = 1L;
 
             @Override
