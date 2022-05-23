@@ -187,22 +187,26 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         if (searchConfig.getAvailableFilter() == null) {
             searchConfig.beginAvailableFilter();
         }
-        searchConfig.getAvailableFilter().add(availableFilter);
 
         OperationResult result = new OperationResult("save search to user");
         try {
             Object[] path;
+            ObjectDelta<UserType> userDelta = null;
             if (newObjectListView) {
+                searchConfig.getAvailableFilter().add(availableFilter);
                 path = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
                         GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW};
+                userDelta = getPrismContext().deltaFor(UserType.class)
+                        .item(path)
+                        .add(view).asObjectDelta(principalFocus.getOid());
             } else {
                 path = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
                         GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW, view.getId(), GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION,
                         SearchBoxConfigurationType.F_AVAILABLE_FILTER};
+                userDelta = getPrismContext().deltaFor(UserType.class)
+                        .item(path)
+                        .add(availableFilter).asObjectDelta(principalFocus.getOid());
             }
-            ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
-                    .item(path)
-                    .add(view).asObjectDelta(principalFocus.getOid());
             WebModelServiceUtils.save(userDelta, result, getPageBase().createSimpleTask("task"), getPageBase());
         } catch (Exception e) {
             LOGGER.error("Unable to save a filter to user, ", e.getLocalizedMessage());
