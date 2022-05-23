@@ -21,18 +21,19 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     private final ResourceCompletionMode resourceCompletionMode;
 
     /**
-     * If `true`, object in repository is not updated (not even by state change messages).
+     * If `false`, object in repository is not updated (not even by state change messages).
      *
-     * The default is `false` for resources with non-null OID.
+     * The default is `true` for resources with non-null OID. For resources with no OID, this flag is ignored,
+     * as they cannot be updated in repository anyway.
      */
-    private final Boolean skipRepositoryUpdates;
+    private final Boolean updateInRepository;
 
     /**
-     * If `true`, object in memory is not updated (not even by state change messages).
+     * If `false`, object in memory is not updated (not even by state change messages).
      *
-     * The default is `false` for resources with null OID.
+     * The default is `true` for resources with null OID.
      */
-    private final Boolean skipInMemoryUpdates;
+    private final Boolean updateInMemory;
 
     public static final ResourceTestOptions DEFAULT = new ResourceTestOptions();
 
@@ -43,12 +44,12 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     public ResourceTestOptions(
             TestMode testMode,
             ResourceCompletionMode resourceCompletionMode,
-            Boolean skipRepositoryUpdates,
-            Boolean skipInMemoryUpdates) {
+            Boolean updateInRepository,
+            Boolean updateInMemory) {
         this.testMode = testMode;
         this.resourceCompletionMode = resourceCompletionMode;
-        this.skipRepositoryUpdates = skipRepositoryUpdates;
-        this.skipInMemoryUpdates = skipInMemoryUpdates;
+        this.updateInRepository = updateInRepository;
+        this.updateInMemory = updateInMemory;
     }
 
     public TestMode getTestMode() {
@@ -56,7 +57,7 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     }
 
     public ResourceTestOptions testMode(TestMode testMode) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, skipRepositoryUpdates, skipInMemoryUpdates);
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
     }
 
     public static ResourceTestOptions basic() {
@@ -72,25 +73,27 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     }
 
     public ResourceTestOptions resourceCompletionMode(ResourceCompletionMode resourceCompletionMode) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, skipRepositoryUpdates, skipInMemoryUpdates);
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
     }
 
-    public Boolean isSkipRepositoryUpdates() {
-        return skipRepositoryUpdates;
+    public Boolean isUpdateInRepository() {
+        return updateInRepository;
     }
 
-    public ResourceTestOptions skipRepositoryUpdates(Boolean skipRepositoryUpdates) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, skipRepositoryUpdates, skipInMemoryUpdates);
+    public ResourceTestOptions updateInRepository(Boolean updateInRepository) {
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
     }
 
-    public Boolean isSkipInMemoryUpdates() {
-        return skipInMemoryUpdates;
+    public Boolean isUpdateInMemory() {
+        return updateInMemory;
     }
 
-    public ResourceTestOptions skipInMemoryUpdates(Boolean skipInMemoryUpdates) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, skipRepositoryUpdates, skipInMemoryUpdates);
+    public ResourceTestOptions updateInMemory(Boolean updateInMemory) {
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
     }
 
+    // Note: the object is immutable, so actually there's no need to use this method.
+    // TODO or should it simply return "this"?
     @Override
     public ResourceTestOptions clone() {
         try {
@@ -112,8 +115,8 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     public void shortDump(StringBuilder sb) {
         appendVal(sb, "testMode", testMode);
         appendVal(sb, "resourceCompletionMode", resourceCompletionMode);
-        appendFlag(sb, "skipRepositoryUpdates", skipRepositoryUpdates);
-        appendFlag(sb, "skipInMemoryUpdates", skipInMemoryUpdates);
+        appendFlag(sb, "updateInRepository", updateInRepository);
+        appendFlag(sb, "updateInMemory", updateInMemory);
         removeLastComma(sb);
     }
 
@@ -121,8 +124,8 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     public void checkAllValuesSet() {
         stateCheck(testMode != null, "Test mode not set in %s", this);
         stateCheck(resourceCompletionMode != null, "Completion mode not set in %s", this);
-        stateCheck(skipRepositoryUpdates != null, "Repository updates not set in %s", this);
-        stateCheck(skipInMemoryUpdates != null, "In memory updates not set in %s", this);
+        stateCheck(updateInRepository != null, "Repository updates not set in %s", this);
+        stateCheck(updateInMemory != null, "In memory updates not set in %s", this);
     }
 
     public enum TestMode {

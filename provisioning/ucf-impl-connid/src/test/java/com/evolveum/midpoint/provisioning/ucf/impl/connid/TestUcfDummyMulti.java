@@ -86,7 +86,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         displayDumpable("Configuration container", configContainer);
 
         // WHEN
-        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), true, result);
+        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
 
         // THEN
         result.computeStatus();

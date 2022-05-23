@@ -91,15 +91,24 @@ public interface ConnectorInstance {
      * Operations cannot be interrupted or refused due to missing configuration.
      *
      * @param configuration new connector configuration (prism container value)
-     * @param generateObjectClasses the list of the object classes which should be generated in schema
-     * (null or empty means "all")
      */
     void configure(
             @NotNull PrismContainerValue<?> configuration,
-            @Nullable List<QName> generateObjectClasses,
-            boolean isCaching,
+            @Nullable ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+
+    default void configure(
+            @NotNull PrismContainerValue<?> configuration,
+            @Nullable List<QName> generateObjectClasses,
+            @NotNull OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
+        configure(
+                configuration,
+                new ConnectorConfigurationOptions()
+                        .generateObjectClasses(generateObjectClasses),
+                parentResult);
+    }
 
     ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
@@ -140,6 +149,8 @@ public interface ConnectorInstance {
      * The set of capabilities may depend on the connector configuration (e.g. if a "disable" or password attribute
      * was specified in the configuration or not).
      *
+     * TODO currently - for ConnId - this method also fetches the schema ... are we OK with this?
+     *
      * - The `null` return value means the capabilities cannot be determined.
      * - Empty {@link CapabilityCollectionType} return value means there are no native capabilities.
      */
@@ -154,6 +165,9 @@ public interface ConnectorInstance {
      * schema.
      *
      * It may return null. Such case means that the schema cannot be determined.
+     *
+     * The method may return a schema that was fetched previously, e.g. if the fetch operation was executed
+     * during connector initialization.
      *
      * @see PrismSchema
      *

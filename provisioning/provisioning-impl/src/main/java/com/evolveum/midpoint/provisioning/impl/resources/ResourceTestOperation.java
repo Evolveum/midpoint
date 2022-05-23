@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -126,7 +127,7 @@ class ResourceTestOperation {
         }
 
         ResourceCompletionMode completionMode = options.getResourceCompletionMode();
-        Boolean skipRepositoryUpdates = options.isSkipRepositoryUpdates();
+        Boolean isUpdateInRepository = options.isUpdateInRepository();
 
         if (options.getTestMode() == null) {
             options = options.testMode(FULL);
@@ -136,30 +137,30 @@ class ResourceTestOperation {
 
             // Note that some defaults may be set in upper layers (ProvisioningServiceImpl).
 
-            boolean skipRepositoryUpdatesDefault;
-            boolean skipInMemoryUpdatesDefault;
+            boolean updateInRepositoryDefault;
+            boolean updateInMemoryDefault;
             if (resource.getOid() == null) {
-                skipRepositoryUpdatesDefault = true; // Actually, for non-OID resources, the repo is never updated
-                skipInMemoryUpdatesDefault = false; // TODO decide about this
+                updateInRepositoryDefault = false; // Actually, for non-OID resources, the repo is never updated
+                updateInMemoryDefault = true; // TODO decide about this
             } else {
-                skipRepositoryUpdatesDefault = false;
-                skipInMemoryUpdatesDefault = true; // This is the legacy behavior
+                updateInRepositoryDefault = true;
+                updateInMemoryDefault = false; // This is the legacy behavior
             }
 
-            if (options.isSkipRepositoryUpdates() == null) {
-                options = options.skipRepositoryUpdates(skipRepositoryUpdatesDefault);
+            if (options.isUpdateInRepository() == null) {
+                options = options.updateInRepository(updateInRepositoryDefault);
             }
 
-            if (options.isSkipInMemoryUpdates() == null) {
-                options = options.skipInMemoryUpdates(skipInMemoryUpdatesDefault);
+            if (options.isUpdateInMemory() == null) {
+                options = options.updateInMemory(updateInMemoryDefault);
             }
 
             // Completion mode can be arbitrary; so just set the defaults
             if (options.getResourceCompletionMode() == null) {
-                if (options.isSkipRepositoryUpdates()) {
-                    options = options.resourceCompletionMode(ResourceCompletionMode.NEVER); // TODO decide about this
-                } else {
+                if (options.isUpdateInRepository()) {
                     options = options.resourceCompletionMode(ResourceCompletionMode.IF_NOT_COMPLETE);
+                } else {
+                    options = options.resourceCompletionMode(ResourceCompletionMode.NEVER); // TODO decide about this
                 }
             }
 
@@ -171,13 +172,13 @@ class ResourceTestOperation {
             options = options.resourceCompletionMode(ResourceCompletionMode.NEVER);
 
             // Never update the repository!
-            argCheck(!Boolean.FALSE.equals(skipRepositoryUpdates),
-                    "Repository updates are not supported for basic test: %s", skipRepositoryUpdates);
-            options = options.skipRepositoryUpdates(true);
+            argCheck(!Boolean.TRUE.equals(isUpdateInRepository),
+                    "Repository updates are not supported for basic test: %s", isUpdateInRepository);
+            options = options.updateInRepository(false);
 
             // In-memory updates can be on or off, it does not matter here. Just set the default.
-            if (options.isSkipInMemoryUpdates() == null) {
-                options = options.skipInMemoryUpdates(true);
+            if (options.isUpdateInMemory() == null) {
+                options = options.updateInMemory(true);
             }
         }
 
@@ -488,8 +489,9 @@ class ResourceTestOperation {
                 InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
                 connector.configure(
                         configuration,
-                        ResourceTypeUtil.getSchemaGenerationConstraints(resource),
-                        options.isFullMode(),
+                        new ConnectorConfigurationOptions()
+                                .generateObjectClasses(ResourceTypeUtil.getSchemaGenerationConstraints(resource))
+                                .doNotCache(!options.isFullMode()),
                         result);
 
                 // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
@@ -635,11 +637,11 @@ class ResourceTestOperation {
     }
 
     private boolean shouldUpdateInMemory() {
-        return !options.isSkipInMemoryUpdates();
+        return options.isUpdateInMemory();
     }
 
     private boolean shouldUpdateRepository() {
-        return !options.isSkipRepositoryUpdates()
+        return options.isUpdateInRepository()
                 && isResourceInRepository();
     }
 

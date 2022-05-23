@@ -618,12 +618,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
                 .build();
         try {
-            // The default for skipping repository updates here is "true", even if the resource has an OID.
+            // The default for doing repository updates here is "false", even if the resource has an OID.
             // We update the repository object only if explicitly requested by the client.
             if (options == null) {
-                options = new ResourceTestOptions().skipRepositoryUpdates(true);
-            } else if (options.isSkipRepositoryUpdates() == null) {
-                options = options.skipRepositoryUpdates(true);
+                options = new ResourceTestOptions().updateInRepository(false);
+            } else if (options.isUpdateInRepository() == null) {
+                options = options.updateInRepository(false);
             }
 
             return testResourceInternal(resource, options, task, result);

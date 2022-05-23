@@ -130,8 +130,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     private String instanceName; // resource name
     private boolean caseIgnoreAttributeNames = false;
 
-    private boolean isCaching = true;
-
     ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
             PrismSchema connectorSchema, Protector protector, LocalizationService localizationService) {
         this.connectorInfo = connectorInfo;
@@ -176,8 +174,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public synchronized void configure(
             @NotNull PrismContainerValue<?> configurationOriginal,
-            @Nullable List<QName> generateObjectClasses,
-            boolean isCaching,
+            @Nullable ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
@@ -186,7 +183,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDumpLazily(1));
 
         try {
-            this.generateObjectClasses = generateObjectClasses;
+            generateObjectClasses = options != null ? options.getGenerateObjectClasses() : null;
             // Get default configuration for the connector. This is important,
             // as it contains types of connector configuration properties.
 
@@ -195,10 +192,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismContainerValue<?> configurationCloned = configurationOriginal.clone();
             configurationCloned.applyDefinition(getConfigurationContainerDefinition());
 
-            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
+            ConnIdConfigurationTransformer configTransformer =
+                    new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector, options);
             // Transform XML configuration from the resource to the ConnId connector configuration
             try {
-                apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned, isCaching);
+                apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
             } catch (SchemaException e) {
                 result.recordFatalError(e.getMessage(), e);
                 throw e;
@@ -1765,7 +1763,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             Map<String, SuggestedValues> suggestions = connIdConnectorFacade.discoverConfiguration();
 
             ConnIdConfigurationTransformer configTransformer =
-                    new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
+                    new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector, null);
 
             // Transform suggested configuration from the ConnId connector configuration to prism properties
             return configTransformer.transformSuggestedConfiguration(suggestions);

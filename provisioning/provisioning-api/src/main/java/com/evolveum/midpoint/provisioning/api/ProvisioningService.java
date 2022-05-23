@@ -474,8 +474,8 @@ public interface ProvisioningService {
      *
      * 1. The resource object must be mutable.
      * 2. Normally it is expected that it will not have OID. But it may have one. The resource is _not_ updated
-     * in the repository, though, unless {@link ResourceTestOptions#skipRepositoryUpdates(Boolean)} is explicitly set
-     * to {@link Boolean#FALSE}.
+     * in the repository, though, unless {@link ResourceTestOptions#updateInRepository(Boolean)} is explicitly set
+     * to {@link Boolean#TRUE}.
      *
      * @param resource resource to test
      * @return results of executed tests

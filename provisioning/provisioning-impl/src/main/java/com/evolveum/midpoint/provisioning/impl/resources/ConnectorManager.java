@@ -23,6 +23,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -44,10 +45,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorDiscoveryListener;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cache;
@@ -315,8 +312,9 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
             connector.configure(
                     connectorConfigurationVal,
-                    ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()),
-                    isCaching,
+                    new ConnectorConfigurationOptions()
+                            .generateObjectClasses(ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()))
+                            .doNotCache(!isCaching),
                     result);
 
             ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(connectorSpec.getResource());
