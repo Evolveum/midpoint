@@ -528,13 +528,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private void applyFilterToBasicMode(List<SearchItemType> items) {
         getModelObject().getItems().forEach(item -> item.setVisible(false));
+        getModelObject().setSearchMode(SearchBoxModeType.BASIC);
         items.forEach(searchItem -> {
-            ItemPath path = searchItem.getPath().getItemPath();
-            if (searchItem.getFilter() instanceof PropertyValueFilter) {
-                List<? extends PrismValue> values = ((PropertyValueFilter) searchItem.getFilter()).getValues();
-                setSearchItemValue(path, values);
-            }
-            }
+                    applySearchItem(searchItem);
+                }
         );
     }
 
@@ -542,29 +539,40 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     }
 
-    private void setSearchItemValue(ItemPath path, List<? extends PrismValue> values) {
-        if (path == null) {
-            return;
-        }
-        PropertySearchItemWrapper item = null;
-        Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
-        while (it.hasNext()) {
-            AbstractSearchItemWrapper itemWrapper = it.next();
-            if (itemWrapper instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper<?>) itemWrapper).getPath().equivalent(path)) {
-                item = (PropertySearchItemWrapper) itemWrapper;
-                break;
+    private void applySearchItem(SearchItemType searchItem) {
+        try {
+            ItemPath path = searchItem.getPath().getItemPath();
+            if (path == null) {
+                return;
             }
-        }
-        if (item == null) {
-            return;
-        }
-        item.setVisible(true);
-        if (values != null && values.size() > 0) {//todo can it be there multiple values?
-            if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
-                item.setValue(new SearchValue(values.get(0).getRealValue().toString()));
-            } else {
-                item.setValue(new SearchValue(values.get(0).getRealValue()));
+            PropertySearchItemWrapper item = null;
+            Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
+            while (it.hasNext()) {
+                AbstractSearchItemWrapper itemWrapper = it.next();
+                if (itemWrapper instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper<?>) itemWrapper).getPath().equivalent(path)) {
+                    item = (PropertySearchItemWrapper) itemWrapper;
+                    break;
+                }
             }
+            if (item == null) {
+                return;
+            }
+            item.setVisible(true);
+
+            ObjectFilter filter = getPageBase().getQueryConverter().parseFilter(searchItem.getFilter(), getModelObject().getTypeClass());
+
+            if (filter instanceof ValueFilter) {
+                List<? extends PrismValue> values = ((ValueFilter) filter).getValues();
+                if (values != null && values.size() > 0) {//todo can it be there multiple values?
+                    if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
+                        item.setValue(new SearchValue(values.get(0).getRealValue().toString()));
+                    } else {
+                        item.setValue(new SearchValue(values.get(0).getRealValue()));
+                    }
+                }
+            }
+        } catch (SchemaException e) {
+            LOG.error("Unable to parse filter {}, {}", searchItem.getFilter(), e.getLocalizedMessage());
         }
     }
 
