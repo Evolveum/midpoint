@@ -29,10 +29,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -655,42 +651,6 @@ public class ResourceTypeUtil {
         return consistency != null && Boolean.TRUE.equals(consistency.isValidateSchema());
     }
 
-    // TODO: maybe later move to ResourceSchema?
-    public static void validateSchema(ResourceSchema resourceSchema, PrismObject<ResourceType> resource) throws SchemaException {
-
-        Set<QName> objectClassNames = new HashSet<>();
-
-        for (ResourceObjectClassDefinition objectClassDefinition : resourceSchema.getObjectClassDefinitions()) {
-            QName typeName = objectClassDefinition.getTypeName();
-            if (objectClassNames.contains(typeName)) {
-                throw new SchemaException("Duplicate definition of object class " + typeName + " in resource schema of " + resource);
-            }
-            objectClassNames.add(typeName);
-
-            validateObjectClassDefinition(objectClassDefinition, resource);
-        }
-    }
-
-    // TODO move to ResourceObjectDefinition?
-    public static void validateObjectClassDefinition(ResourceObjectDefinition objectClassDefinition,
-            PrismObject<ResourceType> resource) throws SchemaException {
-        Set<QName> attributeNames = new HashSet<>();
-        for (ResourceAttributeDefinition<?> attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
-            QName attrName = attributeDefinition.getItemName();
-            if (attributeNames.contains(attrName)) {
-                throw new SchemaException("Duplicate definition of attribute " + attrName + " in object class " + objectClassDefinition.getTypeName() + " in resource schema of " + resource);
-            }
-            attributeNames.add(attrName);
-        }
-
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = objectClassDefinition.getPrimaryIdentifiers();
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = objectClassDefinition.getSecondaryIdentifiers();
-
-        if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
-            throw new SchemaException("No identifiers in definition of object class " + objectClassDefinition.getTypeName() + " in resource schema of " + resource);
-        }
-    }
-
     public static RecordPendingOperationsType getRecordPendingOperations(ResourceType resourceType) {
         ResourceConsistencyType consistencyType = resourceType.getConsistency();
         if (consistencyType == null) {
@@ -776,5 +736,18 @@ public class ResourceTypeUtil {
 
         ObjectSynchronizationSorterType sorter = synchronization.getObjectSynchronizationSorter();
         return sorter != null ? sorter.getExpression() : null;
+    }
+
+    public static boolean isComplete(@NotNull ResourceType resource) {
+        return hasSchema(resource) && hasCapabilitiesCached(resource);
+    }
+
+    public static boolean hasCapabilitiesCached(ResourceType resource) {
+        CapabilitiesType capabilities = resource.getCapabilities();
+        return capabilities != null && capabilities.getCachingMetadata() != null;
+    }
+
+    public static boolean hasSchema(ResourceType resource) {
+        return getResourceXsdSchema(resource) != null;
     }
 }

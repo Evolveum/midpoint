@@ -659,7 +659,7 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         OperationResult testResult = null;
         try {
-            testResult = modelService.testResource(resourceOid, task);
+            testResult = modelService.testResource(resourceOid, task, result);
             response = createResponse(HttpStatus.OK, testResult, result);
         } catch (Exception ex) {
             response = handleException(result, ex);

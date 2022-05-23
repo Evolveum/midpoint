@@ -338,11 +338,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
      */
     @Test
     public void test001TestConnectionOpenDJ() throws Exception {
+        Task task = getTestTask();
+
         given();
         assertNoRepoThreadLocalCache();
 
         when();
-        OperationResult result = modelService.testResource(RESOURCE_OPENDJ_OID, getTestTask());
+        OperationResult result = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
 
         then();
         assertNoRepoThreadLocalCache();
@@ -360,11 +362,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
         PrismObject<ResourceType> openDjResourceProvisioning = provisioningService.getObject(
-                ResourceType.class, RESOURCE_OPENDJ_OID, null, getTestTask(), opResult);
+                ResourceType.class, RESOURCE_OPENDJ_OID, null, task, opResult);
         display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioning);
 
         PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class,
-                RESOURCE_OPENDJ_OID, null, getTestTask(), opResult);
+                RESOURCE_OPENDJ_OID, null, task, opResult);
         display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
         checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
@@ -2810,9 +2812,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     /** Prepares OpenDJ resource for tests that we want to run standalone. (Contains the required core of test001.) */
     @SuppressWarnings("unused") // enabled on demand
-    private void prepareOpenDjResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void prepareOpenDjResource(Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         assertSuccess(
-                modelService.testResource(RESOURCE_OPENDJ_OID, task));
+                modelService.testResource(RESOURCE_OPENDJ_OID, task, result));
         fetchResourceObject(result);
     }
 

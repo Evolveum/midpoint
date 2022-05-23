@@ -30,7 +30,6 @@ import com.google.common.collect.Lists;
 
 public class DirectoryScanningInfoManager implements ConnectorInfoManager {
 
-
     private static final Trace LOGGER = TraceManager.getTrace(DirectoryScanningInfoManager.class);
 
     private final ConnectorInfoManagerFactory factory;
@@ -42,7 +41,6 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
     private final ConnectorFactoryConnIdImpl ucfFactory;
 
     private static final long DEFAULT_POLL_INTERVAL = TimeUnit.SECONDS.toMillis(60);
-
 
     public DirectoryScanningInfoManager(ConnectorFactoryConnIdImpl factory, long pollInterval) {
         this.factory = factory.connectorInfoManagerFactory;

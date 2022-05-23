@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.PrismProperty;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConne
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -62,6 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * @author Radovan Semancik
  *
@@ -70,7 +72,8 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
 public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware,
         CaseEventDispatcherAware, TaskManagerAware {
 
-    private static final String OPERATION_QUERY_CASE = ManualConnectorInstance.class.getName() + ".queryCase";
+    private static final String OP_QUERY_CASE = ManualConnectorInstance.class.getName() + ".queryCase";
+    private static final String OP_TEST = ManualConnectorInstance.class.getName() + ".test";
 
     private static final Trace LOGGER = TraceManager.getTrace(ManualConnectorInstance.class);
 
@@ -294,7 +297,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @Override
     public OperationResultStatus queryOperationStatus(String asynchronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        OperationResult result = parentResult.createMinorSubresult(OPERATION_QUERY_CASE);
+        OperationResult result = parentResult.createMinorSubresult(OP_QUERY_CASE);
 
         InternalMonitor.recordConnectorOperation("queryOperationStatus");
 
@@ -347,21 +350,19 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @Override
     public void test(OperationResult parentResult) {
-        OperationResult connectionResult = parentResult
-                .createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-        connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
-        connectionResult.addContext("connector", getConnectorObject().toString());
-
-        if (repositoryService == null) {
-            connectionResult.recordFatalError("No repository service");
-            return;
+        OperationResult result = parentResult.createSubresult(OP_TEST);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
+        result.addContext("connector", getConnectorObject().toString());
+        try {
+            stateCheck(repositoryService != null, "No repository service");
+            if (InternalsConfig.isSanityChecks()) {
+                stateCheck(connected, "Attempt to test non-connected connector instance %s", this);
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+        } finally {
+            result.close();
         }
-
-        if (!connected && InternalsConfig.isSanityChecks()) {
-            throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
-        }
-
-        connectionResult.recordSuccess();
     }
 
     @Override
@@ -370,7 +371,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
+    public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
         return Collections.emptySet();
     }
 

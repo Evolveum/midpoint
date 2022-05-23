@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -87,7 +86,7 @@ public class TestEnergy extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
-        assertSuccess(modelService.testResource(RESOURCE_AD.oid, task));
+        assertSuccess(modelService.testResource(RESOURCE_AD.oid, task, task.getResult()));
     }
 
     @Test

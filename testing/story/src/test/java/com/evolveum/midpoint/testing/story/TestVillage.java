@@ -264,10 +264,10 @@ public class TestVillage extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_SOURCE_OID, task);
+        OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_SOURCE_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultHr);
 
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();

@@ -32,6 +32,8 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
+
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNullAttribute extends AbstractStoryTest {
@@ -78,6 +80,7 @@ public class TestNullAttribute extends AbstractStoryTest {
         dummyResourceCtl.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, String.class, false, false);
         dummyResourceCtl.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP, String.class, false, false);
         dummyResourceCtl.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON, String.class, false, false);
+        dummyResourceCtl.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
 
         dummyResource = dummyResourceCtl.getDummyResource();
         resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE,
@@ -108,7 +111,7 @@ public class TestNullAttribute extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
         TestUtil.assertSuccess(testResult);
 
         PrismObjectDefinition<UserType> userDefinition = getUserDefinition();

@@ -86,7 +86,7 @@ public class TestLargeGroups extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
         TestUtil.assertSuccess(testResult);
     }
 

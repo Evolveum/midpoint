@@ -139,7 +139,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
         dumpOrgTree();

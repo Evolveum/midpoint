@@ -145,7 +145,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN.oid, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN.oid, task, task.getResult());
 
         then();
         TestUtil.assertSuccess(testResult);

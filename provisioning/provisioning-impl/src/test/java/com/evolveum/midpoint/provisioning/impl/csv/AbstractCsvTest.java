@@ -139,7 +139,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
-        OperationResult testResult = provisioningService.testResource(getResourceOid(), task);
+        OperationResult testResult = provisioningService.testResource(getResourceOid(), task, result);
 
         // THEN
         display("Test result", testResult);

@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -75,7 +74,7 @@ public interface AdTestMixin extends InfraTestMixin {
             throws SchemaException, ConfigurationException {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         displayDumpable("Resource schema", resourceSchema);
-        ResourceTypeUtil.validateSchema(resourceSchema, resource);
+        resourceSchema.validate();
         return assertAdSchema(resource, accountObjectClass);
     }
 
@@ -83,7 +82,7 @@ public interface AdTestMixin extends InfraTestMixin {
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException, ConfigurationException {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         displayDumpable("Refined schema", refinedSchema);
-        refinedSchema.validate(resource);
+        refinedSchema.validate();
         return assertAdSchema(resource, accountObjectClass);
     }
 
@@ -181,7 +180,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName)
             throws SchemaException, ConfigurationException {
 
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
         assertExchangeSchema(resourceSchema, accountObjectClassQName);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);

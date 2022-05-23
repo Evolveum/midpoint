@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -383,6 +385,14 @@ public interface ResourceObjectDefinition
     //endregion
 
     //region Diagnostics and administration
+
+    /**
+     * Executes some basic checks on this object type.
+     * Moved from `validateObjectClassDefinition()` method in {@link ResourceTypeUtil}.
+     *
+     * TODO review this method
+     */
+    void validate() throws SchemaException;
 
     /**
      * Return a human readable name of this class suitable for logs.

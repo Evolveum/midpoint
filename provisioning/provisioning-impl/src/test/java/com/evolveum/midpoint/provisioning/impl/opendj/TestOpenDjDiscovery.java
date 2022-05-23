@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext
 public class TestOpenDjDiscovery extends AbstractOpenDjTest {
 
-    private Collection<PrismProperty<Object>> discoveredProperties;
+    private Collection<PrismProperty<?>> discoveredProperties;
 
     @BeforeClass
     public void startLdap() throws Exception {
@@ -79,10 +79,12 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
     @Test
     public void test010TestPartialConfiguration() throws Exception {
         Task task = getTestTask();
-        PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, task.getResult());
+        OperationResult result = task.getResult();
+        PrismObject<ResourceType> resource =
+                provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, task.getResult());
 
         when();
-        OperationResult testResult = provisioningService.testPartialConfigurationResource(resource, task);
+        OperationResult testResult = provisioningService.testPartialConfiguration(resource, task, result);
 
         then();
         display("Test connection result", testResult);
@@ -95,12 +97,14 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, task.getResult());
 
         when();
-        discoveredProperties = provisioningService.discoverConfiguration(resource, task.getResult());
+        discoveredProperties =
+                provisioningService.discoverConfiguration(resource, task.getResult())
+                        .getDiscoveredProperties();
 
         then();
         display("Discovered properties", discoveredProperties);
 
-        for (PrismProperty<Object> discoveredProperty : discoveredProperties) {
+        for (PrismProperty<?> discoveredProperty : discoveredProperties) {
             if (discoveredProperty.getElementName().getLocalPart().equals("baseContext")) {
                 assertEquals("Wrong discovered base context", openDJController.getSuffix(), discoveredProperty.getRealValue());
             }
@@ -118,7 +122,7 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
 
         then();
         display("Test connection result", testResult);
@@ -136,7 +140,7 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         Task task = getTestTask();
 
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        for (PrismProperty<Object> discoveredProperty : discoveredProperties) {
+        for (PrismProperty<?> discoveredProperty : discoveredProperties) {
             ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
                     SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
                     discoveredProperty.getElementName());
@@ -165,7 +169,7 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
 
         then();
         display("Test connection result", testResult);

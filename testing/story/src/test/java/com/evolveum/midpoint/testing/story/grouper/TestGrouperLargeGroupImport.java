@@ -49,8 +49,8 @@ public class TestGrouperLargeGroupImport extends AbstractGrouperTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        assertSuccess(modelService.testResource(RESOURCE_LDAP.oid, task));
-        assertSuccess(modelService.testResource(RESOURCE_GROUPER.oid, task));
+        assertSuccess(modelService.testResource(RESOURCE_LDAP.oid, task, task.getResult()));
+        assertSuccess(modelService.testResource(RESOURCE_GROUPER.oid, task, task.getResult()));
     }
 
     @Test

@@ -18,6 +18,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -625,15 +625,15 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
     }
 
-    protected void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+    protected void assertTestResourceSuccess(OperationResult testResult, TestResourceOpNames operation) {
         IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
     }
 
-    protected void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+    protected void assertTestResourceFailure(OperationResult testResult, TestResourceOpNames operation) {
         IntegrationTestTools.assertTestResourceFailure(testResult, operation);
     }
 
-    protected void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+    protected void assertTestResourceNotApplicable(OperationResult testResult, TestResourceOpNames operation) {
         IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
     }
 

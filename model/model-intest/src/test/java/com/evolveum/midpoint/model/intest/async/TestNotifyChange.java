@@ -86,7 +86,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
+        OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultGrouper);
     }
 

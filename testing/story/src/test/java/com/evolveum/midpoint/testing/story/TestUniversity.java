@@ -140,10 +140,10 @@ public class TestUniversity extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
+        OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultHr);
 
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false);

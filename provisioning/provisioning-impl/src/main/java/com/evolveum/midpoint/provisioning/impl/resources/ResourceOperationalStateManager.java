@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -47,9 +46,12 @@ public class ResourceOperationalStateManager {
     @Autowired private TaskManager taskManager;
     @Autowired private Clock clock;
 
-    List<ItemDelta<?, ?>> createAndLogOperationalStateDeltas(AvailabilityStatusType previousStatus,
-            AvailabilityStatusType newStatus, String resourceDesc, String statusChangeReason,
-            PrismObject<ResourceType> resource) throws SchemaException {
+    List<ItemDelta<?, ?>> createAndLogOperationalStateDeltas(
+            AvailabilityStatusType previousStatus,
+            AvailabilityStatusType newStatus,
+            String resourceDesc,
+            String statusChangeReason,
+            ResourceType resource) throws SchemaException {
 
         String stateChangeClause = getChangeClauseAndLogState(previousStatus, newStatus, resourceDesc, statusChangeReason);
 
@@ -73,7 +75,8 @@ public class ResourceOperationalStateManager {
         return createNewOperationalState(newStatus, stateChangeClause, statusChangeReason);
     }
 
-    private OperationalStateType createNewOperationalState(AvailabilityStatusType newStatus, String stateChangeClause, String statusChangeReason) {
+    private OperationalStateType createNewOperationalState(
+            AvailabilityStatusType newStatus, String stateChangeClause, String statusChangeReason) {
         return new OperationalStateType()
                 .lastAvailabilityStatus(newStatus)
                 .message("Status " + stateChangeClause + " because " + statusChangeReason)
@@ -81,7 +84,11 @@ public class ResourceOperationalStateManager {
                 .timestamp(clock.currentTimeXMLGregorianCalendar());
     }
 
-    private String getChangeClauseAndLogState(AvailabilityStatusType previousStatus, AvailabilityStatusType newStatus, String resourceDesc, String statusChangeReason) {
+    private String getChangeClauseAndLogState(
+            AvailabilityStatusType previousStatus,
+            AvailabilityStatusType newStatus,
+            String resourceDesc,
+            String statusChangeReason) {
         String stateChangeClause;
         if (previousStatus != null) {
             stateChangeClause = "changed from " + previousStatus + " to " + newStatus;
@@ -113,8 +120,8 @@ public class ResourceOperationalStateManager {
                 .asItemDelta();
     }
 
-    private List<ItemDelta<?, ?>> createHistoryCleanupDeltas(PrismObject<ResourceType> resource) throws SchemaException {
-        List<OperationalStateType> history = new ArrayList<>(resource.asObjectable().getOperationalStateHistory());
+    private List<ItemDelta<?, ?>> createHistoryCleanupDeltas(ResourceType resource) throws SchemaException {
+        List<OperationalStateType> history = new ArrayList<>(resource.getOperationalStateHistory());
         int historySize = history.size();
         if (historySize >= MAX_OPERATIONAL_HISTORY_SIZE) {
             history.sort(Comparator.comparing(state -> XmlTypeConverter.toMillis(state.getTimestamp())));

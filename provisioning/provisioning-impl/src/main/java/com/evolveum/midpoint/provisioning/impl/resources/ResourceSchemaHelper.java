@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,19 +67,19 @@ class ResourceSchemaHelper {
     /**
      * Applies proper definition (connector schema) to the resource.
      */
-    void applyConnectorSchemasToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
+    void applyConnectorSchemasToResource(ResourceType resource, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
-        checkMutable(resource);
-        PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
-        for (ConnectorSpec connectorSpec : connectorSelector.getAllConnectorSpecs(resource)) {
+        checkMutable(resource.asPrismObject());
+        PrismObjectDefinition<ResourceType> newResourceDefinition = resource.asPrismObject().getDefinition().clone();
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             try {
                 applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
-            } catch (CommunicationException | ConfigurationException | SecurityViolationException e) {
-                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);      // fixme temporary solution
+            } catch (CommunicationException | SecurityViolationException e) {
+                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e); // fixme temporary solution
             }
         }
         newResourceDefinition.freeze();
-        resource.setDefinition(newResourceDefinition);
+        resource.asPrismObject().setDefinition(newResourceDefinition);
     }
 
     /**
@@ -88,7 +90,7 @@ class ResourceSchemaHelper {
     void applyConnectorSchemaToResource(
             ConnectorSpec connectorSpec,
             PrismObjectDefinition<ResourceType> resourceDefinition,
-            PrismObject<ResourceType> resource,
+            ResourceType resource,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
@@ -122,7 +124,7 @@ class ResourceSchemaHelper {
 
     private void evaluateExpressions(
             PrismContainer<ConnectorConfigurationType> configurationContainer,
-            PrismObject<ResourceType> resource,
+            ResourceType resource,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
@@ -131,7 +133,7 @@ class ResourceSchemaHelper {
             configurationContainer.accept(visitable -> {
                 if ((visitable instanceof PrismProperty<?>)) {
                     try {
-                        evaluateExpression((PrismProperty<?>)visitable, resource, task, result);
+                        evaluateExpression((PrismProperty<?>)visitable, resource.asPrismObject(), task, result);
                     } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
                             ConfigurationException | SecurityViolationException e) {
                         throw new TunnelException(e);
@@ -223,7 +225,7 @@ class ResourceSchemaHelper {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
 
         if (delta.isAdd()) {
-            PrismObject<ResourceType> resource = delta.getObjectToAdd();
+            ResourceType resource = delta.getObjectToAdd().asObjectable();
             applyConnectorSchemasToResource(resource, task, objectResult);
             return;
 
@@ -363,6 +365,18 @@ class ResourceSchemaHelper {
     private void checkMutable(PrismObject<ResourceType> resource) {
         if (resource.isImmutable()) {
             throw new IllegalArgumentException("Got immutable resource object, while expecting mutable one: " + resource);
+        }
+    }
+
+    /**
+     * TODO is this method correct?
+     */
+    public void updateSchemaToConnectors(ResourceType resource, ResourceSchema rawResourceSchema, OperationResult result)
+            throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
+            connectorManager
+                    .getConfiguredConnectorInstance(connectorSpec, false, result)
+                    .updateSchema(rawResourceSchema);
         }
     }
 }

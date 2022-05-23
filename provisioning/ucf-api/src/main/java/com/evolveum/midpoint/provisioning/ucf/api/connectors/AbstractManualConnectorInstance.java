@@ -239,8 +239,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-                                              AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-                                              @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         // not supported
         return null;
     }

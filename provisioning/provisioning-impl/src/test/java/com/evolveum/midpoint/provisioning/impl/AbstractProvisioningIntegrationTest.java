@@ -168,7 +168,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertNotNull("No schema after parsing in " + desc, parsedSchema);
     }
 
-    protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
+    protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ConfigurationException {
         rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class));
     }
 
@@ -178,16 +178,17 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     }
 
     protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource)
-            throws SchemaException, ConfigurationException {
+            throws ConfigurationException {
         if (lastConfiguredConnectorInstance == null) {
             return;
         }
-        ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
-                resource, ReadCapabilityType.class);
+        ConnectorInstance currentConfiguredConnectorInstance =
+                resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class);
         assertSame("Connector instance has changed", lastConfiguredConnectorInstance, currentConfiguredConnectorInstance);
     }
 
-    protected void assertSteadyResource(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
+    protected void assertSteadyResource(PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
@@ -195,7 +196,8 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         if (resource != null) {
-            assertResourceVersionIncrement(resource, 0);
+            String version = repositoryService.getVersion(ResourceType.class, resource.getOid(), getTestOperationResult());
+            assertResourceVersionIncrement(version, 0);
             assertSchemaMetadataUnchanged(resource);
             assertConnectorInstanceUnchanged(resource);
         }
@@ -205,7 +207,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         assertResourceCacheMissesIncrement(0);
     }
 
-    protected void assertSteadyResource() throws SchemaException, ConfigurationException {
+    protected void assertSteadyResource() throws SchemaException, ConfigurationException, ObjectNotFoundException {
         assertSteadyResource(getResource());
     }
 
@@ -259,18 +261,19 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return asserter;
     }
 
-    protected OperationResult testResourceAssertSuccess(String resourceOid, Task task) throws ObjectNotFoundException {
-        OperationResult result = provisioningService.testResource(resourceOid, task);
-        assertSuccess(result);
-        return result;
+    protected OperationResult testResourceAssertSuccess(String resourceOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        OperationResult testResult = provisioningService.testResource(resourceOid, task, result);
+        assertSuccess(testResult);
+        return testResult;
     }
 
-    protected OperationResult testResourceAssertSuccess(DummyTestResource resource, Task task) throws ObjectNotFoundException,
-            SchemaException {
-        OperationResult result = provisioningService.testResource(resource.oid, task);
-        assertSuccess(result);
+    protected OperationResult testResourceAssertSuccess(DummyTestResource resource, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        OperationResult testResult = provisioningService.testResource(resource.oid, task, result);
+        assertSuccess(testResult);
         resource.object = repositoryService.getObject(ResourceType.class, resource.oid, null, result);
-        return result;
+        return testResult;
     }
 
     protected DummyResourceContoller initDummyResource(DummyTestResource resource, OperationResult result) throws Exception {

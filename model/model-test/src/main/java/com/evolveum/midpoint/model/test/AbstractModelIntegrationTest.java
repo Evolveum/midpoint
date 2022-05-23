@@ -303,7 +303,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         resource.controller = dummyResourceCollection.initDummyResource(
                 resource.name, resource.file, resource.oid, resource.controllerInitLambda, task, result);
         assertSuccess(
-                modelService.testResource(resource.controller.getResource().getOid(), task));
+                modelService.testResource(resource.controller.getResource().getOid(), task, result));
         resource.reload(result); // To have schema, etc
     }
 
@@ -6822,7 +6822,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     @Override
-    public OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException {
-        return modelService.testResource(oid, task);
+    public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        return modelService.testResource(oid, task, result);
     }
 }

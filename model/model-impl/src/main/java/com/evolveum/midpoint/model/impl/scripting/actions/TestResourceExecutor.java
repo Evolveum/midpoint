@@ -9,17 +9,16 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.TestResourceActionExpressionType;
@@ -53,15 +52,20 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
         return output;
     }
 
-    private void test(PrismObject<? extends ResourceType> object, PipelineData output, PipelineItem item, ExecutionContext context,
-            OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException {
+    private void test(
+            PrismObject<? extends ResourceType> object,
+            PipelineData output,
+            PipelineItem item,
+            ExecutionContext context,
+            OperationResult result)
+            throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException, SchemaException,
+            ConfigurationException {
         String oid = object.getOid();
-        OperationResult testResult = modelService.testResource(oid, context.getTask());
+        OperationResult testResult = modelService.testResource(oid, context.getTask(), result);
         context.println("Tested " + object + ": " + testResult.getStatus());
-        result.addSubresult(testResult);
 
-        PrismObjectValue<ResourceType> resourceAfter = operationsHelper.getObject(ResourceType.class, oid,
-                false, context, result).getValue();
+        PrismObjectValue<ResourceType> resourceAfter =
+                operationsHelper.getObject(ResourceType.class, oid, false, context, result).getValue();
         output.add(new PipelineItem(resourceAfter, item.getResult()));
     }
 

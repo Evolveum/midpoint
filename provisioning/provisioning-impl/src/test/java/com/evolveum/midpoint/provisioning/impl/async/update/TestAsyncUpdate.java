@@ -135,7 +135,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         }
 
         // WHEN
-        OperationResult testResult = provisioningService.testResource(RESOURCE_ASYNC_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_ASYNC_OID, task, result);
 
         // THEN
         display("Test result", testResult);

@@ -66,7 +66,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         Task task = getTestTask();
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OPALINE_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OPALINE_OID, task, task.getResult());
 
         // THEN
         display("Test result", testResult);

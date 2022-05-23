@@ -110,7 +110,7 @@ public class TestOperationCounts extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultOne = modelService.testResource(RESOURCE_DUMMY_ONE_OID, task);
+        OperationResult testResultOne = modelService.testResource(RESOURCE_DUMMY_ONE_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOne);
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();

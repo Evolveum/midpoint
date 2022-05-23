@@ -64,7 +64,7 @@ public class TestManyThreads extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        assertSuccess(modelService.testResource(RESOURCE_DUMMY.oid, task));
+        assertSuccess(modelService.testResource(RESOURCE_DUMMY.oid, task, task.getResult()));
     }
 
     @Test

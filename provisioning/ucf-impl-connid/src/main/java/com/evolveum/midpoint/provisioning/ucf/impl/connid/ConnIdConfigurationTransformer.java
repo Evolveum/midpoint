@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -51,6 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.framework.common.objects.SuggestedValues;
 import org.identityconnectors.framework.common.objects.ValueListOpenness;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -62,12 +64,14 @@ public class ConnIdConfigurationTransformer {
     private ConnectorType connectorType;
     private ConnectorInfo cinfo;
     private Protector protector;
+    private ConnectorConfigurationOptions options;
 
-    public ConnIdConfigurationTransformer(ConnectorType connectorType, ConnectorInfo cinfo, Protector protector) {
-        super();
+    public ConnIdConfigurationTransformer(
+            ConnectorType connectorType, ConnectorInfo cinfo, Protector protector, ConnectorConfigurationOptions options) {
         this.connectorType = connectorType;
         this.cinfo = cinfo;
         this.protector = protector;
+        this.options = options;
     }
 
     /**
@@ -82,7 +86,7 @@ public class ConnIdConfigurationTransformer {
      * @throws SchemaException
      * @throws ConfigurationException
      */
-    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration, boolean isCaching)
+    public APIConfiguration transformConnectorConfiguration(PrismContainerValue configuration)
             throws SchemaException, ConfigurationException {
 
         APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
@@ -106,8 +110,8 @@ public class ConnIdConfigurationTransformer {
         PrismContainer connectorPoolContainer = configuration.findContainer(new QName(
                 SchemaConstants.NS_ICF_CONFIGURATION,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
-        ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
-        transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer, isCaching);
+        @NotNull ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
+        transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
 
         PrismProperty producerBufferSizeProperty = configuration.findProperty(new ItemName(
                 SchemaConstants.NS_ICF_CONFIGURATION,
@@ -131,7 +135,7 @@ public class ConnIdConfigurationTransformer {
 
     }
 
-    public <T> Collection<PrismProperty<T>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
+    public Collection<PrismProperty<?>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
             throws SchemaException {
         APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
         ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
@@ -150,7 +154,7 @@ public class ConnIdConfigurationTransformer {
             throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorType.getConnectorType());
         }
 
-        Collection<PrismProperty<T>> convertedSuggestions = new ArrayList<>();
+        Collection<PrismProperty<?>> convertedSuggestions = new ArrayList<>();
         for (Map.Entry<String, SuggestedValues> entry : suggestions.entrySet()) {
 
             String propertyName = entry.getKey();
@@ -203,19 +207,21 @@ public class ConnIdConfigurationTransformer {
 
             if (propertyDef.isMultiValue()) {
                 def.setMaxOccurs(-1);
-                PrismProperty<T> property = (PrismProperty<T>) def.instantiate();
+                //noinspection unchecked
+                PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
                 for (Object value : values.getValues()) {
-                    PrismPropertyValue<T> propertyValue = prismContext.itemFactory().createPropertyValue();
-                    propertyValue.setValue((T) value);
+                    PrismPropertyValue<Object> propertyValue = prismContext.itemFactory().createPropertyValue();
+                    propertyValue.setValue(value);
                     property.add(propertyValue);
                 }
                 convertedSuggestions.add(property);
             } else {
                 def.setMaxOccurs(1);
                 for (Object value : values.getValues()) {
-                    PrismProperty<T> property = (PrismProperty<T>) def.instantiate();
-                    PrismPropertyValue<T> propertyValue = prismContext.itemFactory().createPropertyValue();
-                    propertyValue.setValue((T) value);
+                    //noinspection unchecked
+                    PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
+                    PrismPropertyValue<Object> propertyValue = prismContext.itemFactory().createPropertyValue();
+                    propertyValue.setValue(value);
                     property.add(propertyValue);
                     convertedSuggestions.add(property);
                 }
@@ -280,10 +286,11 @@ public class ConnIdConfigurationTransformer {
         }
     }
 
-    private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,
-            PrismContainer<?> connectorPoolContainer, boolean isCaching) throws SchemaException {
+    private void transformConnectorPoolConfiguration(
+            @NotNull ObjectPoolConfiguration connectorPoolConfiguration,
+            PrismContainer<?> connectorPoolContainer) throws SchemaException {
 
-        if (connectorPoolConfiguration != null && connectorPoolContainer != null) {
+        if (connectorPoolContainer != null) {
             for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
                 QName propertyQName = prismProperty.getElementName();
                 if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
@@ -322,8 +329,8 @@ public class ConnIdConfigurationTransformer {
                 }
             }
         }
-        if (!isCaching) {
-            connectorPoolConfiguration.setMinIdle(0);
+        if (options != null && options.isDoNotCache()) {
+            connectorPoolConfiguration.setMinIdle(0); // TODO but does this really work?
         }
     }
 

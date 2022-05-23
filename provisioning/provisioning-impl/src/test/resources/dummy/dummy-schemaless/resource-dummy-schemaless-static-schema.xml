@@ -34,7 +34,7 @@
     </connectorConfiguration>
     <!-- Static schema definition -->
     <schema>
-        <!-- No cahingMetadata here MID-4472, MID-4174 -->
+        <!-- No cachingMetadata here MID-4472, MID-4174 -->
         <definition>
              <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"

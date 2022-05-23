@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.HashSet;
@@ -15,13 +16,10 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Direct implementation of {@link ResourceSchema} interface.
@@ -66,18 +64,23 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
     }
 
     @Override
-    public void validate(PrismObject<ResourceType> resource) throws SchemaException {
+    public void validate() throws SchemaException {
+        Set<QName> classes = new HashSet<>();
+        for (ResourceObjectClassDefinition ocDefinition : getObjectClassDefinitions()) {
+            QName ocName = ocDefinition.getTypeName();
+            schemaCheck(
+                    classes.add(ocName),
+                    "Duplicate definition of object class %s in %s", ocName, this);
+            ocDefinition.validate();
+        }
 
-        Set<RefinedObjectClassDefinitionKey> discrs = new HashSet<>();
-
-        for (ResourceObjectTypeDefinition rObjectClassDefinition: getObjectTypeDefinitions()) {
-            RefinedObjectClassDefinitionKey key = new RefinedObjectClassDefinitionKey(rObjectClassDefinition);
-            if (discrs.contains(key)) {
-                throw new SchemaException("Duplicate definition of object class "+key+" in resource schema of "+resource);
-            }
-            discrs.add(key);
-
-            ResourceTypeUtil.validateObjectClassDefinition(rObjectClassDefinition, resource);
+        Set<RefinedObjectClassDefinitionKey> types = new HashSet<>();
+        for (ResourceObjectTypeDefinition typeDefinition: getObjectTypeDefinitions()) {
+            RefinedObjectClassDefinitionKey key = new RefinedObjectClassDefinitionKey(typeDefinition);
+            schemaCheck(
+                    types.add(key),
+                    "Duplicate definition of object type %s in %s", key, this);
+            typeDefinition.validate();
         }
     }
 

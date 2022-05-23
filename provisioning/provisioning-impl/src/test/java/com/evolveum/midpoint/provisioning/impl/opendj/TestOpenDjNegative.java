@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -49,7 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Test for provisioning service implementation. Using OpenDJ. But NOT STARTING IT.
  * Checking if appropriate errors are provided.
  */
-
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestOpenDjNegative extends AbstractOpenDjTest {
@@ -84,13 +82,11 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), null, result);
         ConnectorType connectorType = connector.asObjectable();
         assertNotNull(connectorType);
-        XmlSchemaType xmlSchemaTypeBefore = resourceTypeBefore.getSchema();
-//        AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", xmlSchemaTypeBefore);
         Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
         AssertJUnit.assertNull("Found schema element before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
-        OperationResult operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task, result);
 
         display("Test connection result (expected failure)", operationResult);
         TestUtil.assertFailure(operationResult);
@@ -100,8 +96,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
         displayValue("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
 
-        XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
-//        assertNull("The schema was generated after test connection but it should not be",xmlSchemaTypeAfter);
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNull("Schema after test connection (and should not be)", resourceXsdSchemaElementAfter);
     }

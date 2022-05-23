@@ -137,7 +137,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         Task task = getTestTask();
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task, task.getResult());
 
         // THEN
         display("testResource result", testResult);
@@ -189,7 +189,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         Task task = getTestTask();
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
 
         // THEN
         display("testResource result", testResult);
@@ -507,11 +507,11 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // We have to purge fake resource schema here. As the new connector provides a different schema
         purgeResourceSchema(RESOURCE_DUMMY_FAKE_OID);
 
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task, task.getResult());
         display("testResource fake result", testResult);
         TestUtil.assertSuccess("testResource fake result", testResult);
 
-        testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        testResult = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
         display("testResource dummy result", testResult);
         TestUtil.assertSuccess("testResource dummy result", testResult);
 

@@ -108,7 +108,7 @@ public class CsvResource extends TestResource<ResourceType> {
         prepareObject();
         importObject(task, result);
         assertSuccess(
-                tester.testResource(oid, task));
+                tester.testResource(oid, task, result));
         reload(result);
     }
 

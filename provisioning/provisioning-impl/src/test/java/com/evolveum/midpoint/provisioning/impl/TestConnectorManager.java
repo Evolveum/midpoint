@@ -83,7 +83,7 @@ public class TestConnectorManager extends AbstractIntegrationTest {
     @Test
     public void test120FrameworkVersion() {
         // WHEN
-        String frameworkVersion = connectorManager.getFrameworkVersion();
+        String frameworkVersion = connectorManager.getConnIdFrameworkVersion();
 
         // THEN
         assertEquals("Unexpected framework version", CONNID_FRAMEWORK_VERSION, frameworkVersion);

@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Element;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 public class ResourceSchemaFactory {
 
     private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = ResourceSchema.class.getName()+".parsedResourceSchema";
@@ -134,14 +136,10 @@ public class ResourceSchemaFactory {
                             USER_DATA_KEY_PARSED_RESOURCE_SCHEMA + "in " + resource + ", but got " + userDataEntry.getClass());
                 }
             } else {
-                if (resource.isImmutable()) {
-                    throw new IllegalStateException("Trying to set parsed schema on immutable resource: " + resource);
-                }
+                stateCheck(!resource.isImmutable(), "Trying to set parsed schema on immutable resource: %s", resource);
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
-                ResourceSchema parsedSchema = ResourceSchemaParser.parse(resourceXsdSchema, "resource schema of " + resource);
-                if (parsedSchema == null) {
-                    throw new IllegalStateException("Parsed schema is null: most likely an internal error");
-                }
+                ResourceSchema parsedSchema =
+                        ResourceSchemaParser.parse(resourceXsdSchema, "resource schema of " + resource);
                 resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
                 return parsedSchema;
             }

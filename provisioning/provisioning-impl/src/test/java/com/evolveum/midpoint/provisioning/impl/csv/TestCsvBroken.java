@@ -81,7 +81,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
 
         // WHEN
         long before = System.currentTimeMillis();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task, result);
         long after = System.currentTimeMillis();
 
         // THEN
@@ -99,7 +99,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
                     .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because test resource"))
                 .end()
                 .operationalStateHistory()
                     .assertSize(1)
@@ -107,7 +107,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
                         .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"));
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because test resource"));
 
         oldestStateRecord = resourceRepoAfter.asObjectable().getOperationalState();
         assertContainsOldestStateRecord(resourceRepoAfter);
@@ -126,7 +126,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
 
         // WHEN
         long before = System.currentTimeMillis();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task, result);
         long after = System.currentTimeMillis();
 
         // THEN
@@ -144,7 +144,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
                     .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because resource test"))
                 .end()
                 .operationalStateHistory()
                 .assertSize(2)
@@ -152,13 +152,13 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .value(0)
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.BROKEN)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because testing connection"))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to BROKEN because test resource"))
                         .end()
                     .value(1)
                         .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                         .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
                         .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because testing connection"))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from BROKEN to UP because resource test"))
                         .end();
 
         assertContainsOldestStateRecord(resourceRepoAfter);
@@ -177,7 +177,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
 
         // WHEN
         long before = System.currentTimeMillis();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task, result);
         long after = System.currentTimeMillis();
 
         // THEN
@@ -278,9 +278,9 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
         // WHEN
         long before = System.currentTimeMillis();
         setCsvFile(RESOURCE_CSV_BROKEN.oid, CSV_FILE_NON_EXISTING.getPath(), result);
-        provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task);
+        provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task, result);
         setCsvFile(RESOURCE_CSV_BROKEN.oid, CSV_FILE_OK.getPath(), result);
-        provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task);
+        provisioningService.testResource(RESOURCE_CSV_BROKEN.oid, task, result);
         long after = System.currentTimeMillis();
 
         // THEN
@@ -295,7 +295,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
                     .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
                     .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
                     .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, timeBetween(before, after))
-                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from DOWN to UP because testing connection"))
+                    .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status changed from DOWN to UP because resource test"))
                 .end()
                 .operationalStateHistory()
                     .assertSize(5);     // not 6, because 5 is the limit

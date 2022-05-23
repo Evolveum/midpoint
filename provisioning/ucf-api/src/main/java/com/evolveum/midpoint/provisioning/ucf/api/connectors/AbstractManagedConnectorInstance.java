@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -126,8 +125,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     @Override
     public void configure(
             @NotNull PrismContainerValue<?> configuration,
-            @Nullable List<QName> generateObjectClasses,
-            boolean isCaching,
+            @Nullable ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException {
 

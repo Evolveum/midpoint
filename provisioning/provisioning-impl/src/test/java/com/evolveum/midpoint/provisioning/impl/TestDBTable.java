@@ -12,7 +12,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
@@ -110,7 +109,7 @@ public class TestDBTable extends AbstractIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID, task, result);
 
         display("Test result", testResult);
         TestUtil.assertSuccess("Test resource failed (result)", testResult);

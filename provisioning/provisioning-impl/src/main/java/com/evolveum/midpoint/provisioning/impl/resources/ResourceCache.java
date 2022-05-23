@@ -92,7 +92,7 @@ public class ResourceCache implements Cache {
      * of the cached resource.
      */
     synchronized void put(
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ResourceType resource,
             @NotNull Collection<String> ancestorsOids) throws SchemaException {
         String oid = resource.getOid();
         schemaCheck(oid != null, "Attempt to cache %s without an OID", resource);
@@ -105,14 +105,14 @@ public class ResourceCache implements Cache {
         PrismObject<ResourceType> cachedResource = cache.get(oid);
         if (cachedResource == null) {
             LOGGER.debug("Caching(new): {}", resource);
-            cache.put(oid, resource.createImmutableClone());
+            cache.put(oid, resource.asPrismObject().createImmutableClone());
         } else if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
             LOGGER.debug("Caching fizzle, resource already cached: {}", resource);
             // We already have equivalent resource, nothing to do
             //  TODO is this correct? What if the resource being put here is newer than the existing one (although having the same version)?
         } else {
             LOGGER.debug("Caching(replace): {}", resource);
-            cache.put(oid, resource.createImmutableClone());
+            cache.put(oid, resource.asPrismObject().createImmutableClone());
         }
     }
 

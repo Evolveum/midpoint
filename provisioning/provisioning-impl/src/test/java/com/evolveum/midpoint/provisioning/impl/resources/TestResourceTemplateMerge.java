@@ -320,7 +320,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         initDummyResource(RESOURCE_OBJECT_TYPES_1, result);
 
         then("object-types-1 is successfully tested");
-        testResourceAssertSuccess(RESOURCE_OBJECT_TYPES_1, task); // updates the object
+        testResourceAssertSuccess(RESOURCE_OBJECT_TYPES_1, task, result); // updates the object
 
         and("schema can be retrieved");
         PrismObject<ResourceType> current =
@@ -527,7 +527,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         initDummyResource(RESOURCE_EXPLICIT_TYPE_INHERITANCE, result);
 
         then("resource is successfully tested");
-        testResourceAssertSuccess(RESOURCE_EXPLICIT_TYPE_INHERITANCE, task); // updates the object
+        testResourceAssertSuccess(RESOURCE_EXPLICIT_TYPE_INHERITANCE, task, result); // updates the object
 
         and("schema can be retrieved");
         PrismObject<ResourceType> current =

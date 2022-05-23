@@ -16,10 +16,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
-
-import com.evolveum.midpoint.provisioning.ucf.api.UcfSyncToken;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
@@ -37,7 +34,6 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -164,7 +160,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         displayDumpable("Configuration container", configContainer);
 
         // WHEN
-        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), true, result);
+        cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
 
         // THEN
         result.computeStatus();
@@ -205,7 +201,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
         //ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
-        cc.configure(configContainer, null, true, result);
+        cc.configure(configContainer, ConnectorConfigurationOptions.DEFAULT, result);
 
         // WHEN
         resourceSchema = cc.fetchResourceSchema(result);
@@ -245,7 +241,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         QName accountObjectClass = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
         objectClassesToGenerate.add(accountObjectClass);
 
-        cc.configure(configContainer, objectClassesToGenerate, true, result);
+        cc.configure(configContainer, objectClassesToGenerate, result);
 
         // WHEN
         resourceSchema = cc.fetchResourceSchema(result);

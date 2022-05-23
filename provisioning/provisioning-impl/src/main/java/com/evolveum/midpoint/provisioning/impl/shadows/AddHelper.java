@@ -167,7 +167,8 @@ class AddHelper {
 
                 // RESOURCE OPERATION: add
                 AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue =
-                        resourceObjectConverter.addResourceObject(ctx, resourceObjectToAdd, scripts, connOptions, false, parentResult);
+                        resourceObjectConverter.addResourceObject(
+                                ctx, resourceObjectToAdd, scripts, connOptions, false, parentResult);
                 opState.processAsyncResult(asyncReturnValue);
                 addedShadow = asyncReturnValue.getReturnValue();
 
