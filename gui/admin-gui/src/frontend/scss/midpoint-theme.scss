@@ -1744,3 +1744,12 @@ span.yui-skin-sam {
 th.debug-list-buttons {
   width: 160px;
 }
+
+.notification {
+  &.nav-item > .nav-link > .badge {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 0.5em;
+  }
+}
