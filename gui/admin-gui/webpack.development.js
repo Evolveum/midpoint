@@ -9,21 +9,13 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
     mode: 'development',
-    devtool: false,
+    devtool: 'inline-source-map',
     plugins: [
-        // Extracts CSS into separate files
         new MiniCssExtractPlugin({
             filename: '[name].css',
             chunkFilename: '[id].css',
         }),
     ],
-    // optimization: {
-    //     minimize: true,
-    //     minimizer: [new CssMinimizerPlugin(), '...'],
-    //     // runtimeChunk: {
-    //     //     name: 'runtime',
-    //     // },
-    // },
     performance: {
         hints: false,
         maxEntrypointSize: 512000,

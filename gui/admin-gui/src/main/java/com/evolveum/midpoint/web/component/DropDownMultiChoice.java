@@ -35,7 +35,7 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initDropdown('").append(getMarkupId()).append("',");
+        sb.append("MidPointTheme.initDropdown('").append(getMarkupId()).append("',");
         appendOptions(sb);
         sb.append(");");
 
