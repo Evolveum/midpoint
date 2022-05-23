@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,6 +106,11 @@ public abstract class ConnectorSpec {
     }
 
     public abstract @Nullable CapabilitiesType getCapabilities();
+
+    public @Nullable CapabilityCollectionType getNativeCapabilities() {
+        CapabilitiesType capabilities = getCapabilities();
+        return capabilities != null ? capabilities.getNative() : null;
+    }
 
     /**
      * Returns {@link ItemPath} to the capabilities container. This may be useful when updating the resource object
