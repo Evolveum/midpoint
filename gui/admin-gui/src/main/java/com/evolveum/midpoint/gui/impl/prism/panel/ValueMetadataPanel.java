@@ -36,8 +36,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
     protected void addToHeader(WebMarkupContainer header) {
         LoadableDetachableModel<String> headerLabelModel = getLabelModel();
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
-        labelComponent.setOutputMarkupId(true);
-        labelComponent.setOutputMarkupPlaceholderTag(true);
+        labelComponent.setRenderBodyOnly(true);
         labelComponent.add(new VisibleBehaviour(this::notEmptyAndNotDirectChildOfValueMetadataType));
         header.add(labelComponent);
     }

@@ -66,8 +66,8 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 if (value.getObject() == null) {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT);
                     OperationResult result = task.getResult();
-                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(), getPageBase(),
-                            task, result);
+                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(),
+                            true, getPageBase(), task, result);
                     if (referencedObject != null) {
                         value.setObject(referencedObject.clone());
                     }
@@ -79,7 +79,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
     private void initLayout() {
         setOutputMarkupId(true);
-        add(AttributeAppender.append("class", "d-flex flex-wrap gap-2"));
+        add(AttributeAppender.append("class", "d-flex flex-wrap gap-2 align-items-center"));
 
         IModel<DisplayType> displayModel = () -> {
 
@@ -99,7 +99,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
         };
 
         ImagePanel imagePanel = new ImagePanel(ID_ICON, displayModel);
-        imagePanel.setOutputMarkupId(true);
+        imagePanel.setRenderBodyOnly(true);
         add(imagePanel);
 
         AjaxLink<PrismReferenceValue> nameLink = new AjaxLink<>(ID_NAME, referenceModel) {
@@ -116,7 +116,6 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
             return ref.getObject() != null;
         }));
-        nameLink.setOutputMarkupId(true);
         add(nameLink);
 
         Label nameLinkText = new Label(ID_NAME_TEXT, () -> {
@@ -126,7 +125,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
             }
             return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false, getPageBase());
         });
-        nameLinkText.setOutputMarkupId(true);
+        nameLinkText.setRenderBodyOnly(true);
         nameLink.add(nameLinkText);
     }
 }

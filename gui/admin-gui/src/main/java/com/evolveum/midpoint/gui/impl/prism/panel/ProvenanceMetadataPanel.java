@@ -76,7 +76,8 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
     }
 
     private DisplayNamePanel<Containerable> createDisplayNamePanel() {
-        DisplayNamePanel<Containerable> displayNamePanel = new DisplayNamePanel<Containerable>(ID_PROVENANCE_DISPLAY, new ItemRealValueModel<>(new PropertyModel<>(getModel(), "values.0"))) {
+        DisplayNamePanel<Containerable> displayNamePanel = new DisplayNamePanel<>(ID_PROVENANCE_DISPLAY,
+                new ItemRealValueModel<>(new PropertyModel<>(getModel(), "values.0"))) {
 
             @Override
             protected String createImageModel() {
@@ -99,7 +100,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
     }
 
     private ListView<PrismContainerValueWrapper<ValueMetadataType>> createYieldPanel() {
-        ListView<PrismContainerValueWrapper<ValueMetadataType>> yield = new ListView<PrismContainerValueWrapper<ValueMetadataType>>(ID_YIELD, new PropertyModel<>(getModel(), "values")) {
+        ListView<PrismContainerValueWrapper<ValueMetadataType>> yield = new ListView<>(ID_YIELD, new PropertyModel<>(getModel(), "values")) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ValueMetadataType>> valueMetadataListItem) {
                 createValuePanelWithProvenanceHeader(valueMetadataListItem);
@@ -110,14 +111,16 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
     }
 
     private void createValuePanelWithProvenanceHeader(ListItem<PrismContainerValueWrapper<ValueMetadataType>> valueMetadataListItem) {
-        IModel<PrismContainerWrapper<ProvenanceMetadataType>> provenanceWrapperModel = PrismContainerWrapperModel.fromContainerValueWrapper(valueMetadataListItem.getModel(), ValueMetadataType.F_PROVENANCE);
-        ListView<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceValues = new ListView<PrismContainerValueWrapper<ProvenanceMetadataType>>(ID_PROVENANCE, new PropertyModel<>(provenanceWrapperModel, "values")) {
-            @Override
-            protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceListItem) {
-                createMetadataDetailsPanel(provenanceListItem, valueMetadataListItem);
-            }
+        IModel<PrismContainerWrapper<ProvenanceMetadataType>> provenanceWrapperModel =
+                PrismContainerWrapperModel.fromContainerValueWrapper(valueMetadataListItem.getModel(), ValueMetadataType.F_PROVENANCE);
+        ListView<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceValues =
+                new ListView<>(ID_PROVENANCE, new PropertyModel<>(provenanceWrapperModel, "values")) {
+                    @Override
+                    protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceListItem) {
+                        createMetadataDetailsPanel(provenanceListItem, valueMetadataListItem);
+                    }
 
-        };
+                };
         valueMetadataListItem.add(provenanceValues);
     }
 
@@ -143,7 +146,6 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
                 new ValueMetadataPanel<>(ID_VALUE_METADATA_DETAILS, valueMetadataListItem.getModel(), settings);
         valueMetadataPanel.add(new VisibleBehaviour(() -> getModelObject().isShowMetadataDetails() && provenanceListItem.getModelObject().isShowEmpty()));
         provenanceListItem.add(valueMetadataPanel);
-
     }
 
     private ToggleIconButton<Void> createShowMoreButton(IModel<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceModel) {
@@ -257,21 +259,17 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
     }
 
     private WebMarkupContainer createAcquisitionPanel(IModel<PrismContainerWrapper<ProvenanceAcquisitionType>> listPropertyModel) {
-        WebMarkupContainer container = new WebMarkupContainer(ID_ACQUISITION_HEADER);
-
         ListView<PrismContainerValueWrapper<ProvenanceAcquisitionType>> acquisition =
                 new ListView<>(ID_ACQUISITIONS, new PropertyModel<>(listPropertyModel, "values")) {
 
                     @Override
                     protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceAcquisitionType>> listItem) {
                         ProvenanceAcquisitionHeaderPanel panel = new ProvenanceAcquisitionHeaderPanel(ID_ACQUISITION, new ItemRealValueModel<>(listItem.getModel()));
-                        panel.setOutputMarkupId(true);
+                        panel.setRenderBodyOnly(true);
                         listItem.add(panel);
                     }
                 };
-        container.add(acquisition);
-        return container;
 
+        return acquisition;
     }
-
 }

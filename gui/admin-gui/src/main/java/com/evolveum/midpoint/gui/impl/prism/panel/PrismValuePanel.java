@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -71,6 +73,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         MidpointForm<VW> form = new MidpointForm<>(ID_VALUE_FORM);
         form.setOutputMarkupId(true);
         add(form);
+
         form.add(createHeaderPanel());
 
         createValuePanel(form);
@@ -122,11 +125,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
             try {
-
                 factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
-
             } catch (Throwable e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());
             }
         }
 
@@ -136,7 +138,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         // feedback
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-
         feedback.setOutputMarkupId(true);
 
         if (factory == null) {
@@ -172,7 +173,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             getSession().error("Cannot create panel");
             throw new RuntimeException(e);
         }
-
     }
 
     protected void createMetadataPanel(MidpointForm form) {
@@ -278,10 +278,11 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private void showMetadataPerformed(VW value, AjaxRequestTarget target) {
         boolean showMetadata = !value.isShowMetadata();
+        System.out.println("showMetadataPerformed: " + showMetadata);
         value.setShowMetadata(showMetadata);
         getValueMetadata().unselect();
 
-        target.add(PrismValuePanel.this);
+        target.add(this.get("valueForm"));
     }
 
     protected boolean isRemoveButtonVisible() {
