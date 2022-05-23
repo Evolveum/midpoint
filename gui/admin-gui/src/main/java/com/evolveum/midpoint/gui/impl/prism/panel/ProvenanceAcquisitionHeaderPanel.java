@@ -66,7 +66,7 @@ public class ProvenanceAcquisitionHeaderPanel extends BasePanel<ProvenanceAcquis
         WebMarkupContainer channelIcon = new WebMarkupContainer(ID_CHANNEL_ICON);
         add(channelIcon);
         channelIcon.add(AttributeAppender.replace("class", new PropertyModel<>(channelModel, "iconCssClass")));
-        Label channel = new Label(ID_CHANNEL, getPageBase().createStringResource(channelModel.getObject()));
+        Label channel = new Label(ID_CHANNEL, () -> getString(channelModel.getObject()));
         add(channel);
         channel.add(new VisibleBehaviour(() -> getModelObject() != null
                 && (getModelObject().getOriginRef() == null || getModelObject().getOriginRef().getOid() == null)
