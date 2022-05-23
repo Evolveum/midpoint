@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.ActivitiesStatisticsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,6 +39,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.management.Attribute;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -118,9 +120,8 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType,
                         return new Fragment(headerId, titleId, ActivitiesStatisticsPanel.this);
                     }
                 };
-
+        actionTable.getDataTableContainer().add(AttributeAppender.append("class", "table-responsive"));
         actionTable.setOutputMarkupId(true);
-//        actionTable.add(new VisibleBehaviour(() -> !dataProvider.getAvailableData().isEmpty() || dataProvider.size() > 0));
         add(actionTable);
     }
 

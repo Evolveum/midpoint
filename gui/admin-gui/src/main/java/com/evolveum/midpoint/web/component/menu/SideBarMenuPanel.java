@@ -6,15 +6,28 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -25,13 +38,23 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 /**
  * @author Viliam Repan (lazyman)
  */
 public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
+
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(SideBarMenuPanel.class);
+
     private static final String ID_SIDEBAR = "sidebar";
+
+    private static final String ID_MENU_PHOTO = "menuPhoto";
+    private static final String ID_USERNAME = "username";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_HEADER = "header";
     private static final String ID_NAME = "name";
@@ -50,11 +73,17 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     }
 
     protected void initLayout() {
+        NonCachingImage img = new NonCachingImage(ID_MENU_PHOTO, loadJpegPhotoModel());
+        add(img);
+
+        Label username = new Label(ID_USERNAME, () -> getShortUserName());
+        add(username);
+
         WebMarkupContainer sidebar = new WebMarkupContainer(ID_SIDEBAR);
         sidebar.setOutputMarkupId(true);
         add(sidebar);
 
-        ListView<SideBarMenuItem> menuItems = new ListView<SideBarMenuItem>(ID_MENU_ITEMS, getModel()) {
+        ListView<SideBarMenuItem> menuItems = new ListView<>(ID_MENU_ITEMS, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -66,6 +95,47 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         menuItems.setOutputMarkupId(true);
         menuItems.setReuseItems(true);
         sidebar.add(menuItems);
+    }
+
+    private String getShortUserName() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal == null) {
+            return "Unknown";
+        }
+
+        if (principal instanceof MidPointPrincipal) {
+            MidPointPrincipal princ = (MidPointPrincipal) principal;
+            return WebComponentUtil.getOrigStringFromPoly(princ.getName());
+        }
+
+        return principal.toString();
+    }
+
+    private IModel<AbstractResource> loadJpegPhotoModel() {
+        return () -> {
+            GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+            if (principal == null) {
+                return null;
+            }
+            CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+            byte[] jpegPhoto = profile.getJpegPhoto();
+
+            if (jpegPhoto == null) {
+                URL placeholder = this.getClass().getClassLoader().getResource("static/img/placeholder.png");
+                if (placeholder == null) {
+                    return null;
+                }
+                try {
+                    jpegPhoto = IOUtils.toByteArray(placeholder);
+                } catch (IOException e) {
+                    LOGGER.error("Cannot load placeholder for photo.");
+                    return null;
+                }
+            }
+
+            return new ByteArrayResource("image/jpeg", jpegPhoto);
+        };
     }
 
     private Component createHeader(IModel<SideBarMenuItem> model) {

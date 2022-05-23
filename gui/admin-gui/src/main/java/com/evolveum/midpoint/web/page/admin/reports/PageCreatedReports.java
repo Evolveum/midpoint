@@ -23,9 +23,11 @@ import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
+import com.evolveum.midpoint.web.page.admin.reports.component.CreatedReportFragment;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -65,8 +67,6 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -106,7 +106,7 @@ public class PageCreatedReports extends PageAdmin {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
-    private static final String ID_REPORT_TYPE_SELECT = "reportType";
+    private static final String ID_TABLE_HEADER = "tableHeader";
 
     private static final Map<FileFormatTypeType, String> REPORT_EXPORT_TYPE_MAP = new HashMap<>();
 
@@ -117,6 +117,8 @@ public class PageCreatedReports extends PageAdmin {
     private Map<String, String> reportTypeMal = new HashMap<>();
 
     private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = null;
+
+    private IModel<String> reportType;
 
     static {
         REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.CSV, "text/csv; charset=UTF-8");
@@ -158,7 +160,31 @@ public class PageCreatedReports extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ReportDataType> table = new MainObjectListPanel<ReportDataType>(ID_TABLE, ReportDataType.class) {
+        MainObjectListPanel<ReportDataType> table = new MainObjectListPanel<>(ID_TABLE, ReportDataType.class) {
+
+            @Override
+            protected Component createHeader(String headerId) {
+                String reportName = reportTypeMal.get(getReportType());
+                reportType = new Model<>();
+                reportType.setObject(reportName);
+
+                List<String> values = new ArrayList<>(reportTypeMal.values());
+                return new CreatedReportFragment(headerId, ID_TABLE_HEADER, PageCreatedReports.this, getSearchModel(), reportType, values) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void searchPerformed(AjaxRequestTarget target) {
+                        refreshTable(target);
+                    }
+
+                    @Override
+                    protected void onReportTypeUpdate(AjaxRequestTarget target) {
+                        refreshTable(target);
+                    }
+                };
+            }
+
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ReportDataType object) {
             }
@@ -173,44 +199,6 @@ public class PageCreatedReports extends PageAdmin {
                 return createSelectableBeanObjectDataProvider(() -> appendTypeFilter(),
                         (sortParam) -> PageCreatedReports.this.createCustomOrdering(sortParam));
             }
-
-//            @Override
-//            protected ObjectQuery getCustomizeContentQuery() {
-//                return appendTypeFilter();
-//            }
-//
-//            @Override
-//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-//                return PageCreatedReports.this.createCustomOrdering(sortParam);
-//            }
-
-//            @Override
-//            protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
-//                PageStorage storage = getObjectListPanel().getPageStorage();
-//                SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
-//                        getPageBase(), getSearchModel(), null) {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    protected PageStorage getPageStorage() {
-//                        return storage;
-//                    }
-//
-//                    @NotNull
-//                    @Override
-//                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-//                        return PageCreatedReports.this.createCustomOrdering(sortParam);
-//                    }
-//
-//                    @Override
-//                    protected ObjectQuery getCustomizeContentQuery() {
-//                        return appendTypeFilter();
-//                    }
-//                };
-//                provider.setCompiledObjectCollectionView(getObjectCollectionView());
-//                provider.setOptions(createOptions());
-//                return provider;
-//            }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
@@ -234,26 +222,6 @@ public class PageCreatedReports extends PageAdmin {
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
-
-        String reportName = reportTypeMal.get(getReportType());
-        List<String> values = new ArrayList<>(reportTypeMal.values());
-        DropDownChoicePanel<String> reportTypeSelect = new DropDownChoicePanel<>
-                (ID_REPORT_TYPE_SELECT,
-                        Model.of(reportName),
-                        Model.ofList(values),
-                        StringChoiceRenderer.simple(), true);
-
-        reportTypeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                table.refreshTable(target);
-            }
-        });
-        reportTypeSelect.setOutputMarkupId(true);
-        mainForm.add(reportTypeSelect);
 
         ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 
@@ -590,10 +558,7 @@ public class PageCreatedReports extends PageAdmin {
     }
 
     private ObjectQuery appendTypeFilter() {
-        DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) getMainForm().get(ID_REPORT_TYPE_SELECT);
-        String typeRef = typeSelect == null
-                ? reportTypeMal.get(getReportType())
-                : typeSelect.getBaseFormComponent().getModelObject();
+        String typeRef = reportType == null ? reportTypeMal.get(getReportType()) : reportType.getObject();
         S_AtomicFilterEntry q = getPrismContext().queryFor(ReportDataType.class);
 
         S_AtomicFilterExit refF;

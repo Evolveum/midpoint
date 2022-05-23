@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -36,6 +36,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
     private static final String ID_READ = "read";
     private static final String ID_CONNECTOR_SCRIPT = "script";
     private static final String ID_RUN_AS = "runAs";
+    private static final String ID_LABEL = "label";
 
     private static final long serialVersionUID = 1L;
 
@@ -46,6 +47,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "card card-outline card-primary"));
 
         createCapabilityButton(ID_ACTIVATION);
         createCapabilityButton(ID_CREDENTIALS);
@@ -65,26 +67,20 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
         createCapabilityButton(ID_ACTIVATION_LOCKOUT_STATUS);
         createCapabilityButton(ID_COUNT_OBJECTS);
         createCapabilityButton(ID_RUN_AS);
-
     }
 
     private void createCapabilityButton(String id) {
-        AjaxLink<Boolean> button = new AjaxLink<Boolean>(id, new PropertyModel<>(getModel(), id)) {
+        AjaxLink<Boolean> button = new AjaxLink<>(id, new PropertyModel<>(getModel(), id)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 // TODO:
             }
-
         };
 
-        button.add(new AttributeModifier("class",
-                button.getModelObject() ? "btn btn-app btn-resource-capability bg-light-blue"
-                        : "btn btn-app btn-resource-capability bg-gray text-light-blue"));
-
-        button.add(new Label("label", new ResourceModel("CapabilitiesType." + id)));
+        button.add(AttributeAppender.append("class", () -> button.getModelObject() ? "bg-light-blue" : "bg-gray text-light-blue"));
+        button.add(new Label(ID_LABEL, new ResourceModel("CapabilitiesType." + id)));
 
         add(button);
     }
-
 }

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
+import javax.xml.namespace.QName;
+
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumPath;
@@ -70,6 +72,11 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
 
     @Override
     public Predicate process(RefFilter filter) {
+        if (filter instanceof RefFilterWithRepoPath) {
+            return processRepoFilter((RefFilterWithRepoPath) filter);
+        }
+
+
         List<PrismReferenceValue> values = filter.getValues();
         if (values == null || values.isEmpty()) {
             return filter.isOidNullAsAny() ? null : oidPath.isNull();
@@ -83,6 +90,14 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
             predicate = ExpressionUtils.or(predicate, processSingleValue(filter, ref));
         }
         return predicate;
+    }
+
+    /**
+     * Process reference filter used in {@link ReferencedByFilterProcessor}.
+     *
+     */
+    private Predicate processRepoFilter(RefFilterWithRepoPath filter) {
+        return relationPredicate(oidPath.eq(filter.getOidPath()), filter.getRelation());
     }
 
     private Predicate processSingleValue(RefFilter filter, PrismReferenceValue ref) {
@@ -106,14 +121,7 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
         }
 
         // Audit tables do not use relation paths
-        if (relationIdPath != null) {
-            if (ref.getRelation() == null || !ref.getRelation().equals(PrismConstants.Q_ANY)) {
-                Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
-                        .searchCachedRelationId(ref.getRelation());
-                predicate = ExpressionUtils.and(predicate,
-                        predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
-            } // else relation == Q_ANY, no additional predicate needed
-        }
+        predicate = relationPredicate(predicate, ref.getRelation());
 
         if (targetNamePath != null && ref.getTargetName() != null) {
             predicate = ExpressionUtils.and(predicate,
@@ -121,6 +129,18 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
                             targetNamePath.eq(ref.getTargetName().getOrig())));
         }
 
+        return predicate;
+    }
+
+    private Predicate relationPredicate(Predicate predicate, QName relation) {
+        if (relationIdPath != null) {
+            if (relation == null || !relation.equals(PrismConstants.Q_ANY)) {
+                Integer relationId = ((SqaleQueryContext<?, ?, ?>) context)
+                        .searchCachedRelationId(relation);
+                predicate = ExpressionUtils.and(predicate,
+                        predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
+            } // else relation == Q_ANY, no additional predicate needed
+        }
         return predicate;
     }
 }

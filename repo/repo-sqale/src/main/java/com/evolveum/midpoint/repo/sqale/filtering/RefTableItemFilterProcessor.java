@@ -50,7 +50,7 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
                 .where(new RefItemFilterProcessor(
                         context, ref.targetOid, ref.targetType, ref.relationId, null)
                         .process(filter));
-        if (filter.getValues() == null) {
+        if (!(filter instanceof RefFilterWithRepoPath) && filter.getValues() == null) {
             // If values == null, we search for all items without reference
             return subquery.notExists();
         }

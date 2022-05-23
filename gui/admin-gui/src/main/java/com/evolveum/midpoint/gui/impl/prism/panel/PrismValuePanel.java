@@ -142,6 +142,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         if (factory == null) {
             Component defaultPanel = createDefaultPanel(ID_INPUT);
+            defaultPanel.setOutputMarkupId(true);
             valueContainer.add(defaultPanel);
             feedback.setFilter(new ComponentFeedbackMessageFilter(defaultPanel));
             valueContainer.add(feedback);
@@ -162,6 +163,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         Component component;
         try {
             component = factory.createPanel(panelCtx);
+            component.setOutputMarkupId(true);
             valueContainer.add(component);
             factory.configure(panelCtx, component);
             valueContainer.add(feedback);
@@ -301,7 +303,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected Component getValuePanel() {
-        return (Component) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_INPUT));
+        return get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_INPUT));
     }
 
     protected Component getValueContainer() {

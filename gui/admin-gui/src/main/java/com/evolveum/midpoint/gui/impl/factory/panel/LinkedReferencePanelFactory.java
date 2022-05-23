@@ -68,7 +68,6 @@ public class LinkedReferencePanelFactory
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
         LinkedReferencePanel<?> panel = new LinkedReferencePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         panel.setOutputMarkupId(true);
-        panel.add(AttributeAppender.append("style", "padding-top:5px")); //ugly hack to be aligned with prism-property-label
         return panel;
     }
 }

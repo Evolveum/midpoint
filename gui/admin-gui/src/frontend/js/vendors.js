@@ -16,6 +16,8 @@ import '../../../node_modules/ace-builds/src-noconflict/ace';
 
 ace.config.setModuleUrl('ace/theme/eclipse',
     require('../../../node_modules/ace-builds/src-noconflict/theme-eclipse.js'));
+ace.config.setModuleUrl('ace/theme/eclipse',
+    require('../../../node_modules/ace-builds/src-noconflict/theme-idle_fingers.js'));
 ace.config.setModuleUrl('ace/mode/xml',
     require('../../../node_modules/ace-builds/src-noconflict/mode-xml.js'));
 ace.config.setModuleUrl('ace/ext/language_tools',

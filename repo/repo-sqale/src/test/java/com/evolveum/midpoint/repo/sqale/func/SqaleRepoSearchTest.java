@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -94,6 +95,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
+
+
+        roleOid = repositoryService.addObject(
+                new RoleType()
+                        .name("role-ass-vs-ind")
+                        .assignment(new AssignmentType()
+                                .lifecycleState("role-ass-lc"))
+                        .inducement(new AssignmentType()
+                                .lifecycleState("role-ind-lc"))
+                        .asPrismObject(), null, result);
 
         // org structure
         org1Oid = repositoryService.addObject(
@@ -306,6 +317,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass2")
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE, relation2)
                         .metadata(new MetadataType()
                                 .creatorRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
@@ -411,14 +423,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
                         .asPrismObject(), null, result);
 
-        roleOid = repositoryService.addObject(
-                new RoleType()
-                        .name("role-ass-vs-ind")
-                        .assignment(new AssignmentType()
-                                .lifecycleState("role-ass-lc"))
-                        .inducement(new AssignmentType()
-                                .lifecycleState("role-ind-lc"))
-                        .asPrismObject(), null, result);
 
         // objects for OID range tests
         List.of("00000000-1000-0000-0000-000000000000",
@@ -1881,6 +1885,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test602SearchContainerWithOwnedByParent() throws SchemaException {
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent using exists", AccessCertificationWorkItemType.class,
+                f -> f.ownedBy(AccessCertificationCaseType.class)
+                        .block()
+                        .id(1)
+                        .and()
+                        .ownedBy(AccessCertificationCampaignType.class)
+                        .id(accCertCampaign1Oid)
+                        .endBlock());
+        // The resulting query only uses IDs that are available directly in the container table,
+        // but our query uses exists which can be used for anything... we don't optimize this.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12);
+    }
+
+    @Test
     public void test602SearchContainerWithExistsParent() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
@@ -1950,6 +1972,19 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("ls-user3-ass1"));
+    }
+
+    @Test
+    public void test615SearchInducements() throws SchemaException {
+        queryRecorder.clearBufferAndStartRecording();
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "search inducements", AssignmentType.class,
+                f -> f.ownedBy(AbstractRoleType.class, AbstractRoleType.F_INDUCEMENT).block().endBlock());
+        queryRecorder.stopRecording();
+        display(queryRecorder.getQueryBuffer().toString());
+        assertThat(result)
+                .singleElement()
+                .matches(a -> a.getLifecycleState().equals("role-ind-lc"));
     }
 
     @Test
@@ -2384,6 +2419,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 org1Oid));
     }
 
+
     @Test
     public void test971IsDescendant() throws Exception {
         OperationResult operationResult = createOperationResult();
@@ -2406,6 +2442,53 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         expect("isDescendant returns false for reverse relationship");
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
+    }
+
+
+    @Test
+    public void test980findOrgByUser() throws Exception {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            searchObjectTest("Org by User",OrgType.class, f ->
+                f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                .id(user4Oid),
+                org111Oid
+            );
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.getQueryBuffer().toString());
+        }
+    }
+
+    @Test
+    public void test980findRoleByUser() throws Exception {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            searchObjectTest("Org by User",RoleType.class, f ->
+                f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                .id(user3Oid),
+                roleOid
+            );
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.getQueryBuffer().toString());
+        }
+    }
+
+    @Test
+    public void test980findRoleByAssignmentOfUser() throws Exception {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            searchObjectTest("Org by Assignment ownedBy user",RoleType.class, f ->
+                f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                .ownedBy(UserType.class)
+                .id(user3Oid),
+                roleOid
+            );
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.getQueryBuffer().toString());
+        }
     }
     // endregion
 }

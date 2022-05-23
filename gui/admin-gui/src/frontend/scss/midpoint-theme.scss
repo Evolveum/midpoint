@@ -21,6 +21,7 @@
 @import "midpoint-utils";
 @import "details-menu";
 @import "wicket";
+@import "bs-stepper-custom";
 
 //@import "midpoint/prism-container";
 //@import "midpoint/wizard";
@@ -496,20 +497,7 @@ th.cog, td.cog {
 	height: 75px;
 	padding-top: 10px;
 	white-space: normal;
-}
-
-// resource content pages (ResourceContentPanel)
-
-.resource-content-selection {
-
-	.form-group {
-		margin-bottom: 5px;
-	}
-}
-
-.control-suffix {
-	text-align: left !important;
-	padding-left: 0px;
+    margin: 0 !important;
 }
 
 // Feedback messages
@@ -1287,14 +1275,12 @@ td .prism-property-value {
 
 .search-item {
   display: inline-block;
-  //min-width: 270px;
   border-color: #ddd;
   border-radius: 3px;
   background-color: #f4f4f4;
   vertical-align: middle;
   font-size: 12px;
   padding-left: 3px;
-  margin-left: 3px;
 
   .search-item-label {
     margin-top: 5px;
@@ -1313,41 +1299,6 @@ td .prism-property-value {
   }
 }
 
-.metadata {
-
-    border-radius: 0px;
-    border-left: 1px solid #f4f4f4;
-    border-right: 1px solid #f4f4f4;
-    border-bottom: none;
-    border-top: none;
-
-  .panel-default {
-      border-color: #ffffff;
-  }
-
-  .panel {
-      margin-bottom: 0px;
-      box-shadow: none;
-  }
-
-  .panel-body {
-      padding: 5px;
-  }
-
-  .info-box {
-      min-height: 50px;
-  }
-
-  .info-box-icon {
-      height: 50px;
-      line-height: normal;
-  }
-
-  .info-box-icon-ethereal-image {
-      font-size: 40px;
-  }
-}
-
 .metadata div.prism-container {
   // Removing the "top horizontal line" above metadata label and icon.
   // HACK We should rather re-structure the code and provide custom css class.
@@ -1356,11 +1307,10 @@ td .prism-property-value {
 }
 
 .metadata-block {
-     padding-top: 5px;
+  padding-top: 5px;
 }
 
 .metadata-properties {
-  padding-left: 40px;
 
   .metadata-property {
     padding-left: 0px;
@@ -1384,49 +1334,15 @@ td .prism-property-value {
 
 }
 
-// Tag icon in metadata "tab"
-.metadata-nav > li > a::before {
-  font-family: "FontAwesome";
-  padding-right: 0.5em;
-  content: "\f02b";
-}
+.metadata {
 
-.contains-active-tab {
-  border-bottom: 1px solid #eeeeee;
-}
-
-.contains-active-tab > ul > li > a.metadata-tab {
-  margin-top: 0px;
-  border-top: 3px solid transparent;
-  border-radius: 0px;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-  background-color: transparent;
-}
-
-.metadata-tab {
-  margin-top: 2px;
-  border: 1px solid #dddddd;
-  border-radius: 3px;
-  padding: 3px 10px !important;
-  float: left;
-  padding-bottom: 5px !important;
-  background-color: #f7f7f7;
-
-  font-size: 75%;
-  color: #000;
-  text-align: center;
-  white-space: nowrap;
-
-}
-
-.metadata-tab-active {
-  border-top: 3px solid #3c8dbc !important;
-  border-right: 1px solid #f4f4f4 !important;
-  border-left: 1px solid #f4f4f4 !important;
-  background-color: #ffffff !important;
-  border-bottom: 1px solid transparent !important;
+  & .card .nav-item > a.nav-link::before,
+  & .tags > a.btn::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    padding-right: 0.5em;
+    content: "\f02b";
+  }
 }
 
 .acquisition {
@@ -1817,4 +1733,14 @@ span.yui-skin-sam {
 
 .login-footer {
   font-size: 13px;
+}
+
+.info-box.activity-item-processing > .info-box-content > .progress-description {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 50vw;
+}
+
+th.debug-list-buttons {
+  width: 160px;
 }

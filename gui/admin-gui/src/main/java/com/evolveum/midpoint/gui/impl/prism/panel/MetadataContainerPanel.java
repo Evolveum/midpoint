@@ -31,7 +31,6 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
         super(id, model, settings);
     }
 
-
     @Override
     protected boolean getHeaderVisibility() {
         return false;
@@ -46,5 +45,4 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
         item.add(panel);
         return panel;
     }
-
 }

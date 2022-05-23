@@ -11,6 +11,11 @@ import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * use pure lambda eg. not new ReadOnlyModel(() -> xxx) but () -> xxx
+ * @param <T>
+ */
+@Deprecated
 public class ReadOnlyModel<T> implements IModel<T> {
 
     @NotNull private final SerializableSupplier<T> objectSupplier;

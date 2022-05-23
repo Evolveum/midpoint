@@ -8,16 +8,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-        <div class="panel panel-default metadata">
-            <div class="panel-body"> <!-- wicket:id="values">-->
+        <div class="card metadata">
+            <div class="card-body p-0">
                 <div wicket:id="yieldContainer">
                     <div wicket:id="provenanceDisplayName"></div>
                     <div>
                         <div class="yield" wicket:id="yield">
                             <div wicket:id="provenance">
                                 <div class="yield-heading">
-    <!--                                <i class="fa fa-arrow-left pull-left"></i>-->
                                     <div class="col-md-11 col-xs-10" wicket:id="acquisitionHeader">
                                         <ul class="acquisition">
                                             <li wicket:id="acquisitions">
@@ -25,10 +23,6 @@
                                             </li>
                                         </ul>
                                     </div>
-<!--                                    <div wicket:id="mappingSpec">-->
-<!--                                        <wicket:message key="MappingSpecificationType.from"></wicket:message>-->
-<!--                                        <div wicket:id="mappingRef"></div>-->
-<!--                                    </div>-->
                                     <button wicket:id="showMore" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
                                             class="btn btn-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
                                 </div>
@@ -37,9 +31,7 @@
                                 <div wicket:id="valueMetadataDetails"/>
                             </div>
                         </div>
-
                     </div>
-
                 </div>
             </div>
         </div>

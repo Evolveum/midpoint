@@ -7,9 +7,20 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import java.util.List;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -17,16 +28,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import javax.xml.namespace.QName;
-import java.util.List;
 
 public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 
@@ -59,21 +60,9 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
     private void initBasicInfoLayout() {
 
         final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), CertDefinitionDto.F_NAME));
-        nameField.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        });
         add(nameField);
 
         final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), CertDefinitionDto.F_DESCRIPTION));
-        descriptionField.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        });
         add(descriptionField);
 
         final WebMarkupContainer ownerRefChooser = createOwnerRefChooser(ID_OWNER_REF_CHOOSER);
@@ -136,21 +125,6 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
     }
 
     private WebMarkupContainer createOwnerRefChooser(String id) {
-        ChooseTypePanel tenantRef = new ChooseTypePanel(id,
-                new PropertyModel<ObjectViewDto>(getModel(), CertDefinitionDto.F_OWNER)) {
-
-            @Override
-            protected boolean isSearchEnabled() {
-                return true;
-            }
-
-            @Override
-            protected QName getSearchProperty() {
-                return UserType.F_NAME;
-            }
-        };
-
-        return tenantRef;
+        return new ChooseTypePanel(id, new PropertyModel<ObjectViewDto>(getModel(), CertDefinitionDto.F_OWNER));
     }
-
 }

@@ -9,66 +9,26 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="form-group">
-        <label class="col-lg-2 control-label"><wicket:message key="ImportOptionsPanel.options"/></label>
-
-        <div class="col-lg-10">
-            <div>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="protectedByEncryption" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.protectedByEncryption"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="fetchResourceSchema" type="checkbox" name="optionsRadios">
-                    <wicket:message key="importOptionsPanel.fetchResourceSchema"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="keepOid" type="checkbox" name="optionsRadios">
-                    <wicket:message key="importOptionsPanel.keepOid"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="overwriteExistingObject" type="checkbox" name="optionsRadios">
-                    <wicket:message key="importOptionsPanel.overwriteExistingObject"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="referentialIntegrity" type="checkbox" name="optionsRadios">
-                    <wicket:message key="importOptionsPanel.referentialIntegrity"/>
-                </label>
-            </div>
-            <div>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="summarizeErrors" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.summarizeErrors"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="summarizeSuccesses" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.summarizeSuccesses"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="validateDynamicSchema" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.validateDynamicSchema"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="validateStaticSchema" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.validateStaticSchema"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="fullProcessing" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.fullProcessing"/>
-                </label>
-                <label class="col-lg-2 checkbox-inline">
-                    <input wicket:id="compatMode" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.compatMode"/>
-                </label>
-            </div>
+        <label class="col-form-label"><wicket:message key="ImportOptionsPanel.options"/></label>
+        <div class="row mx-0">
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="protectedByEncryption"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="fetchResourceSchema"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="keepOid"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="overwriteExistingObject"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="referentialIntegrity"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="summarizeErrors"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="summarizeSuccesses"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="validateDynamicSchema"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="validateStaticSchema"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="fullProcessing"/>
+            <div class="col-sm-4 col-md-3 col-xxl-2" wicket:id="compatMode"/>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-lg-2 control-label"><wicket:message key="importOptionsPanel.stopAfter"/></label>
+        <label class="col-form-label"><wicket:message key="importOptionsPanel.stopAfter"/></label>
 
-        <div class="col-lg-1">
-            <input wicket:id="errors" wicket:message="placeholder:ImportOptionsPanel.errorCount" type="text"
-                   class="form-control form-control-sm">
-        </div>
+        <input wicket:id="errors" wicket:message="placeholder:ImportOptionsPanel.errorCount" type="text"
+               class="form-control form-control-sm w-auto">
     </div>
 </wicket:panel>
 </html>

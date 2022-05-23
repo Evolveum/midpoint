@@ -35,6 +35,7 @@ public class InfoBox extends BasePanel<InfoBoxData> {
     private static final String ID_NUMBER = "number";
     private static final String ID_PROGRESS = "progress";
     private static final String ID_DESCRIPTION = "description";
+    public static final String ID_DESCRIPTION_2 = "description2";
     private static final String ID_ICON = "icon";
     private static final String ID_ICON_CONTAINER = "iconContainer";
 
@@ -77,9 +78,10 @@ public class InfoBox extends BasePanel<InfoBoxData> {
         };
         add(linkClick);
 
-        addLabel(ID_TEXT, () -> getModelObject().getText());
-        addLabel(ID_NUMBER, () -> getModelObject().getNumber());
-        addLabel(ID_DESCRIPTION, () -> getModelObject().getDescription());
+        add(createLabel(ID_TEXT, () -> getModelObject().getText()));
+        add(createLabel(ID_NUMBER, () -> getModelObject().getNumber()));
+        add(createLabel(ID_DESCRIPTION, () -> getModelObject().getDescription()));
+        add(createLabel(ID_DESCRIPTION_2, () -> getModelObject().getDescription2()));
 
         WebMarkupContainer progress = new WebMarkupContainer(ID_PROGRESS);
         progress.add(new VisibleBehaviour(() -> getModelObject().getProgress() != null));
@@ -96,9 +98,9 @@ public class InfoBox extends BasePanel<InfoBoxData> {
         iconContainer.add(icon);
     }
 
-    private void addLabel(String id, IModel model) {
+    protected Component createLabel(String id, IModel model) {
         Label label = new Label(id, model);
         label.add(new VisibleBehaviour(() -> model.getObject() != null));
-        add(label);
+        return label;
     }
 }

@@ -205,7 +205,7 @@ public class PageDebugView extends PageAdminConfiguration {
         options.add(createOptionCheckbox(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SWITCH_TO_PLAINTEXT), "pageDebugView.switchToPlainText", "pageDebugView.switchToPlainText.help"));
 
         TextArea<String> plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
-        plainTextarea.add(new VisibleBehaviour(() -> isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
+        plainTextarea.add(new VisibleBehaviour(() -> debugViewConfiguration.switchToPlainText));
         plainTextarea.add(new AttributeModifier("rows", DEFAULT_EDITOR_ROWS_NUMBER));
         plainTextarea.add(new AttributeModifier("style", "min-width:100%; max-width: 100%;"));
         mainForm.add(plainTextarea);
@@ -231,16 +231,6 @@ public class PageDebugView extends PageAdminConfiguration {
         };
     }
 
-    private boolean isTrue(String panelId) {
-        CheckBoxPanel panel = (CheckBoxPanel) get(createComponentPath(ID_FORM, panelId));
-        if (panel == null) {
-            LOGGER.error("Cannot find panel: {}", panelId);
-            return false;
-        }
-
-        return panel.getValue();
-    }
-
     private MidpointForm<?> getMainForm() {
         return (MidpointForm<?>) get(ID_FORM);
     }
@@ -248,7 +238,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private void initAceEditor(MidpointForm<?> mainForm) {
         AceEditor editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
-        editor.add(new VisibleBehaviour(() -> !isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
+        editor.add(new VisibleBehaviour(() -> !debugViewConfiguration.switchToPlainText));
         mainForm.add(editor);
     }
 
@@ -272,7 +262,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
                     @Override
                     protected boolean isValidateSchema() {
-                        return isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA);
+                        return debugViewConfiguration.validateSchema;
                     }
                 };
         dataLanguagePanel.setOutputMarkupId(true);
@@ -339,20 +329,15 @@ public class PageDebugView extends PageAdminConfiguration {
                     LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
                 }
 
-                //quick fix for now (MID-1910), maybe it should be somewhere in objectViewModel..
-//                if (isReport(oldObject)){
-//                    ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
-//                }
-
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 ModelExecuteOptions options = ModelExecuteOptions.create(getPrismContext());
-                if (isTrue(DebugViewOptions.ID_SAVE_AS_RAW)) {
+                if (debugViewConfiguration.saveAsRaw) {
                     options.raw(true);
                 }
-                if (isTrue(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS)) {
+                if (debugViewConfiguration.reevaluateSearchFilters) {
                     options.reevaluateSearchFilters(true);
                 }
-                if (!isTrue(DebugViewOptions.ID_ENCRYPT)) {
+                if (!debugViewConfiguration.encrypt) {
                     options.noCrypt(true);
                 }
 
@@ -379,7 +364,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
-        parseObject(objectViewDtoModel.getObject().getXml(), objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
+        parseObject(objectViewDtoModel.getObject().getXml(), objectHolder, dataLanguage, debugViewConfiguration.validateSchema, false, Objectable.class, result);
     }
 
     static class DebugViewOptions implements Serializable {

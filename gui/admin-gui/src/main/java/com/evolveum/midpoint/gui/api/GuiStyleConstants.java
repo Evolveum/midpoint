@@ -19,8 +19,8 @@ public class GuiStyleConstants {
     public static final String ICON_FA_POWER_OFF = "fa fa-power-off";
     public static final String ICON_FA_SPINNER = "fa fa-spinner";
 
-    public static final String CLASS_BOX = "box";
-    public static final String CLASS_BOX_DEFAULT = "box-default";
+    public static final String CLASS_BOX = "card";
+    public static final String CLASS_BOX_DEFAULT = "card-default";
 
     public static final String CLASS_DASHBOARD_ICON = "fa fa-tachometer-alt";
 
@@ -109,7 +109,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
     public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield-alt";
     public static final String CLASS_ICON_REQUEST = "fa fa-pen-square";
-    public static final String CLASS_ICON_CONSENT = "fa fa-check-square-o";
+    public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";
@@ -168,8 +168,8 @@ public class GuiStyleConstants {
     public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
     public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
 
-    public static final String CLASS_BADGE_ACTIVE = "badge-active";
-    public static final String CLASS_BADGE_PASSIVE = "badge-passive";
+    public static final String CLASS_BADGE_ACTIVE = "badge-primary";
+    public static final String CLASS_BADGE_PASSIVE = "badge-secondary";
 
     public static final String DEFAULT_BG_COLOR = "#3c8dbc"; //blue-light theme
 

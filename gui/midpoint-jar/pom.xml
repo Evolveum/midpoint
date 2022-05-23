@@ -20,8 +20,6 @@
     <name>midPoint Spring Boot JAR</name>
 
     <properties>
-        <!-- We don't want analysis, as admin-gui is not used in any code in this module -->
-        <mdep.analyze.skip>true</mdep.analyze.skip>
         <maven.test.skip>true</maven.test.skip>
     </properties>
 
@@ -30,8 +28,6 @@
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
             <scope>runtime</scope>
         </dependency>
 

@@ -9,10 +9,12 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -106,7 +108,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
         add(notifyBeforeDeadlineField);
         add(WebComponentUtil.createHelp(ID_NOTIFY_BEFORE_DEADLINE_HELP));
 
-        add(new CheckBox(ID_NOTIFY_ONLY_WHEN_NO_DECISION,
+        add(new CheckBoxPanel(ID_NOTIFY_ONLY_WHEN_NO_DECISION,
                 new PropertyModel<>(getModel(), StageDefinitionDto.F_NOTIFY_ONLY_WHEN_NO_DECISION)));
         add(WebComponentUtil.createHelp(ID_NOTIFY_WHEN_NO_DECISION_HELP));
 
@@ -118,34 +120,30 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
                 AccessCertificationReviewerDto.F_DESCRIPTION));
         add(reviewerDescriptionField);
 
-        add(new CheckBox(ID_USE_TARGET_OWNER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
-                AccessCertificationReviewerDto.F_USE_TARGET_OWNER)));
-        add(new CheckBox(ID_USE_TARGET_APPROVER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
-                AccessCertificationReviewerDto.F_USE_TARGET_APPROVER)));
+        add(new CheckBoxPanel(ID_USE_TARGET_OWNER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
+                AccessCertificationReviewerDto.F_USE_TARGET_OWNER), createStringResource("StageDefinitionPanel.reviewerUseTargetOwner")));
+        add(new CheckBoxPanel(ID_USE_TARGET_APPROVER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
+                AccessCertificationReviewerDto.F_USE_TARGET_APPROVER), createStringResource("StageDefinitionPanel.reviewerUseTargetApprover")));
         add(WebComponentUtil.createHelp(ID_TARGET_HELP));
 
-        add(new CheckBox(ID_USE_OBJECT_OWNER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
-                AccessCertificationReviewerDto.F_USE_OBJECT_OWNER)));
-        add(new CheckBox(ID_USE_OBJECT_APPROVER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
-                AccessCertificationReviewerDto.F_USE_OBJECT_APPROVER)));
+        add(new CheckBoxPanel(ID_USE_OBJECT_OWNER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
+                AccessCertificationReviewerDto.F_USE_OBJECT_OWNER), createStringResource("StageDefinitionPanel.reviewerUseObjectOwner")));
+        add(new CheckBoxPanel(ID_USE_OBJECT_APPROVER, new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
+                AccessCertificationReviewerDto.F_USE_OBJECT_APPROVER), createStringResource("StageDefinitionPanel.reviewerUseObjectApprover")));
         add(WebComponentUtil.createHelp(ID_OBJECT_HELP));
 
-        AjaxCheckBox useObjectManagerCheckbox = new AjaxCheckBox(ID_USE_OBJECT_MANAGER,
+        CheckBoxPanel useObjectManagerCheckbox = new CheckBoxPanel(ID_USE_OBJECT_MANAGER,
                 new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
-                        AccessCertificationReviewerDto.F_USE_OBJECT_MANAGER_PRESENT)) {
+                        AccessCertificationReviewerDto.F_USE_OBJECT_MANAGER_PRESENT), createStringResource("StageDefinitionPanel.reviewerUseObjectManagerBox")) {
+
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
+            public void onUpdate(AjaxRequestTarget target) {
                 target.add(DefinitionStagePanel.this.get(ID_USE_OBJECT_MANAGER_DETAILS));
             }
         };
         add(useObjectManagerCheckbox);
         WebMarkupContainer useObjectManagerDetails = new WebMarkupContainer(ID_USE_OBJECT_MANAGER_DETAILS);
-        useObjectManagerDetails.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isEnabled() {
-                return useObjectManagerCheckbox.getModelObject();
-            }
-        });
+        useObjectManagerDetails.add(new EnableBehaviour(() -> useObjectManagerCheckbox.getCheckboxModel().getObject()));
         useObjectManagerDetails.setOutputMarkupId(true);
         add(useObjectManagerDetails);
 
@@ -156,10 +154,18 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
         useObjectManagerDetails.add(orgTypeField);
         useObjectManagerDetails.add(WebComponentUtil.createHelp(ID_USE_OBJECT_MANAGER_ORG_TYPE_HELP));
 
-        CheckBox allowSelf = new CheckBox(ID_USE_OBJECT_MANAGER_ALLOW_SELF,
+        CheckBoxPanel allowSelf = new CheckBoxPanel(ID_USE_OBJECT_MANAGER_ALLOW_SELF,
                 new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." +
-                        AccessCertificationReviewerDto.F_USE_OBJECT_MANAGER + "." + ManagerSearchDto.F_ALLOW_SELF));
-        allowSelf.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                        AccessCertificationReviewerDto.F_USE_OBJECT_MANAGER + "." + ManagerSearchDto.F_ALLOW_SELF),
+                createStringResource("StageDefinitionPanel.reviewerUseObjectManagerAllowSelf")) {
+
+            @Override
+            protected AjaxCheckBox createCheckbox() {
+                AjaxCheckBox check = super.createCheckbox();
+                check.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                return check;
+            }
+        };
         useObjectManagerDetails.add(allowSelf);
         useObjectManagerDetails.add(WebComponentUtil.createHelp(ID_USE_OBJECT_MANAGER_ALLOW_SELF_HELP));
 

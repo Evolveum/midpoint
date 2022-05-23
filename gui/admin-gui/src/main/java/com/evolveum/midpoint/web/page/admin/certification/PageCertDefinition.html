@@ -10,19 +10,17 @@
 <body>
 <wicket:extend>
     <div wicket:id="summaryPanel"/>
+
     <form wicket:id="mainForm" class="clearfix form-horizontal">
-
-        <!-- separate tabs for scope, stages, campaigns, and XML definition -->
-
-        <div wicket:id="tabPanel" class="nav-tabs-custom" />
-
-        <div class="main-button-bar">
-            <a class="btn btn-default" wicket:id="backButton" />
-            <a class="btn btn-primary" wicket:id="saveButton" />
+        <div wicket:id="operationsPanel">
+            <fieldset wicket:id="main">
+                <a class="btn btn-sm btn-default" wicket:id="backButton"/>
+                <a class="btn btn-sm btn-primary" wicket:id="saveButton"/>
+            </fieldset>
         </div>
 
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
     </form>
-
 </wicket:extend>
 </body>
 </html>

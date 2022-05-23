@@ -37,6 +37,15 @@ public class TableRelationResolver<
     protected final BiFunction<Q, TQ, Predicate> correlationPredicate;
     private final boolean useSubquery;
 
+
+    public BiFunction<Q, TQ, Predicate> getCorrelationPredicate() {
+        return correlationPredicate;
+    }
+
+    public Supplier<QueryTableMapping<TS, TQ, TR>> getTargetMappingSupplier() {
+        return targetMappingSupplier;
+    }
+
     public static <Q extends FlexibleRelationalPathBase<R>, R, TS, TQ extends FlexibleRelationalPathBase<TR>, TR>
     TableRelationResolver<Q, R, TS, TQ, TR> usingSubquery(
             @NotNull QueryTableMapping<TS, TQ, TR> targetMapping,
@@ -102,5 +111,27 @@ public class TableRelationResolver<
                     targetMappingSupplier.get(), correlationPredicate);
             return new ResolutionResult<>(subcontext, subcontext.mapping());
         }
+    }
+
+    public TableRelationResolver<Q, R, TS, TQ, TR> replaceTable(QueryTableMapping<? extends TS, TQ, TR> target) {
+        // FIXME: Add check
+
+        return new TableRelationResolver(() -> target, correlationPredicate);
+    }
+
+    public TableRelationResolver<Q, R, TS, TQ, TR>  withSubquery() {
+
+        return usingSubquery(targetMappingSupplier.get(), correlationPredicate);
+    }
+
+    public <AQ extends FlexibleRelationalPathBase<AR>, AS, AR>
+    TableRelationResolver<TQ, TR, AS, AQ, AR> reverse(
+            @NotNull QueryTableMapping<AS, AQ, AR> targetMapping) {
+        //noinspection unchecked
+        return new TableRelationResolver<>(targetMapping, (t, a) -> correlationPredicate.apply((Q) a, t));
+    }
+
+    public QueryTableMapping<TS, TQ, TR> mapping() {
+        return targetMappingSupplier.get();
     }
 }

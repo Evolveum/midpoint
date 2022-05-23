@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 def verbose = 0
 try {
     verbose = Integer.parseInt(params.VERBOSE ?: '0')
@@ -82,7 +89,10 @@ podTemplate(
 
                 // Collects results for all tests (main + extra).
                 // Using this step in each phase produces multiple graphs, but all have the same results from the last run.
-                step([$class: 'Publisher', reportFilenamePattern: '**/testng-results.xml'])
+                step([$class: 'Publisher',
+                    reportFilenamePattern: '**/testng-results.xml',
+                    // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
+                ])
             }
         }
     }

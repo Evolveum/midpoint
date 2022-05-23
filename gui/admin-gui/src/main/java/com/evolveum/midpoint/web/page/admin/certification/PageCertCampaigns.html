@@ -11,22 +11,20 @@
 <body>
 <wicket:extend>
 
-    <form wicket:id="mainForm" class="form-inline">
+    <form wicket:id="mainForm">
         <div wicket:id="campaignsTable"/>
     </form>
 
     <wicket:fragment wicket:id="tableHeader">
-        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+        <form wicket:id="searchForm" class="form-inline search-form justify-content-end">
             <div class="form-group">
                 <label class="sr-only"><wicket:message key="PageCertCampaigns.search.state"/></label>
                 <div wicket:id="state"/>
             </div>
-            <span class="btn-group">
-                <a class="my-1 btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch"
-                   wicket:id="searchClear">
-                    <i class="fa fa-times"/>
-                </a>
-            </span>
+            <a class="ml-1 btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch"
+               wicket:id="searchClear">
+                <i class="fa fa-times"></i>
+            </a>
         </form>
     </wicket:fragment>
 

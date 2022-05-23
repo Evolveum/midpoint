@@ -8,84 +8,73 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="box box-success">
-        <div class="box-body no-padding">
-            <table class="table table-striped">
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="PageCertDefinition.name"/></td>
-                    <td class="col-md-8">
+    <div class="card card-outline card-success">
+        <div class="card-body p-0">
+            <table class="table table-striped table-sm">
+                <tr>
+                    <td class="mp-w-6 mp-w-md-4"><wicket:message key="PageCertDefinition.name"/></td>
+                    <td class="mp-w-6 mp-w-md-8">
                         <input type="text" class="form-control form-control-sm" wicket:id="name"/>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="PageCertDefinition.description"/></td>
-                    <td class="col-md-8">
+                <tr>
+                    <td><wicket:message key="PageCertDefinition.description"/></td>
+                    <td>
                         <textarea type="text" class="form-control form-control-sm" wicket:id="description"/>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="PageCertDefinition.owner"/></td>
-                    <td class="col-md-8">
+                <tr>
+                    <td><wicket:message key="PageCertDefinition.owner"/></td>
+                    <td>
                         <div wicket:id="ownerRefChooser" >
                         </div>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="PageCertDefinition.outcomeStrategy"/> <i wicket:id="outcomeStrategyHelp" wicket:message="title:PageCertDefinition.outcomeStrategyHelp"/>
+                <tr>
+                    <td><wicket:message key="PageCertDefinition.outcomeStrategy"/> <i wicket:id="outcomeStrategyHelp" wicket:message="title:PageCertDefinition.outcomeStrategyHelp"/>
                     <span class="help-block">
                                         <wicket:message key="PageCertDefinition.outcomeStrategyHelpLabel" />
                                         <a href="https://docs.evolveum.com/midpoint/reference/roles-policies/certification/determining-case-outcome/"
                                            target="_blank"><wicket:message key="PageCertDefinition.outcomeStrategyHelpLink" /></a>
                                     </span>
                     </td>
-                    <td class="col-md-8">
+                    <td>
                         <select class="form-control form-control-sm" wicket:id="outcomeStrategy"/>
                         <p>(<wicket:message key="PageCertDefinition.stopReviewOn"/>
                             <span wicket:id="stopReviewOn"></span>)</p>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.remediation"/></td>
-                    <td class="col-md-8">
+                <tr>
+                    <td><wicket:message key="StageDefinitionPanel.remediation"/></td>
+                    <td>
                         <select class="form-control form-control-sm" wicket:id="remediation"/>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.automaticIterationAfter"/></td>
-                    <td class="col-md-8">
+                <tr>
+                    <td><wicket:message key="StageDefinitionPanel.automaticIterationAfter"/></td>
+                    <td>
                         <input type="text" class="form-control form-control-sm" wicket:id="automaticIterationAfter"/>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.automaticIterationLimit"/></td>
-                    <td class="col-md-8">
+                <tr>
+                    <td><wicket:message key="StageDefinitionPanel.automaticIterationLimit"/></td>
+                    <td>
                         <input class="form-control form-control-sm" wicket:id="automaticIterationLimit"/>
                     </td>
                 </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.overallIterationLimit"/></td>
-                    <td class="col-md-8">
+                <tr>
+                    <td><wicket:message key="StageDefinitionPanel.overallIterationLimit"/></td>
+                    <td>
                         <input class="form-control form-control-sm" wicket:id="overallIterationLimit"/>
                     </td>
                 </tr>
-                <!-- TODO visually separate definition and current status -->
-                <!-- TODO do this in some "compressed" form to save space -->
-                <!-- disabled for now
                 <tr>
-                    <td><wicket:message key="PageCertDefinition.campaignsInReviewStage"/></td>
-                    <td><div wicket:id="campaignsInReviewStage"/></td>
+                    <td><wicket:message key="PageCertDefinition.campaignLastStarted"/> <i wicket:id="campaignLastStartedHelp" wicket:message="title:PageCertDefinition.campaignLastStartedHelp"/></td>
+                    <td><div wicket:id="campaignLastStarted"/></td>
                 </tr>
                 <tr>
-                    <td><wicket:message key="PageCertDefinition.campaignsTotal"/></td>
-                    <td><div wicket:id="campaignsTotal"/></td>
-                </tr> -->
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="PageCertDefinition.campaignLastStarted"/> <i wicket:id="campaignLastStartedHelp" wicket:message="title:PageCertDefinition.campaignLastStartedHelp"/></td>
-                    <td class="col-md-8"><div wicket:id="campaignLastStarted"/></td>
-                </tr>
-                <tr class="row">
-                    <td class="col-md-4"><wicket:message key="PageCertDefinition.campaignLastClosed"/> <i wicket:id="campaignLastClosedHelp" wicket:message="title:PageCertDefinition.campaignLastClosedHelp"/></td>
-                    <td class="col-md-8"><div wicket:id="campaignLastClosed"/></td>
+                    <td><wicket:message key="PageCertDefinition.campaignLastClosed"/> <i wicket:id="campaignLastClosedHelp" wicket:message="title:PageCertDefinition.campaignLastClosedHelp"/></td>
+                    <td><div wicket:id="campaignLastClosed"/></td>
                 </tr>
             </table>
         </div>
