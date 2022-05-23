@@ -30,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -482,18 +484,19 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private List<InlineMenuItem> getSavedSearchList() {
         ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
         List<InlineMenuItem> savedSearchItems = new ArrayList<>();
-        List<SearchItemType> searchItems = null;
+        List<AvailableFilterType> availableFilterList = null;
         if (listPanel != null) {
             CompiledObjectCollectionView view = listPanel.getObjectCollectionView();
-            searchItems = view != null ? getSearchItemList(view.getSearchBoxConfiguration()) : null;
+            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         } else {
             FocusType principalFocus = getPageBase().getPrincipalFocus();
             GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false);
-            searchItems = view != null ? getSearchItemList(view.getSearchBoxConfiguration()) : null;
+            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         }
-        if (searchItems != null) {
-            searchItems.forEach(item -> {
-                InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(item.getDisplayName()))) {
+        if (availableFilterList != null) {
+            availableFilterList.forEach(filter -> {
+                PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
+                InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -504,25 +507,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                SearchFilterType filter = item.getFilter();
                                 if (filter == null) {
                                     return;
                                 }
-                                try {
-                                    ObjectFilter savedFilter = getPageBase().getQueryConverter().parseFilter(filter, getModelObject().getTypeClass());
-                                    if (savedFilter instanceof AndFilter && ((AndFilter) savedFilter).getConditions() != null) {
-                                        getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
-                                        applyFilterToBasicMode((AndFilter) savedFilter);
-                                    } else {
-                                        Optional<PrismQuerySerialization> serialization = getPageBase().getPrismContext().querySerializer()
-                                                .trySerialize(savedFilter, getPageBase().getPrismContext().getSchemaRegistry().staticNamespaceContext());
-                                        if (serialization.isPresent()) {
-                                            getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.AXIOM_QUERY);
-                                            getModelObject().setDslQuery(serialization.get().filterText());
-                                        }
-                                    }
-                                } catch (SchemaException e) {
-                                    LOG.error("Unable to create object query from search filter: {}, {}", filter, e.getLocalizedMessage());
+                                if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
+                                    applyFilterToBasicMode(filter.getSearchItem());
+                                } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
+                                    applyFilterToAxiomMode();
                                 }
                                 searchPerformed(target);
                             }
@@ -535,23 +526,21 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         return savedSearchItems;
     }
 
-    private void applyFilterToBasicMode(AndFilter filter) {
+    private void applyFilterToBasicMode(List<SearchItemType> items) {
         getModelObject().getItems().forEach(item -> item.setVisible(false));
-        List<ObjectFilter> conditions = filter.getConditions();
-        conditions.forEach(condition -> {
-            if (condition instanceof AndFilter) {
-                applyFilterToBasicMode((AndFilter) condition);
-            } else if (condition instanceof PropertyValueFilter) {
-                ItemPath path = ((PropertyValueFilter) condition).getPath();
-                if (path == null) {
-                    return;
-                }
-                List<? extends PrismValue> values = ((PropertyValueFilter) condition).getValues();
+        items.forEach(searchItem -> {
+            ItemPath path = searchItem.getPath().getItemPath();
+            if (searchItem.getFilter() instanceof PropertyValueFilter) {
+                List<? extends PrismValue> values = ((PropertyValueFilter) searchItem.getFilter()).getValues();
                 setSearchItemValue(path, values);
             }
-        });
+            }
+        );
     }
 
+    private void applyFilterToAxiomMode() {
+
+    }
 
     private void setSearchItemValue(ItemPath path, List<? extends PrismValue> values) {
         if (path == null) {
@@ -579,15 +568,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
     }
 
-    private List<SearchItemType> getSearchItemList(SearchBoxConfigurationType config) {
+    private List<AvailableFilterType> getAvailableFilterList(SearchBoxConfigurationType config) {
         if (config == null) {
             return null;
         }
-        SearchItemsType items = config.getSearchItems();
-        if (items == null) {
-            return null;
-        }
-        return items.getSearchItem();
+        return config.getAvailableFilter();
     }
 
     class BasicSearchFragment extends Fragment {

@@ -683,7 +683,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         List<CompiledObjectCollectionView> objectViews = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
 
         objectViews.forEach(objectView -> {
-            if (!WebComponentUtil.getElementVisibility(objectView.getVisibility())) {
+            if (objectView.isDefaultView() || !WebComponentUtil.getElementVisibility(objectView.getVisibility())) {
                 return;
             }
 

@@ -5326,9 +5326,9 @@ public final class WebComponentUtil {
             adminGui.objectCollectionViews(views);
         }
         GuiObjectListViewType objectListView = null;
-        if (StringUtils.isNoneEmpty(viewName)) {
+        if (StringUtils.isNotEmpty(viewName)) {
             for (GuiObjectListViewType view : views.getObjectCollectionView()) {
-                if (view.getIdentifier().equals(viewName)) {
+                if (viewName.equals(view.getIdentifier())) {
                     objectListView = view;
                 }
             }
