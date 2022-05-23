@@ -8,6 +8,12 @@
 package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+
+import com.evolveum.midpoint.web.session.SessionStorage;
+
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -57,7 +63,15 @@ public class AceEditor extends TextArea<String> {
         sb.append(",").append(isResizeToMaxHeight());
         sb.append(",").append(getHeight());
         sb.append(",").append(getMinHeight());
-        sb.append(",").append(mode != null ? "'"+mode+"'" : "null");
+        sb.append(",").append(mode != null ? "'" + mode + "'" : "null");
+
+        boolean dark = false;
+        Session session = getSession();
+        if (session instanceof MidPointAuthWebSession) {
+            MidPointAuthWebSession maws = (MidPointAuthWebSession) session;
+            dark = maws.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
+        }
+        sb.append(",").append(dark);
         sb.append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
