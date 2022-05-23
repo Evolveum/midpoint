@@ -196,11 +196,18 @@ export default class MidPointTheme {
     }
 
     showAjaxStatusSign() {
-        document.getElementById('ajax_busy').style.visibility = 'visible';
+        var element = document.getElementById('ajax_busy');
+        if (element != null) {
+            element.style.visibility = 'visible';
+        }
     }
 
     hideAjaxStatusSign() {
-        document.getElementById('ajax_busy').style.visibility = 'hidden';
+        var element = document.getElementById('ajax_busy');
+        if (element == null) {
+            return;
+        }
+        element.style.visibility = 'hidden';
         if (document.querySelectorAll("[role='tooltip']") != null) {
             var tooltips = document.querySelectorAll("[role='tooltip']"), i;
             for (i = 0; i < tooltips.length; ++i) {
