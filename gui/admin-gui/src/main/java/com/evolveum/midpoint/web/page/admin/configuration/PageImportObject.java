@@ -16,6 +16,8 @@ import java.util.List;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -199,14 +201,7 @@ public class PageImportObject extends PageAdminConfiguration {
 
     private void addVisibileForInputType(Component comp, final Integer type,
             final IModel<Integer> groupModel) {
-        comp.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return type.equals(groupModel.getObject());
-            }
-
-        });
+        comp.add(new VisibleBehaviour(() -> type.equals(groupModel.getObject())));
     }
 
     private void initButtons(WebMarkupContainer buttonBar, IModel<Integer> inputType) {
@@ -217,13 +212,7 @@ public class PageImportObject extends PageAdminConfiguration {
                 redirectBack();
             }
         };
-        backButton.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return canRedirectBack();
-            }
-        });
+        backButton.add(new VisibleBehaviour(() -> canRedirectBack()));
         buttonBar.add(backButton);
 
         AjaxSubmitButton saveFileButton = new AjaxSubmitButton(ID_IMPORT_FILE_BUTTON,

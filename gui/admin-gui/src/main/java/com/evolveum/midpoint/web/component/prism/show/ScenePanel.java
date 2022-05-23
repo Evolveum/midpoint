@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
@@ -25,18 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.*;
-import org.jetbrains.annotations.NotNull;
 
 public class ScenePanel extends BasePanel<SceneDto> {
 
@@ -77,7 +79,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         setOutputMarkupId(true);
         initLayout();
@@ -96,30 +98,26 @@ public class ScenePanel extends BasePanel<SceneDto> {
         final IModel<SceneDto> model = getModel();
 
         WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-        box.add(AttributeModifier.append("class", new IModel<String>() {
+        box.add(AttributeModifier.append("class", () -> {
+            SceneDto dto = model.getObject();
 
-            @Override
-            public String getObject() {
-                SceneDto dto = model.getObject();
+            if (dto.getBoxClassOverride() != null) {
+                return dto.getBoxClassOverride();
+            }
 
-                if (dto.getBoxClassOverride() != null) {
-                    return dto.getBoxClassOverride();
-                }
+            if (dto.getChangeType() == null) {
+                return null;
+            }
 
-                if (dto.getChangeType() == null) {
+            switch (dto.getChangeType()) {
+                case ADD:
+                    return "card-success";
+                case DELETE:
+                    return "card-danger";
+                case MODIFY:
+                    return "card-info";
+                default:
                     return null;
-                }
-
-                switch (dto.getChangeType()) {
-                    case ADD:
-                        return "card-success";
-                    case DELETE:
-                        return "card-danger";
-                    case MODIFY:
-                        return "card-info";
-                    default:
-                        return null;
-                }
             }
         }));
         add(box);
@@ -139,12 +137,8 @@ public class ScenePanel extends BasePanel<SceneDto> {
         Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
         //headerObjectType.setRenderBodyOnly(true);
 
-        IModel<String> nameModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                return model.getObject().getName(ScenePanel.this);
-            }
-        };
+        IModel<String> nameModel = () -> model.getObject().getName(ScenePanel.this);
+
         Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
         AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_HEADER_NAME_LINK, nameModel) {
 
@@ -157,23 +151,15 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 }
             }
         };
-        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new IModel<String>() {
-            @Override
-            public String getObject() {
-                return model.getObject().getDescription(ScenePanel.this);
-            }
+        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, () -> model.getObject().getDescription(ScenePanel.this));
+        Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME, () -> {
+            WrapperScene scene = ((WrapperScene) getModelObject().getScene());
+            String key = scene.getDisplayNameKey();
+            Object[] parameters = scene.getDisplayNameParameters();
+            return new StringResourceModel(key, this).setModel(null)
+                    .setDefaultValue(key)
+                    .setParameters(parameters).getObject();
         });
-        Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME,
-                new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        String key = ((WrapperScene) getModelObject().getScene()).getDisplayNameKey();
-                        Object[] parameters = ((WrapperScene) getModelObject().getScene()).getDisplayNameParameters();
-                        return new StringResourceModel(key, this).setModel(null)
-                                .setDefaultValue(key)
-                                .setParameters(parameters).getObject();
-                    }
-                });
 
         headerPanel.add(headerChangeType);
         headerPanel.add(headerObjectType);
@@ -188,36 +174,21 @@ public class ScenePanel extends BasePanel<SceneDto> {
         headerDescription.add(createHeaderOnClickBehaviour(model));
         headerWrapperDisplayName.add(createHeaderOnClickBehaviour(model));
 
-        VisibleEnableBehaviour visibleIfNotWrapper = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !getModelObject().isWrapper();
+        VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
+        VisibleBehaviour visibleIfWrapper = new VisibleBehaviour(() -> getModelObject().isWrapper());
+        VisibleBehaviour visibleIfExistingObjectAndAuthorized = new VisibleBehaviour(() -> {
+            if (getModelObject().isWrapper()) {
+                return false;
             }
-        };
-        VisibleEnableBehaviour visibleIfWrapper = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getModelObject().isWrapper();
+            return isExistingViewableObject() && isAutorized();
+        });
+        VisibleBehaviour visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized = new VisibleBehaviour(() -> {
+            if (getModelObject().isWrapper()) {
+                return false;
             }
-        };
-        VisibleEnableBehaviour visibleIfExistingObjectAndAuthorized = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                if (getModelObject().isWrapper()) {
-                    return false;
-                }
-                return isExistingViewableObject() && isAutorized();
-            }
-        };
-        VisibleEnableBehaviour visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                if (getModelObject().isWrapper()) {
-                    return false;
-                }
-                return !isExistingViewableObject() || !isAutorized();
-            }
-        };
+            return !isExistingViewableObject() || !isAutorized();
+        });
+
         headerChangeType.add(visibleIfNotWrapper);
         headerObjectType.add(visibleIfNotWrapper);
         headerNameLabel.add(visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized);
@@ -226,23 +197,14 @@ public class ScenePanel extends BasePanel<SceneDto> {
         headerWrapperDisplayName.add(visibleIfWrapper);
 
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-        body.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                SceneDto wrapper = model.getObject();
-                return !wrapper.isMinimized();
-            }
-        });
+        body.add(new VisibleBehaviour(() -> {
+            SceneDto wrapper = model.getObject();
+            return !wrapper.isMinimized();
+        }));
         box.add(body);
 
         WebMarkupContainer itemsTable = new WebMarkupContainer(ID_ITEMS_TABLE);
-        itemsTable.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !model.getObject().getItems().isEmpty();
-            }
-        });
+        itemsTable.add(new VisibleBehaviour(() -> !model.getObject().getItems().isEmpty()));
         itemsTable.setOutputMarkupId(true);
 
         ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
@@ -265,31 +227,19 @@ public class ScenePanel extends BasePanel<SceneDto> {
         itemsTable.add(sortPropertiesButton);
 
         WebMarkupContainer oldValueLabel = new WebMarkupContainer(ID_OLD_VALUE_LABEL);
-        oldValueLabel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return model.getObject().containsDeltaItems();
-            }
-        });
+        oldValueLabel.add(new VisibleBehaviour(() -> model.getObject().containsDeltaItems()));
         itemsTable.add(oldValueLabel);
+
         WebMarkupContainer newValueLabel = new WebMarkupContainer(ID_NEW_VALUE_LABEL);
-        newValueLabel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return model.getObject().containsDeltaItems();
-            }
-        });
+        newValueLabel.add(new VisibleBehaviour(() -> model.getObject().containsDeltaItems()));
         itemsTable.add(newValueLabel);
+
         WebMarkupContainer valueLabel = new WebMarkupContainer(ID_VALUE_LABEL);
-        valueLabel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !model.getObject().containsDeltaItems();
-            }
-        });
+        valueLabel.add(new VisibleBehaviour(() -> !model.getObject().containsDeltaItems()));
         itemsTable.add(valueLabel);
-        ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS,
-            new PropertyModel<>(model, SceneDto.F_ITEMS)) {
+
+        ListView<SceneItemDto> items = new ListView<>(ID_ITEMS,
+                new PropertyModel<>(model, SceneDto.F_ITEMS)) {
 
             @Override
             protected void populateItem(ListItem<SceneItemDto> item) {
@@ -303,15 +253,16 @@ public class ScenePanel extends BasePanel<SceneDto> {
         itemsTable.add(items);
         body.add(itemsTable);
 
-        ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES,
-            new PropertyModel<>(model, SceneDto.F_PARTIAL_SCENES)) {
+        ListView<SceneDto> partialScenes = new ListView<>(ID_PARTIAL_SCENES,
+                new PropertyModel<>(model, SceneDto.F_PARTIAL_SCENES)) {
 
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
-                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel()){
+                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel()) {
                     private static final long serialVersionUID = 1L;
+
                     @Override
-                    protected boolean isOperationalItemsVisible(){
+                    protected boolean isOperationalItemsVisible() {
                         ScenePanel parentScenePanel = findParent(ScenePanel.class);
                         if (parentScenePanel != null) {
                             return parentScenePanel.isOperationalItemsVisible();
@@ -330,6 +281,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
         AjaxButton showOperationalItemsLink = new AjaxButton(ID_SHOW_OPERATIONAL_ITEMS_LINK) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 setOperationalItemsVisible(!operationalItemsVisible);
@@ -391,35 +343,35 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return "";
             }
             if (def instanceof PrismObjectDefinition) {
-                return PageBase.createStringResourceStatic(SchemaConstants.OBJECT_TYPE_KEY_PREFIX +def.getTypeName().getLocalPart()).getObject();
+                return PageBase.createStringResourceStatic(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + def.getTypeName().getLocalPart()).getObject();
             } else {
                 return "";
             }
         }
     }
 
-    private void setOperationalItemsVisible(boolean operationalItemsVisible){
+    private void setOperationalItemsVisible(boolean operationalItemsVisible) {
         this.operationalItemsVisible = operationalItemsVisible;
     }
 
-    protected boolean isOperationalItemsVisible(){
+    protected boolean isOperationalItemsVisible() {
         return operationalItemsVisible;
     }
 
-    private IModel<?> getShowOperationalItemsLinkLabel(){
+    private IModel<?> getShowOperationalItemsLinkLabel() {
         return operationalItemsVisible ? PageBase.createStringResourceStatic("ScenePanel.hideOperationalItemsLink")
                 : PageBase.createStringResourceStatic("ScenePanel.showOperationalItemsLink");
     }
 
-    private boolean isOperationalPartialScene(IModel<SceneDto> sceneDtoModel){
-        if (sceneDtoModel == null || sceneDtoModel.getObject() == null){
+    private boolean isOperationalPartialScene(IModel<SceneDto> sceneDtoModel) {
+        if (sceneDtoModel == null || sceneDtoModel.getObject() == null) {
             return false;
         }
         return sceneDtoModel.getObject().getScene().isOperational();
     }
 
-    private boolean isOperationalItem(IModel<SceneItemDto> sceneDtoModel){
-        if (sceneDtoModel == null || sceneDtoModel.getObject() == null){
+    private boolean isOperationalItem(IModel<SceneItemDto> sceneDtoModel) {
+        if (sceneDtoModel == null || sceneDtoModel.getObject() == null) {
             return false;
         }
         return sceneDtoModel.getObject().isOperational();

@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -66,6 +64,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -80,7 +79,6 @@ import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -123,7 +121,6 @@ public abstract class PageBase extends PageAdminLTE {
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
     private static final String ID_LOGOUT_FORM = "logoutForm";
-    private static final String ID_CSRF_FIELD = "csrfField";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -284,26 +281,21 @@ public abstract class PageBase extends PageAdminLTE {
                 target.add(PageBase.this);
             }
         };
-        mode.add(new VisibleBehaviour(() -> WebModelServiceUtils.isEnableExperimentalFeature(this)));
         container.add(mode);
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
-        form.add(AttributeModifier.replace("action", () ->
-                SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), getAuthenticatedModule().getPrefix())));
+        form.add(new VisibleBehaviour(() -> AuthUtil.getPrincipalUser() != null));
+        form.add(AttributeModifier.replace("action", () -> getUrlForLogout()));
 
-        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        form.add(csrfField);
         container.add(form);
     }
 
-    private ModuleAuthentication getAuthenticatedModule() {
-        ModuleAuthentication moduleAuthentication = AuthUtil.getAuthenticatedModule();
+    private String getUrlForLogout() {
+        ModuleAuthentication module = AuthUtil.getAuthenticatedModule();
 
-        if (moduleAuthentication == null) {
-            String message = "Unauthenticated request";
-            throw new IllegalArgumentException(message);
-        }
-        return moduleAuthentication;
+        String prefix = module != null ? module.getPrefix() : "";
+
+        return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), prefix);
     }
 
     private void initTitleLayout(WebMarkupContainer mainHeader) {
@@ -461,10 +453,10 @@ public abstract class PageBase extends PageAdminLTE {
         mainHeader.add(createHeaderColorStyleModel(false));
 
         LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
+        sidebarMenu.add(AttributeAppender.append("class",
+                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "sidebar-dark-lightblue" : "sidebar-light-lightblue"));
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
-
-
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);

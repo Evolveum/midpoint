@@ -35,9 +35,7 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
 
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
-        Label label = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
-        label.add(AttributeAppender.append("style", "padding-top:5px;")); // because prism-property-label has this
-        return label;
+        return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
     }
 
     @Override

@@ -11,7 +11,7 @@ $.aceEditors = {};
 
 export default class MidPointAceEditor {
 
-    initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
+    initEditor(textAreaId, readonly, resize, height, minHeight, mode, dark) {
         var jqTextArea = '#' + textAreaId;
         var editorId = textAreaId + ACE_EDITOR_POSTFIX;
         var jqEditor = '#' + editorId;
@@ -29,8 +29,10 @@ export default class MidPointAceEditor {
 
         ace.require("ace/ext/language_tools");
 
+        var themeValue = dark ? 'ace/theme/idle_fingers' : 'ace/theme/eclipse';
+
         var editor = ace.edit(editorId,{
-            theme: 'ace/theme/eclipse',
+            theme: themeValue,
             mode: 'ace/mode/xml',
             highlightActiveLine : true,
             highlightSelectedWord: true,

@@ -9,30 +9,24 @@ package com.evolveum.midpoint.web.page.error;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.http.WebResponse;
 import org.springframework.http.HttpStatus;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
@@ -53,8 +47,6 @@ public class PageError extends PageBase {
     private static final String ID_ERROR_MESSAGE = "errorMessage";
     private static final String ID_BACK = "back";
     private static final String ID_HOME = "home";
-    private static final String ID_LOGOUT_FORM = "logoutForm";
-    private static final String ID_CSRF_FIELD = "csrfField";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageError.class);
 
@@ -108,27 +100,17 @@ public class PageError extends PageBase {
         Label labelLabel = new Label(ID_LABEL, errorLabel);
         add(labelLabel);
 
-        final IModel<String> message = new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                if (exClass == null) {
-                    return null;
-                }
-
-                SimpleDateFormat df = new SimpleDateFormat();
-                return df.format(new Date()) + "\t" + exClass + ": " + exMessage;
+        final IModel<String> message = () -> {
+            if (exClass == null) {
+                return null;
             }
+
+            SimpleDateFormat df = new SimpleDateFormat();
+            return df.format(new Date()) + "\t" + exClass + ": " + exMessage;
         };
 
         Label label = new Label(ID_MESSAGE, message);
-        label.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return StringUtils.isNotEmpty(message.getObject());
-            }
-        });
+        label.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(message.getObject())));
         add(label);
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageError.button.back")) {
@@ -149,19 +131,6 @@ public class PageError extends PageBase {
             }
         };
         add(home);
-
-        MidpointForm form = new MidpointForm(ID_LOGOUT_FORM);
-        form.add(AttributeModifier.replace("action", (IModel<String>) () -> getUrlForLogout()));
-        form.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return AuthUtil.getPrincipalUser() != null;
-            }
-        });
-        add(form);
-
-        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        form.add(csrfField);
     }
 
     private int getCode() {
