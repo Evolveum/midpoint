@@ -13,44 +13,39 @@
         <div wicket:id="importOptions"/>
 
         <div class="form-group">
-            <label class="col-lg-2 control-label"><wicket:message key="PageImportObject.getObjectsFrom"/></label>
+            <label class="col-form-label"><wicket:message key="PageImportObject.getObjectsFrom"/></label>
 
-            <div class="col-lg-2">
-                <div wicket:id="importRadioGroup">
-                    <div class="radio">
-                        <label>
-                            <input wicket:id="fileRadio" type="radio">
-                            <wicket:message key="PageImportObject.file"/>
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label>
-                            <input wicket:id="xmlRadio" type="radio">
-                            <wicket:message key="PageImportObject.embeddedEditor"/>
-                        </label>
-                    </div>
+            <div wicket:id="importRadioGroup">
+                <div class="form-check">
+                    <input class="form-check-input" wicket:id="fileRadio" type="radio">
+                    <label class="form-check-label"><wicket:message key="PageImportObject.file"/></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" wicket:id="xmlRadio" type="radio">
+                    <label class="form-check-label"><wicket:message key="PageImportObject.embeddedEditor"/></label>
                 </div>
             </div>
         </div>
 
         <div class="form-group" wicket:id="input">
-            <div class="col-lg-12" wicket:id="inputAce">
-                <div wicket:id="languagePanel" style="margin-bottom: 15px"></div>
-                <textarea wicket:id="aceEditor"></textarea>
+            <div wicket:id="inputAce">
+                <div wicket:id="languagePanel" class="mb-3"></div>
+                <textarea class="border rounded" wicket:id="aceEditor"></textarea>
             </div>
 
-            <label class="col-lg-2 control-label" wicket:id="inputFileLabel"></label>
-            <div class="col-lg-2" wicket:id="inputFile">
+            <label class="col-form-label" wicket:id="inputFileLabel"></label>
+            <div wicket:id="inputFile">
                 <input wicket:id="fileInput" type="file"/>
-
-                <p class="help-block"><wicket:message key="PageImportObject.message.help"/></p>
+                <p class="text-sm text-muted"><wicket:message key="PageImportObject.message.help"/></p>
             </div>
         </div>
 
-        <div class="main-button-bar" wicket:id="buttonBar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="back"/>
-            </span>
+        <div class="main-button-bar mb-3" wicket:id="buttonBar">
+            <wicket:enclosure child="back">
+                <span class="button-group">
+                    <a class="btn btn-default" wicket:id="back"/>
+                </span>
+            </wicket:enclosure>
             <a class="btn btn-primary" wicket:id="importFileButton" about="importFileButton"/>
             <a class="btn btn-primary" wicket:id="importXmlButton"/>
         </div>
