@@ -522,7 +522,14 @@ public interface ProvisioningService {
     }
 
     /**
-     * TODO please document this method
+     * Discovers additional configuration properties. The resource object should contain minimal connector
+     * configuration properties to connect to the resource, then use the connection
+     * to discover additional configuration properties. Discovered configuration properties are returned
+     * from this method as Prism properties wrapped in DiscoveredConfiguration.
+     * DiscoveredConfiguration will be empty if it does not exist.
+     *
+     * @param resource resource with minimal connector configuration
+     * @return Suggested configuration properties wrapped in DiscoveredConfiguration.
      */
     @NotNull DiscoveredConfiguration discoverConfiguration(
             @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
