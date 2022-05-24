@@ -12,9 +12,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
-
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier.Classification;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +76,6 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     @Autowired private CorrelationService correlationService;
     @Autowired private ContextLoader contextLoader;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private ResourceObjectClassifier classifier;
 
     @ProcessorMethod
     public <F extends FocusType> void process(LensContext<F> context, LensProjectionContext projectionContext,
@@ -351,7 +348,9 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             // In the future the provisioning.getObject operation should do the classification itself.
             // The following is more or less a workaround. See MID-7910.
             LOGGER.trace("Conflicting shadow is not classified yet, let us try to classify it now.");
-            Classification classification = classifier.classify(fullConflictingShadow, resource, task, iterationResult);
+            ResourceObjectClassification classification =
+                    provisioningService.classifyResourceObject(
+                            fullConflictingShadow, resource, null, task, iterationResult);
             if (!classification.isKnown()) {
                 LOGGER.trace("No classification possible -> opportunistic sync not available");
                 return false;

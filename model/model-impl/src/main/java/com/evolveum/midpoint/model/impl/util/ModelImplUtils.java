@@ -10,7 +10,6 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment.ExpressionEnvironmentBuilder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
@@ -33,10 +32,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -81,7 +80,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 public class ModelImplUtils {
 
@@ -641,13 +639,7 @@ public class ModelImplUtils {
 
     public static VariablesMap getDefaultVariablesMap(
             ObjectType focus, ShadowType shadow, ResourceType resource, SystemConfigurationType configuration) {
-        return getDefaultVariablesMap(
-                asPrismObject(focus),
-                asPrismObject(shadow),
-                null,
-                asPrismObject(resource),
-                asPrismObject(configuration),
-                null);
+        return ExpressionUtil.getDefaultVariablesMap(focus, shadow, resource, configuration);
     }
 
     public static <O extends ObjectType> VariablesMap getDefaultVariablesMap(
@@ -658,62 +650,14 @@ public class ModelImplUtils {
             PrismObject<SystemConfigurationType> configuration,
             LensElementContext<O> affectedElementContext) {
         VariablesMap variables = new VariablesMap();
-        addDefaultVariablesMap(variables, focus, shadow, discr, resource, configuration, affectedElementContext);
+        ExpressionUtil.addDefaultVariablesMap(variables, focus, shadow, discr, resource, configuration);
+        addOperation(variables, affectedElementContext);
         return variables;
     }
 
-    private static <O extends ObjectType> void addDefaultVariablesMap(
+    private static <O extends ObjectType> void addOperation(
             VariablesMap variables,
-            PrismObject<? extends ObjectType> focus,
-            PrismObject<? extends ShadowType> shadow,
-            ResourceShadowDiscriminator discr, // TODO Should we keep this?
-            PrismObject<ResourceType> resource,
-            PrismObject<SystemConfigurationType> configuration,
             LensElementContext<O> affectedElementContext) {
-
-        SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
-
-        PrismObjectDefinition<? extends ObjectType> focusDef;
-        if (focus == null) {
-            focusDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(FocusType.class);
-        } else {
-            focusDef = focus.getDefinition();
-        }
-
-        PrismObjectDefinition<? extends ShadowType> shadowDef;
-        if (shadow == null) {
-            shadowDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        } else {
-            shadowDef = shadow.getDefinition();
-        }
-
-        PrismObjectDefinition<ResourceType> resourceDef;
-        if (resource == null) {
-            resourceDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
-        } else {
-            resourceDef = resource.getDefinition();
-        }
-
-        PrismObjectDefinition<SystemConfigurationType> configDef;
-        if (configuration == null) {
-            configDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-        } else {
-            configDef = configuration.getDefinition();
-        }
-
-        // Legacy. And convenience/understandability.
-        // Let us use these variables even for non-account/non-user scenarios. This have been working for ages.
-        // During development of 4.5 it was "fixed" (so it no longer works for non-users), but actually this broke
-        // many tests. So re-enabling it back, although now it's not 100% logical. But convenient.
-        variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
-        variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
-
-        variables.put(ExpressionConstants.VAR_FOCUS, focus, focusDef);
-        variables.put(ExpressionConstants.VAR_SHADOW, shadow, shadowDef);
-        variables.put(ExpressionConstants.VAR_PROJECTION, shadow, shadowDef);
-        variables.put(ExpressionConstants.VAR_RESOURCE, resource, resourceDef);
-        variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, configDef);
-
         if (affectedElementContext != null) {
             variables.put(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue(), String.class);
             // We do not want to add delta to all expressions. The delta may be tricky. Is it focus delta? projection delta? Primary? Secondary?

@@ -23,6 +23,11 @@ public class ExpressionEnvironmentThreadLocalHolder {
 
     private static final ThreadLocal<Deque<ExpressionEnvironment>> EXPRESSION_ENVIRONMENT_STACK_TL = new ThreadLocal<>();
 
+    /** Just a shortcut method. */
+    public static void pushExpressionEnvironment(Task task, OperationResult result) {
+        pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+    }
+
     public static void pushExpressionEnvironment(ExpressionEnvironment env) {
         Deque<ExpressionEnvironment> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
         if (stack == null) {

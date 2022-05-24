@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.prism.PrismObject.cast;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -22,7 +23,10 @@ import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.google.common.base.Preconditions;
@@ -84,6 +88,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * * Creating and closing the operation-level {@link OperationResult} (and recording any exceptions in the standard manner).
  * More complex methods (e.g. `getObject`, `searchObjects`, `searchObjectsIterative`) may *clean up* the result before returning.
+ * (Except for auxiliary methods like {@link #classifyResourceObject(ShadowType, ResourceType,
+ * ObjectSynchronizationDiscriminatorType, Task, OperationResult)} and {@link #generateShadowTag(ShadowType, ResourceType,
+ * ResourceObjectTypeDefinition, Task, OperationResult)}).
  *
  * * Logging at the operation level.
  *
@@ -113,9 +120,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Autowired private AsyncUpdater asyncUpdater;
     @Autowired private CommonBeans beans;
     @Autowired private OperationsHelper operationsHelper;
+    @Autowired private ResourceObjectClassifier resourceObjectClassifier;
+    @Autowired private ShadowTagGenerator shadowTagGenerator;
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
 
+    private volatile SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     private volatile SystemConfigurationType systemConfiguration;
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
@@ -1049,12 +1059,36 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
-        shadowsFacade.setResourceObjectClassifier(classifier);
+    public void setSynchronizationSorterEvaluator(SynchronizationSorterEvaluator evaluator) {
+        synchronizationSorterEvaluator = evaluator;
+    }
+
+    public @NotNull SynchronizationSorterEvaluator getSynchronizationSorterEvaluator() {
+        return Objects.requireNonNullElse(
+                synchronizationSorterEvaluator,
+                NullSynchronizationSorterEvaluatorImpl.INSTANCE);
     }
 
     @Override
-    public void setShadowTagGenerator(ShadowTagGenerator generator) {
-        shadowsFacade.setShadowTagGenerator(generator);
+    public @NotNull ResourceObjectClassification classifyResourceObject(
+            @NotNull ShadowType combinedObject,
+            @NotNull ResourceType resource,
+            @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return resourceObjectClassifier.classify(combinedObject, resource, existingSorterResult, task, result);
+    }
+
+    @Override
+    public @Nullable String generateShadowTag(
+            @NotNull ShadowType combinedObject,
+            @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition definition,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        return shadowTagGenerator.generateTag(combinedObject, resource, definition, task, result);
     }
 }

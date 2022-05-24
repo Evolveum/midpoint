@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.integrity.shadows;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -20,7 +22,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -336,11 +337,12 @@ class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        ResourceObjectClassifier.Classification classification;
+        ResourceObjectClassification classification;
         try {
-            classification = getModelBeans().resourceObjectClassifier.classify(
+            classification = getModelBeans().provisioningService.classifyResourceObject(
                     fullShadow.asObjectable(),
                     resource.asObjectable(),
+                    null,
                     task,
                     result);
         } catch (CommonException e) {

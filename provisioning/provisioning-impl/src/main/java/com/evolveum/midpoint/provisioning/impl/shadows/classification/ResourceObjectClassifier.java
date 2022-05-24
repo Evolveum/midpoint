@@ -5,73 +5,67 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.classification;
+package com.evolveum.midpoint.provisioning.impl.shadows.classification;
 
-import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
+import static com.evolveum.midpoint.provisioning.impl.shadows.classification.ClassificationContext.Builder.aClassificationContext;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import java.util.Collection;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
+import com.evolveum.midpoint.provisioning.impl.CommonBeans;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Classifies a resource object, i.e. determines its type (kind + intent).
  *
  * == Expected use
  *
- * Currently, this class is called either from the `provisioning` module (via {@link ResourceObjectClassifier} interface),
+ * Currently, this class is called either TODO
  * or - as the last instance - during the synchronization process in the `model` module.
  *
- * TODO move to provisioning-impl
  */
 @Component
-public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
+public class ResourceObjectClassifier {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectClassifierImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectClassifier.class);
 
-    private static final String OP_CLASSIFY = ResourceObjectClassifierImpl.class.getName() + ".classify";
+    private static final String OP_CLASSIFY = ResourceObjectClassifier.class.getName() + ".classify";
 
-    @Autowired private ProvisioningService provisioningService;
-    @Autowired private ModelBeans beans;
+    @Autowired private ProvisioningServiceImpl provisioningService;
+    @Autowired private CommonBeans beans;
 
-    @PostConstruct
-    void initialize() {
-        provisioningService.setResourceObjectClassifier(this);
-    }
-
-    @PreDestroy
-    void destroy() {
-        provisioningService.setResourceObjectClassifier(null);
-    }
-
-    @Override
-    public @NotNull Classification classify(
+    /**
+     * Classifies the shadowed resource object.
+     *
+     * @param combinedObject Resource object that we want to classify. It should be connected to the shadow,
+     * however, exact "shadowization" is not required. Currently it should contain all the information from the shadow,
+     * plus all the attributes from resource object. If needed, more elaborate processing (up to full shadowization)
+     * can be added later.
+     *
+     * @param resource Resource on which the resource object was found
+     */
+    public @NotNull ResourceObjectClassification classify(
             @NotNull ShadowType combinedObject,
             @NotNull ResourceType resource,
+            @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -82,37 +76,10 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 .addParam("resource", resource)
                 .build();
         try {
-            ResourceObjectProcessingContext context = aResourceObjectProcessingContext(combinedObject, resource, task, beans)
+            ClassificationContext context = aClassificationContext(combinedObject, resource, task, beans)
                     .withSystemConfiguration(
                             beans.systemObjectCache.getSystemConfigurationBean(result))
                     .build();
-            return new ClassificationProcess(context, null)
-                    .execute(result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
-
-    /**
-     * Carries out the classification of given shadow (present in processing context).
-     * Called e.g. as part of the synchronization process.
-     *
-     * @param existingSorterResult Reasonably fresh result of sorter evaluation (to avoid double evaluation of the sorter)
-     */
-    public @NotNull Classification classify(
-            @NotNull ResourceObjectProcessingContext context,
-            @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult,
-            @NotNull OperationResult parentResult)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = parentResult.subresult(OP_CLASSIFY)
-                .addParam("combinedObject", context.getShadowedResourceObject())
-                .addParam("resource", context.getResource())
-                .build();
-        try {
             return new ClassificationProcess(context, existingSorterResult)
                     .execute(result);
         } catch (Throwable t) {
@@ -125,12 +92,12 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
 
     private class ClassificationProcess {
 
-        @NotNull private final ResourceObjectProcessingContext context;
+        @NotNull private final ClassificationContext context;
         @NotNull private final ResourceSchema schema;
         @Nullable private final ObjectSynchronizationDiscriminatorType existingSorterResult;
 
         ClassificationProcess(
-                @NotNull ResourceObjectProcessingContext context,
+                @NotNull ClassificationContext context,
                 @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult)
                 throws SchemaException, ConfigurationException {
             this.context = context;
@@ -138,7 +105,7 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
             this.existingSorterResult = existingSorterResult;
         }
 
-        public Classification execute(OperationResult result) throws SchemaException, ExpressionEvaluationException,
+        public ResourceObjectClassification execute(OperationResult result) throws SchemaException, ExpressionEvaluationException,
                 CommunicationException, ConfigurationException, ObjectNotFoundException, SecurityViolationException {
 
             // Just in case the definition is missing (normally it's already present). See MID-7236.
@@ -152,11 +119,7 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                     context.getTask(),
                     result);
 
-            ObjectSynchronizationDiscriminatorType sorterResult =
-                    existingSorterResult != null ?
-                            existingSorterResult :
-                            new SynchronizationSorterEvaluation(context)
-                                    .evaluate(result);
+            ObjectSynchronizationDiscriminatorType sorterResult = evaluateSorterIfNeeded(result);
 
             ResourceObjectTypeDefinition typeDefinition;
             if (sorterResult != null) {
@@ -174,7 +137,21 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 typeDefinition = classifyResourceObject(result);
             }
 
-            return Classification.of(typeDefinition);
+            return ResourceObjectClassification.of(typeDefinition);
+        }
+
+        private ObjectSynchronizationDiscriminatorType evaluateSorterIfNeeded(OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            if (existingSorterResult != null) {
+                return existingSorterResult;
+            } else {
+                return provisioningService.getSynchronizationSorterEvaluator().evaluate(
+                        context.getShadowedResourceObject(),
+                        context.getResource(),
+                        context.getTask(),
+                        result);
+            }
         }
 
         /**
