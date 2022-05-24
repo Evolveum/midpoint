@@ -1270,8 +1270,8 @@ td .prism-property-value {
 	width: 38px;
 }
 
-.search-form {
-
+.card-outline .search-panel-form a {
+  border-top: 0 !important;
 }
 
 // handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
@@ -1297,11 +1297,6 @@ td .prism-property-value {
     padding-bottom: add($input-padding-y-sm, $input-border-width);
     @include font-size($input-font-size-sm);
     line-height: $input-line-height-sm;
-  }
-
-  & > a.btn,
-  & > a.btn:hover {
-    border-top: 0 !important;
   }
 }
 
