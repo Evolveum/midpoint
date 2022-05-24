@@ -12,9 +12,8 @@ import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextIm
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -39,6 +38,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.Collection;
 
+/**
+ * Classifies a resource object, i.e. determines its type (kind + intent).
+ *
+ * == Expected use
+ *
+ * Currently, this class is called either from the `provisioning` module (via {@link ResourceObjectClassifier} interface),
+ * or - as the last instance - during the synchronization process in the `model` module.
+ *
+ * TODO move to provisioning-impl
+ */
 @Component
 public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
 
@@ -89,6 +98,7 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
 
     /**
      * Carries out the classification of given shadow (present in processing context).
+     * Called e.g. as part of the synchronization process.
      *
      * @param existingSorterResult Reasonably fresh result of sorter evaluation (to avoid double evaluation of the sorter)
      */
@@ -132,6 +142,11 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 CommunicationException, ConfigurationException, ObjectNotFoundException, SecurityViolationException {
 
             // Just in case the definition is missing (normally it's already present). See MID-7236.
+            // Note that even if we usually don't know the type (kind/intent), we know the object class,
+            // so we apply the definition from it.
+            //
+            // TODO what about potential re-classification of a shadow? But this is probably not done; even
+            //  shadow integrity checker code seems to be faulty in this regard (it does not even classify "unknown" shadows)
             provisioningService.applyDefinition(
                     context.getShadowedResourceObject().asPrismObject(),
                     context.getTask(),
@@ -159,11 +174,7 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
                 typeDefinition = classifyResourceObject(result);
             }
 
-            if (typeDefinition == null) {
-                return Classification.unknown();
-            } else {
-                return Classification.of(typeDefinition);
-            }
+            return Classification.of(typeDefinition);
         }
 
         /**
@@ -217,19 +228,18 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
             String desc = "condition in object synchronization";
             try {
                 Task task = context.getTask();
-                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                        new ExpressionEnvironment<>(task, result));
-                ExpressionFactory expressionFactory = beans.expressionFactory;
+                ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                        new ExpressionEnvironment(task, result));
                 return ExpressionUtil.evaluateConditionDefaultTrue(
                         context.createVariablesMap(),
                         conditionExpressionBean,
                         MiscSchemaUtil.getExpressionProfile(),
-                        expressionFactory,
+                        beans.expressionFactory,
                         desc,
                         task,
                         result);
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         }
     }

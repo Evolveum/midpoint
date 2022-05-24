@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -120,24 +119,28 @@ public class VariablesUtil {
     private static VariablesMap createVariables(VariablesMap variableMap) {
         VariablesMap rv = new VariablesMap();
         VariablesMap clonedVariableMap = cloneIfNecessary(variableMap);
-        clonedVariableMap.forEach((name, value) -> rv.put(name, value));
+        clonedVariableMap.forEach(rv::put);
         return rv;
     }
 
-    private static TypedValue variableFromOtherExpression(VariablesMap resultingVariables,
-            ScriptingVariableDefinitionType definition, VariableResolutionContext ctx, String shortDesc,
-            OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private static TypedValue variableFromOtherExpression(
+            VariablesMap resultingVariables,
+            ScriptingVariableDefinitionType definition,
+            VariableResolutionContext ctx,
+            String shortDesc,
+            OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, ctx, shortDesc);
         Expression<PrismValue, ItemDefinition<?>> expression = ctx.expressionFactory
                 .makeExpression(definition.getExpression(), outputDefinition, ctx.expressionProfile, shortDesc, ctx.task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, ctx.task);
-        PrismValueDeltaSetTriple<?> triple = ModelExpressionThreadLocalHolder
-                .evaluateAnyExpressionInContext(expression, context, ctx.task, result);
+        PrismValueDeltaSetTriple<?> triple =
+                ExpressionUtil.evaluateAnyExpressionInContext(expression, context, ctx.task, result);
         Collection<?> resultingValues = triple.getNonNegativeValues();
         Object value;
-        if (definition.getMaxOccurs() != null && outputDefinition.isSingleValue()           // cardinality of outputDefinition is derived solely from definition.maxOccurs (if specified)
+        if (definition.getMaxOccurs() != null && outputDefinition.isSingleValue() // cardinality of outputDefinition is derived solely from definition.maxOccurs (if specified)
                 || definition.getMaxOccurs() == null || resultingValues.size() <= 1) {
-            value = MiscUtil.getSingleValue(resultingValues, null, shortDesc);       // unwrapping will occur when the value is used
+            value = MiscUtil.getSingleValue(resultingValues, null, shortDesc); // unwrapping will occur when the value is used
         } else {
             value = unwrapPrismValues(resultingValues);
         }
@@ -224,6 +227,7 @@ public class VariablesUtil {
     }
 
     public static <T> TypedValue<T> makeImmutable(TypedValue<T> valueAndDef) {
+        //noinspection unchecked
         T immutableValue = (T) makeImmutableValue(valueAndDef.getValue());
         if (immutableValue == valueAndDef.getValue()) {
             return valueAndDef;

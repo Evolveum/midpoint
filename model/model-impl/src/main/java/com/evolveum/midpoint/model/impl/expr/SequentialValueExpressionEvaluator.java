@@ -70,7 +70,8 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
      * Because mappings are evaluated repeatedly, the value is obtained from the repository only for the first time.
      * Then it is stored in model context to be reused as needed.
      */
-    static long getSequenceCounterValue(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    static long getSequenceCounterValue(String sequenceOid, RepositoryService repositoryService, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
 
         Long alreadyObtainedValue = ctx.getSequenceCounter(sequenceOid);

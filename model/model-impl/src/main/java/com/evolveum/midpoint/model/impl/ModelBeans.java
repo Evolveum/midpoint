@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.classification.ResourceObjectClassifierImpl;
 import com.evolveum.midpoint.model.impl.classification.ShadowTagGeneratorImpl;
 import com.evolveum.midpoint.model.impl.correlator.BuiltInResultCreator;

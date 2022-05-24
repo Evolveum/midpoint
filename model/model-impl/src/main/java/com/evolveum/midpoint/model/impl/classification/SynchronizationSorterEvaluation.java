@@ -9,11 +9,12 @@ package com.evolveum.midpoint.model.impl.classification;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -48,7 +49,7 @@ public class SynchronizationSorterEvaluation {
         }
         try {
             Task task = context.getTask();
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ModelExpressionEnvironment<>(task, result));
             //noinspection unchecked
             PrismPropertyDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef =
                     PrismContext.get().getSchemaRegistry()
@@ -64,7 +65,7 @@ public class SynchronizationSorterEvaluation {
                             task,
                             result));
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 }

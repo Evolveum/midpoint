@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -75,12 +72,13 @@ public class ExpressionHandler {
                 outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
         if (outputTriple == null) {
             return null;
         }
         Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
-        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+        if (nonNegativeValues.isEmpty()) {
             return null;
         }
         if (nonNegativeValues.size() > 1) {
@@ -108,7 +106,8 @@ public class ExpressionHandler {
                 outputDefinition, expressionProfile, shortDesc, task, result);
 
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
         Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
         if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
             throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);

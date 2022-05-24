@@ -11,12 +11,14 @@ import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -24,13 +26,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -122,9 +118,9 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
                 conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(),
                 MiscSchemaUtil.getExpressionProfile(), desc, task, result);
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
-        ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
+        ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
-                ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, env, result);
         PrismPropertyValue<Boolean> expressionOutputValue = ExpressionUtil.getExpressionOutputValue(outputTriple, desc);
         return ExpressionUtil.getBooleanConditionOutput(expressionOutputValue);
     }

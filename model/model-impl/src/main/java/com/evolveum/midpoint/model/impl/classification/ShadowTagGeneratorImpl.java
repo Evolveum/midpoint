@@ -13,13 +13,13 @@ import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -80,7 +80,7 @@ public class ShadowTagGeneratorImpl implements ShadowTagGenerator {
         try {
             ResourceObjectProcessingContext context = aResourceObjectProcessingContext(combinedObject, resource, task, beans)
                     .withSystemConfiguration(
-                            beans.systemObjectCache.getSystemConfigurationBean(result))
+                            beans.provisioningService.getSystemConfiguration())
                     .build();
             return generateTagInternal(context, definition, result);
         } catch (Throwable t) {
@@ -136,7 +136,7 @@ public class ShadowTagGeneratorImpl implements ShadowTagGenerator {
             try {
                 Task task = context.getTask();
                 String shortDesc = "tag expression for " + context.getShadowedResourceObject();
-                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+                ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
                 PrismPropertyValue<String> tagProp = ExpressionUtil.evaluateExpression(
                         variables,
                         outputDefinition,
@@ -150,7 +150,7 @@ public class ShadowTagGeneratorImpl implements ShadowTagGenerator {
                 LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
                 return tag;
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         }
     }

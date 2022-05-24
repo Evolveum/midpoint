@@ -8,9 +8,8 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.tasks.sources.ModelAuditItemSource;
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemPreprocessor;
 import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSource;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
@@ -89,13 +89,13 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
         PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, null, null, asObjectable(configuration));
         try {
-            ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(task, result);
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+            ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(task, result);
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
             return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile,
                     expressionFactory, prismContext, "evaluate query expressions",
                     task, result);
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 

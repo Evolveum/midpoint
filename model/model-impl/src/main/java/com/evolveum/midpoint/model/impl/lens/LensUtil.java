@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
@@ -48,8 +50,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang3.BooleanUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -58,12 +58,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -510,7 +505,8 @@ public class LensUtil {
 
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables,
                 "iteration token expression in "+accountContext.getHumanReadableName(), task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, task, result);
         Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
         if (outputValues.isEmpty()) {
             return "";
@@ -560,9 +556,9 @@ public class LensUtil {
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
 
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
-        ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
+        ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
-                ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, env, result);
         Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
         if (outputValues.isEmpty()) {
             return false;
@@ -1043,8 +1039,8 @@ public class LensUtil {
                 expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, contextDescription, task);
         eeContext.setAdditionalConvertor(additionalConvertor);
-        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, eeContext, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         List<T> results = exprResultTriple.getZeroSet().stream()
                 .map(ppv -> (T) ppv.getRealValue())
                 .collect(Collectors.toList());

@@ -13,19 +13,17 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -125,8 +123,9 @@ public class PrimaryChangeAspectHelper {
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap,
                     "applicability condition expression", task);
 
-            exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            exprResultTriple = ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
             // TODO report as a specific exception?
             throw new SystemException("Couldn't evaluate applicability condition in aspect "
                     + aspect.getClass().getSimpleName() + ": " + e.getMessage(), e);

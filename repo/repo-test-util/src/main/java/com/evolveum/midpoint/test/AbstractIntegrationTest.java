@@ -888,7 +888,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (!itemDeltas.isEmpty()) {
             OperationResult result = new OperationResult("assumeConflictResolutionAction");
             repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), itemDeltas, result);
-            invalidateSystemObjectsCache();
             display("Applying conflict resolution action result", result);
             result.computeStatus();
             TestUtil.assertSuccess("Applying conflict resolution action failed (result)", result);
@@ -945,14 +944,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         OperationResult result = new OperationResult("Applying sync settings");
 
         repositoryService.modifyObject(clazz, oid, modifications, result);
-        invalidateSystemObjectsCache();
         display("Applying sync settings result", result);
         result.computeStatus();
         TestUtil.assertSuccess("Applying sync settings failed (result)", result);
-    }
-
-    protected void invalidateSystemObjectsCache() {
-        // Nothing to do here. For subclasses in model-common and higher components.
     }
 
     protected void assertNoChanges(ObjectDelta<?> delta) {

@@ -7,17 +7,13 @@
 
 package com.evolveum.midpoint.cases.impl.helpers;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -87,8 +83,8 @@ public class CaseExpressionEvaluationHelper {
         Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
         context.setAdditionalConvertor(additionalConvertor);
-        PrismValueDeltaSetTriple<?> exprResultTriple = ModelExpressionThreadLocalHolder
-                .evaluateAnyExpressionInContext(expression, context, task, result);
+        PrismValueDeltaSetTriple<?> exprResultTriple =
+                ExpressionUtil.evaluateAnyExpressionInContext(expression, context, task, result);
         List<T> list = new ArrayList<>();
         for (PrismValue pv : exprResultTriple.getZeroSet()) {
             T realValue;

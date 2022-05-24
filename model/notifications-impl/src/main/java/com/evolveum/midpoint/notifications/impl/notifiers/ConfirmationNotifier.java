@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -46,8 +46,8 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
         if (confirmationMethod == null) {
             return null;
         }
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                new ExpressionEnvironment.ExpressionEnvironmentBuilder<>()
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<>()
                         .currentResult(result)
                         .build());
 
@@ -62,7 +62,7 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
                     return null;
             }
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 

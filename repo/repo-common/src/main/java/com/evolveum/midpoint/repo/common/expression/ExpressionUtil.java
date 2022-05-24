@@ -1225,4 +1225,64 @@ public class ExpressionUtil {
         }
         return realValues;
     }
+
+    public static PrismValueDeltaSetTriple<?> evaluateAnyExpressionInContext(
+            Expression<?, ?> expression,
+            ExpressionEvaluationContext context,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return expression.evaluate(context, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
+            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
+            ExpressionEvaluationContext eeContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return expression.evaluate(eeContext, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(
+            Expression<PrismReferenceValue, PrismReferenceDefinition> expression,
+            ExpressionEvaluationContext eeContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return expression.evaluate(eeContext, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
+            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
+            ExpressionEvaluationContext eeContext,
+            ExpressionEnvironment env,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
+        try {
+            return expression.evaluate(eeContext, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
 }

@@ -14,10 +14,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulin
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -96,8 +96,8 @@ abstract class ScriptingTaskCreator {
 
     private ReferenceResolver.FilterEvaluator createTaskFilterEvaluator() {
         return (rawFilter, result1) -> {
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                    new ExpressionEnvironment<>(actx.context, null, actx.task, result1));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                    new ModelExpressionEnvironment<>(actx.context, null, actx.task, result1));
             try {
                 VariablesMap variables = createVariables();
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
@@ -105,7 +105,7 @@ abstract class ScriptingTaskCreator {
                         beans.expressionFactory, beans.prismContext,
                         "evaluating task template filter expression ", actx.task, result1);
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         };
     }
@@ -123,8 +123,8 @@ abstract class ScriptingTaskCreator {
         if (customizer == null) {
             return preparedTask;
         } else {
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                    new ExpressionEnvironment<>(actx.context, null, actx.task, result));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                    new ModelExpressionEnvironment<>(actx.context, null, actx.task, result));
             try {
                 PrismObjectDefinition<TaskType> taskDefinition = preparedTask.asPrismObject().getDefinition();
 
@@ -146,7 +146,7 @@ abstract class ScriptingTaskCreator {
                 }
                 return (TaskType) customizedTaskBean;
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         }
     }
