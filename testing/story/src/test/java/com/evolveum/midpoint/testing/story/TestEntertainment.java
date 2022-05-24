@@ -77,7 +77,7 @@ public class TestEntertainment extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, result);
         assertSuccess(testResultOpenDj);
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();

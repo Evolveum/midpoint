@@ -245,7 +245,7 @@ public class TestUnix extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultOpenDj = modelService.testResource(getResourceOid(), task);
+        OperationResult testResultOpenDj = modelService.testResource(getResourceOid(), task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);

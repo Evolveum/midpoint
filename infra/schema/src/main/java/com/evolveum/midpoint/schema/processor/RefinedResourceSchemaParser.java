@@ -70,15 +70,22 @@ public class RefinedResourceSchemaParser {
      */
     public @Nullable ResourceSchema parse() throws SchemaException, ConfigurationException {
         ResourceSchemaImpl rawSchema = (ResourceSchemaImpl) ResourceSchemaFactory.getRawSchema(resource);
-        if (rawSchema == null) {
+        if (rawSchema != null) {
+            return parseWithGivenSchema(rawSchema);
+        } else {
             return null;
         }
+    }
+
+    public @NotNull ResourceSchema parseWithGivenSchema(@NotNull ResourceSchema rawSchema)
+            throws SchemaException, ConfigurationException {
 
         if (resource.getSchemaHandling() == null) {
             return rawSchema;
         }
 
-        completeSchema = rawSchema.clone();
+        // We are safe here. There is currently this one implementation only.
+        completeSchema = (ResourceSchemaImpl) rawSchema.clone();
 
         createEmptyObjectTypeDefinitions();
 

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
@@ -51,7 +52,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -195,7 +195,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
-        OperationResult operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task, result);
 
         display("Test connection result", operationResult);
         TestUtil.assertSuccess("Test connection failed", operationResult);
@@ -3270,13 +3270,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID, task, task.getResult());
 
         display("Test connection result (expected failure)", testResult);
         TestUtil.assertFailure(testResult);
 
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        OperationResult connectResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_CONFIGURATION.getOperation());
+        OperationResult connectResult = connectorResult.findSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
         assertNotNull("No connector connect result", connectResult);
         // MID-4103
 //        assertTrue("Unexpected connector initialization message: "+connectResult.getMessage(), connectResult.getMessage().contains("invalidCredentials"));
@@ -3308,13 +3308,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID, task, task.getResult());
 
         display("Test connection result (expected failure)", testResult);
         TestUtil.assertFailure(testResult);
 
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_CONFIGURATION.getOperation());
+        OperationResult initResult = connectorResult.findSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
         // MID-4103
 //        assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 //        assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));

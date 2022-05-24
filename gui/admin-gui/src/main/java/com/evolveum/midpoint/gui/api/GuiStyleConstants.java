@@ -109,7 +109,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
     public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield-alt";
     public static final String CLASS_ICON_REQUEST = "fa fa-pen-square";
-    public static final String CLASS_ICON_CONSENT = "fa fa-check-square-o";
+    public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";

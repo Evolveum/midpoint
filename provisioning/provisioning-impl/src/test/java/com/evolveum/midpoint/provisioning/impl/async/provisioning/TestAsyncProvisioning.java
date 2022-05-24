@@ -98,7 +98,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = provisioningService.testResource(resource.getOid(), task);
+        OperationResult testResult = provisioningService.testResource(resource.getOid(), task, task.getResult());
 
         then();
         assertSuccess(testResult);

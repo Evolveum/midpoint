@@ -280,7 +280,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // WHEN
         when();
-        OperationResult testResult = modelService.testResource(getResourceOid(), task);
+        OperationResult testResult = modelService.testResource(getResourceOid(), task, result);
 
         // THEN
         then();

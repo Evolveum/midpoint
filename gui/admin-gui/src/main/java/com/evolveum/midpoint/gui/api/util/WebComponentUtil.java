@@ -3133,20 +3133,20 @@ public final class WebComponentUtil {
 
     public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
-        OperationResult parentResult = new OperationResult(operation);
+        OperationResult result = new OperationResult(operation);
 
         try {
-            ResourceUtils.deleteSchema(resource, pageBase.getModelService(), pageBase.getPrismContext(), task, parentResult);
-            pageBase.getModelService().testResource(resource.getOid(), task);                    // try to load fresh scehma
+            ResourceUtils.deleteSchema(resource, pageBase.getModelService(), pageBase.getPrismContext(), task, result);
+            pageBase.getModelService().testResource(resource.getOid(), task, result); // try to load fresh schema
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
                 | PolicyViolationException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.refreshResourceSchema.fatalError").getString(), e);
+            result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.refreshResourceSchema.fatalError").getString(), e);
         }
 
-        parentResult.computeStatus();
-        pageBase.showResult(parentResult, "pageResource.refreshSchema.failed");
+        result.computeStatus();
+        pageBase.showResult(result, "pageResource.refreshSchema.failed");
         target.add(pageBase.getFeedbackPanel());
     }
 

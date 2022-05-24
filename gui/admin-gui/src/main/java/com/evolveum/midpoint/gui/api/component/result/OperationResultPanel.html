@@ -12,13 +12,14 @@
             <h3 class="card-title" wicket:id="message">
                 <i class="mr-2 fa" wicket:id="iconType"></i>
                 <span wicket:id="messageLabel"/>
+                <a class="text-sm" wicket:id="backgroundTask">
+                    <wicket:message key="OperationResultPanel.showTask"/>
+                </a>
+                <a class="text-sm" wicket:id="case">
+                    <wicket:message key="OperationResultPanel.showCase"/>
+                </a>
             </h3>
-            <a class="card-title" wicket:id="backgroundTask">
-                <wicket:message key="OperationResultPanel.showTask"/>
-            </a>
-            <a class="card-title" wicket:id="case">
-                <wicket:message key="OperationResultPanel.showCase"/>
-            </a>
+
             <div class="card-tools">
                 <a wicket:id="showAll" class="btn btn-tool">
                     <i  class="fa fa-chevron-left"></i>

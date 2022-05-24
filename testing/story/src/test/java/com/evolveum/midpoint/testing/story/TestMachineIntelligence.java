@@ -67,11 +67,11 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult hrTestResult = modelService.testResource(RESOURCE_HR.oid, task);
+        OperationResult hrTestResult = modelService.testResource(RESOURCE_HR.oid, task, task.getResult());
         TestUtil.assertSuccess("HR resource test result", hrTestResult);
 
         // TODO What is this?
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_HR.oid, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_HR.oid, task, task.getResult());
         TestUtil.assertSuccess("OpenDJ resource test result", testResultOpenDj);
 
         SystemConfigurationType systemConfiguration = getSystemConfiguration();

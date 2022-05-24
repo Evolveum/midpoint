@@ -205,7 +205,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         }
 
         // WHEN
-        OperationResult testResult = provisioningService.testResource(getResourceOid(), task);
+        OperationResult testResult = provisioningService.testResource(getResourceOid(), task, result);
 
         // THEN
         display("Test result", testResult);

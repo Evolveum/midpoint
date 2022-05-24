@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 
 import org.jetbrains.annotations.NotNull;
@@ -523,5 +524,23 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         // TODO what about QName references like primary or secondary identifier names,
         //  or name, display name, or description attribute names?
+    }
+
+    @Override
+    public void validate() throws SchemaException {
+        Set<QName> attributeNames = new HashSet<>();
+        for (ResourceAttributeDefinition<?> attributeDefinition : getAttributeDefinitions()) {
+            QName attrName = attributeDefinition.getItemName();
+            if (!attributeNames.add(attrName)) {
+                throw new SchemaException("Duplicate definition of attribute " + attrName + " in " + this);
+            }
+        }
+
+        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+
+        if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
+            throw new SchemaException("No identifiers in definition of object class " + getTypeName() + " in " + this);
+        }
     }
 }

@@ -217,7 +217,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test310ReconcileLdapX1() throws Exception {
         Task task = getTestTask();
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
         display("Test connection result", testResultOpenDj);
 

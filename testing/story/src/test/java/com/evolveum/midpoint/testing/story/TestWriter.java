@@ -56,7 +56,7 @@ public class TestWriter extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultWriter = modelService.testResource(RESOURCE_WRITER_OID, task);
+        OperationResult testResultWriter = modelService.testResource(RESOURCE_WRITER_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultWriter);
     }
 

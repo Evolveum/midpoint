@@ -68,7 +68,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -1426,47 +1425,25 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return focus;
     }
 
-    // This returns OperationResult instead of taking it as in/out argument.
-    // This is different
-    // from the other methods. The testResource method is not using
-    // OperationResult to track its own
-    // execution but rather to track the execution of resource tests (that in
-    // fact happen in provisioning).
     @Override
-    public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
+    public OperationResult testResource(String resourceOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-        enterModelMethod();
         LOGGER.trace("Testing resource OID: {}", resourceOid);
 
-        OperationResult testResult;
+        enterModelMethod();
         try {
-            testResult = provisioning.testResource(resourceOid, task);
-        } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Error testing resource OID: {}: Object not found: {} ", resourceOid, ex.getMessage(), ex);
-            RepositoryCache.exitLocalCaches();
+            OperationResult testResult = provisioning.testResource(resourceOid, task, result);
+            LOGGER.debug("Finished testing resource OID: {}, result: {} ", resourceOid, testResult.getStatus());
+            LOGGER.trace("Test result:\n{}", lazy(() -> testResult.dump(false)));
+            return testResult;
+        } catch (Throwable ex) {
+            LOGGER.error("Error testing resource OID: {}: {}: {}",
+                    resourceOid, ex.getClass().getSimpleName(), ex.getMessage(), ex);
             throw ex;
-        } catch (SystemException ex) {
-            LOGGER.error("Error testing resource OID: {}: {} ", resourceOid, ex.getMessage(), ex);
-            RepositoryCache.exitLocalCaches();
-            throw ex;
-        } catch (Exception ex) {
-            LOGGER.error("Error testing resource OID: {}: {} ", resourceOid, ex.getMessage(), ex);
-            RepositoryCache.exitLocalCaches();
-            throw new SystemException(ex.getMessage(), ex);
         } finally {
             exitModelMethod();
         }
-
-        if (testResult != null) {
-            LOGGER.debug("Finished testing resource OID: {}, result: {} ", resourceOid,
-                    testResult.getStatus());
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Test result:\n{}", testResult.dump(false));
-            }
-        } else {
-            LOGGER.error("Test resource returned null result");
-        }
-        return testResult;
     }
 
     // Note: The result is in the task. No need to pass it explicitly

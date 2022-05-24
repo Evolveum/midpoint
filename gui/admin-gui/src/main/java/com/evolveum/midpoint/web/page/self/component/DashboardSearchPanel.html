@@ -7,25 +7,24 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <form wicket:id="searchForm">
-       <div class="input-group">
-               <wicket:enclosure child="searchInput">
-                <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input" class="form-control" type="text" />
+        <wicket:enclosure child="searchInput">
+            <div class="input-group">
+                <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input" class="form-control" type="text"/>
                 <div class="input-group-append">
                     <button wicket:id="searchButton" class="btn btn-primary">
-                        <i class="fa fa-search flip-icon"/>&nbsp;
+                        <i class="fa fa-search mr-1"/>&nbsp;
                         <span wicket:id="searchButtonLabel"/>
                     </button>
-                    <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle"
-                            data-toggle="dropdown">
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
+                    <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                        <span class="sr-only"><wicket:message key="SplitButtonDropDown.toggle"/></span>
                     </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li wicket:id="searchTypes"><a wicket:id="searchTypeItem" href="#">
-                        </a></li>
-                    </ul>
+                    <div class="dropdown-menu">
+                        <wicket:container wicket:id="searchTypes">
+                            <a class="dropdown-item" wicket:id="searchTypeItem" href="#"/>
+                        </wicket:container>
+                    </div>
                 </div>
-            </wicket:enclosure>
-        </div>
+            </div>
+        </wicket:enclosure>
     </form>
 </wicket:panel>

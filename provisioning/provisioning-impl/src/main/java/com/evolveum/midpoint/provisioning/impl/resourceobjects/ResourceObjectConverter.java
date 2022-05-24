@@ -221,11 +221,15 @@ public class ResourceObjectConverter {
         return true;
     }
 
-    public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
-            boolean skipExplicitUniquenessCheck, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException,
-                    ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+    public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> shadow,
+            OperationProvisioningScriptsType scripts,
+            ConnectorOperationOptions connOptions,
+            boolean skipExplicitUniquenessCheck,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
         boolean specificExceptionRecorded = false;
@@ -1725,10 +1729,17 @@ public class ResourceObjectConverter {
         }
     }
 
-    private void executeProvisioningScripts(ProvisioningContext ctx, ProvisioningOperationTypeType provisioningOperationType,
-            BeforeAfterType beforeAfter, OperationProvisioningScriptsType scripts, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericConnectorException {
-        Collection<ExecuteProvisioningScriptOperation> operations = determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource(), result);
-        if (operations == null) {
+    private void executeProvisioningScripts(
+            ProvisioningContext ctx,
+            ProvisioningOperationTypeType provisioningOperationType,
+            BeforeAfterType beforeAfter,
+            OperationProvisioningScriptsType scripts,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, GenericConnectorException {
+        Collection<ExecuteProvisioningScriptOperation> operations =
+                determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource(), result);
+        if (operations == null || operations.isEmpty()) {
             return;
         }
         ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
@@ -1778,8 +1789,12 @@ public class ResourceObjectConverter {
         }
     }
 
-    private Collection<ExecuteProvisioningScriptOperation> determineExecuteScriptOperations(ProvisioningOperationTypeType provisioningOperationType,
-            BeforeAfterType beforeAfter, OperationProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
+    private Collection<ExecuteProvisioningScriptOperation> determineExecuteScriptOperations(
+            ProvisioningOperationTypeType provisioningOperationType,
+            BeforeAfterType beforeAfter,
+            OperationProvisioningScriptsType scripts,
+            ResourceType resource,
+            OperationResult result) throws SchemaException {
         if (scripts == null) {
             // No warning needed, this is quite normal
             LOGGER.trace("Skipping creating script operation to execute. No scripts were defined.");

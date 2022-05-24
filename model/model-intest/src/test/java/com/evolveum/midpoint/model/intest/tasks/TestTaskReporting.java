@@ -111,8 +111,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         initDummyResource(RESOURCE_DUMMY_TARGET, initTask, initResult);
         addObject(ROLE_TARGET, initTask, initResult);
 
-        assertSuccess(modelService.testResource(RESOURCE_DUMMY_SOURCE.oid, initTask));
-        assertSuccess(modelService.testResource(RESOURCE_DUMMY_TARGET.oid, initTask));
+        assertSuccess(modelService.testResource(RESOURCE_DUMMY_SOURCE.oid, initTask, initResult));
+        assertSuccess(modelService.testResource(RESOURCE_DUMMY_TARGET.oid, initTask, initResult));
 
         for (int i = 0; i < USERS; i++) {
             if (i != IDX_LONG_UID) {
@@ -123,7 +123,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         }
 
         initDummyResource(RESOURCE_DUMMY_HACKED, initTask, initResult);
-        assertSuccess(modelService.testResource(RESOURCE_DUMMY_HACKED.oid, initTask));
+        assertSuccess(modelService.testResource(RESOURCE_DUMMY_HACKED.oid, initTask, initResult));
     }
 
     private void createAccount(int i) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException,

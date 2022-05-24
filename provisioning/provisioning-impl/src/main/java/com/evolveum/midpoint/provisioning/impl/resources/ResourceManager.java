@@ -7,15 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import static com.evolveum.midpoint.provisioning.impl.resources.ResourceCompletionOperation.*;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +24,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -78,9 +73,6 @@ public class ResourceManager {
     @Autowired ResourceConnectorsManager connectorSelector;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
-
-    private static final String DOT_CLASS = ResourceManager.class.getName() + ".";
-    private static final String OPERATION_DISCOVER_CONFIGURATION = DOT_CLASS + "discoverConfiguration";
 
     /**
      * Completes a resource that has been just retrieved from the repository, usually by a search operation.
@@ -138,16 +130,15 @@ public class ResourceManager {
         }
 
         ResourceCompletionOperation completionOperation = new ResourceCompletionOperation(repositoryObject, options, task, beans);
-        PrismObject<ResourceType> completedResource =
-                completionOperation.execute(result);
+        ResourceType completedResource = completionOperation.execute(result);
 
         logResourceAfterCompletion(completedResource);
 
         // TODO fix this diagnostics using member methods of the completion operation
-        if (!isComplete(completedResource)) {
+        if (!ResourceTypeUtil.isComplete(completedResource)) {
             // No not cache non-complete resources (e.g. those retrieved with noFetch)
             LOGGER.debug("Not putting {} into cache because it's not complete: hasSchema={}, hasCapabilitiesCached={}",
-                    repositoryObject, hasSchema(completedResource), hasCapabilitiesCached(completedResource));
+                    repositoryObject, ResourceTypeUtil.hasSchema(completedResource), ResourceTypeUtil.hasCapabilitiesCached(completedResource));
         } else {
             OperationResultStatus completionStatus = completionOperation.getOperationResultStatus();
             if (completionStatus != OperationResultStatus.SUCCESS) {
@@ -159,10 +150,10 @@ public class ResourceManager {
                 beans.resourceCache.put(completedResource, completionOperation.getAncestorsOids());
             }
         }
-        return completedResource;
+        return completedResource.asPrismObject();
     }
 
-    private void logResourceAfterCompletion(PrismObject<ResourceType> completedResource) {
+    private void logResourceAfterCompletion(ResourceType completedResource) {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
@@ -171,8 +162,7 @@ public class ResourceManager {
         if (xsdSchemaElement == null) {
             LOGGER.trace("Schema: null");
         } else {
-            LOGGER.trace("Schema:\n{}",
-                    DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(completedResource)));
+            LOGGER.trace("Schema:\n{}", DOMUtil.serializeDOMToString(xsdSchemaElement));
         }
     }
 
@@ -193,67 +183,42 @@ public class ResourceManager {
 
 
     /**
-     * Test the connection.
+     * Tests the connection.
      *
      * @param resource Resource object. Must NOT be immutable!
-     *
-     * @throws ObjectNotFoundException If the resource object cannot be found in repository (e.g. when trying to set its
-     *                                 availability status).
      */
-    public void testConnection(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
+    public @NotNull OperationResult testResource(
+            @NotNull PrismObject<ResourceType> resource,
+            @Nullable ResourceTestOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        // FIXME temporary code
+        expandResource(resource, result);
+        return new ResourceTestOperation(resource, options, task, beans)
+                .execute(result);
+    }
+
+    private void expandResource(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
         new ResourceExpansionOperation(resource.asObjectable(), beans)
-                .execute(parentResult);
-
-        getTestConnectionOp(resource, task).execute(parentResult);
+                .execute(result);
     }
 
-    /**
-     * Test partial configuration.
-     *
-     * @param resource Resource object. Must NOT be immutable!
-     */
-    public void testPartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult parentResult) {
-        new TestPartialConfigurationOperation(resource, task, beans).execute(parentResult);
-    }
+    public @NotNull DiscoveredConfiguration discoverConfiguration(
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
-    public <T> Collection<PrismProperty<T>> discoverConfiguration(PrismObject<ResourceType> resource, OperationResult parentResult) {
-        ConnectorSpec connectorSpec = connectorSelector.createDefaultConnectorSpec(resource);
+        expandResource(resource, result);
 
-        OperationResult connectorResult = parentResult
-                .createSubresult(OPERATION_DISCOVER_CONFIGURATION);
-        connectorResult.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
-        connectorResult.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
+        ConnectorSpec connectorSpec = ConnectorSpec.main(resource.asObjectable());
+        result.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
+        result.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
 
-        ConnectorInstance connector;
-        try {
-            connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, false, connectorResult);
-        } catch (CommunicationException | ConfigurationException | ObjectNotFoundException |
-                SchemaException | RuntimeException e) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.error("Failed while discovering of configuration, error: {}", e.getMessage(), e);
-            }
-            connectorResult.recordFatalError("Failed while discovering of configuration, error: " + e.getMessage(), e);
-            return Collections.emptySet();
-        }
-
-        Collection<PrismProperty<T>> suggestions = connector.discoverConfiguration(connectorResult);
-        connectorResult.recordSuccess();
-        return suggestions;
-    }
-
-    private AbstractTestConnectionOperation getTestConnectionOp(PrismObject<ResourceType> resource, Task task) {
-        if (isRepoResource(resource)) {
-            return new TestConnectionOperationResourceInRepo(resource, task, beans);
-        } else {
-            return new TestConnectionOperation(resource, task, beans);
-        }
-    }
-
-    private boolean isRepoResource(PrismObject<ResourceType> resource) {
-        String resourceOid = resource.getOid();
-        return org.apache.commons.lang3.StringUtils.isNotEmpty(resourceOid);
+        ConnectorInstance connector =
+                connectorManager.getConfiguredConnectorInstance(connectorSpec, false, false, result);
+        return DiscoveredConfiguration.of(
+                connector.discoverConfiguration(result));
     }
 
     /**
@@ -296,10 +261,10 @@ public class ResourceManager {
             resourceDesc = resource.toString();
         }
 
-        if (newStatus != currentStatus) {
+        if (newStatus != currentStatus && resource != null) {
             try {
                 List<ItemDelta<?, ?>> modifications = operationalStateManager.createAndLogOperationalStateDeltas(
-                        currentStatus, newStatus, resourceDesc, statusChangeReason, resource);
+                        currentStatus, newStatus, resourceDesc, statusChangeReason, resource.asObjectable());
                 repositoryService.modifyObject(ResourceType.class, resourceOid, modifications, result);
                 result.computeStatusIfUnknown();
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
@@ -309,15 +274,18 @@ public class ResourceManager {
         }
     }
 
-    public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, String statusChangeReason) {
+    public void modifyResourceAvailabilityStatus(
+            ResourceType resource,
+            AvailabilityStatusType newStatus,
+            String statusChangeReason) {
 
-        AvailabilityStatusType currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource.asObjectable());
+        AvailabilityStatusType currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource);
         String resourceDesc = resource.toString();
 
         if (newStatus != currentStatus) {
             OperationalStateType newState = operationalStateManager.createAndLogOperationalState(
                     currentStatus,newStatus, resourceDesc, statusChangeReason);
-            resource.asObjectable().operationalState(newState);
+            resource.operationalState(newState);
         }
     }
 
@@ -333,32 +301,18 @@ public class ResourceManager {
 
     public void applyDefinition(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
-        schemaHelper.applyConnectorSchemasToResource(resource, task, parentResult);
+        schemaHelper.applyConnectorSchemasToResource(resource.asObjectable(), task, parentResult);
     }
 
     public void applyDefinition(ObjectQuery query, OperationResult result) {
         // TODO: not implemented yet
     }
 
-    /**
-     * Apply proper definition (connector schema) to the resource.
-     */
-    void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition,
-            PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        schemaHelper.applyConnectorSchemaToResource(connectorSpec, resourceDefinition, resource, task, result);
-    }
-
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         PrismObject<ResourceType> resource = getResource(resourceOid, null, task, result);
-        ConnectorSpec connectorSpec = connectorSelector.selectConnector(resource, ScriptCapabilityType.class);
-        //  TODO!
-//        if (connectorSpec == null) {
-//            throw new UnsupportedOperationException("No connector supports script capability");
-//        }
+        ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
         try {
@@ -376,7 +330,7 @@ public class ResourceManager {
             PrismObject<ResourceType> resource, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         List<ConnectorOperationalStatus> statuses = new ArrayList<>();
-        for (ConnectorSpec connectorSpec : connectorSelector.getAllConnectorSpecs(resource)) {
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource.asObjectable())) {
             ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
             ConnectorOperationalStatus operationalStatus = connectorInstance.getOperationalStatus();
             if (operationalStatus != null) {
@@ -387,15 +341,13 @@ public class ResourceManager {
         return statuses;
     }
 
-    // Should be used only internally (private). But it is public, because it is accessed from the tests.
-    @VisibleForTesting
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstance(
             PrismObject<ResourceType> resource,
             Class<T> capabilityClass,
             boolean forceFresh,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        ConnectorSpec connectorSpec = connectorSelector.selectConnector(resource, capabilityClass);
+        ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, capabilityClass);
         return connectorManager.getConfiguredConnectorInstance(connectorSpec, forceFresh, parentResult);
     }
 
@@ -404,7 +356,7 @@ public class ResourceManager {
     @VisibleForTesting
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(
             PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws ConfigurationException {
-        ConnectorSpec connectorSpec = connectorSelector.selectConnector(resource, operationCapabilityClass);
+        ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, operationCapabilityClass);
         return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec);
     }
 

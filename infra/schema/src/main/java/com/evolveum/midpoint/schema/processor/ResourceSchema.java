@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -423,7 +422,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     }
 
     /** TODO description */
-    void validate(PrismObject<ResourceType> resource) throws SchemaException;
+    void validate() throws SchemaException;
 
     /** TODO description */
     default @NotNull Collection<String> getIntentsForKind(ShadowKindType kind) {

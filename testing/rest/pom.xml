@@ -104,7 +104,6 @@
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>${project.version}</version>
-            <classifier>classes</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>

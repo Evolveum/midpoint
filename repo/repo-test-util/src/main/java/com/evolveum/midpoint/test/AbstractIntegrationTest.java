@@ -99,7 +99,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -469,14 +469,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource<T> resource, OperationResult parentResult)
+    protected <T extends ObjectType> PrismObject<T> repoAdd(com.evolveum.midpoint.test.TestResource<T> resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         PrismObject<T> object = repoAddObjectFromFile(resource.file, parentResult);
         resource.object = object;
         return object;
     }
 
-    protected Task taskAdd(TestResource<TaskType> resource, OperationResult parentResult)
+    protected Task taskAdd(com.evolveum.midpoint.test.TestResource<TaskType> resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException, ObjectNotFoundException {
         PrismObject<TaskType> task = prismContext.parseObject(resource.file);
         String oid = taskManager.addTask(task, parentResult);
@@ -1321,7 +1321,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);
         assertThat(actualIncrement)
-                .withFailMessage("Unexpected increment in " + counter.getLabel())
+                .as("Increment in " + counter.getLabel())
                 .isEqualTo(expectedIncrement);
         lastCountMap.put(counter, currentCount);
     }
@@ -2464,15 +2464,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
     }
 
-    protected void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+    protected void assertTestResourceSuccess(OperationResult testResult, TestResourceOpNames operation) {
         IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
     }
 
-    protected void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+    protected void assertTestResourceFailure(OperationResult testResult, TestResourceOpNames operation) {
         IntegrationTestTools.assertTestResourceFailure(testResult, operation);
     }
 
-    protected void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+    protected void assertTestResourceNotApplicable(OperationResult testResult, TestResourceOpNames operation) {
         IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
     }
 

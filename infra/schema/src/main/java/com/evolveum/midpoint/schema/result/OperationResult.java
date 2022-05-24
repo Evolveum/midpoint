@@ -102,6 +102,7 @@ public class OperationResult
     public static final String PARAM_NAME = "name";
     public static final String PARAM_TYPE = "type";
     public static final String PARAM_OPTIONS = "options";
+    public static final String PARAM_RESOURCE = "resource";
     public static final String PARAM_TASK = "task";
     public static final String PARAM_OBJECT = "object";
     public static final String PARAM_QUERY = "query";

@@ -110,15 +110,12 @@ public class DashboardSearchPanel extends BasePanel<T> {
             }
         };
         searchButton.setOutputMarkupId(true);
-        searchButton.setOutputMarkupPlaceholderTag(true);
-        Label searchButtonLabel = new Label("searchButtonLabel", (IModel<Object>) () -> searchTypes.get(selectedSearchType).getObject());
-        searchButtonLabel.setOutputMarkupId(true);
-        searchButton.add(searchButtonLabel);
+
+        searchButton.add(new Label("searchButtonLabel", (IModel<Object>) () -> searchTypes.get(selectedSearchType).getObject()));
         searchForm.add(searchButton);
         searchForm.setDefaultButton(searchButton);
 
-        ListView<SearchType> li = new ListView<>(
-                ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
+        ListView<SearchType> li = new ListView<>(ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -136,9 +133,9 @@ public class DashboardSearchPanel extends BasePanel<T> {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         selectedSearchType = item.getModelObject();
-                        target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_BUTTON)));
-                    }
 
+                        target.add(searchButton);
+                    }
                 };
                 searchTypeLink.setOutputMarkupId(true);
                 item.add(searchTypeLink);
@@ -146,7 +143,6 @@ public class DashboardSearchPanel extends BasePanel<T> {
         };
         li.setOutputMarkupId(true);
         searchForm.add(li);
-
     }
 
     private String getSearchText() {
@@ -162,7 +158,6 @@ public class DashboardSearchPanel extends BasePanel<T> {
     }
 
     private void performSearch(String text) {
-
         PageParameters params = null;
         if (StringUtils.isNotBlank(text)) {
             params = new PageParameters();

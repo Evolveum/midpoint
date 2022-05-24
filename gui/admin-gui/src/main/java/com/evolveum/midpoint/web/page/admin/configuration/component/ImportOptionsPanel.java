@@ -7,19 +7,19 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
-
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
+
 /**
  * @author lazyman
  */
-public class ImportOptionsPanel extends Panel {
+public class ImportOptionsPanel extends BasePanel {
 
     private static final String ID_PROTECTED_BY_ENCRYPTION = "protectedByEncryption";
     private static final String ID_FETCH_RESOURCE_SCHEMA = "fetchResourceSchema";
@@ -48,17 +48,29 @@ public class ImportOptionsPanel extends Panel {
     }
 
     private void initLayout() {
-        add(new CheckBox(ID_PROTECTED_BY_ENCRYPTION, new PropertyModel<>(model, "encryptProtectedValues")));
-        add(new CheckBox(ID_FETCH_RESOURCE_SCHEMA, new PropertyModel<>(model, "fetchResourceSchema")));
-        add(new CheckBox(ID_KEEP_OID, new PropertyModel<>(model, "keepOid")));
-        add(new CheckBox(ID_OVERWRITE_EXISTING_OBJECT, new PropertyModel<>(model, "overwrite")));
-        add(new CheckBox(ID_REFERENTIAL_INTEGRITY, new PropertyModel<>(model, "referentialIntegrity")));
-        add(new CheckBox(ID_SUMMARIZE_ERRORS, new PropertyModel<>(model, "summarizeErrors")));
-        add(new CheckBox(ID_SUMMARIZE_SUCCESSES, new PropertyModel<>(model, "summarizeSucceses")));
-        add(new CheckBox(ID_VALIDATE_DYNAMIC_SCHEMA, new PropertyModel<>(model, "validateDynamicSchema")));
-        add(new CheckBox(ID_VALIDATE_STATIC_SCHEMA, new PropertyModel<>(model, "validateStaticSchema")));
-        add(new CheckBox(ID_FULL_PROCESSING, fullProcessingModel));
+        add(new CheckBoxPanel(ID_PROTECTED_BY_ENCRYPTION, new PropertyModel<>(model, "encryptProtectedValues"),
+                createStringResource("importOptionsPanel.protectedByEncryption")));
+        add(new CheckBoxPanel(ID_FETCH_RESOURCE_SCHEMA, new PropertyModel<>(model, "fetchResourceSchema"),
+                createStringResource("importOptionsPanel.fetchResourceSchema")));
+        add(new CheckBoxPanel(ID_KEEP_OID, new PropertyModel<>(model, "keepOid"),
+                createStringResource("importOptionsPanel.keepOid")));
+        add(new CheckBoxPanel(ID_OVERWRITE_EXISTING_OBJECT, new PropertyModel<>(model, "overwrite"),
+                createStringResource("importOptionsPanel.overwriteExistingObject")));
+        add(new CheckBoxPanel(ID_REFERENTIAL_INTEGRITY, new PropertyModel<>(model, "referentialIntegrity"),
+                createStringResource("importOptionsPanel.referentialIntegrity")));
+        add(new CheckBoxPanel(ID_SUMMARIZE_ERRORS, new PropertyModel<>(model, "summarizeErrors"),
+                createStringResource("importOptionsPanel.summarizeErrors")));
+        add(new CheckBoxPanel(ID_SUMMARIZE_SUCCESSES, new PropertyModel<>(model, "summarizeSucceses"),
+                createStringResource("importOptionsPanel.summarizeSuccesses")));
+        add(new CheckBoxPanel(ID_VALIDATE_DYNAMIC_SCHEMA, new PropertyModel<>(model, "validateDynamicSchema"),
+                createStringResource("importOptionsPanel.validateDynamicSchema")));
+        add(new CheckBoxPanel(ID_VALIDATE_STATIC_SCHEMA, new PropertyModel<>(model, "validateStaticSchema"),
+                createStringResource("importOptionsPanel.validateStaticSchema")));
+        add(new CheckBoxPanel(ID_FULL_PROCESSING, fullProcessingModel,
+                createStringResource("importOptionsPanel.fullProcessing")));
+        add(new CheckBoxPanel(ID_COMPAT_MODE, new PropertyModel<>(model, "compatMode"),
+                createStringResource("importOptionsPanel.compatMode")));
+
         add(new TextField<Integer>(ID_ERRORS, new PropertyModel<>(model, "stopAfterErrors")));
-        add(new CheckBox(ID_COMPAT_MODE, new PropertyModel<>(model, "compatMode")));
     }
 }

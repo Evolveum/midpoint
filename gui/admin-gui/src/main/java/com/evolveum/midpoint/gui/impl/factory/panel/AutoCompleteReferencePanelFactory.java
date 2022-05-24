@@ -67,7 +67,6 @@ public class AutoCompleteReferencePanelFactory
                 new AutoCompleteReferenceRenderer(),
                 panelCtx.getPageBase());
         panel.setOutputMarkupId(true);
-        panel.add(AttributeAppender.append("style", "padding-top:5px")); //ugly hack to be aligned with prism-property-label
         return panel;
     }
 }

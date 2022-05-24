@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +38,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -763,7 +760,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     } else if (threadIndex == CONCURRENT_TEST_THREAD_COUNT_HIGH / 2) {
                         for (int i = 0; /* neverending */ ; i++) {
                             Task localTask = createPlainTask(testName + "-test-thread-" + i);
-                            OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask);
+                            OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask, result);
 
                             logger.debug("PAR: TESTing " + threadIndex + "." + i);
 

@@ -154,7 +154,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_BROKEN_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_BROKEN_OID, task, task.getResult());
 
         then();
         display("testResource result", testResult);
@@ -280,7 +280,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = getTestTask();
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_NOTFOUND_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_NOTFOUND_OID, task, task.getResult());
 
         // THEN
         display("testResource result", testResult);
@@ -362,7 +362,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test310TestResourceNoJars");
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_NOJARS_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_NOJARS_OID, task, task.getResult());
 
         // THEN
         display("testResource result", testResult);

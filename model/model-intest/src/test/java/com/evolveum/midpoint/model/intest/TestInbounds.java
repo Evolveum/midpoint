@@ -61,7 +61,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ORANGE_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ORANGE_OID, task, task.getResult());
 
         // THEN
         then();

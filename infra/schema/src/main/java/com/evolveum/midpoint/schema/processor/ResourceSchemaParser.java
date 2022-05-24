@@ -23,12 +23,12 @@ public class ResourceSchemaParser {
         this.description = description;
     }
 
-    public static ResourceSchema parse(Element xsdSchema, String description) throws SchemaException {
+    public static @NotNull ResourceSchema parse(Element xsdSchema, String description) throws SchemaException {
         return new ResourceSchemaParser(xsdSchema, description)
                 .parse();
     }
 
-    public ResourceSchema parse() throws SchemaException {
+    private ResourceSchema parse() throws SchemaException {
         ResourceSchemaImpl schema = new ResourceSchemaImpl();
         schema.parseThis(xsdSchema, true, description, PrismContext.get());
         return schema;

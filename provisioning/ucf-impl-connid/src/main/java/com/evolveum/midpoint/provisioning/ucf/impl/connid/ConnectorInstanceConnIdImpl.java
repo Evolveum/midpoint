@@ -58,7 +58,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.*;
@@ -97,7 +96,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    private static final String OP_FETCH_CHANGES = ConnectorInstance.class.getName() + ".fetchChanges";
+    public static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
 
     private final ConnectorInfo connectorInfo;
     private final ConnectorType connectorType;
@@ -130,8 +129,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     private String description;
     private String instanceName; // resource name
     private boolean caseIgnoreAttributeNames = false;
-
-    private boolean isCaching = true;
 
     ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
             PrismSchema connectorSchema, Protector protector, LocalizationService localizationService) {
@@ -177,8 +174,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public synchronized void configure(
             @NotNull PrismContainerValue<?> configurationOriginal,
-            @Nullable List<QName> generateObjectClasses,
-            boolean isCaching,
+            @Nullable ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
@@ -187,7 +183,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDumpLazily(1));
 
         try {
-            this.generateObjectClasses = generateObjectClasses;
+            generateObjectClasses = options != null ? options.getGenerateObjectClasses() : null;
             // Get default configuration for the connector. This is important,
             // as it contains types of connector configuration properties.
 
@@ -196,10 +192,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismContainerValue<?> configurationCloned = configurationOriginal.clone();
             configurationCloned.applyDefinition(getConfigurationContainerDefinition());
 
-            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
+            ConnIdConfigurationTransformer configTransformer =
+                    new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector, options);
             // Transform XML configuration from the resource to the ConnId connector configuration
             try {
-                apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned, isCaching);
+                apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
             } catch (SchemaException e) {
                 result.recordFatalError(e.getMessage(), e);
                 throw e;
@@ -224,8 +221,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 oldConnIdConnectorFacade.dispose();
             }
 
-            result.recordSuccess();
-
             PrismProperty<Boolean> legacySchemaConfigProperty = configurationCloned.findProperty(new ItemName(
                     SchemaConstants.NS_ICF_CONFIGURATION,
                     ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
@@ -236,7 +231,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         } catch (Throwable ex) {
             Throwable midpointEx = processConnIdException(ex, this, result);
-            result.computeStatus("Removing attribute values failed");
+            result.computeStatus("Configuration operation failed");
             // Do some kind of acrobatics to do proper throwing of checked
             // exception
             if (midpointEx instanceof CommunicationException) {
@@ -254,6 +249,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             } else {
                 throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
             }
+        } finally {
+            result.close();
         }
     }
 
@@ -356,7 +353,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -379,7 +376,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             GenericFrameworkException, ConfigurationException, SchemaException {
 
         // Result type for this operation
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchResourceSchema");
+        OperationResult result = parentResult.createSubresult(OP_FETCH_RESOURCE_SCHEMA);
         result.addContext("connector", connectorType);
 
         try {
@@ -410,7 +407,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
         // Result type for this operation
-        OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchCapabilities");
+        OperationResult result = parentResult.createMinorSubresult(OP_FETCH_CAPABILITIES);
         result.addContext("connector", connectorType);
 
         try {
@@ -464,7 +461,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         Validate.notNull(resourceObjectIdentification, "Null primary identifiers");
         ResourceObjectDefinition objectDefinition = resourceObjectIdentification.getResourceObjectDefinition();
 
-        OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchObject");
+        OperationResult result = parentResult.createMinorSubresult(OP_FETCH_OBJECT);
         result.addArbitraryObjectAsParam("resourceObjectDefinition", objectDefinition);
         result.addArbitraryObjectAsParam("identification", resourceObjectIdentification);
         result.addContext("connector", connectorType);
@@ -545,10 +542,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SecurityViolationException,
             SchemaException, ConfigurationException {
 
-        // Connector operation cannot create result for itself, so we need to
-        // create result for it
-        OperationResult icfResult = parentResult.createMinorSubresult(ConnectorFacade.class.getName()
-                + ".getObject");
+        // Connector operation cannot create result for itself, so we need to create result for it
+        OperationResult icfResult = parentResult.createMinorSubresult(FACADE_OP_GET_OBJECT);
         icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
         icfResult.addParam("uid", uid.getUidValue());
         icfResult.addArbitraryObjectAsParam("options", options);
@@ -712,8 +707,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         ShadowType shadowType = shadow.asObjectable();
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-                + ".addObject");
+        OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addParam("resourceObject", shadow);
 
         ResourceObjectDefinition ocDef;
@@ -901,10 +895,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
             UcfExecutionContext ctx, OperationResult parentResult)
-                            throws ObjectNotFoundException, CommunicationException,
-                                GenericFrameworkException, SchemaException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+            throws ObjectNotFoundException, CommunicationException,
+            GenericFrameworkException, SchemaException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
 
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".modifyObject");
+        OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectCollectionAsParam("changes", changes);
 
@@ -1423,8 +1417,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
         Validate.notNull(objectDefinition, "No objectclass");
 
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-                + ".deleteObject");
+        OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
         result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
 
         ObjectClass objClass = objectClassToConnId(objectDefinition);
@@ -1486,8 +1479,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     public UcfSyncToken fetchCurrentToken(ResourceObjectDefinition objectDefinition, UcfExecutionContext ctx,
             OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-                + ".fetchCurrentToken");
+        OperationResult result = parentResult.createSubresult(OP_FETCH_CURRENT_TOKEN);
         result.addArbitraryObjectAsParam("objectClass", objectDefinition);
 
         ObjectClass icfObjectClass;
@@ -1735,11 +1727,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     private void testConnection(boolean isPartialTest, OperationResult parentResult) {
-
-        OperationResult connectionResult = parentResult
-                .createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-        connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorInstanceConnIdImpl.class);
-        connectionResult.addContext("connector", connectorType);
+        OperationResult result = parentResult.createSubresult(OP_TEST);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorInstanceConnIdImpl.class);
+        result.addContext("connector", connectorType);
 
         try {
             if (isPartialTest) {
@@ -1749,21 +1739,22 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 InternalMonitor.recordConnectorOperation("test");
                 connIdConnectorFacade.test();
             }
-            connectionResult.recordSuccess();
         } catch (UnsupportedOperationException ex) {
             // Connector does not support test connection.
-            connectionResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
                     "Operation not supported by the connector", ex);
             // Do not rethrow. Recording the status is just OK.
         } catch (Throwable icfEx) {
-            Throwable midPointEx = processConnIdException(icfEx, this, connectionResult);
-            connectionResult.recordFatalError(midPointEx);
+            Throwable midPointEx = processConnIdException(icfEx, this, result);
+            result.recordFatalError(midPointEx);
+        } finally {
+            result.close();
         }
     }
 
     @Override
-    public <T> Collection<PrismProperty<T>> discoverConfiguration(OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ConnectorFacade.class.getName() + ".discoverConfiguration");
+    public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(OP_DISCOVER_CONFIGURATION);
         result.addContext("connector", connectorType);
 
         InternalMonitor.recordConnectorOperation("discoverConfiguration");
@@ -1771,21 +1762,24 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         try {
             Map<String, SuggestedValues> suggestions = connIdConnectorFacade.discoverConfiguration();
 
-            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
+            ConnIdConfigurationTransformer configTransformer =
+                    new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector, null);
+
             // Transform suggested configuration from the ConnId connector configuration to prism properties
-            Collection<PrismProperty<T>> convertedSuggestions = configTransformer.transformSuggestedConfiguration(suggestions);
-            result.recordSuccess();
-            return convertedSuggestions;
+            return configTransformer.transformSuggestedConfiguration(suggestions);
         } catch (UnsupportedOperationException ex) {
             // Connector does not support discover configuration.
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
                     "Operation not supported by the connector", ex);
             // Do not rethrow. Recording the status is just OK.
+            return Collections.emptySet();
         } catch (Throwable icfEx) {
             Throwable midPointEx = processConnIdException(icfEx, this, result);
             result.recordFatalError(midPointEx);
+            return Collections.emptySet();
+        } finally {
+            result.close();
         }
-        return Collections.emptySet();
     }
 
     @Override
@@ -1803,15 +1797,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                         ObjectNotFoundException {
 
         // Result type for this operation
-        final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".search");
+        final OperationResult result = parentResult.createSubresult(OP_SEARCH);
         result.addArbitraryObjectAsParam("objectClass", objectDefinition);
         result.addContext("connector", connectorType);
         try {
             validateConnectorFacade();
-
-            if (objectDefinition == null) {
-                throw new IllegalArgumentException("Object class not defined");
-            }
 
             if (pagedSearchConfiguration == null) {
                 pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
@@ -1836,8 +1826,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException {
 
         // Result type for this operation
-        final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-                + ".count");
+        final OperationResult result = parentResult.createSubresult(OP_COUNT);
         result.addArbitraryObjectAsParam("objectClass", objectDefinition);
         result.addContext("connector", connectorType);
 
@@ -2096,7 +2085,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, UcfExecutionContext ctx, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
-        OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".executeScript");
+        OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPT);
         try {
             return executeScriptIcf(ctx, scriptOperation, result);
         } catch (Throwable t) {

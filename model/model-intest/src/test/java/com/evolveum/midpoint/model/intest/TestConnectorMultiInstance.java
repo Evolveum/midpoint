@@ -74,7 +74,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         Task task = getTestTask();
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task, task.getResult());
 
         // THEN
         display("Test result", testResult);

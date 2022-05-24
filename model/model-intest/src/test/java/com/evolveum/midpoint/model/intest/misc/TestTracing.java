@@ -70,7 +70,7 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
         repoAdd(ROLE_ILLEGAL, initResult);
 
         initDummyResource(RESOURCE_ILLEGAL, initTask, initResult);
-        assertSuccess(modelService.testResource(RESOURCE_ILLEGAL.oid, initTask));
+        assertSuccess(modelService.testResource(RESOURCE_ILLEGAL.oid, initTask, initResult));
 
         repoAdd(USER_JIM, initResult);
         repoAdd(ROLE_CLASS_LESS_VALUES, initResult);

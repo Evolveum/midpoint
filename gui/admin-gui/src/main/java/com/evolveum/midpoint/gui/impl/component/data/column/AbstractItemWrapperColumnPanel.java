@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW extends PrismValueWrapper>
         extends BasePanel<IW> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractItemWrapperColumnPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractItemWrapperColumnPanel.class);
     protected PageBase pageBase;
     protected ItemPath itemName;
 

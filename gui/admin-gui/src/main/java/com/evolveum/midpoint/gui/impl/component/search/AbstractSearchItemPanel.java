@@ -91,7 +91,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
         if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
             FormComponent<?> baseFormComponent = ((InputPanel) searchItemField).getBaseFormComponent();
             baseFormComponent.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-            baseFormComponent.add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
+            baseFormComponent.add(AttributeAppender.append("style", "max-width: 400px !important;"));
             baseFormComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             baseFormComponent.add(new VisibleEnableBehaviour() {
 

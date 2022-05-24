@@ -102,10 +102,10 @@ public class TestDummyNegative extends AbstractDummyTest {
         super.initSystem(initTask, initResult);
 
         initDummyResource(RESOURCE_DUMMY_BROKEN_ACCOUNTS, initResult);
-        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS, initTask);
+        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS, initTask, initResult);
 
         initDummyResource(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initResult);
-        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initTask);
+        testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initTask, initResult);
     }
 
     //region Tests for broken schema (in various ways)

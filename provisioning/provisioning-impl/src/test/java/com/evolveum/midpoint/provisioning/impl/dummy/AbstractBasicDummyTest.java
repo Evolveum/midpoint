@@ -25,6 +25,7 @@ import com.evolveum.icf.dummy.connector.AbstractBaseDummyConnector;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -60,7 +61,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -278,14 +278,14 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resource);
 
         // WHEN
-        OperationResult testResult = provisioningService.testPartialConfigurationResource(resource.asPrismObject(), task);
+        OperationResult testResult = provisioningService.testPartialConfiguration(resource.asPrismObject(), task, result);
 
         // THEN
         display("Test result", testResult);
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INSTANTIATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CONNECTION);
         assertSuccess(connectorResult);
         assertSuccess(testResult);
 
@@ -364,14 +364,14 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resource);
 
         // WHEN
-        OperationResult testResult = provisioningService.testPartialConfigurationResource(resource.asPrismObject(), task);
+        OperationResult testResult = provisioningService.testPartialConfiguration(resource.asPrismObject(), task, result);
 
         // THEN
         display("Test result", testResult);
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-        assertTestResourceFailure(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INSTANTIATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INITIALIZATION);
+        assertTestResourceFailure(connectorResult, TestResourceOpNames.CONNECTOR_CONNECTION);
         assertFailure(connectorResult);
         assertFailure(testResult);
 
@@ -407,7 +407,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
      * that executes testResource and checks whether the schema was generated.
      */
     @Test
-    public void test020Connection() throws Exception {
+    public void test020TestResource() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -437,42 +437,44 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resourceTypeBefore);
 
         // WHEN
-        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task, result);
 
         // THEN
         display("Test result", testResult);
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INSTANTIATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CONNECTION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CAPABILITIES);
         assertSuccess(connectorResult);
-        assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+        assertTestResourceSuccess(testResult, TestResourceOpNames.RESOURCE_SCHEMA);
         assertSuccess(testResult);
 
         assertResourceCacheMissesIncrement(1);
 
-        PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
-                RESOURCE_DUMMY_OID, null, result);
+        PrismObject<ResourceType> resourceRepoAfter =
+                repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 
         String localNodeId = taskManager.getNodeId();
+        // @formatter:off
         assertResource(resourceRepoAfter, "Resource after test")
                 .display()
                 .operationalState()
-                .assertAny()
-                .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
-                .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
-                .end()
-                .operationalStateHistory()
-                .assertSize(1)
-                .value(0)
-                .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
-                .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
+                    .assertAny()
+                        .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                        .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                        .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                        .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
+                    .end()
+                    .operationalStateHistory()
+                        .assertSize(1)
+                        .value(0)
+                            .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                            .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                            .assertItemValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                            .assertItemValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
+        // @formatter:on
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
@@ -497,7 +499,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
-        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        // No longer parsing schema XSD during test connection (traditional resource completion is not invoked anymore)
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+
         // One increment for availability status, the other for schema
         assertResourceVersionIncrement(resourceRepoAfter, 2);
 
@@ -553,7 +557,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                         getSuggestionForProperty(resource, "uselessString"));
 
         when();
-        Collection<PrismProperty<Object>> suggestions = provisioningService.discoverConfiguration(resource, result);
+        Collection<PrismProperty<?>> suggestions =
+                provisioningService.discoverConfiguration(resource, result)
+                        .getDiscoveredProperties();
 
         then();
         assertSuccess(result);
@@ -561,10 +567,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertResourceCacheMissesIncrement(0);
         assertResourceCacheHitsIncrement(0);
 
-        assertTrue("Suggestions contain more as 2 expected property " + suggestions, suggestions.size() == 2);
+        assertThat(suggestions)
+                .as("suggested properties")
+                .hasSize(2);
         suggestions.forEach(suggestion -> {
             assertTrue("Unexpected value of suggestion " + suggestion.getRealValue() + ", expected: " + expectedSuggestions,
-                    expectedSuggestions.contains(suggestion.getRealValue()));
+                    expectedSuggestions.contains((String) suggestion.getRealValue()));
         });
 
         assertEquals("Was created entry connector in cache", cachedConnectorsCount, getSizeOfConnectorCache());
@@ -800,7 +808,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         OperationResult result = createOperationResult();
 
         when();
-        PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        PrismObject<ResourceType> resource =
+                provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         ResourceType resourceType = resource.asObjectable();
 
         then();
@@ -988,7 +997,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         Task task = getTestTask();
 
         when();
-        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
 
         then();
         display("Test result", testResult);
@@ -1004,12 +1013,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
-        // Test connection contains one extra resource read from repository
-        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 2);
-
-        PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
-                RESOURCE_DUMMY_OID, null, task.getResult());
-        assertResourceVersionIncrement(resourceRepoAfter, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         rememberConnectorInstance(resource);
 
@@ -1031,8 +1035,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         // WHEN
         when();
-        PrismObject<ResourceType> resourceAgain = provisioningService.getObject(
-                ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        PrismObject<ResourceType> resourceAgain =
+                provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
         then();
@@ -1043,8 +1047,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        PrismContainer<Containerable> configurationContainerAgain = resourceAgain
-                .findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        PrismContainer<Containerable> configurationContainerAgain =
+                resourceAgain.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
         // Check resource schema caching

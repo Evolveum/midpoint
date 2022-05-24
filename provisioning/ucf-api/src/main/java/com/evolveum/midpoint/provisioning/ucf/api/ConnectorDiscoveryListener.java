@@ -10,13 +10,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
 /**
  * Listener for automatic connector discovery provided by Connector Factory.
- *
  */
 public interface ConnectorDiscoveryListener {
 
     /**
-     *
-     *
      * @param host null if host is this instance
      */
     void newConnectorDiscovered(ConnectorHostType host);

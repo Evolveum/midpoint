@@ -861,7 +861,7 @@ public interface MidpointFunctions {
      * @throws IllegalArgumentException
      *             wrong OID format
      */
-    OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
+    OperationResult testResource(String resourceOid) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
     List<String> toList(String... s);
 

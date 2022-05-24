@@ -7,27 +7,26 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-
-import javax.xml.namespace.QName;
 
 /**
  * TODO make this parametric (along with SceneItemValue)
@@ -50,21 +49,14 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
     }
 
     private void initLayout() {
-
-        final VisibleEnableBehaviour visibleIfReference = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                SceneItemValue object = getModelObject();
-                return hasValidReferenceValue(object);
-            }
-        };
-        final VisibleEnableBehaviour visibleIfNotReference = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                SceneItemValue object = getModelObject();
-                return !hasValidReferenceValue(object);
-            }
-        };
+        final VisibleBehaviour visibleIfReference = new VisibleBehaviour(() -> {
+            SceneItemValue object = getModelObject();
+            return hasValidReferenceValue(object);
+        });
+        final VisibleBehaviour visibleIfNotReference = new VisibleBehaviour(() -> {
+            SceneItemValue object = getModelObject();
+            return !hasValidReferenceValue(object);
+        });
 
         IModel<DisplayType> displayModel = (IModel) () -> {
             ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
@@ -91,7 +83,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                     return;
                 }
                 PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
-                if (refValue == null){
+                if (refValue == null) {
                     return;
                 }
                 ObjectReferenceType ort = new ObjectReferenceType();
@@ -103,12 +95,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
         link.add(visibleIfReference);
         add(link);
 
-        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new IModel<String>() {
-            @Override
-            public String getObject() {
-                return getModelObject() != null ? getModelObject().getAdditionalText() : null;
-            }
-        });
+        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, () -> getModelObject() != null ? getModelObject().getAdditionalText() : null);
         add(additionalText);
     }
 
@@ -154,7 +141,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                 if (val.getSourceValue() instanceof PrismReferenceValue) {
                     return WebComponentUtil.getReferencedObjectDisplayNameAndName(((PrismReferenceValue) val.getSourceValue()).asReferencable(), true, getPageBase());
                 } else if (val.getSourceValue() instanceof Objectable) {
-                    WebComponentUtil.getDisplayNameOrName(((Objectable)val.getSourceValue()).asPrismObject());
+                    WebComponentUtil.getDisplayNameOrName(((Objectable) val.getSourceValue()).asPrismObject());
                 }
             }
             String textValue = getModelObject() != null ? getModelObject().getText() : null;

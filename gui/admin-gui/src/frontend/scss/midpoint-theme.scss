@@ -438,9 +438,10 @@ th.cog, td.cog {
 // other info box enhancements (e.g. role assignment)
 
 .info-box-ethereal {
-	// "lighter" info box, without the border or any heavy decorations
-    box-shadow: none;
-    border: none;
+  // "lighter" info box, without the border or any heavy decorations
+  box-shadow: none;
+  border: none;
+  margin-bottom: 0;
 }
 
 .info-box-icon-ethereal {
@@ -1273,66 +1274,34 @@ td .prism-property-value {
 
 }
 
+// handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
+// replace them with vendor css utility classes
+.dark-mode .search-item {
+  background-color: lighten($dark, 7.5%) !important;
+  color: $white !important;
+}
+
+@include bg-variant(".search-item", $light, true);
+
+// deprecated, uses should be replaced by "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"
 .search-item {
-  display: inline-block;
-  //min-width: 270px;
-  border-color: #ddd;
-  border-radius: 3px;
-  background-color: #f4f4f4;
-  vertical-align: middle;
-  font-size: 12px;
-  padding-left: 3px;
-  margin-left: 3px;
+  display: flex;
+  gap: 0.25em;
+  border-radius: $border-radius-sm;
+  padding-left: 0.5rem;
+  align-items: center;
 
+  // deprecated, uses should be replaced by "col-form-label-sm font-weight-normal mb-0"
   .search-item-label {
-    margin-top: 5px;
-    width: fit-content;
-    padding-right: 5px !important;
-    padding-left: 5px !important;
-  }
-
-  .search-item-field {
-    padding-left: 3px !important;
+    padding-top: add($input-padding-y-sm, $input-border-width);
+    padding-bottom: add($input-padding-y-sm, $input-border-width);
+    @include font-size($input-font-size-sm);
+    line-height: $input-line-height-sm;
   }
 
   & > a.btn,
   & > a.btn:hover {
     border-top: 0 !important;
-  }
-}
-
-.metadata {
-
-    border-radius: 0px;
-    border-left: 1px solid #f4f4f4;
-    border-right: 1px solid #f4f4f4;
-    border-bottom: none;
-    border-top: none;
-
-  .panel-default {
-      border-color: #ffffff;
-  }
-
-  .panel {
-      margin-bottom: 0px;
-      box-shadow: none;
-  }
-
-  .panel-body {
-      padding: 5px;
-  }
-
-  .info-box {
-      min-height: 50px;
-  }
-
-  .info-box-icon {
-      height: 50px;
-      line-height: normal;
-  }
-
-  .info-box-icon-ethereal-image {
-      font-size: 40px;
   }
 }
 
@@ -1343,12 +1312,7 @@ td .prism-property-value {
   border-top: 0px !important;
 }
 
-.metadata-block {
-     padding-top: 5px;
-}
-
 .metadata-properties {
-  padding-left: 40px;
 
   .metadata-property {
     padding-left: 0px;
@@ -1372,72 +1336,39 @@ td .prism-property-value {
 
 }
 
-// Tag icon in metadata "tab"
-.metadata-nav > li > a::before {
-  font-family: "FontAwesome";
-  padding-right: 0.5em;
-  content: "\f02b";
-}
+.metadata {
 
-.contains-active-tab {
-  border-bottom: 1px solid #eeeeee;
-}
-
-.contains-active-tab > ul > li > a.metadata-tab {
-  margin-top: 0px;
-  border-top: 3px solid transparent;
-  border-radius: 0px;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-  background-color: transparent;
-}
-
-.metadata-tab {
-  margin-top: 2px;
-  border: 1px solid #dddddd;
-  border-radius: 3px;
-  padding: 3px 10px !important;
-  float: left;
-  padding-bottom: 5px !important;
-  background-color: #f7f7f7;
-
-  font-size: 75%;
-  color: #000;
-  text-align: center;
-  white-space: nowrap;
-
-}
-
-.metadata-tab-active {
-  border-top: 3px solid #3c8dbc !important;
-  border-right: 1px solid #f4f4f4 !important;
-  border-left: 1px solid #f4f4f4 !important;
-  background-color: #ffffff !important;
-  border-bottom: 1px solid transparent !important;
+  & .card .nav-item > a.nav-link::before,
+  & .tags > a.btn::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    padding-right: 0.5em;
+    content: "\f02b";
+  }
 }
 
 .acquisition {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.acquisition > li {
-  float: left;
   list-style: none;
-  margin-left: -30px;
-}
+  margin-top: 5px;
+  margin-bottom: 5px;
 
-.acquisition > li + li {
-  margin-left: 10px;
-  list-style: none;
-}
+  & > li {
+    float: left;
+    margin-left: -30px;
 
-.acquisition > li + li::before {
-  font-family: "FontAwesome";
-  content: "\f067";
-  float: left;
-  margin-right: 10px;
+    & + li {
+      margin-left: 10px;
+
+      &::before {
+        color: $text-muted;
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f067";
+        float: left;
+        margin-right: 10px;
+      }
+    }
+  }
 }
 
 .yield {
@@ -1445,18 +1376,13 @@ td .prism-property-value {
 }
 
 .yield-heading {
+  display: flex;
+  flex-wrap: wrap;
+  flex-flow: row;
+  align-items: center;
+
   padding: 5px 5px;
   border-top: 1px solid #dddddd;
-//   font-weight: 700;
-  font-size: 16px;
-}
-
-.yield-description {
-  clear: both; // Fix floats in yield header
-  padding-top: 10px;
-  padding-left: 50px;
-  margin-top: 0px;
-  margin-bottom: -10px;
 }
 
 .popover {
@@ -1811,4 +1737,17 @@ span.yui-skin-sam {
   overflow-wrap: break-word;
   word-break: break-word;
   max-width: 50vw;
+}
+
+th.debug-list-buttons {
+  width: 160px;
+}
+
+.notification {
+  &.nav-item > .nav-link > .badge {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 0.5em;
+  }
 }

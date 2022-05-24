@@ -301,6 +301,14 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.getEnabledCapability(capabilityClass, resource);
     }
 
+    @Override
+    public void validate() throws SchemaException {
+        structuralDefinition.validate();
+        for (ResourceObjectDefinition auxiliaryDefinition : auxiliaryDefinitions) {
+            auxiliaryDefinition.validate();
+        }
+    }
+
     @NotNull
     @Override
     public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {

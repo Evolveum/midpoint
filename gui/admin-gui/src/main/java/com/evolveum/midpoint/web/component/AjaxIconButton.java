@@ -55,7 +55,7 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
         StringBuilder sb = new StringBuilder();
 
-        String title = this.title.getObject();
+        String title = this.title != null ? this.title.getObject() : "";
 
         String icon = getModelObject();
         if (StringUtils.isNotEmpty(icon)) {

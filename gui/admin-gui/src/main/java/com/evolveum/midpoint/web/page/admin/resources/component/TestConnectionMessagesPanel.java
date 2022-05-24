@@ -11,10 +11,9 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -64,13 +63,15 @@ public class TestConnectionMessagesPanel extends BasePanel {
         List<ConnectorStruct> connectorStructs = new ArrayList<>();
         if (StringUtils.isNotEmpty(resourceOid)) {
             Task task = parentPage.createSimpleTask(OPERATION_TEST_CONNECTION);
+            OperationResult testResult = new OperationResult("dummy"); // just to be non-null
             try {
-                result = parentPage.getModelService().testResource(resourceOid, task);
-            } catch (ObjectNotFoundException e) {
+                testResult = parentPage.getModelService().testResource(resourceOid, task, result);
+            } catch (Exception e) {
+                // TODO how will this be displayed?
                 result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);
             }
 
-            for (OperationResult subresult: result.getSubresults()) {
+            for (OperationResult subresult: testResult.getSubresults()) {
                 if (isConnectorResult(subresult)) {
                     ConnectorStruct connectorStruct = new ConnectorStruct();
                     connectorStruct.connectorName = subresult.getParamSingle(OperationResult.PARAM_NAME);
@@ -85,7 +86,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
                     }
                     connectorStructs.add(connectorStruct);
                 } else if (isKnownResult(subresult)) {
-                    // resource operation
+                    // resource-level operation
                     resourceResultsDto.add(OpResult.getOpResult(parentPage, subresult));
                 }
 
@@ -100,11 +101,11 @@ public class TestConnectionMessagesPanel extends BasePanel {
     }
 
     private boolean isConnectorResult(OperationResult subresult) {
-        return subresult.getOperation().equals(ConnectorTestOperation.CONNECTOR_TEST.getOperation());
+        return subresult.getOperation().equals(TestResourceOpNames.CONNECTOR_TEST.getOperation());
     }
 
     private boolean isKnownResult(OperationResult subresult) {
-        for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
+        for (TestResourceOpNames connectorOperation : TestResourceOpNames.values()) {
             if (connectorOperation.getOperation().equals(subresult.getOperation())) {
                 return true;
             }

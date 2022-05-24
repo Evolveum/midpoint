@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -57,6 +59,13 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
         body.add(AttributeModifier.replace("class", "login-page"));
         body.add(AttributeModifier.replace("style", "")); //TODO hack :) because PageBase has min-height defined.
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript("$(\"input[name='username']\").focus();"));
     }
 
     @Override

@@ -8,13 +8,13 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -49,16 +49,16 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
         Task task = getTestTask();
 
         // WHEN
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_SCHEMALESS_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_SCHEMALESS_OID, task, task.getResult());
 
         // THEN
         display("Test result", testResult);
         OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INSTANTIATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, TestResourceOpNames.CONNECTOR_CONNECTION);
         assertSuccess(connectorResult);
-        assertTestResourceFailure(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+        assertTestResourceFailure(testResult, TestResourceOpNames.RESOURCE_SCHEMA);
         assertFailure(testResult);
     }
 }

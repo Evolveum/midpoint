@@ -409,7 +409,7 @@ public class ExpressionUtil {
 
             } catch (ObjectNotFoundException e) {
                 throw new ObjectNotFoundException("Object not found during variable " + varDesc
-                        + " resolution in " + contextDescription + ": " + e.getMessage(), e, ref.getOid());
+                        + " resolution in " + contextDescription + ": " + e.getMessage(), e, e.getType(), ref.getOid());
             } catch (SchemaException e) {
                 throw new SchemaException("Schema error during variable " + varDesc + " resolution in "
                         + contextDescription + ": " + e.getMessage(), e);

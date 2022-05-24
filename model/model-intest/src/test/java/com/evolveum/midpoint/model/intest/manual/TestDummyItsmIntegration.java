@@ -117,7 +117,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
         // WHEN
         when();
-        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ITSM_OID, task);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ITSM_OID, task, result);
 
         // THEN
         then();

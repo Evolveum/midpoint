@@ -67,6 +67,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
     private static final String KEY_CERT_DECISIONS = "certDecisions";
 
+    public enum Mode {
+
+        LIGHT, DARK;
+    }
+
+    private Mode mode = Mode.LIGHT;
+
     /**
      * Store session information for user preferences about paging size in midPoint GUI
      */
@@ -83,6 +90,14 @@ public class SessionStorage implements Serializable, DebugDumpable {
      * Key is menu label text, value if true then menu is expanded, if false menu is minimized.
      */
     private Map<String, Boolean> mainMenuState = new HashMap<>();
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(@NotNull Mode mode) {
+        this.mode = mode;
+    }
 
     public Map<String, PageStorage> getPageStorageMap() {
         return pageStorageMap;

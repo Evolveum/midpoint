@@ -143,13 +143,13 @@ public class TestScience  extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultStats = modelService.testResource(RESOURCE_DUMMY_STATS_OID, task);
+        OperationResult testResultStats = modelService.testResource(RESOURCE_DUMMY_STATS_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultStats);
 
-        OperationResult testResultUnix = modelService.testResource(RESOURCE_DUMMY_UNIX_OID, task);
+        OperationResult testResultUnix = modelService.testResource(RESOURCE_DUMMY_UNIX_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultUnix);
 
-        OperationResult testResultAd = modelService.testResource(RESOURCE_OPENDJ_AD_SIMULATION_OID, task);
+        OperationResult testResultAd = modelService.testResource(RESOURCE_OPENDJ_AD_SIMULATION_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultAd);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);

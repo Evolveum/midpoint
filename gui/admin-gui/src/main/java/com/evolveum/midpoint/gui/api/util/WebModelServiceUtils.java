@@ -215,11 +215,16 @@ public class WebModelServiceUtils {
         return loadObject(type, objectReference.getOid(), null, page, task, result);
     }
 
-    @Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
             PageAdminLTE page, Task task, OperationResult result) {
+        return loadObject(objectReference, false, page, task, result);
+    }
+
+    @Nullable
+    public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference, boolean allowNull,
+            PageAdminLTE page, Task task, OperationResult result) {
         Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
-        return loadObject(type, objectReference.getOid(), null, page, task, result);
+        return loadObject(type, objectReference.getOid(), null, allowNull, page, task, result);
     }
 
     @Nullable

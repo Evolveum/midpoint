@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.LocaleDescriptor;
-import com.evolveum.midpoint.web.security.MidPointApplication;
+import java.util.Locale;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,7 +20,11 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
-import java.util.Locale;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.LocaleDescriptor;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 /**
  * @author lazyman
@@ -34,6 +34,8 @@ public class LocalePanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(LocalePanel.class);
+
+    private static final String FLAG_CLASS_PREFIX = "fi-";
 
     private static final String ID_ICON = "icon";
     private static final String ID_LOCALES = "locales";
@@ -48,7 +50,7 @@ public class LocalePanel extends Panel {
         setRenderBodyOnly(true);
 
         Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.append("class", () -> getFlag()));
+        image.add(AttributeModifier.append("class", () -> FLAG_CLASS_PREFIX + getFlag()));
         image.setOutputMarkupId(true);
         add(image);
 
@@ -71,7 +73,7 @@ public class LocalePanel extends Panel {
                 item.add(localeLink);
 
                 Label image = new Label(ID_LOCALES_ICON);
-                image.add(AttributeModifier.append("class", () -> item.getModelObject().getFlag()));
+                image.add(AttributeModifier.append("class", () -> FLAG_CLASS_PREFIX + item.getModelObject().getFlag()));
                 localeLink.add(image);
 
                 Label label = new Label(ID_LOCALES_LABEL, () -> item.getModelObject().getName());

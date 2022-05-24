@@ -224,7 +224,7 @@ class ResourceObjectReferenceResolver {
             parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
             throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
                         PrettyPrinter.prettyPrint(objectDefinition.getTypeName())+": "
-                    + e.getMessage(), e, repoShadow != null ? repoShadow.getOid() : null);
+                    + e.getMessage(), e, ShadowType.class, repoShadow != null ? repoShadow.getOid() : null);
         } catch (CommunicationException e) {
             parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);

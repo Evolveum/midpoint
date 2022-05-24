@@ -6,16 +6,15 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Created by honchar
  */
 public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
@@ -55,8 +55,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     public void initReferencedObjectModel() {
-
-        referenceModel = new LoadableModel<PrismReferenceValue>() {
+        referenceModel = new LoadableModel<>() {
 
             @Override
             protected PrismReferenceValue load() {
@@ -67,8 +66,8 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 if (value.getObject() == null) {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT);
                     OperationResult result = task.getResult();
-                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(), getPageBase(),
-                            task, result);
+                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(),
+                            true, getPageBase(), task, result);
                     if (referencedObject != null) {
                         value.setObject(referencedObject.clone());
                     }
@@ -80,8 +79,9 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
     private void initLayout() {
         setOutputMarkupId(true);
+        add(AttributeAppender.append("class", "d-flex flex-wrap gap-2 align-items-center"));
 
-        IModel<DisplayType> displayModel = new ReadOnlyModel<>(() -> {
+        IModel<DisplayType> displayModel = () -> {
 
             PrismReferenceValue ref = referenceModel.getObject();
             if (ref == null) {
@@ -96,13 +96,13 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(ref.getTargetType())));
             }
             return displayType;
-        });
+        };
 
         ImagePanel imagePanel = new ImagePanel(ID_ICON, displayModel);
-        imagePanel.setOutputMarkupId(true);
+        imagePanel.setRenderBodyOnly(true);
         add(imagePanel);
 
-        AjaxLink<PrismReferenceValue> nameLink = new AjaxLink<PrismReferenceValue>(ID_NAME, referenceModel) {
+        AjaxLink<PrismReferenceValue> nameLink = new AjaxLink<>(ID_NAME, referenceModel) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 WebComponentUtil.dispatchToObjectDetailsPage(referenceModel.getObject(), LinkedReferencePanel.this, false);
@@ -116,18 +116,16 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
             return ref.getObject() != null;
         }));
-        nameLink.setOutputMarkupId(true);
         add(nameLink);
 
-        Label nameLinkText = new Label(ID_NAME_TEXT, new ReadOnlyModel<>(() -> {
+        Label nameLinkText = new Label(ID_NAME_TEXT, () -> {
             PrismReferenceValue ref = referenceModel.getObject();
             if (ref == null) {
                 return "";
             }
             return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false, getPageBase());
-        }));
-        nameLinkText.setOutputMarkupId(true);
+        });
+        nameLinkText.setRenderBodyOnly(true);
         nameLink.add(nameLinkText);
     }
-
 }

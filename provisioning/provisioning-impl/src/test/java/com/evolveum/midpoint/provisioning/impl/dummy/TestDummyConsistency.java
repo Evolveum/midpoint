@@ -96,7 +96,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         displayValue("Dummy resource instance", dummyResource.toString());
 
-        testResourceAssertSuccess(RESOURCE_DUMMY_OID, task);
+        testResourceAssertSuccess(RESOURCE_DUMMY_OID, task, result);
 
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         resourceBean = resource.asObjectable();

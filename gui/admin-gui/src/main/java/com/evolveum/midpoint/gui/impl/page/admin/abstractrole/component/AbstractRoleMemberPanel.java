@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -671,7 +673,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         createRecomputeMemberRowAction(menu);
 
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
-            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create")) {
+            InlineMenuItem menuItem = new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -685,7 +687,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         }
                     };
                 }
-            });
+            };
+            menuItem.setVisibilityChecker((rowModel, isHeader) -> isHeader);
+            menu.add(menuItem);
         }
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
             menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete")) {
@@ -693,12 +697,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                    return new ColumnMenuAction() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            deleteMembersPerformed(target);
+                            deleteMembersPerformed(getRowModel(), target);
                         }
                     };
                 }
@@ -710,12 +714,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     protected void createAssignMemberRowAction(List<InlineMenuItem> menu) {
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
-            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
+            InlineMenuItem menuItem = new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                    return new ColumnMenuAction() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -725,23 +729,25 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         }
                     };
                 }
-            });
+            };
+            menuItem.setVisibilityChecker((rowModel, isHeader) -> isHeader);
+            menu.add(menuItem);
         }
     }
 
     protected void createUnassignMemberRowAction(List<InlineMenuItem> menu) {
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
-            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
+            InlineMenuItem menuItem = new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                    return new ColumnMenuAction() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            unassignMembersPerformed(target);
+                            unassignMembersPerformed(getRowModel(), target);
                         }
                     };
 
@@ -751,8 +757,34 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 public CompositedIconBuilder getIconCompositedBuilder() {
                     return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_UNASSIGN);
                 }
-            });
+            };
+            menuItem.setVisibilityChecker((rowModel, isHeader) -> isHeader ? true : containsDirectAssignment(rowModel, isHeader));
+            menu.add(menuItem);
         }
+    }
+
+    private boolean containsDirectAssignment(IModel<?> rowModel, boolean isHeader) {
+        AssignmentHolderType assignmentHolder = getAssignmetHolderFromRow(rowModel);
+
+        if (assignmentHolder == null) {
+            return isHeader;
+        }
+        R role = getModelObject();
+        List<AssignmentType> assignments = assignmentHolder.getAssignment();
+        for (AssignmentType assignment : assignments) {
+            if (assignment != null && assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(role.getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private AssignmentHolderType getAssignmetHolderFromRow(IModel<?> rowModel) {
+        if (rowModel != null && (rowModel.getObject() instanceof SelectableBean)
+                && ((SelectableBean)rowModel.getObject()).getValue() instanceof AssignmentHolderType) {
+            return  (AssignmentHolderType) ((SelectableBean)rowModel.getObject()).getValue();
+        }
+        return null;
     }
 
     protected void createRecomputeMemberRowAction(List<InlineMenuItem> menu) {
@@ -762,12 +794,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                    return new ColumnMenuAction() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            recomputeMembersPerformed(target);
+                            recomputeMembersPerformed(getRowModel(), target);
                         }
                     };
                 }
@@ -847,7 +879,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 objectTypes, archetypeRefList, isOrgTreePanelVisible);
     }
 
-    private void unassignMembersPerformed(AjaxRequestTarget target) {
+    private void unassignMembersPerformed(IModel rowModel, AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
 
         ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
@@ -871,11 +903,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected boolean isFocusTypeSelectorVisible() {
-                return !QueryScope.SELECTED.equals(scope);
+                return getAssignmetHolderFromRow(rowModel) == null && !QueryScope.SELECTED.equals(scope);
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                unassignMembersPerformed(type, getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
+                unassignMembersPerformed(rowModel, type, getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)
                         && QueryScope.ALL.equals(scope) ? QueryScope.ALL_DIRECT : scope, relations, target);
             }
 
@@ -888,7 +920,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         AbstractRoleMemberPanel.this.getModelObject(),
                         scope,
                         type,
-                        getActionQuery(scope, relations),
+                        getActionQuery(rowModel, scope, relations),
                         relations,
                         target, getPageBase());
 
@@ -943,7 +975,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return defaultRelations;
     }
 
-    private void deleteMembersPerformed(AjaxRequestTarget target) {
+    private void deleteMembersPerformed(IModel rowModel, AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
         if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
@@ -973,12 +1005,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                deleteMembersPerformed(scope, relations, target);
+                deleteMembersPerformed(rowModel, scope, relations, target);
             }
 
             @Override
             protected boolean isFocusTypeSelectorVisible() {
-                return !QueryScope.SELECTED.equals(scope);
+                return getAssignmetHolderFromRow(rowModel) == null && !QueryScope.SELECTED.equals(scope);
             }
 
             @Override
@@ -1075,14 +1107,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
     }
 
-    protected void deleteMembersPerformed(QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+    protected void deleteMembersPerformed(IModel rowModel, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform delete members", target)) {
             return;
         }
         MemberOperationsHelper.createAndSubmitDeleteMembersTask(
                 getModelObject(),
                 scope,
-                getActionQuery(scope, relations),
+                getActionQuery(rowModel, scope, relations),
                 target, getPageBase());
     }
 
@@ -1096,7 +1128,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return true;
     }
 
-    protected void unassignMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+    protected void unassignMembersPerformed(IModel rowModel, QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
         if (checkRelationNotSelected(relations, "No relation was selected. Cannot perform unassign members", target)) {
             return;
         }
@@ -1104,10 +1136,18 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 getModelObject(),
                 scope,
                 type,
-                getActionQuery(scope, relations),
+                getActionQuery(rowModel, scope, relations),
                 relations,
                 target, getPageBase());
         target.add(this);
+    }
+
+    protected ObjectQuery getActionQuery(IModel rowModel, QueryScope scope, @NotNull Collection<QName> relations) {
+        AssignmentHolderType assignmentHolder = getAssignmetHolderFromRow(rowModel);
+        if (assignmentHolder == null) {
+            return getActionQuery(scope, relations);
+        }
+        return MemberOperationsHelper.createSelectedObjectsQuery(Collections.singletonList(assignmentHolder));
     }
 
     protected ObjectQuery getActionQuery(QueryScope scope, @NotNull Collection<QName> relations) {
@@ -1167,7 +1207,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return getSearchBoxConfiguration().isIndirect();
     }
 
-    protected void recomputeMembersPerformed(AjaxRequestTarget target) {
+    protected void recomputeMembersPerformed(IModel rowModel, AjaxRequestTarget target) {
 
         StringResourceModel confirmModel;
         if (getSearchBoxConfiguration().isSearchScope(SearchBoxScopeType.SUBTREE)) {
@@ -1187,7 +1227,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 Task task = MemberOperationsHelper.createRecomputeMembersTask(
                         getModelObject(),
                         getQueryScope(),
-                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()),
+                        getActionQuery(rowModel, getQueryScope(), getRelationsForRecomputeTask()),
                         target, getPageBase());
                 if (task == null) {
                     return null;
@@ -1208,7 +1248,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 MemberOperationsHelper.createAndSubmitRecomputeMembersTask(
                         getModelObject(),
                         getQueryScope(),
-                        getActionQuery(getQueryScope(), getRelationsForRecomputeTask()),
+                        getActionQuery(rowModel, getQueryScope(), getRelationsForRecomputeTask()),
                         target, getPageBase());
             }
         };

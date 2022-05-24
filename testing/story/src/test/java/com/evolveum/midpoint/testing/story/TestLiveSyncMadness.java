@@ -95,10 +95,10 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
+        OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultHr);
 
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);

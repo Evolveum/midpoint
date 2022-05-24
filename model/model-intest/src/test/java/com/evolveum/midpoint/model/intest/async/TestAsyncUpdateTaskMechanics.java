@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,9 +82,9 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     }
 
     @Test
-    public void test000Sanity() throws ObjectNotFoundException {
+    public void test000Sanity() throws CommonException {
         Task task = getTestTask();
-        assertSuccess(modelService.testResource(RESOURCE_HR.oid, task));
+        assertSuccess(modelService.testResource(RESOURCE_HR.oid, task, task.getResult()));
     }
 
     @Test

@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import javax.annotation.Resource;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
@@ -341,7 +340,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     public void test010Connection() throws Exception {
         Task task = getTestTask();
 
-        OperationResult testResult = provisioningService.testResource(getResourceOid(), task);
+        OperationResult testResult = provisioningService.testResource(getResourceOid(), task, task.getResult());
 
         display("Test connection result", testResult);
         TestUtil.assertSuccess("Test connection failed", testResult);
@@ -360,6 +359,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     @Test
     public void test011ConnectionResourceObject() throws Exception {
         Task task = getTestTask();
+        OperationResult result = task.getResult();
         PrismObject<ResourceType> resourceFromRepo = getObject(ResourceType.class, getResourceOid());
         ResourceType resource = new ResourceType()
                 .name("newResource")
@@ -367,7 +367,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
                 .connectorConfiguration(resourceFromRepo.asObjectable().getConnectorConfiguration())
                 .schema(resourceFromRepo.asObjectable().getSchema());
 
-        OperationResult testResult = provisioningService.testResource(resource.asPrismObject(), task);
+        OperationResult testResult = provisioningService.testResource(resource.asPrismObject(), task, result);
 
         display("Test connection result", testResult);
         TestUtil.assertSuccess("Test connection failed", testResult);
@@ -387,13 +387,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     @Test
     public void test012PartialConfigurationResourceObject() throws Exception {
         Task task = getTestTask();
+        OperationResult result = task.getResult();
         PrismObject<ResourceType> resourceFromRepo = getObject(ResourceType.class, getResourceOid());
         ResourceType resource = new ResourceType()
                 .name("newResource")
                 .connectorRef(resourceFromRepo.asObjectable().getConnectorRef())
                 .connectorConfiguration(resourceFromRepo.asObjectable().getConnectorConfiguration());
 
-        OperationResult testResult = provisioningService.testPartialConfigurationResource(resource.asPrismObject(), task);
+        OperationResult testResult = provisioningService.testPartialConfiguration(resource.asPrismObject(), task, result);
 
         display("Test partial configuration of resource result", testResult);
         TestUtil.assertSuccess("Test partial configuration of resource failed", testResult);

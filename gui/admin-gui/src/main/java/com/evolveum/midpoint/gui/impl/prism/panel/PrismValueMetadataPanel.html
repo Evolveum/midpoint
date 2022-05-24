@@ -8,17 +8,21 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div style="padding-bottom: 5px;">
-        <div wicket:id="metadataNav">
-            <ul class="nav metadata-nav">
-                <li wicket:id="metadataList" style="height: 28px; float: left; margin-bottom: -2px;">
-                    <a class="metadata-tab" wicket:id="metadataQName"/>
+    <div class="d-flex flex-wrap gap-1 tags" wicket:id="buttonsContainer">
+        <wicket:container wicket:id="buttons">
+            <a class="btn btn-default btn-xs" wicket:id="button"/>
+        </wicket:container>
+    </div>
+    <div class="card card-primary card-outline card-outline-tabs" wicket:id="card">
+        <div class="card-header p-0 border-bottom-0">
+            <ul class="nav nav-tabs metadata-nav">
+                <li class="nav-item" wicket:id="metadataList">
+                    <a class="nav-link" wicket:id="metadataQName"/>
                 </li>
             </ul>
         </div>
-        <div wicket:id="provenanceMetadata"></div>
-        <div wicket:id="metadata"></div>
+        <div wicket:id="provenanceMetadata"/>
+        <div wicket:id="metadata"/>
     </div>
-
 </wicket:panel>
 </html>

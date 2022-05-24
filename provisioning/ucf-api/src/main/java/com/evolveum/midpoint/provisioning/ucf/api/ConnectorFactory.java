@@ -33,10 +33,8 @@ import java.util.Set;
  * actual state on resource. The connectors are not supposed to cache any
  * information. Therefore the methods do not follow get/set java convention
  * as the data are not regular javabean properties.
-
  *
  * @author Radovan Semancik
- *
  */
 public interface ConnectorFactory {
 
@@ -89,7 +87,6 @@ public interface ConnectorFactory {
     /**
      * Return a version of the framework.
      * TODO reconsider when there will be more than one framework
-     * @return
      */
     String getFrameworkVersion();
 
