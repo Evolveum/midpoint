@@ -5,7 +5,6 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-// TODO: WIP, DB initialization is not finished yet
 // Our MS SQL Server docs: https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/
 def verbose = 0
 try {
@@ -33,7 +32,7 @@ podTemplate(
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'db',
-                        image: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04', // DB_IMAGE
+                        image: params.DB_IMAGE ?: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04',
                         runAsUser: '0',
                         ttyEnabled: true,
                         resourceRequestCpu: '2',
@@ -48,19 +47,19 @@ podTemplate(
                         // TODO needed? ports: [portMapping(name: 'mssql', containerPort: 5432)]
                 ),
                 containerTemplate(name: 'maven',
-                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim'}",
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim',
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceRequestCpu: "${params.BUILDER_CPU ?: '4'}",
-                        resourceLimitCpu: "${params.BUILDER_CPU ?: '4'}",
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${params.BRANCH ?: 'master'}",
+            git branch: params.BRANCH ?: 'master',
                     url: 'https://github.com/Evolveum/midpoint.git'
         }
         stage("db-init") {
