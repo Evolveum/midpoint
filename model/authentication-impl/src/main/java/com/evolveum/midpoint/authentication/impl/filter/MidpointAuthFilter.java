@@ -120,12 +120,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private void doFilterInternal(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        if (isPermitAllPage(httpRequest)) {
+        MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+
+        if (isPermitAllPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
             chain.doFilter(request, response);
             return;
         }
 
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
         AuthenticationWrapper authWrapper = defineAuthenticationWrapper();
 
         if (AuthSequenceUtil.isIgnoredLocalPath(authWrapper.authenticationsPolicy, httpRequest)) {

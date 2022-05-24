@@ -43,7 +43,6 @@ public class SecurityQuestionsFormModuleWebSecurityConfigurer<C extends LoginFor
 
         http.logout().clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
-//                .logoutUrl(stripEndingSlases(getPrefixOfModule()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
