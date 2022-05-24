@@ -10,6 +10,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
     mode: 'development',
     devtool: 'inline-source-map',
+    stats: 'detailed',
     plugins: [
         new MiniCssExtractPlugin({
             filename: '[name].css',
