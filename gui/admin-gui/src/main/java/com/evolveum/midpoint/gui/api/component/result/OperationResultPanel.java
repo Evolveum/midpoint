@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -127,7 +126,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         box.add(message);
 
-        AjaxLink<String> backgroundTask = new AjaxLink<String>(ID_BACKGROUND_TASK) {
+        AjaxLink<String> backgroundTask = new AjaxLink<>(ID_BACKGROUND_TASK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -141,18 +140,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
             }
         };
-        backgroundTask.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        backgroundTask.add(new VisibleBehaviour(() -> getModelObject().getBackgroundTaskOid() != null && getModelObject().isBackgroundTaskVisible()));
+        message.add(backgroundTask);
 
-            @Override
-            public boolean isVisible() {
-                return getModelObject().getBackgroundTaskOid() != null
-                        && getModelObject().isBackgroundTaskVisible();
-            }
-        });
-        box.add(backgroundTask);
-
-        AjaxLink<String> aCase = new AjaxLink<String>(ID_CASE) {
+        AjaxLink<String> aCase = new AjaxLink<>(ID_CASE) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -166,18 +157,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
             }
         };
-        aCase.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        aCase.add(new VisibleBehaviour(() -> getModelObject().getCaseOid() != null && getModelObject().isCaseVisible()));
+        message.add(aCase);
 
-            @Override
-            public boolean isVisible() {
-                return getModelObject().getCaseOid() != null
-                        && getModelObject().isCaseVisible();
-            }
-        });
-        box.add(aCase);
-
-        AjaxLink<String> showAll = new AjaxLink<String>(ID_SHOW_ALL) {
+        AjaxLink<String> showAll = new AjaxLink<>(ID_SHOW_ALL) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -185,18 +168,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 showHideAll(true, target);
             }
         };
-        showAll.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !OperationResultPanel.this.getModelObject().isShowMore();
-            }
-        });
-
+        showAll.add(new VisibleBehaviour(() -> !OperationResultPanel.this.getModelObject().isShowMore()));
         box.add(showAll);
 
-        AjaxLink<String> hideAll = new AjaxLink<String>(ID_HIDE_ALL) {
+        AjaxLink<String> hideAll = new AjaxLink<>(ID_HIDE_ALL) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -204,18 +179,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 showHideAll(false, target);
             }
         };
-        hideAll.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return OperationResultPanel.this.getModelObject().isShowMore();
-            }
-        });
-
+        hideAll.add(new VisibleBehaviour(() -> OperationResultPanel.this.getModelObject().isShowMore()));
         box.add(hideAll);
 
-        AjaxLink<String> close = new AjaxLink<String>("close") {
+        AjaxLink<String> close = new AjaxLink<>("close") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -224,7 +191,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             }
         };
-
         box.add(close);
 
         DownloadLink downloadXml = new DownloadLink("downloadXml", new IModel<File>() {
