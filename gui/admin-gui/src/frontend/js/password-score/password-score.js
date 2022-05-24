@@ -1,5 +1,3 @@
-
-console.info("password-score");
 /**
  * Represents a keyboard for checking adjacency on.
  *
@@ -1158,3 +1156,5 @@ Score.prototype = {
         return string.split('').reverse().join('');
     }
 };
+
+window.Score = Score;

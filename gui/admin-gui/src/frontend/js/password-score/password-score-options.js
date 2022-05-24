@@ -1,5 +1,3 @@
-console.info("password-score-options");
-
 Score.prototype.options = [
     {
         'type': 'dictionary',
