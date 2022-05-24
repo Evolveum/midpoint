@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -41,7 +42,7 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
     }
 
     @Override
-    public Predicate process(RefFilter filter) {
+    public Predicate process(RefFilter filter) throws RepositoryException {
         SqlQueryContext<?, Q, R> refContext = context.subquery(referenceMapping);
         SQLQuery<?> subquery = refContext.sqlQuery();
         Q ref = refContext.path();

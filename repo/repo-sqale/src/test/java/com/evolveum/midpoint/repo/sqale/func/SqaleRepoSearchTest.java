@@ -2505,5 +2505,21 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
             display(queryRecorder.getQueryBuffer().toString());
         }
     }
+
+    @Test
+    public void test981findUserByAssignmentTarget() throws Exception {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class, f ->
+                f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
+                .item(RoleType.F_NAME).eq("role-ass-vs-ind")
+            ,
+                    user3Oid
+            );
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.getQueryBuffer().toString());
+        }
+    }
     // endregion
 }
