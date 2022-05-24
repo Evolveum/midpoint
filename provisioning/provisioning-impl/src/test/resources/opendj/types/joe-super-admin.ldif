@@ -1,0 +1,10 @@
+dn: uid=joe,ou=special,dc=example,dc=com
+uid: joe
+cn: Joe Super Admin
+sn: Super Admin
+givenName: Joe
+businessCategory: super-admin
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson

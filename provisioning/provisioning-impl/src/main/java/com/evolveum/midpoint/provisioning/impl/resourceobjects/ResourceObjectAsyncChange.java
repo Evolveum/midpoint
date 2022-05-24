@@ -35,7 +35,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
             @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext originalContext) {
-        super(ucfAsyncUpdateChange, null, originalContext, converter.getLocalBeans());
+        super(ucfAsyncUpdateChange, null, originalContext, converter.getBeans());
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
     }
@@ -44,7 +44,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     protected void processObjectAndDelta(OperationResult result) throws CommunicationException, ObjectNotFoundException,
             NotApplicableException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ResourceObjectConverter converter = localBeans.resourceObjectConverter;
+        ResourceObjectConverter converter = beans.resourceObjectConverter;
         if (resourceObject != null) {
             // TODO why not in LS case? Probably because ConnId LS operation takes care of it?
             converter.getShadowCaretaker().applyAttributesDefinition(context, resourceObject);

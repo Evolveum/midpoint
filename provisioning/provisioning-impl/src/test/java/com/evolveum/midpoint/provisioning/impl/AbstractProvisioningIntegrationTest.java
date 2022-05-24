@@ -11,9 +11,11 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -57,11 +59,15 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected SynchronizationServiceMock syncServiceMock;
 
+    @Autowired protected TaskManager taskManager;
+
     // Testing connector discovery
     @Autowired protected ConnectorManager connectorManager;
 
     // Used to make sure that the connector is cached
     @Autowired protected ResourceManager resourceManager;
+
+    @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
 
     @Autowired protected MockLiveSyncTaskHandler mockLiveSyncTaskHandler;
     @Autowired protected MockAsyncUpdateTaskHandler mockAsyncUpdateTaskHandler;
@@ -82,6 +88,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         provisioningService.postInit(initResult);
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
         assertEquals("Wrong version of " + object, expectedVersion, object.asObjectable().getVersion());
     }
@@ -111,7 +118,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return Long.parseLong(stringVersion);
     }
 
-    protected CachingMetadataType getSchemaCachingMetadata(PrismObject<ResourceType> resource) {
+    private CachingMetadataType getSchemaCachingMetadata(PrismObject<ResourceType> resource) {
         ResourceType resourceType = resource.asObjectable();
         XmlSchemaType xmlSchemaType = resourceType.getSchema();
         assertNotNull("No schema", xmlSchemaType);
@@ -261,6 +268,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return asserter;
     }
 
+    @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     protected OperationResult testResourceAssertSuccess(String resourceOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         OperationResult testResult = provisioningService.testResource(resourceOid, task, result);
@@ -268,6 +276,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return testResult;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     protected OperationResult testResourceAssertSuccess(DummyTestResource resource, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         OperationResult testResult = provisioningService.testResource(resource.oid, task, result);

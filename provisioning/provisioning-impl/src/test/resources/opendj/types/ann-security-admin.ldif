@@ -1,0 +1,11 @@
+dn: uid=ann,ou=special,dc=example,dc=com
+uid: ann
+cn: Ann Security Admin
+sn: Security Admin
+givenName: Ann
+businessCategory: admin
+departmentNumber: SEC
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson

@@ -292,7 +292,7 @@ class EntitlementConverter {
                         entitlementDef,
                         query,
                         handler,
-                        ProvisioningUtil.createAttributesToReturn(entitlementCtx),
+                        entitlementCtx.createAttributesToReturn(),
                         null,
                         searchHierarchyConstraints,
                         UcfFetchErrorReportingMethod.EXCEPTION,
@@ -638,8 +638,6 @@ class EntitlementConverter {
 
                 ObjectQuery query = createEntitlementQuery(valueAttrValue, valueAttrDef, assocAttrDef, associationDef);
 
-                AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementCtx);
-
                 SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, result);
 
                 UcfObjectHandler handler = (ucfObject, lResult) -> {
@@ -684,7 +682,7 @@ class EntitlementConverter {
                             entitlementDef,
                             query,
                             handler,
-                            attributesToReturn,
+                            entitlementCtx.createAttributesToReturn(),
                             null,
                             searchHierarchyConstraints,
                             UcfFetchErrorReportingMethod.EXCEPTION,
@@ -901,8 +899,8 @@ class EntitlementConverter {
                 if (!ShadowUtil.isFullShadow(subjectShadow)) {
                     Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getAllIdentifiers(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
-                    subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(subjectCtx, subjectIdentifiers,
-                            null, subjectShadow, result);
+                    subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(
+                            subjectCtx, subjectIdentifiers, null, subjectShadow, result);
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, valueAttrName);
                 }
@@ -943,8 +941,12 @@ class EntitlementConverter {
                 if (currentObjectShadow == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
                             entitlementIdentifiersFromAssociation, entitlementIntent);
-                    currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx,
-                            entitlementIdentifiersFromAssociation, null, null, result);
+                    currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(
+                            entitlementCtx,
+                            entitlementIdentifiersFromAssociation,
+                            null,
+                            null,
+                            result);
                     operations.setCurrentShadow(currentObjectShadow);
                 }
                 // TODO It seems that duplicate values are checked twice: once here and the second time

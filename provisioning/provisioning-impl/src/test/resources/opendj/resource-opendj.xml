@@ -12,9 +12,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 
@@ -50,25 +48,25 @@
         <icfc:producerBufferSize>100</icfc:producerBufferSize>
 
         <icfc:timeouts>
-                <icfc:create>-1</icfc:create>
-                <icfc:get>-1</icfc:get>
-                <icfc:update>-1</icfc:update>
-                <icfc:delete>-1</icfc:delete>
-                <icfc:test>-1</icfc:test>
-                <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-                <icfc:scriptOnResource>-1</icfc:scriptOnResource>
-                <icfc:authentication>-1</icfc:authentication>
-                <icfc:search>-1</icfc:search>
-                <icfc:validate>-1</icfc:validate>
-                <icfc:sync>-1</icfc:sync>
-                <icfc:schema>-1</icfc:schema>
-            </icfc:timeouts>
+            <icfc:create>-1</icfc:create>
+            <icfc:get>-1</icfc:get>
+            <icfc:update>-1</icfc:update>
+            <icfc:delete>-1</icfc:delete>
+            <icfc:test>-1</icfc:test>
+            <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+            <icfc:scriptOnResource>-1</icfc:scriptOnResource>
+            <icfc:authentication>-1</icfc:authentication>
+            <icfc:search>-1</icfc:search>
+            <icfc:validate>-1</icfc:validate>
+            <icfc:sync>-1</icfc:sync>
+            <icfc:schema>-1</icfc:schema>
+        </icfc:timeouts>
 
-            <icfc:resultsHandlerConfiguration>
-                <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-                <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-                <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-            </icfc:resultsHandlerConfiguration>
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
 
     </connectorConfiguration>
 
@@ -145,15 +143,17 @@
             <default>true</default> <!-- one must be default -->
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=groups,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <objectsSetDelineation>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=groups,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </objectsSetDelineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -176,15 +176,17 @@
             <intent>specialGroup</intent>
             <displayName>Special LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=specialgroups,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <objectsSetDelineation>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=specialgroups,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </objectsSetDelineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -227,15 +229,17 @@
             <intent>ou-people</intent>
             <displayName>Organizational Unit</displayName>
             <objectClass>ri:organizationalUnit</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=People,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <objectsSetDelineation>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=People,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </objectsSetDelineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>

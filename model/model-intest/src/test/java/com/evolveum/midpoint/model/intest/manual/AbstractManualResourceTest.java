@@ -414,7 +414,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // THEN
         display("Resource from model", resource);
-        displayValue("Resource from model (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from model (XML)", PrismTestUtil.serializeToXml(resource));
 
         assertSteadyResources();
 

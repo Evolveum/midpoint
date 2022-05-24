@@ -160,7 +160,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             ConnectorType conn = connPrism.asObjectable();
             display("Found connector " + conn, conn);
 
-            displayValue("XML " + conn, PrismTestUtil.serializeObjectToString(connPrism, PrismContext.LANG_XML));
+            displayValue("XML " + conn, PrismTestUtil.serializeToXml(conn));
 
             XmlSchemaType xmlSchemaType = conn.getSchema();
             assertNotNull("xmlSchemaType is null", xmlSchemaType);
@@ -225,7 +225,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             ResourceType resourceType = resource.asObjectable();
             display("Found resource " + resourceType, resourceType);
 
-            displayValue("XML " + resourceType, PrismTestUtil.serializeObjectToString(resource, PrismContext.LANG_XML));
+            displayValue("XML " + resourceType, PrismTestUtil.serializeToXml(resourceType));
 
             XmlSchemaType xmlSchemaType = resourceType.getSchema();
             if (xmlSchemaType != null) {
@@ -764,7 +764,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
         assertEquals("Wrong fullname displayName", null, fullnameDef.getDisplayName());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into schema",
+        assertNull("The _PASSWORD_ attribute sneaked into schema",
                 accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
         rememberRefinedResourceSchema(refinedSchema);
@@ -1287,13 +1287,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         ProvisioningContext ctx = provisioningContextFactory.createForCoordinates(coords, task, result);
 
         // WHEN
-        AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
+        AttributesToReturn attributesToReturn = ctx.createAttributesToReturn();
 
         // THEN
         displayValue("attributesToReturn", attributesToReturn);
         assertFalse("wrong isReturnDefaultAttributes", attributesToReturn.isReturnDefaultAttributes());
         Collection<String> attrs = new ArrayList<>();
-        for (ResourceAttributeDefinition attributeToReturnDef : attributesToReturn.getAttributesToReturn()) {
+        for (ResourceAttributeDefinition<?> attributeToReturnDef : attributesToReturn.getAttributesToReturn()) {
             attrs.add(attributeToReturnDef.getItemName().getLocalPart());
         }
         // No "members" attribute here
@@ -1405,7 +1405,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNull("Activation sneaked in (provisioning)", activationProvisioning);
         }
 
-        assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
                 accountTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
         // Check if the account was created in the dummy resource

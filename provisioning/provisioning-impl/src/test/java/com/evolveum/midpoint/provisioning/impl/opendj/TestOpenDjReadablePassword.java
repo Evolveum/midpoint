@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -40,8 +41,9 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
 
     @Override
     protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-        assertEquals("Wrong password capability readable flag: " + capPassword.isReadable(),
-                capPassword.isReadable(), Boolean.TRUE);
+        assertThat(capPassword.isReadable())
+                .as("password capability readable flag")
+                .isTrue();
     }
 
     @Override

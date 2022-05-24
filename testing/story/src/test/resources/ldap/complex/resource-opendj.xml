@@ -17,12 +17,8 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
     <name>Embedded Test OpenDJ</name>
 
@@ -70,20 +66,22 @@
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
 
-            <!-- We need to explicitly define base context here.
-                 Default base context is dc=example,dc=com. Searching in that
-                 with scope=one will produce nothing. -->
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=people,dc=example,dc=com</q:value>
-                    </q:equal>
-                </filter>
-            </baseContext>
-            <!-- MID-5485 -->
-            <searchHierarchyScope>one</searchHierarchyScope>
+            <objectsSetDelineation>
+                <!-- We need to explicitly define base context here.
+                     Default base context is dc=example,dc=com. Searching in that
+                     with scope=one will produce nothing. -->
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=people,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+                <!-- MID-5485 -->
+                <searchHierarchyScope>one</searchHierarchyScope>
+            </objectsSetDelineation>
 
             <attribute>
                 <ref>ri:dn</ref>

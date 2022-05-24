@@ -834,7 +834,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             return provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
 
         } else if (op == 1) {
-            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
+            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT);
             List<PrismObject<ShadowType>> list = new ArrayList<>();
             ResultHandler<ShadowType> handler = (o, or) -> {
                 list.add(o);
@@ -844,7 +844,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             return list;
 
         } else if (op == 2) {
-            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
+            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT);
             return provisioningService.searchObjects(ShadowType.class, query, null, task, result);
         }
         return null;

@@ -83,22 +83,25 @@ public class ResourceObjectFound implements InitializableMixin {
     private final InitializationContext ictx;
 
     /** Useful beans from Resource Objects layer. */
-    private final ResourceObjectsLocalBeans localBeans;
+    private final ResourceObjectsBeans beans;
 
-    ResourceObjectFound(UcfObjectFound ucfObject, ResourceObjectConverter converter,
-            ProvisioningContext ctx, boolean fetchAssociations) {
+    ResourceObjectFound(
+            UcfObjectFound ucfObject,
+            ResourceObjectConverter converter,
+            ProvisioningContext ctx,
+            boolean fetchAssociations) {
         this.resourceObject = ucfObject.getResourceObject().clone();
         this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();
         this.initializationState = InitializationState.fromUcfErrorState(ucfObject.getErrorState(), null);
         this.ictx = new InitializationContext(ctx, fetchAssociations);
-        this.localBeans = converter.getLocalBeans();
+        this.beans = converter.getBeans();
     }
 
     public void initializeInternal(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         if (initializationState.isInitialStateOk()) {
-            localBeans.resourceObjectConverter
+            beans.resourceObjectConverter
                     .postProcessResourceObjectRead(ictx.ctx, resourceObject, ictx.fetchAssociations, result);
         } else {
             addFakePrimaryIdentifierIfNeeded();
@@ -108,7 +111,7 @@ public class ResourceObjectFound implements InitializableMixin {
     private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
         ResourceObjectDefinition definition = ictx.ctx.getObjectDefinitionRequired();
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(resourceObject, definition);
-        localBeans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, definition);
+        beans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, definition);
     }
 
     public @NotNull PrismObject<ShadowType> getResourceObject() {
