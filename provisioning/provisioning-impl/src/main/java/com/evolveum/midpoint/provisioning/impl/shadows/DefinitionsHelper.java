@@ -9,9 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +17,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
@@ -104,43 +99,6 @@ class DefinitionsHelper {
         ProvisioningContext ctx = ctxFactory.createForCoordinates(
                 ObjectQueryUtil.getCoordinates(query.getFilter()),
                 task, result);
-        applyDefinition(ctx, query);
-    }
-
-    void applyDefinition(ProvisioningContext ctx, ObjectQuery query)
-            throws SchemaException {
-        if (query == null) {
-            return;
-        }
-        ObjectFilter filter = query.getFilter();
-        if (filter == null) {
-            return;
-        }
-        com.evolveum.midpoint.prism.query.Visitor visitor = subFilter -> {
-            if (subFilter instanceof PropertyValueFilter) {
-                PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) subFilter;
-                ItemDefinition<?> definition = valueFilter.getDefinition();
-                if (definition instanceof ResourceAttributeDefinition) {
-                    return; // already has a resource-related definition
-                }
-                if (!ShadowType.F_ATTRIBUTES.equivalent(valueFilter.getParentPath())) {
-                    return;
-                }
-                QName attributeName = valueFilter.getElementName();
-                ResourceAttributeDefinition<?> attributeDefinition =
-                        ctx.getObjectDefinitionRequired().findAttributeDefinition(attributeName);
-                if (attributeDefinition == null) {
-                    throw new TunnelException(
-                            new SchemaException("No definition for attribute " + attributeName + " in query " + query));
-                }
-                //noinspection unchecked,rawtypes
-                valueFilter.setDefinition((ResourceAttributeDefinition) attributeDefinition);
-            }
-        };
-        try {
-            filter.accept(visitor);
-        } catch (TunnelException te) {
-            throw (SchemaException) te.getCause();
-        }
+        DefinitionsUtil.applyDefinition(ctx, query);
     }
 }

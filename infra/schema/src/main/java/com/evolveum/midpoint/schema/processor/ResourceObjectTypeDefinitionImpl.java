@@ -215,7 +215,7 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     /** Sets the delineation and freezes the holder. */
-    public void setDelineation(@NotNull ResourceObjectTypeDelineation value) {
+    void setDelineation(@NotNull ResourceObjectTypeDelineation value) {
         delineation.setValue(value);
         delineation.freeze();
     }

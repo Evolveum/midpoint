@@ -18,10 +18,13 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,10 +32,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.evolveum.midpoint.provisioning.util.QueryConversionUtil.parseFilters;
 
 /**
  * Handles {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
@@ -43,10 +51,17 @@ class ResourceObjectSearchOperation {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
 
     @NotNull private final ProvisioningContext ctx;
+
     @NotNull private final ResourceObjectHandler resultHandler;
-    @Nullable private final ObjectQuery query;
+
+    /** Query as requested by the client. */
+    @Nullable private final ObjectQuery clientQuery;
+
+    /** Whether associations should be fetched for the object found. */
     private final boolean fetchAssociations;
+
     @Nullable private final FetchErrorReportingMethodType errorReportingMethod;
+
     @NotNull private final ResourceObjectsBeans beans;
 
     private final AtomicInteger objectCounter = new AtomicInteger(0);
@@ -54,13 +69,13 @@ class ResourceObjectSearchOperation {
     ResourceObjectSearchOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectHandler resultHandler,
-            @Nullable ObjectQuery query,
+            @Nullable ObjectQuery clientQuery,
             boolean fetchAssociations,
             @Nullable FetchErrorReportingMethodType errorReportingMethod,
             @NotNull ResourceObjectsBeans beans) {
         this.ctx = ctx;
         this.resultHandler = resultHandler;
-        this.query = query;
+        this.clientQuery = clientQuery;
         this.fetchAssociations = fetchAssociations;
         this.errorReportingMethod = errorReportingMethod;
         this.beans = beans;
@@ -75,13 +90,13 @@ class ResourceObjectSearchOperation {
 
             ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
 
-            LOGGER.trace("Searching resource objects, query: {}, OC: {}", query, objectDefinition);
+            LOGGER.trace("Searching resource objects, query: {}, OC: {}", clientQuery, objectDefinition);
 
             SearchHierarchyConstraints searchHierarchyConstraints =
                     beans.entitlementConverter.determineSearchHierarchyConstraints(ctx, result);
 
-            if (InternalsConfig.consistencyChecks && query != null && query.getFilter() != null) {
-                query.getFilter().checkConsistence(true);
+            if (InternalsConfig.consistencyChecks && clientQuery != null && clientQuery.getFilter() != null) {
+                clientQuery.getFilter().checkConsistence(true);
             }
 
             ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
@@ -89,8 +104,11 @@ class ResourceObjectSearchOperation {
             SearchResultMetadata metadata;
             try {
 
+                // Note that although both search hierarchy constraints and custom filters are part of object type delineation,
+                // they are treated differently. The former are handled by the UCF/ConnId connector, whereas the latter ones
+                // are handled here.
                 metadata = connector.search(objectDefinition,
-                        query,
+                        createEffectiveQuery(),
                         this::handleObjectFound,
                         ctx.createAttributesToReturn(),
                         objectDefinition.getPagedSearches(ctx.getResource()),
@@ -141,6 +159,26 @@ class ResourceObjectSearchOperation {
         } finally {
             result.close();
         }
+    }
+
+    /**
+     * Combines {@link #clientQuery} and the definition of the object type into a single query.
+     */
+    private ObjectQuery createEffectiveQuery() throws SchemaException {
+        ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
+        LOGGER.trace("Computing effective query for {}", definition);
+        if (!(definition instanceof ResourceObjectTypeDefinition)) {
+            LOGGER.trace(" -> not a type definition, no change");
+            return clientQuery;
+        }
+        ResourceObjectTypeDefinition typeDefinition = (ResourceObjectTypeDefinition) definition;
+        List<SearchFilterType> filterClauses = typeDefinition.getDelineation().getAllFilterClauses();
+        LOGGER.trace(" -> found {} filter clause(s)", filterClauses.size());
+        ObjectQuery effectiveQuery = ObjectQueryUtil.addConjunctions(
+                clientQuery,
+                parseFilters(filterClauses, ctx.getObjectDefinitionRequired()));
+        LOGGER.trace("Effective query:\n{}", DebugUtil.debugDumpLazily(effectiveQuery, 1));
+        return effectiveQuery;
     }
 
     private UcfFetchErrorReportingMethod getUcfErrorReportingMethod() {

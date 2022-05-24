@@ -44,13 +44,11 @@ public class TestOpenDjObjectTypes extends AbstractOpenDjTest {
 
     private static final File ALICE_FILE = new File(TEST_DIR, "alice-employee.ldif");
     private static final File JIM_ADMIN = new File(TEST_DIR, "jim-admin.ldif");
-    private static final File JOE_SUPER_ADMIN = new File(TEST_DIR, "joe-super-admin.ldif");
-    private static final File ANN_SECURITY_ADMIN_FILE = new File(TEST_DIR, "ann-security-admin.ldif");
+    private static final File ANN_TESTER_FILE = new File(TEST_DIR, "ann-tester.ldif");
 
     private static final String INTENT_EMPLOYEE = "employee";
     private static final String INTENT_ADMIN = "admin";
-    private static final String INTENT_SUPER_ADMIN = "super-admin";
-    private static final String INTENT_SECURITY_ADMIN = "security-admin";
+    private static final String INTENT_TESTER = "tester";
 
     @BeforeClass
     public void startLdap() throws Exception {
@@ -66,8 +64,7 @@ public class TestOpenDjObjectTypes extends AbstractOpenDjTest {
 
         openDJController.addEntryFromLdifFile(ALICE_FILE);
         openDJController.addEntryFromLdifFile(JIM_ADMIN);
-        openDJController.addEntryFromLdifFile(JOE_SUPER_ADMIN);
-        openDJController.addEntryFromLdifFile(ANN_SECURITY_ADMIN_FILE);
+        openDJController.addEntryFromLdifFile(ANN_TESTER_FILE);
     }
 
     @AfterClass
@@ -140,48 +137,25 @@ public class TestOpenDjObjectTypes extends AbstractOpenDjTest {
     }
 
     @Test
-    public void test120GetSuperAdmins() throws Exception {
+    public void test120GetTesters() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         when();
 
-        List<PrismObject<ShadowType>> superAdmins = provisioningService.searchObjects(
+        List<PrismObject<ShadowType>> testers = provisioningService.searchObjects(
                 ShadowType.class,
-                ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ACCOUNT, INTENT_SUPER_ADMIN),
+                ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ACCOUNT, INTENT_TESTER),
                 null,
                 task,
                 result);
 
         then();
-        display("super admins", superAdmins);
-        assertThat(superAdmins).as("super admins").hasSize(1);
-        assertShadowAfter(superAdmins.get(0))
+        display("testers", testers);
+        assertThat(testers).as("testers").hasSize(1);
+        assertShadowAfter(testers.get(0))
                 .assertKind(ACCOUNT)
-                .assertIntent(INTENT_SUPER_ADMIN)
-                .assertName("uid=joe,ou=special,dc=example,dc=com");
-    }
-
-    @Test
-    public void test130GetSecurityAdmins() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        when();
-
-        List<PrismObject<ShadowType>> securityAdmins = provisioningService.searchObjects(
-                ShadowType.class,
-                ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ACCOUNT, INTENT_SECURITY_ADMIN),
-                null,
-                task,
-                result);
-
-        then();
-        display("security admins", securityAdmins);
-        assertThat(securityAdmins).as("security admins").hasSize(1);
-        assertShadowAfter(securityAdmins.get(0))
-                .assertKind(ACCOUNT)
-                .assertIntent(INTENT_SECURITY_ADMIN)
+                .assertIntent(INTENT_TESTER)
                 .assertName("uid=ann,ou=special,dc=example,dc=com");
     }
 }

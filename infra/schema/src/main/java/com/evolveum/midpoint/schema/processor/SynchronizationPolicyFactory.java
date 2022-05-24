@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +100,7 @@ public class SynchronizationPolicyFactory {
      *
      * Returns null if no such definition can be found.
      */
-    public static @Nullable SynchronizationPolicy forStandalone(
+    private static @Nullable SynchronizationPolicy forStandalone(
             @NotNull ObjectSynchronizationType synchronizationBean, @NotNull ResourceSchema schema)
             throws ConfigurationException {
 
@@ -143,10 +145,15 @@ public class SynchronizationPolicyFactory {
         boolean opportunistic = opportunisticInType != null ?
                 opportunisticInType : !Boolean.FALSE.equals(synchronizationBean.isOpportunistic());
 
-        ExpressionType classificationCondition =
-                typeDef != null && typeDef.getClassificationCondition() != null ?
-                        typeDef.getClassificationCondition() :
-                        synchronizationBean.getCondition();
+        ResourceObjectTypeDelineation delineation =
+                typeDef != null ? typeDef.getDelineation() : ResourceObjectTypeDelineation.none();
+        if (synchronizationBean.getCondition() != null) {
+            if (delineation.getClassificationCondition() != null) {
+                throw new ConfigurationException("Both legacy and new classification conditions cannot be set in " + schema);
+            }
+            delineation = delineation.classificationCondition(
+                    synchronizationBean.getCondition());
+        }
 
         Collection<SynchronizationReactionDefinition> reactions =
                 typeDef != null && typeDef.hasSynchronizationReactionsDefinition() ?
@@ -161,7 +168,7 @@ public class SynchronizationPolicyFactory {
                 synchronizationEnabled,
                 opportunistic,
                 synchronizationBean.getName(),
-                classificationCondition,
+                delineation,
                 reactions,
                 objectDefinition);
     }
@@ -244,7 +251,7 @@ public class SynchronizationPolicyFactory {
      *
      * Assuming there is *no* explicit standalone synchronization definition!
      */
-    public static @NotNull SynchronizationPolicy forEmbedded(@NotNull ResourceObjectTypeDefinition typeDef) {
+    private static @NotNull SynchronizationPolicy forEmbedded(@NotNull ResourceObjectTypeDefinition typeDef) {
         return new SynchronizationPolicy(
                 typeDef.getKind(),
                 typeDef.getFocusTypeName(),
@@ -252,10 +259,10 @@ public class SynchronizationPolicyFactory {
                 java.util.Objects.requireNonNullElseGet(
                         typeDef.getCorrelationDefinitionBean(),
                         CorrelationDefinitionType::new),
-                Boolean.TRUE.equals(typeDef.isSynchronizationEnabled()), // FIXME TEMPORARY! Should be switched to "default=false" later
+                Boolean.TRUE.equals(typeDef.isSynchronizationEnabled()),
                 !Boolean.FALSE.equals(typeDef.isSynchronizationOpportunistic()),
                 null,
-                typeDef.getClassificationCondition(),
+                typeDef.getDelineation(),
                 typeDef.getSynchronizationReactions(),
                 typeDef);
     }
@@ -278,6 +285,19 @@ public class SynchronizationPolicyFactory {
         } else {
             return getEmbeddedPolicyIfPresent(kind, intent, schema);
         }
+    }
+
+    /**
+     * Use this method if you are absolutely sure that given kind/intent definition must exist in the resource.
+     *
+     * @throws IllegalStateException if there's no type definition for given kind/intent
+     */
+    public static @NotNull SynchronizationPolicy forKindAndIntentStrictlyRequired(
+            @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ResourceType resource)
+            throws SchemaException, ConfigurationException {
+        return MiscUtil.requireNonNull(
+                forKindAndIntent(kind, intent, resource),
+                () -> new IllegalStateException("No " + kind + "/" + intent + " definition in " + resource));
     }
 
     private static @Nullable SynchronizationPolicy getEmbeddedPolicyIfPresent(

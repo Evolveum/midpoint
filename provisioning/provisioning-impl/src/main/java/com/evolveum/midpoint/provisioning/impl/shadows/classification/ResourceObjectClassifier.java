@@ -8,39 +8,42 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.classification;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.classification.ClassificationContext.Builder.aClassificationContext;
-
-import java.util.Collection;
-
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.getObjectClassRequired;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.provisioning.api.Resource;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Classifies a resource object, i.e. determines its type (kind + intent).
  *
  * == Expected use
  *
- * Currently, this class is called either TODO
- * or - as the last instance - during the synchronization process in the `model` module.
+ * Currently, this functionality is invoked during shadow acquisition process, or - as the last instance - during
+ * the synchronization process in the `model` module.
  *
+ * The classification uses object type delineation. Currently, the implementation is limited in the sense that it assumes
+ * non-overlapping, and completely specified sets of resource objects. (I.e. no "default" flags there.)
  */
 @Component
 public class ResourceObjectClassifier {
@@ -101,7 +104,7 @@ public class ResourceObjectClassifier {
                 @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult)
                 throws SchemaException, ConfigurationException {
             this.context = context;
-            this.schema = ResourceSchemaFactory.getCompleteSchemaRequired(context.getResource());
+            this.schema = Resource.of(context.getResource()).getCompleteSchemaRequired();
             this.existingSorterResult = existingSorterResult;
         }
 
@@ -162,62 +165,30 @@ public class ResourceObjectClassifier {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ShadowType shadow = context.getShadowedResourceObject();
+            LOGGER.trace("Classifying {}", shadow);
 
-            Collection<SynchronizationPolicy> allPolicies =
-                    schema.getAllSynchronizationPolicies(context.getResource());
+            for (ResourceObjectTypeDefinition typeDefinition : schema.getObjectTypeDefinitions()) {
+                SynchronizationPolicy policy = SynchronizationPolicyFactory.forKindAndIntentStrictlyRequired(
+                        typeDefinition.getKind(), typeDefinition.getIntent(), context.getResource());
 
-            for (SynchronizationPolicy policy : allPolicies) {
-                if (!policy.isSynchronizationEnabled()) { // FIXME TEMPORARY!! (we should probably classify even without sync enabled?)
-                    LOGGER.trace("Policy {} is not enabled for synchronization", policy);
-                    continue;
-                }
-                if (!policy.isApplicableToShadow(shadow)) {
-                    LOGGER.trace("Policy {} is not applicable to {}", policy, shadow);
-                    continue;
-                }
-                if (!isPolicyConditionTrue(policy, result)) {
-                    LOGGER.trace("Condition of policy {} is evaluates to false for {}", policy, shadow);
-                    continue;
-                }
-                ResourceObjectDefinition definition = policy.getResourceObjectDefinition();
-                if (!(definition instanceof ResourceObjectTypeDefinition)) {
-                    LOGGER.debug("Couldn't classify {} as {} (not a type definition)", shadow, definition);
+                LOGGER.trace("Trying applicability of {}", policy);
+                if (!policy.isObjectClassNameMatching(getObjectClassRequired(shadow))) {
+                    LOGGER.trace(" -> it's not applicable to the shadow because of object class name mismatch");
                     continue;
                 }
 
-                LOGGER.debug("Classified {} as {}", shadow, definition);
-                return (ResourceObjectTypeDefinition) definition;
+                DelineationMatcher matcher = new DelineationMatcher(
+                        policy.getDelineation(), policy.getResourceObjectDefinition(), context);
+                if (!matcher.matches(result)) {
+                    LOGGER.trace(" -> delineation does not match");
+                    continue;
+                }
+
+                LOGGER.debug("Classified {} as {}", shadow, typeDefinition);
+                return typeDefinition;
             }
-
             LOGGER.debug("No type definition matched {}", shadow);
             return null;
-        }
-
-        private boolean isPolicyConditionTrue(
-                @NotNull SynchronizationPolicy policy,
-                @NotNull OperationResult result)
-                throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
-            ExpressionType conditionExpressionBean = policy.getClassificationCondition();
-            if (conditionExpressionBean == null) {
-                return true;
-            }
-            String desc = "condition in object synchronization";
-            try {
-                Task task = context.getTask();
-                ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                        new ExpressionEnvironment(task, result));
-                return ExpressionUtil.evaluateConditionDefaultTrue(
-                        context.createVariablesMap(),
-                        conditionExpressionBean,
-                        MiscSchemaUtil.getExpressionProfile(),
-                        beans.expressionFactory,
-                        desc,
-                        task,
-                        result);
-            } finally {
-                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
-            }
         }
     }
 }

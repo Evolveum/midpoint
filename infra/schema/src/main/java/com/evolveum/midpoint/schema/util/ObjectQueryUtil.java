@@ -638,16 +638,11 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery addConjunctions(ObjectQuery query, ObjectFilter... newConjunctionMembers) {
-        return addConjunctions(query, PrismContext.get(), MiscUtil.asListTreatingNull(newConjunctionMembers));
+        return addConjunctions(query, MiscUtil.asListTreatingNull(newConjunctionMembers));
     }
 
-    public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
-            ObjectFilter... newConjunctionMembers) {
-        return addConjunctions(query, prismContext, MiscUtil.asListTreatingNull(newConjunctionMembers));
-    }
-
-    public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
-            Collection<ObjectFilter> newConjunctionMembers) {
+    /** Returns non-null value if newConjunctionMembers is not empty. */
+    public static ObjectQuery addConjunctions(ObjectQuery query, Collection<ObjectFilter> newConjunctionMembers) {
 
         if (newConjunctionMembers.isEmpty()) {
             return query;
@@ -658,7 +653,7 @@ public class ObjectQueryUtil {
         if (allConjunctionMembers.size() == 1) {
             updatedFilter = allConjunctionMembers.get(0);
         } else if (allConjunctionMembers.size() > 1) {
-            updatedFilter = prismContext.queryFactory().createAnd(allConjunctionMembers);
+            updatedFilter = PrismContext.get().queryFactory().createAnd(allConjunctionMembers);
         } else {
             throw new AssertionError();
         }

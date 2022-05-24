@@ -1,10 +1,9 @@
 dn: uid=ann,ou=special,dc=example,dc=com
 uid: ann
-cn: Ann Security Admin
-sn: Security Admin
+cn: Ann the Tester
+sn: Tester
 givenName: Ann
-businessCategory: admin
-departmentNumber: SEC
+businessCategory: tester
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson

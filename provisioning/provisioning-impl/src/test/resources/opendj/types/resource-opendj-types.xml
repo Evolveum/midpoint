@@ -135,39 +135,20 @@
 
         <objectType>
             <kind>account</kind>
-            <intent>super-admin</intent>
-            <documentation>Super-admin account in "special" OU</documentation>
+            <intent>tester</intent>
+            <documentation>Tester account in "special" OU</documentation>
             <super>
                 <kind>account</kind>
-                <intent>admin</intent>
+                <intent>special</intent>
             </super>
             <objectsSetDelineation>
                 <!-- baseContext is inherited, filter is overwritten -->
                 <filter>
                     <q:equal>
                         <q:path>attributes/businessCategory</q:path>
-                        <q:value>super-admin</q:value>
+                        <q:value>tester</q:value>
                     </q:equal>
                 </filter>
-            </objectsSetDelineation>
-        </objectType>
-
-        <objectType>
-            <kind>account</kind>
-            <intent>security-admin</intent>
-            <documentation>Admin account with the department of 'SEC'</documentation>
-            <super>
-                <kind>account</kind>
-                <intent>admin</intent>
-            </super>
-            <objectsSetDelineation>
-                <!-- baseContext and filter are inherited -->
-                <filterClause>
-                    <q:equal>
-                        <q:path>attributes/departmentNumber</q:path>
-                        <q:value>SEC</q:value>
-                    </q:equal>
-                </filterClause>
             </objectsSetDelineation>
         </objectType>
 
