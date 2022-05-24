@@ -1270,8 +1270,11 @@ td .prism-property-value {
 	width: 38px;
 }
 
-.card-outline .search-panel-form a {
-  border-top: 0 !important;
+.card.card-outline,
+.card.card-outline-tabs {
+  & .card-header .search-panel-form a {
+    border-top: 0 !important;
+  }
 }
 
 // handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
