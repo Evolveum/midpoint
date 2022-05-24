@@ -12,6 +12,8 @@ import '../../../node_modules/admin-lte/dist/js/adminlte';
 import '../../../node_modules/bootstrap-select';
 import '../../../node_modules/bootstrap-multiselect';
 
+import './passwords';
+
 import '../../../node_modules/ace-builds/src-noconflict/ace';
 
 ace.config.setModuleUrl('ace/theme/eclipse',
