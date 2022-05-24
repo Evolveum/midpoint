@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -139,6 +140,11 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         availableFilter.setSearchMode(getModelObject().getSearchMode());
         if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())) {
             availableFilter.getSearchItem().addAll(getAvailableFilterSearchItems(type, search.getItems(), search.getSearchMode()));
+        } else if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
+            SearchItemType axiomSearchItem = createAxiomSearchItem();
+            if (axiomSearchItem != null) {
+                availableFilter.getSearchItem().add(axiomSearchItem);
+            }
         }
         saveSearchItemToAdminConfig(availableFilter);
     }
@@ -167,6 +173,20 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             }
         }
         return searchItems;
+    }
+
+    private SearchItemType createAxiomSearchItem() {
+        try {
+            SearchItemType axiomSearchItem = new SearchItemType();
+            ObjectFilter axiomFilter = PrismContext.get()
+                    .createQueryParser(PrismContext.get().getSchemaRegistry().staticNamespaceContext().allPrefixes())
+                    .parseQuery(getModelObject().getTypeClass(), getModelObject().getDslQuery());
+            axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter));
+            return axiomSearchItem;
+        } catch (SchemaException e) {
+            LOGGER.error("Unable to create parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
+        }
+        return null;
     }
 
     private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter) {

@@ -28,8 +28,6 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -513,7 +511,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                                 if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
                                     applyFilterToBasicMode(filter.getSearchItem());
                                 } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
-                                    applyFilterToAxiomMode();
+                                    applyFilterToAxiomMode(filter.getSearchItem());
                                 }
                                 searchPerformed(target);
                             }
@@ -529,22 +527,33 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private void applyFilterToBasicMode(List<SearchItemType> items) {
         getModelObject().getItems().forEach(item -> item.setVisible(false));
         getModelObject().setSearchMode(SearchBoxModeType.BASIC);
-        items.forEach(searchItem -> {
-                    applySearchItem(searchItem);
-                }
-        );
+        items.forEach(this::applyBasicModeSearchItem);
     }
 
-    private void applyFilterToAxiomMode() {
-
-    }
-
-    private void applySearchItem(SearchItemType searchItem) {
+    private void applyFilterToAxiomMode(List<SearchItemType> items) {
+        getModelObject().setSearchMode(SearchBoxModeType.AXIOM_QUERY);
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        SearchItemType axiomSearchItem = items.get(0);
+        if (axiomSearchItem.getFilter() == null) {
+            return;
+        }
         try {
-            ItemPath path = searchItem.getPath().getItemPath();
-            if (path == null) {
+            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+            PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
+            getModelObject().setDslQuery(serializer.filterText());
+        } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
+            LOG.error("Unable to parse filter {}, {}", axiomSearchItem.getFilter(), e.getLocalizedMessage());
+        }
+    }
+
+    private void applyBasicModeSearchItem(SearchItemType searchItem) {
+        try {
+            if (searchItem.getPath() == null) {
                 return;
             }
+            ItemPath path = searchItem.getPath().getItemPath();
             PropertySearchItemWrapper item = null;
             Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
             while (it.hasNext()) {
