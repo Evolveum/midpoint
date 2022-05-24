@@ -1,0 +1,15 @@
+diff --git a/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js b/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js
+index 17d8633..e1e67ad 100644
+--- a/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js
++++ b/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js
+@@ -43,9 +43,7 @@
+  */
+ (function (root, factory) {
+     // check to see if 'knockout' AMD module is specified if using requirejs
+-    if (typeof define === 'function' && define.amd &&
+-        typeof require === 'function' && typeof require.specified === 'function' && require.specified('knockout')) {
+-
++    if (typeof define === 'function' && define.amd) {
+         // AMD. Register as an anonymous module.
+         define(['jquery', 'knockout'], factory);
+     } else {

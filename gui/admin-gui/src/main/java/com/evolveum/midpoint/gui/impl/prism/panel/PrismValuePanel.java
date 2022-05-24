@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -38,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
     protected static final String ID_VALUE_FORM = "valueForm";
     private static final String ID_REMOVE_BUTTON = "removeButton";
@@ -71,6 +73,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         MidpointForm<VW> form = new MidpointForm<>(ID_VALUE_FORM);
         form.setOutputMarkupId(true);
         add(form);
+
         form.add(createHeaderPanel());
 
         createValuePanel(form);
@@ -79,10 +82,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private WebMarkupContainer createHeaderPanel() {
-
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
 
-        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -99,7 +101,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
         buttonContainer.add(removeButton);
 
-        AjaxLink<Void> showMetadataButton = new AjaxLink<Void>(ID_SHOW_METADATA) {
+        AjaxLink<Void> showMetadataButton = new AjaxLink<>(ID_SHOW_METADATA) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -123,11 +125,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
             try {
-
                 factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
-
             } catch (Throwable e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());
             }
         }
 
@@ -137,7 +138,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         // feedback
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-
         feedback.setOutputMarkupId(true);
 
         if (factory == null) {
@@ -173,7 +173,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             getSession().error("Cannot create panel");
             throw new RuntimeException(e);
         }
-
     }
 
     protected void createMetadataPanel(MidpointForm form) {
@@ -279,10 +278,11 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private void showMetadataPerformed(VW value, AjaxRequestTarget target) {
         boolean showMetadata = !value.isShowMetadata();
+        System.out.println("showMetadataPerformed: " + showMetadata);
         value.setShowMetadata(showMetadata);
         getValueMetadata().unselect();
 
-        target.add(PrismValuePanel.this);
+        target.add(this.get("valueForm"));
     }
 
     protected boolean isRemoveButtonVisible() {

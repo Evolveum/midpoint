@@ -96,7 +96,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-
         roleOid = repositoryService.addObject(
                 new RoleType()
                         .name("role-ass-vs-ind")
@@ -270,7 +269,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .validFrom("2021-03-01T00:00:00Z")
                         .validTo("2022-07-04T00:00:00Z"))
                 .metadata(new MetadataType()
-                        .createTimestamp(asXMLGregorianCalendar(2L)))
+                        .createTimestamp(asXMLGregorianCalendar(2L))
+                        .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                 .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.FATAL_ERROR)
@@ -422,7 +422,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .connectorVersion("1.2.3")
                         .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
                         .asPrismObject(), null, result);
-
 
         // objects for OID range tests
         List.of("00000000-1000-0000-0000-000000000000",
@@ -1114,7 +1113,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         user1Oid))
                 // At least we say it clearly with the exception instead of confusing "mapper not found" deeper.
                 .isInstanceOf(SystemException.class)
-                .hasMessage("Repository supports exists only for multi-value containers (for now)");
+                .hasMessage("Repository supports exists only for multi-value containers or refs");
     }
 
     // endregion
@@ -1174,11 +1173,29 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test420SearchObjectBySingleValueReferenceTargetItem() throws SchemaException {
+    public void test420SearchObjectBySingleValueRefTargetItem() throws SchemaException {
         searchUsersTest("with object creator name",
                 f -> f.item(UserType.F_METADATA, MetadataType.F_CREATOR_REF,
                                 T_OBJECT_REFERENCE, UserType.F_NAME)
                         .eq(new PolyString("creator")),
+                user1Oid);
+    }
+
+    @Test
+    public void test421SearchObjectByMultiValueRefTargetUsingItem() throws SchemaException {
+        searchUsersTest("with object create approver name (using item filter, exists in SQL is implicit)",
+                f -> f.item(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
+                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                        .eq(new PolyString("user-1")),
+                user2Oid);
+    }
+
+    @Test(enabled = false) // TODO in ExistsFilterProcessor
+    public void test422SearchObjectByMultiValueRefTargetUsingExists() throws SchemaException {
+        // EXISTS with multi value ref target inside embedded single-value container
+        searchUsersTest("with object create approver name using EXISTS",
+                f -> f.exists(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE)
+                        .item(UserType.F_NAME).eq(new PolyString("user-1")),
                 user1Oid);
     }
 
@@ -2419,7 +2436,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 org1Oid));
     }
 
-
     @Test
     public void test971IsDescendant() throws Exception {
         OperationResult operationResult = createOperationResult();
@@ -2444,15 +2460,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
     }
 
-
     @Test
     public void test980findOrgByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User",OrgType.class, f ->
-                f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
-                .id(user4Oid),
-                org111Oid
+            searchObjectTest("Org by User", OrgType.class, f ->
+                            f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                                    .id(user4Oid),
+                    org111Oid
             );
         } finally {
             queryRecorder.stopRecording();
@@ -2464,10 +2479,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findRoleByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User",RoleType.class, f ->
-                f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                .id(user3Oid),
-                roleOid
+            searchObjectTest("Org by User", RoleType.class, f ->
+                            f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                                    .id(user3Oid),
+                    roleOid
             );
         } finally {
             queryRecorder.stopRecording();
@@ -2479,11 +2494,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findRoleByAssignmentOfUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by Assignment ownedBy user",RoleType.class, f ->
-                f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                .ownedBy(UserType.class)
-                .id(user3Oid),
-                roleOid
+            searchObjectTest("Org by Assignment ownedBy user", RoleType.class, f ->
+                            f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                                    .ownedBy(UserType.class)
+                                    .id(user3Oid),
+                    roleOid
             );
         } finally {
             queryRecorder.stopRecording();

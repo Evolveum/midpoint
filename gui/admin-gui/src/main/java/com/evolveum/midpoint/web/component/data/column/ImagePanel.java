@@ -59,7 +59,7 @@ public class ImagePanel extends BasePanel<DisplayType> {
         Label image = new Label(ID_IMAGE);
         image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
         image.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "tooltip.orig")));
-        image.add(AttributeAppender.append("style", new ReadOnlyModel<>(() -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : "")));
+        image.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : ""));
         image.setOutputMarkupId(true);
         image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
         add(image);
