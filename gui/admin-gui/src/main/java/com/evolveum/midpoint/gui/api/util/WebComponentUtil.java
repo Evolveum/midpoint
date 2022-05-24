@@ -5340,6 +5340,9 @@ public final class WebComponentUtil {
             }
         }
         if (objectListView == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
             objectListView = new GuiObjectListViewType();
             views.getObjectCollectionView().add(objectListView);
         }

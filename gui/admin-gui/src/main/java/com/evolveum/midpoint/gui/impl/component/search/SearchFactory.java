@@ -767,11 +767,11 @@ public class SearchFactory {
                 .addAllowedMode(SearchBoxModeType.ADVANCED)
                 .addAllowedMode(SearchBoxModeType.AXIOM_QUERY);
         searchConfigWrapper.setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
-//
-//        if (ObjectType.class.isAssignableFrom(type) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
-//            config.allowedMode(SearchBoxModeType.FULLTEXT);
-//            config.setDefaultMode(SearchBoxModeType.FULLTEXT);
-//        }
+
+        if (ObjectType.class.isAssignableFrom(type) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
+            searchConfigWrapper.addAllowedMode(SearchBoxModeType.FULLTEXT);
+            searchConfigWrapper.setDefaultSearchBoxMode(SearchBoxModeType.FULLTEXT);
+        }
         return searchConfigWrapper;
     }
 

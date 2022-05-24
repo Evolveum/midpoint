@@ -512,6 +512,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                                     applyFilterToBasicMode(filter.getSearchItem());
                                 } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
                                     applyFilterToAxiomMode(filter.getSearchItem());
+                                } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
+                                    applyFilterToFulltextMode(filter.getSearchItem());
                                 }
                                 searchPerformed(target);
                             }
@@ -545,6 +547,26 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             getModelObject().setDslQuery(serializer.filterText());
         } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
             LOG.error("Unable to parse filter {}, {}", axiomSearchItem.getFilter(), e.getLocalizedMessage());
+        }
+    }
+
+    private void applyFilterToFulltextMode(List<SearchItemType> items) {
+        getModelObject().setSearchMode(SearchBoxModeType.FULLTEXT);
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        SearchItemType fulltextSearchItem = items.get(0);
+        if (fulltextSearchItem.getFilter() == null) {
+            return;
+        }
+        try {
+            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(getModelObject().getTypeClass(), fulltextSearchItem.getFilter());
+            if (!(objectFilter instanceof FullTextFilter)) {
+                return;
+            }
+            getModelObject().setFullText(String.join(" ", ((FullTextFilter)objectFilter).getValues()));
+        } catch (SchemaException e) {
+            LOG.error("Unable to parse filter {}, {}", fulltextSearchItem.getFilter(), e.getLocalizedMessage());
         }
     }
 

@@ -145,6 +145,11 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             if (axiomSearchItem != null) {
                 availableFilter.getSearchItem().add(axiomSearchItem);
             }
+        } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
+            SearchItemType fulltextSearchItem = createFulltextSearchItem();
+            if (fulltextSearchItem != null) {
+                availableFilter.getSearchItem().add(fulltextSearchItem);
+            }
         }
         saveSearchItemToAdminConfig(availableFilter);
     }
@@ -185,6 +190,20 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             return axiomSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to create parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    private SearchItemType createFulltextSearchItem() {
+        try {
+            SearchItemType fulltextSearchItem = new SearchItemType();
+            ObjectFilter filter = PrismContext.get().queryFor(getModelObject().getTypeClass())
+                    .fullText(getModelObject().getFullText())
+                    .buildFilter();
+            fulltextSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
+            return fulltextSearchItem;
+        } catch (SchemaException e) {
+            LOGGER.error("Unable to create parse axiom filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
         }
         return null;
     }
