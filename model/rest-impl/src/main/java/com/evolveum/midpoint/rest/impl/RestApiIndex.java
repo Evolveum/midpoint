@@ -13,6 +13,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -38,7 +39,10 @@ public class RestApiIndex extends AbstractRestController {
     private final String contextPath;
     private final List<OperationInfo> uiRestInfo;
 
-    public RestApiIndex(RequestMappingHandlerMapping handlerMapping, ServletContext servletContext) {
+    public RestApiIndex(
+            // The Qualifier is needed since Boot 2.7 where two candidates became available.
+            @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping,
+            ServletContext servletContext) {
         contextPath = servletContext.getContextPath();
         uiRestInfo = operationInfoStream(handlerMapping)
                 .filter(info -> info.handler.getBeanType().getName()
