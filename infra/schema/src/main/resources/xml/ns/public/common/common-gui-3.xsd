@@ -2079,7 +2079,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Path of the searchable item (property) in the object over which the search is executed.
@@ -2637,7 +2637,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="displaySourceType" type="tns:DashboardWidgetSourceTypeType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="displaySourceType" type="tns:DashboardWidgetSourceTypeType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of the widget. It is an identifier that override sourceType.
