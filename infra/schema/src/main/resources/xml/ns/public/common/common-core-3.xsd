@@ -6654,11 +6654,11 @@
                  Describes how entitlement is associated to the subject (e.g. account or other entitlement).
 
                  Description of the entitlement handling details, such as display name,
-                read/write access and so on.
+                 read/write access and so on.
 
-                This is supposed to be used in schemaHandling part and in assignments/inducements
-                and therefore it describes the decisions of the system administrator about the
-                way how entitlements are used in midPoint.
+                 This is supposed to be used in schemaHandling part and in assignments/inducements
+                 and therefore it describes the decisions of the system administrator about the
+                 way how entitlements are used in midPoint.
              </xsd:documentation>
              <xsd:appinfo>
                 <a:container/>
@@ -6678,8 +6678,11 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                     </xsd:element>
-                     <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                     <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="entitlement">
                         <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of objects associated through this association type.
+                            </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ResourceObjectAssociationType.kind</a:displayName>
                             </xsd:appinfo>
@@ -6698,6 +6701,9 @@
                                 the object types referenced from a single association must have the same object
                                 type, attributes, matching rules, .... they must be equivalent in every aspect
                                 except for attribute mappings.
+
+                                If no intents are specified, then object type definition of given kind, and
+                                defaultForKind = true (or default = true) is used.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ResourceObjectAssociationType.intent</a:displayName>

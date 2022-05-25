@@ -317,12 +317,48 @@ public class RefinedResourceSchemaParser {
             for (ResourceObjectAssociationType associationDefBean : definitionBean.getAssociation()) {
                 ResourceAssociationDefinition associationDef = new ResourceAssociationDefinition(associationDefBean);
                 associationDef.setAssociationTarget(
-                        MiscUtil.requireNonNull(
-                                completeSchema.findObjectTypeDefinitionForAnyMatchingIntent(
-                                        associationDef.getKind(),
-                                        associationDef.getIntents()),
-                                () -> "No object type definition for association " + associationDef + " in " + contextDescription));
+                        resolveAssociationTarget(associationDef));
                 definition.addAssociationDefinition(associationDef);
+            }
+        }
+
+        /**
+         * Returns object type definition matching given kind and one of the intents, specified in the association definition.
+         *
+         * (If no intents are provided, default type for given kind is returned.
+         * We are not very eager here - by default we mean just the flag "default for kind" being set.
+         * This is in contrast with e.g. {@link ResourceSchema#findObjectDefinitionForKindInternal(ShadowKindType, QName)}
+         * that makes crazy attempts to find a suitable definition. But here we won't go into such levels.)
+         *
+         * The matching types must share at least the object class name. This is checked by this method.
+         * However, in practice they must share much more, as described in the description for
+         * {@link ResourceObjectAssociationType#getIntent()} (see XSD).
+         */
+        private ResourceObjectTypeDefinition resolveAssociationTarget(
+                ResourceAssociationDefinition associationDef)
+                throws SchemaException {
+            @NotNull ShadowKindType kind = associationDef.getKind();
+            @NotNull Collection<String> intents = associationDef.getIntents();
+            Collection<ResourceObjectTypeDefinition> matching =
+                    completeSchema.getObjectTypeDefinitions().stream()
+                            .filter(def -> def.matchesKind(kind) && matchesAnyIntent(def, intents))
+                            .collect(Collectors.toList());
+            if (matching.isEmpty()) {
+                throw new SchemaException("No object type definition for association " + associationDef + " in " + contextDescription);
+            } else if (ResourceSchemaUtil.areDefinitionsCompatible(matching)) {
+                return matching.iterator().next();
+            } else {
+                throw new SchemaException(
+                        "Incompatible definitions found for kind " + kind + ", intents: " + intents + ": " + matching);
+            }
+        }
+
+        // Just a helper for previous method
+        private boolean matchesAnyIntent(@NotNull ResourceObjectTypeDefinition def, @NotNull Collection<String> intents) {
+            if (intents.isEmpty()) {
+                return def.isDefaultForKind();
+            } else {
+                return intents.contains(def.getIntent());
             }
         }
 
