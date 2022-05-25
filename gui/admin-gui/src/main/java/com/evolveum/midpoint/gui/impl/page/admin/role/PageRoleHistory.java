@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/roleHistoryNew")
+                @Url(mountUrl = "/admin/roleHistory")
         },
         action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL,
