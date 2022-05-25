@@ -28,5 +28,12 @@ ace.config.setModuleUrl('ace/ext/searchbox',
     require('../../../node_modules/ace-builds/src-noconflict/ext-searchbox.js'));
 
 // ace.config.setModuleUrl('ace/mode/xml_worker', require('../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
-ace.config.setModuleUrl('ace/mode/xml_worker',
-    require('file-loader?publicPath=../../static/&name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js'));
+require('file-loader?publicPath=../../static/&name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js')
+
+
+// xml worker module is being loaded always using some url, it's different that theme and ext modules, therefore we'll compute
+// <midpoint_context>/static/worker-xml.js from current script URL and use it to load correctly worker-xml.js script
+var url = document.currentScript.src;
+url = url.replace(/vendors.js/, "worker-xml.js");
+
+ace.config.setModuleUrl('ace/mode/xml_worker', url);
