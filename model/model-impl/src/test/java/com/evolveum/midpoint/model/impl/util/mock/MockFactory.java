@@ -8,10 +8,8 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
@@ -25,12 +23,13 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({ "ConstantConditions" })
 public class MockFactory {
@@ -48,80 +47,141 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> String addObject(
+                    PrismObject<T> object,
+                    OperationProvisioningScriptsType scripts,
+                    ProvisioningOperationOptions options,
+                    Task task,
+                    OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates, LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler, @NotNull Task task,
+            public @NotNull SynchronizationResult synchronize(
+                    @NotNull ResourceShadowDiscriminator shadowCoordinates,
+                    LiveSyncOptions options,
+                    @NotNull LiveSyncTokenStorage tokenStorage,
+                    @NotNull LiveSyncEventHandler handler,
+                    @NotNull Task task,
                     @NotNull OperationResult parentResult) {
                 return new SynchronizationResult();
             }
 
             @Override
-            public void processAsynchronousUpdates(@NotNull ResourceShadowCoordinates shadowCoordinates, @NotNull AsyncUpdateEventHandler handler, @NotNull Task task,
-                                                   @NotNull OperationResult parentResult) {
+            public void processAsynchronousUpdates(
+                    @NotNull ResourceShadowCoordinates shadowCoordinates,
+                    @NotNull AsyncUpdateEventHandler handler,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task, @NotNull OperationResult parentResult) {
+            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+                    @NotNull Class<T> type,
+                    @Nullable ObjectQuery query,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return new SearchResultList<>(new ArrayList<>(0));
             }
 
             @Override
-            public <T extends ObjectType> Integer countObjects(@NotNull Class<T> type, @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Task task, @NotNull OperationResult parentResult) {
+            public <T extends ObjectType> Integer countObjects(
+                    @NotNull Class<T> type,
+                    @Nullable ObjectQuery query,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(@NotNull Class<T> type, @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull ResultHandler<T> handler, @NotNull Task task, @NotNull OperationResult parentResult) {
+            public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(
+                    @NotNull Class<T> type,
+                    @Nullable ObjectQuery query,
+                    @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+                    @NotNull ResultHandler<T> handler,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> String modifyObject(
+                    Class<T> type,
+                    String oid,
+                    Collection<? extends ItemDelta<?, ?>> modifications,
+                    OperationProvisioningScriptsType scripts,
+                    ProvisioningOperationOptions options,
+                    Task task,
+                    OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> PrismObject<T> deleteObject(
+                    Class<T> type,
+                    String oid,
+                    ProvisioningOperationOptions option,
+                    OperationProvisioningScriptsType scripts,
+                    Task task,
+                    OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) {
+            public Object executeScript(
+                    String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public @NotNull OperationResult testResource(@NotNull String resourceOid, @Nullable ResourceTestOptions options, @NotNull Task task, @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            public @NotNull OperationResult testResource(
+                    @NotNull String resourceOid,
+                    @Nullable ResourceTestOptions options,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public @NotNull OperationResult testResource(@NotNull String resourceOid, @NotNull Task task, @NotNull OperationResult parentResult) {
+            public @NotNull OperationResult testResource(
+                    @NotNull String resourceOid,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public @NotNull OperationResult testResource(@NotNull PrismObject<ResourceType> resource, @Nullable ResourceTestOptions options, @NotNull Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            public @NotNull OperationResult testResource(
+                    @NotNull PrismObject<ResourceType> resource,
+                    @Nullable ResourceTestOptions options,
+                    @NotNull Task task,
+                    OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public @NotNull OperationResult testResource(@NotNull PrismObject<ResourceType> resource, @NotNull Task task, OperationResult parentResult) {
+            public @NotNull OperationResult testResource(
+                    @NotNull PrismObject<ResourceType> resource,
+                    @NotNull Task task,
+                    OperationResult parentResult) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public @NotNull OperationResult testPartialConfiguration(@NotNull PrismObject<ResourceType> resource, @NotNull Task task, @NotNull OperationResult parentResult) {
+            public @NotNull OperationResult testPartialConfiguration(
+                    @NotNull PrismObject<ResourceType> resource,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
             public @NotNull DiscoveredConfiguration discoverConfiguration(
-                    @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult) {
+                    @NotNull PrismObject<ResourceType> resource,
+                    @NotNull OperationResult parentResult) {
                 return DiscoveredConfiguration.empty();
             }
 
@@ -131,22 +191,26 @@ public class MockFactory {
             }
 
             @Override
-            public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult) {
+            public List<ConnectorOperationalStatus> getConnectorOperationalStatus(
+                    String resourceOid, Task task, OperationResult parentResult) {
                 return null;
             }
 
             @Override
-            public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
-
+            public void refreshShadow(
+                    PrismObject<ShadowType> shadow,
+                    ProvisioningOperationOptions options,
+                    Task task,
+                    OperationResult parentResult) {
             }
 
             @Override
             public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult) {
-
             }
 
             @Override
-            public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> void applyDefinition(
+                    ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult) {
 
             }
 
@@ -155,12 +219,12 @@ public class MockFactory {
             }
 
             @Override
-            public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) {
             }
 
             @Override
-            public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult) {
-
+            public <T extends ObjectType> void applyDefinition(
+                    Class<T> type, ObjectQuery query, Task task, OperationResult parentResult) {
             }
 
             @Override
@@ -175,32 +239,39 @@ public class MockFactory {
 
             @Override
             public void postInit(OperationResult parentResult) {
-
             }
 
             @Override
-            public ConstraintsCheckingResult checkConstraints(ResourceObjectDefinition objectTypeDefinition, PrismObject<ShadowType> shadowObject, PrismObject<ShadowType> shadowObjectOld, ResourceType resource, String shadowOid, ResourceShadowCoordinates shadowCoordinates, ConstraintViolationConfirmer constraintViolationConfirmer, ConstraintsCheckingStrategyType strategy, @NotNull Task task, @NotNull OperationResult parentResult) {
+            public ConstraintsCheckingResult checkConstraints(
+                    ResourceObjectDefinition objectTypeDefinition,
+                    PrismObject<ShadowType> shadowObject,
+                    PrismObject<ShadowType> shadowObjectOld,
+                    ResourceType resource,
+                    String shadowOid,
+                    ResourceShadowCoordinates shadowCoordinates,
+                    ConstraintViolationConfirmer constraintViolationConfirmer,
+                    ConstraintsCheckingStrategyType strategy,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @Override
             public void enterConstraintsCheckerCache() {
-
             }
 
             @Override
             public void exitConstraintsCheckerCache() {
-
             }
 
             @Override
-            public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue, Task task, OperationResult result) {
+            public <O extends ObjectType, T> ItemComparisonResult compare(
+                    Class<O> type, String oid, ItemPath path, T expectedValue, Task task, OperationResult result) {
                 return null;
             }
 
             @Override
             public void shutdown() {
-
             }
 
             @Override
@@ -209,11 +280,27 @@ public class MockFactory {
             }
 
             @Override
-            public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+            public void setSynchronizationSorterEvaluator(SynchronizationSorterEvaluator evaluator) {
             }
 
             @Override
-            public void setShadowTagGenerator(ShadowTagGenerator generator) {
+            public @NotNull ResourceObjectClassification classifyResourceObject(
+                    @NotNull ShadowType combinedObject,
+                    @NotNull ResourceType resource,
+                    @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult,
+                    @NotNull Task task,
+                    @NotNull OperationResult result) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public @Nullable String generateShadowTag(
+                    @NotNull ShadowType combinedObject,
+                    @NotNull ResourceType resource,
+                    @NotNull ResourceObjectTypeDefinition definition,
+                    @NotNull Task task,
+                    @NotNull OperationResult result) {
+                return null;
             }
         };
     }

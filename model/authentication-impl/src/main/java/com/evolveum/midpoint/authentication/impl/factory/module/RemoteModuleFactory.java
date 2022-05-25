@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;

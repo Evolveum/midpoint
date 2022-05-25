@@ -106,7 +106,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();
@@ -158,7 +158,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
         displayDumpable("Query", query);
 
         // WHEN
@@ -207,7 +207,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();
@@ -244,7 +244,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();

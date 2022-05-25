@@ -22,7 +22,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
 /**
  * Custom tomcat factory that used to hack embedded Tomcat setup.

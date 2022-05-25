@@ -24,7 +24,7 @@ import com.evolveum.midpoint.cases.impl.engine.helpers.WorkItemHelper;
 import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

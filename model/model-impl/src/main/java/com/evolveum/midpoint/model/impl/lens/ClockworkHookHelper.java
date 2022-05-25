@@ -15,7 +15,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;

@@ -1,0 +1,9 @@
+dn: uid=alice,ou=employees,dc=example,dc=com
+uid: alice
+cn: Alice Green
+sn: Green
+givenName: Alice
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -42,4 +44,5 @@ public class CommonBeans {
     @Autowired public ResourceCache resourceCache;
     @Autowired public ConnectorManager connectorManager;
     @Autowired public ResourceOperationalStateManager operationalStateManager;
+    @Autowired public SystemObjectCache systemObjectCache;
 }

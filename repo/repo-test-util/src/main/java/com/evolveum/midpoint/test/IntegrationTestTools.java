@@ -947,12 +947,12 @@ public class IntegrationTestTools {
         assertEquals("Wrong refined displayName for attribute " + SchemaTestConstants.ICFS_NAME, "ConnId Name", nameDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameDef.getDisplayOrder());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
     }
 
     //TODO: add language parameter..for now, use xml serialization
     public static void displayXml(String message, PrismObject<? extends ObjectType> object) throws SchemaException {
-        String xml = PrismTestUtil.serializeObjectToString(object, PrismContext.LANG_XML);
+        String xml = PrismTestUtil.serializeToXml(object.asObjectable());
         display(message, xml);
     }
 

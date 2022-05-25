@@ -403,7 +403,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No fullname update", fullnameDef.canModify());
         assertTrue("No fullname read", fullnameDef.canRead());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 
     }
 

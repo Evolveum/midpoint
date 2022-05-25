@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;

@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -94,7 +95,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
         display("Resource after testResource (repository)", resourceRepoAfter);
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
-        displayValue("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource after testResource (repository, XML)", PrismTestUtil.serializeToXml(resourceTypeRepoAfter));
 
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNull("Schema after test connection (and should not be)", resourceXsdSchemaElementAfter);
@@ -312,7 +313,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_NS, OBJECT_CLASS_INETORGPERSON_NAME));
+                new QName(MidPointConstants.NS_RI, OBJECT_CLASS_INETORGPERSON_NAME));
 
         try {
 
@@ -606,7 +607,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_NS, OBJECT_CLASS_INETORGPERSON_NAME));
+                new QName(MidPointConstants.NS_RI, OBJECT_CLASS_INETORGPERSON_NAME));
 
         try {
 

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;

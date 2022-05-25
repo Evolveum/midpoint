@@ -135,7 +135,7 @@ class ResourceObjectReferenceResolver {
                         refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
                         desc, ctx.getTask(), result);
         ObjectFilter baseFilter =
-                ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName, prismContext);
+                ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName);
         ObjectFilter filter = prismContext.queryFactory().createAnd(baseFilter, evaluatedRefQuery.getFilter());
         ObjectQuery query = prismContext.queryFactory().createQuery(filter);
 
@@ -195,6 +195,9 @@ class ResourceObjectReferenceResolver {
         return primaryIdentifiers;
     }
 
+    /**
+     * @param repoShadow Used when read capability is "caching only"
+     */
     PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,

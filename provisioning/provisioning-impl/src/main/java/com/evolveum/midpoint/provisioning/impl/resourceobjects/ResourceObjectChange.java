@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEventListener;
@@ -141,7 +140,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      */
     @NotNull protected ProvisioningContext context;
 
-    @NotNull protected final ResourceObjectsLocalBeans localBeans;
+    @NotNull protected final ResourceObjectsBeans beans;
 
     ResourceObjectChange(
             int localSequenceNumber,
@@ -152,7 +151,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
             ObjectDelta<ShadowType> objectDelta,
             @NotNull InitializationState initializationState,
             @NotNull ProvisioningContext originalContext,
-            @NotNull ResourceObjectsLocalBeans localBeans) {
+            @NotNull ResourceObjectsBeans beans) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.initialResourceObjectDefinition = initialResourceObjectDefinition;
@@ -161,11 +160,14 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         this.objectDelta = objectDelta;
         this.initializationState = initializationState;
         this.context = originalContext;
-        this.localBeans = localBeans;
+        this.beans = beans;
     }
 
-    ResourceObjectChange(UcfChange ucfChange, Exception preInitializationException, @NotNull ProvisioningContext originalContext,
-            ResourceObjectsLocalBeans localBeans) {
+    ResourceObjectChange(
+            UcfChange ucfChange,
+            Exception preInitializationException,
+            @NotNull ProvisioningContext originalContext,
+            ResourceObjectsBeans beans) {
         this(ucfChange.getLocalSequenceNumber(),
                 ucfChange.getPrimaryIdentifierRealValue(),
                 ucfChange.getResourceObjectDefinition(),
@@ -173,7 +175,8 @@ public abstract class ResourceObjectChange implements InitializableMixin {
                 ucfChange.getResourceObject(),
                 ucfChange.getObjectDelta(),
                 InitializationState.fromUcfErrorState(ucfChange.getErrorState(), preInitializationException),
-                originalContext, localBeans);
+                originalContext,
+                beans);
     }
 
     /**
@@ -181,7 +184,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      */
     @Override
     public void initializeInternal(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException {
+            throws CommonException, NotApplicableException {
 
         if (initializationState.isInitialStateOk()) {
             updateProvisioningContext(task);
@@ -336,7 +339,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     }
 
     private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
-        localBeans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(
+        beans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(
                 identifiers, primaryIdentifierRealValue, getCurrentResourceObjectDefinition());
     }
 

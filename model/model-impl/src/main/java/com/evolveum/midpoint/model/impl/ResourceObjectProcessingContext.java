@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A context generally useful for the manipulation of a shadow - classification, correlation, synchronization.
+ * A context generally useful for the manipulation of a shadow, e.g. correlation or synchronization.
  *
  * We use it to avoid repeating the contained data throughout various "context" classes
  * ({@link SynchronizationContext}, {@link CorrelationContext}, ...).
@@ -35,7 +34,7 @@ public interface ResourceObjectProcessingContext {
 
     /**
      * Returns shadowed resource object, or - at least - so-called "combined object" in the sense
-     * used in {@link ResourceObjectClassifier}.
+     * used in ResourceObjectClassifier FIXME
      */
     @NotNull ShadowType getShadowedResourceObject();
 

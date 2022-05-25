@@ -120,6 +120,6 @@ public class BucketingManager {
         List<ObjectFilter> conjunctionMembers = new ArrayList<>(
                 contentHandler.createSpecificFilters(workBucket, segmentationConfig, type, itemDefinitionProvider));
 
-        return ObjectQueryUtil.addConjunctions(query, beans.prismContext, conjunctionMembers);
+        return ObjectQueryUtil.addConjunctions(query, conjunctionMembers);
     }
 }

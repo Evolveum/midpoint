@@ -73,12 +73,14 @@ public class SynchronizationPolicy {
     @Nullable private final String name;
 
     /** TODO */
-    @Nullable private final ExpressionType classificationCondition;
+    @NotNull private final ResourceObjectTypeDelineation delineation;
 
     /**
      * Reactions, already ordered.
      */
     @NotNull private final List<SynchronizationReactionDefinition> reactions;
+
+    private final boolean hasLegacyConfiguration;
 
     SynchronizationPolicy(
             @NotNull ShadowKindType kind,
@@ -88,9 +90,10 @@ public class SynchronizationPolicy {
             boolean synchronizationEnabled,
             boolean opportunistic,
             @Nullable String name,
-            @Nullable ExpressionType classificationCondition,
+            @NotNull ResourceObjectTypeDelineation delineation,
             @NotNull Collection<SynchronizationReactionDefinition> reactions,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition) {
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            boolean hasLegacyConfiguration) {
         this.kind = kind;
         this.focusTypeName = Objects.requireNonNullElse(focusTypeName, UserType.COMPLEX_TYPE);
         this.objectClassName = objectClassName;
@@ -98,10 +101,11 @@ public class SynchronizationPolicy {
         this.synchronizationEnabled = synchronizationEnabled;
         this.opportunistic = opportunistic;
         this.name = name;
-        this.classificationCondition = classificationCondition;
+        this.delineation = delineation;
         this.reactions = new ArrayList<>(reactions);
         this.reactions.sort(Comparator.naturalOrder());
         this.resourceObjectDefinition = resourceObjectDefinition;
+        this.hasLegacyConfiguration = hasLegacyConfiguration;
     }
 
     public @NotNull ShadowKindType getKind() {
@@ -171,13 +175,7 @@ public class SynchronizationPolicy {
      * Checks if the synchronization policy matches given "parameters" (object class, kind, intent).
      */
     public boolean isApplicableTo(QName objectClass, ShadowKindType kind, String intent, boolean strictIntent) {
-        if (objectClassDefinedAndNotMatching(objectClass, this.objectClassName)) {
-            LOGGER.trace("Object class does not match the one defined in {}", this);
-            return false;
-        }
-
-        if (objectClassDefinedAndNotMatching(objectClass, resourceObjectDefinition.getTypeName())) {
-            LOGGER.trace("Object class does not match the one defined in type definition in {}", this);
+        if (!isObjectClassNameMatching(objectClass)) {
             return false;
         }
 
@@ -204,6 +202,20 @@ public class SynchronizationPolicy {
             }
         }
 
+        return true;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean isObjectClassNameMatching(QName objectClass) {
+        if (objectClassDefinedAndNotMatching(objectClass, this.objectClassName)) {
+            LOGGER.trace("Object class does not match the one defined in {}", this);
+            return false;
+        }
+
+        if (objectClassDefinedAndNotMatching(objectClass, resourceObjectDefinition.getTypeName())) {
+            LOGGER.trace("Object class does not match the one defined in type definition in {}", this);
+            return false;
+        }
         return true;
     }
 
@@ -248,8 +260,9 @@ public class SynchronizationPolicy {
         return correlationDefinitionBean;
     }
 
-    public @Nullable ExpressionType getClassificationCondition() {
-        return classificationCondition;
+    /** Combines legacy and new-style information. */
+    public @NotNull ResourceObjectTypeDelineation getDelineation() {
+        return delineation;
     }
 
     public @NotNull QName getObjectClassName() {
@@ -258,5 +271,9 @@ public class SynchronizationPolicy {
 
     public @NotNull List<SynchronizationReactionDefinition> getReactions() {
         return reactions;
+    }
+
+    public boolean hasLegacyConfiguration() {
+        return hasLegacyConfiguration;
     }
 }

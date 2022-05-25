@@ -8,10 +8,9 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -116,8 +116,8 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                new ExpressionEnvironment.ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()
                         .lensContext(lensContext)
                         .currentResult(result)
                         .currentTask(task)
@@ -146,7 +146,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
                     .collect(Collectors.toList());
 
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 

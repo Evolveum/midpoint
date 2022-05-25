@@ -14,9 +14,8 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.classification.ResourceObjectClassifierImpl;
-import com.evolveum.midpoint.model.impl.classification.ShadowTagGeneratorImpl;
+import com.evolveum.midpoint.provisioning.api.SynchronizationSorterEvaluator;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.correlator.BuiltInResultCreator;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.Pol
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFactory;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -133,8 +131,6 @@ public class ModelBeans {
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;
     @Autowired public BuiltInResultCreator builtInResultCreator;
-    @Autowired public ResourceObjectClassifierImpl resourceObjectClassifier;
-    @Autowired public ShadowTagGeneratorImpl shadowTagGenerator;
-    @Autowired public SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
+    @Autowired public SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     @Autowired public SynchronizationActionFactory synchronizationActionFactory;
 }

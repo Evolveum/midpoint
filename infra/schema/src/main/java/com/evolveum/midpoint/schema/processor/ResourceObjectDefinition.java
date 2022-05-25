@@ -181,6 +181,9 @@ public interface ResourceObjectDefinition
 
     /**
      * Returns the delineation of the set of objects belonging to this object type.
+     *
+     * Note that this tells only about information stored right in the definition bean, i.e. legacy configuration
+     * is not provided here. The complete picture is provided by {@link SynchronizationPolicy#getDelineation()}.
      */
     @NotNull ResourceObjectTypeDelineation getDelineation();
 

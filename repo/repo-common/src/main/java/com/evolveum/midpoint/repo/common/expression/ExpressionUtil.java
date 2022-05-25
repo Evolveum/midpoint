@@ -11,6 +11,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+
 import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +58,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
  * @author semancik
@@ -1224,5 +1229,131 @@ public class ExpressionUtil {
             }
         }
         return realValues;
+    }
+
+    public static PrismValueDeltaSetTriple<?> evaluateAnyExpressionInContext(
+            Expression<?, ?> expression,
+            ExpressionEvaluationContext context,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return expression.evaluate(context, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
+            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
+            ExpressionEvaluationContext eeContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return expression.evaluate(eeContext, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(
+            Expression<PrismReferenceValue, PrismReferenceDefinition> expression,
+            ExpressionEvaluationContext eeContext,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return expression.evaluate(eeContext, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
+            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
+            ExpressionEvaluationContext eeContext,
+            ExpressionEnvironment env,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
+        try {
+            return expression.evaluate(eeContext, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    /** Used by both `provisioning` and `model`. */
+    public static VariablesMap getDefaultVariablesMap(
+            ObjectType focus, ShadowType shadow, ResourceType resource, SystemConfigurationType configuration) {
+        VariablesMap variables = new VariablesMap();
+        addDefaultVariablesMap(
+                variables,
+                asPrismObject(focus),
+                asPrismObject(shadow),
+                null,
+                asPrismObject(resource),
+                asPrismObject(configuration));
+        return variables;
+    }
+
+    public static <O extends ObjectType> void addDefaultVariablesMap(
+            VariablesMap variables,
+            PrismObject<? extends ObjectType> focus,
+            PrismObject<? extends ShadowType> shadow,
+            ResourceShadowDiscriminator discr, // TODO Should we keep this?
+            PrismObject<ResourceType> resource,
+            PrismObject<SystemConfigurationType> configuration) {
+
+        SchemaRegistry schemaRegistry = PrismContext.get().getSchemaRegistry();
+
+        PrismObjectDefinition<? extends ObjectType> focusDef;
+        if (focus == null) {
+            focusDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(FocusType.class);
+        } else {
+            focusDef = focus.getDefinition();
+        }
+
+        PrismObjectDefinition<? extends ShadowType> shadowDef;
+        if (shadow == null) {
+            shadowDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        } else {
+            shadowDef = shadow.getDefinition();
+        }
+
+        PrismObjectDefinition<ResourceType> resourceDef;
+        if (resource == null) {
+            resourceDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
+        } else {
+            resourceDef = resource.getDefinition();
+        }
+
+        PrismObjectDefinition<SystemConfigurationType> configDef;
+        if (configuration == null) {
+            configDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+        } else {
+            configDef = configuration.getDefinition();
+        }
+
+        // Legacy. And convenience/understandability.
+        // Let us use these variables even for non-account/non-user scenarios. This have been working for ages.
+        // During development of 4.5 it was "fixed" (so it no longer works for non-users), but actually this broke
+        // many tests. So re-enabling it back, although now it's not 100% logical. But convenient.
+        variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
+        variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
+
+        variables.put(ExpressionConstants.VAR_FOCUS, focus, focusDef);
+        variables.put(ExpressionConstants.VAR_SHADOW, shadow, shadowDef);
+        variables.put(ExpressionConstants.VAR_PROJECTION, shadow, shadowDef);
+        variables.put(ExpressionConstants.VAR_RESOURCE, resource, resourceDef);
+        variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, configDef);
     }
 }

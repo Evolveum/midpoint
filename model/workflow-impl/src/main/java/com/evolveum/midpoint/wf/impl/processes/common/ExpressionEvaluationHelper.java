@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -82,8 +81,8 @@ public class ExpressionEvaluationHelper {
         Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
         context.setAdditionalConvertor(additionalConvertor);
-        PrismValueDeltaSetTriple<?> exprResultTriple = ModelExpressionThreadLocalHolder
-                .evaluateAnyExpressionInContext(expression, context, task, result);
+        PrismValueDeltaSetTriple<?> exprResultTriple =
+                ExpressionUtil.evaluateAnyExpressionInContext(expression, context, task, result);
         List<T> list = new ArrayList<>();
         for (PrismValue pv : exprResultTriple.getZeroSet()) {
             T realValue;

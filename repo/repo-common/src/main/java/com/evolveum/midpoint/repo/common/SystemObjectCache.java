@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2016-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.common;
+package com.evolveum.midpoint.repo.common;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -18,8 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionProfileCompiler;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionProfileCompiler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
@@ -69,7 +68,6 @@ public class SystemObjectCache implements Cache {
     private RepositoryService cacheRepositoryService;
 
     @Autowired private CacheRegistry cacheRegistry;
-    @Autowired private PrismContext prismContext;
 
     private PrismObject<SystemConfigurationType> systemConfiguration;
     private Long systemConfigurationCheckTimestamp;
@@ -277,7 +275,7 @@ public class SystemObjectCache implements Cache {
     @NotNull
     @Override
     public Collection<SingleCacheStateInformationType> getStateInformation() {
-        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+        return Collections.singleton(new SingleCacheStateInformationType()
                 .name(SystemObjectCache.class.getName())
                 .size(getSize())
         );

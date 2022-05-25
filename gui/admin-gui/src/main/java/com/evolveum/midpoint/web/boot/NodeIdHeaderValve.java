@@ -11,14 +11,9 @@ import javax.servlet.ServletException;
 
 import com.evolveum.midpoint.task.api.TaskManager;
 
-import org.apache.catalina.Context;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.ValveBase;
-
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang3.StringUtils;
 

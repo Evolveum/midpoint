@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -80,4 +81,21 @@ public class ResourceObjectTypeDelineation implements Serializable {
         return searchHierarchyScope;
     }
 
+    public @NotNull List<SearchFilterType> getAllFilterClauses() {
+        List<SearchFilterType> all = new ArrayList<>();
+        if (filter != null) {
+            all.add(filter);
+        }
+        all.addAll(filterClauses);
+        return all;
+    }
+
+    public @Nullable ExpressionType getClassificationCondition() {
+        return classificationCondition;
+    }
+
+    @NotNull ResourceObjectTypeDelineation classificationCondition(ExpressionType condition) {
+        return new ResourceObjectTypeDelineation(
+                baseContext, searchHierarchyScope, filter, filterClauses, condition);
+    }
 }

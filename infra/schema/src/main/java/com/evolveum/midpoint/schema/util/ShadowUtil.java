@@ -42,8 +42,7 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
- * Methods that would belong to the ResourceObjectShadowType class but cannot go there
- * because of JAXB.
+ * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
  *
  * @author Radovan Semancik
  */
@@ -957,5 +956,11 @@ public class ShadowUtil {
         }
 
         shadow.getCorrelation().setCorrelatorState(state);
+    }
+
+    public static @NotNull QName getObjectClassRequired(@NotNull ShadowType shadow) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                shadow.getObjectClass(),
+                () -> "No object class in " + shadow);
     }
 }

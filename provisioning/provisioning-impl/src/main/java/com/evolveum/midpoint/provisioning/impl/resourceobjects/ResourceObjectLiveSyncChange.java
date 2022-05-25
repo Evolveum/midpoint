@@ -17,7 +17,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -49,7 +48,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, Exception preInitializationException,
             ResourceObjectConverter converter, ProvisioningContext originalContext, AttributesToReturn originalAttributesToReturn) {
-        super(ucfLiveSyncChange, preInitializationException, originalContext, converter.getLocalBeans());
+        super(ucfLiveSyncChange, preInitializationException, originalContext, converter.getBeans());
         this.token = TokenUtil.fromUcf(ucfLiveSyncChange.getToken());
         this.ictx = new InitializationContext(originalAttributesToReturn, originalContext);
     }
@@ -72,7 +71,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
             LOGGER.trace("Re-fetching object {} because mismatching attributesToReturn", identifiers);
             fetchResourceObject(actualAttributesToReturn, result);
         } else {
-            localBeans.resourceObjectConverter
+            beans.resourceObjectConverter
                     .postProcessResourceObjectRead(context, resourceObject, true, result);
         }
     }
@@ -82,7 +81,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
             ConfigurationException, ExpressionEvaluationException, NotApplicableException {
         try {
             // todo consider whether it is always necessary to fetch the entitlements
-            resourceObject = localBeans.resourceObjectConverter
+            resourceObject = beans.resourceObjectConverter
                     .fetchResourceObject(context, identifiers, attributesToReturn, null, true, result);
         } catch (ObjectNotFoundException ex) {
             result.recordHandledError(
@@ -93,13 +92,12 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         }
     }
 
-    private AttributesToReturn determineAttributesToReturn(ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+    private AttributesToReturn determineAttributesToReturn(
+            ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn) {
         if (context == originalCtx) {
             return originalAttrsToReturn;
         } else {
-            return ProvisioningUtil.createAttributesToReturn(context);
+            return context.createAttributesToReturn();
         }
     }
 

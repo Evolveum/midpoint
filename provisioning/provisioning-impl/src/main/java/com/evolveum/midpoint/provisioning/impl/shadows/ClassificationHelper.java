@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +24,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier.Classification;
-import com.evolveum.midpoint.provisioning.api.ShadowTagGenerator;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -38,27 +38,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Helps with resource object classification, i.e. determining their kind, intent, and tag.
+ * (Is tag determination a part of the classification? Maybe not.)
  */
 @Component
 @Experimental
 class ClassificationHelper {
 
-    @Autowired private PrismContext prismContext;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-
     private static final Trace LOGGER = TraceManager.getTrace(ClassificationHelper.class);
 
-    /**
-     * This is an externally-provided classifier implementation.
-     * It is a temporary solution until classification is done purely in provisioning-impl. (If that will happen.)
-     */
-    private volatile ResourceObjectClassifier classifier;
-
-    /**
-     * This is an externally-provided shadow tag generator implementation.
-     * It is a temporary solution until this process is done purely in provisioning-impl. (If that will happen.)
-     */
-    private volatile ShadowTagGenerator shadowTagGenerator;
+    @Autowired private PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private ResourceObjectClassifier classifier;
+    @Autowired private ShadowTagGenerator shadowTagGenerator;
 
     /**
      * Classifies the current shadow, based on information from the resource object.
@@ -79,9 +70,10 @@ class ClassificationHelper {
         // This is NOT a full shadowization. Just good enough for the classifier to work.
         ShadowType combinedObject = combine(resourceObject, shadow);
 
-        Classification classification = classifier.classify(
+        ResourceObjectClassification classification = classifier.classify(
                 combinedObject,
                 ctx.getResource(),
+                null,
                 ctx.getTask(),
                 result);
 
@@ -118,7 +110,7 @@ class ClassificationHelper {
      */
     private void updateShadowClassificationAndTag(
             @NotNull ShadowType combinedObject,
-            @NotNull Classification classification,
+            @NotNull ResourceObjectClassification classification,
             @NotNull ProvisioningContext ctx,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
@@ -143,16 +135,8 @@ class ClassificationHelper {
         }
     }
 
-    private boolean isDifferent(Classification classification, PrismObject<ShadowType> shadow) {
+    private boolean isDifferent(ResourceObjectClassification classification, PrismObject<ShadowType> shadow) {
         return classification.getKind() != shadow.asObjectable().getKind()
                 || !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent());
-    }
-
-    void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
-        this.classifier = classifier;
-    }
-
-    void setShadowTagGenerator(ShadowTagGenerator shadowTagGenerator) {
-        this.shadowTagGenerator = shadowTagGenerator;
     }
 }

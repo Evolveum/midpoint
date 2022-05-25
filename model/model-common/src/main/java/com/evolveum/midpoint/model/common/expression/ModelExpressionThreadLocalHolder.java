@@ -6,71 +6,40 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Holds {@link ExpressionEnvironment} (containing e.g. lens context, projection context, mapping, and task) to be used
+ * Accesses {@link ModelExpressionEnvironment} via {@link ExpressionEnvironmentThreadLocalHolder}
+ * (containing e.g. lens context, projection context, mapping, and task) to be used
  * from withing scripts and methods that are called from scripts.
+ *
+ * TODO Is the name (still) correct? The "thread local holder" is in a separate class now.
  *
  * @author Radovan Semancik
  */
 public class ModelExpressionThreadLocalHolder {
 
-    private static final ThreadLocal<Deque<ExpressionEnvironment<?, ?, ?>>>
-            EXPRESSION_ENVIRONMENT_STACK_TL = new ThreadLocal<>();
-
-    public static void pushExpressionEnvironment(ExpressionEnvironment<?, ?, ?> env) {
-        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
-        if (stack == null) {
-            stack = new ArrayDeque<>();
-            EXPRESSION_ENVIRONMENT_STACK_TL.set(stack);
-        }
-        stack.push(env);
-    }
-
-    public static void popExpressionEnvironment() {
-        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
-        stack.pop();
-    }
-
-    public static <F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
-    ExpressionEnvironment<F, V, D> getExpressionEnvironment() {
-        Deque<ExpressionEnvironment<?, ?, ?>> stack = EXPRESSION_ENVIRONMENT_STACK_TL.get();
-        if (stack == null) {
-            return null;
-        }
+    private static <F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
+    ModelExpressionEnvironment<F, V, D> getModelExpressionEnvironment() {
+        ExpressionEnvironment environment = ExpressionEnvironmentThreadLocalHolder.getExpressionEnvironment();
         //noinspection unchecked
-        return (ExpressionEnvironment<F, V, D>) stack.peek();
+        return environment instanceof ModelExpressionEnvironment ?
+                (ModelExpressionEnvironment<F, V, D>) environment : null;
     }
 
     public static <F extends ObjectType> ModelContext<F> getLensContext() {
-        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
+        ModelExpressionEnvironment<?, ?, ?> env = getModelExpressionEnvironment();
         if (env == null) {
             return null;
         }
@@ -84,7 +53,7 @@ public class ModelExpressionThreadLocalHolder {
     }
 
     public static <V extends PrismValue, D extends ItemDefinition<?>> Mapping<V,D> getMapping() {
-        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
+        ModelExpressionEnvironment<?, ?, ?> env = getModelExpressionEnvironment();
         if (env == null) {
             return null;
         }
@@ -93,85 +62,10 @@ public class ModelExpressionThreadLocalHolder {
     }
 
     public static ModelProjectionContext getProjectionContext() {
-        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
+        ModelExpressionEnvironment<?, ?, ?> env = getModelExpressionEnvironment();
         if (env == null) {
             return null;
         }
         return env.getProjectionContext();
-    }
-
-    public static Task getCurrentTask() {
-        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
-        if (env == null) {
-            return null;
-        }
-        return env.getCurrentTask();
-    }
-
-    public static OperationResult getCurrentResult() {
-        ExpressionEnvironment<?, ?, ?> env = getExpressionEnvironment();
-        if (env == null) {
-            return null;
-        }
-        return env.getCurrentResult();
-    }
-
-    // TODO move to better place
-    public static PrismValueDeltaSetTriple<?> evaluateAnyExpressionInContext(Expression<?, ?> expression,
-            ExpressionEvaluationContext context, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-        try {
-            return expression.evaluate(context, result);
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
-    }
-
-    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
-            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
-            ExpressionEvaluationContext eeContext,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-        try {
-            return expression.evaluate(eeContext, result);
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
-    }
-
-    public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(
-            Expression<PrismReferenceValue, PrismReferenceDefinition> expression,
-            ExpressionEvaluationContext eeContext,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-        try {
-            return expression.evaluate(eeContext, result);
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
-    }
-
-    public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(
-            Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression,
-            ExpressionEvaluationContext eeContext,
-            ExpressionEnvironment<?, ?, ?> env, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
-        try {
-            exprResultTriple = expression.evaluate(eeContext, result);
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-        }
-        return exprResultTriple;
     }
 }

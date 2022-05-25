@@ -56,7 +56,7 @@ import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;

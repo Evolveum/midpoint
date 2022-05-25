@@ -21,8 +21,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +37,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -1017,7 +1017,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
 
         ModelContext<UserType> lensContext = createFakeLensContext();
 
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(lensContext, null, task, result));
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ModelExpressionEnvironment<>(lensContext, null, task, result));
 
         try {
 
@@ -1025,7 +1026,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             mapping.evaluate(task, result);
 
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
 
         // THEN

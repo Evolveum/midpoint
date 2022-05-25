@@ -11,21 +11,19 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.*;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.events.BaseEventImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -76,8 +74,8 @@ public class NotificationExpressionHelper {
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {
@@ -113,8 +111,8 @@ public class NotificationExpressionHelper {
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
 
         List<String> retval = new ArrayList<>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
@@ -150,7 +148,7 @@ public class NotificationExpressionHelper {
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         context.setAdditionalConvertor(this::recipientConverter);
         PrismValueDeltaSetTriple<PrismPropertyValue<RecipientExpressionResultType>> exprResult =
-                ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, context, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, context, task, result);
 
         List<RecipientExpressionResultType> retval = new ArrayList<>();
         for (PrismPropertyValue<RecipientExpressionResultType> item : exprResult.getZeroSet()) {
@@ -211,8 +209,8 @@ public class NotificationExpressionHelper {
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
 
         Collection<PrismPropertyValue<NotificationMessageAttachmentType>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {

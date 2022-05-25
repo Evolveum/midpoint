@@ -78,7 +78,7 @@ public final class AutoScalingActivityRun extends
                 .and().not().item(TaskType.F_AUTO_SCALING, TaskAutoScalingType.F_MODE).eq(TaskAutoScalingModeType.DISABLED)
                 .buildFilter();
 
-        ObjectQuery objectQuery = ObjectQueryUtil.addConjunctions(configuredQuery, prismContext, reconcilableTasksFilter);
+        ObjectQuery objectQuery = ObjectQueryUtil.addConjunctions(configuredQuery, reconcilableTasksFilter);
 
         LOGGER.info("Going to reconcile workers for tasks using a query of {}", objectQuery);
         return objectQuery;

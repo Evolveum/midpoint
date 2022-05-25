@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
@@ -306,8 +305,8 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             // TODO contention for "focus" variable (candidate, pre-focus)
             VariablesMap variables = getVariablesMap(candidate);
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
-            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder
-                    .evaluateExpressionInContext(expression, params, task, result);
+            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
+                    ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
             Set<Boolean> values = ExpressionUtil.getUniqueNonNullRealValues(outputTriple);
             if (values.isEmpty()) {
                 throw new ExpressionEvaluationException("Expression returned no value in " + shortDesc);
