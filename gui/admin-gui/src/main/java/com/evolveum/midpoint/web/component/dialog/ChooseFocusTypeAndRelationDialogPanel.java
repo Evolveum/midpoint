@@ -76,10 +76,8 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         type.add(new VisibleBehaviour(this::isFocusTypeSelectorVisible));
         add(type);
 
-            IModel<Map<String, String>> options = new Model(null);
-            options.setObject(new HashMap<>());
         ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<>(ID_RELATION, Model.ofList(getDefaultRelations()),
-                new ListModel<>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
+                new ListModel<>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), null);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relation.setOutputMarkupId(true);
         add(relation);

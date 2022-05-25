@@ -1270,33 +1270,36 @@ td .prism-property-value {
 	width: 38px;
 }
 
-.search-form {
-
+.card.card-outline,
+.card.card-outline-tabs {
+  & .card-header .search-panel-form a {
+    border-top: 0 !important;
+  }
 }
 
+// handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
+// replace them with vendor css utility classes
+.dark-mode .search-item {
+  background-color: lighten($dark, 7.5%) !important;
+  color: $white !important;
+}
+
+@include bg-variant(".search-item", $light, true);
+
+// deprecated, uses should be replaced by "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"
 .search-item {
-  display: inline-block;
-  border-color: #ddd;
-  border-radius: 3px;
-  background-color: #f4f4f4;
-  vertical-align: middle;
-  font-size: 12px;
-  padding-left: 3px;
+  display: flex;
+  gap: 0.25em;
+  border-radius: $border-radius-sm;
+  padding-left: 0.5rem;
+  align-items: center;
 
+  // deprecated, uses should be replaced by "col-form-label-sm font-weight-normal mb-0"
   .search-item-label {
-    margin-top: 5px;
-    width: fit-content;
-    padding-right: 5px !important;
-    padding-left: 5px !important;
-  }
-
-  .search-item-field {
-    padding-left: 3px !important;
-  }
-
-  & > a.btn,
-  & > a.btn:hover {
-    border-top: 0 !important;
+    padding-top: add($input-padding-y-sm, $input-border-width);
+    padding-bottom: add($input-padding-y-sm, $input-border-width);
+    @include font-size($input-font-size-sm);
+    line-height: $input-line-height-sm;
   }
 }
 

@@ -1692,12 +1692,17 @@
             <id>evolveum</id>
             <name>Evolveum Public Releases</name>
             <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
-        <!-- FIXME -->
         <repository>
             <id>evolveum-snapshots</id>
             <name>Evolveum Snapshots</name>
             <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
         </repository>
 
         <!--
@@ -1708,6 +1713,9 @@
             <id>shibboleth</id>
             <name>Shibboleth Repository</name>
             <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
 
         <!--
@@ -1719,6 +1727,9 @@
             <id>oracle</id>
             <name>Oracle</name>
             <url>https://download.oracle.com/maven/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
     <pluginRepositories>
