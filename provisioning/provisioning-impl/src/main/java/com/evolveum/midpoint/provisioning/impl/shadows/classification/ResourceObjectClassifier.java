@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.classification;
 import static com.evolveum.midpoint.provisioning.impl.shadows.classification.ClassificationContext.Builder.aClassificationContext;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getObjectClassRequired;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -173,11 +174,42 @@ public class ResourceObjectClassifier {
             ShadowType shadow = context.getShadowedResourceObject();
             LOGGER.trace("Classifying {}", shadow);
 
-            List<ResourceObjectTypeDefinition> matching = new ArrayList<>();
+            List<SynchronizationPolicy> allMatchingPolicies = findAllMatchingPolicies(result);
+
+            SynchronizationPolicy defaultPolicy = selectDefaultPolicy(allMatchingPolicies);
+            if (defaultPolicy != null) {
+                LOGGER.debug("Default type matched for {}: {}", shadow, defaultPolicy);
+                return defaultPolicy.getResourceTypeDefinitionRequired();
+            }
+
+            if (allMatchingPolicies.size() > 1) {
+                return selectFromMatchingNonDefaultPolicies(allMatchingPolicies);
+            } else if (allMatchingPolicies.size() == 1) {
+                ResourceObjectTypeDefinition theOne = allMatchingPolicies.get(0).getResourceTypeDefinitionRequired();
+                LOGGER.debug("Exactly one type definition matched {}: {}", shadow, theOne);
+                return theOne;
+            } else {
+                LOGGER.debug("No type definition matched {}", shadow);
+                return null;
+            }
+        }
+
+        /**
+         * Note that returning definitions would be sufficient in normal cases.
+         * But we need to inspect some configuration details that are available only through
+         * {@link SynchronizationPolicy}, so be it. The policy is connected to {@link ResourceObjectTypeDefinition},
+         * not to {@link ResourceObjectClassDefinition}.
+         */
+        private @NotNull List<SynchronizationPolicy> findAllMatchingPolicies(OperationResult result)
+                throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
+            ShadowType shadow = context.getShadowedResourceObject();
+            List<SynchronizationPolicy> matching = new ArrayList<>();
 
             for (ResourceObjectTypeDefinition typeDefinition : schema.getObjectTypeDefinitions()) {
                 SynchronizationPolicy policy = SynchronizationPolicyFactory.forKindAndIntentStrictlyRequired(
                         typeDefinition.getKind(), typeDefinition.getIntent(), context.getResource());
+                assert policy.getResourceObjectDefinition() instanceof ResourceObjectTypeDefinition;
 
                 LOGGER.trace("Trying applicability of {}", policy);
                 if (!policy.isObjectClassNameMatching(getObjectClassRequired(shadow))) {
@@ -192,30 +224,46 @@ public class ResourceObjectClassifier {
                     continue;
                 }
 
-                LOGGER.trace("Adding {} to a list of potential matches for {}", typeDefinition, shadow);
-                matching.add(typeDefinition);
-            }
+                LOGGER.trace("Adding {} to a list of potential matches for {}", policy, shadow);
+                matching.add(policy);
 
+                // We might consider stopping the search on the first type marked as default.
+                // But let's go through it all, and e.g. check multiple defaults.
+                // (Although that should be already checked on schema parse... anyway.)
+            }
+            return matching;
+        }
+
+        private SynchronizationPolicy selectDefaultPolicy(List<SynchronizationPolicy> matching) {
             var matchingDefault = matching.stream()
-                    .filter(ResourceObjectTypeDefinition::isDefaultForObjectClass)
+                    .filter(policy -> policy.getResourceTypeDefinitionRequired().isDefaultForObjectClass())
                     .collect(Collectors.toList());
-            var oneMatching = MiscUtil.extractSingleton(
+            return MiscUtil.extractSingleton(
                     matchingDefault,
-                    () -> new IllegalStateException("Multiple types marked as 'default for object class': " + matchingDefault));
-            if (oneMatching != null) {
-                LOGGER.debug("Default type matched for {}: {}", shadow, oneMatching);
-                return oneMatching;
+                    () -> new IllegalStateException(
+                            "Multiple types marked as 'default for object class': " + matchingDefault));
+        }
+
+        /**
+         * This is unfortunate case where we have multiple matching non-default policies.
+         * Some heuristics are needed.
+         */
+        private ResourceObjectTypeDefinition selectFromMatchingNonDefaultPolicies(List<SynchronizationPolicy> matching) {
+            ShadowType shadow = context.getShadowedResourceObject();
+            LOGGER.warn("Multiple object types matching {}, trying to determine the best one: {}", shadow, matching);
+
+            // Before 4.6, the "synchronization" section presence was required to use the definition as a candidate
+            // for classification (see e.g. TestCaseIgnore). So let's try to use this as a criterion.
+            for (SynchronizationPolicy policy : matching) {
+                if (policy.hasLegacyConfiguration()) {
+                    LOGGER.debug("Returning the first type with legacy sync policy for {}: {}", shadow, policy);
+                    return policy.getResourceTypeDefinitionRequired();
+                }
             }
 
-            if (matching.size() > 1) {
-                LOGGER.warn("Multiple types matching, selecting the first one: {}", matching);
-                return matching.get(0);
-            } else if (matching.size() == 1) {
-                return matching.get(0);
-            } else {
-                LOGGER.debug("No type definition matched {}", shadow);
-                return null;
-            }
+            ResourceObjectTypeDefinition first = matching.get(0).getResourceTypeDefinitionRequired();
+            LOGGER.debug("Returning the first one: {}", first);
+            return first;
         }
     }
 }

@@ -109,7 +109,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, true);
+        ObjectDelta<UserType> accountAssignmentUserDelta =
+                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, true);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 

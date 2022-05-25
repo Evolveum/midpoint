@@ -9,11 +9,12 @@ package com.evolveum.midpoint.provisioning.impl.shadows.classification;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -37,16 +38,24 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
- * Answers the question if a shadow matches given object type delineation.
+ * Answers the question if a shadow matches given object type delineation. It does so by evaluating the following:
+ *
+ * 1. base context (including scope),
+ * 2. filter(s),
+ * 3. classification condition.
  *
  * Currently used strictly for classification. Later it may be generalized.
  *
- * Limitations:
+ * Note: Support for base context matching is very limited, with these assumptions:
  *
- * - support for base context matching is very limited (to LDAP distinguished names)
+ * 1. Only LDAP distinguished names are supported.
+ * 2. Base context must be specified by "equals" filter with a single value.
+ * 3. The attribute specifying base context top must have DN matching rule (that is used as a flag that it's a DN).
+ * 4. The DN in shadow is used by finding an identifier with DN matching rule.
  */
 class DelineationMatcher {
 
@@ -89,30 +98,65 @@ class DelineationMatcher {
      *
      * So only LDAP distinguished names are supported for now.
      *
-     * In other cases, we return true, relying on other means of classification (filters, conditions).
-     *
-     * UGLY HACKING ... FIXME?
+     * In other cases, we return `true`, relying on other means of classification (filters, conditions).
+     * See limitations described in the class javadocs.
      */
-    private boolean baseContextMatches() throws SchemaException, ConfigurationException {
+    private boolean baseContextMatches() throws SchemaException {
         ResourceObjectReferenceType baseContext = delineation.getBaseContext();
         if (baseContext == null) {
             return true;
         }
+        LdapName scopeRootDn = getRootDistinguishedName(baseContext);
+        if (scopeRootDn == null) {
+            LOGGER.debug("-> no root DN, not using the base context for classification");
+            return true;
+        }
+        LdapName shadowDn = getShadowDistinguishedName();
+        if (shadowDn == null) {
+            LOGGER.debug("-> no DN in shadow, not using the base context for classification");
+            return true;
+        }
+
+        SearchHierarchyScope scope = delineation.getSearchHierarchyScope();
+        boolean rv = isUnder(shadowDn, scopeRootDn, scope);
+        LOGGER.trace("{} is under {} (scope {}): {}", shadowDn, scopeRootDn, scope, rv);
+        return rv;
+    }
+
+    private boolean isUnder(LdapName child, LdapName parent, SearchHierarchyScope scope) {
+        if (child.startsWith(parent)) {
+            if (scope == SearchHierarchyScope.ONE) {
+                return child.size() == parent.size() + 1;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Tries to get the DN of the object that represents the root of the base context.
+     * Assumes the "equal" filter with definition using DN matching rule.
+     */
+    private @Nullable LdapName getRootDistinguishedName(ResourceObjectReferenceType baseContext) throws SchemaException {
         SearchFilterType filterBean = baseContext.getFilter();
         if (filterBean == null) {
             LOGGER.debug("Base context without filter: not using for classification");
-            return true;
+            return null;
         }
-        QName scopeObjectClassName = MiscUtil.requireNonNull(
-                baseContext.getObjectClass(),
-                () -> new ConfigurationException("No object class in base context: " + baseContext));
+        QName rootObjectClassName = baseContext.getObjectClass();
+        if (rootObjectClassName == null) {
+            LOGGER.debug("No object class in base context: not using for classification");
+            return null;
+        }
         ResourceObjectDefinition scopeObjectClassDefinition = Resource.of(context.getResource())
                 .getRawSchemaRequired()
-                .findDefinitionForObjectClassRequired(scopeObjectClassName);
+                .findDefinitionForObjectClassRequired(rootObjectClassName);
         ObjectFilter filter = QueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
         if (!(filter instanceof EqualFilter)) {
             LOGGER.debug("Base context filter not supported for classification: {}", filter);
-            return true;
+            return null;
         }
         EqualFilter<?> equalFilter = (EqualFilter<?>) filter;
         PrismPropertyDefinition<?> definition =
@@ -122,43 +166,49 @@ class DelineationMatcher {
         QName matchingRuleQName = definition.getMatchingRuleQName();
         if (!PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME.equals(matchingRuleQName)) {
             LOGGER.debug("Base context filter is not DN-based: {}", matchingRuleQName);
-            return true;
+            return null;
         }
-        Collection<ResourceAttribute<?>> identifiers =
-                ShadowUtil.getAllIdentifiers(context.getShadowedResourceObject());
-        ResourceAttribute<?> dnIdentifier = selectDistinguishedNameIdentifier(identifiers);
-        if (dnIdentifier == null) {
-            LOGGER.debug("No DN-identifier in {}", context.getShadowedResourceObject());
-            return true;
+        PrismPropertyValue<?> rootValue = equalFilter.getSingleValue();
+        if (rootValue == null) {
+            LOGGER.debug("No base context root value in {}", equalFilter);
+            return null;
         }
-        PrismPropertyValue<?> shadowValue = dnIdentifier.getValue();
-        PrismPropertyValue<?> scopeValue = equalFilter.getSingleValue();
-        if (scopeValue == null) {
-            LOGGER.debug("No scope value in {}", definition);
-            return true;
+        Object rootRealValue = rootValue.getRealValue();
+        if (!(rootRealValue instanceof String)) {
+            LOGGER.debug("Root value of base context is not a String, not using for classification: {}", rootRealValue);
+            return null;
         }
-        SearchHierarchyScope scope = delineation.getSearchHierarchyScope();
-        boolean rv = isUnder(shadowValue, scopeValue, scope);
-        LOGGER.trace("{} is under {} (scope {}): {}", shadowValue, scopeValue, scope, rv);
-        return rv;
+        try {
+            return new LdapName((String) rootRealValue);
+        } catch (InvalidNameException e) {
+            LOGGER.warn("Root value of base context is not a legal LDAP name, not using for classification: {}",
+                    rootRealValue, e);
+            return null;
+        }
     }
 
-    private boolean isUnder(PrismPropertyValue<?> childVal, PrismPropertyValue<?> parentVal, SearchHierarchyScope scope) {
-        String child = (String) childVal.getRealValue();
-        String parent = (String) parentVal.getRealValue();
+    /**
+     * Tries to get (guess) the DN of the shadow being matched.
+     */
+    private LdapName getShadowDistinguishedName() {
+        ShadowType shadow = context.getShadowedResourceObject();
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
+        ResourceAttribute<?> dnIdentifier = selectDistinguishedNameIdentifier(identifiers);
+        if (dnIdentifier == null) {
+            LOGGER.debug("No DN-identifier in {}", shadow);
+            return null;
+        }
+        Object dnRealValue = dnIdentifier.getRealValue();
+        if (!(dnRealValue instanceof String)) {
+            LOGGER.debug("Value of DN-identifier is not a String, not using for classification: {}", dnRealValue);
+            return null;
+        }
         try {
-            LdapName childLdapName = new LdapName(Objects.requireNonNull(child));
-            LdapName parentLdapName = new LdapName(Objects.requireNonNull(parent));
-            if (childLdapName.startsWith(parentLdapName)) {
-                if (scope == SearchHierarchyScope.ONE) {
-                    return childLdapName.size() == parentLdapName.size() + 1;
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            throw SystemException.unexpected(e, "when comparing LDAP names");
+            return new LdapName((String) dnRealValue);
+        } catch (InvalidNameException e) {
+            LOGGER.warn("DN-identifier is not a legal LDAP name, not using for classification: '{}'; in {}",
+                    dnRealValue, shadow, e);
+            return null;
         }
     }
 

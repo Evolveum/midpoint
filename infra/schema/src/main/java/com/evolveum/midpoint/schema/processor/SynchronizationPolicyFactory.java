@@ -95,7 +95,7 @@ public class SynchronizationPolicyFactory {
     }
 
     /**
-     * Creates {@link SynchronizationPolicy} for a synchronization policy present in "synchronization"
+     * Creates {@link SynchronizationPolicy} for a synchronization policy present in legacy "synchronization"
      * section of the resource definition. We try to find appropriate object/class definition in the resource schema.
      *
      * Returns null if no such definition can be found.
@@ -170,7 +170,8 @@ public class SynchronizationPolicyFactory {
                 synchronizationBean.getName(),
                 delineation,
                 reactions,
-                objectDefinition);
+                objectDefinition,
+                true);
     }
 
     /**
@@ -264,7 +265,8 @@ public class SynchronizationPolicyFactory {
                 null,
                 typeDef.getDelineation(),
                 typeDef.getSynchronizationReactions(),
-                typeDef);
+                typeDef,
+                false);
     }
 
     /**

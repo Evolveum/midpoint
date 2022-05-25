@@ -80,6 +80,8 @@ public class SynchronizationPolicy {
      */
     @NotNull private final List<SynchronizationReactionDefinition> reactions;
 
+    private final boolean hasLegacyConfiguration;
+
     SynchronizationPolicy(
             @NotNull ShadowKindType kind,
             @Nullable QName focusTypeName,
@@ -90,7 +92,8 @@ public class SynchronizationPolicy {
             @Nullable String name,
             @NotNull ResourceObjectTypeDelineation delineation,
             @NotNull Collection<SynchronizationReactionDefinition> reactions,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition) {
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            boolean hasLegacyConfiguration) {
         this.kind = kind;
         this.focusTypeName = Objects.requireNonNullElse(focusTypeName, UserType.COMPLEX_TYPE);
         this.objectClassName = objectClassName;
@@ -102,6 +105,7 @@ public class SynchronizationPolicy {
         this.reactions = new ArrayList<>(reactions);
         this.reactions.sort(Comparator.naturalOrder());
         this.resourceObjectDefinition = resourceObjectDefinition;
+        this.hasLegacyConfiguration = hasLegacyConfiguration;
     }
 
     public @NotNull ShadowKindType getKind() {
@@ -267,5 +271,9 @@ public class SynchronizationPolicy {
 
     public @NotNull List<SynchronizationReactionDefinition> getReactions() {
         return reactions;
+    }
+
+    public boolean hasLegacyConfiguration() {
+        return hasLegacyConfiguration;
     }
 }
