@@ -39,7 +39,7 @@ public class Resource {
         return ResourceSchemaFactory.getRawSchema(resourceBean);
     }
 
-    public @NotNull ResourceSchema getRawSchemaRequired() throws SchemaException {
+    public @NotNull ResourceSchema getRawSchemaRequired() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getRawSchemaRequired(resourceBean);
     }
 

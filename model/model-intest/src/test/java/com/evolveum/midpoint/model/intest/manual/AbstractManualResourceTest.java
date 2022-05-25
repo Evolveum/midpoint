@@ -360,7 +360,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
 

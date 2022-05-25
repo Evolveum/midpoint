@@ -121,7 +121,7 @@ public class LensUtil {
 
     public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource)
             throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.MODEL);
         ResourceObjectDefinition rObjClassDef = schema.findObjectDefinition(kind, intent);
         if (rObjClassDef == null) {
             LOGGER.error("No projection definition for kind={}, intent={} in {}", kind, intent, resource);

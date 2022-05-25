@@ -715,7 +715,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             PrismObject<ResourceType> resource = getReference(construction.getResourceRef(), result);
 
             PrismContext prismContext = getPageBase().getPrismContext();
-            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
+            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.PRESENTATION);
             ResourceObjectDefinition objectClassDefinition = refinedSchema
                     .findObjectDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
 

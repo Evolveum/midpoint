@@ -103,7 +103,7 @@ class DelineationMatcher {
      * In other cases, we return `true`, relying on other means of classification (filters, conditions).
      * See limitations described in the class javadocs.
      */
-    private boolean baseContextMatches() throws SchemaException {
+    private boolean baseContextMatches() throws SchemaException, ConfigurationException {
         ResourceObjectReferenceType baseContext = delineation.getBaseContext();
         if (baseContext == null) {
             return true;
@@ -141,7 +141,8 @@ class DelineationMatcher {
      * Tries to get the DN of the object that represents the root of the base context.
      * Assumes the "equal" filter with definition using DN matching rule.
      */
-    private @Nullable LdapName getRootDistinguishedName(ResourceObjectReferenceType baseContext) throws SchemaException {
+    private @Nullable LdapName getRootDistinguishedName(ResourceObjectReferenceType baseContext)
+            throws SchemaException, ConfigurationException {
         SearchFilterType filterBean = baseContext.getFilter();
         if (filterBean == null) {
             LOGGER.debug("Base context without filter: not using for classification");
