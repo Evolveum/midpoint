@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column align-items-center mt-5">
+        <h2>Who are you requesting for?</h2>
+        <h5>Select for whom do you want to request access whether it's you or group of team members</h5>
+        <div class="d-flex flex-wrap gap-3 justify-content-center mt-5">
+            <div wicket:id="myself"/>
+            <div wicket:id="group"/>
+            <div wicket:id="team"/>
+        </div>
+        <div class="d-flex gap-3 justify-content-center mt-5">
+            <a class="btn btn-outline-lightblue" wicket:id="back">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back
+            </a>
+            <a class="btn btn-success" wicket:id="next">
+                Next: Role catalog
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>
