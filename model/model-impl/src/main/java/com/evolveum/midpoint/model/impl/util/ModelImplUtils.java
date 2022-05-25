@@ -513,7 +513,7 @@ public class ModelImplUtils {
             // Return generic object class definition from resource schema. No kind/intent means that we want
             // to process all kinds and intents in the object class.
             ResourceObjectDefinition objectClassDefinition =
-                    resourceSchema.findDefinitionForObjectClass(objectclass);
+                    resourceSchema.findDefinitionForObjectClass(objectclass); // TODO or findObjectClassDefinition?
             if (objectClassDefinition == null) {
                 throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
             }
@@ -527,7 +527,8 @@ public class ModelImplUtils {
             LOGGER.trace("Determined refined object class {} by using kind={}, intent={}",
                     resourceObjectDefinition, kind, intent);
         } else if (objectclass != null) {
-            resourceObjectDefinition = resourceSchema.findDefinitionForObjectClass(objectclass);
+            // This means that kind == null, intent != null (suspicious!)
+            resourceObjectDefinition = resourceSchema.findDefinitionForObjectClass(objectclass);  // TODO or findObjectClassDefinition?
             LOGGER.trace("Determined refined object class {} by using objectClass={}", resourceObjectDefinition, objectclass);
         } else {
             resourceObjectDefinition = null;

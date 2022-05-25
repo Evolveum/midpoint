@@ -32,6 +32,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -348,6 +349,7 @@ public class ShadowUtil {
     /**
      * This is not supposed to be used in production code! It is just for the tests.
      */
+    @VisibleForTesting
     public static void applyResourceSchema(PrismObject<? extends ShadowType> shadow,
             ResourceSchema resourceSchema) throws SchemaException {
         ShadowType shadowType = shadow.asObjectable();

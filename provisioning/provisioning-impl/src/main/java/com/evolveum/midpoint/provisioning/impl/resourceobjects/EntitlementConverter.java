@@ -12,7 +12,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +61,7 @@ class EntitlementConverter {
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementConverter.class);
 
     @Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+    @Autowired private DelineationProcessor delineationProcessor;
     @Autowired private PrismContext prismContext;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
@@ -255,7 +254,7 @@ class EntitlementConverter {
     private <S extends ShadowType> void executeSearchForEntitlements(
             PrismContainer<ShadowAssociationType> associationContainer,
             PrismObject<S> resourceObject,
-            ObjectQuery query,
+            ObjectQuery explicitQuery,
             QName associationName,
             ProvisioningContext subjectCtx,
             ProvisioningContext entitlementCtx,
@@ -265,7 +264,8 @@ class EntitlementConverter {
 
         ResourceObjectDefinition entitlementDef = entitlementCtx.getObjectDefinitionRequired();
 
-        SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, result);
+        QueryWithConstraints queryWithConstraints =
+                delineationProcessor.determineQueryWithConstraints(entitlementCtx, explicitQuery, result);
 
         UcfObjectHandler handler = (ucfObject, lResult) -> {
             PrismObject<ShadowType> entitlementResourceObject = ucfObject.getResourceObject();
@@ -286,15 +286,15 @@ class EntitlementConverter {
         ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, result);
         try {
             LOGGER.trace("Processing entitlement-to-subject association for account {}: query {}",
-                    ShadowUtil.getHumanReadableNameLazily(resourceObject), query);
+                    ShadowUtil.getHumanReadableNameLazily(resourceObject), queryWithConstraints.query);
             try {
                 connector.search(
                         entitlementDef,
-                        query,
+                        queryWithConstraints.query,
                         handler,
                         entitlementCtx.createAttributesToReturn(),
                         null,
-                        searchHierarchyConstraints,
+                        queryWithConstraints.constraints,
                         UcfFetchErrorReportingMethod.EXCEPTION,
                         subjectCtx.getUcfExecutionContext(),
                         result);
@@ -509,12 +509,11 @@ class EntitlementConverter {
      * Collects entitlement changes from the shadow to entitlement section into attribute operations.
      * NOTE: only collects  SUBJECT_TO_ENTITLEMENT entitlement direction.
      */
-    public void collectEntitlementChange(
+    void collectEntitlementChange(
             Collection<Operation> operations,
             ContainerDelta<ShadowAssociationType> itemDelta,
             ProvisioningContext ctx)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
         OperationMap operationsMap = new OperationMap();
 
         if (CollectionUtils.isNotEmpty(itemDelta.getValuesToReplace())) {
@@ -638,7 +637,8 @@ class EntitlementConverter {
 
                 ObjectQuery query = createEntitlementQuery(valueAttrValue, valueAttrDef, assocAttrDef, associationDef);
 
-                SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, result);
+                QueryWithConstraints queryWithConstraints =
+                        delineationProcessor.determineQueryWithConstraints(entitlementCtx, query, result);
 
                 UcfObjectHandler handler = (ucfObject, lResult) -> {
                     PrismObject<ShadowType> entitlementShadow = ucfObject.getResourceObject();
@@ -676,15 +676,15 @@ class EntitlementConverter {
                     return true;
                 };
                 try {
-                    LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
+                    LOGGER.trace("Searching for associations in deleted shadow, query: {}", queryWithConstraints.query);
                     ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, result);
                     connector.search(
                             entitlementDef,
-                            query,
+                            queryWithConstraints.query,
                             handler,
                             entitlementCtx.createAttributesToReturn(),
                             null,
-                            searchHierarchyConstraints,
+                            queryWithConstraints.constraints,
                             UcfFetchErrorReportingMethod.EXCEPTION,
                             subjectCtx.getUcfExecutionContext(),
                             result);
@@ -1000,55 +1000,6 @@ class EntitlementConverter {
         return attributesContainer;
     }
 
-    // This is perhaps not the best place for this method. It has nothing to do with entitlements.
-    // But given class dependencies this is a very convenient place. Let's leave it here for now.
-    SearchHierarchyConstraints determineSearchHierarchyConstraints(ProvisioningContext ctx, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
-        if (!ctx.isTypeBased()) {
-            return null;
-        }
-        ResourceObjectTypeDefinition objectTypeDef = ctx.getObjectTypeDefinitionRequired();
-        ResourceObjectReferenceType baseContextRef = objectTypeDef.getBaseContext();
-        SearchHierarchyScope scope = objectTypeDef.getSearchHierarchyScope();
-
-        ResourceObjectIdentification baseContextIdentification = determineBaseContextIdentification(baseContextRef, ctx, result);
-
-        if (baseContextIdentification != null || scope != null) {
-            return new SearchHierarchyConstraints(baseContextIdentification, scope);
-        } else {
-            return null;
-        }
-    }
-
-    // ctx is type-based
-    @Nullable private ResourceObjectIdentification determineBaseContextIdentification(
-            ResourceObjectReferenceType baseContextRef, ProvisioningContext ctx, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
-
-        if (baseContextRef == null) {
-            return null;
-        }
-
-        ResourceObjectTypeDefinition objectTypeDef = ctx.getObjectTypeDefinitionRequired();
-        PrismObject<ShadowType> baseContextShadow;
-        try {
-            // We request the use of raw object class definition to avoid endless loops during base context determination.
-            baseContextShadow = resourceObjectReferenceResolver.resolve(
-                    ctx, baseContextRef, true, "base context specification in " + objectTypeDef, result);
-        } catch (RuntimeException e) {
-            throw new SystemException("Cannot resolve base context for "+ objectTypeDef +", specified as "+ baseContextRef, e);
-        }
-        if (baseContextShadow == null) {
-            throw new ObjectNotFoundException("Base context not found for " + objectTypeDef + ", specified as " + baseContextRef);
-        }
-        ResourceObjectDefinition baseContextObjectDefinition =
-                java.util.Objects.requireNonNull(
-                        ResourceObjectDefinitionResolver.getDefinitionForShadow(ctx.getResourceSchema(), baseContextShadow),
-                        () -> "Couldn't determine definition for " + baseContextRef);
-        return ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectDefinition);
-    }
     //endregion
 
     /**
