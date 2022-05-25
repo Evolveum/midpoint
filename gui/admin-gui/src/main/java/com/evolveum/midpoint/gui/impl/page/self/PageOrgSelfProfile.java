@@ -26,7 +26,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/self/profile/org/unitNew")
+                @Url(mountUrl = "/self/profile/org")
         },
         action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/archetypeNew")
+                @Url(mountUrl = "/admin/archetype")
         },
         encoder = OnePageParameterEncoder.class,
         action = {

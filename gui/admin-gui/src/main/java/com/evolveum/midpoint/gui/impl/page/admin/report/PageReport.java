@@ -49,7 +49,7 @@ import java.util.Collection;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/reportNew")
+                @Url(mountUrl = "/admin/report")
         },
         encoder = OnePageParameterEncoder.class,
         action = {

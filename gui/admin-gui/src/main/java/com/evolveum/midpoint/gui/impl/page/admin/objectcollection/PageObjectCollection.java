@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/newObjectCollection")
+                @Url(mountUrl = "/admin/objectCollection")
         },
         encoder = OnePageParameterEncoder.class,
         action = {
