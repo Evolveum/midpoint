@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -21,14 +22,18 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Filter processor for reference item paths embedded in table as three columns.
@@ -71,7 +76,7 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
     }
 
     @Override
-    public Predicate process(RefFilter filter) {
+    public Predicate process(RefFilter filter) throws RepositoryException {
         if (filter instanceof RefFilterWithRepoPath) {
             return processRepoFilter((RefFilterWithRepoPath) filter);
         }
@@ -81,15 +86,38 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
         if (values == null || values.isEmpty()) {
             return filter.isOidNullAsAny() ? null : oidPath.isNull();
         }
+        Predicate predicate = null;
+        ObjectFilter targetFilter = filter.getFilter();
         if (values.size() == 1) {
-            return processSingleValue(filter, values.get(0));
+            var value = values.get(0);
+            predicate = processSingleValue(filter, value);
+            if (targetFilter != null) {
+                var targetType = Optional.ofNullable(value.getTargetType()).orElse(filter.getDefinition().getTargetTypeName());
+                predicate = ExpressionUtils.and(predicate, targetFilterPredicate(targetType,targetFilter));
+            }
+            return predicate;
+        } else {
+            for (PrismReferenceValue ref : values) {
+                predicate = ExpressionUtils.or(predicate, processSingleValue(filter, ref));
+            }
         }
 
-        Predicate predicate = null;
-        for (PrismReferenceValue ref : values) {
-            predicate = ExpressionUtils.or(predicate, processSingleValue(filter, ref));
+
+        if (targetFilter != null) {
+            predicate = ExpressionUtils.and(predicate, targetFilterPredicate(filter.getDefinition().getTargetTypeName(),targetFilter));
         }
+
         return predicate;
+    }
+
+    private Predicate targetFilterPredicate(@Nullable QName targetType, ObjectFilter targetFilter) throws RepositoryException {
+        targetType = targetType != null ? targetType : ObjectType.COMPLEX_TYPE;
+        var targetClass = targetType != null ? context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType) : ObjectType.class;
+        var subquery = context.subquery(context.repositoryContext().getMappingBySchemaType(targetClass));
+        var targetPath = subquery.path(QObject.class);
+        subquery.sqlQuery().where(oidPath.eq(targetPath.oid));
+        subquery.processFilter(targetFilter);
+        return subquery.sqlQuery().exists();
     }
 
     /**
@@ -128,7 +156,6 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
                     predicateWithNotTreated(targetNamePath,
                             targetNamePath.eq(ref.getTargetName().getOrig())));
         }
-
         return predicate;
     }
 

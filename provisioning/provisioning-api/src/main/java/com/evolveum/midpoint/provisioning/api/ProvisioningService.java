@@ -501,11 +501,11 @@ public interface ProvisioningService {
     }
 
     /**
-     * Test basic resource connection.
+     * Test partial resource connection.
      *
      * Actually, this is a convenience method for calling {@link #testResource(PrismObject, Task, OperationResult)} with
-     * the {@link ResourceTestOptions#testMode(ResourceTestOptions.TestMode)} set to {@link ResourceTestOptions.TestMode#BASIC}
-     * (more detailed explanation is in the `BASIC` value documentation).
+     * the {@link ResourceTestOptions#testMode(ResourceTestOptions.TestMode)} set to {@link ResourceTestOptions.TestMode#PARTIAL}
+     * (more detailed explanation is in the `PARTIAL` value documentation).
      *
      * @param resource resource to test
      * @return results of executed tests
@@ -518,13 +518,20 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
         return testResource(
                 resource,
-                ResourceTestOptions.basic(),
+                ResourceTestOptions.partial(),
                 task,
                 parentResult);
     }
 
     /**
-     * TODO please document this method
+     * Discovers additional configuration properties. The resource object should contain minimal connector
+     * configuration properties to connect to the resource, then use the connection
+     * to discover additional configuration properties. Discovered configuration properties are returned
+     * from this method as Prism properties wrapped in DiscoveredConfiguration.
+     * DiscoveredConfiguration will be empty if it does not exist.
+     *
+     * @param resource resource with minimal connector configuration
+     * @return Suggested configuration properties wrapped in DiscoveredConfiguration.
      */
     @NotNull DiscoveredConfiguration discoverConfiguration(
             @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);

@@ -8,40 +8,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
     <form wicket:id="valueForm">
-        <div wicket:id="header">
-            <div class="label label-default" wicket:id="label"/>
+        <div class="font-weight-bold" wicket:id="header">
+            <span wicket:id="label"/>
         </div>
-
         <div wicket:id="valueContainer">
-
-            <div wicket:id="input">
-<!--                <div class="panel panel-default">-->
-<!--                    <div class="panel-body" wicket:id="propertiesLabel">-->
-<!--                        <div wicket:id="properties">-->
-<!--                            <div class="row prism-property" wicket:id="property"/>-->
-<!--                        </div>-->
-<!--                        &lt;!&ndash;                    <div class="row">&ndash;&gt;-->
-<!--                        &lt;!&ndash;                        <div class="col-md-2"/>&ndash;&gt;-->
-<!--                        &lt;!&ndash;                        <div class="col-md-10" style="padding-left: 70px;">&ndash;&gt;-->
-<!--                        &lt;!&ndash;                            <div class="show-empty-button" wicket:id="showEmptyButton"/>&ndash;&gt;-->
-<!--                        &lt;!&ndash;                        </div>&ndash;&gt;-->
-<!--                        &lt;!&ndash;                    </div>&ndash;&gt;-->
-<!--                    </div>-->
-
-
-<!--                </div>-->
-<!--                <div wicket:id="containersLabel">-->
-<!--                    <div class="prism-containers" wicket:id="containers">-->
-<!--                        <div class="row prism-container" wicket:id="container"/>-->
-<!--                    </div>-->
-<!--                </div>-->
+            <div wicket:id="input"/>
+            <div class="row" style="margin-left: 15px;">
+                <span wicket:id="feedback" class="text-danger"/>
             </div>
-                    <div class="row" style="margin-left: 15px;">
-                        <span wicket:id="feedback" class="text-danger"/>
-                    </div>
-
         </div>
     </form>
 </wicket:panel>

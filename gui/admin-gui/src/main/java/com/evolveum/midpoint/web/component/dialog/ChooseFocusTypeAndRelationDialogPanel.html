@@ -7,23 +7,21 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div>
-        <div wicket:id="warningFeedback" align="center"/>
-        <div class="form-group" style="display: -webkit-box;">
-            <div class="col-md-12" wicket:id="type"/>
-        </div>
-        <div class="form-group col-md-12">
-            <label class="col-md-4" style="font-weight:normal;">
+    <div class="d-flex flex-column gap-2">
+        <div wicket:id="warningFeedback"/>
+        <div class="row" wicket:id="type"/>
+        <div class="row">
+            <label class="col-md-4 col-form-label font-weight-normal">
                 <wicket:message key="chooseFocusTypeAndRelationDialogPanel.relation"/>
-                <span style="color: #f00;font-weight: bold;" wicket:message="title:prismPropertyPanel.required" wicket:id="relationRequired">*</span>
+                <span class="text-danger font-weight-bold" wicket:message="title:prismPropertyPanel.required" wicket:id="relationRequired">*</span>
             </label>
-            <div class="col-md-8" wicket:id="relation" style="font-weight: normal;"/>
+            <div class="col-md-8" wicket:id="relation"/>
         </div>
-        <div wicket:id="infoMessage" align="center"/>
-        <p align="right" class="form-group">
+        <span class="mb-2 text-center" wicket:id="infoMessage"/>
+        <div class="main-button-bar justify-content-end">
             <a class="btn btn-primary btn-sm" wicket:id="cancel" />
             <a class="btn btn-primary btn-sm" wicket:id="ok" />
             <a class="btn btn-default btn-sm" wicket:id="configureTask" />
-        </p>
+        </div>
     </div>
 </wicket:panel>

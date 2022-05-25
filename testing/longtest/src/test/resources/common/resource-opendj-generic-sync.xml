@@ -226,19 +226,20 @@
     <!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
         Some tests work without running resource, generating fetching capabilities would fail. -->
         <native>
-          <cap:credentials>
-             <cap:password/>
-          </cap:credentials>
-          <cap:liveSync/>
-          <cap:read/>
-          <cap:testConnection/>
-          <cap:script>
-             <cap:host>
-                <cap:type>connector</cap:type>
-             </cap:host>
-          </cap:script>
-      </native>
-      <configured>
+            <cap:schema/>
+            <cap:credentials>
+                <cap:password/>
+            </cap:credentials>
+            <cap:liveSync/>
+            <cap:read/>
+            <cap:testConnection/>
+            <cap:script>
+                <cap:host>
+                    <cap:type>connector</cap:type>
+                </cap:host>
+            </cap:script>
+        </native>
+        <configured>
             <cap:activation>
                 <cap:status>
                     <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>

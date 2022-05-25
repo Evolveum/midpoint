@@ -7,25 +7,26 @@
 
 package com.evolveum.midpoint.web.component;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListMultipleChoice;
 import org.apache.wicket.model.IModel;
 
-import java.util.*;
-
 /**
  * @author lazyman
  */
 public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
 
-    public static final String PROP_BUTTON_CLASS = "buttonClass";
-
     private IModel<Map<String, String>> options;
 
     public DropDownMultiChoice(String id, IModel<List<T>> object, IModel<List<T>> choices,
-                               IChoiceRenderer<T> renderer, IModel<Map<String, String>> options) {
+            IChoiceRenderer<T> renderer, IModel<Map<String, String>> options) {
         super(id, object, choices, renderer);
         this.options = options;
     }
@@ -35,7 +36,7 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initDropdown('").append(getMarkupId()).append("',");
+        sb.append("MidPointTheme.initDropdown('").append(getMarkupId()).append("',");
         appendOptions(sb);
         sb.append(");");
 
@@ -51,7 +52,7 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
         }
 
         sb.append('{');
-       Iterator<Map.Entry<String, String>> keys = map.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> keys = map.entrySet().iterator();
         while (keys.hasNext()) {
             final Map.Entry<String, String> key = keys.next();
             sb.append(key.getKey()).append(":");
@@ -65,7 +66,9 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
 
     private Map<String, String> createDefaultOptions() {
         Map<String, String> map = new HashMap<>();
-        map.put(PROP_BUTTON_CLASS, "btn btn-default btn-sm");
+        map.put("buttonContainer", "<div class=\"dropdown\">");
+        map.put("buttonClass", "custom-select custom-select-sm shadow-none");
+        map.put("buttonTextAlignment", "left");
 
         return map;
     }

@@ -19,7 +19,9 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * TODO
+ * Suggested configuration properties of connector.
+ * Contains collection of PrismProperties with suggested configuration properties.
+ * Collection is empty if connector can't determine any suggestions.
  */
 public class DiscoveredConfiguration implements Serializable, DebugDumpable {
 

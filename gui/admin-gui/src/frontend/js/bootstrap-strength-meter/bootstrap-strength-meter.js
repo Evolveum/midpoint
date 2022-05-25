@@ -33,7 +33,7 @@
             if (typeof options === 'object' && 'hierarchy' in options) {
                 settings.hierarchy = options.hierarchy;
             }
-            settings.passwordScore.options = Score.prototype.options.concat(strengthMeterOptions);
+                settings.passwordScore.options = Score.prototype.options.concat(strengthMeterOptions);
 
             var progressBar;
             var passcheckTimeout;

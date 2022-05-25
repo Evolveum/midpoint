@@ -13,6 +13,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -24,38 +26,35 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author lazyman
  */
 public class LinkPanel extends Panel {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LinkPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LinkPanel.class);
 
     public LinkPanel(String id, IModel labelModel) {
         super(id);
 
-        Link<String> link = new Link<String>(ID_LINK) {
+        Link<String> link = new Link<>(ID_LINK) {
+
             @Override
             public void onClick() {
                 LinkPanel.this.onClick();
             }
-
         };
-        Label label;
-        if(labelModel.getObject() instanceof QName) {
-            label = new Label(ID_LABEL, (IModel<String>) () -> ((QName) labelModel.getObject()).getLocalPart());
-        } else {
-            label = new Label(ID_LABEL, labelModel);
-        }
-        link.add(label);
-        link.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isEnabled() {
-                return LinkPanel.this.isEnabled();
+        Label label = new Label(ID_LABEL, () -> {
+            Object obj = labelModel.getObject();
+            if (obj instanceof QName) {
+                return ((QName) obj).getLocalPart();
             }
+
+            return obj;
         });
+        link.add(label);
+        link.add(new EnableBehaviour(() -> LinkPanel.this.isEnabled()));
         add(link);
     }
 

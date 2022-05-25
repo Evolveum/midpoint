@@ -7,38 +7,25 @@
 package com.evolveum.midpoint.repo.sqale.filtering;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.sql.SQLQuery;
 
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OwnedByFilter;
 import com.evolveum.midpoint.prism.query.ReferencedByFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
-import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver.ResolutionResult;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
+
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -50,19 +37,11 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 public class ReferencedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         implements FilterProcessor<ReferencedByFilter> {
 
-    private static final ItemPath TARGET = ItemPath.create(new ParentPathSegment());
     private final SqaleQueryContext<?, Q, R> context;
-    private final QueryModelMapping<?, Q, R> mapping;
 
-    public ReferencedByFilterProcessor(SqaleQueryContext<?, Q, R> context) {
+    public ReferencedByFilterProcessor(SqaleQueryContext<?, Q, R> context) throws QueryException {
+        QueryException.check(context.mapping() instanceof QObjectMapping, "ReferencedBy can only be used on object");
         this.context = context;
-        this.mapping = context.mapping();
-    }
-
-    private ReferencedByFilterProcessor(
-            SqaleQueryContext<?, Q, R> context, QueryModelMapping<?, Q, R> mapping) {
-        this.context = context;
-        this.mapping = mapping;
     }
 
     @Override
@@ -80,7 +59,6 @@ public class ReferencedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>
         // We use our package private RefFilter and logic in existing ref filter implementation
         // to sneak OID from parent
         targetContext.processFilter(internalRefFilter(path, relation,context.path(QObject.class).oid));
-
         // We add nested filter for referencing object
         targetContext.processFilter(innerFilter);
         return targetContext.sqlQuery().exists();

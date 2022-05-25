@@ -44,7 +44,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
 
     private final AuthenticationSequenceModuleType sequenceModule;
 
-    private final AuthenticationSequenceModuleNecessityType necessity;
+    private AuthenticationSequenceModuleNecessityType necessity;
 
     private final Integer order;
 
@@ -54,7 +54,16 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         this.sequenceModule = sequenceModule;
         this.necessity = sequenceModule.getNecessity();
         this.order = sequenceModule.getOrder();
+
+        resolveDefaults();
+    }
+
+    private void resolveDefaults() {
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
+
+        if (this.necessity == null) {
+            this.necessity = AuthenticationSequenceModuleNecessityType.SUFFICIENT;
+        }
     }
 
     public String getNameOfModuleType() {

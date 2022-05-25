@@ -464,7 +464,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected boolean isCreateNewObjectEnabled() {
-        return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD);
+        return !isCollectionViewPanel() || !getNewObjectInfluencesList().isEmpty();
     }
 
     @NotNull
