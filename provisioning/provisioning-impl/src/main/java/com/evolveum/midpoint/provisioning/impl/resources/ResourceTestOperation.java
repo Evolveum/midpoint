@@ -168,12 +168,12 @@ class ResourceTestOperation {
 
             // We don't want to fetch schema/capabilities at all.
             argCheck(completionMode == null || completionMode == ResourceCompletionMode.NEVER,
-                    "Unsupported completion mode for basic test: %s", completionMode);
+                    "Unsupported completion mode for partial test: %s", completionMode);
             options = options.resourceCompletionMode(ResourceCompletionMode.NEVER);
 
             // Never update the repository!
             argCheck(!Boolean.TRUE.equals(isUpdateInRepository),
-                    "Repository updates are not supported for basic test: %s", isUpdateInRepository);
+                    "Repository updates are not supported for partial test: %s", isUpdateInRepository);
             options = options.updateInRepository(false);
 
             // In-memory updates can be on or off, it does not matter here. Just set the default.
@@ -409,7 +409,7 @@ class ResourceTestOperation {
     }
 
     /**
-     * Tests a specific connector, in a basic or full mode.
+     * Tests a specific connector, in a partial or full mode.
      */
     private class TestConnectorOperation {
 
@@ -557,7 +557,7 @@ class ResourceTestOperation {
                     case FULL:
                         connector.test(result);
                         break;
-                    case BASIC:
+                    case PARTIAL:
                         connector.testPartialConfiguration(result);
                         break;
                     default:
