@@ -499,11 +499,11 @@ public interface ProvisioningService {
     }
 
     /**
-     * Test basic resource connection.
+     * Test partial resource connection.
      *
      * Actually, this is a convenience method for calling {@link #testResource(PrismObject, Task, OperationResult)} with
-     * the {@link ResourceTestOptions#testMode(ResourceTestOptions.TestMode)} set to {@link ResourceTestOptions.TestMode#BASIC}
-     * (more detailed explanation is in the `BASIC` value documentation).
+     * the {@link ResourceTestOptions#testMode(ResourceTestOptions.TestMode)} set to {@link ResourceTestOptions.TestMode#PARTIAL}
+     * (more detailed explanation is in the `PARTIAL` value documentation).
      *
      * @param resource resource to test
      * @return results of executed tests
@@ -516,7 +516,7 @@ public interface ProvisioningService {
             @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
         return testResource(
                 resource,
-                ResourceTestOptions.basic(),
+                ResourceTestOptions.partial(),
                 task,
                 parentResult);
     }

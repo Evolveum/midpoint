@@ -14,7 +14,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  */
 public class ResourceTestOptions extends AbstractOptions implements Serializable, Cloneable, ShortDumpable {
 
-    /** Full or basic? */
+    /** Full or partial? */
     private final TestMode testMode;
 
     /** Whether to update cached (in-definition) capabilities and schema. */
@@ -60,8 +60,8 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
         return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
     }
 
-    public static ResourceTestOptions basic() {
-        return new ResourceTestOptions().testMode(TestMode.BASIC);
+    public static ResourceTestOptions partial() {
+        return new ResourceTestOptions().testMode(TestMode.PARTIAL);
     }
 
     public boolean isFullMode() {
@@ -135,12 +135,12 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
         FULL,
 
         /**
-         * Only the basic connectivity on the main connector is tested. Corresponds to "testPartialConfiguration" method.
+         * Only the partial connectivity on the main connector is tested. Corresponds to "testPartialConfiguration" method.
          * Resource in repository is never updated in this mode. Resource is never completed. (Attempt to set these
          * options to enable this behavior leads to a failure.) In-memory updates are disabled by default, but can be
          * enabled.
          */
-        BASIC
+        PARTIAL
     }
 
     /** Whether capabilities and schema should be written back to the resource (into repository or in-memory version). */
