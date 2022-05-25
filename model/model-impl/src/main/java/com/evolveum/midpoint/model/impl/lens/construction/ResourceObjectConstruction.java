@@ -100,7 +100,8 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
      * which are created here (based on tag mapping evaluation).
      */
     public NextRecompute evaluate(Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
         // Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
         // AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
         OperationResult result = parentResult.createMinorSubresult(getClass().getName() + ".evaluate"); // different for each subclass

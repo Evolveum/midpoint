@@ -749,6 +749,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        // TODO are we OK with "any" account definition?
         ResourceObjectTypeDefinition rAccountDef = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
