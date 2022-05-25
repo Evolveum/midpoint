@@ -492,36 +492,37 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         }
         if (availableFilterList != null) {
-            availableFilterList.forEach(filter -> {
-                PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
-                InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public InlineMenuItemAction initAction() {
-                        return new InlineMenuItemAction() {
-
+            availableFilterList.stream().filter(filter -> getModelObject().getSearchMode().equals(filter.getSearchMode()))
+                    .forEach(filter -> {
+                        PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
+                        InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                if (filter == null) {
-                                    return;
-                                }
-                                if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
-                                    applyFilterToBasicMode(filter.getSearchItem());
-                                } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
-                                    applyFilterToAxiomMode(filter.getSearchItem());
-                                } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
-                                    applyFilterToFulltextMode(filter.getSearchItem());
-                                }
-                                searchPerformed(target);
+                            public InlineMenuItemAction initAction() {
+                                return new InlineMenuItemAction() {
+
+                                    private static final long serialVersionUID = 1L;
+
+                                    @Override
+                                    public void onClick(AjaxRequestTarget target) {
+                                        if (filter == null) {
+                                            return;
+                                        }
+                                        if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
+                                            applyFilterToBasicMode(filter.getSearchItem());
+                                        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
+                                            applyFilterToAxiomMode(filter.getSearchItem());
+                                        } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
+                                            applyFilterToFulltextMode(filter.getSearchItem());
+                                        }
+                                        searchPerformed(target);
+                                    }
+                                };
                             }
                         };
-                    }
-                };
-                savedSearchItems.add(searchItem);
-            });
+                        savedSearchItems.add(searchItem);
+                    });
         }
         return savedSearchItems;
     }
