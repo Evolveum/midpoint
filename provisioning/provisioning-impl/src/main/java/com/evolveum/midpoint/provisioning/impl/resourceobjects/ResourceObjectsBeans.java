@@ -18,9 +18,9 @@ class ResourceObjectsBeans {
     // Local ones
     @Autowired ResourceObjectConverter resourceObjectConverter;
     @Autowired FakeIdentifierGenerator fakeIdentifierGenerator;
+    @Autowired DelineationProcessor delineationProcessor;
 
     // From other parts of the code
-    @Autowired EntitlementConverter entitlementConverter;
     @Autowired CacheConfigurationManager cacheConfigurationManager;
 
 }

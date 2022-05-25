@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -29,7 +30,8 @@ import java.util.Collection;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
- * Methods for determining object definition for given kind/intent/object class.
+ * Methods for determining object definition for given kind/intent/object class. They build upon basic methods
+ * for definition lookup in {@link ResourceSchema}.
  *
  * There are two basic methods:
  *
@@ -70,12 +72,12 @@ public class ResourceObjectDefinitionResolver {
         String intent;
 
         // Ignoring "UNKNOWN" values
-        if (shadow.getKind() == null || shadow.getKind() == ShadowKindType.UNKNOWN) {
+        if (ShadowUtil.isNotKnown(shadow.getKind())) {
             kind = null;
             intent = null;
         } else {
             kind = shadow.getKind();
-            if (SchemaConstants.INTENT_UNKNOWN.equals(shadow.getIntent())) {
+            if (ShadowUtil.isNotKnown(shadow.getIntent())) {
                 intent = null;
             } else {
                 intent = shadow.getIntent();
