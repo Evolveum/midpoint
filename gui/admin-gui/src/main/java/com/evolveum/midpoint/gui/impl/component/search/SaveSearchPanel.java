@@ -150,6 +150,11 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             if (fulltextSearchItem != null) {
                 availableFilter.getSearchItem().add(fulltextSearchItem);
             }
+        } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
+            SearchItemType oidtSearchItem = createOidSearchItem(getModelObject().findOidSearchItemWrapper());
+            if (oidtSearchItem != null) {
+                availableFilter.getSearchItem().add(oidtSearchItem);
+            }
         }
         saveSearchItemToAdminConfig(availableFilter);
     }
@@ -189,7 +194,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter));
             return axiomSearchItem;
         } catch (SchemaException e) {
-            LOGGER.error("Unable to create parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
+            LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
         }
         return null;
     }
@@ -203,7 +208,19 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             fulltextSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
             return fulltextSearchItem;
         } catch (SchemaException e) {
-            LOGGER.error("Unable to create parse axiom filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
+            LOGGER.error("Unable to create fulltext filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    private SearchItemType createOidSearchItem(OidSearchItemWrapper oidSearchItemWrapper) {
+        try {
+            SearchItemType oidSearchItem = new SearchItemType();
+            ObjectFilter filter = oidSearchItemWrapper.createFilter(getModelObject().getTypeClass(), getPageBase(), null);
+            oidSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
+            return oidSearchItem;
+        } catch (SchemaException e) {
+            LOGGER.error("Unable to create oid filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
         }
         return null;
     }

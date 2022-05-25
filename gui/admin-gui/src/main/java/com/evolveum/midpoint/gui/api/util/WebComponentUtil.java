@@ -5344,6 +5344,7 @@ public final class WebComponentUtil {
                 return null;
             }
             objectListView = new GuiObjectListViewType();
+            objectListView.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), viewType));
             views.getObjectCollectionView().add(objectListView);
         }
         return objectListView;
