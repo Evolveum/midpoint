@@ -13,6 +13,8 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,9 +165,8 @@ class DelineationMatcher {
                 MiscUtil.requireNonNull(
                         equalFilter.getDefinition(),
                         () -> new IllegalStateException("No definition in " + filter));
-        QName matchingRuleQName = definition.getMatchingRuleQName();
-        if (!PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME.equals(matchingRuleQName)) {
-            LOGGER.debug("Base context filter is not DN-based: {}", matchingRuleQName);
+        if (!isDistinguishedNameType(definition)) {
+            LOGGER.debug("Base context filter is not DN-based: {}", definition);
             return null;
         }
         PrismPropertyValue<?> rootValue = equalFilter.getSingleValue();
@@ -215,12 +216,16 @@ class DelineationMatcher {
     private ResourceAttribute<?> selectDistinguishedNameIdentifier(Collection<ResourceAttribute<?>> identifiers) {
         for (ResourceAttribute<?> identifier : identifiers) {
             ResourceAttributeDefinition<?> definition = identifier.getDefinition();
-            if (definition != null
-                    && PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME.equals(definition.getMatchingRuleQName())) {
+            if (isDistinguishedNameType(definition)) {
                 return identifier;
             }
         }
         return null;
+    }
+
+    private boolean isDistinguishedNameType(PrismPropertyDefinition<?> definition) {
+        return definition != null
+                && QNameUtil.match(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, definition.getMatchingRuleQName());
     }
 
     private boolean filterMatches() throws SchemaException {
