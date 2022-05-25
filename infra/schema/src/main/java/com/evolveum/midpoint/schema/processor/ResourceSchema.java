@@ -442,13 +442,4 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     default boolean isRaw() {
         return getObjectTypeDefinitions().isEmpty();
     }
-
-    /**
-     * Returns all {@link SynchronizationPolicy} objects that can be found in given resource definition
-     * (that this schema belongs to).
-     */
-    default Collection<SynchronizationPolicy> getAllSynchronizationPolicies(ResourceType resource)
-            throws ConfigurationException {
-        return SynchronizationPolicyFactory.getAllPolicies(this, resource);
-    }
 }

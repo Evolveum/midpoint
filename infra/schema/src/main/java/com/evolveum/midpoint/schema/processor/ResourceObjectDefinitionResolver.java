@@ -87,6 +87,7 @@ public class ResourceObjectDefinitionResolver {
         if (kind != null) {
             structuralDefinition = resourceSchema.findObjectDefinition(kind, intent, objectClassName);
         } else if (objectClassName != null) {
+            // TODO or findObjectClassDefinition?
             structuralDefinition = resourceSchema.findDefinitionForObjectClass(objectClassName);
         } else {
             structuralDefinition = null;
@@ -179,6 +180,7 @@ public class ResourceObjectDefinitionResolver {
             // Kind is null or unknown, so the object class name must be specified
             // FIXME Sometimes we want to look for the raw OC definition, e.g. when searching for all items in OC. (MID-7470.)
             //  But maybe that's out of scope of this method, and should be resolved in ProvisioningContextFactory.
+            // TODO or findObjectClassDefinition here?
             objectDefinition = resourceSchema.findDefinitionForObjectClass(objectClassName);
             if (objectDefinition == null) {
                 throw new ConfigurationException("No object type or class definition for object class: " + objectClassName

@@ -155,7 +155,7 @@ class DelineationMatcher {
         }
         ResourceObjectDefinition scopeObjectClassDefinition = Resource.of(context.getResource())
                 .getRawSchemaRequired()
-                .findDefinitionForObjectClassRequired(rootObjectClassName);
+                .findDefinitionForObjectClassRequired(rootObjectClassName); // TODO or findObjectClassDefinitionRequired?
         ObjectFilter filter = QueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
         if (!(filter instanceof EqualFilter)) {
             LOGGER.debug("Base context filter not supported for classification: {}", filter);
