@@ -1,11 +1,15 @@
 /*
- * Copyright (C) 2016-2020 Evolveum and contributors
+ * Copyright (c) 2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.self;
+package com.evolveum.midpoint.gui.impl.page.self;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.DetailsMenuPanel;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PersonOfInterestPanel;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
+import com.evolveum.midpoint.web.page.self.PageSelf;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -19,8 +23,6 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardBorder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.self.component.PersonOfInterestPanel;
-import com.evolveum.midpoint.web.page.self.component.RoleCatalogPanel;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -96,5 +98,8 @@ public class PageRequestAccess extends PageSelf {
         };
         roleCatalog.add(wizard.createWizardStepVisibleBehaviour(1));
         wizard.add(roleCatalog);
+
+        //todo delete
+        add(new DetailsMenuPanel("menu"));
     }
 }

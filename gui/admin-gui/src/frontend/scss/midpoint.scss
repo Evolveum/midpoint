@@ -1753,3 +1753,32 @@ th.debug-list-buttons {
 .user-panel {
   border-bottom: 0 !important;
 }
+
+.tile-panel {
+  width: 250px;
+  height: 250px;
+  border: 2px solid $white;
+  border-radius: $border-radius;
+  cursor: pointer;
+
+  &:hover {
+    border: 2px solid $lightblue;
+    border-radius: $border-radius;
+  }
+}
+
+.details-menu-panel {
+  min-width: 273px;
+
+  & > ul {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & > li {
+      display: flex;
+      flex-flow: column;
+    }
+  }
+}
