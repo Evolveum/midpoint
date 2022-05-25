@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -134,8 +135,8 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         Expression<PrismPropertyValue<NotificationMessageType>, PrismPropertyDefinition<NotificationMessageType>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
         return exprResult.getZeroSet().stream().map(PrismPropertyValue::getValue).collect(Collectors.toList());
     }
 }

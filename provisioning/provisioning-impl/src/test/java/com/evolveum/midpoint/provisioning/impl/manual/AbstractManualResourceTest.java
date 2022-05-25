@@ -317,8 +317,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, task, result).asObjectable();
 
         // THEN
-        display("Resource from provisioninig", resource);
-        displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        display("Resource from provisioning", resource);
+        displayValue("Resource from provisioning (XML)", PrismTestUtil.serializeToXml(resource));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));

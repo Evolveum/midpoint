@@ -120,15 +120,10 @@ public class ProvisioningUtil {
         return scriptOperation;
     }
 
-    public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+    // To be called via ProvisioningContext
+    public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) {
 
         ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
-
-        // The following can be empty if the definition is raw
-        Collection<? extends ResourceAttributeDefinition<?>> refinedAttributeDefinitions =
-                resourceObjectDefinition.getAttributeDefinitions();
 
         ResourceType resource = ctx.getResource();
 

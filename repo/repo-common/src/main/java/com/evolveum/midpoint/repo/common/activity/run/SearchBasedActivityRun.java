@@ -319,7 +319,7 @@ public abstract class SearchBasedActivityRun<
 
                 case NARROW_QUERY:
                     ObjectQuery failureNarrowedQuery =
-                            ObjectQueryUtil.addConjunctions(query, getPrismContext(), failedObjectsFilter);
+                            ObjectQueryUtil.addConjunctions(query, failedObjectsFilter);
                     LOGGER.trace("{}: query narrowed to select failed objects only:\n{}", shortName,
                             DebugUtil.debugDumpLazily(failureNarrowedQuery));
                     return failureNarrowedQuery;

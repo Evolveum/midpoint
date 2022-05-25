@@ -23,7 +23,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/newObjectTemplate")
+                @Url(mountUrl = "/admin/objectTemplate")
         },
         encoder = OnePageParameterEncoder.class,
         action = {

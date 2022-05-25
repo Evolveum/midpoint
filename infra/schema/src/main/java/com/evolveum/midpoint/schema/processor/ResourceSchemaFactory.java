@@ -39,14 +39,33 @@ public class ResourceSchemaFactory {
      */
     public static @NotNull ResourceSchema getCompleteSchemaRequired(@NotNull ResourceType resource)
             throws ConfigurationException, SchemaException {
-        return MiscUtil.requireNonNull(
+        return requireSchemaPresent(
                 getCompleteSchema(resource),
-                () -> new ConfigurationException("No schema in " + resource));
+                resource);
+    }
+
+    private static @NotNull ResourceSchema requireSchemaPresent(ResourceSchema schema, @NotNull ResourceType resource)
+            throws ConfigurationException {
+        return MiscUtil.requireNonNull(
+                schema,
+                () -> new ConfigurationException("No schema in " + resource + ". A configuration problem?"));
     }
 
     public static ResourceSchema getCompleteSchema(ResourceType resourceType, LayerType layer)
             throws SchemaException, ConfigurationException {
         return getCompleteSchema(resourceType.asPrismObject(), layer);
+    }
+
+    public static @NotNull ResourceSchema getCompleteSchemaRequired(PrismObject<ResourceType> resource, LayerType layer)
+            throws SchemaException, ConfigurationException {
+        return getCompleteSchemaRequired(resource.asObjectable(), layer);
+    }
+
+    public static @NotNull ResourceSchema getCompleteSchemaRequired(ResourceType resource, LayerType layer)
+            throws SchemaException, ConfigurationException {
+        return requireSchemaPresent(
+                getCompleteSchema(resource.asPrismObject(), layer),
+                resource);
     }
 
     /**
@@ -105,10 +124,10 @@ public class ResourceSchemaFactory {
                 resource.asPrismObject());
     }
 
-    public static ResourceSchema getRawSchemaRequired(ResourceType resource) throws SchemaException {
-        return MiscUtil.requireNonNull(
+    public static ResourceSchema getRawSchemaRequired(ResourceType resource) throws SchemaException, ConfigurationException {
+        return requireSchemaPresent(
                 getRawSchema(resource),
-                () -> "No schema in " + resource);
+                resource);
     }
 
     /**

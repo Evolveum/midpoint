@@ -238,8 +238,8 @@ public class SyncTaskHelper {
         if (refinedSchema != null) {
             return refinedSchema;
         } else {
-            throw new ActivityRunException("No refined schema defined. Probably some configuration problem.", FATAL_ERROR,
-                    PERMANENT_ERROR);
+            throw new ActivityRunException(
+                    "No schema present. Probably some configuration problem.", FATAL_ERROR, PERMANENT_ERROR);
         }
     }
 

@@ -73,7 +73,9 @@
             <kind>account</kind>
             <intent>trap</intent>
             <displayName>Trap Account</displayName>
-            <default>true</default>
+            <!-- Cannot be marked as defaultForClass, because the new (4.6) classifier automatically
+                 prefers it over non-default ones. -->
+            <defaultForKind>true</defaultForKind>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>ri:ship</ref>
@@ -93,6 +95,8 @@
             <kind>account</kind>
             <intent>default</intent>
             <displayName>Default Account</displayName>
+            <!-- Not the default one, but 4.6 classification algorithm prefers this one because
+                 the legacy synchronization section is present. -->
             <default>false</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <baseContext>

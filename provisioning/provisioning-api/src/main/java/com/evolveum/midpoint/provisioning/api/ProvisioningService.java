@@ -12,6 +12,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -653,12 +655,29 @@ public interface ProvisioningService {
     SystemConfigurationType getSystemConfiguration();
 
     /**
-     * Provides a classifier to the provisioning service.
+     * Provides a sorter evaluator to the provisioning service.
      */
-    void setResourceObjectClassifier(ResourceObjectClassifier classifier);
+    void setSynchronizationSorterEvaluator(SynchronizationSorterEvaluator evaluator);
 
     /**
-     * Provides a shadow tag generator to the provisioning service.
+     * TODO
      */
-    void setShadowTagGenerator(ShadowTagGenerator generator);
+    @NotNull ResourceObjectClassification classifyResourceObject(
+            @NotNull ShadowType combinedObject,
+            @NotNull ResourceType resource,
+            @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * TODO
+     */
+    @Nullable String generateShadowTag(
+            @NotNull ShadowType combinedObject,
+            @NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeDefinition definition,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }

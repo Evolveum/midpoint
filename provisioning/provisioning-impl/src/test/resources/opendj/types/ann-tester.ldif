@@ -1,0 +1,10 @@
+dn: uid=ann,ou=special,dc=example,dc=com
+uid: ann
+cn: Ann the Tester
+sn: Tester
+givenName: Ann
+businessCategory: tester
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson

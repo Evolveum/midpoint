@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -105,12 +106,12 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
     }
 
     private void execute(Task task, OperationResult result, CheckedRunnable runnable) throws CommonException {
-        ExpressionEnvironment<?, ?, ?> environment = new ExpressionEnvironment<>(task, result);
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(environment);
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ExpressionEnvironment(task, result));
         try {
             runnable.run();
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 }

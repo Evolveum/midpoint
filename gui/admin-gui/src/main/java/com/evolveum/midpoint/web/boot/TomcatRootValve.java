@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

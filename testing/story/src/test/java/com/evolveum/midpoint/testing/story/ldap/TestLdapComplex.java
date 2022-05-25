@@ -43,11 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Complex LDAP tests:
- * <p>
+ *
  * Testing PolyString all the way to LDAP connector. The PolyString data should be translated
  * to LDAP "language tag" attributes (attribute options).
  * MID-5210
- * <p>
+ *
  * search scope limited to "one" (MID-5485)
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
@@ -58,7 +58,6 @@ public class TestLdapComplex extends AbstractLdapTest {
 
     private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final File ORG_PROJECT_TOP_FILE = new File(TEST_DIR, "org-project-top.xml");
     private static final String ORG_PROJECT_TOP_OID = "4547657c-e9bc-11e9-87d6-ef7cd13d2828";
@@ -188,7 +187,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();
@@ -242,7 +241,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
         displayDumpable("Query", query);
 
         // WHEN
@@ -829,15 +828,19 @@ public class TestLdapComplex extends AbstractLdapTest {
         then();
         assertSuccess(result);
 
-        PolyString descriptionShadowAttribute = (PolyString) assertShadow(shadow, "Jack's shadow after read")
-                .attributes()
-                .attribute(LDAP_ATTRIBUTE_DESCRIPTION)
-                .assertIncomplete()
-                .singleValue()
-                .getPrismValue().getRealValue();
+        // @formatter:off
+        PolyString descriptionShadowAttribute =
+                assertShadow(shadow, "Jack's shadow after read")
+                        .attributes()
+                            .attribute(LDAP_ATTRIBUTE_DESCRIPTION)
+                                .assertIncomplete()
+                                .singleValue()
+                                    .getRealValueRequired(PolyString.class);
+        // @formatter:on
 
         assertTrue("Unexpected value of description attribute from shadow: " + descriptionShadowAttribute,
-                USER_JACK_FULL_NAME_CAPTAIN.equals(descriptionShadowAttribute.getOrig()) || USER_JACK_BLAHBLAH.equals(descriptionShadowAttribute.getOrig()));
+                USER_JACK_FULL_NAME_CAPTAIN.equals(descriptionShadowAttribute.getOrig())
+                        || USER_JACK_BLAHBLAH.equals(descriptionShadowAttribute.getOrig()));
 
         accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
         display("Ruined LDAP entry after", accountEntry);
@@ -857,7 +860,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();
@@ -892,7 +895,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID);
 
         // WHEN
         when();

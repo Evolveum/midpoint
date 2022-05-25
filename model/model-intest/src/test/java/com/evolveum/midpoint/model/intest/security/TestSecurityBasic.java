@@ -1318,8 +1318,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
         assertSearch(ShadowType.class, prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
-                        new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
+                ObjectQueryUtil.createResourceAndObjectClassFilter(
+                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"))), 0);
 
         assertGlobalStateUntouched();
     }
@@ -1505,8 +1505,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
         assertSearch(ShadowType.class, prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
-                        new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
+                ObjectQueryUtil.createResourceAndObjectClassFilter(
+                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"))), 0);
     }
 
     private void assertJack24xManager(boolean fullControl) throws Exception {
@@ -1579,8 +1579,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         result = task.getResult();
 
         ObjectQuery query = prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
-                        new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
+                ObjectQueryUtil.createResourceAndObjectClassFilter(
+                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass")));
 
         // When finally fixed is should be like this:
 //        assertSearch(ShadowType.class, query, 2);
@@ -1659,8 +1659,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
-                        new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
+                ObjectQueryUtil.createResourceAndObjectClassFilter(
+                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass")));
 
         // When finally fixed is should be like this:
 //        assertSearch(ShadowType.class, query, 2);

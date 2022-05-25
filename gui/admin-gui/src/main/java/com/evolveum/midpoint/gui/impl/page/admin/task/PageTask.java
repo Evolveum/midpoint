@@ -36,7 +36,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/taskNew")
+                @Url(mountUrl = "/admin/task")
         },
         encoder = OnePageParameterEncoder.class,
         action = {

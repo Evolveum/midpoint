@@ -2126,7 +2126,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 filter.getConditions().add(attrFilter);
             }
         } else {
-            query = ObjectQueryUtil.createResourceQuery(RESOURCE_DUMMY_OID, prismContext);
+            query = ObjectQueryUtil.createResourceQuery(RESOURCE_DUMMY_OID);
             if (attrFilter != null) {
                 query.setFilter(prismContext.queryFactory().createAnd(query.getFilter(), attrFilter));
             }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -518,5 +519,13 @@ public class ProvisioningContext {
             throws SchemaException {
         return getObjectDefinitionRequired()
                 .findAttributeDefinitionRequired(name, contextSupplier);
+    }
+
+    /**
+     * It's more logical to call this method right on {@link ProvisioningContext}. The exact placement of the implementation
+     * is to be decided yet.
+     */
+    public AttributesToReturn createAttributesToReturn() {
+        return ProvisioningUtil.createAttributesToReturn(this);
     }
 }

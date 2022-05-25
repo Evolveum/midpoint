@@ -154,7 +154,7 @@ public class ShadowCleanupActivityHandler
                     .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
                     .buildFilter();
 
-            ObjectQuery fullQuery = ObjectQueryUtil.addConjunctions(configuredQuery, prismContext, syncTimestampFilter);
+            ObjectQuery fullQuery = ObjectQueryUtil.addConjunctions(configuredQuery, syncTimestampFilter);
 
             LOGGER.trace("Query with sync timestamp filter:\n{}", fullQuery.debugDumpLazily());
             return fullQuery;

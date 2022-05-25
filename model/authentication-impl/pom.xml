@@ -42,6 +42,11 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -58,11 +63,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 

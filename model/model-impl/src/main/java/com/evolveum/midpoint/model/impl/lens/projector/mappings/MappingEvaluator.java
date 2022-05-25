@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSe
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,7 +42,8 @@ import org.springframework.stereotype.Component;
  * Responsibilities besides calling that method:
  *
  * 1. Checking if mapping is enabled.
- * 2. Creating and pushing {@link ExpressionEnvironment} to {@link ModelExpressionThreadLocalHolder} (and popping it afterwards).
+ * 2. Creating and pushing {@link ModelExpressionEnvironment} to {@link ExpressionEnvironmentThreadLocalHolder}
+ * (and popping it afterwards).
  * 3. Informing the watchers:
  *    - recording mapping evaluation in {@link StatisticsCollector},
  *    - invoking {@link ClockworkInspector}.
@@ -90,8 +92,8 @@ public class MappingEvaluator {
             return;
         }
 
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                new ExpressionEnvironment.ExpressionEnvironmentBuilder<F, V, D>()
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<F, V, D>()
                         .lensContext(lensContext)
                         .projectionContext(projContext)
                         .mapping(mapping)
@@ -118,7 +120,7 @@ public class MappingEvaluator {
                 throw e; // To make compiler happy
             }
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             recordMappingOperation(mapping, task, start);
             inspectMappingOperation(mapping, lensContext);
         }

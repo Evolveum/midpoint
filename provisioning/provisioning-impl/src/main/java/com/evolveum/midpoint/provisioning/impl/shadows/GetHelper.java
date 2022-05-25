@@ -233,7 +233,9 @@ class GetHelper {
 
             try {
 
-                resourceObject = resourceObjectConverter.getResourceObject(ctx, identifiers, repoShadow, true, parentResult);
+                resourceObject =
+                        resourceObjectConverter.getResourceObject(
+                                ctx, identifiers, repoShadow, true, parentResult);
 
             } catch (ObjectNotFoundException e) {
                 // This may be OK, e.g. for connectors that have running async add operation.

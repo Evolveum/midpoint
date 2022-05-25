@@ -21,6 +21,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -34,8 +36,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
@@ -116,11 +116,12 @@ public class ReportServiceImpl implements ReportService {
 
             scriptExpression.setFunctions(createFunctionLibraries(scriptExpression.getFunctions()));
 
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                    new ExpressionEnvironment(context.getTask(), context.getResult()));
             try {
                 return scriptExpression.evaluate(context);
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         } else {
             return ExpressionUtil.evaluateExpressionNative(null, variables, null, expression,

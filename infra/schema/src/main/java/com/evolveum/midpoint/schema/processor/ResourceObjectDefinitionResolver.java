@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -29,7 +30,8 @@ import java.util.Collection;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
- * Methods for determining object definition for given kind/intent/object class.
+ * Methods for determining object definition for given kind/intent/object class. They build upon basic methods
+ * for definition lookup in {@link ResourceSchema}.
  *
  * There are two basic methods:
  *
@@ -70,12 +72,12 @@ public class ResourceObjectDefinitionResolver {
         String intent;
 
         // Ignoring "UNKNOWN" values
-        if (shadow.getKind() == null || shadow.getKind() == ShadowKindType.UNKNOWN) {
+        if (ShadowUtil.isNotKnown(shadow.getKind())) {
             kind = null;
             intent = null;
         } else {
             kind = shadow.getKind();
-            if (SchemaConstants.INTENT_UNKNOWN.equals(shadow.getIntent())) {
+            if (ShadowUtil.isNotKnown(shadow.getIntent())) {
                 intent = null;
             } else {
                 intent = shadow.getIntent();
@@ -87,6 +89,7 @@ public class ResourceObjectDefinitionResolver {
         if (kind != null) {
             structuralDefinition = resourceSchema.findObjectDefinition(kind, intent, objectClassName);
         } else if (objectClassName != null) {
+            // TODO or findObjectClassDefinition?
             structuralDefinition = resourceSchema.findDefinitionForObjectClass(objectClassName);
         } else {
             structuralDefinition = null;
@@ -179,6 +182,7 @@ public class ResourceObjectDefinitionResolver {
             // Kind is null or unknown, so the object class name must be specified
             // FIXME Sometimes we want to look for the raw OC definition, e.g. when searching for all items in OC. (MID-7470.)
             //  But maybe that's out of scope of this method, and should be resolved in ProvisioningContextFactory.
+            // TODO or findObjectClassDefinition here?
             objectDefinition = resourceSchema.findDefinitionForObjectClass(objectClassName);
             if (objectDefinition == null) {
                 throw new ConfigurationException("No object type or class definition for object class: " + objectClassName

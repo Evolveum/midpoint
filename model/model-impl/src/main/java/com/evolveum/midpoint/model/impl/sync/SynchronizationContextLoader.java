@@ -16,10 +16,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
-import com.evolveum.midpoint.model.impl.classification.SynchronizationSorterEvaluation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -80,7 +79,7 @@ class SynchronizationContextLoader {
         return syncCtx;
     }
 
-    <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
+    private <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
             @NotNull ShadowType shadow,
             ObjectDelta<ShadowType> resourceObjectDelta,
             @NotNull ResourceType originalResource,
@@ -114,8 +113,11 @@ class SynchronizationContextLoader {
                         .build();
 
         ObjectSynchronizationDiscriminatorType sorterResult =
-                new SynchronizationSorterEvaluation(processingContext)
-                        .evaluate(result);
+                beans.synchronizationSorterEvaluator.evaluate(
+                        shadow,
+                        processingContext.getResource(),
+                        task,
+                        result);
 
         ResourceObjectTypeDefinition definition = determineTypeDefinition(processingContext, schema, sorterResult, result);
 
@@ -164,8 +166,13 @@ class SynchronizationContextLoader {
         ShadowKindType kind = shadow.getKind();
         String intent = shadow.getIntent();
         if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
-            return beans.resourceObjectClassifier
-                    .classify(processingContext, sorterResult, result)
+            return beans.provisioningService
+                    .classifyResourceObject(
+                            processingContext.getShadowedResourceObject(),
+                            processingContext.getResource(),
+                            sorterResult,
+                            processingContext.getTask(),
+                            result)
                     .getDefinition();
         } else {
             return schema != null ? schema.findObjectTypeDefinition(kind, intent) : null;
@@ -181,7 +188,12 @@ class SynchronizationContextLoader {
         ShadowType shadow = processingContext.getShadowedResourceObject();
         if (shadow.getTag() == null) {
             if (definition != null) {
-                return beans.shadowTagGenerator.generateTag(processingContext, definition, result);
+                return beans.provisioningService.generateShadowTag(
+                        processingContext.getShadowedResourceObject(),
+                        processingContext.getResource(),
+                        definition,
+                        processingContext.getTask(),
+                        result);
             } else {
                 return null;
             }

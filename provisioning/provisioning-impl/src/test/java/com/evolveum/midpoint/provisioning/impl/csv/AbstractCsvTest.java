@@ -239,8 +239,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         // THEN
         display("Resource from provisioning", resource);
-        displayValue("Resource from provisioning (XML)",
-                PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from provisioning (XML)", PrismTestUtil.serializeToXml(resource));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         assertFalse("Empty capabilities returned", CapabilityUtil.isEmpty(nativeCapabilities));

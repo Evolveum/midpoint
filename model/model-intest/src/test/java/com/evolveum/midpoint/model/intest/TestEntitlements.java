@@ -338,7 +338,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> groupMapmakersShadow = findLiveShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
         assertShadow(groupMapmakersShadow, "mapmakers shadow")
                 .assertKind(ShadowKindType.ENTITLEMENT)
-                .assertIntent("unknown"); // This is due to missing synchronization section for groups in the dummy resource.
+                .assertIntent("group");
 
         String accountWallyOid = assertUserAfterByUsername(USER_WALLY_NAME)
                 .singleLink()

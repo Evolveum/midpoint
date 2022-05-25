@@ -9,10 +9,10 @@ package com.evolveum.midpoint.model.impl.sync.reactions;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -111,7 +111,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         VariablesMap variables = syncCtx.createVariablesMap();
         try {
             Task task = syncCtx.getTask();
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ModelExpressionEnvironment<>(task, result));
             boolean value = ExpressionUtil.evaluateConditionDefaultFalse(
                     variables,
                     condition,
@@ -125,7 +125,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
             }
             return value;
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 

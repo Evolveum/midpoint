@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -19,7 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Describes an environment in which an {@link Expression} is evaluated.
  * Points to lens/projection context, and/or the mapping involved (if applicable).
- * Contains current task and operation result (if known - but it is usually so).
+ *
+ * Contains current task and operation result (if known - but it is usually so) - inheriting from {@link ExpressionEnvironment}.
  *
  * Usually contained in some kind of a thread-local holder.
  *
@@ -29,32 +31,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @param <V> type of {@link PrismValue} the mapping produces
  * @param <D> type of {@link ItemDefinition} of the item the mapping produces
  */
-public class ExpressionEnvironment<F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>> {
+public class ModelExpressionEnvironment<F extends ObjectType, V extends PrismValue, D extends ItemDefinition<?>>
+        extends ExpressionEnvironment {
 
     private final ModelContext<F> lensContext;
     private final ModelProjectionContext projectionContext;
     private final Mapping<V, D> mapping;
-    private final Task currentTask;
-    private final OperationResult currentResult;
 
-    private ExpressionEnvironment(
+    private ModelExpressionEnvironment(
             ModelContext<F> lensContext,
             ModelProjectionContext projectionContext,
             Mapping<V, D> mapping,
             Task currentTask, OperationResult currentResult) {
+        super(currentTask, currentResult);
         this.lensContext = lensContext;
         this.projectionContext = projectionContext;
         this.mapping = mapping;
-        this.currentResult = currentResult;
-        this.currentTask = currentTask;
     }
 
-    public ExpressionEnvironment(Task currentTask, OperationResult currentResult) {
+    public ModelExpressionEnvironment(Task currentTask, OperationResult currentResult) {
         this(null, null, null, currentTask, currentResult);
     }
 
     /** Consider using {@link ExpressionEnvironmentBuilder} instead. */
-    public ExpressionEnvironment(
+    public ModelExpressionEnvironment(
             ModelContext<F> lensContext,
             ModelProjectionContext projectionContext,
             Task currentTask,
@@ -74,18 +74,11 @@ public class ExpressionEnvironment<F extends ObjectType, V extends PrismValue, D
         return mapping;
     }
 
-    public OperationResult getCurrentResult() {
-        return currentResult;
-    }
-
-    public Task getCurrentTask() {
-        return currentTask;
-    }
 
     @Override
     public String toString() {
-        return "ExpressionEnvironment(lensContext=" + lensContext + ", projectionContext="
-                + projectionContext + ", currentResult=" + currentResult + ", currentTask=" + currentTask
+        return "ModelExpressionEnvironment(lensContext=" + lensContext + ", projectionContext="
+                + projectionContext + ", currentResult=" + getCurrentResult() + ", currentTask=" + getCurrentTask()
                 + ")";
     }
 
@@ -122,8 +115,8 @@ public class ExpressionEnvironment<F extends ObjectType, V extends PrismValue, D
             return this;
         }
 
-        public ExpressionEnvironment<F, V, D> build() {
-            return new ExpressionEnvironment<>(lensContext, projectionContext, mapping, currentTask, currentResult);
+        public ModelExpressionEnvironment<F, V, D> build() {
+            return new ModelExpressionEnvironment<>(lensContext, projectionContext, mapping, currentTask, currentResult);
         }
     }
 }
