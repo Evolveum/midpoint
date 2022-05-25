@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows.classification;
 import static com.evolveum.midpoint.provisioning.impl.shadows.classification.ClassificationContext.Builder.aClassificationContext;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getObjectClassRequired;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Classifies a resource object, i.e. determines its type (kind + intent).
  *
@@ -43,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * the synchronization process in the `model` module.
  *
  * The classification uses object type delineation. Currently, the implementation is limited in the sense that it assumes
- * non-overlapping, and completely specified sets of resource objects. (I.e. no "default" flags there.)
+ * non-overlapping, and completely specified sets of resource objects. (I.e. no "default" flags there.) TODO this is no longer true
  */
 @Component
 public class ResourceObjectClassifier {
@@ -167,6 +173,8 @@ public class ResourceObjectClassifier {
             ShadowType shadow = context.getShadowedResourceObject();
             LOGGER.trace("Classifying {}", shadow);
 
+            List<ResourceObjectTypeDefinition> matching = new ArrayList<>();
+
             for (ResourceObjectTypeDefinition typeDefinition : schema.getObjectTypeDefinitions()) {
                 SynchronizationPolicy policy = SynchronizationPolicyFactory.forKindAndIntentStrictlyRequired(
                         typeDefinition.getKind(), typeDefinition.getIntent(), context.getResource());
@@ -184,11 +192,30 @@ public class ResourceObjectClassifier {
                     continue;
                 }
 
-                LOGGER.debug("Classified {} as {}", shadow, typeDefinition);
-                return typeDefinition;
+                LOGGER.trace("Adding {} to a list of potential matches for {}", typeDefinition, shadow);
+                matching.add(typeDefinition);
             }
-            LOGGER.debug("No type definition matched {}", shadow);
-            return null;
+
+            var matchingDefault = matching.stream()
+                    .filter(ResourceObjectTypeDefinition::isDefaultForObjectClass)
+                    .collect(Collectors.toList());
+            var oneMatching = MiscUtil.extractSingleton(
+                    matchingDefault,
+                    () -> new IllegalStateException("Multiple types marked as 'default for object class': " + matchingDefault));
+            if (oneMatching != null) {
+                LOGGER.debug("Default type matched for {}: {}", shadow, oneMatching);
+                return oneMatching;
+            }
+
+            if (matching.size() > 1) {
+                LOGGER.warn("Multiple types matching, selecting the first one: {}", matching);
+                return matching.get(0);
+            } else if (matching.size() == 1) {
+                return matching.get(0);
+            } else {
+                LOGGER.debug("No type definition matched {}", shadow);
+                return null;
+            }
         }
     }
 }
