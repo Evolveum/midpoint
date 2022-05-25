@@ -17,8 +17,8 @@ module.exports = {
             './src/frontend/scss/vendors.scss',
         ],
         midpoint: [
-            './src/frontend/js/index.js',
-            './src/frontend/scss/midpoint-theme.scss',
+            './src/frontend/js/midpoint.js',
+            './src/frontend/scss/midpoint.scss',
         ],
     },
     output: {
