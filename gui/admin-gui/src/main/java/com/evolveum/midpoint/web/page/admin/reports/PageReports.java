@@ -88,7 +88,7 @@ public class PageReports extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ReportType> table = new MainObjectListPanel<ReportType>(ID_TABLE, ReportType.class) {
+        MainObjectListPanel<ReportType> table = new MainObjectListPanel<>(ID_TABLE, ReportType.class) {
             private static final long serialVersionUID = 1L;
 
             @Override
