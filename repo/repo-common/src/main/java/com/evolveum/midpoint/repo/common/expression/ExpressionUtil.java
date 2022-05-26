@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.impl.query.OwnedByFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.ReferencedByFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -716,6 +718,17 @@ public class ExpressionUtil {
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             evaluatedFilter.setFilter(evaluatedSubFilter);
             return evaluatedFilter;
+        } else if (filter instanceof ReferencedByFilter) {
+            var orig = (ReferencedByFilter) filter;
+            var subfilter = evaluateFilterExpressionsInternal(orig.getFilter(), variables,
+                    expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
+            return ReferencedByFilterImpl.create(orig.getType().getTypeName(),
+                    orig.getPath(), subfilter, orig.getRelation());
+        } else if (filter instanceof OwnedByFilter) {
+            var orig = (OwnedByFilter) filter;
+            var subfilter = evaluateFilterExpressionsInternal(orig.getFilter(), variables,
+                    expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
+            return OwnedByFilterImpl.create(orig.getType(), orig.getPath(), subfilter);
         } else if (filter instanceof OrgFilter) {
             return filter;
         } else if (filter instanceof AllFilter || filter instanceof NoneFilter || filter instanceof UndefinedFilter) {
