@@ -274,6 +274,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 getPageBase().showMainPopup(panel, target);
             }
         };
+        saveSearchButton.add(AttributeAppender.append("title", getPageBase().createStringResource("SearchPanel.saveFilterButton.title")));
         saveSearchButton.setOutputMarkupId(true);
         saveSearchContainer.add(saveSearchButton);
 
@@ -281,6 +282,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
         WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
         savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchList)));
+        savedSearchMenu.add(AttributeAppender.append("title",
+                getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
         saveSearchContainer.add(savedSearchMenu);
 
         ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchList) {
