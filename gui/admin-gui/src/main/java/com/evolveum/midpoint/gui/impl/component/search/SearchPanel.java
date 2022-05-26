@@ -278,15 +278,22 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         saveSearchButton.setOutputMarkupId(true);
         saveSearchContainer.add(saveSearchButton);
 
-        List<InlineMenuItem> savedSearchList = getSavedSearchList();
+        LoadableModel<List<InlineMenuItem>> savedSearchListModel = new LoadableModel<List<InlineMenuItem>>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<InlineMenuItem> load() {
+                return getSavedSearchList();
+            }
+        };
 
         WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
-        savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchList)));
+        savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchListModel.getObject())));
         savedSearchMenu.add(AttributeAppender.append("title",
                 getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
         saveSearchContainer.add(savedSearchMenu);
 
-        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchList) {
+        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchListModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -501,8 +508,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         }
         if (availableFilterList != null) {
-            availableFilterList.stream().filter(filter -> getModelObject().getSearchMode().equals(filter.getSearchMode()))
+            availableFilterList
                     .forEach(filter -> {
+                        if (!getModelObject().getSearchMode().equals(filter.getSearchMode())) {
+                            return;
+                        }
                         PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
                         InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
                             private static final long serialVersionUID = 1L;
