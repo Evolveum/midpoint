@@ -18,6 +18,8 @@ public class Tile implements Serializable {
 
     private String title;
 
+    private boolean selected;
+
     public Tile() {
         this(null, null);
     }
@@ -41,5 +43,17 @@ public class Tile implements Serializable {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public void toggle() {
+        setSelected(!isSelected());
     }
 }

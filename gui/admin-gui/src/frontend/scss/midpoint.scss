@@ -1761,7 +1761,8 @@ th.debug-list-buttons {
   border-radius: $border-radius;
   cursor: pointer;
 
-  &:hover {
+  &:hover,
+  &.active {
     border: 2px solid $lightblue;
     border-radius: $border-radius;
   }
@@ -1781,4 +1782,8 @@ th.debug-list-buttons {
       flex-flow: column;
     }
   }
+}
+
+.bs-stepper .step-trigger:hover {
+  background-color: inherit;
 }

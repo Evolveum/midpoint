@@ -7,15 +7,19 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import org.apache.wicket.model.IModel;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RoleCatalogPanel extends BasePanel {
+public class RoleCatalogPanel extends BasePanel implements WizardPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -25,6 +29,11 @@ public class RoleCatalogPanel extends BasePanel {
         super(id);
 
         initLayout();
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return () -> getString("RoleCatalogPanel.title");
     }
 
     private void initLayout() {

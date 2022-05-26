@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.util;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO: move to com.evolveum.midpoint.gui.api.util
@@ -16,16 +17,34 @@ import org.apache.wicket.behavior.Behavior;
  * @author lazyman
  */
 public class VisibleEnableBehaviour extends Behavior {
+
     private static final long serialVersionUID = 1L;
 
     public static final VisibleEnableBehaviour ALWAYS_VISIBLE_ENABLED = new VisibleEnableBehaviour();
 
+    private SerializableSupplier<Boolean> visible;
+
+    private SerializableSupplier<Boolean> enabled;
+
+    public VisibleEnableBehaviour() {
+        this(() -> true);
+    }
+
+    public VisibleEnableBehaviour(@NotNull SerializableSupplier<Boolean> visible) {
+        this(visible, () -> true);
+    }
+
+    public VisibleEnableBehaviour(@NotNull SerializableSupplier<Boolean> visible, @NotNull SerializableSupplier<Boolean> enabled) {
+        this.visible = visible;
+        this.enabled = enabled;
+    }
+
     public boolean isVisible() {
-        return true;
+        return visible.get();
     }
 
     public boolean isEnabled() {
-        return true;
+        return enabled.get();
     }
 
     @Override
