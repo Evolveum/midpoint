@@ -125,4 +125,5 @@ todo
 
 * SqlRepositoryConfiguration - sql repository configuration, handles config.xml and such
 
+// TODO remove when 4.4 support ends
 * DataSourceFactory - connection pool initialisation and configuration

@@ -61,7 +61,7 @@ The following table lists the basic configuration options for the `repository` e
 
 | `jdbcUrl`
 | URL for JDBC connection.
-This must be used (unless non-recommended `dataSource` is present) and can optionally conatain username and password.
+This must be used and can optionally conatain username and password.
 See https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the Database] from PostgreSQL JDBC Driver documentation for more.
 | `jdbc:postgresql://localhost:5432/midpoint`
 
@@ -87,6 +87,7 @@ Example: `password`
 | Ignored by the Native repository and cannot be changed - do not use it.
 | `org.postgresql.Driver`
 
+// TODO remove when 4.4 support ends
 | `dataSource`
 | Uses JNDI DataSource loading, when this option is defined in configuration.
 This is only relevant for WAR deployment which is not recommended anyway.

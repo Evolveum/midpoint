@@ -83,6 +83,7 @@ Please see *Schema creation and updating* section later.
 | SQL dialect based on chosen DB link:http://docs.jboss.org/hibernate/orm/4.1/manual/en-US/html_single/#sql-dialects[Supported hibernate dialects].
 | org.hibernate.dialect.H2Dialect
 
+// TODO remove when 4.4 support ends
 | dataSource
 | Uses JNDI DataSource loading, when this option is defined in configuration, then *jdbcUsername*, *jdbcPassword*, *jdbcUrl* and *driverClassName* don't need to be present.
 
@@ -264,6 +265,7 @@ SQL schema scripts for all supported databases are located in midPoint distribut
 
 For current unreleased MidPoint SQL scripts are located in our link:https://github.com/Evolveum/midpoint/tree/master/config/sql/_all[git].
 
+// TODO remove when 4.4 support ends
 == Data source configuration
 
 Instead of putting JDBC configuration to *config.xml*, you can use data source of the application server.
