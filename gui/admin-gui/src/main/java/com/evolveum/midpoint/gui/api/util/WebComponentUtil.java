@@ -5325,21 +5325,29 @@ public final class WebComponentUtil {
             views = new GuiObjectListViewsType();
             adminGui.objectCollectionViews(views);
         }
-
-        if (StringUtils.isNoneEmpty(viewName)) {
+        GuiObjectListViewType objectListView = null;
+        if (StringUtils.isNotEmpty(viewName)) {
             for (GuiObjectListViewType view : views.getObjectCollectionView()) {
-                if (view.getIdentifier().equals(viewName)) {
-                    return view;
+                if (viewName.equals(view.getIdentifier())) {
+                    objectListView = view;
                 }
             }
         } else {
             for (GuiObjectListViewType view : views.getObjectCollectionView()) {
                 if (view.getType().equals(WebComponentUtil.containerClassToQName(PrismContext.get(), viewType))) {
-                    return view;
+                    objectListView = view;
                 }
             }
         }
-        return null;
+        if (objectListView == null) {
+            if (!createIfNotExist) {
+                return null;
+            }
+            objectListView = new GuiObjectListViewType();
+            objectListView.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), viewType));
+            views.getObjectCollectionView().add(objectListView);
+        }
+        return objectListView;
     }
 
     public static <T extends Object> DropDownChoicePanel createDropDownChoices(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices,

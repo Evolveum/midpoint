@@ -23,12 +23,14 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -257,7 +259,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         searchContainer.add(li);
 
         WebMarkupContainer saveSearchContainer = new WebMarkupContainer(ID_SAVE_SEARCH_CONTAINER);
-        saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow()));
+        saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow() && isCollectionInstancePage()));
         saveSearchContainer.setOutputMarkupId(true);
         form.add(saveSearchContainer);
         AjaxButton saveSearchButton = new AjaxButton(ID_SAVE_SEARCH_BUTTON) {
@@ -267,7 +269,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
-                        Model.of(SearchPanel.this.getModelObject().createObjectQuery(getPageBase())), SearchPanel.this.getModelObject().getTypeClass());
+                        Model.of(SearchPanel.this.getModelObject()),
+                        SearchPanel.this.getModelObject().getTypeClass());
                 getPageBase().showMainPopup(panel, target);
             }
         };
@@ -299,6 +302,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
         saveSearchContainer.add(savedSearchItems);
 
+    }
+
+    private boolean isCollectionInstancePage() {
+        return getPageBase().getClass().getAnnotation(CollectionInstance.class) != null;
     }
 
     private boolean isPopupWindow() {
@@ -481,112 +488,143 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private List<InlineMenuItem> getSavedSearchList() {
         ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
         List<InlineMenuItem> savedSearchItems = new ArrayList<>();
-        List<SearchItemType> searchItems = null;
+        List<AvailableFilterType> availableFilterList = null;
         if (listPanel != null) {
             CompiledObjectCollectionView view = listPanel.getObjectCollectionView();
-            searchItems = view != null ? getSearchItemList(view.getSearchBoxConfiguration()) : null;
+            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         } else {
             FocusType principalFocus = getPageBase().getPrincipalFocus();
             GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false);
-            searchItems = view != null ? getSearchItemList(view.getSearchBoxConfiguration()) : null;
+            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         }
-        if (searchItems != null) {
-            searchItems.forEach(item -> {
-                InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(item.getDisplayName()))) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public InlineMenuItemAction initAction() {
-                        return new InlineMenuItemAction() {
-
+        if (availableFilterList != null) {
+            availableFilterList.stream().filter(filter -> getModelObject().getSearchMode().equals(filter.getSearchMode()))
+                    .forEach(filter -> {
+                        PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
+                        InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                SearchFilterType filter = item.getFilter();
-                                if (filter == null) {
-                                    return;
-                                }
-                                try {
-                                    ObjectFilter savedFilter = getPageBase().getQueryConverter().parseFilter(filter, getModelObject().getTypeClass());
-                                    if (savedFilter instanceof AndFilter && ((AndFilter) savedFilter).getConditions() != null) {
-                                        getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
-                                        applyFilterToBasicMode((AndFilter) savedFilter);
-                                    } else {
-                                        Optional<PrismQuerySerialization> serialization = getPageBase().getPrismContext().querySerializer()
-                                                .trySerialize(savedFilter, getPageBase().getPrismContext().getSchemaRegistry().staticNamespaceContext());
-                                        if (serialization.isPresent()) {
-                                            getModelObject().getSearchConfigurationWrapper().setDefaultSearchBoxMode(SearchBoxModeType.AXIOM_QUERY);
-                                            getModelObject().setDslQuery(serialization.get().filterText());
+                            public InlineMenuItemAction initAction() {
+                                return new InlineMenuItemAction() {
+
+                                    private static final long serialVersionUID = 1L;
+
+                                    @Override
+                                    public void onClick(AjaxRequestTarget target) {
+                                        if (filter == null) {
+                                            return;
                                         }
+                                        if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
+                                            applyFilterToBasicMode(filter.getSearchItem());
+                                        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
+                                            applyFilterToAxiomMode(filter.getSearchItem());
+                                        } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
+                                            applyFilterToFulltextMode(filter.getSearchItem());
+                                        }
+                                        searchPerformed(target);
                                     }
-                                } catch (SchemaException e) {
-                                    LOG.error("Unable to create object query from search filter: {}, {}", filter, e.getLocalizedMessage());
-                                }
-                                searchPerformed(target);
+                                };
                             }
                         };
-                    }
-                };
-                savedSearchItems.add(searchItem);
-            });
+                        savedSearchItems.add(searchItem);
+                    });
         }
         return savedSearchItems;
     }
 
-    private void applyFilterToBasicMode(AndFilter filter) {
+    private void applyFilterToBasicMode(List<SearchItemType> items) {
         getModelObject().getItems().forEach(item -> item.setVisible(false));
-        List<ObjectFilter> conditions = filter.getConditions();
-        conditions.forEach(condition -> {
-            if (condition instanceof AndFilter) {
-                applyFilterToBasicMode((AndFilter) condition);
-            } else if (condition instanceof PropertyValueFilter) {
-                ItemPath path = ((PropertyValueFilter) condition).getPath();
-                if (path == null) {
-                    return;
+        getModelObject().setSearchMode(SearchBoxModeType.BASIC);
+        items.forEach(this::applyBasicModeSearchItem);
+    }
+
+    private void applyFilterToAxiomMode(List<SearchItemType> items) {
+        getModelObject().setSearchMode(SearchBoxModeType.AXIOM_QUERY);
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        SearchItemType axiomSearchItem = items.get(0);
+        if (axiomSearchItem.getFilter() == null) {
+            return;
+        }
+        try {
+            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+            PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
+            getModelObject().setDslQuery(serializer.filterText());
+        } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
+            LOG.error("Unable to parse filter {}, {}", axiomSearchItem.getFilter(), e.getLocalizedMessage());
+        }
+    }
+
+    private void applyFilterToFulltextMode(List<SearchItemType> items) {
+        getModelObject().setSearchMode(SearchBoxModeType.FULLTEXT);
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        SearchItemType fulltextSearchItem = items.get(0);
+        if (fulltextSearchItem.getFilter() == null) {
+            return;
+        }
+        try {
+            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(getModelObject().getTypeClass(), fulltextSearchItem.getFilter());
+            if (!(objectFilter instanceof FullTextFilter)) {
+                return;
+            }
+            getModelObject().setFullText(String.join(" ", ((FullTextFilter)objectFilter).getValues()));
+        } catch (SchemaException e) {
+            LOG.error("Unable to parse filter {}, {}", fulltextSearchItem.getFilter(), e.getLocalizedMessage());
+        }
+    }
+
+    private void applyBasicModeSearchItem(SearchItemType searchItem) {
+        try {
+            ObjectFilter filter = getPageBase().getQueryConverter().parseFilter(searchItem.getFilter(), getModelObject().getTypeClass());
+            if (searchItem.getPath() == null && filter instanceof ValueFilter && ((ValueFilter) filter).getPath() == null) {
+                return;
+            }
+
+            AbstractSearchItemWrapper item = null;
+            if (filter instanceof ValueFilter) {
+                ItemPath path = searchItem.getPath().getItemPath();
+                Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
+                while (it.hasNext()) {
+                    AbstractSearchItemWrapper itemWrapper = it.next();
+                    if (itemWrapper instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper<?>) itemWrapper).getPath().equivalent(path)) {
+                        item = itemWrapper;
+                        break;
+                    }
                 }
-                List<? extends PrismValue> values = ((PropertyValueFilter) condition).getValues();
-                setSearchItemValue(path, values);
+                List<? extends PrismValue> values = ((ValueFilter) filter).getValues();
+                if (values != null && values.size() > 0) {//todo can it be there multiple values?
+                    if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
+                        item.setValue(new SearchValue<String>(values.get(0).getRealValue().toString()));
+                    } else {
+                        item.setValue(new SearchValue(values.get(0).getRealValue()));
+                    }
+                }
+            } else if (filter instanceof InOidFilter) {
+                item = getModelObject().findOidSearchItemWrapper();
+                if (((InOidFilter)filter).getOids() != null) {
+                    item.setValue(new SearchValue<String>(StringUtils.join(((InOidFilter) filter).getOids(), " ")));
+                }
             }
-        });
-    }
 
+            if (item == null) {
+                return;
+            }
+            item.setVisible(true);
 
-    private void setSearchItemValue(ItemPath path, List<? extends PrismValue> values) {
-        if (path == null) {
-            return;
-        }
-        PropertySearchItemWrapper item = null;
-        Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
-        while (it.hasNext()) {
-            AbstractSearchItemWrapper itemWrapper = it.next();
-            if (itemWrapper instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper<?>) itemWrapper).getPath().equivalent(path)) {
-                item = (PropertySearchItemWrapper) itemWrapper;
-                break;
-            }
-        }
-        if (item == null) {
-            return;
-        }
-        item.setVisible(true);
-        if (values != null && values.size() > 0) {//todo can it be there multiple values?
-            if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
-                item.setValue(new SearchValue(values.get(0).getRealValue().toString()));
-            } else {
-                item.setValue(new SearchValue(values.get(0).getRealValue()));
-            }
+        } catch (SchemaException e) {
+            LOG.error("Unable to parse filter {}, {}", searchItem.getFilter(), e.getLocalizedMessage());
         }
     }
 
-    private List<SearchItemType> getSearchItemList(SearchBoxConfigurationType config) {
+    private List<AvailableFilterType> getAvailableFilterList(SearchBoxConfigurationType config) {
         if (config == null) {
             return null;
         }
-        SearchItemsType items = config.getSearchItems();
-        if (items == null) {
-            return null;
-        }
-        return items.getSearchItem();
+        return config.getAvailableFilter();
     }
 
     class BasicSearchFragment extends Fragment {
