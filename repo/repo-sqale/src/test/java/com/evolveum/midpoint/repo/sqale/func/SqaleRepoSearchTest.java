@@ -1099,8 +1099,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 shadow1Oid);
     }
 
-    @Test
-    public void test350ExistsWithEmbeddedContainer() {
+    public void test350ExistsWithEmbeddedContainer() throws SchemaException {
         // TODO this does not work currently, because implementation creates query sub-contexts
         //  only for table mapping, not embedded ones. It needs multiple changes and perhaps
         //  multi-type hierarchy like update context uses. Possible approach:
@@ -1190,13 +1189,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user2Oid);
     }
 
-    @Test(enabled = false) // TODO in ExistsFilterProcessor
+    @Test
     public void test422SearchObjectByMultiValueRefTargetUsingExists() throws SchemaException {
         // EXISTS with multi value ref target inside embedded single-value container
         searchUsersTest("with object create approver name using EXISTS",
                 f -> f.exists(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE)
                         .item(UserType.F_NAME).eq(new PolyString("user-1")),
-                user1Oid);
+                user2Oid);
     }
 
     @Test
