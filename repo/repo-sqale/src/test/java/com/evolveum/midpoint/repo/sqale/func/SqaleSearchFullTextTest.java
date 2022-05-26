@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 
@@ -213,7 +215,7 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
     public void test220SearchInReference() throws Exception {
         searchObjectTest("with empty full-text query",
                 UserType.class,
-                f -> f.exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment())
+                f -> f.exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
                     .fullText("swashbuckling")
                     ,
                 user1Oid);

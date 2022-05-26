@@ -52,9 +52,6 @@ public class ExistsFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
     private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
             ItemPath path, ExistsFilter filter) throws RepositoryException {
         if (path.isEmpty()) {
-            if (!(mapping instanceof QueryTableMapping)) {
-                throw new QueryException("Repository currently supports exists only table containers");
-            }
             ObjectFilter innerFilter = filter.getFilter();
 
             // empty filter means EXISTS, NOT can be added before the filter

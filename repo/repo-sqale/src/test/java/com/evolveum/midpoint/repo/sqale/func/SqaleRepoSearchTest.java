@@ -1099,20 +1099,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 shadow1Oid);
     }
 
+    @Test
     public void test350ExistsWithEmbeddedContainer() throws SchemaException {
-        // TODO this does not work currently, because implementation creates query sub-contexts
-        //  only for table mapping, not embedded ones. It needs multiple changes and perhaps
-        //  multi-type hierarchy like update context uses. Possible approach:
-        //  a) like in update, having simpler common context type that can support non-table mappings;
-        //  b) support non-table mappings with current types, but that is less clean and probably more problematic.
-        assertThatThrownBy(() ->
-                searchUsersTest("matching the exists filter for metadata (embedded mapping)",
-                        f -> f.exists(UserType.F_METADATA)
-                                .item(MetadataType.F_CREATOR_REF).isNull(),
-                        user1Oid))
-                // At least we say it clearly with the exception instead of confusing "mapper not found" deeper.
-                .isInstanceOf(SystemException.class)
-                .hasMessage("Repository supports exists only for multi-value containers or refs");
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                f -> f.exists(UserType.F_METADATA)
+                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                        .eqPoly("creator"),
+                user1Oid);
+        } finally {
+            display(queryRecorder.getQueryBuffer().peek().toString());
+        }
     }
 
     // endregion
