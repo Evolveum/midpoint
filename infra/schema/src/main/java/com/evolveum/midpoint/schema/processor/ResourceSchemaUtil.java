@@ -28,7 +28,7 @@ public class ResourceSchemaUtil {
      * Currently only object class name equality is checked. (Note that we assume these names are fully qualified,
      * so {@link Object#equals(Object)} comparison can be used.
      */
-    public static boolean areDefinitionsCompatible(Collection<ResourceObjectTypeDefinition> definitions) {
+    static boolean areDefinitionsCompatible(Collection<ResourceObjectTypeDefinition> definitions) {
         Set<QName> objectClassNames = definitions.stream()
                 .map(ResourceObjectDefinition::getObjectClassName)
                 .collect(Collectors.toSet());

@@ -660,7 +660,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 if (!ModelExecuteOptions.isForce(context.getOptions())) {
                     ModelImplUtils.recordFatalError(result, ex);
                 }
-            } catch (SchemaException ex) {
+            } catch (SchemaException | ConfigurationException ex) {
+                // TODO what about other kinds of exceptions? Shouldn't they be treated also like this one?
                 LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
                         SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignment()));
                 ModelImplUtils.recordFatalError(result, ex);

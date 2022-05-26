@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-@import "midpoint-theme-variables";
+@import "midpoint-variables";
 
 // AdminLTE and Bootstrap
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions";
@@ -1747,5 +1747,38 @@ th.debug-list-buttons {
     top: 5px;
     right: 10px;
     font-size: 0.5em;
+  }
+}
+
+.user-panel {
+  border-bottom: 0 !important;
+}
+
+.tile-panel {
+  width: 250px;
+  height: 250px;
+  border: 2px solid $white;
+  border-radius: $border-radius;
+  cursor: pointer;
+
+  &:hover {
+    border: 2px solid $lightblue;
+    border-radius: $border-radius;
+  }
+}
+
+.details-menu-panel {
+  min-width: 273px;
+
+  & > ul {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & > li {
+      display: flex;
+      flex-flow: column;
+    }
   }
 }

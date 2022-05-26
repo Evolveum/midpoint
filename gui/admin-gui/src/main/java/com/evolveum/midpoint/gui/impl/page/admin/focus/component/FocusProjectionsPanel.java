@@ -594,6 +594,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
+                // TODO are we OK with "any" account definition?
                 ResourceObjectTypeDefinition accountDefinition = refinedSchema
                         .findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
                 if (accountDefinition == null) {

@@ -35,10 +35,10 @@ public class TomcatRootValve extends ValveBase {
 
     private String servletPath;
 
-    public TomcatRootValve(String serlvetPath) {
+    public TomcatRootValve(String servletPath) {
         super();
 
-        this.servletPath = serlvetPath == null ? "" : serlvetPath;
+        this.servletPath = servletPath == null ? "" : servletPath;
     }
 
     @Override
