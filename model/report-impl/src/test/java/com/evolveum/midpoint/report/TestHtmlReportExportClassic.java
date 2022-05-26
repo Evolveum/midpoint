@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -105,7 +106,21 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
-    public void test005DashboardReportAndStoredWidgetData() throws Exception {
+    public void test005AsynchronousWidgetStoredToOnlyFile() throws Exception {
+        testStoredWidgetData(StoreExportedWidgetDataType.ONLY_FILE);
+    }
+
+    @Test
+    public void test006AsynchronousWidgetStoredToOnlyWidget() throws Exception {
+        testStoredWidgetData(StoreExportedWidgetDataType.ONLY_WIDGET);
+    }
+
+    @Test
+    public void test007AsynchronousWidgetStoredToWidgetAndFile() throws Exception {
+        testStoredWidgetData(StoreExportedWidgetDataType.WIDGET_AND_FILE);
+    }
+
+    private void testStoredWidgetData(StoreExportedWidgetDataType storeDataType) throws Exception {
         given();
 
         Task task = getTestTask();
@@ -116,8 +131,10 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
                 ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_STORE_EXPORTED_WIDGET_DATA),
                 task,
                 result,
-                StoreExportedWidgetDataType.ONLY_WIDGET
+                storeDataType
         );
+
+        repoAddObjectFromFile(DASHBOARD_DEFAULT_COLUMNS.file, RepoAddOptions.createOverwrite(), false, result);
 
         when();
 
@@ -133,14 +150,28 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_DEFAULT_COLUMN.oid);
         File outputFile = findOutputFile(report);
         displayValue("Found report file", outputFile);
-        assertTrue("Output file for " + report + " exists", outputFile == null);
+        if (StoreExportedWidgetDataType.ONLY_WIDGET.equals(storeDataType)) {
+            assertTrue("Output file for " + report + " exists", outputFile == null);
+        } else {
+            assertTrue("Output file for " + report + " non exists", outputFile != null);
+        }
+        if (outputFile != null) {
+            outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
+        }
 
         PrismObject<DashboardType> dashboard = getObject(DashboardType.class, DASHBOARD_DEFAULT_COLUMNS.oid);
         dashboard.asObjectable().getWidget().forEach(widget -> {
-            assertTrue(
-                    "Stored data in widget " + widget.getIdentifier() + " is null",
-                    widget.getData() != null && widget.getData().getStoredData() != null
-            );
+            if (StoreExportedWidgetDataType.ONLY_FILE.equals(storeDataType)) {
+                assertTrue(
+                        "Stored data in widget " + widget.getIdentifier() + " is not null",
+                        widget.getData() != null && widget.getData().getStoredData() == null
+                );
+            } else {
+                assertTrue(
+                        "Stored data in widget " + widget.getIdentifier() + " is null",
+                        widget.getData() != null && widget.getData().getStoredData() != null
+                );
+            }
         });
     }
 
