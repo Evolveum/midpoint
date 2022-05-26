@@ -49,23 +49,12 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
 
     @BeforeClass
     public void startLdap() throws Exception {
-        logger.info("------------------------------------------------------------------------------");
-        logger.info("START:  TestOpenDjDiscovery");
-        logger.info("------------------------------------------------------------------------------");
-        try {
-            openDJController.startCleanServer();
-        } catch (IOException ex) {
-            logger.error("Couldn't start LDAP.", ex);
-            throw ex;
-        }
+        doStartLdap();
     }
 
     @AfterClass
     public void stopLdap() {
-        openDJController.stop();
-        logger.info("------------------------------------------------------------------------------");
-        logger.info("STOP:  TestOpenDjDiscovery");
-        logger.info("------------------------------------------------------------------------------");
+        doStopLdap();
     }
 
     protected static final File RESOURCE_OPENDJ_DISCOVERY_FILE = new File(TEST_DIR, "resource-opendj-discovery.xml");

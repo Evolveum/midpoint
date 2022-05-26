@@ -74,7 +74,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
@@ -2936,19 +2936,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         display("Modifications of system object " + oid, modifications);
         repositoryService.modifyObject(type, oid, modifications, parentResult);
-        invalidateSystemObjectsCache();
-    }
-
-    @Override
-    protected void invalidateSystemObjectsCache() {
-        systemObjectCache.invalidateCaches();
     }
 
     protected ItemPath getIcfsNameAttributePath() {
         return ItemPath.create(
                 ShadowType.F_ATTRIBUTES,
                 SchemaTestConstants.ICFS_NAME);
-
     }
 
     /**

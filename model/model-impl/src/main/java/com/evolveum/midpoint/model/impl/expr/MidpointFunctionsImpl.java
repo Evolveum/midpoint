@@ -33,8 +33,9 @@ import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -748,6 +749,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
+        // TODO are we OK with "any" account definition?
         ResourceObjectTypeDefinition rAccountDef = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
@@ -787,7 +789,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Task getCurrentTask() {
-        Task fromModelHolder = ModelExpressionThreadLocalHolder.getCurrentTask();
+        Task fromModelHolder = ExpressionEnvironmentThreadLocalHolder.getCurrentTask();
         if (fromModelHolder != null) {
             return fromModelHolder;
         }
@@ -813,7 +815,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return ctx.getResult();
         } else {
             // This is a bit older. But better than nothing.
-            return ModelExpressionThreadLocalHolder.getCurrentResult();
+            return ExpressionEnvironmentThreadLocalHolder.getCurrentResult();
         }
     }
 

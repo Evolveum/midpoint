@@ -116,7 +116,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
         display("Resource after test", resource);
-        displayValue("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource after test (XML)", PrismTestUtil.serializeToXml(resource));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         CredentialsCapabilityType credentialsCapabilityType = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);

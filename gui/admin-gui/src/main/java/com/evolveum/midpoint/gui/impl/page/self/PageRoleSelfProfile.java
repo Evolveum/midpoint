@@ -29,7 +29,7 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/self/profile/roleNew")
+                @Url(mountUrl = "/self/profile/role")
         },
         action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

@@ -8,13 +8,13 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -105,8 +105,8 @@ public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
 
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_POLICY_RULE, evalContext.policyRule, EvaluatedPolicyRule.class);
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                    new ExpressionEnvironment<>(evalContext.lensContext, null, evalContext.task, operationResult));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                    new ModelExpressionEnvironment<>(evalContext.lensContext, null, evalContext.task, operationResult));
             try {
                 filter = ExpressionUtil.evaluateFilterExpressions(filter,
                         variables, MiscSchemaUtil.getExpressionProfile(),
@@ -116,7 +116,7 @@ public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
                     | CommunicationException | ExpressionEvaluationException e) {
                 throw new SystemException("Error occurred during expression evaluation", e);
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         }
         return filter.match(object.getValue(), SchemaService.get().matchingRuleRegistry());

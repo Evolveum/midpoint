@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
@@ -406,7 +406,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             task = taskManager.createTaskInstance();
         }
         try {
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ModelExpressionEnvironment<>(task, result));
 
             ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
             context.setVariables(variables);
@@ -418,7 +418,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
             return scriptExpression.evaluate(context);
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 }

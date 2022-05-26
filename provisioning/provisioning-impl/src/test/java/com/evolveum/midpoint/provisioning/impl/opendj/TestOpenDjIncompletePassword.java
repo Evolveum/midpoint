@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -43,8 +44,9 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
 
     @Override
     protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-        assertTrue("Wrong password capability readable flag: " + capPassword.isReadable(),
-                capPassword.isReadable());
+        assertThat(capPassword.isReadable())
+                .as("password capability readable flag")
+                .isTrue();
     }
 
     @Override

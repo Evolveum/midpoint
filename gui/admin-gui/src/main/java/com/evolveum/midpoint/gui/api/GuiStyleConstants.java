@@ -109,6 +109,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
     public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield-alt";
     public static final String CLASS_ICON_REQUEST = "fa fa-pen-square";
+    public static final String CLASS_ICON_REQUEST_ACCESS ="fas fa-plus-circle";
     public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
@@ -184,10 +185,10 @@ public class GuiStyleConstants {
      */
     public static final String CLASS_BUTTON_OVERLAY_PLUS = "fa fa-plus";
 
-    public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
-    public static final String CLASS_FILE_EXCEL = "fa fa-file-excel-o";
+    public static final String CLASS_FILE_TEXT = "fas fa-file-alt";
+    public static final String CLASS_FILE_EXCEL = "fas fa-file-excel";
     public static final String CLASS_FILE_BLACK_FILLED = "fa fa-file";
-    public static final String CLASS_FILE_WHITE_FILLED = "fa fa-file-o";
+    public static final String CLASS_FILE_WHITE_FILLED = "far fa-file";
     public static final String CLASS_FILE_ARCHIVE = "fa fa-file-archive-o";
     public static final String CLASS_LOCK_STATUS = "fa fa-lock";
     public static final String CLASS_POLICY_RULES_ICON = "fa fa-balance-scale";

@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.executor;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -21,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -103,7 +103,8 @@ class ScriptExecutor<O extends ObjectType> {
 
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(focus, shadow, rsd, resource.asPrismObject(),
                 context.getSystemConfiguration(), projCtx);
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, projCtx, task, result));
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                new ModelExpressionEnvironment<>(context, projCtx, task, result));
         try {
             OperationProvisioningScriptsType preparedScripts = prepareScripts(scripts, rsd,
                     ProvisioningOperationTypeType.RECONCILE, order, variables, expressionProfile, result);
@@ -116,7 +117,7 @@ class ScriptExecutor<O extends ObjectType> {
                 }
             }
         } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
     }
 
@@ -207,9 +208,9 @@ class ScriptExecutor<O extends ObjectType> {
                         MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
-        ExpressionEnvironment<?, ?, ?> env = new ExpressionEnvironment<>(context, projCtx, task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, params, env, result);
+        ModelExpressionEnvironment<?, ?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, env, result);
 
         Collection<PrismPropertyValue<String>> nonNegativeValues =
                 outputTriple != null ? outputTriple.getNonNegativeValues() : emptySet();

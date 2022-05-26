@@ -27,7 +27,7 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.cases.impl.WorkItemManager;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
 import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.prism.*;

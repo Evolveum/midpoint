@@ -49,7 +49,7 @@ public class BaseTest extends AbstractUnitTest {
      * Add @BeforeMethod calling this into test classes that need this.
      * This also removes H2 DB files, effectively cleaning the DB between test methods.
      * This is not enough to support tests on other DB (it doesn't run dbtest profile properly)
-     * or for Native repository, but {@link #clearDbIfNative} can be used in the preExecute block.
+     * or for Native repository, but {@link #clearDb} can be used in the preExecute block.
      */
     protected void setupMidpointHome() throws IOException {
         FileUtils.deleteDirectory(TARGET_HOME);
@@ -172,7 +172,7 @@ public class BaseTest extends AbstractUnitTest {
         AssertJUnit.fail(message + ": " + ex.getMessage());
     }
 
-    protected void clearDbIfNative(NinjaContext ninjaContext) {
+    protected void clearDb(NinjaContext ninjaContext) {
         LOG.info("Cleaning up the database");
 
         RepositoryService repository = ninjaContext.getRepository();
@@ -192,7 +192,7 @@ public class BaseTest extends AbstractUnitTest {
             SchemaService schemaService = appContext.getBean(SchemaService.class);
 
             SqlRepositoryConfiguration repoConfig = baseHelper.getConfiguration();
-            if (!repoConfig.isDropIfExists() || repoConfig.isEmbedded()) {
+            if (repoConfig.isEmbedded()) {
                 return;
             }
 

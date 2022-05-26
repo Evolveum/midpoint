@@ -56,7 +56,9 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
-            <default>true</default>
+            <!-- Cannot be a default for object class, as this would cause all AccountObjectClass
+                 objects be classified as this type. -->
+            <defaultForKind>true</defaultForKind>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>

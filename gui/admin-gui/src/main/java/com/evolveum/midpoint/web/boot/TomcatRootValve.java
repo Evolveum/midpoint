@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -36,10 +35,10 @@ public class TomcatRootValve extends ValveBase {
 
     private String servletPath;
 
-    public TomcatRootValve(String serlvetPath) {
+    public TomcatRootValve(String servletPath) {
         super();
 
-        this.servletPath = serlvetPath == null ? "" : serlvetPath;
+        this.servletPath = servletPath == null ? "" : servletPath;
     }
 
     @Override

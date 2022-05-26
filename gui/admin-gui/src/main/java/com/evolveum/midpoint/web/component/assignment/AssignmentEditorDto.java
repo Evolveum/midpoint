@@ -268,7 +268,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
         try {
             PrismContext prismContext = pageBase.getPrismContext();
-            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.PRESENTATION);
+            ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.PRESENTATION);
             ResourceObjectDefinition objectClassDefinition = refinedSchema
                     .findObjectDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
 

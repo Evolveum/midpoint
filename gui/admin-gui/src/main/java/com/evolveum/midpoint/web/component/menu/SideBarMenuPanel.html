@@ -7,12 +7,13 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+    <div class="user-panel my-3 pb-2 d-flex align-items-center">
         <div class="image">
             <img wicket:id="menuPhoto" class="user-image img-circle elevation-2"/>
         </div>
         <div class="info">
-            <span class="text-lightblue" wicket:id="username"/>
+            <div class="text-lightblue" wicket:id="username"/>
+            <div class="text-sm text-gray text-truncate" wicket:id="usernameDescription"/>
         </div>
     </div>
 

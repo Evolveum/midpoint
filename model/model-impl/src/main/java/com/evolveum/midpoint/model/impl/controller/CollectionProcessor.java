@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -633,6 +634,9 @@ public class CollectionProcessor {
                 if (newSearchBoxConfig.getSearchItems() == null) {
                     newSearchBoxConfig.setSearchItems(oldSearchBoxConfig.getSearchItems());
                 }
+                if (CollectionUtils.isEmpty(newSearchBoxConfig.getAvailableFilter())) {
+                    newSearchBoxConfig.getAvailableFilter().addAll(oldSearchBoxConfig.getAvailableFilter());
+                }
                 if (newSearchBoxConfig.getDefaultMode() == null) {
                     newSearchBoxConfig.setDefaultMode(oldSearchBoxConfig.getDefaultMode());
                 }
@@ -697,18 +701,17 @@ public class CollectionProcessor {
     }
 
     public String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
+        return determineViewIdentifier(objectListViewType, ""); //todo how to get default view identifier by type? or return null
+    }
+    public String determineViewIdentifier(GuiObjectListViewType objectListViewType, String defaultViewIdentifier) {
         String viewIdentifier = objectListViewType.getIdentifier();
         if (viewIdentifier != null) {
             return viewIdentifier;
         }
         CollectionRefSpecificationType collection = objectListViewType.getCollection();
-        if (collection == null) {
-            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
+        if (collection != null && collection.getCollectionRef() != null) {
+            return collection.getCollectionRef().getOid();
         }
-        ObjectReferenceType collectionRef = collection.getCollectionRef();
-        if (collectionRef == null) {
-            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
-        }
-        return collectionRef.getOid();
+        return defaultViewIdentifier;
     }
 }

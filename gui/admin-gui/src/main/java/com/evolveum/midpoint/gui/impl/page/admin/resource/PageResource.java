@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/resourceNew")
+                @Url(mountUrl = "/admin/resource")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,

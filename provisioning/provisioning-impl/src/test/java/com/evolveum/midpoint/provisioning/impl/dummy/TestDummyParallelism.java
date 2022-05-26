@@ -142,6 +142,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         then();
         assertSuccess(result);
 
+        //noinspection unchecked
         assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 
@@ -309,7 +310,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                     RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
-                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountMorganOid, null, localResult);
+                    repositoryService.getObject(ShadowType.class, accountMorganOid, null, localResult);
 
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
@@ -509,7 +510,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                     RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
-                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(
+                    repositoryService.getObject(
                             ShadowType.class, accountElizabethOid, null, localResult);
 
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
@@ -568,7 +569,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                     RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
-                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
+                    repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
 
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
@@ -687,12 +688,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private ObjectQuery createGroupNameQuery(String groupName) throws SchemaException {
+    private ObjectQuery createGroupNameQuery(String groupName) throws SchemaException, ConfigurationException {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
                 RESOURCE_DUMMY_OID,
-                new QName(MidPointConstants.NS_RI, OBJECTCLASS_GROUP_LOCAL_NAME),
-                prismContext);
+                new QName(MidPointConstants.NS_RI, OBJECTCLASS_GROUP_LOCAL_NAME));
 
         ResourceAttributeDefinition<?> attrDef =
                 ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable())
@@ -728,7 +728,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_WALLY_FILE);
         display("Account before", accountBefore);
         accountWallyOid = provisioningService.addObject(accountBefore, null, null, task, result);
-        PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
+        provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
         result.computeStatus();
         if (result.getStatus() != OperationResultStatus.SUCCESS) {
             display("Failed read result (precondition)", result);
@@ -834,7 +834,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             return provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
 
         } else if (op == 1) {
-            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
+            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT);
             List<PrismObject<ShadowType>> list = new ArrayList<>();
             ResultHandler<ShadowType> handler = (o, or) -> {
                 list.add(o);
@@ -844,7 +844,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
             return list;
 
         } else if (op == 2) {
-            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
+            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT);
             return provisioningService.searchObjects(ShadowType.class, query, null, task, result);
         }
         return null;

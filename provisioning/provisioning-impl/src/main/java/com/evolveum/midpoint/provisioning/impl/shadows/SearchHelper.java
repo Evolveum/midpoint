@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -110,7 +111,7 @@ class SearchHelper {
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        definitionsHelper.applyDefinition(ctx, query);
+        DefinitionsUtil.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (shouldDoRepoSearch(rootOptions)) {
@@ -264,7 +265,7 @@ class SearchHelper {
             Collection<SelectorOptions<GetOperationOptions>> options, final OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        definitionsHelper.applyDefinition(ctx, query);
+        DefinitionsUtil.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (shouldDoRepoSearch(rootOptions)) {
@@ -288,7 +289,7 @@ class SearchHelper {
 
         ProvisioningContext ctx = ctxFactory.createForCoordinates(coordinates, task, result);
         ctx.assertDefinition();
-        definitionsHelper.applyDefinition(ctx, query);
+        DefinitionsUtil.applyDefinition(ctx, query);
 
         ResourceObjectDefinition objectClassDef = ctx.getObjectDefinitionRequired();
         ResourceType resourceType = ctx.getResource();
@@ -469,7 +470,7 @@ class SearchHelper {
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
-        definitionsHelper.applyDefinition(ctx, query);
+        DefinitionsUtil.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (shouldDoRepoSearch(rootOptions)) {

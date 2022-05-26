@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.hasArchetype;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -42,7 +40,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -1620,16 +1618,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return new HashSet<>(connectorList);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.
-     * midpoint.common.result.OperationResult)
-     */
     @Override
     public void postInit(OperationResult parentResult) {
-        systemObjectCache.invalidateCaches(); // necessary for testing situations where we re-import different system configurations with the same version (on system init)
+        // necessary for testing situations where we re-import different system configurations with the same version
+        // (on system init)
+        systemObjectCache.invalidateCaches();
 
         enterModelMethod();
         OperationResult result = parentResult.createSubresult(POST_INIT);

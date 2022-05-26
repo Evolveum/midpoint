@@ -92,7 +92,7 @@ public class AssociationTargetSearchExpressionEvaluator
                     params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
         ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
-        ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), prismContext);
+        ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid());
         ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(
                 rAssocTargetDef.getObjectClassDefinition().getTypeName(), prismContext);
         ObjectFilter extendedFilter = prismContext.queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());

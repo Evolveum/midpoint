@@ -55,6 +55,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
     private static final String ID_MENU_PHOTO = "menuPhoto";
     private static final String ID_USERNAME = "username";
+    private static final String ID_USERNAME_DESCRIPTION = "usernameDescription";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_HEADER = "header";
     private static final String ID_NAME = "name";
@@ -79,6 +80,9 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         Label username = new Label(ID_USERNAME, () -> getShortUserName());
         add(username);
 
+        Label usernameDescription = new Label(ID_USERNAME_DESCRIPTION, () -> getUsernameDescription());
+        add(usernameDescription);
+
         WebMarkupContainer sidebar = new WebMarkupContainer(ID_SIDEBAR);
         sidebar.setOutputMarkupId(true);
         add(sidebar);
@@ -95,6 +99,17 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         menuItems.setOutputMarkupId(true);
         menuItems.setReuseItems(true);
         sidebar.add(menuItems);
+    }
+
+    private String getUsernameDescription() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof MidPointPrincipal)) {
+            return null;
+        }
+
+        MidPointPrincipal princ = (MidPointPrincipal) principal;
+        // todo improve?
+        return princ.getFocus().getDescription();
     }
 
     private String getShortUserName() {

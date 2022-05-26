@@ -292,7 +292,7 @@ public class CapabilityStep extends WizardStep {
                             try {
                                 ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resourcePrism);
                                 if (schema != null) {
-                                    // TODO is this OK?
+                                    // TODO are we OK with "any" account definition?
                                     ResourceObjectTypeDefinition def =
                                             schema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
                                     if (def != null) {

@@ -47,7 +47,7 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -660,7 +660,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 if (!ModelExecuteOptions.isForce(context.getOptions())) {
                     ModelImplUtils.recordFatalError(result, ex);
                 }
-            } catch (SchemaException ex) {
+            } catch (SchemaException | ConfigurationException ex) {
+                // TODO what about other kinds of exceptions? Shouldn't they be treated also like this one?
                 LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
                         SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignment()));
                 ModelImplUtils.recordFatalError(result, ex);

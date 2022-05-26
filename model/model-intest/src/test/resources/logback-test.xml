@@ -128,7 +128,7 @@
     <logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="INFO" />
     <logger name="com.evolveum.midpoint.repo.cache" level="INFO" />
     <logger name="com.evolveum.midpoint.repo.common.task" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.common.SystemObjectCache" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo.common.SystemObjectCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.AuditController" level="DEBUG" />
     <logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
 

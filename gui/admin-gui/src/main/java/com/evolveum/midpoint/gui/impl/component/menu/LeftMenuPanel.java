@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.application.CollectionInstance;
@@ -309,6 +310,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
             menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.request", GuiStyleConstants.CLASS_ICON_REQUEST,
                     PageAssignmentShoppingCart.class));
+//            menu.addMainMenuItem(createMainMenuItem("PageRequestAccess.title", GuiStyleConstants.CLASS_ICON_REQUEST_ACCESS,
+//                    PageRequestAccess.class));
         }
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.consent", GuiStyleConstants.CLASS_ICON_CONSENT,
                 PageSelfConsents.class));
@@ -683,7 +686,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         List<CompiledObjectCollectionView> objectViews = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
 
         objectViews.forEach(objectView -> {
-            if (!WebComponentUtil.getElementVisibility(objectView.getVisibility())) {
+            if (objectView.isDefaultView() || !WebComponentUtil.getElementVisibility(objectView.getVisibility())) {
                 return;
             }
 

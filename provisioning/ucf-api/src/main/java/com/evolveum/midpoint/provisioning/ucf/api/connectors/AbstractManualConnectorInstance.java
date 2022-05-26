@@ -203,12 +203,15 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public SearchResultMetadata search(
-            @NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
-            @NotNull UcfObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @Nullable ObjectQuery query,
+            @NotNull UcfObjectHandler handler,
+            @Nullable AttributesToReturn attributesToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
-            @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
+            @NotNull UcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return null;

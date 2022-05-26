@@ -17,14 +17,14 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -215,8 +215,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private ReferenceResolver.FilterEvaluator createFilterEvaluator(AssignmentPathSegmentImpl segment,
             EvaluationContext<AH> ctx) {
         return (rawFilter, result1) -> {
-                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                        new ExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, result1));
+                ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                        new ModelExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, result1));
                 try {
                     // TODO: expression profile should be determined from the holding object archetype
                     ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
@@ -225,7 +225,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                             ctx.ae.mappingFactory.getExpressionFactory(), ctx.ae.prismContext,
                             " evaluating resource filter expression ", ctx.task, result1);
                 } finally {
-                    ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                    ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
                 }
             };
     }

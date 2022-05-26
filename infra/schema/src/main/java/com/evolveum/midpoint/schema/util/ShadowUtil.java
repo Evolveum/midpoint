@@ -32,6 +32,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,8 +43,7 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
- * Methods that would belong to the ResourceObjectShadowType class but cannot go there
- * because of JAXB.
+ * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
  *
  * @author Radovan Semancik
  */
@@ -349,6 +349,7 @@ public class ShadowUtil {
     /**
      * This is not supposed to be used in production code! It is just for the tests.
      */
+    @VisibleForTesting
     public static void applyResourceSchema(PrismObject<? extends ShadowType> shadow,
             ResourceSchema resourceSchema) throws SchemaException {
         ShadowType shadowType = shadow.asObjectable();
@@ -957,5 +958,11 @@ public class ShadowUtil {
         }
 
         shadow.getCorrelation().setCorrelatorState(state);
+    }
+
+    public static @NotNull QName getObjectClassRequired(@NotNull ShadowType shadow) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                shadow.getObjectClass(),
+                () -> "No object class in " + shadow);
     }
 }

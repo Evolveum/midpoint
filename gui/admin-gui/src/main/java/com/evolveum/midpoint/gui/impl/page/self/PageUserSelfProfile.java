@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/self/profile/userNew")
+                @Url(mountUrl = "/self/profile/user")
         },
         action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

@@ -170,7 +170,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             t = t.getCause();
         }
         if (StringUtils.isBlank(sb.toString())) {
-            sb.append(PageBase.createStringResourceStatic(null, "SearchPanel.unexpectedQuery").getString());
+            sb.append(PageBase.createStringResourceStatic("SearchPanel.unexpectedQuery").getString());
         }
 
         return sb.toString();
@@ -373,20 +373,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 query = pageBase.getPrismContext().queryFactory().createQuery();
             }
         }
-        for (ObjectFilter filter : getSearchItemFilterList(pageBase, defaultVariables)) {
-            if (filter != null) {
-                query.addFilter(filter);
-            }
+        List<ObjectFilter> filters = getSearchItemFilterList(pageBase, defaultVariables);
+        if (filters != null) {
+            query.addFilter(pageBase.getPrismContext().queryFactory().createAnd(filters));
         }
-//        switch (conditions.size()) {
-//            case 0:
-//                query = null;
-//                break;
-//            default:
-//                for (ObjectFilter filter : conditions) {
-//                    query.addFilter(filter);
-//                }
-//        }
         return query;
     }
 

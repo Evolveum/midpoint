@@ -73,11 +73,8 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         assert resource != null; // evaluation without resource is skipped
         assert constructionBean != null;
 
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
-        if (refinedSchema == null) {
-            // Refined schema may be null in some error-related border cases
-            throw new SchemaException("No (refined) schema for " + resource);
-        }
+        // Schema may be null in some error-related border cases
+        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.MODEL);
 
         ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
         String intent = constructionBean.getIntent();

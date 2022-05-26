@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 
@@ -18,6 +20,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,6 +51,8 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
     private String task1Oid;
     private String task2Oid;
 
+    private String roleOid;
+
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
@@ -57,6 +62,11 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                         .indexed(new FullTextSearchIndexedItemsConfigurationType()
                                 .item(new ItemPathType(ObjectType.F_NAME))
                                 .item(new ItemPathType(ObjectType.F_DESCRIPTION))));
+
+        roleOid = repositoryService.addObject(new RoleType().name("Test Role")
+                .description("role which should be found when search for swashbuckling")
+                .asPrismObject(),
+                null, result);
 
         UserType user1 = new UserType().name("user-1")
                 .fullName("User Name 1")
@@ -72,7 +82,9 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType()
                         .description("assignment one description")
                         .lifecycleState("assignment1-1")
-                        .subtype("ass-subtype-2"))
+                        .subtype("ass-subtype-2")
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE)
+                        )
                 .assignment(new AssignmentType()
                         .description("assignment two description")
                         .lifecycleState("assignment1-2"))
@@ -138,6 +150,8 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                         .asPrismObject(),
                 null, result);
 
+
+        
         assertThatOperationResult(result).isSuccess();
     }
 
@@ -146,7 +160,7 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
         searchObjectTest("with empty full-text query",
                 ObjectType.class,
                 f -> f.fullText(""),
-                user1Oid, user2Oid, user3Oid, user4Oid, task1Oid, task2Oid);
+                user1Oid, user2Oid, user3Oid, user4Oid, task1Oid, task2Oid, roleOid);
     }
 
     @Test
@@ -197,6 +211,16 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                 .hasMessage("FullText filter currently supports only a single string");
     }
 
+    @Test
+    public void test220SearchInReference() throws Exception {
+        searchObjectTest("with empty full-text query",
+                UserType.class,
+                f -> f.exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
+                    .fullText("swashbuckling")
+                    ,
+                user1Oid);
+    }
+    
     @Test
     public void test300FullTextConfigurationWithoutReindexDoesNotAffectResults()
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {

@@ -45,6 +45,4 @@ public class LensContextPlaceholder<F extends ObjectType> extends LensContext<F>
         sb.append("LensContextPlaceholder");
         return sb.toString();
     }
-
-
 }

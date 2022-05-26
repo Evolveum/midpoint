@@ -7,7 +7,24 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectPattern;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -23,44 +40,29 @@ import com.evolveum.midpoint.provisioning.impl.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
-
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Responsibilities:
@@ -90,6 +92,7 @@ public class ResourceObjectConverter {
     private static final String OPERATION_DELETE_RESOURCE_OBJECT = DOT_CLASS + "deleteResourceObject";
     private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
     private static final String OPERATION_HANDLE_CHANGE = DOT_CLASS + "handleChange";
+    static final String OP_SEARCH_RESOURCE_OBJECTS = DOT_CLASS + "searchResourceObjects";
 
     @Autowired private EntitlementConverter entitlementConverter;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -97,33 +100,35 @@ public class ResourceObjectConverter {
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private CacheConfigurationManager cacheConfigurationManager;
-    @Autowired private Tracer tracer;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private ResourceObjectsLocalBeans localBeans;
     @Autowired private CommonBeans commonBeans;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private ResourceObjectsBeans beans;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
     public static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName()+".fullShadow";
 
+    /**
+     * @param repoShadow Used when read capability is "caching only"
+     */
     public @NotNull PrismObject<ShadowType> getResourceObject(
-            ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers,
-            PrismObject<ShadowType> repoShadow,
+            @NotNull ProvisioningContext ctx,
+            @NotNull Collection<? extends ResourceAttribute<?>> identifiers,
+            @Nullable PrismObject<ShadowType> repoShadow,
             boolean fetchAssociations,
-            OperationResult result)
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
         LOGGER.trace("Getting resource object {}", identifiers);
-
-        AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
-
-        // todo consider whether it is always necessary to fetch the entitlements
         PrismObject<ShadowType> resourceObject = fetchResourceObject(
-                ctx, identifiers, attributesToReturn, repoShadow, fetchAssociations, result);
+                ctx,
+                identifiers,
+                ctx.createAttributesToReturn(),
+                repoShadow,
+                fetchAssociations,
+                result);
         LOGGER.trace("Got resource object\n{}", resourceObject.debugDumpLazily());
         return resourceObject;
     }
@@ -131,76 +136,102 @@ public class ResourceObjectConverter {
     /**
      * Tries to get the object directly if primary identifiers are present. Tries to search for the object if they are not.
      */
-    public PrismObject<ShadowType> locateResourceObject(ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers, OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
+    public PrismObject<ShadowType> locateResourceObject(
+            ProvisioningContext ctx,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
         LOGGER.trace("Locating resource object {}", identifiers);
 
-        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
-
-        AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
+        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
         if (hasAllIdentifiers(identifiers, objectDefinition)) {
-            return fetchResourceObject(ctx, identifiers,
-                    attributesToReturn, null, true, parentResult);    // todo consider whether it is always necessary to fetch the entitlements
+            return fetchResourceObject(
+                    ctx,
+                    identifiers,
+                    ctx.createAttributesToReturn(),
+                    null,
+                    true, // todo consider whether it is always necessary to fetch the entitlements
+                    result);
         } else {
             // Search
-            Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifierDefs =
-                    objectDefinition.getSecondaryIdentifiers();
-            // Assume single secondary identifier for simplicity
-            if (secondaryIdentifierDefs.size() > 1) {
-                throw new UnsupportedOperationException("Composite secondary identifier is not supported yet");
-            } else if (secondaryIdentifierDefs.isEmpty()) {
-                throw new SchemaException("No secondary identifier defined, cannot search");
-            }
-            ResourceAttributeDefinition<?> secondaryIdentifierDef = secondaryIdentifierDefs.iterator().next();
-            ResourceAttribute<?> secondaryIdentifier = null;
-            for (ResourceAttribute<?> identifier: identifiers) {
-                if (identifier.getElementName().equals(secondaryIdentifierDef.getItemName())) {
-                    secondaryIdentifier = identifier;
-                }
-            }
-            if (secondaryIdentifier == null) {
-                throw new SchemaException("No secondary identifier present, cannot search. Identifiers: "+identifiers);
-            }
-
-            final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
-
-            List<PrismPropertyValue<?>> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
-            PrismPropertyValue<?> secondaryIdentifierValue;
-            if (secondaryIdentifierValues.size() > 1) {
-                throw new IllegalStateException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
-            } else if (secondaryIdentifierValues.size() == 1) {
-                secondaryIdentifierValue = secondaryIdentifierValues.get(0).clone();
-            } else {
-                secondaryIdentifierValue = null;
-            }
+            ResourceAttributeDefinition<?> secondaryIdentifierDef = getSecondaryIdentifierDef(objectDefinition);
+            ResourceAttribute<?> secondaryIdentifier = getSecondaryIdentifier(identifiers, secondaryIdentifierDef);
+            PrismPropertyValue<?> secondaryIdentifierValue = getSecondaryIdentifierValue(secondaryIdentifier);
             ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                    .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
+                    .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName())
+                    .eq(secondaryIdentifierValue)
                     .build();
-            final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-            UcfObjectHandler handler = (ucfObject, result) -> {
+            Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
+            UcfObjectHandler handler = (ucfObject, lResult) -> {
                 if (!shadowHolder.isEmpty()) {
-                    throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
+                    throw new IllegalStateException("More than one object found for secondary identifier "+ secondaryIdentifier);
                 }
                 shadowHolder.setValue(ucfObject.getResourceObject());
                 return true;
             };
             try {
-                connector.search(objectDefinition, query, handler, attributesToReturn, null, null,
-                        UcfFetchErrorReportingMethod.EXCEPTION, ctx.getUcfExecutionContext(), parentResult);
+                connector.search(
+                        objectDefinition,
+                        query,
+                        handler,
+                        ctx.createAttributesToReturn(),
+                        null,
+                        null,
+                        UcfFetchErrorReportingMethod.EXCEPTION,
+                        ctx.getUcfExecutionContext(),
+                        result);
                 if (shadowHolder.isEmpty()) {
                     throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
                 }
                 PrismObject<ShadowType> shadow = shadowHolder.getValue();
-                postProcessResourceObjectRead(ctx, shadow, true, parentResult);
+                // todo consider whether it is always necessary to fetch the entitlements
+                postProcessResourceObjectRead(ctx, shadow, true, result);
                 LOGGER.trace("Located resource object {}", shadow);
                 return shadow;
             } catch (GenericFrameworkException e) {
                 throw new GenericConnectorException(e.getMessage(), e);
             }
+        }
+    }
+
+    private @NotNull ResourceAttributeDefinition<?> getSecondaryIdentifierDef(ResourceObjectDefinition objectDefinition)
+            throws SchemaException {
+        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifierDefs =
+                objectDefinition.getSecondaryIdentifiers();
+        // Assume single secondary identifier for simplicity
+        if (secondaryIdentifierDefs.size() > 1) {
+            throw new UnsupportedOperationException("Composite secondary identifier is not supported yet");
+        } else if (secondaryIdentifierDefs.isEmpty()) {
+            throw new SchemaException("No secondary identifier defined, cannot search");
+        }
+        return secondaryIdentifierDefs.iterator().next();
+    }
+
+    private @NotNull ResourceAttribute<?> getSecondaryIdentifier(
+            Collection<? extends ResourceAttribute<?>> identifiers, ResourceAttributeDefinition<?> secondaryIdentifierDef)
+            throws SchemaException {
+        for (ResourceAttribute<?> identifier: identifiers) {
+            if (identifier.getElementName().equals(secondaryIdentifierDef.getItemName())) {
+                return identifier;
+            }
+        }
+        throw new SchemaException("No secondary identifier present, cannot search. Identifiers: "+ identifiers);
+    }
+
+    private @NotNull PrismPropertyValue<?> getSecondaryIdentifierValue(ResourceAttribute<?> secondaryIdentifier)
+            throws SchemaException {
+        //noinspection unchecked
+        List<PrismPropertyValue<?>> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
+        if (secondaryIdentifierValues.size() > 1) {
+            throw new SchemaException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
+        } else if (secondaryIdentifierValues.size() == 1) {
+            return secondaryIdentifierValues.get(0).clone();
+        } else {
+            throw new SchemaException("Secondary identifier has no values: " + secondaryIdentifier);
         }
     }
 
@@ -1358,119 +1389,8 @@ public class ResourceObjectConverter {
             CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
 
-        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-
-        LOGGER.trace("Searching resource objects, query: {}, OC: {}", query, objectDefinition);
-
-        AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
-        SearchHierarchyConstraints searchHierarchyConstraints = entitlementConverter.determineSearchHierarchyConstraints(ctx, parentResult);
-
-        if (InternalsConfig.consistencyChecks && query != null && query.getFilter() != null) {
-            query.getFilter().checkConsistence(true);
-        }
-
-        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
-
-        AtomicInteger objectCounter = new AtomicInteger(0);
-
-        UcfFetchErrorReportingMethod ucfErrorReportingMethod;
-        if (errorReportingMethod == FetchErrorReportingMethodType.FETCH_RESULT) {
-            ucfErrorReportingMethod = UcfFetchErrorReportingMethod.UCF_OBJECT;
-        } else {
-            ucfErrorReportingMethod = UcfFetchErrorReportingMethod.EXCEPTION;
-        }
-
-        SearchResultMetadata metadata;
-        try {
-
-            metadata = connector.search(objectDefinition, query,
-                    (ucfObject, result) -> {
-                        ResourceObjectFound objectFound =
-                                new ResourceObjectFound(ucfObject, ResourceObjectConverter.this, ctx, fetchAssociations);
-
-                        // in order to utilize the cache right from the beginning...
-                        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
-                        try {
-
-                            int objectNumber = objectCounter.getAndIncrement();
-
-                            Task task = ctx.getTask();
-                            try {
-                                OperationResult objResult = result
-                                        .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
-                                        .setMinor()
-                                        .addParam("number", objectNumber)
-                                        .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
-                                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState()).build();
-                                try {
-                                    objectFound.initialize(task, objResult);
-                                    return resultHandler.handle(objectFound, objResult);
-                                } catch (Throwable t) {
-                                    objResult.recordFatalError(t);
-                                    throw t;
-                                } finally {
-                                    objResult.computeStatusIfUnknown();
-                                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                                    //  AbstractSummarizingResultHandler [lazyman]
-                                    if (objResult.isSuccess() && objResult.canBeCleanedUp()) {
-                                        objResult.getSubresults().clear();
-                                    }
-                                    // TODO Reconsider this. It is quite dubious to touch the global result from the inside.
-                                    result.summarize();
-                                }
-                            } finally {
-                                RepositoryCache.exitLocalCaches();
-                            }
-                        } catch (RuntimeException e) {
-                            throw e;
-                        } catch (Throwable t) {
-                            throw new TunnelException(t);
-                        }
-                    },
-                    attributesToReturn, objectDefinition.getPagedSearches(ctx.getResource()), searchHierarchyConstraints,
-                    ucfErrorReportingMethod, ctx.getUcfExecutionContext(), parentResult);
-
-        } catch (GenericFrameworkException e) {
-            parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
-            throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
-        } catch (CommunicationException ex) {
-            parentResult.recordFatalError(
-                    "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-            throw new CommunicationException("Error communicating with the connector " + connector + ": "
-                    + ex.getMessage(), ex);
-        } catch (SecurityViolationException ex) {
-            parentResult.recordFatalError(
-                    "Security violation communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-            throw new SecurityViolationException("Security violation communicating with the connector " + connector + ": "
-                    + ex.getMessage(), ex);
-        } catch (TunnelException e) {
-            Throwable cause = e.getCause();
-            parentResult.recordFatalError("Problem while communicating with the connector " + connector + ": " +
-                    cause.getMessage(), cause);
-            if (cause instanceof SchemaException) {
-                throw (SchemaException)cause;
-            } else if (cause instanceof CommunicationException) {
-                throw (CommunicationException)cause;
-            } else if (cause instanceof ObjectNotFoundException) {
-                throw (ObjectNotFoundException)cause;
-            } else if (cause instanceof ConfigurationException) {
-                throw (ConfigurationException)cause;
-            } else if (cause instanceof SecurityViolationException) {
-                throw (SecurityViolationException)cause;
-            } else if (cause instanceof ExpressionEvaluationException) {
-                throw (ExpressionEvaluationException)cause;
-            } else if (cause instanceof GenericFrameworkException) {
-                throw new GenericConnectorException(cause.getMessage(), cause);
-            } else {
-                throw new SystemException(cause.getMessage(), cause);
-            }
-        }
-
-        computeResultStatus(parentResult);
-
-        LOGGER.trace("Searching resource objects done: {}", parentResult.getStatus());
-
-        return metadata;
+        return new ResourceObjectSearchOperation(ctx, resultHandler, query, fetchAssociations, errorReportingMethod, beans)
+                .execute(parentResult);
     }
 
     public LiveSyncToken fetchCurrentToken(ProvisioningContext ctx, OperationResult parentResult)
@@ -1501,8 +1421,12 @@ public class ResourceObjectConverter {
         return TokenUtil.fromUcf(lastToken);
     }
 
-    public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers,
+    /**
+     * @param repoShadow Used when read capability is "caching only"
+     */
+    PrismObject<ShadowType> fetchResourceObject(
+            ProvisioningContext ctx,
+            @NotNull Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
             @Nullable PrismObject<ShadowType> repoShadow,
             boolean fetchAssociations,
@@ -1619,7 +1543,7 @@ public class ResourceObjectConverter {
         if (ctx.isWildcard()) {
             attrsToReturn = null;
         } else {
-            attrsToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
+            attrsToReturn = ctx.createAttributesToReturn();
         }
 
         ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, gResult);
@@ -1867,7 +1791,7 @@ public class ResourceObjectConverter {
     /**
      * Does _not_ close the operation result, just sets its status (and async operation reference).
      */
-    private void computeResultStatus(OperationResult result) {
+    static void computeResultStatus(OperationResult result) {
         if (result.isInProgress()) {
             return;
         }
@@ -1903,7 +1827,7 @@ public class ResourceObjectConverter {
         return shadowCaretaker;
     }
 
-    public ResourceObjectsLocalBeans getLocalBeans() {
-        return localBeans;
+    public ResourceObjectsBeans getBeans() {
+        return beans;
     }
 }

@@ -94,20 +94,28 @@ public class ObjectQueryUtil {
         return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
     }
 
-    public static @NotNull ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) {
-        return prismContext.queryFactory().createQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
+    @Deprecated
+    public static @NotNull ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext ignored) {
+        return PrismContext.get().queryFactory().createQuery(
+                createResourceAndObjectClassFilter(resourceOid, objectClass));
     }
 
     public static @NotNull ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass) {
-        return createResourceAndObjectClassQuery(resourceOid, objectClass, PrismContext.get());
+        return PrismContext.get().queryFactory().createQuery(
+                createResourceAndObjectClassFilter(resourceOid, objectClass));
     }
 
-    public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) {
+    @Deprecated
+    public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext ignored) {
+        return createResourceAndObjectClassFilter(resourceOid, objectClass);
+    }
+
+    public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
+        PrismContext prismContext = PrismContext.get();
         return prismContext.queryFactory().createAnd(
-                createResourceFilter(resourceOid, prismContext),
+                createResourceFilter(resourceOid),
                 createObjectClassFilter(objectClass, prismContext));
     }
 
@@ -123,43 +131,42 @@ public class ObjectQueryUtil {
     public static @NotNull ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent)
             throws SchemaException {
         return PrismContext.get().queryFactory().createQuery(
-                createResourceAndKindIntentFilter(resourceOid, kind, intent, PrismContext.get()));
+                createResourceAndKindIntentFilter(resourceOid, kind, intent));
     }
 
-    public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
-        return prismContext.queryFactory().createQuery(
-                createResourceAndKindFilter(resourceOid, kind, prismContext));
+    // This is a bit suspicious: only the kind?
+    public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind) {
+        return PrismContext.get().queryFactory().createQuery(
+                createResourceAndKindFilter(resourceOid, kind));
     }
 
-    public static ObjectFilter createResourceAndKindIntentFilter(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) {
+    public static ObjectFilter createResourceAndKindIntentFilter(String resourceOid, ShadowKindType kind, String intent) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(kind, "Kind to search must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
-        return prismContext.queryFor(ShadowType.class)
+        return PrismContext.get().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                 .and().item(ShadowType.F_KIND).eq(kind)
                 .and().item(ShadowType.F_INTENT).eq(intent)
                 .buildFilter();
     }
 
-    private static ObjectFilter createResourceAndKindFilter(String resourceOid, ShadowKindType kind, PrismContext prismContext) {
+    private static ObjectFilter createResourceAndKindFilter(String resourceOid, ShadowKindType kind) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(kind, "Kind to search must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
-        return prismContext.queryFor(ShadowType.class)
+        return PrismContext.get().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                 .and().item(ShadowType.F_KIND).eq(kind)
                 .buildFilter();
     }
 
-    public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) {
+    public static ObjectQuery createResourceQuery(String resourceOid) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
-        return prismContext.queryFactory().createQuery(createResourceFilter(resourceOid, prismContext));
+        return PrismContext.get().queryFactory().createQuery(
+                createResourceFilter(resourceOid));
     }
 
-    public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) {
-        return prismContext.queryFor(ShadowType.class)
+    public static ObjectFilter createResourceFilter(String resourceOid) {
+        return PrismContext.get().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                 .buildFilter();
     }
@@ -631,16 +638,11 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery addConjunctions(ObjectQuery query, ObjectFilter... newConjunctionMembers) {
-        return addConjunctions(query, PrismContext.get(), MiscUtil.asListTreatingNull(newConjunctionMembers));
+        return addConjunctions(query, MiscUtil.asListTreatingNull(newConjunctionMembers));
     }
 
-    public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
-            ObjectFilter... newConjunctionMembers) {
-        return addConjunctions(query, prismContext, MiscUtil.asListTreatingNull(newConjunctionMembers));
-    }
-
-    public static ObjectQuery addConjunctions(ObjectQuery query, PrismContext prismContext,
-            Collection<ObjectFilter> newConjunctionMembers) {
+    /** Returns non-null value if newConjunctionMembers is not empty. */
+    public static ObjectQuery addConjunctions(ObjectQuery query, Collection<ObjectFilter> newConjunctionMembers) {
 
         if (newConjunctionMembers.isEmpty()) {
             return query;
@@ -651,7 +653,7 @@ public class ObjectQueryUtil {
         if (allConjunctionMembers.size() == 1) {
             updatedFilter = allConjunctionMembers.get(0);
         } else if (allConjunctionMembers.size() > 1) {
-            updatedFilter = prismContext.queryFactory().createAnd(allConjunctionMembers);
+            updatedFilter = PrismContext.get().queryFactory().createAnd(allConjunctionMembers);
         } else {
             throw new AssertionError();
         }

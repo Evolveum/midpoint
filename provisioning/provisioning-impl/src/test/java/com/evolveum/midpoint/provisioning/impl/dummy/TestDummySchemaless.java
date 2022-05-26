@@ -611,7 +611,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals("Wrong refined displayName for attribute " + SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaTestConstants.ICFS_NAME, (Integer) 110, nameDef.getDisplayOrder());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
 
         // ACCOUNT
         ResourceObjectClassDefinition accountDef =
@@ -734,7 +734,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         display("account from provisioning", provisioningAccountType);
         PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
 
-        assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
                 provisioningAccountType, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
         // Check if the account was created in the dummy resource

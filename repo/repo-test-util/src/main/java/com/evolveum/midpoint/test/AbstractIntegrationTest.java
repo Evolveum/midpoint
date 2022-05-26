@@ -55,6 +55,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.Entry;
@@ -888,7 +889,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (!itemDeltas.isEmpty()) {
             OperationResult result = new OperationResult("assumeConflictResolutionAction");
             repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), itemDeltas, result);
-            invalidateSystemObjectsCache();
             display("Applying conflict resolution action result", result);
             result.computeStatus();
             TestUtil.assertSuccess("Applying conflict resolution action failed (result)", result);
@@ -945,14 +945,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         OperationResult result = new OperationResult("Applying sync settings");
 
         repositoryService.modifyObject(clazz, oid, modifications, result);
-        invalidateSystemObjectsCache();
         display("Applying sync settings result", result);
         result.computeStatus();
         TestUtil.assertSuccess("Applying sync settings failed (result)", result);
-    }
-
-    protected void invalidateSystemObjectsCache() {
-        // Nothing to do here. For subclasses in model-common and higher components.
     }
 
     protected void assertNoChanges(ObjectDelta<?> delta) {
@@ -2456,6 +2451,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         TestUtil.assertPartialError(result);
     }
 
+    @Contract("_ -> fail")
     protected void fail(String message) {
         Assert.fail(message);
     }

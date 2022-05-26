@@ -179,6 +179,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
                 compiledGuiProfile.getObjectCollectionViews().add(defaultCollectionView);
                 continue;
             }
+            if (!compiledObjectCollectionView.isDefaultView()) {
+                compiledObjectCollectionView.setDefaultView(true);
+            }
             mergeCollectionViews(compiledObjectCollectionView, defaultCollectionView);
         }
 

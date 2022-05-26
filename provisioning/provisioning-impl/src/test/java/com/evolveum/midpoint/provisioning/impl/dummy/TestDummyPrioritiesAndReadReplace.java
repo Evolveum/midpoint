@@ -139,7 +139,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
             assertNull("Activation sneaked in (provisioning)", activationProvisioning);
         }
 
-        assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+        assertNull("The _PASSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
                 accountTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
         // Check if the account was created in the dummy resource

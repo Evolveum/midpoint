@@ -360,7 +360,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
 
@@ -414,7 +414,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // THEN
         display("Resource from model", resource);
-        displayValue("Resource from model (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from model (XML)", PrismTestUtil.serializeToXml(resource));
 
         assertSteadyResources();
 

@@ -61,7 +61,7 @@ public class TestDummyIncomplete extends TestDummy {
         PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
         assertNotNull("password native capability not present", passwordCapabilityType);
         Boolean readable = passwordCapabilityType.isReadable();
-        assertNotNull("No 'readable' inducation in password capability", readable);
+        assertNotNull("No 'readable' indication in password capability", readable);
         assertTrue("Password not 'readable' in password capability", readable);
     }
 

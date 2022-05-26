@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.util.ObjectSet;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
@@ -131,8 +131,8 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
             VariablesMap variables = getVariablesMap();
             ExpressionEvaluationContext params =
                     new ExpressionEvaluationContext(null, variables, contextDescription, task);
-            PrismValueDeltaSetTriple<?> outputTriple = ModelExpressionThreadLocalHolder
-                    .evaluateAnyExpressionInContext(expression, params, task, result);
+            PrismValueDeltaSetTriple<?> outputTriple =
+                    ExpressionUtil.evaluateAnyExpressionInContext(expression, params, task, result);
             LOGGER.trace("Correlation expression returned:\n{}", DebugUtil.debugDumpLazily(outputTriple, 1));
 
             ObjectSet<F> allCandidates = new ObjectSet<>();

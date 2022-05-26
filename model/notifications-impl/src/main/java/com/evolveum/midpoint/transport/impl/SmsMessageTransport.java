@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -36,7 +37,6 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -328,8 +328,8 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
                 transportSupport.expressionFactory().makeExpression(
                         expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
-                .evaluateExpressionInContext(expression, params, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
+                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
 
         if (!multipleValues) {
             if (exprResult.getZeroSet().size() > 1) {

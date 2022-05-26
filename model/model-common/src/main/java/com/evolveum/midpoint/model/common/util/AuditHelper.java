@@ -13,9 +13,9 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -151,8 +151,8 @@ public class AuditHelper {
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
             variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
-                    new ExpressionEnvironment<>(context, null, task, result));
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
+                    new ModelExpressionEnvironment<>(context, null, task, result));
             try {
                 PrismValue returnValue = ExpressionUtil.evaluateExpression(
                         variables,
@@ -168,7 +168,7 @@ public class AuditHelper {
                         ? (AuditEventRecord) returnValue.getRealValue()
                         : null;
             } finally {
-                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit recording expression", t);

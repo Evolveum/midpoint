@@ -181,7 +181,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         if (!isEditingObject()) {
             return false;
         }
-        if (!resource.getAdditionalConnector().isEmpty()) {
+        if (!resource.getAdditionalConnector().isEmpty()) { // TODO what is this?
             if (resource.getCapabilities() == null) {
                 return false;
             }
@@ -190,7 +190,7 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
                 if (configuredCapability == null) {
                     return false;
                 }
-                return configuredCapability.isEnabled();
+                return !Boolean.FALSE.equals(configuredCapability.isEnabled());
             }
             return false;
         }

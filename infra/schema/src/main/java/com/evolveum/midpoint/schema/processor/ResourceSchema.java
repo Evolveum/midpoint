@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -40,19 +39,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  *
  * It contains both "raw" object class definition and "refined" object type definitions.
  *
- * - Raw definitions are represented by {@link ResourceObjectClassDefinition} objects
+ * - Raw (class) definitions are represented by {@link ResourceObjectClassDefinition} objects
  * and are obtained directly from the connector.
- * - Refined definitions (represented by {@link ResourceObjectTypeDefinition}) are derived from the raw ones
+ * - Refined (type) definitions (represented by {@link ResourceObjectTypeDefinition}) are derived from the raw ones
  * by merging them with information in `schemaHandling` part of the resource definition.
  *
  * This interface contains a lot of methods that try to find object type/class definition matching
- * criteria. Similar methods (more comprehensive) are in {@link ResourceObjectDefinitionResolver} class.
+ * criteria. Similar methods (but more comprehensive) are in {@link ResourceObjectDefinitionResolver} class.
  *
  * NOTE: Some of the names will probably change soon.
  *
  * NOTE: There can be schemas that contain no refined definitions. Either the resource definition
  * contains no `schemaHandling`, or we work at lower layers (e.g. when fetching and parsing the schema
  * in ConnId connector).
+ *
+ * Naming convention: To clearly indicate which methods are really _never_ mentioned to be public,
+ * we use `Internal` suffix in their name. This interface is really complex, and we don't want to increase
+ * this complexity any further.
  *
  * @author semancik
  */
@@ -77,73 +80,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns object definition (type or class) matching given kind and intent, and object class.
-     *
-     * The object class parameter is used to:
-     *
-     * 1. verify that object type that matches given kind and intent is compatible with (currently: equal to) the object class;
-     * 2. provide a complementary means to select a type when intent is not specified.
-     *
-     * There is a special treatment for:
-     *
-     * - intent being null: see {@link #findObjectDefinitionForKind(ShadowKindType, QName)};
-     * - (a hack) for ACCOUNT/default: see {@link #findDefaultAccountObjectClass()} [this may be removed later]
-     *
-     * The "unknown" values for kind/intent are not supported. The client must know if these
-     * are even applicable, or (if they are) how they should be interpreted.
-     *
-     * @throws IllegalStateException if there are more matching definitions for known kind/intent
-     * (we should have checked this when parsing)
-     * @throws IllegalArgumentException if "unknown" values are present; or if only the kind is specified, and
-     * there's more than one applicable definition for the kind (TODO or should be that {@link ConfigurationException}?)
-     */
-    default @Nullable ResourceObjectDefinition findObjectDefinition(
-            @NotNull ShadowKindType kind,
-            @Nullable String intent,
-            @Nullable QName objectClassName) {
-
-        argCheck(kind != ShadowKindType.UNKNOWN,
-                "Unknown kind is not supported here: %s/%s in %s", kind, intent, this);
-        argCheck(!SchemaConstants.INTENT_UNKNOWN.equals(intent),
-                "Unknown intent is not supported here: %s/%s in %s", kind, intent, this);
-
-        var found = findObjectDefinitionInternal(kind, intent, objectClassName);
-        if (found != null) {
-            return found;
-        }
-
-        // BRUTAL HACK to allow finding ACCOUNT/default definitions, see e.g. TestAssignmentErrors
-        if (kind == ShadowKindType.ACCOUNT && SchemaConstants.INTENT_DEFAULT.equals(intent)) {
-            return findDefaultAccountObjectClass();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * The whole logic of finding the definition for kind/intent (+OC), except for ACCOUNT/default hack.
-     */
-    private @Nullable ResourceObjectDefinition findObjectDefinitionInternal(
-            @NotNull ShadowKindType kind, @Nullable String intent, @Nullable QName objectClassName) {
-        if (intent == null) {
-            return findObjectDefinitionForKind(kind, objectClassName);
-        } else {
-            var matching = MiscUtil.extractSingleton(
-                    getObjectTypeDefinitions().stream()
-                            .filter(def -> def.matches(kind, intent))
-                            .collect(Collectors.toList()),
-                    () -> new IllegalStateException(
-                            "More than one non-default definition for " + kind + "/" + intent + " in " + this));
-            if (matching != null) {
-                ResourceObjectDefinitionResolver.checkObjectClassCompatibility(kind, null, objectClassName, matching);
-                return matching;
-            } else {
-                return null;
-            }
-        }
-    }
-
+    //region Convenience variants of the base methods
     /**
      * Like {@link #findObjectDefinition(ShadowKindType, String, QName)} but without object class name.
      */
@@ -154,7 +91,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     /**
      * As {@link #findObjectDefinition(ShadowKindType, String)} but throws {@link NullPointerException} if a definition
-     * cannot be found (in a normal way). All other exceptions from the above method apply.
+     * cannot be found (in a normal way). All other exceptions from that method apply.
      */
     default @NotNull ResourceObjectDefinition findObjectDefinitionRequired(
             @NotNull ShadowKindType kind, @Nullable String intent) {
@@ -166,7 +103,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     /**
      * Returns object _type_ definition for given kind and intent.
      *
-     * Not used in standard cases. Consider {@link #findObjectDefinitionRequired(ShadowKindType, String)} instead.
+     * Not to be used in standard cases. Consider {@link #findObjectDefinitionRequired(ShadowKindType, String)} instead.
      */
     @VisibleForTesting
     default @NotNull ResourceObjectTypeDefinition findObjectTypeDefinitionRequired(
@@ -193,6 +130,105 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     }
 
     /**
+     * As {@link #findDefinitionForObjectClass(QName)} but throws an exception if there's no suitable definition.
+     *
+     * Currently it's {@link NullPointerException}. TODO reconsider what kind of exception should we throw
+     */
+    default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) {
+        return java.util.Objects.requireNonNull(
+                findDefinitionForObjectClass(name),
+                () -> "No definition for object class " + name + " in " + this);
+    }
+
+    /**
+     * The same as {@link #findObjectClassDefinition(QName)} but throws an exception if there's no such definition.
+     */
+    default @NotNull ResourceObjectClassDefinition findObjectClassDefinitionRequired(@NotNull QName name)
+            throws SchemaException {
+        return MiscUtil.requireNonNull(
+                findObjectClassDefinition(name),
+                () -> "Object class " + name + " not found in " + this);
+    }
+    //endregion
+
+    //region Main "findObjectDefinition" method and its implementation via internal methods
+    /**
+     * Returns object definition (type or class) matching given kind and intent, and object class.
+     *
+     * The object class parameter is used to:
+     *
+     * 1. verify that object type that matches given kind and intent is compatible with (currently: equal to) the object class;
+     * 2. provide a complementary means to select a type when intent is not specified.
+     *
+     * There is a special treatment for:
+     *
+     * - intent being null: see {@link #findObjectDefinitionForKindInternal(ShadowKindType, QName)};
+     * - (a hack) for ACCOUNT/default: see {@link #findDefaultAccountObjectClassInternal()} [this may be removed later]
+     *
+     * The "unknown" values for kind/intent are not supported. The client must know if these
+     * are even applicable, or (if they are) how they should be interpreted.
+     *
+     * @throws IllegalStateException if there are more matching definitions for known kind/intent
+     * (we should have checked this when parsing)
+     * @throws IllegalArgumentException if "unknown" values are present; or if only the kind is specified, and
+     * there's more than one applicable definition for the kind (TODO or should be that {@link ConfigurationException}?)
+     */
+    default @Nullable ResourceObjectDefinition findObjectDefinition(
+            @NotNull ShadowKindType kind,
+            @Nullable String intent,
+            @Nullable QName objectClassName) {
+
+        argCheck(kind != ShadowKindType.UNKNOWN,
+                "Unknown kind is not supported here: %s/%s in %s", kind, intent, this);
+        argCheck(!SchemaConstants.INTENT_UNKNOWN.equals(intent),
+                "Unknown intent is not supported here: %s/%s in %s", kind, intent, this);
+
+        var found = findObjectDefinitionInternal(kind, intent, objectClassName);
+        if (found != null) {
+            return found;
+        }
+
+        // BRUTAL HACK to allow finding ACCOUNT/default or ACCOUNT/null definitions, see e.g. TestAssignmentErrors
+        if (kind == ShadowKindType.ACCOUNT
+                && (SchemaConstants.INTENT_DEFAULT.equals(intent) || intent == null)) {
+            return findDefaultAccountObjectClassInternal();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * The whole logic of finding the definition for kind/intent (+OC), except for ACCOUNT/default hack.
+     */
+    private @Nullable ResourceObjectDefinition findObjectDefinitionInternal(
+            @NotNull ShadowKindType kind, @Nullable String intent, @Nullable QName objectClassName) {
+        if (intent == null) {
+            return findObjectDefinitionForKindInternal(kind, objectClassName);
+        } else {
+            return findObjectDefinitionForKindAndIntentInternal(kind, intent, objectClassName);
+        }
+    }
+
+    /**
+     * Most direct lookup - by kind and intent (must be at most one), then checking object class, if it's present.
+     */
+    private @Nullable ResourceObjectTypeDefinition findObjectDefinitionForKindAndIntentInternal(
+            @NotNull ShadowKindType kind, @NotNull String intent, @Nullable QName objectClassName) {
+        var matching = MiscUtil.extractSingleton(
+                getObjectTypeDefinitions().stream()
+                        .filter(def -> def.matches(kind, intent))
+                        .collect(Collectors.toList()),
+                () -> new IllegalStateException(
+                        "More than one non-default definition for " + kind + "/" + intent + " in " + this));
+        if (matching != null) {
+            ResourceObjectDefinitionResolver.checkObjectClassCompatibility(kind, null, objectClassName, matching);
+            return matching;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Determines object definition (type or class level) when only kind is specified (i.e. intent is null).
      * Optional filtering using object class name is available.
      *
@@ -202,20 +238,21 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      * This is not a {@link ConfigurationException} because the configuration itself may be legal.
      * (Or should we throw that one?)
      */
-    private @Nullable ResourceObjectDefinition findObjectDefinitionForKind(
+    private @Nullable ResourceObjectDefinition findObjectDefinitionForKindInternal(
             @NotNull ShadowKindType kind, @Nullable QName objectClassName) {
 
         // #1: Is there a type definition that is declared as default for its kind?
-        ResourceObjectTypeDefinition markedAsDefault = findDefaultObjectTypeDefinition(kind, objectClassName);
+        ResourceObjectTypeDefinition markedAsDefault = findDefaultObjectTypeDefinitionInternal(kind, objectClassName);
         if (markedAsDefault != null) {
             return markedAsDefault;
         }
 
         // #2: Is there a type definition with the intent="default"? We are intentionally not using
         // the object class name in the call, to avoid exceptions if there is a default but with non-matching OC name.
-        ResourceObjectDefinition intentDefault = findObjectDefinitionInternal(
+        ResourceObjectDefinition intentDefault = findObjectDefinitionForKindAndIntentInternal(
                 kind, SchemaConstants.INTENT_DEFAULT, null);
         if (intentDefault != null) {
+            // TODO But should not we at least check the OC compatibility?
             return intentDefault;
         }
 
@@ -239,20 +276,14 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
             return findObjectClassDefinition(objectClassName);
         }
 
-        // #5: If the kind is "account", and connector designated an object class as "default for account"
-        // (currently __ACCOUNT__ for ConnId), then let's use that.
-        if (kind == ShadowKindType.ACCOUNT) {
-            return findDefaultAccountObjectClass();
-        }
-
-        // #6: Sorry.
+        // #5: Sorry.
         return null;
     }
 
     /**
      * Returns the default object class definition for accounts, if defined.
      */
-    private @Nullable ResourceObjectClassDefinition findDefaultAccountObjectClass() {
+    private @Nullable ResourceObjectClassDefinition findDefaultAccountObjectClassInternal() {
         List<ResourceObjectClassDefinition> defaultDefinitions = getObjectClassDefinitions().stream()
                 .filter(ResourceObjectClassDefinition::isDefaultAccountDefinition)
                 .collect(Collectors.toList());
@@ -263,48 +294,10 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     }
 
     /**
-     * Returns object type definition matching given kind and one of the intents.
-     * (Or, if no intents are provided, default type for given kind is returned.
-     * We are not very eager here - by default we mean just the flag "default" being set.
-     * This is in contrast with e.g. {@link ResourceSchema#findObjectDefinitionForKind(ShadowKindType, QName)}.
-     * But here we won't go into such levels. This is quite a specialized method.)
-     *
-     * The matching types must be co share at least the object class name. This is checked by this method.
-     * However, in practice they must share much more, as described in the description for
-     * {@link ResourceObjectAssociationType#getIntent()} (see XSD).
-     *
-     * To be used in special circumstances.
-     *
-     */
-    default ResourceObjectTypeDefinition findObjectTypeDefinitionForAnyMatchingIntent(
-            @NotNull ShadowKindType kind, @NotNull Collection<String> intents)
-            throws SchemaException {
-        Collection<ResourceObjectTypeDefinition> matching = getObjectTypeDefinitions().stream()
-                .filter(def -> def.matchesKind(kind) && matchesAnyIntent(def, intents))
-                .collect(Collectors.toList());
-        if (matching.isEmpty()) {
-            return null;
-        } else if (ResourceSchemaUtil.areDefinitionsCompatible(matching)) {
-            return matching.iterator().next();
-        } else {
-            throw new SchemaException("Incompatible definitions found for kind " + kind + ", intents: " + intents + ": " + matching);
-        }
-    }
-
-    // Just a helper for previous method
-    private boolean matchesAnyIntent(@NotNull ResourceObjectTypeDefinition def, @NotNull Collection<String> intents) {
-        if (intents.isEmpty()) {
-            return def.isDefaultForKind();
-        } else {
-            return intents.contains(def.getIntent());
-        }
-    }
-
-    /**
-     * Returns the default definition for given kind. The `default` flag must be explicitly set.
+     * Returns the default definition for given kind. The `defaultForKind` flag must be explicitly set.
      * Object class must match, if it's specified.
      */
-    default @Nullable ResourceObjectTypeDefinition findDefaultObjectTypeDefinition(
+    private @Nullable ResourceObjectTypeDefinition findDefaultObjectTypeDefinitionInternal(
             @NotNull ShadowKindType kind, @Nullable QName objectClassName) {
         return MiscUtil.extractSingleton(
                 getObjectTypeDefinitions().stream()
@@ -315,7 +308,22 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
                         .collect(Collectors.toList()),
                 () -> new IllegalStateException("Multiple default definitions for " + kind + " in " + this));
     }
+    //endregion
 
+    //region Finding object _class_ definitions (much simpler)
+    /**
+     * Returns object class definition for a given object class name.
+     */
+    default @Nullable ResourceObjectClassDefinition findObjectClassDefinition(@NotNull QName name) {
+        return MiscUtil.extractSingleton(
+                getObjectClassDefinitions().stream()
+                        .filter(def -> QNameUtil.match(def.getTypeName(), name))
+                        .collect(Collectors.toList()),
+                () -> new IllegalStateException("More than one definition of object class " + name + " in " + this));
+    }
+    //endregion
+
+    //region Strange methods
     /**
      * Returns the definition for given kind. If default one is present, it is returned.
      * Otherwise, any definition is returned.
@@ -324,10 +332,12 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      * (Although not exactly the same: now we require type definition, whereas in 4.4 and before
      * we could return a definition even if no schemaHandling was present.)
      *
-     * TODO Determine if this method is really needed.
+     * This method is quite obscure, mainly because of its non-determinism, and shouldn't be used much.
+     * It seems to be quite heavily used in tests (where it's no problem), but also on a couple of places
+     * in production code. These should be reviewed.
      */
     default @Nullable ResourceObjectTypeDefinition findDefaultOrAnyObjectTypeDefinition(@NotNull ShadowKindType kind) {
-        ResourceObjectTypeDefinition defaultDefinition = findDefaultObjectTypeDefinition(kind, null);
+        ResourceObjectTypeDefinition defaultDefinition = findDefaultObjectTypeDefinitionInternal(kind, null);
         if (defaultDefinition != null) {
             return defaultDefinition;
         } else {
@@ -345,23 +355,12 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      * - otherwise, the object class definition is returned (if there's any)
      */
     default @Nullable ResourceObjectDefinition findDefinitionForObjectClass(@NotNull QName name) {
-        ResourceObjectTypeDefinition defaultTypeDef = findDefaultObjectTypeDefinitionForObjectClass(name);
+        ResourceObjectTypeDefinition defaultTypeDef = findDefaultObjectTypeDefinitionForObjectClassInternal(name);
         if (defaultTypeDef != null) {
             return defaultTypeDef;
         } else {
             return findObjectClassDefinition(name);
         }
-    }
-
-    /**
-     * As {@link #findDefinitionForObjectClass(QName)} but throws an exception if there's no suitable definition.
-     *
-     * Currently it's {@link NullPointerException}. TODO reconsider what kind of exception should we throw
-     */
-    default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) {
-        return java.util.Objects.requireNonNull(
-                findDefinitionForObjectClass(name),
-                () -> "No definition for object class " + name + " in " + this);
     }
 
     /**
@@ -371,7 +370,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      * even if it's the only one defined. (We assume that a user may wish to _not_ provide a default type definition
      * in some situations.)
      */
-    private @Nullable ResourceObjectTypeDefinition findDefaultObjectTypeDefinitionForObjectClass(@NotNull QName name) {
+    private @Nullable ResourceObjectTypeDefinition findDefaultObjectTypeDefinitionForObjectClassInternal(@NotNull QName name) {
         return MiscUtil.extractSingleton(
                 getObjectTypeDefinitions().stream()
                         .filter(def ->
@@ -379,27 +378,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
                         .collect(Collectors.toList()),
                 () -> new IllegalStateException("More than one default type definition of object class " + name + " in " + this));
     }
-
-    /**
-     * Returns object class definition for a given object class name.
-     */
-    default @Nullable ResourceObjectClassDefinition findObjectClassDefinition(@NotNull QName name) {
-        return MiscUtil.extractSingleton(
-                getObjectClassDefinitions().stream()
-                        .filter(def -> QNameUtil.match(def.getTypeName(), name))
-                        .collect(Collectors.toList()),
-                () -> new IllegalStateException("More than one definition of object class " + name + " in " + this));
-    }
-
-    /**
-     * The same as {@link #findObjectClassDefinition(QName)} but throws an exception if there's no such definition.
-     */
-    default @NotNull ResourceObjectClassDefinition findObjectClassDefinitionRequired(@NotNull QName name)
-            throws SchemaException {
-        return MiscUtil.requireNonNull(
-                findObjectClassDefinition(name),
-                () -> "Object class " + name + " not found in " + this);
-    }
+    //endregion
 
     /**
      * Returns names of all object classes mentioned in the "raw" resource definition.
@@ -441,14 +420,5 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      */
     default boolean isRaw() {
         return getObjectTypeDefinitions().isEmpty();
-    }
-
-    /**
-     * Returns all {@link SynchronizationPolicy} objects that can be found in given resource definition
-     * (that this schema belongs to).
-     */
-    default Collection<SynchronizationPolicy> getAllSynchronizationPolicies(ResourceType resource)
-            throws ConfigurationException {
-        return SynchronizationPolicyFactory.getAllPolicies(this, resource);
     }
 }

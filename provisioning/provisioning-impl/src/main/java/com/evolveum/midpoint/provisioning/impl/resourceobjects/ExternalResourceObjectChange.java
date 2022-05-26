@@ -34,7 +34,7 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
             PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
             ProvisioningContext ctx, ResourceObjectConverter resourceObjectConverter) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, resourceObject, objectDelta,
-                InitializationState.fromSuccess(), ctx, resourceObjectConverter.getLocalBeans());
+                InitializationState.fromSuccess(), ctx, resourceObjectConverter.getBeans());
     }
 
     @Override

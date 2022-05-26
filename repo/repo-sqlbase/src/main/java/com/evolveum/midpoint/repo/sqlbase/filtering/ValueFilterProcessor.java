@@ -42,7 +42,7 @@ public class ValueFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
     private final QueryModelMapping<?, Q, R> mapping;
 
     public ValueFilterProcessor(SqlQueryContext<?, Q, R> context) {
-        this(context, context.mapping());
+        this(context, context.queryMapping());
     }
 
     private ValueFilterProcessor(
