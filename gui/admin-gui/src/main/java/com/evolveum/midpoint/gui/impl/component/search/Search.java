@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,16 +49,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
-    public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
-    public static final String F_SPECIAL_ITEMS = "specialItems";
-    public static final String F_COMPOSITED_SPECIAL_ITEMS = "compositedSpecialItems";
-    public static final String F_ADVANCED_QUERY = "advancedQuery";
-    public static final String F_DSL_QUERY = "dslQuery";
-    public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
-    public static final String F_OID = "oid";
-    public static final String F_COLLECTION = "collectionSearchItem";
     public static final String F_TYPE = "type";
 
 
@@ -71,12 +65,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private String dslQuery;
     private String advancedError;
     private String fullText;
-    private String oid;
 
-    private ObjectCollectionSearchItem objectCollectionSearchItem;
-    private boolean isCollectionItemVisible = false;
-    private boolean isOidSearchEnabled = false;
-    private LoadableModel<List<AbstractSearchItemWrapper>> itemsModel;
     private SearchConfigurationWrapper searchConfigurationWrapper;
 
     public Search(SearchConfigurationWrapper searchConfigurationWrapper) {
@@ -266,6 +255,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
+    public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {
+        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof ObjectCollectionSearchItemWrapper) {
+                return (ObjectCollectionSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
     public ObjectTypeSearchItemWrapper findObjectTypeSearchItemWrapper() {
         List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
         for (AbstractSearchItemWrapper item : items) {
@@ -277,75 +276,28 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery createObjectTypeItemQuery(PageBase pageBase) {
-//        List<SearchItem> specialItems = getSpecialItems();
-//        if (specialItems.isEmpty()) {
-//            if (compositedSpecialItems == null) {
-//                return null;
-//            }
-//        }
-
-//        List<ObjectFilter> conditions = new ArrayList<>();
-//        if (compositedSpecialItems instanceof AbstractRoleCompositedSearchItem) {
-//            ObjectFilter filter = ((AbstractRoleCompositedSearchItem) compositedSpecialItems).createFilter(pageBase, variables);
-//            if (filter != null) {
-//                conditions.add(filter);
-//            }
-//        }
-//
-//        for (SearchItem item : specialItems) {
-//            if (item.isApplyFilter()) {
-//
-//                if (item instanceof SpecialSearchItem) {
-//                    ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
-//                    if (filter != null) {
-//                        conditions.add(filter);
-//                    }
-//                }
-//                if (item instanceof PropertySearchItem) {
-//                    PropertySearchItem propertyItem = (PropertySearchItem) item;
-//                    ObjectFilter filter = propertyItem.transformToFilter();
-//                    if (filter == null) {
-//                        filter = createFilterForSearchItem(propertyItem, pageBase.getPrismContext());
-//                    }
-//                    if (filter != null) {
-//                        conditions.add(filter);
-//                    }
-//                }
-//            }
-//        }
-
         ObjectQuery query;
         if (getTypeClass() != null) {
             query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
         } else {
             query = pageBase.getPrismContext().queryFactory().createQuery();
         }
-//        switch (conditions.size()) {
-//            case 0:
-//                query = null;
-//                break;
-//            default:
-//                for (ObjectFilter filter : conditions) {
-//                    query.addFilter(filter);
-//                }
-//        }
         return query;
     }
 
     private ObjectQuery getArchetypeQuery(PageBase pageBase) {
-//        if (getCollectionSearchItem() == null || getCollectionSearchItem().getObjectCollectionView() == null) {
-//            return null;
-//        }
-//        CompiledObjectCollectionView view = getCollectionSearchItem().getObjectCollectionView();
-//        if (view.getFilter() == null) {
-//            return null;
-//        }
-//
-//        ObjectQuery query = pageBase.getPrismContext().queryFor(getType()).build();
-//        OperationResult result = new OperationResult("evaluate filter");
-//        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, pageBase));
-//        return query;
-        return null;
+        if (findObjectCollectionSearchItemWrapper() == null || findObjectCollectionSearchItemWrapper().getObjectCollectionView() == null) {
+            return null;
+        }
+        CompiledObjectCollectionView view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
+        if (view.getFilter() == null) {
+            return null;
+        }
+
+        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        OperationResult result = new OperationResult("evaluate filter");
+        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, pageBase));
+        return query;
     }
 
     private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
@@ -426,137 +378,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return variables;
     }
 
-    private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {
-        if (!(item instanceof DateSearchItem) && (item.getValue() == null || item.getValue().getValue() == null)) {
-            return null;
-        }
-
-        DisplayableValue value = item.getValue();
-        List<ObjectFilter> conditions = new ArrayList<>();
-        ObjectFilter filter = createFilterForSearchValue(item, value, ctx);
-        if (filter != null) {
-            conditions.add(filter);
-        }
-
-        switch (conditions.size()) {
-            case 0:
-                return null;
-            case 1:
-                return conditions.get(0);
-            default:
-                return ctx.queryFactory().createOr(conditions);
-        }
-    }
-
-    private ObjectFilter createFilterForSearchValue(PropertySearchItem item, DisplayableValue searchValue,
-            PrismContext ctx) {
-
-        ItemDefinition definition = item.getDefinition().getDef();
-        ItemPath path = item.getPath();
-
-//        if (definition instanceof PrismReferenceDefinition) {
-//            PrismReferenceValue refValue = ((ObjectReferenceType) searchValue.getValue()).asReferenceValue();
-//            if (refValue.isEmpty()) {
-//                return null;
-//            }
-//            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) definition).getTargetTypeName());
-//            if (supportedTargets.size() == 1 && QNameUtil.match(supportedTargets.iterator().next(), refValue.getTargetType())  && refValue.getOid() == null
-//                    && refValue.getObject() == null && refValue.getRelation() == null && refValue.getFilter() == null) {
-//                return null;
-//            }
-//            RefFilter refFilter = (RefFilter) ctx.queryFor(ObjectType.class)
-//                    .item(path, definition).ref(refValue.clone())
-//                    .buildFilter();
-//            refFilter.setOidNullAsAny(true);
-//            refFilter.setTargetTypeNullAsAny(true);
-//            return refFilter;
-//        }
-
-        PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>) definition;
-        if ((propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty())
-                || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
-            //we're looking for enum value, therefore equals filter is ok
-            //or if it's boolean value
-            Object value = searchValue.getValue();
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).eq(value).buildFilter();
-        } else if (DOMUtil.XSD_INT.equals(propDef.getTypeName())
-                || DOMUtil.XSD_INTEGER.equals(propDef.getTypeName())
-                || DOMUtil.XSD_LONG.equals(propDef.getTypeName())
-                || DOMUtil.XSD_SHORT.equals(propDef.getTypeName())) {
-
-            String text = (String) searchValue.getValue();
-            if (!StringUtils.isNumeric(text) && (searchValue instanceof SearchValue)) {
-                ((SearchValue) searchValue).clear();
-                return null;
-            }
-            Object value = Long.parseLong((String) searchValue.getValue());
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).eq(value).buildFilter();
-        } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
-            String text = (String) searchValue.getValue();
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).contains(text).matchingCaseIgnore().buildFilter();
-        } else if (DOMUtil.XSD_QNAME.equals(propDef.getTypeName())) {
-            Object value = searchValue.getValue();
-            QName qName;
-            if (value instanceof QName) {
-                qName = (QName) value;
-            } else {
-                qName = new QName((String) value);
-            }
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).eq(qName).buildFilter();
-        } else
-//            if (DOMUtil.XSD_DATETIME.equals(propDef.getTypeName())) {
-//            if (((DateSearchItem) item).getFromDate() != null && ((DateSearchItem) item).getToDate() != null) {
-//                return ctx.queryFor(ObjectType.class)
-//                        .item(path, propDef)
-//                        .gt(((DateSearchItem) item).getFromDate())
-//                        .and()
-//                        .item(path, propDef)
-//                        .lt(((DateSearchItem) item).getToDate())
-//                        .buildFilter();
-//            } else if (((DateSearchItem) item).getFromDate() != null) {
-//                return ctx.queryFor(ObjectType.class)
-//                        .item(path, propDef)
-//                        .gt(((DateSearchItem) item).getFromDate())
-//                        .buildFilter();
-//            } else if (((DateSearchItem) item).getToDate() != null) {
-//                return ctx.queryFor(ObjectType.class)
-//                        .item(path, propDef)
-//                        .lt(((DateSearchItem) item).getToDate())
-//                        .buildFilter();
-//            } else {
-//                return null;
-//            }
-//        } else
-            if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
-            //we're looking for string value, therefore substring filter should be used
-            String text = (String) searchValue.getValue();
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).contains(text).matchingNorm().buildFilter();
-        } else if (propDef.getValueEnumerationRef() != null) {
-            String value = (String) searchValue.getValue();
-            return ctx.queryFor(ObjectType.class)
-                    .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
-        }
-//            else if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, propDef.getTypeName())) {
-//            ItemPathType itemPath = (ItemPathType) searchValue.getValue();
-//            return ctx.queryFor(ObjectType.class)
-//                    .item(path, propDef).eq(itemPath).buildFilter();
-//        }
-
-        //we don't know how to create filter from search item, should not happen, ha ha ha :)
-        //at least we try to cleanup field
-
-        if (searchValue instanceof SearchValue) {
-//            ((SearchValue) searchValue).clear();
-        }
-
-        return null;
-    }
-
     public void setAdvancedQuery(String advancedQuery) {
         this.advancedQuery = advancedQuery;
     }
@@ -625,9 +446,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
         }
 
-//        DebugUtil.dumpObjectSizeEstimate(sb, "availableDefinitions", availableDefinitions, indent + 2);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectCollectionSpecialItems", objectCollectionSearchItem, indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "objectCollectionSpecialItemsSize", objectCollectionSearchItem, indent + 1);
         return sb.toString();
     }
 
