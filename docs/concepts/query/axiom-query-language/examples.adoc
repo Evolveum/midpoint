@@ -35,6 +35,7 @@ assignment/targetRef/@/name = "Role Name"
 ----
 
 Where:
+
 * `assignment/targetRef/@` -specifies that we are not matching reference value, but it's target. In this case it is assigned role.
 
 
@@ -100,4 +101,105 @@ where exists (
    )
 )
 limit ?
+----
+
+
+=== All roles which are assigned to System users
+
+NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+
+// All roles which are assigned to system users
+.Axiom Query using `UserType` as referencedBy
+----
+. referencedBy (
+  @type = UserType
+  and @path = assignment/targetRef
+  and archetypeRef/@/name = "System user"
+)
+----
+
+.Axiom Query using `AssignmentType` for referencedBy
+----
+. referencedBy (
+   @type = AssignmentType
+   and @path = targetRef
+   and . ownedBy (
+      @type = UserType
+      and @path = assignment
+      and archetypeRef/@/name = "System user"
+   )
+)
+----
+
+=== All roles, which are assigned using inducement
+NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+
+// All roles which are assigned using inducement
+.Axiom Query
+----
+. referencedBy (
+  @type = AbstractRoleType
+  and @path = inducement/targetRef
+)
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <referencedBy>
+    <type>AbstractRoleType</type>
+    <path>inducement/targetRef</path>
+  </referencedBy>
+</filter>
+----
+
+=== All roles, which are assigned to administrator using full text serach
+
+.Axiom Query
+----
+. referencedBy (
+   @type = UserType
+   and @path = roleMembershipRef
+   and . fullText "administrator"
+)
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <referencedBy>
+    <type>UserType</type>
+    <path>roleMembershipRef</path>
+    <filter>
+      <fullText>
+        <value>administrator</value>
+      </fullText>
+    </filter>
+  </referencedBy>
+</filter>
+)
+----
+
+=== Search on assigned role using fullText
+
+.Axiom Query
+----
+assignment/targetRef/@ matches (
+   . fullText "secret"
+)
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <exists>
+    <path>assignment/targetRef/@</path>
+    <fullText>
+      <value>secret</value>
+    </fullText>
+  </exists>
+</filter>
 ----

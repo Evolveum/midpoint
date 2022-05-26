@@ -174,7 +174,11 @@ The second filter with match user who has an assignment which starts in 2022 and
 
 === Reference Filters
 
-Reference filters allows to match on references themselves using <<Reference matches filter, matches>> or on properties of referenced objects using <<Dereferencing, dereferencing>>
+Reference filters allows to match on references themselves using
+<<Reference matches filter, matches>> or on properties of referenced objects using <<Dereferencing, dereferencing>>
+
+You can also perform inverse search using <<referencedBy filter, referencedBy>> to search
+for object by properties of it's referencer (eg. search roles by properties of its members).
 
 ==== Reference matches filter
 
@@ -214,7 +218,75 @@ NOTE: To match also users, who are indirectly assigned role, you should use `rol
 
 IMPORTANT: If you need to match referenced object on multiple properties you should use `matches` filter.
 
+==== Dereferencing inside reference matches filter
 
+NOTE: This feature is currently supported in midPoint 4.6 Postgres native repository only
+
+If user wants to match on properties of reference itself and also on properties of it's target
+it is possible now, using dereferencing inside `reference matches` filter.
+
+In order to match on target you can use dereferencing and matching: `@ matches (...)`.
+
+.Find all users, which are managers for roles with `Business Role` archetype
+----
+assignment/targetRef matches ( <1>
+  targetType = RoleType <2>
+  and relation = manager <3>
+  and @ matches ( <4>
+     archetypeRef/@/name = "Business Role" <5>
+  )
+)
+----
+<1> We are matching references in `assignment/targetRef`
+<2> Type of referenced target should be `RoleType`
+<3> Users relation to assigned role is `manager`
+<4> We dereference target and match on its properties
+<5> Name of role archetype should be `Business Role`. This is done by dereferencing `archetypeRef` using `@` in item path.
+
+
+==== referencedBy Filter
+
+NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+
+`referencedBy` filter allows you to find object based on properties on objects, which
+reference it. Since object as whole is referenced the item path
+
+In order to use `referencedBy` filter you must also specify `type` of objects, which references it,
+and `path` of object reference, which is used for reference (e.g `assignment/targetRef` or `inducement/targetRef`)
+
+The short Axiom syntax is:
+
+.Find all roles which are assigned to Administrator
+----
+. referencedBy ( <1>
+  @type = UserType <2>
+  and @path = assignment/targetRef <3>
+  and name = "Administrator" <4>
+)
+----
+<1> `. referencedBy` filter name
+<2> `@type` - required, special filter property which specified `type` of objects which should be considered in evaluation of filter. In this case we are interested in users.
+<3> `@path` - required, special filter property which specifies which Object reference should be used in filter, in this case we are interested in directly assigned roles (`assignment/targetRef`)
+<4> Filter which referencing object must match, in this case the name of referencing object must be `Administrator`.
+
+==== ownedBy Filter
+
+NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+
+ownedBy filter allows for matching indexed containers based on properties of their parent (owning object or container).
+
+The syntax is similar to referencedBy. ownedBy filter can only be applied on self path (.). The properties of ownedBy filter are:
+
+type:: (Required) Type of parent / owner
+
+path:: (Optional) name / location of container inside parent
+
+filter:: (Optional) filter, to which parent needs to conform, filter is explicit element in XML/YAML/JSON. In Axiom any filter which is not special property of ownedBy is automaticly nested in filter.
+
+.Using searchContainers, find all inducements
+----
+. ownedBy ( @type = AbstractRoleType and @path = inducement)
+----
 
 === Organization Filters
 
@@ -242,6 +314,7 @@ These filters operates on object as a whole, so item path must be `.`
 | type | object type | Matches if object is of specified type. Usually used in combination with `and` filter for dereferenced objects, or it is needed to match on property defined in more specific type.
 
 |===
+
 
 
 == Using Axiom Query Language in midPoint
