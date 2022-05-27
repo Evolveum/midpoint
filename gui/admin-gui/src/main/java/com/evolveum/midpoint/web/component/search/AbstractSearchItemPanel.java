@@ -145,9 +145,9 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
         Search search = item.getSearch();
         search.delete(item);
 
-        SearchPanel panel = findParent(SearchPanel.class);
-        panel.refreshSearchForm(target);
-        panel.searchPerformed(target);
+//        SearchPanel panel = findParent(SearchPanel.class);
+//        panel.refreshSearchForm(target);
+//        panel.searchPerformed(target);
     }
 
     protected IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
