@@ -36,7 +36,7 @@ public class WizardHeader extends BasePanel {
     }
 
     private void initLayout(IModel<String> currentPanelTitle, IModel<String> nextPanelTitle) {
-        add(AttributeAppender.append("class", "d-flex align-items-center flex-wrap gap-2"));
+        add(AttributeAppender.append("class", "d-flex align-items-center flex-wrap gap-3 mb-3"));
 
         AjaxLink back = createBackButton(ID_BACK);
         add(back);

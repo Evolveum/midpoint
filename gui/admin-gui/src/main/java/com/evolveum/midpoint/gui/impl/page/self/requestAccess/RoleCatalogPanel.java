@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -23,7 +21,11 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_BACK = "back";
+    private static final String ID_AS_LIST = "asList";
+    private static final String ID_AS_TILE = "asTile";
+    private static final String ID_MENU = "menu";
+    private static final String ID_TILES = "tiles";
+    private static final String ID_TILE = "tile";
 
     public RoleCatalogPanel(String id) {
         super(id);
@@ -32,22 +34,27 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
     }
 
     @Override
+    public String appendCssToWizard() {
+        return "w-100";
+    }
+
+    @Override
     public IModel<String> getTitle() {
         return () -> getString("RoleCatalogPanel.title");
     }
 
     private void initLayout() {
-        AjaxLink back = new AjaxLink<>(ID_BACK) {
+        DetailsMenuPanel menu = new DetailsMenuPanel(ID_MENU);
+        add(menu);
+
+        ListView<CatalogTile> tiles = new ListView<>(ID_TILES) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                onBackPerformed(target);
+            protected void populateItem(ListItem<CatalogTile> item) {
+                CatalogTilePanel tile = new CatalogTilePanel(ID_TILE, item.getModel());
+                item.add(tile);
             }
         };
-        add(back);
-    }
-
-    protected void onBackPerformed(AjaxRequestTarget target) {
-
+        add(tiles);
     }
 }

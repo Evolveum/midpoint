@@ -63,33 +63,11 @@ public class PageRequestAccess extends PageSelf {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(ID_PERSON_OF_INTEREST) {
-
-            @Override
-            protected void onNextPerformed(AjaxRequestTarget target) {
-//                wizard.nextStep();
-//
-//                target.add(wizard);
-            }
-        };
-
-        RoleCatalogPanel roleCatalog = new RoleCatalogPanel(ID_ROLE_CATALOG) {
-
-            @Override
-            protected void onBackPerformed(AjaxRequestTarget target) {
-//                wizard.previousStep();
-//
-//                target.add(wizard);
-            }
-        };
-
-        ShoppingCartPanel shoppingCart = new ShoppingCartPanel(ID_SHOPPING_CART);
-
         WizardBorder wizard = new WizardBorder(ID_WIZARD) {
 
             @Override
             protected List<WizardPanel> createSteps() {
-                return Arrays.asList(personOfInterest, roleCatalog, shoppingCart);
+                return PageRequestAccess.this.createSteps(this);
             }
         };
         wizard.setOutputMarkupId(true);
@@ -97,5 +75,22 @@ public class PageRequestAccess extends PageSelf {
 
         //todo delete
         add(new DetailsMenuPanel("menu"));
+    }
+
+    private List<WizardPanel> createSteps(WizardBorder border) {
+        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(ID_PERSON_OF_INTEREST) {
+
+            @Override
+            protected void onNextPerformed(AjaxRequestTarget target) {
+                border.getModel().getObject().nextStep();
+
+                target.add(border);
+            }
+        };
+
+        RoleCatalogPanel roleCatalog = new RoleCatalogPanel(ID_ROLE_CATALOG);
+        ShoppingCartPanel shoppingCart = new ShoppingCartPanel(ID_SHOPPING_CART);
+
+        return Arrays.asList(personOfInterest, roleCatalog, shoppingCart);
     }
 }

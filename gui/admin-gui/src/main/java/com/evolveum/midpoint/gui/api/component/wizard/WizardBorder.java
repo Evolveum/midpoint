@@ -54,6 +54,10 @@ public class WizardBorder extends Border {
         initLayout();
     }
 
+    public IModel<Wizard> getModel() {
+        return model;
+    }
+
     @Override
     protected void onComponentTag(ComponentTag tag) {
         checkComponentTag(tag, "div");
@@ -81,6 +85,7 @@ public class WizardBorder extends Border {
         model = Model.of(new Wizard(steps.size()));
 
         add(AttributeAppender.prepend("class", "bs-stepper"));
+        add(AttributeAppender.append("class", () -> getCurrentPanel().appendCssToWizard()));
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
         header.setOutputMarkupId(true);

@@ -17,6 +17,10 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public interface WizardPanel {
 
+    default String appendCssToWizard() {
+        return null;
+    }
+
     default IModel<String> getTitle() {
         String key = getClass().getSimpleName() + ".title";
         return () -> Application.get().getResourceSettings().getLocalizer().getString(key, null, key);

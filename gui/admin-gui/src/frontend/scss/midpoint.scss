@@ -1759,7 +1759,20 @@ th.debug-list-buttons {
   height: 250px;
   border: 2px solid $white;
   border-radius: $border-radius;
+  background-color: $white;
   cursor: pointer;
+
+  &:hover,
+  &.active {
+    border: 2px solid $lightblue;
+    border-radius: $border-radius;
+  }
+}
+
+.catalog-tile-panel {
+  width: 317px;
+  height: 376px;
+  background-color: $white;
 
   &:hover,
   &.active {
