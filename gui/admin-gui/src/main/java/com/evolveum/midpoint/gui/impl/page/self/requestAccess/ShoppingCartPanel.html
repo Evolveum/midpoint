@@ -7,6 +7,60 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    shopping cart
+    <div class="row">
+        <div class="col-md-12 col-xl-7 col-lg-8 col-xxl-9">
+            <div wicket:id="table"/>
+        </div>
+        <div class="col-md-12 col-xl-5 col-lg-4 col-xxl-3">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cash-register mr-1"></i>
+                        Checkout
+                    </h3>
+                </div>
+                <div class="card-body d-flex flex-column gap-2">
+                    <label class="mb-0">
+                        Validity
+                        <i class="fas fa-info-circle fa-xs text-primary"></i>
+                    </label>
+                    <select class="form-control">
+
+                    </select>
+                    <label class="mb-0">
+                        Comment
+                        <i class="fas fa-info-circle fa-xs text-primary"></i>
+                    </label>
+                    <textarea class="form-control" rows="4"></textarea>
+                    <a class="btn btn-danger">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        Open conflict solver
+                    </a>
+                    <a class="btn btn-success">
+                        <i class="fas fa-credit-card"></i>
+                        Submit my request
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </wicket:panel>
+
+<wicket:fragment wicket:id="tableFooterFragment">
+    <a class="btn btn-outline-primary" wicket:id="clearCart">
+        <i class="fa-solid fa-recycle"></i>
+        Clear the shopping cart
+    </a>
+</wicket:fragment>
+
+<wicket:fragment wicket:id="tableButtonColumn">
+    <a class="btn btn-link" wicket:id="edit">
+        <i class="fas fa-pen-to-square"></i>
+        Edit
+    </a>
+    <a class="btn btn-link text-danger" wicket:id="remove">
+        <i class="fas fa-trash-can"></i>
+        Remove
+    </a>
+</wicket:fragment>
 </html>
