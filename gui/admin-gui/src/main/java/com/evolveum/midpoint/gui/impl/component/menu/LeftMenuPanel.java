@@ -310,8 +310,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
             menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.request", GuiStyleConstants.CLASS_ICON_REQUEST,
                     PageAssignmentShoppingCart.class));
-//            menu.addMainMenuItem(createMainMenuItem("PageRequestAccess.title", GuiStyleConstants.CLASS_ICON_REQUEST_ACCESS,
-//                    PageRequestAccess.class));
+            menu.addMainMenuItem(createMainMenuItem("PageRequestAccess.title", GuiStyleConstants.CLASS_ICON_REQUEST_ACCESS,
+                    PageRequestAccess.class));
         }
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.consent", GuiStyleConstants.CLASS_ICON_CONSENT,
                 PageSelfConsents.class));
