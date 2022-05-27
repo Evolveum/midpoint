@@ -23,7 +23,7 @@ spec:
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
                 containerTemplate(name: 'maven',
-                        image: 'maven:3.8.5-openjdk-11-slim',
+                        image: 'maven:3.8.5-openjdk-11',
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
