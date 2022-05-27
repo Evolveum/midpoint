@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 
 import groovy.lang.GString;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -523,10 +524,18 @@ public class ExpressionUtil {
         return query;
     }
 
-    public static ObjectFilter evaluateFilterExpressions(ObjectFilter origFilter,
-            VariablesMap variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
-            String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @Contract("null, _, _, _, _, _, _, _ -> null; !null, _, _, _, _, _, _, _ -> !null")
+    public static ObjectFilter evaluateFilterExpressions(
+            ObjectFilter origFilter,
+            VariablesMap variables,
+            ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory,
+            PrismContext prismContext,
+            String shortDesc,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (origFilter == null) {
             return null;
         }
@@ -551,6 +560,7 @@ public class ExpressionUtil {
         return result.getValue();
     }
 
+    @Contract("null, _, _, _, _, _, _, _ -> null; !null, _, _, _, _, _, _, _ -> !null")
     private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,
             VariablesMap variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
             String shortDesc, Task task, OperationResult result)
@@ -741,7 +751,7 @@ public class ExpressionUtil {
         return (ExpressionType) expressionWrapper.getExpression();
     }
 
-    private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression,
+    private static @NotNull ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression,
             PrismContext prismContext) throws ExpressionEvaluationException {
         QueryInterpretationOfNoValueType queryInterpretationOfNoValue = valueExpression.getQueryInterpretationOfNoValue();
         if (queryInterpretationOfNoValue == null) {
@@ -761,7 +771,7 @@ public class ExpressionUtil {
 
             case FILTER_EQUAL_NULL:
                 if (filter instanceof ValueFilter) {
-                    ValueFilter evaluatedFilter = (ValueFilter) filter.clone();
+                    ValueFilter<?, ?> evaluatedFilter = (ValueFilter<?, ?>) filter.clone();
                     evaluatedFilter.setExpression(null);
                     return evaluatedFilter;
                 } else if (filter instanceof InOidFilter) {

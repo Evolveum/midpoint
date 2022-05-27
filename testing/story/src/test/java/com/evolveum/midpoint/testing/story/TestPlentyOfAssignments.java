@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -301,8 +302,9 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceObject());
+        getDummyResourceController();
         ResourceObjectClassDefinition rOcDef =
-                rSchema.findObjectClassDefinition(getDummyResourceController().getGroupObjectClass());
+                rSchema.findObjectClassDefinition(RI_GROUP_OBJECT_CLASS);
 
         ObjectFactory objectFactory = new ObjectFactory();
         ItemPath nameAttributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);

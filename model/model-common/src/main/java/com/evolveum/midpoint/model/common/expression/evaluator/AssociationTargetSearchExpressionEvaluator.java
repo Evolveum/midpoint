@@ -94,7 +94,7 @@ public class AssociationTargetSearchExpressionEvaluator
         ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
         ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid());
         ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(
-                rAssocTargetDef.getObjectClassDefinition().getTypeName(), prismContext);
+                rAssocTargetDef.getObjectClassName(), prismContext);
         ObjectFilter extendedFilter = prismContext.queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());
         query.setFilter(extendedFilter);
         return query;

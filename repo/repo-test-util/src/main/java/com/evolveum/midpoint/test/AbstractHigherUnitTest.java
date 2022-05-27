@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -14,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -46,7 +49,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -98,18 +100,15 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         return prismObject.asObjectable();
     }
 
-    protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz)
-            throws IOException, JAXBException, SchemaException {
+    protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz) throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(file);
     }
 
-    protected static <T> T unmarshallValueFromFile(String filePath, Class<T> clazz)
-            throws IOException, JAXBException, SchemaException {
+    protected static <T> T unmarshallValueFromFile(String filePath, Class<T> clazz) throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(new File(filePath));
     }
 
-    protected static ObjectType unmarshallValueFromFile(String filePath) throws IOException,
-            JAXBException, SchemaException {
+    protected static ObjectType unmarshallValueFromFile(String filePath) throws IOException, SchemaException {
         return unmarshallValueFromFile(filePath, ObjectType.class);
     }
 
@@ -127,7 +126,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         assertEquals("Wrong effectiveStatus in activation in " + focus, expected, activationType.getEffectiveStatus());
     }
 
-    protected <F extends FocusType> void assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
+    protected void assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
         ActivationType activationType = assignmentType.getActivation();
         assertNotNull("No activation in " + assignmentType, activationType);
         assertEquals("Wrong effectiveStatus in activation in " + assignmentType, expected, activationType.getEffectiveStatus());
@@ -190,7 +189,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             String oid,
             String username,
             ResourceType resourceType) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), null, false);
+        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, null, false);
     }
 
     protected void assertAccountShadowCommon(
@@ -200,15 +199,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             ResourceType resourceType,
             MatchingRule<String> nameMatchingRule,
             boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(), nameMatchingRule, requireNormalizedIdentifiers);
-    }
-
-    protected QName getAccountObjectClass() {
-        return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-    }
-
-    protected QName getGroupObjectClass() {
-        return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
+        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, nameMatchingRule, requireNormalizedIdentifiers);
     }
 
     protected void assertShadowCommon(
@@ -637,35 +628,28 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
     }
 
-    protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname,
-            T... expectedValues) {
+    @SafeVarargs
+    protected final <T> void assertAttribute(ShadowType shadow, QName attrQname, T... expectedValues) {
         List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
         PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }
 
-    protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, String attrName,
-            T... expectedValues) {
-        assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
+    @SafeVarargs
+    protected final <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
+        assertAttribute(shadow, getAttrQName(attrName), expectedValues);
     }
 
-    protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, QName attrName,
-            T... expectedValues) {
-        assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
-    }
-
-    protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName,
-            T... expectedValues) {
-        QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-        assertAttribute(resource, shadow, attrQname, expectedValues);
-    }
-
-    protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule,
-            QName attrQname, T... expectedValues) throws SchemaException {
+    @SafeVarargs
+    protected final <T> void assertAttribute(
+            ShadowType shadow,
+            MatchingRule<T> matchingRule,
+            QName attrQname,
+            T... expectedValues) throws SchemaException {
         List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
         PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, matchingRule, actualValues, expectedValues);
     }
 
-    protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, ItemName attrQname) {
+    protected void assertNoAttribute(ShadowType shadow, ItemName attrQname) {
         PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null || attributesContainer.isEmpty()) {
             return;
@@ -674,9 +658,8 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         assertNull("Unexpected attribute " + attrQname + " in " + shadow + ": " + attribute, attribute);
     }
 
-    protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
-        ItemName attrQname = new ItemName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-        assertNoAttribute(resource, shadow, attrQname);
+    protected void assertNoAttribute(ShadowType shadow, String attrName) {
+        assertNoAttribute(shadow, getAttrQName(attrName));
     }
 
     protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
@@ -689,7 +672,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
     }
 
     protected <O extends ObjectType> void assertObjectOids(String message, Collection<PrismObject<O>> objects, String... oids) {
-        List<String> objectOids = objects.stream().map(o -> o.getOid()).collect(Collectors.toList());
+        List<String> objectOids = objects.stream().map(PrismObject::getOid).collect(Collectors.toList());
         PrismAsserts.assertEqualsCollectionUnordered(message, objectOids, oids);
     }
 

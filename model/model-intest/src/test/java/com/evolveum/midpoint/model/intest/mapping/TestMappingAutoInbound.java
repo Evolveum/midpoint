@@ -30,6 +30,8 @@ import java.util.Collections;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
@@ -182,7 +184,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -265,7 +267,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -366,7 +368,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();

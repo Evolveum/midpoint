@@ -362,8 +362,10 @@ class ResourceTestOperation {
             rawResourceSchema =
                     new ResourceSchemaAdjuster(resource, rawResourceSchema)
                             .adjustSchema();
-            new RefinedResourceSchemaParser(resource)
-                    .parseWithGivenSchema(rawResourceSchema);
+            if (rawResourceSchema != null) {
+                new RefinedResourceSchemaParser(resource, rawResourceSchema)
+                        .parse();
+            }
             schemaHelper.updateSchemaToConnectors(resource, rawResourceSchema, result);
         } catch (Exception e) {
             throw TestFailedException.record(

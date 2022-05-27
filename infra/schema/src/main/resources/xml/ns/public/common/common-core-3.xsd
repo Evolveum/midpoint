@@ -3836,6 +3836,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+        <xsd:element name="objectClass" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Refinement (modification, extension) of definitions of object classes in the "native" resource schema.
+
+                    Beware: Not all elements of ResourceObjectTypeDefinitionType are supported here. For example, it's
+                    not possible to specify kind, intent, nor super-type here. Because of a limitation of XSD we are not
+                    able to express these limitations without changing the order of XML elements in complying documents.
+
+                    We also don't advise to specify pure object-type concepts (like mappings) in these definitions.
+                    It would be better to provide a special object type to do this.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:element>
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
             <xsd:annotation>
                 <xsd:documentation>
@@ -3876,6 +3890,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Kind of objects covered by this type.
+
+                        For object class refinements, it must not be specified
+                        (and the default does not apply there as well).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3883,6 +3900,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Intent of objects covered by this type.
+
+                        For object class refinements, it must not be specified
+                        (and the default does not apply there as well).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3911,6 +3931,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Super type of this resource object type.
+
+                        For object class refinements, it must not be specified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4207,6 +4229,90 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <!--<xsd:complexType name="ResourceObjectClassDefinitionType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            Defines a refinement of an object class definition.-->
+
+    <!--            Normally, there should be a super-type for this type and ResourceObjectTypeDefinitionType.-->
+    <!--            Unfortunately, that would mean a change in the ordering of XML elements, which would be a problem-->
+    <!--            for XSD compliance checking. So, we are going with separate types - for now.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container/>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:sequence>-->
+    <!--        <xsd:element ref="tns:displayName" minOccurs="0"/>-->
+    <!--        <xsd:element ref="tns:description" minOccurs="0"/>-->
+    <!--        <xsd:element ref="tns:documentation" minOccurs="0"/>-->
+    <!--        <xsd:element name="internalId" type="xsd:long" minOccurs="0">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Generated internal ID of this definition that we use when referring to it from its subtypes.-->
+    <!--                    Used when a type refers to the super-type with the corresponding kind/intent in the super-resource.-->
+
+    <!--                    RESTRICTED USE: Shouldn't be configured manually. To be used only by the resource merge algorithm.-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--        <xsd:element name="objectClass" type="xsd:QName">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    XSD type from the resource schema (Object Class) that should be used for accounts-->
+    <!--                    on this resource.-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--        <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded"-->
+    <!--                     type="tns:ResourceAttributeDefinitionType">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Specification of handling of an account attribute.-->
+    <!--                    This overrides annotations in the resource schema.-->
+    <!--                    NOT ALL ITEMS ARE SUPPORTED FOR OBJECT CLASS REFINEMENT!-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--        <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    NOT ALL ITEMS ARE SUPPORTED FOR OBJECT CLASS REFINEMENT!-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--        <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Specification of a protected account: account that cannot be affected by IDM. It will be-->
+    <!--                    ignored by operations, will not appear in lists, etc.-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--        <xsd:element name="credentials" minOccurs="0" type="tns:ResourceCredentialsDefinitionType">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Definition of credentials handling for this account type.-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--        <xsd:element name="configuredCapabilities" type="cap:CapabilityCollectionType" minOccurs="0">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    The configured capabilities of the resource specific to this object type.-->
+
+    <!--                    This part contains "tweaks" of the native capabilities.-->
+    <!--                    Some native capabilities may be turned off, other capabilities may be simulated.-->
+
+    <!--                    If this element is not present at all then the native+configured capabilities-->
+    <!--                    at the resource level are applied.-->
+    <!--                </xsd:documentation>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--    </xsd:sequence>-->
+    <!--    <xsd:attribute name="id" type="xsd:long"/>-->
+    <!--</xsd:complexType>-->
 
     <xsd:complexType name="SuperObjectTypeReferenceType">
         <xsd:annotation>

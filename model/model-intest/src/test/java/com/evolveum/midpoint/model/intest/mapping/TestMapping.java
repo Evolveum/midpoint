@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -363,8 +365,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "Flying Dutchman");
+                accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Flying Dutchman");
         deltas.add(accountDelta);
 
         when();
@@ -405,9 +406,8 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
-        );
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+                ShadowType.class, accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH);
         deltas.add(accountDelta);
 
         when();
@@ -445,8 +445,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "HMS Dauntless");
+                accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "HMS Dauntless");
         deltas.add(accountDelta);
 
         when();
@@ -488,8 +487,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "HMS Dauntless");
+                accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "HMS Dauntless");
         deltas.add(accountDelta);
 
         when();
@@ -1413,8 +1411,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "Flying Dutchman");
+                accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Flying Dutchman");
         deltas.add(accountDelta);
 
         when();
@@ -1454,9 +1451,8 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
-        );
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+                ShadowType.class, accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH);
         deltas.add(accountDelta);
 
         when();
@@ -1494,8 +1490,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
-                accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "Black Pearl");
+                accountOid, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Black Pearl");
         deltas.add(accountDelta);
 
         when();
@@ -1790,8 +1785,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-                "Davie Jones Locker");
+                accountOid, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH, "Davie Jones Locker");
         deltas.add(accountDelta);
 
         when();
@@ -1832,9 +1826,8 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME)
-        );
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+                ShadowType.class, accountOid, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH);
         deltas.add(accountDelta);
 
         when();
@@ -1871,9 +1864,8 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
-                accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-                "Fountain of Youth");
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(
+                ShadowType.class, accountOid, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH, "Fountain of Youth");
         deltas.add(accountDelta);
 
         when();
@@ -1999,9 +1991,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, task.getResult());
         display("Model shadow", accountModel);
         assertAccountShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
-        PrismAsserts.assertPropertyValue(accountModel,
-                resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
-                expectedFullName);
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, expectedFullName);
         if (shipAttributeName != null) {
             if (expectedShip == null) {
                 PrismAsserts.assertNoItem(accountModel,

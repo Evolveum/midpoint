@@ -239,14 +239,9 @@ public class ProvisioningUtil {
     @NotNull
     private static Collection<ResourceAttributeDefinition<?>> getExplicitlyFetchedAttributes(
             ProvisioningContext ctx, boolean returnsDefaultAttributes) {
-
-        if (ctx.isTypeBased()) {
-            return ctx.getObjectTypeDefinitionRequired().getAttributeDefinitions().stream()
-                    .filter(attributeDefinition -> shouldExplicitlyFetch(attributeDefinition, returnsDefaultAttributes, ctx))
-                    .collect(Collectors.toList());
-        } else {
-            return List.of();
-        }
+        return ctx.getObjectDefinitionRequired().getAttributeDefinitions().stream()
+                .filter(attributeDefinition -> shouldExplicitlyFetch(attributeDefinition, returnsDefaultAttributes, ctx))
+                .collect(Collectors.toList());
     }
 
     private static boolean shouldExplicitlyFetch(
@@ -274,13 +269,8 @@ public class ProvisioningUtil {
     }
 
     private static boolean checkForMinimalFetchStrategy(ProvisioningContext ctx) {
-        if (!ctx.isTypeBased()) {
-            // no refined definitions, so no minimal fetch strategy for any
-            return false;
-        }
-
         for (ResourceAttributeDefinition<?> attributeDefinition :
-                ctx.getObjectTypeDefinitionRequired().getAttributeDefinitions()) {
+                ctx.getObjectDefinitionRequired().getAttributeDefinitions()) {
             if (attributeDefinition.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL) {
                 return true;
             }

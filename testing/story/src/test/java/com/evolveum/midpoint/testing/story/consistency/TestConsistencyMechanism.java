@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story.consistency;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType.MAINTENANCE;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType.OPERATIONAL;
@@ -225,15 +226,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private static final String NS_MY = "http://whatever.com/my";
     private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
-
-    private static final QName LDAP_ATTRIBUTE_DN = new QName(MidPointConstants.NS_RI, "dn");
-    private static final QName LDAP_ATTRIBUTE_UID = new QName(MidPointConstants.NS_RI, "uid");
-    private static final QName LDAP_ATTRIBUTE_GIVENNAME = new QName(MidPointConstants.NS_RI, "givenName");
-    private static final QName LDAP_ATTRIBUTE_SN = new QName(MidPointConstants.NS_RI, "sn");
-    private static final QName LDAP_ATTRIBUTE_CN = new QName(MidPointConstants.NS_RI, "cn");
-    private static final QName LDAP_ATTRIBUTE_CAR_LICENCE = new QName(MidPointConstants.NS_RI, "carLicense");
-    private static final QName LDAP_ATTRIBUTE_EMPLOYEE_NUMBER = new ItemName(MidPointConstants.NS_RI, "employeeNumber");
-    private static final QName LDAP_ATTRIBUTE_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");
 
     private static ResourceType resourceTypeOpenDjrepo;
     private String aliceAccountDn;
@@ -458,11 +450,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .attributes()
                     .assertHasPrimaryIdentifier()
                     .assertHasSecondaryIdentifier()
-                    .assertValue(LDAP_ATTRIBUTE_UID, ACCOUNT_JACKIE_LDAP_UID)
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jack")
-                    .assertValue(LDAP_ATTRIBUTE_CN, "Jack Sparrow")
-                    .assertValue(LDAP_ATTRIBUTE_SN, "Sparrow")
-                    .assertNoAttribute(LDAP_ATTRIBUTE_CAR_LICENCE)
+                    .assertValue(QNAME_UID, ACCOUNT_JACKIE_LDAP_UID)
+                    .assertValue(QNAME_GIVEN_NAME, "Jack")
+                    .assertValue(QNAME_CN, "Jack Sparrow")
+                    .assertValue(QNAME_SN, "Sparrow")
+                    .assertNoAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -504,11 +496,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .attributes()
                     .assertHasPrimaryIdentifier()
                     .assertHasSecondaryIdentifier()
-                    .assertValue(LDAP_ATTRIBUTE_UID, ACCOUNT_DENIELS_LDAP_UID)
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jack")
-                    .assertValue(LDAP_ATTRIBUTE_CN, "Jack Deniels")
-                    .assertValue(LDAP_ATTRIBUTE_SN, "Deniels")
-                    .assertNoAttribute(LDAP_ATTRIBUTE_CAR_LICENCE)
+                    .assertValue(QNAME_UID, ACCOUNT_DENIELS_LDAP_UID)
+                    .assertValue(QNAME_GIVEN_NAME, "Jack")
+                    .assertValue(QNAME_CN, "Jack Deniels")
+                    .assertValue(QNAME_SN, "Deniels")
+                    .assertNoAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -568,11 +560,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .attributes()
                     .assertHasPrimaryIdentifier()
                     .assertHasSecondaryIdentifier()
-                    .assertValue(LDAP_ATTRIBUTE_UID, "jackie1")
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jack")
-                    .assertValue(LDAP_ATTRIBUTE_CN, "Jack Russel")
-                    .assertValue(LDAP_ATTRIBUTE_SN, "Russel")
-                    .assertNoAttribute(LDAP_ATTRIBUTE_CAR_LICENCE)
+                    .assertValue(QNAME_UID, "jackie1")
+                    .assertValue(QNAME_GIVEN_NAME, "Jack")
+                    .assertValue(QNAME_CN, "Jack Russel")
+                    .assertValue(QNAME_SN, "Russel")
+                    .assertNoAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -1125,7 +1117,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .assertAttributes(QNAME_DN, QNAME_UID)
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1161,8 +1153,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //WHEN
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
                 .object()
-                .createModificationAddProperty(ShadowType.class, accountOid, attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
-        delta.addModificationReplaceProperty(attributePath(LDAP_ATTRIBUTE_GIVENNAME), "eeeee");
+                .createModificationAddProperty(ShadowType.class, accountOid, attributePath(QNAME_EMPLOYEE_NUMBER), "emp4321");
+        delta.addModificationReplaceProperty(attributePath(QNAME_GIVEN_NAME), "eeeee");
 
         when();
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
@@ -1182,7 +1174,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .assertAttributes(QNAME_DN, QNAME_UID)
                     .end()
                 .pendingOperations()
                     .assertOperations(2)
@@ -1228,8 +1220,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         when();
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
                 .object()
-                .createModificationAddProperty(ShadowType.class, accountOid, attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
-        delta.addModificationReplaceProperty(attributePath(LDAP_ATTRIBUTE_GIVENNAME), "Jackkk");
+                .createModificationAddProperty(ShadowType.class, accountOid, attributePath(QNAME_EMPLOYEE_NUMBER), "emp4321");
+        delta.addModificationReplaceProperty(attributePath(QNAME_GIVEN_NAME), "Jackkk");
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
         executeChanges(delta, null, task, parentResult);
@@ -1266,8 +1258,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jackkk")
-                    .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "emp4321")
+                    .assertValue(QNAME_GIVEN_NAME, "Jackkk")
+                    .assertValue(QNAME_EMPLOYEE_NUMBER, "emp4321")
                 .end()
                 .assertIsExists();
         // @formatter:on
@@ -1430,7 +1422,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .assertAttributes(QNAME_DN, QNAME_UID)
                     .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1527,7 +1519,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoLegacyConsistency()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2")
+                    .assertValue(QNAME_CN, "jackNew2")
                     .end()
                 .assertIsExists()
                 .end();
@@ -1636,8 +1628,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoLegacyConsistency()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2a")
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "jackNew2a")
+                    .assertValue(QNAME_CN, "jackNew2a")
+                    .assertValue(QNAME_GIVEN_NAME, "jackNew2a")
                 .end()
                 .assertIsExists();
         // @formatter:on
@@ -1688,7 +1680,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoPrimaryIdentifierValue()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+                    .assertAttributes(QNAME_DN, QNAME_UID)
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1745,7 +1737,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         //and make some modifications to the account while resource is DOWN
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        modifyAccountShadowReplace(shadowOid, attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), task, parentResult, "44332");
+        modifyAccountShadowReplace(shadowOid, attributePath(QNAME_EMPLOYEE_NUMBER), task, parentResult, "44332");
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         // @formatter:off
@@ -1774,7 +1766,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                         .delta()
                             .display()
                             .assertModify()
-                            .assertHasModification(attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+                            .assertHasModification(attributePath(QNAME_EMPLOYEE_NUMBER));
         // @formatter:on
 
         //start openDJ
@@ -1784,7 +1776,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         assertModelShadowFuture(shadowOid)
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332");
+                .assertValue(QNAME_EMPLOYEE_NUMBER, "44332");
 
         //and then try to get account -> result is that the modifications will be applied to the account
         XMLGregorianCalendar lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
@@ -1794,7 +1786,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // @formatter:off
         ShadowAsserter.forShadow(shadowAfter)
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
+                    .assertValue(QNAME_EMPLOYEE_NUMBER, "44332")
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -1809,7 +1801,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                         .delta()
                             .display()
                             .assertModify()
-                            .assertHasModification(attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+                            .assertHasModification(attributePath(QNAME_EMPLOYEE_NUMBER));
         // @formatter:on
     }
 
@@ -1875,7 +1867,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                         .delta()
                             .display()
                             .assertModify()
-                            .assertHasModification(attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+                            .assertHasModification(attributePath(QNAME_EMPLOYEE_NUMBER));
         // @formatter:on
 
         //start openDJ
@@ -1889,7 +1881,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNotDead()
                 .display()
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
+                .assertValue(QNAME_EMPLOYEE_NUMBER, "44332")
                 .assertHasPrimaryIdentifier();
 
         assertUser(USER_ALICE_OID, "User after")
@@ -2019,10 +2011,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNotDead()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Bob")
-                    .assertValue(LDAP_ATTRIBUTE_UID, "bob")
-                    .assertValue(LDAP_ATTRIBUTE_CN, "Bob Dylan")
-                    .assertValue(LDAP_ATTRIBUTE_SN, "Dylan");
+                    .assertValue(QNAME_GIVEN_NAME, "Bob")
+                    .assertValue(QNAME_UID, "bob")
+                    .assertValue(QNAME_CN, "Bob Dylan")
+                    .assertValue(QNAME_SN, "Dylan");
         // @formatter:on
     }
 
@@ -2053,11 +2045,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertIsExists()
                 .assertNotDead()
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_UID, "john")
-                    .assertValue(LDAP_ATTRIBUTE_SN, "weak")
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "john")
-                    .assertValue(LDAP_ATTRIBUTE_CN, "john weak")
-                    .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_TYPE, "manager");
+                    .assertValue(QNAME_UID, "john")
+                    .assertValue(QNAME_SN, "weak")
+                    .assertValue(QNAME_GIVEN_NAME, "john")
+                    .assertValue(QNAME_CN, "john weak")
+                    .assertValue(QNAME_EMPLOYEE_TYPE, "manager");
         // @formatter:on
 
         //stop opendj and try to modify subtype (weak mapping)
@@ -2104,11 +2096,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertIsExists()
                 .assertNotDead()
                 .attributes()
-                    .assertValue(LDAP_ATTRIBUTE_UID, "donald")
-                    .assertValue(LDAP_ATTRIBUTE_SN, "trump")
-                    .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "donald")
-                    .assertValue(LDAP_ATTRIBUTE_CN, "donald trump")
-                    .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_TYPE, "manager");
+                    .assertValue(QNAME_UID, "donald")
+                    .assertValue(QNAME_SN, "trump")
+                    .assertValue(QNAME_GIVEN_NAME, "donald")
+                    .assertValue(QNAME_CN, "donald trump")
+                    .assertValue(QNAME_EMPLOYEE_TYPE, "manager");
         // @formatter:on
 
         //stop opendj and try to modify employeeType (weak mapping)
@@ -2137,8 +2129,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertAttemptNumber(1)
                     .delta()
                         .assertModify()
-                        .assertHasModification(attributePath(LDAP_ATTRIBUTE_GIVENNAME))
-                        .assertNoModification(attributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE));
+                        .assertHasModification(attributePath(QNAME_GIVEN_NAME))
+                        .assertNoModification(attributePath(QNAME_EMPLOYEE_TYPE));
         // @formatter:on
     }
 
@@ -2164,8 +2156,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertAttemptNumber(1)
                     .delta()
                         .assertModify()
-                        .assertHasModification(attributePath(LDAP_ATTRIBUTE_GIVENNAME))
-                        .assertNoModification(attributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE));
+                        .assertHasModification(attributePath(QNAME_GIVEN_NAME))
+                        .assertNoModification(attributePath(QNAME_EMPLOYEE_TYPE));
         // @formatter:on
 
         when();
@@ -2174,8 +2166,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         then();
         assertModelShadow(shadowOid)
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "don")
-                .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_TYPE, "manager");
+                .assertValue(QNAME_GIVEN_NAME, "don")
+                .assertValue(QNAME_EMPLOYEE_TYPE, "manager");
     }
 
     @Test
@@ -2228,7 +2220,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertType(PendingOperationTypeType.RETRY)
                 .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .delta()
-                .assertNoModification(attributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE))
+                .assertNoModification(attributePath(QNAME_EMPLOYEE_TYPE))
                 .assertHasModification(ShadowType.F_ASSOCIATION);
 
         //THEN
@@ -2238,8 +2230,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         assertModelShadow(shadowOid)
                 .attributes()
-                .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "donalld")
-                .assertValue(LDAP_ATTRIBUTE_EMPLOYEE_TYPE, "manager");
+                .assertValue(QNAME_GIVEN_NAME, "donalld")
+                .assertValue(QNAME_EMPLOYEE_TYPE, "manager");
 
         openDJController.assertUniqueMember(ROLE_LDAP_ADMINS_DN, ACCOUNT_DONALD_LDAP_DN);
         //TODO: check on user if it was processed successfully (add this check also to previous (30) test..
@@ -2289,7 +2281,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertAttemptNumber(1)
                 .delta()
                 .assertModify()
-                .assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, LDAP_ATTRIBUTE_DN));
+                .assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_DN));
     }
 
     //TODO: enable after notify failure will be implemented..
@@ -2622,7 +2614,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        ResourceAttribute<?> attributes = ShadowUtil.getAttribute(accountModel, new QName(MidPointConstants.NS_RI, "uid"));
+        ResourceAttribute<?> attributes = ShadowUtil.getAttribute(accountModel, QNAME_UID);
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
     }
@@ -2672,8 +2664,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //WHEN
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
                 .object()
-                .createModificationAddProperty(ShadowType.class, accountOid, attributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
-        delta.addModificationReplaceProperty(attributePath(LDAP_ATTRIBUTE_GIVENNAME), "Aliceeee");
+                .createModificationAddProperty(ShadowType.class, accountOid, attributePath(QNAME_EMPLOYEE_NUMBER), "emp4321");
+        delta.addModificationReplaceProperty(attributePath(QNAME_GIVEN_NAME), "Aliceeee");
 
         executeChanges(delta, null, task, parentResult);
 

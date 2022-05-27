@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +33,8 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Provisioning Service Interface
@@ -163,8 +167,12 @@ public interface ProvisioningService {
      * @throws SecurityViolationException
      *                 Security violation while communicating with the connector or processing provisioning policies
      */
-    <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
-            Task task, OperationResult parentResult)
+    <T extends ObjectType> String addObject(
+            @NotNull PrismObject<T> object,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
@@ -175,19 +183,23 @@ public interface ProvisioningService {
      *
      * It is typically invoked from a live sync activity (task).
      *
-     * TODO review the following
-     *
      * Notes regarding the `shadowCoordinates` parameter:
      *
      * * Resource OID is obligatory.
-     * * If both object class and kind are left unspecified, all object classes on the resource are synchronized
+     * * If neither object class nor kind are specified, all object classes on the resource are synchronized
      * (if supported by the connector/resource).
-     * * If kind is specified, the object class to synchronize is determined using kind + intent pair.
-     * * If kind is not specified, the object class to synchronize is determined using object class name.
-     * (Currently, the default refined object class having given object class name is selected. But this should
-     * be no problem, because we need just the object class name for live synchronization.)
+     * * If object class name is specified (but kind and intent are not), the object class to synchronize is determined
+     * using object class name.
+     * * If both kind and intent are specified, object type is determined based on them. It is then checked against
+     * object class name - the object class for given object type must match the specified object class name,
+     * if it's provided.
+     * * If only kind is specified (without intent; and with or without object class name), a complex algorithm
+     * for determining the intent is carried out. See {@link ResourceSchema#findObjectDefinitionForKindInternal(ShadowKindType,
+     * QName)} for details. (The simplest case is when {@link ResourceObjectTypeDefinition#isDefaultForKind()} is set for
+     * an object type. Then that one is used.)
      *
-     * FIXME See also link ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator).
+     * Note that it's not possible to specify intent without kind.
+     * Also, `unknown` values for kind or intent are not supported.
      *
      * @param shadowCoordinates Where to attempt synchronization. See description above.
      * @param options Options driving the synchronization process (execution mode, batch size, ...)
@@ -201,9 +213,13 @@ public interface ProvisioningService {
      *         or processing provisioning policies
      * @throws GenericConnectorException Unknown connector framework error
      */
-    @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates,
-            @Nullable LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
-            @NotNull Task task, @NotNull OperationResult parentResult)
+    @NotNull SynchronizationResult synchronize(
+            @NotNull ResourceShadowCoordinates shadowCoordinates,
+            @Nullable LiveSyncOptions options,
+            @NotNull LiveSyncTokenStorage tokenStorage,
+            @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
 

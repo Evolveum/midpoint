@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -68,7 +70,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     protected static final File TEST_DIR = new File("src/test/resources/manual/");
 
-    public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+    public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = RI_ACCOUNT_OBJECT_CLASS;
 
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
     protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");

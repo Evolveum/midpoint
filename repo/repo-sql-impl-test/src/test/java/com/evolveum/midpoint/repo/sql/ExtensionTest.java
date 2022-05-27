@@ -98,7 +98,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     }
 
     private void createShadowDefinition() {
-        ResourceObjectClassDefinitionImpl ctd = new ResourceObjectClassDefinitionImpl(RI_ACCOUNT_OBJECT_CLASS);
+        ResourceObjectClassDefinitionImpl ctd = ResourceObjectClassDefinitionImpl.raw(RI_ACCOUNT_OBJECT_CLASS);
         attrGroupNameDefinition = ctd.createAttributeDefinition(
                 ATTR_GROUP_NAME, DOMUtil.XSD_STRING,
                 def -> def.setMaxOccurs(1));

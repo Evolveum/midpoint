@@ -185,8 +185,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
-            Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+    public <T extends ObjectType> String addObject(
+            @NotNull PrismObject<T> object,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         Validate.notNull(object, "Object to add must not be null.");
@@ -255,13 +259,17 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public @NotNull SynchronizationResult synchronize(@NotNull ResourceShadowDiscriminator shadowCoordinates,
-            LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, @NotNull LiveSyncEventHandler handler,
-            @NotNull Task task, @NotNull OperationResult parentResult)
+    public @NotNull SynchronizationResult synchronize(
+            @NotNull ResourceShadowCoordinates shadowCoordinates,
+            LiveSyncOptions options,
+            @NotNull LiveSyncTokenStorage tokenStorage,
+            @NotNull LiveSyncEventHandler handler,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
-        Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
+        Validate.notNull(shadowCoordinates, "Coordinates must not be null.");
         String resourceOid = shadowCoordinates.getResourceOid();
         Validate.notNull(resourceOid, "Resource oid must not be null.");
         Validate.notNull(task, "Task must not be null.");
@@ -982,7 +990,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             checker.setCacheConfigurationManager(cacheConfigurationManager);
             checker.setShadowsFacade(shadowsFacade);
             checker.setShadowObjectOld(shadowObjectOld);
-            ProvisioningContext ctx = ctxFactory.createForDefinition(resource, objectDefinition, task);
+            // "Whole class": we should not need it here. We do not invoke the search on resource here.
+            ProvisioningContext ctx = ctxFactory.createForDefinition(resource, objectDefinition, null, task);
             checker.setProvisioningContext(ctx);
             checker.setShadowObject(shadowObject);
             checker.setShadowOid(shadowOid);

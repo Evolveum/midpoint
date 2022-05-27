@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
@@ -13,7 +15,6 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVA
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
@@ -315,8 +316,7 @@ public class TestClockwork extends AbstractLensTest {
         PrismObject<ShadowType> newAccount = getShadowModel(accountOid);
         assertEquals(DEFAULT_INTENT, newAccount.findProperty(ShadowType.F_INTENT).getRealValue());
         getDummyResourceType();
-        assertEquals(new QName(MidPointConstants.NS_RI, "AccountObjectClass"),
-                newAccount.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
+        assertEquals(RI_ACCOUNT_OBJECT_CLASS, newAccount.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(getDummyResourceType().getOid(), resourceRef.getOid());
 

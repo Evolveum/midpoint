@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -452,8 +453,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
     @NotNull
-    protected ObjectQuery getAllAccountsQuery(DummyTestResource resource) throws SchemaException {
-        return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.oid,
-                resource.controller.getAccountObjectClass(), prismContext);
+    protected ObjectQuery getAllAccountsQuery(DummyTestResource resource) {
+        return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.oid, RI_ACCOUNT_OBJECT_CLASS);
     }
 }

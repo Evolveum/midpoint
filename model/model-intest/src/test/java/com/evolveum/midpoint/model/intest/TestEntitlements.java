@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -191,9 +193,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         display("Shadow", shadow);
 
-        assertShadowModel(shadow, SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, GROUP_DUMMY_SWASHBUCKLERS_NAME, getDummyResourceType(), RESOURCE_DUMMY_GROUP_OBJECTCLASS);
-        IntegrationTestTools.assertAttribute(shadow, getDummyResourceType(),
-                DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION);
+        assertShadowModel(
+                shadow,
+                SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID,
+                GROUP_DUMMY_SWASHBUCKLERS_NAME,
+                getDummyResourceType(),
+                RESOURCE_DUMMY_GROUP_OBJECTCLASS);
+        IntegrationTestTools.assertAttribute(
+                shadow, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION);
     }
 
     /**
@@ -1343,16 +1350,18 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 USER_GUYBRUSH_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_ORANGE_NAME), true, result);
         assertNotNull("No orange account for guybrush", orangeAccount);
 
+        getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME);
         ObjectDelta<ShadowType> delta1 =
                 IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
                         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), "thug", task, result).getOid(),
+                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), RI_GROUP_OBJECT_CLASS, "thug", task, result).getOid(),
                         prismContext);
 
+        getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME);
         ObjectDelta<ShadowType> delta2 =
                 IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
                         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), "thug-wannabe", task, result).getOid(),
+                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), RI_GROUP_OBJECT_CLASS, "thug-wannabe", task, result).getOid(),
                         prismContext);
 
         ObjectDelta<ShadowType> delta = ObjectDeltaCollectionsUtil.summarize(delta1, delta2);
@@ -2388,9 +2397,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             throws Exception {
         System.out.println("--------------------------------------------- Orange --------------------");
         display("Orange groups", getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).listGroups());
+        getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME);
         SearchResultList<PrismObject<ShadowType>> orangeGroupsShadows = modelService
                 .searchObjects(ShadowType.class, ObjectQueryUtil.createResourceAndObjectClassQuery(
-                        RESOURCE_DUMMY_ORANGE_OID, getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), prismContext), null, task,
+                        RESOURCE_DUMMY_ORANGE_OID, RI_GROUP_OBJECT_CLASS, prismContext), null, task,
                         result);
         display("Orange groups shadows", orangeGroupsShadows);
         System.out.println("--------------------------------------------- Orange End ----------------");
@@ -2400,7 +2410,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             OperationResult result) throws Exception {
         PrismObject<ResourceType> resource = dummyResourceCtl.getResource();
         ResourceObjectClassDefinition groupDef = ResourceSchemaFactory.getCompleteSchema(resource)
-                .findObjectClassDefinition(dummyResourceCtl.getGroupObjectClass());
+                .findObjectClassDefinition(RI_GROUP_OBJECT_CLASS);
         ResourceAttributeDefinition<?> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No icfs:name definition", nameDef);
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass, prismContext)

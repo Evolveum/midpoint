@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -1317,9 +1319,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, accountOid);
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
-        assertSearch(ShadowType.class, prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(
-                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"))), 0);
+        assertSearch(ShadowType.class,
+                prismContext.queryFactory().createQuery(
+                        ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS)),
+                0);
 
         assertGlobalStateUntouched();
     }
@@ -1504,9 +1507,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, accountOid);
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
-        assertSearch(ShadowType.class, prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(
-                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"))), 0);
+        assertSearch(ShadowType.class,
+                prismContext.queryFactory().createQuery(
+                        ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS)),
+                0);
     }
 
     private void assertJack24xManager(boolean fullControl) throws Exception {
@@ -1579,8 +1583,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         result = task.getResult();
 
         ObjectQuery query = prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(
-                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass")));
+                ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS));
 
         // When finally fixed is should be like this:
 //        assertSearch(ShadowType.class, query, 2);
@@ -1659,8 +1662,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = prismContext.queryFactory().createQuery(
-                ObjectQueryUtil.createResourceAndObjectClassFilter(
-                        RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass")));
+                ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS));
 
         // When finally fixed is should be like this:
 //        assertSearch(ShadowType.class, query, 2);

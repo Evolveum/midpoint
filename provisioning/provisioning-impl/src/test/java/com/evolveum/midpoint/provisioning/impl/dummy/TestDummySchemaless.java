@@ -6,7 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -542,21 +543,20 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     private void assertStaticSchemaSanity(ResourceSchema resourceSchema) {
         ResourceType resourceType = resourceStaticSchema.asObjectable();
         assertNotNull("No resource schema in " + resourceType, resourceSchema);
-        QName objectClassQname = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
-        assertNotNull("No object class definition for " + objectClassQname + " in resource schema", accountDefinition);
+        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
+        assertNotNull("No object class definition for " + RI_ACCOUNT_OBJECT_CLASS + " in resource schema", accountDefinition);
         ResourceObjectClassDefinition accountDef1 =
-                resourceSchema.findObjectClassDefinition(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertSame("Mismatched account definition: " + accountDefinition + " <-> " + accountDef1, accountDefinition, accountDef1);
 
-        assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountDefinition());
-        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
-        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
+        assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
+        assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isEmpty());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isIgnored());
 
         Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
-        assertNotNull("Null identifiers for " + objectClassQname, identifiers);
-        assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
+        assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);
+        assertFalse("Empty identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers.isEmpty());
 
         ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
@@ -568,8 +568,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidAttributeDefinition.getDisplayOrder());
 
         Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
-        assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
-        assertFalse("Empty secondary identifiers for " + objectClassQname, secondaryIdentifiers.isEmpty());
+        assertNotNull("Null secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers);
+        assertFalse("Empty secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers.isEmpty());
 
         ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
@@ -615,7 +615,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         // ACCOUNT
         ResourceObjectClassDefinition accountDef =
-                resourceSchema.findObjectClassDefinition(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No ACCOUNT kind definition", accountDef);
 
         ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
@@ -630,7 +630,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         // GROUP
         ResourceObjectClassDefinition groupObjectClass =
-                resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinition(RI_GROUP_OBJECT_CLASS);
         assertNotNull("No group objectClass", groupObjectClass);
 
         ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DummyResourceContoller.DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);

@@ -30,6 +30,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -1843,7 +1845,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .as("primary identifiers")
                 .hasSize(1);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassDefinition().getTypeName())
+                .item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
                 .build();
         return modelService.searchObjects(ShadowType.class, query, null, task, result);
@@ -1997,7 +1999,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         //TODO: set matching rule instead of null
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(username)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
                 .build();
     }
@@ -2786,7 +2788,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
         ResourceAttributeContainer attrs = ShadowUtil.getAttributesContainer(shadow);
         ResourceAttributeDefinition attrSnDef = attrs.getDefinition().findAttributeDefinition(
-                new ItemName(ResourceTypeUtil.getResourceNamespace(resource), attrName));
+                new ItemName(MidPointConstants.NS_RI, attrName));
         ResourceAttribute<T> attr = attrSnDef.instantiate();
         attr.setRealValue(attrValue);
         attrs.add(attr);
@@ -3018,7 +3020,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertAccountShadowModel(
             PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType)
             throws SchemaException, ConfigurationException {
-        assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
+        assertShadowModel(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, null);
     }
 
     protected void assertAccountShadowModel(
@@ -3027,7 +3029,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             String username,
             ResourceType resourceType,
             MatchingRule<String> matchingRule) throws SchemaException, ConfigurationException {
-        assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
+        assertShadowModel(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, matchingRule);
     }
 
     protected void assertShadowModel(
@@ -3072,7 +3074,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             // TODO or findObjectDefinitionRequired as well?
             rocd = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
         }
-        account.asObjectable().setObjectClass(rocd.getObjectClassDefinition().getTypeName());
+        account.asObjectable().setObjectClass(rocd.getObjectClassName());
         account.asObjectable().setKind(ShadowKindType.ACCOUNT);
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
@@ -4373,7 +4375,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Entry assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
         Entry entry = openDJController.searchByUid(uid);
-        assertNotNull("OpenDJ accoun with uid " + uid + " not found", entry);
+        assertNotNull("OpenDJ account with uid " + uid + " not found", entry);
         OpenDJController.assertAttribute(entry, "cn", cn);
         if (active != null) {
             openDJController.assertActive(entry, active);

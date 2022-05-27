@@ -101,16 +101,6 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
-        return delegate().createShadowSearchQuery(resourceOid);
-    }
-
-    @Override
-    default ResourceAttributeContainer instantiate(ItemName elementName) {
-        return delegate().instantiate(elementName);
-    }
-
-    @Override
     default PrismObjectDefinition<ShadowType> getPrismObjectDefinition() {
         return delegate().getPrismObjectDefinition();
     }
@@ -228,12 +218,6 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    @NotNull
-    default Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
-        return delegate().getAuxiliaryDefinitions();
-    }
-
-    @Override
     default boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
         return delegate().hasAuxiliaryObjectClass(expectedObjectClassName);
     }
@@ -290,4 +274,20 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     default void validate() throws SchemaException {
         delegate().validate();
     }
+
+    @Override
+    default @NotNull ResourceObjectTypeDefinitionType getDefinitionBean() {
+        return delegate().getDefinitionBean();
+    }
+
+    @Override
+    default @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
+        return delegate().getRawObjectClassDefinition();
+    }
+
+    @Override
+    default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+        return delegate().createShadowSearchQuery(resourceOid);
+    }
+
 }

@@ -209,8 +209,7 @@ interface PartiallyMutableComplexTypeDefinition extends MutableComplexTypeDefini
         throw new IllegalStateException("ComplexTypeDefinition is not modifiable");
     }
 
-
-    public interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, MutableResourceObjectClassDefinition {
+    interface ObjectClassDefinition extends PartiallyMutableComplexTypeDefinition, MutableResourceObjectClassDefinition {
 
         @Override
         default void add(ItemDefinition<?> definition) {

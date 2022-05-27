@@ -359,7 +359,7 @@ class ConnIdCapabilitiesAndSchemaParser {
 
         LOGGER.trace("Converting object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
 
-        MutableResourceObjectClassDefinition ocDef = new ResourceObjectClassDefinitionImpl(objectClassXsdName);
+        MutableResourceObjectClassDefinition ocDef = ResourceObjectClassDefinitionImpl.raw(objectClassXsdName);
         // ocDef is added to the schema at the end
 
         // The __ACCOUNT__ objectclass in ConnId is a default account objectclass. So mark it appropriately.

@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
-
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -101,7 +100,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         ResourceObjectClassDefinition defaultAccountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ShadowType shadowType = new ShadowType();
         PrismTestUtil.getPrismContext().adopt(shadowType);
         shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
@@ -131,7 +130,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         UcfExecutionContext ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         // Determine object class from the schema
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
@@ -165,7 +164,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         final ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         // Determine object class from the schema
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
@@ -225,7 +224,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         UcfExecutionContext ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         // Determine object class from the schema
 
         OperationResult result1 = createOperationResult();

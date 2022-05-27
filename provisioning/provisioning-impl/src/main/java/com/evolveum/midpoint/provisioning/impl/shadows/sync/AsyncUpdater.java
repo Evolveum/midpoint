@@ -49,7 +49,7 @@ public class AsyncUpdater {
             ExpressionEvaluationException {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
-        ProvisioningContext globalContext = ctxFactory.createForCoordinates(shadowCoordinates, callerTask, callerResult);
+        ProvisioningContext globalContext = ctxFactory.createForBulkOperation(shadowCoordinates, callerTask, callerResult);
 
         IndividualEventsAcknowledgeGate<AsyncUpdateEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 

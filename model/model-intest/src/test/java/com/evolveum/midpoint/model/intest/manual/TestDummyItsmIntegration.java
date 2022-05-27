@@ -51,8 +51,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     protected static final File TEST_DIR = new File("src/test/resources/manual/");
 
-    public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.model.intest.manual/DummyItsmIntegrationConnector";
 
     protected static final File RESOURCE_DUMMY_ITSM_FILE = new File(TEST_DIR, "resource-dummy-itsm.xml");

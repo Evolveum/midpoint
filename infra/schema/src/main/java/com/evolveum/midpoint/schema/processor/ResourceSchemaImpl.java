@@ -21,6 +21,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Direct implementation of {@link ResourceSchema} interface.
  *
@@ -44,9 +46,10 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
         this.currentLayer = currentLayer;
     }
 
+    @VisibleForTesting
     @Override
     public MutableResourceObjectClassDefinition createObjectClassDefinition(QName typeName) {
-        ResourceObjectClassDefinitionImpl objectClassDef = new ResourceObjectClassDefinitionImpl(typeName);
+        ResourceObjectClassDefinitionImpl objectClassDef = ResourceObjectClassDefinitionImpl.raw(typeName);
         add(objectClassDef);
         return objectClassDef;
     }

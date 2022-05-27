@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH;
 import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 
 import static org.testng.AssertJUnit.*;
@@ -373,12 +374,10 @@ public class TestPolicyRules extends AbstractLensTest {
         assertEquals("Wrong OID in deleted assignment", ROLE_JUDGE_OID, deletedAssignment.asContainerable().getTargetRef().getOid());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = assertAssignAccountToJack(context);
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
-              getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-              "Constable");
-        PrismAsserts.assertPropertyDelete(accountSecondaryDelta,
-                getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-                "Honorable Justice");
+        PrismAsserts.assertPropertyAdd(
+                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH, "Constable");
+        PrismAsserts.assertPropertyDelete(
+                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH, "Honorable Justice");
 
         assertSerializable(context);
     }

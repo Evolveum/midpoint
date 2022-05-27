@@ -143,6 +143,7 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     static final File QUERY_VANHELGEN_FILE = new File(TEST_DIR, "query-vanhelgen.xml");
 
     static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
+    static final QName OBJECT_CLASS_INETORGPERSON_QNAME = new QName(NS_RI, "inetOrgPerson");
     private static final String GROUP_MEMBER_ATTR_NAME = "uniqueMember";
     static final QName GROUP_MEMBER_ATTR_QNAME = new QName(NS_RI, GROUP_MEMBER_ATTR_NAME);
 

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.csv;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -56,8 +58,6 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     protected static final File TEST_DIR = new File("src/test/resources/csv/");
 
     protected static final String RESOURCE_NS = MidPointConstants.NS_RI;
-
-    public static final QName RESOURCE_CSV_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "AccountObjectClass");
 
     protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
 
@@ -203,7 +203,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         displayDumpable("Parsed resource schema", resourceSchema);
         assertNotNull("No resource schema", resourceSchema);
 
-        ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_CSV_ACCOUNT_OBJECTCLASS);
+        ResourceObjectClassDefinition accountDef = resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -303,7 +303,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         ShadowType shadowType = shadow.asObjectable();
         PrismAsserts.assertEqualsPolyString("Wrong name", "jack", shadow.getName());
         assertNotNull(shadow.getOid());
-        assertEquals(RESOURCE_CSV_ACCOUNT_OBJECTCLASS, shadowType.getObjectClass());
+        assertEquals(RI_ACCOUNT_OBJECT_CLASS, shadowType.getObjectClass());
         assertEquals(getResourceOid(), shadowType.getResourceRef().getOid());
         assertAccountJackAttributes(shadowType);
         assertNotNull("Missing activation", shadowType.getActivation());
@@ -312,7 +312,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result);
         ShadowType repoShadowType = repoShadow.asObjectable();
-        assertEquals(RESOURCE_CSV_ACCOUNT_OBJECTCLASS, repoShadowType.getObjectClass());
+        assertEquals(RI_ACCOUNT_OBJECT_CLASS, repoShadowType.getObjectClass());
         assertEquals(getResourceOid(), repoShadowType.getResourceRef().getOid());
         assertAccountJackAttributesRepo(shadowType);
 
