@@ -8,3 +8,11 @@
 .active .bs-stepper-circle {
   background-color: $lightblue;
 }
+
+.bs-stepper-circle {
+  background-color: $secondary;
+}
+
+.bs-stepper-label {
+  color: $secondary;
+}
