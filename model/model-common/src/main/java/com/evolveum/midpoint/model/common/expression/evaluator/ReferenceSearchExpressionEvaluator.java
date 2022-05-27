@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
 /**
@@ -30,15 +31,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpre
  * @author Radovan Semancik
  */
 public class ReferenceSearchExpressionEvaluator
-            extends AbstractSearchExpressionEvaluator<PrismReferenceValue,PrismReferenceDefinition,ReferenceSearchExpressionEvaluatorType> {
+        extends AbstractSearchExpressionEvaluator<
+        PrismReferenceValue,
+        ObjectType,
+        PrismReferenceDefinition,
+        ReferenceSearchExpressionEvaluatorType> {
 
-    ReferenceSearchExpressionEvaluator(QName elementName, ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
-            PrismReferenceDefinition outputDefinition, Protector protector, PrismContext prismContext,
-            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService, cacheConfigurationManager);
+    ReferenceSearchExpressionEvaluator(
+            QName elementName,
+            ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
+            PrismReferenceDefinition outputDefinition,
+            Protector protector,
+            PrismContext prismContext,
+            ObjectResolver objectResolver,
+            ModelService modelService,
+            SecurityContextManager securityContextManager,
+            LocalizationService localizationService,
+            CacheConfigurationManager cacheConfigurationManager) {
+        super(
+                elementName,
+                expressionEvaluatorType,
+                outputDefinition,
+                protector,
+                prismContext,
+                objectResolver,
+                modelService,
+                securityContextManager,
+                localizationService,
+                cacheConfigurationManager);
     }
 
-    protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
+    protected PrismReferenceValue createPrismValue(
+            String oid,
+            QName targetTypeQName,
+            List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues,
+            ExpressionEvaluationContext params) {
         PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
 
         refVal.setOid(oid);
@@ -52,5 +79,4 @@ public class ReferenceSearchExpressionEvaluator
     public String shortDebugDump() {
         return "referenceSearchExpression";
     }
-
 }

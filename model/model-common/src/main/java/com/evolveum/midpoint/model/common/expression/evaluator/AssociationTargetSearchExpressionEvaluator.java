@@ -34,20 +34,16 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Creates an association (or associations) based on specified condition for the associated object.
@@ -55,20 +51,38 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
  * @author Radovan Semancik
  */
 public class AssociationTargetSearchExpressionEvaluator
-            extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
-                                                      PrismContainerDefinition<ShadowAssociationType>,
-                                                      SearchObjectExpressionEvaluatorType> {
+        extends AbstractSearchExpressionEvaluator<
+                PrismContainerValue<ShadowAssociationType>,
+                ShadowType,
+                PrismContainerDefinition<ShadowAssociationType>,
+                SearchObjectExpressionEvaluatorType> {
 
-    AssociationTargetSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-            PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver,
-            ModelService modelService, SecurityContextManager securityContextManager,
-            LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService,
+    AssociationTargetSearchExpressionEvaluator(
+            QName elementName,
+            SearchObjectExpressionEvaluatorType expressionEvaluatorBean,
+            PrismContainerDefinition<ShadowAssociationType> outputDefinition,
+            Protector protector,
+            PrismContext prismContext,
+            ObjectResolver objectResolver,
+            ModelService modelService,
+            SecurityContextManager securityContextManager,
+            LocalizationService localizationService,
+            CacheConfigurationManager cacheConfigurationManager) {
+        super(
+                elementName,
+                expressionEvaluatorBean,
+                outputDefinition,
+                protector,
+                prismContext,
+                objectResolver,
+                modelService,
+                securityContextManager,
+                localizationService,
                 cacheConfigurationManager);
     }
 
     @Override
-    protected AbstractSearchExpressionEvaluatorCache getCache() {
+    protected AbstractSearchExpressionEvaluatorCache<PrismContainerValue<ShadowAssociationType>, ShadowType, ?, ?> getCache() {
         return AssociationSearchExpressionEvaluatorCache.getCache();
     }
 
@@ -83,7 +97,7 @@ public class AssociationTargetSearchExpressionEvaluator
     }
 
     @Override
-    protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+    protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws ExpressionEvaluationException {
         @SuppressWarnings("unchecked")
         TypedValue<ResourceObjectTypeDefinition> rAssocTargetDefTypedValue =
                 params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
@@ -92,32 +106,41 @@ public class AssociationTargetSearchExpressionEvaluator
                     params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
         ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
-        ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid());
-        ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(
-                rAssocTargetDef.getObjectClassName(), prismContext);
-        ObjectFilter extendedFilter = prismContext.queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());
-        query.setFilter(extendedFilter);
+        ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
+                .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
+                .and().item(ShadowType.F_INTENT).eq(rAssocTargetDef.getIntent())
+                .buildFilter();
+        query.setFilter(
+                prismContext.queryFactory()
+                        .createAnd(coordinatesFilter, query.getFilter()));
         return query;
     }
 
     @Override
-    protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options,
+    protected void extendOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options,
             boolean searchOnResource) {
         super.extendOptions(options, searchOnResource);
         // We do not need to worry about associations of associations here
         // (nested associations). Avoiding that will make the query faster.
-        options.add(SelectorOptions.create(prismContext.toUniformPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
+        options.add(
+                SelectorOptions.create(
+                        prismContext.toUniformPath(ShadowType.F_ASSOCIATION),
+                        GetOperationOptions.createDontRetrieve()));
     }
 
     @Override
-    protected <O extends ObjectType> boolean isAcceptable(@NotNull PrismObject<O> object) {
-        O objectable = object.asObjectable();
-        argCheck(objectable instanceof ShadowType, "Not a shadow: %s", objectable);
-        return ShadowUtil.isNotDead((ShadowType) objectable);
+    protected boolean isAcceptable(@NotNull PrismObject<ShadowType> object) {
+        return ShadowUtil.isNotDead(object.asObjectable());
     }
 
-    protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
-        ShadowAssociationType association = new ShadowAssociationType(prismContext)
+    protected PrismContainerValue<ShadowAssociationType> createPrismValue(
+            String oid,
+            QName targetTypeQName,
+            List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas,
+            ExpressionEvaluationContext params) {
+        ShadowAssociationType association = new ShadowAssociationType()
                 .name(params.getMappingQName())
                 .shadowRef(oid, targetTypeQName);
 
@@ -132,7 +155,8 @@ public class AssociationTargetSearchExpressionEvaluator
 
             prismContext.adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
             if (InternalsConfig.consistencyChecks) {
-                associationCVal.assertDefinitions(() -> "associationCVal in assignment expression in "+params.getContextDescription());
+                associationCVal.assertDefinitions(
+                        () -> "associationCVal in assignment expression in " + params.getContextDescription());
             }
         } catch (SchemaException e) {
             // Should not happen
