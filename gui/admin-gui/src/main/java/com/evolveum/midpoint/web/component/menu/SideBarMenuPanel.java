@@ -23,7 +23,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -158,7 +157,10 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             }
         });
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
-        Label name = new Label(ID_NAME, () -> new StringResourceModel("${name}", model));
+        Label name = new Label(ID_NAME, () -> {
+            String key = model.getObject().getName();
+            return getString(key, null, key);
+        });
         header.add(name);
         return header;
     }
