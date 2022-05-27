@@ -12,48 +12,33 @@ import java.io.Serializable;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CatalogTile implements Serializable {
+public class CatalogTile extends Tile {
 
-    private String icon;
+    private String logo;
 
-    private String title;
-
-    private boolean selected;
+    private String description;
 
     public CatalogTile() {
         this(null, null);
     }
 
     public CatalogTile(String icon, String title) {
-        this.icon = icon;
-        this.title = title;
+        super(icon, title);
     }
 
-    public String getIcon() {
-        return icon;
+    public String getLogo() {
+        return logo;
     }
 
-    public void setIcon(String icon) {
-        this.icon = icon;
+    public void setLogo(String logo) {
+        this.logo = logo;
     }
 
-    public String getTitle() {
-        return title;
+    public String getDescription() {
+        return description;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public boolean isSelected() {
-        return selected;
-    }
-
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
-    public void toggle() {
-        setSelected(!isSelected());
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

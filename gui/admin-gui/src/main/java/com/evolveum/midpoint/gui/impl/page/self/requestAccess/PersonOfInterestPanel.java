@@ -114,7 +114,7 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
         next.setOutputMarkupPlaceholderTag(true);
         add(next);
 
-        Label nextLabel = new Label(ID_NEXT_LABEL);
+        Label nextLabel = new Label(ID_NEXT_LABEL, createNextStepLabel());
         next.add(nextLabel);
 
         WebMarkupContainer listContainer = new WebMarkupContainer(ID_LIST_CONTAINER);
@@ -149,6 +149,10 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
 
     protected void onNextPerformed(AjaxRequestTarget target) {
 
+    }
+
+    protected IModel<String> createNextStepLabel() {
+        return () -> null;
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {

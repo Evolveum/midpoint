@@ -110,18 +110,18 @@ public class WizardBorder extends Border {
         IModel<String> currentPanelTitle = () -> getCurrentPanel().getTitle().getObject();
         IModel<String> nextPanelTitle = () -> {
             WizardPanel next = getNextPanel();
-            return next != null ? getNextPanel().getTitle().getObject() : null;
+            return next != null ? next.getTitle().getObject() : null;
         };
         WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, currentPanelTitle, nextPanelTitle) {
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                previousStep();
+                previousStep(target);
             }
 
             @Override
             protected void onNextPerformed(AjaxRequestTarget target) {
-                nextStep();
+                nextStep(target);
             }
         };
         contentHeader.add(new VisibleEnableBehaviour() {
@@ -159,11 +159,15 @@ public class WizardBorder extends Border {
         return steps.get(nextIndex);
     }
 
-    public void previousStep() {
+    public void previousStep(AjaxRequestTarget target) {
         model.getObject().previousStep();
+
+        target.add(this);
     }
 
-    public void nextStep() {
+    public void nextStep(AjaxRequestTarget target) {
         model.getObject().nextStep();
+
+        target.add(this);
     }
 }

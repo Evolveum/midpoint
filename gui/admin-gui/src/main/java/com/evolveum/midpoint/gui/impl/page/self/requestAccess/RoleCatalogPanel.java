@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.util.List;
+
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
@@ -47,7 +50,13 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
         DetailsMenuPanel menu = new DetailsMenuPanel(ID_MENU);
         add(menu);
 
-        ListView<CatalogTile> tiles = new ListView<>(ID_TILES) {
+        CatalogTile t = new CatalogTile("fas fa-building", "Canteen");
+        t.setLogo("fas fa-utensils fa-2x");
+        t.setDescription("Grants you access to canteen services, coffee bar and vending machines");
+
+        IModel<List<CatalogTile>> model = Model.ofList(List.of(t));
+
+        ListView<CatalogTile> tiles = new ListView<>(ID_TILES, model) {
 
             @Override
             protected void populateItem(ListItem<CatalogTile> item) {

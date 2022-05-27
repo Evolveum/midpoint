@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -85,6 +86,14 @@ public class PageRequestAccess extends PageSelf {
                 border.getModel().getObject().nextStep();
 
                 target.add(border);
+            }
+
+            @Override
+            protected IModel<String> createNextStepLabel() {
+                return () -> {
+                    WizardPanel next = border.getNextPanel();
+                    return next != null ? next.getTitle().getObject() : null;
+                };
             }
         };
 

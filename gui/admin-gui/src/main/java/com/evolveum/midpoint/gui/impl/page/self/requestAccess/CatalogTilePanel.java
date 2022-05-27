@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -23,6 +24,10 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_LOGO = "logo";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_ADD = "add";
+    private static final String ID_DETAILS = "details";
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
 
@@ -35,6 +40,13 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
     private void initLayout() {
         add(AttributeAppender.append("class", "catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
+
+        WebMarkupContainer logo = new WebMarkupContainer(ID_LOGO);
+        logo.add(AttributeAppender.append("class", () -> getModelObject().getLogo()));
+        add(logo);
+
+        Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
+        add(description);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
@@ -52,6 +64,24 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
                 CatalogTilePanel.this.onClick(target);
             }
         });
+
+        AjaxLink add = new AjaxLink<>(ID_ADD) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+            }
+        };
+        add(add);
+
+        AjaxLink details = new AjaxLink<>(ID_DETAILS) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+            }
+        };
+        add(details);
     }
 
     protected void onClick(AjaxRequestTarget target) {

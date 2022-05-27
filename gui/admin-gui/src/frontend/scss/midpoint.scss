@@ -68,7 +68,6 @@ body.custom-hold-transition {
 		max-height: 50px;
 	}
   }
-
 }
 
 div.navbar-custom-menu {
@@ -132,7 +131,6 @@ th.cog, td.cog {
         @include rotate(90deg);
       }
     }
-
   }
 }
 // end sidebar styles extension
@@ -1754,9 +1752,7 @@ th.debug-list-buttons {
   border-bottom: 0 !important;
 }
 
-.tile-panel {
-  width: 250px;
-  height: 250px;
+@mixin selectable-tile {
   border: 2px solid $white;
   border-radius: $border-radius;
   background-color: $white;
@@ -1769,15 +1765,23 @@ th.debug-list-buttons {
   }
 }
 
+.tile-panel {
+  width: 250px;
+  height: 250px;
+
+  @include selectable-tile();
+}
+
 .catalog-tile-panel {
   width: 317px;
   height: 376px;
-  background-color: $white;
+  @include selectable-tile();
 
-  &:hover,
-  &.active {
-    border: 2px solid $primary;
-    border-radius: $border-radius;
+  & > .logo {
+    width: 84px;
+    height: 84px;
+    border-radius: 108px;
+    background-color: rgba(60, 141, 188, 0.1);
   }
 }
 
