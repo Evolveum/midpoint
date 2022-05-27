@@ -33,11 +33,11 @@
                     </label>
                     <textarea class="form-control" rows="4"></textarea>
                     <a class="btn btn-danger">
-                        <i class="fas fa-triangle-exclamation"></i>
+                        <i class="fas fa-triangle-exclamation mr-1"></i>
                         Open conflict solver
                     </a>
                     <a class="btn btn-success">
-                        <i class="fas fa-credit-card"></i>
+                        <i class="fas fa-credit-card mr-1"></i>
                         Submit my request
                     </a>
                 </div>
@@ -46,20 +46,27 @@
     </div>
 </wicket:panel>
 
+<wicket:fragment wicket:id="tableHeaderFragment">
+    <h3 class="card-title">
+        <i class="fa-solid fa-cart-shopping mr-1"></i>
+        Items in cart
+    </h3>
+</wicket:fragment>
+
 <wicket:fragment wicket:id="tableFooterFragment">
     <a class="btn btn-outline-primary" wicket:id="clearCart">
-        <i class="fa-solid fa-recycle"></i>
+        <i class="fa-solid fa-recycle mr-1"></i>
         Clear the shopping cart
     </a>
 </wicket:fragment>
 
 <wicket:fragment wicket:id="tableButtonColumn">
     <a class="btn btn-link" wicket:id="edit">
-        <i class="fas fa-pen-to-square"></i>
+        <i class="fas fa-pen-to-square mr-1"></i>
         Edit
     </a>
     <a class="btn btn-link text-danger" wicket:id="remove">
-        <i class="fas fa-trash-can"></i>
+        <i class="fas fa-trash-can mr-1"></i>
         Remove
     </a>
 </wicket:fragment>

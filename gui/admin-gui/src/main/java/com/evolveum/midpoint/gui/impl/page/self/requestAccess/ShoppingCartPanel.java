@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 public class ShoppingCartPanel extends BasePanel implements WizardPanel {
 
     private static final String ID_TABLE = "table";
+
+    private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
     private static final String ID_TABLE_BUTTON_COLUMN = "tableButtonColumn";
     private static final String ID_CLEAR_CART = "clearCart";
@@ -71,6 +74,11 @@ public class ShoppingCartPanel extends BasePanel implements WizardPanel {
                 });
 
                 return fragment;
+            }
+
+            @Override
+            protected Component createHeader(String headerId) {
+                return new Fragment(headerId, ID_TABLE_HEADER_FRAGMENT, ShoppingCartPanel.this);
             }
         };
         add(table);
