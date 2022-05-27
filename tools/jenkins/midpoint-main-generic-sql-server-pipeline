@@ -47,7 +47,7 @@ podTemplate(
                         // TODO needed? ports: [portMapping(name: 'mssql', containerPort: 5432)]
                 ),
                 containerTemplate(name: 'maven',
-                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11-slim',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11',
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
