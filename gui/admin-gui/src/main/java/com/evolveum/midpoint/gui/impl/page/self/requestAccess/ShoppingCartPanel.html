@@ -16,29 +16,29 @@
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-cash-register mr-1"></i>
-                        Checkout
+                        <wicket:message key="ShoppingCartPanel.checkout"/>
                     </h3>
                 </div>
                 <div class="card-body d-flex flex-column gap-2">
                     <label class="mb-0">
-                        Validity
+                        <wicket:message key="ShoppingCartPanel.validity"/>
                         <i class="fas fa-info-circle fa-xs text-primary"></i>
                     </label>
                     <select class="form-control">
-
+                        <!-- todo -->
                     </select>
                     <label class="mb-0">
-                        Comment
+                        <wicket:message key="ShoppingCartPanel.comment"/>
                         <i class="fas fa-info-circle fa-xs text-primary"></i>
                     </label>
                     <textarea class="form-control" rows="4"></textarea>
                     <a class="btn btn-danger">
                         <i class="fas fa-triangle-exclamation mr-1"></i>
-                        Open conflict solver
+                        <wicket:message key="ShoppingCartPanel.openConflict"/>
                     </a>
                     <a class="btn btn-success">
                         <i class="fas fa-credit-card mr-1"></i>
-                        Submit my request
+                        <wicket:message key="ShoppingCartPanel.submit"/>
                     </a>
                 </div>
             </div>
@@ -49,25 +49,25 @@
 <wicket:fragment wicket:id="tableHeaderFragment">
     <h3 class="card-title">
         <i class="fa-solid fa-cart-shopping mr-1"></i>
-        Items in cart
+        <wicket:message key="ShoppingCartPanel.tableHeader"/>
     </h3>
 </wicket:fragment>
 
 <wicket:fragment wicket:id="tableFooterFragment">
     <a class="btn btn-outline-primary" wicket:id="clearCart">
         <i class="fa-solid fa-recycle mr-1"></i>
-        Clear the shopping cart
+        <wicket:message key="ShoppingCartPanel.clearCart"/>
     </a>
 </wicket:fragment>
 
 <wicket:fragment wicket:id="tableButtonColumn">
     <a class="btn btn-link" wicket:id="edit">
         <i class="fas fa-pen-to-square mr-1"></i>
-        Edit
+        <wicket:message key="ShoppingCartPanel.edit"/>
     </a>
     <a class="btn btn-link text-danger" wicket:id="remove">
         <i class="fas fa-trash-can mr-1"></i>
-        Remove
+        <wicket:message key="ShoppingCartPanel.remove"/>
     </a>
 </wicket:fragment>
 </html>
