@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -246,23 +248,20 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         resourceObject.add(attribute);
 
         //noinspection unchecked
-        attributeDefinition = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "sn"));
+        attributeDefinition = (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(familyName);
         resourceObject.add(attribute);
 
         //noinspection unchecked
-        attributeDefinition = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "cn"));
+        attributeDefinition = (ResourceAttributeDefinition<String>) accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName + " " + familyName);
         resourceObject.add(attribute);
 
         //noinspection unchecked
         attributeDefinition = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(
-                        new QName(MidPointConstants.NS_RI, "givenName"));
+                accountDefinition.findAttributeDefinitionRequired(QNAME_GIVEN_NAME);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName);
         resourceObject.add(attribute);
@@ -328,12 +327,12 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, null, result);
         ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
-        AssertJUnit.assertNull(resObj.findAttribute(new QName(MidPointConstants.NS_RI, "givenName")));
+        AssertJUnit.assertNull(resObj.findAttribute(QNAME_GIVEN_NAME));
 
         String addedEmployeeNumber = resObj
-                .findAttribute(new QName(MidPointConstants.NS_RI, "employeeNumber")).getValue(String.class)
+                .findAttribute(QNAME_EMPLOYEE_NUMBER).getValue(String.class)
                 .getValue();
-        String changedSn = resObj.findAttribute(new QName(MidPointConstants.NS_RI, "sn"))
+        String changedSn = resObj.findAttribute(QNAME_SN)
                 .getValues(String.class).iterator().next().getValue();
         String addedStreet = resObj.findAttribute(new QName(MidPointConstants.NS_RI, "street"))
                 .getValues(String.class).iterator().next().getValue();
@@ -702,14 +701,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         //noinspection unchecked
         ResourceAttributeDefinition<String> road =
                 (ResourceAttributeDefinition<String>)
-                        accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "sn"));
+                        accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
         ResourceAttribute<String> roa = road.instantiate();
         roa.setRealValue(sn);
         resourceObject.add(roa);
 
         //noinspection unchecked
         road = (ResourceAttributeDefinition<String>)
-                accountDefinition.findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, "cn"));
+                accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
         roa = road.instantiate();
         roa.setRealValue(cn);
         resourceObject.add(roa);

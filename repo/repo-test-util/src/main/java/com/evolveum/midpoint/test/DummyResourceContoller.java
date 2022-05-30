@@ -8,6 +8,10 @@ package com.evolveum.midpoint.test;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
 import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -23,8 +27,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -78,10 +82,27 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME = "enlistTimestamp";
 
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
     public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
+
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_WATER_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+    public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_QNAME);
 
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME = "givenName";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME = "sn";
@@ -105,6 +126,11 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
     public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
     public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
+
+    public static final ItemName DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(NS_RI, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION);
+    public static final ItemName DUMMY_GROUP_ATTRIBUTE_CC_QNAME = new ItemName(NS_RI, DUMMY_GROUP_ATTRIBUTE_CC);
+    public static final ItemPath DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME);
+    public static final ItemPath DUMMY_GROUP_ATTRIBUTE_CC_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_CC_QNAME);
 
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 
@@ -225,16 +251,8 @@ public class DummyResourceContoller extends AbstractResourceController {
         return attrDef;
     }
 
-    public ItemName getAttributeQName(String attrName) {
-        return new ItemName(getNamespace(), attrName);
-    }
-
     public ItemPath getAttributePath(QName attrQName) {
         return ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
-    }
-
-    public ItemPath getAttributePath(String attrName) {
-        return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeQName(attrName));
     }
 
     public ItemName getAttributeFullnameQName() {
@@ -280,7 +298,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
         // ACCOUNT
         ResourceObjectDefinition accountDef =
-                resourceSchema.findDefinitionForObjectClass(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findDefinitionForObjectClass(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No ACCOUNT kind definition", accountDef);
 
         ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
@@ -298,7 +316,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
         // GROUP
         ResourceObjectDefinition groupObjectClass =
-                resourceSchema.findDefinitionForObjectClass(SchemaTestConstants.GROUP_OBJECT_CLASS_NAME);
+                resourceSchema.findDefinitionForObjectClass(RI_GROUP_OBJECT_CLASS);
         assertNotNull("No group objectClass", groupObjectClass);
 
         ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
@@ -341,10 +359,10 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertDummyResourceSchemaSanity(resourceSchema, resourceType, checkDisplayOrder);
 
         ResourceObjectDefinition accountDef =
-                resourceSchema.findDefinitionForObjectClass(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findDefinitionForObjectClass(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No default account definition", accountDef);
         ResourceObjectClassDefinition accountObjectClassDef =
-                resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No AccountObjectClass definition", accountObjectClassDef);
         assertTrue("Default account definition is not same as AccountObjectClass", accountDef == accountObjectClassDef);
         assertEquals("Unexpected number of definitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
@@ -407,16 +425,6 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     }
 
-    public QName getAccountObjectClass() {
-        getResourceType();
-        return new QName(NS_RI, "AccountObjectClass");
-    }
-
-    public QName getGroupObjectClass() {
-        getResourceType();
-        return new QName(NS_RI, "GroupObjectClass");
-    }
-
     public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException, InterruptedException {
         DummyOrg org = new DummyOrg(ORG_TOP_NAME);
         dummyResource.addOrg(org);
@@ -459,11 +467,11 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public QName getOrgObjectClassQName() {
-        return new QName(getNamespace(), OBJECTCLASS_ORG_LOCAL_PART);
+        return new QName(NS_RI, OBJECTCLASS_ORG_LOCAL_PART);
     }
 
     public QName getAccountObjectClassQName() {
-        return new QName(getNamespace(), SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        return new QName(NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
     }
 
     /**

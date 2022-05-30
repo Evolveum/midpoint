@@ -44,6 +44,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -562,7 +564,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         // We have to use matching rule for shadow name, because the shadow is re-fetched due to strong assigned mapping.
         // (Then the shadow name is updated to uppercase.)
         assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyUpcaseType,
-                getAccountObjectClass(resourceDummyUpcaseType), caseIgnoreMatchingRule, true, true);
+                RI_ACCOUNT_OBJECT_CLASS, caseIgnoreMatchingRule, true, true);
 
         // Check account
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -666,7 +668,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         // We have to use matching rule for shadow name, because the shadow is re-fetched due to strong assigned mapping.
         // (Then the shadow name is updated to uppercase.)
         assertShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyUpcaseType,
-                getAccountObjectClass(resourceDummyUpcaseType), caseIgnoreMatchingRule, true, true);
+                RI_ACCOUNT_OBJECT_CLASS, caseIgnoreMatchingRule, true, true);
 
         assertShadows(6);
 

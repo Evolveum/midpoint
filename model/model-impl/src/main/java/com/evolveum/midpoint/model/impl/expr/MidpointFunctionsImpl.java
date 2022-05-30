@@ -602,8 +602,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "countAccounts");
-        QName attributeQName = new QName(MidPointConstants.NS_RI, attributeName);
+        QName attributeQName = getRiAttributeQName(attributeName);
         return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
+    }
+
+    @NotNull
+    private QName getRiAttributeQName(String attributeName) {
+        return new QName(MidPointConstants.NS_RI, attributeName);
     }
 
     private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task,
@@ -707,7 +712,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(attributeName, "Empty attribute name");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "isUniqueAccountValue");
-        QName attributeQName = new QName(MidPointConstants.NS_RI, attributeName);
+        QName attributeQName = getRiAttributeQName(attributeName);
         return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, getCurrentTask(), result);
     }
 
@@ -757,7 +762,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
                 .build();
     }

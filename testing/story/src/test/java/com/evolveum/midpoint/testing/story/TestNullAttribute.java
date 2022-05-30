@@ -32,7 +32,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -155,9 +155,9 @@ public class TestNullAttribute extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel jack after role account only assignment", accountModel);
 
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME), "Smack Sparrow");
-        PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_SHIP));
-        PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON));
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Smack Sparrow");
+        PrismAsserts.assertNoItem(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH);
+        PrismAsserts.assertNoItem(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH);
 
     }
 
@@ -203,8 +203,8 @@ public class TestNullAttribute extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel jack after role shipnweapon assignment", accountModel);
 
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME), "Smack Sparrow");
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_SHIP), "Black Pearl");
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Smack Sparrow");
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Black Pearl");
         // weapon is not in user's extension (MID-3326)
         //PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON),"pistol");
 
@@ -261,10 +261,8 @@ public class TestNullAttribute extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel jack after attribute deletion", accountModel);
 
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME), "Smack Sparrow");
-        PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON));
-        PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_SHIP));
-
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Smack Sparrow");
+        PrismAsserts.assertNoItem(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH);
+        PrismAsserts.assertNoItem(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH);
     }
-
 }

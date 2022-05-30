@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
@@ -587,7 +588,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     private PrismObject<ShadowType> createHackerShadow() throws SchemaException, ConfigurationException {
         var hacker = new ShadowType(prismContext)
                 .resourceRef(RESOURCE_DUMMY_HACKED.oid, ResourceType.COMPLEX_TYPE)
-                .objectClass(RESOURCE_DUMMY_HACKED.controller.getAccountObjectClass())
+                .objectClass(RI_ACCOUNT_OBJECT_CLASS)
                 .beginAttributes()
                 .<ShadowType>end()
                 .asPrismObject();

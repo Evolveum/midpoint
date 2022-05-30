@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -301,23 +302,36 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceObject());
-        ResourceObjectClassDefinition rOcDef =
-                rSchema.findObjectClassDefinition(getDummyResourceController().getGroupObjectClass());
+        ResourceObjectClassDefinition rOcDef = rSchema.findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
 
         ObjectFactory objectFactory = new ObjectFactory();
         ItemPath nameAttributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);
         for (int i = 0; i < NUMBER_OF_GENERATED_DUMMY_GROUPS; i++) {
             PrismObject<ShadowType> shadow = shadowDef.instantiate();
             ShadowType shadowType = shadow.asObjectable();
+            // Note that we have to explicitly set kind/intent. The reason is that intent not filled-in by default.
+            // (Classification is done when object is fetched from resource, not when it is added to it.)
+            // And the associationTargetSearch evaluator looks for kind/intent since 4.6.
             shadowType
                     .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                    .objectClass(rOcDef.getTypeName());
+                    .objectClass(rOcDef.getTypeName())
+                    .kind(ShadowKindType.ENTITLEMENT)
+                    .intent("group");
             ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rOcDef);
             ResourceAttribute<String> nameAttribute = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
             String groupName = formatGroupName(i);
             nameAttribute.setRealValue(groupName);
             display("Group shadow " + i, shadow);
             addObject(shadow, task, result);
+
+            if (i == 0) {
+                PrismObject<ShadowType> createdShadow = getShadowRepo(shadow.getOid());
+                assertShadow(createdShadow, "after creation")
+                        .display()
+                        .assertObjectClass(rOcDef.getTypeName())
+                        .assertKind(ShadowKindType.ENTITLEMENT)
+                        .assertIntent("group");
+            }
 
             PrismObject<RoleType> role = roleDef.instantiate();
             RoleType roleType = role.asObjectable();

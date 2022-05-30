@@ -45,7 +45,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -187,7 +188,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
         lootDelta.setRealValuesToReplace(43);
         objectDelta.addModification(lootDelta);
-        PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH);
         titleDelta.setDefinition(
                 getAttributeDefinitionRequired(resourceBean,
                         ShadowKindType.ACCOUNT,
@@ -287,7 +288,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         lootDelta.addRealValuesToDelete(43);
         objectDelta.addModification(lootDelta);
         // NOT a read-replace attribute
-        PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH);
         titleDelta.setDefinition(
                 getAttributeDefinitionRequired(resourceBean,
                         ShadowKindType.ACCOUNT,
@@ -296,7 +297,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         titleDelta.addRealValuesToDelete("Pirate Master");
         objectDelta.addModification(titleDelta);
         // read replace attribute
-        PropertyDelta<String> drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+        PropertyDelta<String> drinkDelta = objectDelta.createPropertyModification(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH);
         drinkDelta.setDefinition(
                 getAttributeDefinitionRequired(resourceBean,
                         ShadowKindType.ACCOUNT,

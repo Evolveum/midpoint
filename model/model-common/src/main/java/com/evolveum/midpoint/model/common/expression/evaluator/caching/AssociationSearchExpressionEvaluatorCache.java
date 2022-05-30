@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -35,37 +34,45 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AssociationSearchExpressionEvaluatorCache
         extends AbstractSearchExpressionEvaluatorCache<
             PrismContainerValue<ShadowAssociationType>,
-            PrismObject<ShadowType>,
-            AssociationSearchQueryKey, AssociationSearchQueryResult> {
+            ShadowType,
+            AssociationSearchQueryKey,
+        AssociationSearchQueryResult> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationSearchExpressionEvaluatorCache.class);
 
-    private static ConcurrentHashMap<Thread, AssociationSearchExpressionEvaluatorCache> cacheInstances = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Thread, AssociationSearchExpressionEvaluatorCache> CACHE_INSTANCES =
+            new ConcurrentHashMap<>();
 
-    public static AbstractSearchExpressionEvaluatorCache getCache() {
-        return cacheInstances.get(Thread.currentThread());
+    public static AssociationSearchExpressionEvaluatorCache getCache() {
+        return CACHE_INSTANCES.get(Thread.currentThread());
     }
 
     public static AssociationSearchExpressionEvaluatorCache enterCache(CacheConfiguration configuration) {
-        return enter(cacheInstances, AssociationSearchExpressionEvaluatorCache.class, configuration, LOGGER);
+        return enter(CACHE_INSTANCES, AssociationSearchExpressionEvaluatorCache.class, configuration, LOGGER);
     }
 
     public static AssociationSearchExpressionEvaluatorCache exitCache() {
-        return exit(cacheInstances, LOGGER);
+        return exit(CACHE_INSTANCES, LOGGER);
     }
 
     @Override
-    protected AssociationSearchQueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
+    protected AssociationSearchQueryKey createQueryKey(
+            Class<ShadowType> type,
+            ObjectQuery query,
+            ObjectSearchStrategyType searchStrategy,
+            ExpressionEvaluationContext params,
+            PrismContext prismContext) {
         try {
             return new AssociationSearchQueryKey(type, query, searchStrategy, params, prismContext);
-        } catch (Exception e) {     // TODO THIS IS REALLY UGLY HACK - query converter / prism serializer refuse to serialize some queries - should be fixed RSN!
+        } catch (Exception e) { // TODO THIS IS REALLY UGLY HACK - query converter / prism serializer refuse to serialize some queries - should be fixed RSN!
             LoggingUtils.logException(LOGGER, "Couldn't create query key. Although this particular exception is harmless, please fix prism implementation!", e);
-            return null;            // we "treat" it so that we simply pretend the entry is not in the cache and/or refuse to enter it into the cache
+            return null; // we "treat" it so that we simply pretend the entry is not in the cache and/or refuse to enter it into the cache
         }
     }
 
     @Override
-    protected AssociationSearchQueryResult createQueryResult(List<PrismContainerValue<ShadowAssociationType>> resultList, List<PrismObject<ShadowType>> rawResultList) {
+    protected AssociationSearchQueryResult createQueryResult(
+            List<PrismContainerValue<ShadowAssociationType>> resultList, List<PrismObject<ShadowType>> rawResultList) {
         return new AssociationSearchQueryResult(resultList, rawResultList);
     }
 
@@ -96,7 +103,10 @@ public class AssociationSearchExpressionEvaluatorCache
         }
     }
 
-    private boolean matches(Map.Entry<AssociationSearchQueryKey, AssociationSearchQueryResult> entry, String resourceOid, ShadowKindType kind) {
+    private boolean matches(
+            Map.Entry<AssociationSearchQueryKey, AssociationSearchQueryResult> entry,
+            String resourceOid,
+            ShadowKindType kind) {
         AssociationSearchQueryResult result = entry.getValue();
         if (result.getResourceOid() == null) {
             return true;        // shouldn't occur

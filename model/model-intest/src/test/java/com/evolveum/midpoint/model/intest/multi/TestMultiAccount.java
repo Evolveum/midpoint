@@ -10,6 +10,8 @@ import java.io.File;
 import java.util.Collections;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -917,14 +919,16 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     }
 
     private void importMultiGreenAccounts(Task task, OperationResult result) throws Exception {
-        modelService.importFromResource(RESOURCE_DUMMY_MULTI_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_MULTI_GREEN_NAME).getNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        getDummyResourceController(RESOURCE_DUMMY_MULTI_GREEN_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_MULTI_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, true, 40000);
     }
 
     private void importCleverHrAccounts(Task task, OperationResult result) throws Exception {
-        modelService.importFromResource(RESOURCE_DUMMY_CLEVER_HR_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_CLEVER_HR_NAME).getNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        getDummyResourceController(RESOURCE_DUMMY_CLEVER_HR_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_CLEVER_HR_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, true, 40000);

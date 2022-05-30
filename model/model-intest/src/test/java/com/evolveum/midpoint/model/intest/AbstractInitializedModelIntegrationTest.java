@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
@@ -338,15 +341,15 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
     }
 
     protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
-        assertShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getGroupObjectClass());
+        assertShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResourceType(), RI_GROUP_OBJECT_CLASS);
     }
 
     protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
-        assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getAccountObjectClass());
+        assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), RI_ACCOUNT_OBJECT_CLASS);
     }
 
     protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException, ConfigurationException {
-        assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getGroupObjectClass());
+        assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), RI_GROUP_OBJECT_CLASS);
     }
 
     protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException, ConfigurationException {
@@ -354,8 +357,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
     }
 
-    protected void assertClassType(String message, Object object,
-            Class<?> type) {
+    protected void assertClassType(String message, Object object, Class<?> type) {
         assertTrue(type.isInstance(object), message);
     }
 

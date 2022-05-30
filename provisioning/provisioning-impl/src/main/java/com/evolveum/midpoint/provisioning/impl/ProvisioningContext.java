@@ -65,15 +65,26 @@ public class ProvisioningContext {
      */
     @NotNull private final ResourceType resource;
 
-//    /**
-//     * Scope of our interest: single object, object type, object class, or event the whole resource.
-//     */
-//    @NotNull private final ResourceObjectsScope resourceObjectsScope;
-
     /**
-     * Definition applicable to individual resource objects in the scope.
+     * Type of objects that are to be processed by the current operation.
+     * If this is a bulk operation (like search or live sync), this also drives its scope - i.e. whether to
+     * access the whole resource, an object class, or a object type.
      */
     @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
+
+    /**
+     * If true, we want to process the whole object class even if {@link #resourceObjectDefinition} points to
+     * a specific object type. This is used when the client specifies e.g. a search over object class of `inetOrgPerson`
+     * and we have to apply a default type definition of `account/default` to know how to process objects of this class.
+     *
+     * If the {@link #resourceObjectDefinition} is not a type definition, this flag is ignored.
+     *
+     * This is a hack! The correct way how to specify this in the configuration is to use object class refinement,
+     * instead of a default object type.
+     *
+     * If `null`, the option should not be needed. If it is, an (internal) error is signalled.
+     */
+    private final Boolean wholeClass;
 
     /**
      * The context factory.
@@ -114,10 +125,12 @@ public class ProvisioningContext {
             @NotNull Task task,
             @NotNull ResourceType resource,
             @Nullable ResourceObjectDefinition resourceObjectDefinition,
+            Boolean wholeClass,
             @NotNull ProvisioningContextFactory contextFactory) {
         this.task = task;
         this.resource = resource;
         this.resourceObjectDefinition = resourceObjectDefinition;
+        this.wholeClass = wholeClass;
         this.contextFactory = contextFactory;
         LOGGER.trace("Created {}", this);
     }
@@ -126,10 +139,12 @@ public class ProvisioningContext {
     ProvisioningContext(
             @NotNull ProvisioningContext originalCtx,
             @NotNull Task task,
-            @Nullable ResourceObjectDefinition resourceObjectDefinition) {
+            @Nullable ResourceObjectDefinition resourceObjectDefinition,
+            Boolean wholeClass) {
         this.task = task;
         this.resource = originalCtx.resource;
         this.resourceObjectDefinition = resourceObjectDefinition;
+        this.wholeClass = wholeClass;
         this.contextFactory = originalCtx.contextFactory;
         this.connectorMap.putAll(originalCtx.connectorMap);
         this.resourceSchema = originalCtx.resourceSchema;
@@ -176,21 +191,18 @@ public class ProvisioningContext {
                 () -> "No resource object definition, because the context is wildcard: " + this);
     }
 
-    /**
-     * Returns the "raw" object class definition for the current context.
-     * (If the context is given by object type, then its OC is returned. If it's the OC itself, the OC is returned.)
-     */
-    public @NotNull ResourceObjectClassDefinition getObjectClassDefinitionRequired() {
-        return getObjectDefinitionRequired()
-                .getObjectClassDefinition();
+    public Boolean getWholeClass() {
+        return wholeClass;
     }
 
     public @NotNull QName getObjectClassNameRequired() {
-        return getObjectClassDefinitionRequired().getObjectClassName();
+        return getObjectDefinitionRequired().getObjectClassName();
     }
 
     /**
      * Returns the "raw" object class definition (if the context is not wildcard).
+     *
+     * TODO must be raw? Or may be refined?
      */
     public @Nullable ResourceObjectClassDefinition getObjectClassDefinition() {
         if (resourceObjectDefinition != null) {
@@ -235,17 +247,10 @@ public class ProvisioningContext {
 
         protectedObjectPatterns = new ArrayList<>();
 
-        if (!isTypeBased()) {
-            return protectedObjectPatterns;
-        }
-
-        ResourceObjectTypeDefinition objectClassDefinition = getObjectTypeDefinitionRequired();
-        Collection<ResourceObjectPattern> patterns = objectClassDefinition.getProtectedObjectPatterns();
-        for (ResourceObjectPattern pattern : patterns) {
-            ObjectFilter filter = pattern.getObjectFilter();
-            if (filter == null) {
-                continue;
-            }
+        ResourceObjectDefinition objectDefinition = getObjectDefinitionRequired();
+        Collection<ResourceObjectPattern> rawPatterns = objectDefinition.getProtectedObjectPatterns();
+        for (ResourceObjectPattern rawPattern : rawPatterns) {
+            ObjectFilter filter = rawPattern.getObjectFilter();
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
             variables.put(ExpressionConstants.VAR_CONFIGURATION,
@@ -253,8 +258,10 @@ public class ProvisioningContext {
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
                     filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
                     PrismContext.get(), "protected filter", getTask(), result);
-            pattern.setFilter(evaluatedFilter);
-            protectedObjectPatterns.add(pattern);
+            protectedObjectPatterns.add(
+                    new ResourceObjectPattern(
+                            rawPattern.getResourceObjectDefinition(),
+                            evaluatedFilter));
         }
 
         return protectedObjectPatterns;
@@ -312,7 +319,9 @@ public class ProvisioningContext {
      *
      * The returned context is based on "refined" resource type definition.
      */
-    public ProvisioningContext spawnForKindIntent(@NotNull ShadowKindType kind, @NotNull String intent)
+    public ProvisioningContext spawnForKindIntent(
+            @NotNull ShadowKindType kind,
+            @NotNull String intent)
             throws SchemaException, ConfigurationException {
         return contextFactory.spawnForKindIntent(this, kind, intent);
     }
@@ -325,7 +334,8 @@ public class ProvisioningContext {
         return new ProvisioningContext(
                 this,
                 task,
-                resourceObjectDefinition);
+                resourceObjectDefinition,
+                wholeClass);
     }
 
     /**

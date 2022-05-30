@@ -200,11 +200,15 @@ public class ConstraintsChecker {
 
         // Note that we should not call repository service directly here. The query values need to be normalized according to
         // attribute matching rules.
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-        List<PrismObject<ShadowType>> foundObjects = shadowsFacade.searchObjects(query, options, provisioningContext.getTask(), result);
+        List<PrismObject<ShadowType>> matchingObjects =
+                shadowsFacade.searchObjects(
+                        query,
+                        GetOperationOptions.createNoFetchCollection(),
+                        provisioningContext.getTask(),
+                        result);
         LOGGER.trace("Uniqueness check of {} resulted in {} results:\n{}\nquery:\n{}",
-                identifier, foundObjects.size(), foundObjects, query.debugDumpLazily(1));
-        if (foundObjects.isEmpty()) {
+                identifier, matchingObjects.size(), matchingObjects, query.debugDumpLazily(1));
+        if (matchingObjects.isEmpty()) {
             if (useCache) {
                 Cache.setOk(
                         resourceType.getOid(),
@@ -215,28 +219,28 @@ public class ConstraintsChecker {
             }
             return true;
         }
-        if (foundObjects.size() > 1) {
+        if (matchingObjects.size() > 1) {
             LOGGER.error("Found {} objects with attribute {}:\n{}",
-                    foundObjects.size() ,identifier.toHumanReadableString(), foundObjects);
+                    matchingObjects.size() ,identifier.toHumanReadableString(), matchingObjects);
             if (LOGGER.isDebugEnabled()) {
-                for (PrismObject<ShadowType> foundObject: foundObjects) {
+                for (PrismObject<ShadowType> foundObject: matchingObjects) {
                     LOGGER.debug("Conflicting object:\n{}", foundObject.debugDump());
                 }
             }
             message("Found more than one object with attribute "+identifier.toHumanReadableString());
             return false;
         }
-        LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), shadowOid);
-        boolean match = foundObjects.get(0).getOid().equals(shadowOid);
+        LOGGER.trace("Comparing {} and {}", matchingObjects.get(0).getOid(), shadowOid);
+        boolean match = matchingObjects.get(0).getOid().equals(shadowOid);
         if (!match) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ":\n"
-                        + foundObjects.get(0).debugDump());
+                        + matchingObjects.get(0).debugDump());
             }
             message("Found conflicting existing object with attribute " + identifier.toHumanReadableString()
-                    + ": " + foundObjects.get(0));
-            match = !constraintViolationConfirmer.confirmViolation(foundObjects.get(0));
-            constraintsCheckingResult.setConflictingShadow(foundObjects.get(0));
+                    + ": " + matchingObjects.get(0));
+            match = !constraintViolationConfirmer.confirmViolation(matchingObjects.get(0));
+            constraintsCheckingResult.setConflictingShadow(matchingObjects.get(0));
             // We do not cache "OK" here because the violation confirmer could depend on
             // attributes/items that are not under our observations.
         } else {

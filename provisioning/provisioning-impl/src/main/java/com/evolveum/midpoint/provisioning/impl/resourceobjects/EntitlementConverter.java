@@ -95,25 +95,31 @@ class EntitlementConverter {
                 ResourceObjectAssociationDirectionType direction = associationDef.getDirection();
                 if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
                     postProcessReadSubjectToEntitlement(
-                            associationContainer, resourceObject,
+                            associationContainer,
+                            resourceObject,
                             associationDef.getDefinitionBean().getAssociationAttribute(),
                             associationDef.getDefinitionBean().getValueAttribute(),
                             associationDef,
-                            subjectCtx, entitlementCtx);
+                            subjectCtx,
+                            entitlementCtx);
                 } else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
                     if (associationDef.getDefinitionBean().getShortcutAssociationAttribute() != null) {
                         postProcessReadSubjectToEntitlement(
-                                associationContainer, resourceObject,
+                                associationContainer,
+                                resourceObject,
                                 associationDef.getDefinitionBean().getShortcutAssociationAttribute(),
                                 associationDef.getDefinitionBean().getShortcutValueAttribute(),
                                 associationDef,
-                                subjectCtx, entitlementCtx
+                                subjectCtx,
+                                entitlementCtx
                         );
                     } else {
                         postProcessReadEntitlementToSubject(
-                                associationContainer, resourceObject,
+                                associationContainer,
+                                resourceObject,
                                 associationDef,
-                                subjectCtx, entitlementCtx,
+                                subjectCtx,
+                                entitlementCtx,
                                 result);
                     }
                 } else {
@@ -245,7 +251,8 @@ class EntitlementConverter {
 
         ObjectQuery query = createEntitlementQuery(referencedAttrValue, referencedAttrDef, referencingAttrDef, associationDef);
 
-        executeSearchForEntitlements(associationContainer, resourceObject, query, associationName, subjectCtx, entitlementCtx, result);
+        executeSearchForEntitlements(
+                associationContainer, resourceObject, query, associationName, subjectCtx, entitlementCtx, result);
     }
 
     /**

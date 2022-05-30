@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -296,7 +296,7 @@ public class TestDummyCaching extends TestDummy {
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -379,7 +379,7 @@ public class TestDummyCaching extends TestDummy {
             // @formatter:off
             ObjectQuery query = prismContext.queryFor(ShadowType.class)
                     .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(dummyResourceCtl.getAccountObjectClass())
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(RI_ACCOUNT_OBJECT_CLASS)
                     .and().itemWithDef(nameDef, ShadowType.F_ATTRIBUTES, nameDef.getItemName())
                         .eq(transformNameFromResource(ACCOUNT_WILL_USERNAME))
                     .build();

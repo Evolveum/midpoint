@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -13,6 +17,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,7 +31,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -118,10 +122,8 @@ public class TestDummySecurity extends AbstractDummyTest {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME),
-                "RUM");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+                ShadowType.class, ACCOUNT_WILL_OID, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH, "RUM");
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -148,7 +150,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+                DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH,
                 "pirate");
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
@@ -179,7 +181,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH,
                 "eh?");
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
@@ -223,7 +225,7 @@ public class TestDummySecurity extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceBean,
-                SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+                SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
         displayDumpable("All shadows query", query);
 
         // WHEN

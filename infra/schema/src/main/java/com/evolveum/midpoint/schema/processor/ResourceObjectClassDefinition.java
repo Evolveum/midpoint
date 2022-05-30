@@ -65,10 +65,24 @@ public interface ResourceObjectClassDefinition
     boolean isDefaultAccountDefinition();
 
     /**
+     * Returns `true` if this definition is a part of the raw schema.
+     *
+     * Note that if it's part of refined schema (but not refined in any way) the return value is `true`.
+     * See also {@link #hasRefinements()}.
+     */
+    boolean isRaw();
+
+    /**
+     * Returns `true` if there are really any refinements (i.e. a refinement bean exists, even if it can be effectively empty,
+     * besides obligatory object class name reference).
+     */
+    boolean hasRefinements();
+
+    /**
      * Creates a query for obtaining shadows related to this object class.
      */
     default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
-        return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), getPrismContext());
+        return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName());
     }
 
     ResourceAttributeContainer instantiate(ItemName elementName);

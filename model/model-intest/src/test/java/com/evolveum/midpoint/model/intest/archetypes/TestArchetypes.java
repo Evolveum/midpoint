@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.archetypes;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -1115,7 +1116,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         account.addAttributeValue(ATTR_STUDENT, "true");
 
         when("importing from the source");
-        modelService.importFromResource(RESOURCE_SOURCE.oid, RESOURCE_SOURCE.controller.getAccountObjectClass(), task, result);
+        modelService.importFromResource(RESOURCE_SOURCE.oid, RI_ACCOUNT_OBJECT_CLASS, task, result);
         waitForTaskCloseOrSuspend(task.getOid(), 10000);
 
         then("Mary has a lab account");

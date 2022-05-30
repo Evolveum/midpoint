@@ -220,12 +220,12 @@ class ResourceCompletionOperation {
         }
     }
 
-    public OperationResultStatus getOperationResultStatus() {
+    OperationResultStatus getOperationResultStatus() {
         return result.getStatus();
     }
 
     /** Returns OIDs of objects that are ancestors to the current resource. Used e.g. for cache invalidation. */
-    public @NotNull Collection<String> getAncestorsOids() {
+    @NotNull Collection<String> getAncestorsOids() {
         return lastExpansionOperation != null ?
                 lastExpansionOperation.getAncestorsOids() : List.of();
     }
@@ -268,12 +268,12 @@ class ResourceCompletionOperation {
         private void completeConnectorCapabilities(
                 @NotNull ConnectorSpec connectorSpec)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-            CapabilitiesType existingCapabilities = connectorSpec.getCapabilities();
+            CapabilitiesType capabilitiesBean = connectorSpec.getCapabilities();
             CapabilityCollectionType nativeCapabilities;
-            if (existingCapabilities != null
-                    && existingCapabilities.getNative() != null
-                    && !existingCapabilities.getNative().asPrismContainerValue().hasNoItems()) { // TODO empty means fetched!
-                nativeCapabilities = useExistingCapabilities(connectorSpec, existingCapabilities);
+            if (capabilitiesBean != null
+                    && capabilitiesBean.getNative() != null
+                    && !capabilitiesBean.getNative().asPrismContainerValue().hasNoItems()) { // FIXME empty means fetched! so we should use them
+                nativeCapabilities = useCachedCapabilities(connectorSpec, capabilitiesBean);
             } else {
                 nativeCapabilities = fetchAndStoreCapabilities(connectorSpec);
             }
@@ -282,13 +282,14 @@ class ResourceCompletionOperation {
                     nativeCapabilities);
         }
 
-        private CapabilityCollectionType useExistingCapabilities(
+        /** Handles the situation where we want to use existing (cached) capabilities. */
+        private CapabilityCollectionType useCachedCapabilities(
                 @NotNull ConnectorSpec connectorSpec,
                 @NotNull CapabilitiesType existingCapabilitiesBean) throws SchemaException {
             LOGGER.trace("Using capabilities that are cached in the resource object; for {}", connectorSpec);
             if (existingCapabilitiesBean.getCachingMetadata() == null) {
                 LOGGER.trace("No caching metadata present, creating them");
-                resourceUpdater.updateCapabilitiesCachingMetadata(connectorSpec, existingCapabilitiesBean);
+                resourceUpdater.updateCapabilitiesCachingMetadata(connectorSpec);
             }
             return existingCapabilitiesBean.getNative();
         }
@@ -358,7 +359,8 @@ class ResourceCompletionOperation {
             } else if (rawResourceSchema.isEmpty()) {
                 LOGGER.warn("Empty resource schema fetched from {}", resource);
             } else {
-                LOGGER.debug("Fetched resource schema for {}: {} definitions", resource, rawResourceSchema.getDefinitions().size());
+                LOGGER.debug("Fetched resource schema for {}: {} definitions",
+                        resource, rawResourceSchema.getDefinitions().size());
             }
         }
 

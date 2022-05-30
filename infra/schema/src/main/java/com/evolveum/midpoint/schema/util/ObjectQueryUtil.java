@@ -592,8 +592,13 @@ public class ObjectQueryUtil {
     }
 
     @Deprecated // replace by a version without prismContext
-    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter, PrismContext ignored) throws SchemaException {
         return getCoordinates(filter);
+    }
+
+    public static ResourceShadowDiscriminator getCoordinates(ObjectQuery query) throws SchemaException {
+        // If query is null, we'll get SchemaException anyway. (But with reasonable explanation.)
+        return getCoordinates(query != null ? query.getFilter() : null);
     }
 
     public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {

@@ -188,7 +188,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                         ocDef = refinedSchema.findObjectDefinition(getKind(), null);
                     }
                     if (ocDef != null) {
-                        return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
+                        return ocDef.getObjectClassName().getLocalPart();
                     }
                 } catch (SchemaException | ConfigurationException e) {
                     // TODO?

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.impl.TokenUtil;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedLiveSyncChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChangeListener;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchChangesResult;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -64,8 +64,13 @@ public class LiveSynchronizer {
     @Autowired private ChangeProcessingBeans beans;
 
     @NotNull
-    public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, LiveSyncOptions options,
-            LiveSyncTokenStorage tokenStorage, LiveSyncEventHandler handler, Task task, OperationResult gResult)
+    public SynchronizationOperationResult synchronize(
+            ResourceShadowCoordinates shadowCoordinates,
+            LiveSyncOptions options,
+            LiveSyncTokenStorage tokenStorage,
+            LiveSyncEventHandler handler,
+            Task task,
+            OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
@@ -219,12 +224,16 @@ public class LiveSynchronizer {
         @NotNull private final OldestTokenWatcher oldestTokenWatcher;
         private LiveSyncToken finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
-        private LiveSyncCtx(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
-                LiveSyncOptions options, @NotNull LiveSyncTokenStorage tokenStorage, OperationResult result)
-                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+        private LiveSyncCtx(
+                @NotNull ResourceShadowCoordinates shadowCoordinates,
+                @NotNull Task task,
+                LiveSyncOptions options,
+                @NotNull LiveSyncTokenStorage tokenStorage,
+                OperationResult result)
+                throws ObjectNotFoundException, SchemaException, ConfigurationException,
                 ExpressionEvaluationException {
             this.syncResult = new SynchronizationOperationResult();
-            this.context = ctxFactory.createForCoordinates(shadowCoordinates, task, result);
+            this.context = ctxFactory.createForBulkOperation(shadowCoordinates, task, result);
             this.task = task;
             this.options = options != null ? options : new LiveSyncOptions();
             this.tokenStorage = tokenStorage;

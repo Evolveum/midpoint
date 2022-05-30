@@ -8,6 +8,8 @@ package com.evolveum.midpoint.testing.conntest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayXml;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_CN;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -424,7 +426,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         displayDumpable("Account object class def", accountDefinition);
 
         ResourceAttributeDefinition<?> cnDef = accountDefinition.findAttributeDefinition("cn");
-        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertDefinition(cnDef, QNAME_CN, DOMUtil.XSD_STRING, 1, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());

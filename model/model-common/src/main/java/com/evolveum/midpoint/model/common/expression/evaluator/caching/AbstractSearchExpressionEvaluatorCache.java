@@ -30,12 +30,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * - should we store anything in addition to the resulting list of values? E.g. shadow kind in case of associationTargetSearch that is used for invalidation?
  *
  * V - type of cached result items
- * RV - type of raw values that we are searching for
+ * O - type of raw values that we are searching for
  * QK, QR - customized query keys / values
  *
  * After refactoring, this class contains almost nothing ;) Consider removing it altogether.
  */
-public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends
+public abstract class AbstractSearchExpressionEvaluatorCache<
+        V extends PrismValue,
+        O extends ObjectType,
+        QK extends QueryKey,
+        QR extends QueryResult<V>> extends
         AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
@@ -57,9 +61,14 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
     // Also probably because of MID-5355, although it's a bit unclear.
     Map<QK, QR> queries = new ConcurrentHashMap<>();
 
-    public List<V> getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
+    public List<V> getQueryResult(
+            Class<O> type,
+            ObjectQuery query,
+            ObjectSearchStrategyType searchStrategy,
+            ExpressionEvaluationContext params,
+            PrismContext prismContext) {
         QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
-        if (queryKey != null) {         // TODO BRUTAL HACK
+        if (queryKey != null) { // TODO BRUTAL HACK
             QR result = queries.get(queryKey);
             if (result != null) {
                 return result.getResultingList();
@@ -68,20 +77,29 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
         return null;
     }
 
-    public <T extends ObjectType> void putQueryResult(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy,
-                                                      ExpressionEvaluationContext params, List<V> resultList, List<RV> rawResultList,
-                                                      PrismContext prismContext) {
+    public void putQueryResult(
+            Class<O> type,
+            ObjectQuery query,
+            ObjectSearchStrategyType searchStrategy,
+            ExpressionEvaluationContext params,
+            List<V> resultList,
+            List<PrismObject<O>> rawResultList,
+            PrismContext prismContext) {
         QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
-        if (queryKey != null) {     // TODO BRUTAL HACK
+        if (queryKey != null) { // TODO BRUTAL HACK
             QR queryResult = createQueryResult(resultList, rawResultList);
             queries.put(queryKey, queryResult);
         }
     }
 
-    abstract protected QK createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy,
-                                         ExpressionEvaluationContext params, PrismContext prismContext);
+    abstract protected QK createQueryKey(
+            Class<O> type,
+            ObjectQuery query,
+            ObjectSearchStrategyType searchStrategy,
+            ExpressionEvaluationContext params,
+            PrismContext prismContext);
 
-    protected abstract QR createQueryResult(List<V> resultList, List<RV> rawResultList);
+    protected abstract QR createQueryResult(List<V> resultList, List<PrismObject<O>> rawResultList);
 
     @Override
     public String description() {
