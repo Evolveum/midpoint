@@ -16,6 +16,7 @@
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
 // AdminLTE and Bootstrap end
 
+@import "admin-lte-overrides";
 @import "icon-style";
 @import "prism-forms";
 @import "midpoint-utils";
@@ -58,6 +59,7 @@ body.custom-hold-transition {
       background: url("../img/midpoint_logo_white_180.png") no-repeat 25px -7px;
     }
   }
+
   & > a.custom-logo {
 
     & > img {
@@ -67,6 +69,10 @@ body.custom-hold-transition {
 		vertical-align: middle;
 		max-height: 50px;
 	}
+  }
+
+  & > .sidebar > nav > ul.nav-sidebar > li.nav-item > a.active {
+    box-shadow: none;
   }
 }
 
@@ -1746,10 +1752,6 @@ th.debug-list-buttons {
     right: 10px;
     font-size: 0.5em;
   }
-}
-
-.user-panel {
-  border-bottom: 0 !important;
 }
 
 @mixin selectable-tile {
