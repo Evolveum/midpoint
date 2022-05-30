@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -41,23 +39,20 @@ public class Synchronizer {
     private static final Trace LOGGER = TraceManager.getTrace(Synchronizer.class);
 
     @NotNull private final ResourceType resource;
-    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
-    @NotNull private final SynchronizationObjectsFilter objectsFilter;
+    @NotNull private final PostSearchFilter postSearchFilter;
     @NotNull private final ResourceObjectChangeListener objectChangeListener;
     @NotNull private final QName sourceChannel;
     private final boolean simulate;
     private final boolean forceAdd;
 
     public Synchronizer(@NotNull ResourceType resource,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull SynchronizationObjectsFilter objectsFilter,
+            @NotNull PostSearchFilter postSearchFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
             boolean simulate,
             boolean forceAdd) {
         this.resource = resource;
-        this.resourceObjectDefinition = resourceObjectDefinition;
-        this.objectsFilter = objectsFilter;
+        this.postSearchFilter = postSearchFilter;
         this.objectChangeListener = objectChangeListener;
         this.sourceChannel = sourceChannel;
         this.simulate = simulate;
@@ -86,7 +81,7 @@ public class Synchronizer {
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
             return;
         }
-        if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadowObject)) {
+        if (!isShadowUnknown(shadow) && !postSearchFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");

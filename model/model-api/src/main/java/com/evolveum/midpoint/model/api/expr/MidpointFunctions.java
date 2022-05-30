@@ -1124,14 +1124,21 @@ public interface MidpointFunctions {
 
     String translate(LocalizableMessageType message);
 
+    /**
+     * Counts accounts having `attributeValue` of `attributeName`.
+     *
+     * Note that this method uses the default definition of {@link ShadowKindType#ACCOUNT} objects, if present.
+     */
     <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** A variant of {@link #countAccounts(String, QName, Object)}. */
     <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** A variant of {@link #countAccounts(String, QName, Object)}. Attribute name is assumed to be in the `ri:` namespace. */
     <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
@@ -1145,6 +1152,16 @@ public interface MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * Checks if the value `attributeValue` of `attributeName` in given shadow is unique on given resource.
+     *
+     * A search on resource is invoked, and any occurrences (except the one in `shadowType`) are reported as violations.
+     *
+     * Notes:
+     *
+     * 1. `shadowType` should have an OID;
+     * 2. when constructing the query, the default `account` definition is used to provide attribute definitions.
+     */
     <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName,
             T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;

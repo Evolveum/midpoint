@@ -109,7 +109,8 @@ public class SynchronizationPolicyFactory {
 
         ResourceObjectDefinition objectDefinition;
         if (StringUtils.isEmpty(intent)) { // Note: intent shouldn't be the empty string!
-            // TODO Double check if searching for null intent is the correct way of finding the right object definition.
+            // We look for a default definition for this kind. That is consistent with the XSD documentation.
+            // After all, this data structure is legacy and shouldn't be used anymore. So we don't need to be super-exact here.
             objectDefinition = schema.findObjectDefinition(kind, null, synchronizationBean.getObjectClass());
         } else {
             objectDefinition = schema.findObjectDefinition(kind, intent);

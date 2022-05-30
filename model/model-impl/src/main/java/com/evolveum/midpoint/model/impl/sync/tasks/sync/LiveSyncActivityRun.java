@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
+import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -55,10 +55,10 @@ public final class LiveSyncActivityRun
     @VisibleForTesting
     public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
 
-    /** What object class to synchronize (resource + OC + kind + intent). */
-    private ResourceObjectClass resourceObjectClass;
+    /** What objects to synchronize (resource + OC + kind + intent). */
+    private ProcessingScope processingScope;
 
-    // TODO shouldn't we use SynchronizationObjectsFilter as well? (Beware of skipping objects.)
+    // TODO shouldn't we use PostSearchFilter as well? (Beware of skipping objects.)
 
     public LiveSyncActivityRun(
             @NotNull ActivityRunInstantiationContext<LiveSyncWorkDefinition, LiveSyncActivityHandler> activityRun) {
@@ -81,20 +81,20 @@ public final class LiveSyncActivityRun
         RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        resourceObjectClass = getModelBeans().syncTaskHelper
-                .getResourceObjectClassCheckingMaintenance(resourceObjectSet, runningTask, result);
+        processingScope = getModelBeans().syncTaskHelper
+                .getProcessingScopeCheckingMaintenance(resourceObjectSet, runningTask, result);
     }
 
     @Override
     protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-        return resourceObjectClass.getResourceRef();
+        return processingScope.getResourceRef();
     }
 
     @Override
     public void afterRun(OperationResult result) throws SchemaException {
         int itemsProcessed = transientRunStatistics.getItemsProcessed();
         LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",
-                resourceObjectClass.resource, itemsProcessed);
+                processingScope.resource, itemsProcessed);
         result.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS)
                 .recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + itemsProcessed);
     }
@@ -123,8 +123,13 @@ public final class LiveSyncActivityRun
 
         ModelImplUtils.clearRequestee(getRunningTask());
         getModelBeans().provisioningService
-                .synchronize(resourceObjectClass.getCoords(), options, tokenStorage, handler,
-                        getRunningTask(), opResult);
+                .synchronize(
+                        processingScope.getCoords(),
+                        options,
+                        tokenStorage,
+                        handler,
+                        getRunningTask(),
+                        opResult);
     }
 
     @NotNull

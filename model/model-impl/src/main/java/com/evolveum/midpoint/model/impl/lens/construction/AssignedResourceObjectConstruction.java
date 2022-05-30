@@ -77,7 +77,7 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.MODEL);
 
         ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
-        String intent = constructionBean.getIntent();
+        String intent = constructionBean.getIntent(); // Null value is interpreted as default-for-kind here.
 
         ResourceObjectDefinition resourceObjectDefinition = refinedSchema.findObjectDefinition(kind, intent);
         if (resourceObjectDefinition == null) {

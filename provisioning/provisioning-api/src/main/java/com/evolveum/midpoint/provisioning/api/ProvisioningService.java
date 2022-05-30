@@ -252,20 +252,18 @@ public interface ProvisioningService {
      *
      * Should fail if object type is wrong. Should fail if unknown property is specified in the query.
      *
-     * TODO review the following
-     *
      * When dealing with shadow queries in non-raw mode, there are the following requirements:
      *
      * - there must be exactly one `resourceRef` obtainable from the query (i.e. present in the conjunction at the root level),
-     * - there must be either `objectclass` or `kind` (optionally with `intent`) obtainable from the query.
+     * - there must be either `objectclass` or `kind` (optionally with `intent`) obtainable from the query (or both).
      *
      * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
      *
      * The object class used for on-resource search is then determined like this:
      *
-     * - if `kind` is specified, a combination of `kind` and `intent` is used to find refined object class definition,
-     * - if `kind` is not specified, `objectclass` is used to find the default refined OC definition with this name
-     * (i.e. it is _not_ so that the object class name is directly used for search on the resource!)
+     * - if `kind` is specified, a combination of `kind`, `intent`, and `objectclass` is used to find object type definition,
+     * - if `kind` is not specified, `objectclass` is used to find the most appropriate object class or object type definition.
+     * TODO TODO TODO
      *
      * See also MID-7470.
      *

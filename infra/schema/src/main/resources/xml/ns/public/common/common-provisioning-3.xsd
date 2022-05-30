@@ -2755,24 +2755,15 @@
             <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Shadow kind assumed by this definition. If not specified then the kind
-                        defined by schemaHandling part will be used. However this element can define
-                        a more specific kind in case that the schemaHandling part is ambiguous
-                        (e.g. the same objectclass is used for two kinds).
-
-                        Should not be used if the definition is embedded in schemaHandling.
+                        Shadow kind assumed by this definition. Should be present. But if it's not, ACCOUNT is used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="intent" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Shadow intent assumed by this definition. If not specified then the intent
-                        defined by schemaHandling part will be used. However this element can define
-                        a more specific intent in case that the schemaHandling part is ambiguous
-                        (e.g. the same objectclass is used for two intents).
-
-                        Should not be used if the definition is embedded in schemaHandling.
+                        Shadow intent assumed by this definition. Should be present. But if it's not a default
+                        type definition for given kind is looked for.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

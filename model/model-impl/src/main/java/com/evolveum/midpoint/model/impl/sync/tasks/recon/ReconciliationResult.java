@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
+import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
@@ -37,10 +37,10 @@ public class ReconciliationResult implements DebugDumpable {
             @NotNull ActivityRunResult executionResult) {
         ReconciliationResult result = new ReconciliationResult();
         result.runResult = executionResult.createTaskRunResult();
-        ResourceObjectClass resourceObjectClass = findResourceObjectClass(execution);
-        if (resourceObjectClass != null) {
-            result.resource = resourceObjectClass.resource.asPrismObject();
-            result.resourceObjectDefinition = resourceObjectClass.getResourceObjectDefinition();
+        ProcessingScope processingScope = findProcessingScope(execution);
+        if (processingScope != null) {
+            result.resource = processingScope.resource.asPrismObject();
+            result.resourceObjectDefinition = processingScope.getResourceObjectDefinition();
         }
         OperationCompletionActivityRun operationCompletionExecution = execution.getOperationCompletionExecution();
         if (operationCompletionExecution != null) {
@@ -58,10 +58,10 @@ public class ReconciliationResult implements DebugDumpable {
         return result;
     }
 
-    private static ResourceObjectClass findResourceObjectClass(ReconciliationActivityRun run) {
+    private static ProcessingScope findProcessingScope(ReconciliationActivityRun run) {
         for (PartialReconciliationActivityRun partialActivityRun : run.getPartialActivityRunsList()) {
-            if (partialActivityRun.resourceObjectClass != null) {
-                return partialActivityRun.resourceObjectClass;
+            if (partialActivityRun.processingScope != null) {
+                return partialActivityRun.processingScope;
             }
         }
         return null;

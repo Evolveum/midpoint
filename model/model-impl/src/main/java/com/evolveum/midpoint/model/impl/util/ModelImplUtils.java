@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -43,8 +42,6 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -70,7 +67,6 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -468,74 +464,6 @@ public class ModelImplUtils {
             return true;
         }
         return false;
-    }
-
-    @VisibleForTesting
-    public static ResourceObjectDefinition determineObjectDefinition(ResourceSchema refinedSchema, Task task)
-            throws SchemaException {
-        QName objectclass = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
-        ShadowKindType kind = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_KIND);
-        String intent = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_INTENT);
-
-        return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
-    }
-
-    public static ResourceObjectDefinition determineObjectDefinition(@NotNull ResourceSchema refinedSchema,
-            @NotNull ResourceObjectSetType resourceObjectSet, Object source)
-            throws SchemaException {
-        return determineObjectClassInternal(
-                refinedSchema,
-                resourceObjectSet.getObjectclass(),
-                resourceObjectSet.getKind(),
-                resourceObjectSet.getIntent(),
-                source);
-    }
-
-    private static <T> T getTaskExtensionPropertyValue(Task task, ItemName propertyName) {
-        PrismProperty<T> property = task.getExtensionPropertyOrClone(propertyName);
-        if (property != null) {
-            return property.getValue().getValue();
-        } else {
-            return null;
-        }
-    }
-
-    public static ResourceObjectDefinition determineObjectDefinition(ResourceSchema refinedSchema, PrismObject<ShadowType> shadow) throws SchemaException {
-        ShadowType s = shadow.asObjectable();
-        return determineObjectClassInternal(refinedSchema, s.getObjectClass(), s.getKind(), s.getIntent(), s);
-    }
-
-    private static ResourceObjectDefinition determineObjectClassInternal(
-            ResourceSchema resourceSchema, QName objectclass, ShadowKindType kind, String intent, Object source)
-            throws SchemaException {
-
-        if (kind == null && intent == null && objectclass != null) {
-            // Return generic object class definition from resource schema. No kind/intent means that we want
-            // to process all kinds and intents in the object class.
-            ResourceObjectDefinition objectClassDefinition =
-                    resourceSchema.findDefinitionForObjectClass(objectclass); // TODO or findObjectClassDefinition?
-            if (objectClassDefinition == null) {
-                throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
-            }
-            return objectClassDefinition;
-        }
-
-        ResourceObjectDefinition resourceObjectDefinition;
-
-        if (kind != null) {
-            resourceObjectDefinition = resourceSchema.findObjectDefinition(kind, intent);
-            LOGGER.trace("Determined refined object class {} by using kind={}, intent={}",
-                    resourceObjectDefinition, kind, intent);
-        } else if (objectclass != null) {
-            // This means that kind == null, intent != null (suspicious!)
-            resourceObjectDefinition = resourceSchema.findDefinitionForObjectClass(objectclass);  // TODO or findObjectClassDefinition?
-            LOGGER.trace("Determined refined object class {} by using objectClass={}", resourceObjectDefinition, objectclass);
-        } else {
-            resourceObjectDefinition = null;
-            LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
-        }
-
-        return resourceObjectDefinition;
     }
 
     public static void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, Protector protector, ModelExecuteOptions options,

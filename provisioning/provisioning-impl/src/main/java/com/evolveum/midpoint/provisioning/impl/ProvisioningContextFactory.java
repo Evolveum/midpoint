@@ -298,6 +298,8 @@ public class ProvisioningContextFactory {
             @NotNull PrismObject<ShadowType> shadow,
             @NotNull Collection<QName> additionalAuxiliaryObjectClassNames) throws SchemaException, ConfigurationException {
 
+        ShadowUtil.checkForPartialClassification(shadow.asObjectable());
+
         return ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
                 resource,
                 shadow.asObjectable().getKind(),

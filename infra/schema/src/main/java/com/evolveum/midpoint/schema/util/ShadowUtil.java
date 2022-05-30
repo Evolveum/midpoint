@@ -967,4 +967,16 @@ public class ShadowUtil {
                 shadow.getObjectClass(),
                 () -> "No object class in " + shadow);
     }
+
+    public static boolean isPartiallyClassified(@NotNull ShadowType shadow) {
+        return isKnown(shadow.getKind())
+                && isNotKnown(shadow.getIntent());
+    }
+
+    public static void checkForPartialClassification(@NotNull ShadowType shadow) {
+        if (isPartiallyClassified(shadow)) {
+            // TODO reconsider logging level here
+            LOGGER.warn("{} is partially classified: kind = {}, intent = {}", shadow, shadow.getKind(), shadow.getIntent());
+        }
+    }
 }

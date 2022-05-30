@@ -8,43 +8,37 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.WARNING;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.REPLACE;
-
-import static java.util.Objects.requireNonNull;
-
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
-
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.util.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.REPLACE;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRunSpecifics;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRunSpecifics;
-
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * Auxiliary methods for synchronization tasks: Live Sync, Async Update, Import, Reconciliation,
@@ -53,12 +47,12 @@ import java.util.Collection;
  * Deals mainly with processing resource, objectclass, kind, intent tuple, i.e. specifying resource object class to be processed.
  * The resource object class determination has the following flow in synchronization tasks:
  *
- * 1. User specifies `ResourceObjectSetType` bean with `resourceRef`, OC name, kind, intent, query (many of them optional).
+ * 1. User specifies {@link ResourceObjectSetType} bean with `resourceRef`, OC name, kind, intent, query (many of them optional).
  *
  * 2. It is then converted to three objects:
  *
- *   - {@link ResourceObjectClass} that holds resolved resource, object class definition, kind, and intent, see
- *     {@link #getResourceObjectClassCheckingMaintenance(ResourceObjectSetType, Task, OperationResult)}.
+ *   - {@link ProcessingScope} that holds resolved resource, object class definition, kind, and intent, see
+ *     {@link #getProcessingScopeCheckingMaintenance(ResourceObjectSetType, Task, OperationResult)}.
  *     It does _not_ contain user-specified query.
  *
  *   - {@link ResourceSearchSpecification} that contains precise query intended to obtain resource objects
@@ -68,20 +62,14 @@ import java.util.Collection;
  *     objects, and so on. This search specification is used only for search-based activities, e.g. not for live sync
  *     or async update.
  *
- *   - {@link SynchronizationObjectsFilter} that filters any object returned by the item source (e.g. search operation
+ *   - {@link PostSearchFilter} that filters any object returned by the item source (e.g. search operation
  *     in search-based activities).
  *
- * Notes:
+ * Note:
  *
- * * {@link SynchronizationObjectsFilter} is currently used only for import and reconciliation. In theory, it might
+ * * {@link PostSearchFilter} is currently used only for import and reconciliation. In theory, it might
  *   be used also for live sync or async update. However, it is a bit questionable, because it would mean that
  *   non-compliant changes would be skipped, i.e. in fact thrown away.
- *
- * * The overall handling of object class / kind / intent triple in synchronization tasks (mainly import and reconciliation)
- *   is quite counter-intuitive: It works well if kind + intent combo is used. However, when object class is used, the
- *   provisioning module gets correct "objectclass = XYZ" style query, but it then looks up first matching refined
- *   object definition, and uses it. See {@link ProvisioningService#searchObjects(Class, ObjectQuery, Collection, Task,
- *   OperationResult)} and MID-7470 for more information.
  */
 @Component
 public class SyncTaskHelper {
@@ -95,24 +83,22 @@ public class SyncTaskHelper {
     private static boolean skipMaintenanceCheck;
 
     /**
-     * Returns specification of the object class against which the synchronization will be done
-     * ({@link ResourceObjectClass}).
+     * Returns the specification of objects against which the synchronization will be done ({@link ProcessingScope}).
      *
-     * Checks for the maintenance mode.
+     * Also checks for the maintenance mode.
      */
     @NotNull
-    public ResourceObjectClass getResourceObjectClassCheckingMaintenance(
+    public ProcessingScope getProcessingScopeCheckingMaintenance(
             @NotNull ResourceObjectSetType resourceObjectSet, Task task, OperationResult opResult)
             throws ActivityRunException {
-        ResourceObjectClass spec =
-                createResourceObjectClass(resourceObjectSet, true, task, opResult);
-        LOGGER.debug("Bare resource object set specification:\n{}", spec.debugDumpLazily());
+        ProcessingScope spec = createProcessingScope(resourceObjectSet, true, task, opResult);
+        LOGGER.debug("Bare processing scope specification:\n{}", spec.debugDumpLazily());
         return spec;
     }
 
     /**
      * Creates "complete" search specification from given configuration.
-     * Contains object class + user-specified query.
+     * Contains processing scope + user-specified query.
      *
      * Does _not_ contain tweaking (customizations) by activity run. These are applied later.
      */
@@ -120,10 +106,10 @@ public class SyncTaskHelper {
             @NotNull ResourceObjectSetType set, Task task, OperationResult opResult)
             throws ActivityRunException, SchemaException {
 
-        ResourceObjectClass resourceObjectClass =
-                createResourceObjectClass(set, false, task, opResult);
+        ProcessingScope processingScope =
+                createProcessingScope(set, false, task, opResult);
 
-        @NotNull ObjectQuery bareQuery = resourceObjectClass.createBareQuery();
+        @NotNull ObjectQuery bareQuery = processingScope.createBareQuery();
         @NotNull ObjectQuery resultingQuery = applyConfiguredQuery(bareQuery, set.getQuery(), set.getQueryApplication());
 
         return new ResourceSearchSpecification(
@@ -134,8 +120,10 @@ public class SyncTaskHelper {
     /**
      * Applies configured query to the bare query.
      */
-    private @NotNull ObjectQuery applyConfiguredQuery(@NotNull ObjectQuery bareQuery,
-            QueryType configuredQueryBean, ResourceObjectSetQueryApplicationModeType queryApplicationMode)
+    private @NotNull ObjectQuery applyConfiguredQuery(
+            @NotNull ObjectQuery bareQuery,
+            QueryType configuredQueryBean,
+            ResourceObjectSetQueryApplicationModeType queryApplicationMode)
             throws SchemaException, ActivityRunException {
         if (configuredQueryBean == null) {
             return bareQuery;
@@ -154,7 +142,7 @@ public class SyncTaskHelper {
     }
 
     @NotNull
-    private ResourceObjectClass createResourceObjectClass(@NotNull ResourceObjectSetType resourceObjectSet,
+    private ProcessingScope createProcessingScope(@NotNull ResourceObjectSetType resourceObjectSet,
             boolean checkForMaintenance, Task task, OperationResult opResult)
             throws ActivityRunException {
 
@@ -163,38 +151,18 @@ public class SyncTaskHelper {
         if (checkForMaintenance) {
             checkNotInMaintenance(resource);
         }
-
-        ResourceSchema refinedResourceSchema = getRefinedResourceSchema(resource);
-
-        ResourceObjectDefinition objectClassDefinition;
-        try {
-            objectClassDefinition = ModelImplUtils.determineObjectDefinition(refinedResourceSchema, resourceObjectSet, task);
-        } catch (SchemaException e) {
-            throw new ActivityRunException("Schema error", FATAL_ERROR, PERMANENT_ERROR, e);
-        }
-        if (objectClassDefinition == null) {
-            LOGGER.debug("Processing all object classes");
-        }
-
-        return new ResourceObjectClass(
-                resource, objectClassDefinition, resourceObjectSet.getKind(), resourceObjectSet.getIntent());
+        return ProcessingScope.of(resource, resourceObjectSet);
     }
 
-    /** Creates {@link ResourceObjectClass} for a single shadow. */
+    /** Creates {@link ProcessingScope} for a single shadow. */
     @NotNull
-    public ResourceObjectClass createObjectClassForShadow(ShadowType shadow, Task task, OperationResult opResult)
+    public ProcessingScope createProcessingScopeForShadow(
+            @NotNull ShadowType shadow, Task task, OperationResult opResult)
             throws ActivityRunException, SchemaException {
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         ResourceType resource = getResource(resourceOid, task, opResult);
         checkNotInMaintenance(resource);
-        ResourceSchema refinedSchema = getRefinedResourceSchema(resource);
-
-        // TODO reconsider the algorithm used for deriving object class
-        ResourceObjectDefinition objectClass = requireNonNull(
-                ModelImplUtils.determineObjectDefinition(refinedSchema, shadow.asPrismObject()),
-                "No object class found for the shadow");
-
-        return new ResourceObjectClass(resource, objectClass, null, null);
+        return ProcessingScope.of(resource, shadow);
     }
 
     public @NotNull String getResourceOid(ResourceObjectSetType set) throws ActivityRunException {
@@ -224,22 +192,6 @@ public class SyncTaskHelper {
             // It is most likely a programming error. Does not make much sense to retry.
             // Other exceptions: basically the same.
             throw new ActivityRunException("Error while getting resource " + resourceOid, FATAL_ERROR, PERMANENT_ERROR, ex);
-        }
-    }
-
-    private @NotNull ResourceSchema getRefinedResourceSchema(ResourceType resource) throws ActivityRunException {
-        ResourceSchema refinedSchema;
-        try {
-            refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
-        } catch (ConfigurationException | SchemaException e) {
-            throw new ActivityRunException("Error during processing account definition", FATAL_ERROR, PERMANENT_ERROR, e);
-        }
-
-        if (refinedSchema != null) {
-            return refinedSchema;
-        } else {
-            throw new ActivityRunException(
-                    "No schema present. Probably some configuration problem.", FATAL_ERROR, PERMANENT_ERROR);
         }
     }
 

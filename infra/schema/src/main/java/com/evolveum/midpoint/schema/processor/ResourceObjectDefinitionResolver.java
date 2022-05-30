@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -51,6 +53,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
  */
 public class ResourceObjectDefinitionResolver {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectDefinitionResolver.class);
+
     /**
      * Returns appropriate {@link ResourceObjectDefinition} for given shadow. We are not too strict here.
      * Unknown kind/intent values are ignored (treated like null). Intent without kind is ignored.
@@ -87,6 +91,10 @@ public class ResourceObjectDefinitionResolver {
         ResourceObjectDefinition structuralDefinition;
 
         if (kind != null) {
+            if (intent == null) {
+                // TODO should this be really a warning or a lower-level message suffices?
+                LOGGER.warn("Partially-classified {}. Looking for default type of {}, if present", shadow, kind);
+            }
             structuralDefinition = resourceSchema.findObjectDefinition(kind, intent, objectClassName);
         } else if (objectClassName != null) {
             // TODO or findObjectClassDefinition?
