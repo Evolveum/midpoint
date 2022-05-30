@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
@@ -116,6 +117,21 @@ public class ResourceObjectDefinitionResolver {
     public static @Nullable ResourceObjectDefinition getDefinitionForShadow(
             @NotNull ResourceSchema resourceSchema, @NotNull PrismObject<ShadowType> shadow) {
         return getDefinitionForShadow(resourceSchema, shadow.asObjectable());
+    }
+
+    /**
+     * Looks up appropriate definition for "bulk operation" i.e. operation that is executed for given kind/intent/objectclass
+     * on given resource.
+     *
+     * Currently, this is the same as {@link #getObjectDefinitionPrecisely(ResourceType, ShadowKindType, String, QName,
+     * Collection, boolean)} with no additional aux OCs and unknown values not supported.
+     */
+    public static @Nullable ResourceObjectDefinition getForBulkOperation(
+        @NotNull ResourceType resource,
+        @Nullable ShadowKindType kind,
+        @Nullable String intent,
+        @Nullable QName objectClassName) throws SchemaException, ConfigurationException {
+        return getObjectDefinitionPrecisely(resource, kind, intent, objectClassName, List.of(), false);
     }
 
     /**

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -112,18 +113,24 @@ public class ProcessingScope implements DebugDumpable {
             @NotNull ResourceObjectSetType resourceObjectSet)
             throws ActivityRunException {
 
-        ResourceSchema resourceSchema = getCompleteSchema(resource);
-
         ShadowKindType kind = resourceObjectSet.getKind();
         String intent = resourceObjectSet.getIntent();
         QName objectClassName = resourceObjectSet.getObjectclass();
 
-        ResourceObjectDefinition objectDefinition = resourceSchema.findObjectDefinition(kind, intent, objectClassName);
-        if (objectDefinition == null) {
+        ResourceObjectDefinition definition;
+        try {
+            definition = ResourceObjectDefinitionResolver.getForBulkOperation(resource, kind, intent, objectClassName);
+        } catch (CommonException e) {
+            throw new ActivityRunException(
+                    "Couldn't determine object definition for " + kind + "/" + intent + "/" + objectClassName + " on " + resource,
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+
+        if (definition == null) {
             LOGGER.debug("Processing all object classes");
         }
 
-        return new ProcessingScope(resource, objectDefinition, kind, intent, objectClassName);
+        return new ProcessingScope(resource, definition, kind, intent, objectClassName);
     }
 
     /** See the note in class-level javadoc. */

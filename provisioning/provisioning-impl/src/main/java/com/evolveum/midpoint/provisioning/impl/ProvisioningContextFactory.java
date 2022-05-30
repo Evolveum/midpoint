@@ -131,13 +131,8 @@ public class ProvisioningContextFactory {
         String intent = coords.getIntent();
         QName objectClassName = coords.getObjectClass();
 
-        ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
-                resource,
-                kind,
-                intent,
-                objectClassName,
-                List.of(),
-                false);
+        ResourceObjectDefinition definition =
+                ResourceObjectDefinitionResolver.getForBulkOperation(resource, kind, intent, objectClassName);
 
         Boolean wholeClass;
         if (kind != null) {

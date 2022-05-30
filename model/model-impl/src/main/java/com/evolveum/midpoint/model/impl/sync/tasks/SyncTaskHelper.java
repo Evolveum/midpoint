@@ -173,7 +173,8 @@ public class SyncTaskHelper {
         return resourceOid;
     }
 
-    private @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult opResult) throws ActivityRunException {
+    private @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult opResult)
+            throws ActivityRunException {
         try {
             return provisioningService
                     .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, opResult)
