@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -35,6 +36,13 @@ public class WizardHeader extends BasePanel {
         initLayout(currentPanelTitle, nextPanelTitle);
     }
 
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        addOrReplace(createHeaderContent(ID_CONTENT));
+    }
+
     private void initLayout(IModel<String> currentPanelTitle, IModel<String> nextPanelTitle) {
         add(AttributeAppender.append("class", "d-flex align-items-center flex-wrap gap-3 mb-3"));
 
@@ -45,8 +53,10 @@ public class WizardHeader extends BasePanel {
 
         add(new Label(ID_TITLE, currentPanelTitle));
 
-        add(new WebMarkupContainer(ID_CONTENT));
+    }
 
+    protected Component createHeaderContent(String id) {
+        return new WebMarkupContainer(id);
     }
 
     protected AjaxLink createNextButton(String id, IModel<String> nextPanelTitle) {

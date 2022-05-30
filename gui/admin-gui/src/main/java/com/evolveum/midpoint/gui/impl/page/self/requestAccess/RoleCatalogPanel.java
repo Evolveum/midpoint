@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -49,10 +50,17 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
 
+    private IModel<ViewToggle> viewToggleModel = Model.of(ViewToggle.TILE);
+
     public RoleCatalogPanel(String id) {
         super(id);
 
         initLayout();
+    }
+
+    @Override
+    public Component createHeaderContent(String id) {
+        return new RoleCatalogHeaderPanel(id);
     }
 
     @Override
@@ -68,7 +76,6 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        IModel<ViewToggle> viewToggleModel = Model.of(ViewToggle.TILE);
         ViewTogglePanel viewToggle = new ViewTogglePanel(ID_VIEW_TOGGLE, viewToggleModel) {
 
             @Override

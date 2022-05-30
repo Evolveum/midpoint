@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import org.apache.wicket.Application;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -19,6 +21,10 @@ public interface WizardPanel {
 
     default String appendCssToWizard() {
         return null;
+    }
+
+    default Component createHeaderContent(String id) {
+        return new WebMarkupContainer(id);
     }
 
     default IModel<String> getTitle() {

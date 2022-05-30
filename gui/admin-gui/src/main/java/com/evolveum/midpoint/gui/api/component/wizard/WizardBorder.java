@@ -115,6 +115,11 @@ public class WizardBorder extends Border {
         WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, currentPanelTitle, nextPanelTitle) {
 
             @Override
+            protected Component createHeaderContent(String id) {
+                return getCurrentPanel().createHeaderContent(id);
+            }
+
+            @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
                 previousStep(target);
             }

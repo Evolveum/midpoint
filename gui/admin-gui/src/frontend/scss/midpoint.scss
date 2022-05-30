@@ -13,6 +13,7 @@
 @import "../../../node_modules/admin-lte/build/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables-alt";
 @import "../../../node_modules/admin-lte/build/scss/mixins/_miscellaneous";
+@import "../../../node_modules/admin-lte/build/scss/mixins/dark-mode";
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
 // AdminLTE and Bootstrap end
 
@@ -1767,11 +1768,28 @@ th.debug-list-buttons {
   }
 }
 
+@mixin selectable-tile-dark-mode {
+  border-color: $light-alt;
+  background-color: lighten($dark, 7.5%) !important;
+  color: $white !important;
+
+  &:hover,
+  &.active {
+    border-color: $primary-alt;
+  }
+}
+
 .tile-panel {
   width: 250px;
   height: 250px;
 
   @include selectable-tile();
+}
+
+@include dark-mode () {
+  .tile-panel {
+    @include selectable-tile-dark-mode();
+  }
 }
 
 .catalog-tile-panel {
@@ -1784,6 +1802,12 @@ th.debug-list-buttons {
     height: 84px;
     border-radius: 108px;
     background-color: rgba(60, 141, 188, 0.1);
+  }
+}
+
+@include dark-mode () {
+  .catalog-tile-panel {
+    @include selectable-tile-dark-mode();
   }
 }
 
