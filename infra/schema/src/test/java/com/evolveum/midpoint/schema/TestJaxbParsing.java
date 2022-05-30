@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -92,8 +94,7 @@ public class TestJaxbParsing extends AbstractSchemaTest {
 
         account.checkConsistence();
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
-        assertPropertyValue(account, ShadowType.F_OBJECT_CLASS,
-                new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", "AccountObjectClass"));
+        assertPropertyValue(account, ShadowType.F_OBJECT_CLASS, RI_ACCOUNT_OBJECT_CLASS);
         assertPropertyValue(account, ShadowType.F_INTENT, "default");
 
         // TODO: more asserts

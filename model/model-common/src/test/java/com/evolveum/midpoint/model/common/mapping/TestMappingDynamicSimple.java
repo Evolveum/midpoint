@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_UID;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertTripleNoMinus;
@@ -982,7 +984,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // otherwise the tests will fail on unknown data types
         PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(DeepCloneOperation.ultraDeep());
         PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
-        attrsDef.toMutable().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "uid"), PrimitiveType.STRING.getQname());
+        attrsDef.toMutable().createPropertyDefinition(QNAME_UID, PrimitiveType.STRING.getQname());
         attrsDef.toMutable().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);

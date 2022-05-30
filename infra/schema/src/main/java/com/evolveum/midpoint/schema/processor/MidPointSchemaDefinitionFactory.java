@@ -46,8 +46,9 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
     private MutableComplexTypeDefinition createObjectClassDefinition(XSComplexType complexType, XSAnnotation annotation)
             throws SchemaException {
 
-        ResourceObjectClassDefinitionImpl ocDef = new ResourceObjectClassDefinitionImpl(
-                new QName(complexType.getTargetNamespace(), complexType.getName()));
+        ResourceObjectClassDefinitionImpl ocDef =
+                ResourceObjectClassDefinitionImpl.raw(
+                        new QName(complexType.getTargetNamespace(), complexType.getName()));
 
         ocDef.setNativeObjectClass(
                 getAnnotationString(annotation, MidPointConstants.RA_NATIVE_OBJECT_CLASS));

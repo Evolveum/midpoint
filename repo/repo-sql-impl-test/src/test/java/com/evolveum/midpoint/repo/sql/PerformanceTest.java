@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 /**
  * Disabled performance test, not part of the suite.
  * Future unclear, perhaps it will die with old repo.
@@ -159,8 +161,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
         shadow.setResourceRef(createRef(resourceOid, ResourceType.COMPLEX_TYPE));
         shadow.setKind(ShadowKindType.ACCOUNT);
         shadow.setIntent("standardAccount");
-        shadow.setObjectClass(new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/" + resourceOid,
-                "AccountObjectClass"));
+        shadow.setObjectClass(RI_ACCOUNT_OBJECT_CLASS);
 
         PrismObject<ShadowType> prism = shadow.asPrismObject();
         prismContext.adopt(prism);

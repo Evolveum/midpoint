@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -76,10 +78,15 @@ public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
 
     public ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> objectClass(String ocName) {
         ResourceObjectDefinition objectClassDefinition =
-                getSchema().findDefinitionForObjectClass(new QName(MidPointConstants.NS_RI, ocName));
+                getSchema().findDefinitionForObjectClass(toRiQName(ocName));
         ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ResourceObjectDefinitionAsserter<>(objectClassDefinition, this, desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    @NotNull
+    private QName toRiQName(String ocName) {
+        return new QName(MidPointConstants.NS_RI, ocName);
     }
 
     public ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultDefinition(ShadowKindType kind) {

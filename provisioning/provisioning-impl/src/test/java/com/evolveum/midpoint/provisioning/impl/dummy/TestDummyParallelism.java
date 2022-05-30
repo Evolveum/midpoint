@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -17,8 +18,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -696,7 +695,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ResourceAttributeDefinition<?> attrDef =
                 ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable())
-                        .findObjectClassDefinitionRequired(SchemaTestConstants.GROUP_OBJECT_CLASS_NAME)
+                        .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS)
                         .findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)

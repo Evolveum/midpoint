@@ -27,7 +27,6 @@ import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -485,11 +484,6 @@ public class ResourceTypeUtil {
 
     public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(PrismObject<ResourceType> resource) {
         return resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-    }
-
-    @NotNull
-    public static String getResourceNamespace(PrismObject<ResourceType> resource) {
-        return MidPointConstants.NS_RI;
     }
 
     public static int getDependencyOrder(ResourceObjectTypeDependencyType dependency) {

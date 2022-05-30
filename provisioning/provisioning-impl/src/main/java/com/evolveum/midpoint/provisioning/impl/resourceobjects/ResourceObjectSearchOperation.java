@@ -98,7 +98,8 @@ class ResourceObjectSearchOperation {
                 // Note that although both search hierarchy constraints and custom filters are part of object type delineation,
                 // they are treated differently. The former are handled by the UCF/ConnId connector, whereas the latter ones
                 // are handled here.
-                metadata = connector.search(objectDefinition,
+                metadata = connector.search(
+                        objectDefinition,
                         queryWithConstraints.query,
                         this::handleObjectFound,
                         ctx.createAttributesToReturn(),

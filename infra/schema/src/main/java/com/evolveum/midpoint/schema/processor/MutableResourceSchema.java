@@ -11,6 +11,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  *
  */
@@ -25,5 +27,6 @@ public interface MutableResourceSchema extends ResourceSchema, MutablePrismSchem
      *            type QName
      * @return new resource object definition
      */
+    @VisibleForTesting
     MutableResourceObjectClassDefinition createObjectClassDefinition(QName typeName);
 }

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_CN;
+
 import static org.testng.AssertJUnit.*;
 
 import javax.xml.namespace.QName;
@@ -120,7 +122,7 @@ public interface AdTestMixin extends InfraTestMixin {
         displayDumpable("Account object class def", accountObjectClassDefinition);
 
         ResourceAttributeDefinition<?> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
-        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, 1);
+        PrismAsserts.assertDefinition(cnDef, QNAME_CN, DOMUtil.XSD_STRING, 0, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());

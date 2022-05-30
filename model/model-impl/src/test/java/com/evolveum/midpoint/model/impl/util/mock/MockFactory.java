@@ -48,17 +48,17 @@ public class MockFactory {
 
             @Override
             public <T extends ObjectType> String addObject(
-                    PrismObject<T> object,
-                    OperationProvisioningScriptsType scripts,
-                    ProvisioningOperationOptions options,
-                    Task task,
-                    OperationResult parentResult) {
+                    @NotNull PrismObject<T> object,
+                    @Nullable OperationProvisioningScriptsType scripts,
+                    @Nullable ProvisioningOperationOptions options,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @Override
             public @NotNull SynchronizationResult synchronize(
-                    @NotNull ResourceShadowDiscriminator shadowCoordinates,
+                    @NotNull ResourceShadowCoordinates shadowCoordinates,
                     LiveSyncOptions options,
                     @NotNull LiveSyncTokenStorage tokenStorage,
                     @NotNull LiveSyncEventHandler handler,

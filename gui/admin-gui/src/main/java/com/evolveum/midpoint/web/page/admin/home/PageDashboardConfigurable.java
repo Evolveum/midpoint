@@ -311,7 +311,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     private ResourceShadowDiscriminator getResourceShadowDiscriminator(SearchFilterType searchFilterType) {
         try {
             ObjectFilter filter = getPrismContext().getQueryConverter().createObjectFilter(ShadowType.class, searchFilterType);
-            return ObjectQueryUtil.getCoordinates(filter, getPrismContext());
+            return ObjectQueryUtil.getCoordinates(filter);
         } catch (SchemaException e) {
             LOGGER.error("Cannot convert filter: {}", e.getMessage(), e);
         }

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.longtest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -58,7 +60,6 @@ public class TestLdapComplex extends AbstractLongTest {
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj-complex.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final int NUM_LDAP_ENTRIES = 50;
 
@@ -118,7 +119,7 @@ public class TestLdapComplex extends AbstractLongTest {
         when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
+                new QName(MidPointConstants.NS_RI, "inetOrgPerson"), task, result);
 
         then();
         OperationResult subresult = result.getLastSubresult();
@@ -153,8 +154,7 @@ public class TestLdapComplex extends AbstractLongTest {
         when();
         ResourceType resource = modelService.getObject(
                 ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
-        reconciliationLauncher.launch(resource,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+        reconciliationLauncher.launch(resource, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         then();
         // TODO

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.util.MiscUtil.getFirstNonNull;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -15,17 +13,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
@@ -36,11 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
  * (The concept of object type is not present in the "raw" view, presented by a connector.
  * The connector sees only object classes.)
  *
- * The list of attributes is stored in the {@link AbstractResourceObjectDefinitionImpl#attributeDefinitions}.
- * They contain definitions from original object class, enriched with schema handling data.
- *
- * Associations and auxiliary object classes are stored here, as they have no meaning
- * for {@link ResourceObjectClassDefinition}.
+ * There is almost nothing specific here (compared to {@link AbstractResourceObjectDefinitionImpl}), because starting with 4.6,
+ * object class definitions can be refined as well. However, kind and intent are (still) specific to type definitions.
  *
  * @author semancik
  */
@@ -54,75 +45,16 @@ public final class ResourceObjectTypeDefinitionImpl
     @NotNull private final ResourceObjectTypeIdentification identification;
 
     /**
-     * Kind of objects covered by this type.
+     * Kind of objects covered by this type. Just copied from {@link #identification}.
      */
     @NotNull private final ShadowKindType kind;
 
     /**
-     * Intent of objects covered by this type.
+     * Intent of objects covered by this type. Just copied from {@link #identification}.
      */
     @NotNull private final String intent;
 
-    /**
-     * Definition of associations.
-     *
-     * They are not present in the "raw" object class definition, as they do not exist in this form on the resource.
-     *
-     * Immutable.
-     */
-    @NotNull private final DeeplyFreezableList<ResourceAssociationDefinition> associationDefinitions =
-            new DeeplyFreezableList<>();
-
-    /**
-     * Definition of auxiliary object classes. They originate from
-     * {@link ResourceObjectTypeDefinitionType#getAuxiliaryObjectClass()} and are resolved during parsing.
-     *
-     * However, they are _not_ used by default for attribute resolution!
-     * A {@link CompositeObjectDefinition} must be created in order to "activate" them.
-     */
-    @NotNull private final DeeplyFreezableList<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
-            new DeeplyFreezableList<>();
-
-    /**
-     * Definition of the "raw" resource object class.
-     *
-     * Note that one object class can correspond to multitude of object types (refined object class definitions).
-     *
-     * Immutable.
-     */
-    @NotNull private final ResourceObjectClassDefinition rawObjectClassDefinition;
-
-    /**
-     * The "source" bean for this definition.
-     *
-     * - For object type definition, this is relevant `objectType` value in `schemaHandling`, expanded by resolving
-     * object type inheritance.
-     * - For object class definition, this is (currently) an empty value. It is here to avoid writing two
-     * variants of various getter methods like {@link #getDisplayName()}.
-     *
-     * Immutable.
-     */
-    @NotNull private final ResourceObjectTypeDefinitionType definitionBean;
-
-    /**
-     * Compiled patterns denoting protected objects.
-     *
-     * @see ResourceObjectTypeDefinitionType#getProtected()
-     * @see ResourceObjectPatternType
-     *
-     * Frozen after parsing. (TODO)
-     */
-    @NotNull private final FreezableList<ResourceObjectPattern> protectedObjectPatterns = new FreezableList<>();
-
-    /**
-     * "Compiled" object set delineation.
-     */
-    @NotNull private final DeeplyFreezableReference<ResourceObjectTypeDelineation> delineation = new DeeplyFreezableReference<>();
-
-    /**
-     * Name of "display name" attribute. May override the value obtained from the resource.
-     */
-    private QName displayNameAttributeName;
+    @NotNull private final ResourceObjectClassDefinition refinedObjectClassDefinition;
 
     /**
      * OID of the resource. Usually not null.
@@ -133,61 +65,39 @@ public final class ResourceObjectTypeDefinitionImpl
 
     ResourceObjectTypeDefinitionImpl(
             @NotNull ResourceObjectTypeIdentification identification,
-            @NotNull ResourceObjectClassDefinition rawDefinition,
+            @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
             String resourceOid) {
-        this(DEFAULT_LAYER, identification, rawDefinition, definitionBean, resourceOid);
+        this(DEFAULT_LAYER, identification, refinedObjectClassDefinition, definitionBean, resourceOid);
     }
 
     private ResourceObjectTypeDefinitionImpl(
             @NotNull LayerType layer,
             @NotNull ResourceObjectTypeIdentification identification,
-            @NotNull ResourceObjectClassDefinition rawDefinition,
+            @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
             String resourceOid) {
-        super(layer);
+        super(layer, definitionBean);
         this.identification = identification;
         this.kind = identification.getKind();
         this.intent = identification.getIntent();
-        this.rawObjectClassDefinition = rawDefinition;
-        this.definitionBean = definitionBean;
+        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
         this.resourceOid = resourceOid;
-
-        // TODO parse?
-
-        definitionBean.asPrismContainerValue().checkImmutable();
-    }
-
-    @Override
-    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
-        return associationDefinitions;
     }
 
     @Override
     public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
-        return rawObjectClassDefinition;
+        return refinedObjectClassDefinition;
+    }
+
+    @Override
+    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
+        return refinedObjectClassDefinition.getRawObjectClassDefinition();
     }
 
     @Override
     public @NotNull QName getObjectClassName() {
-        return rawObjectClassDefinition.getObjectClassName();
-    }
-
-    @Override
-    public @Nullable String getDisplayName() {
-        return getFirstNonNull(
-                definitionBean.getDisplayName(),
-                rawObjectClassDefinition.getDisplayName());
-    }
-
-    @Override
-    public String getDescription() {
-        return definitionBean.getDescription();
-    }
-
-    @Override
-    public String getDocumentation() {
-        return definitionBean.getDocumentation();
+        return getObjectClassDefinition().getObjectClassName();
     }
 
     @Override
@@ -214,31 +124,6 @@ public final class ResourceObjectTypeDefinitionImpl
         }
     }
 
-    /** Sets the delineation and freezes the holder. */
-    void setDelineation(@NotNull ResourceObjectTypeDelineation value) {
-        delineation.setValue(value);
-        delineation.freeze();
-    }
-
-    @Override
-    public @NotNull ResourceObjectTypeDelineation getDelineation() {
-        return Objects.requireNonNull(
-                delineation.getValue(),
-                () -> "no delineation in " + this);
-    }
-
-    @Override
-    public ResourceObjectReferenceType getBaseContext() {
-        return getDelineation()
-                .getBaseContext();
-    }
-
-    @Override
-    public SearchHierarchyScope getSearchHierarchyScope() {
-        return getDelineation()
-                .getSearchHierarchyScope();
-    }
-
     @Override
     public @NotNull String getIntent() {
         return intent;
@@ -250,98 +135,9 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectVolatilityType getVolatility() {
-        return Objects.requireNonNullElse(
-                definitionBean.getVolatility(),
-                ResourceObjectVolatilityType.NONE);
-    }
-
-    @Override
-    public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
-        // In the future we may define the value also on resource or even global system level
-        ResourceMappingsEvaluationConfigurationType definition = // TODO consider merging the values
-                definitionBean.getMappingsEvaluation();
-        if (definition == null) {
-            return null;
-        }
-        if (definition.getInbound() == null) {
-            return null;
-        }
-        return definition.getInbound().getDefaultEvaluationPhases();
-    }
-
-    @Override
-    public ResourceObjectMultiplicityType getObjectMultiplicity() {
-        return definitionBean.getMultiplicity();
-    }
-
-    @Override
-    public ProjectionPolicyType getProjectionPolicy() {
-        return definitionBean.getProjection();
-    }
-    //endregion
-
-    //region Accessing parts of schema handling ========================================================
-    @NotNull
-    @Override
-    public Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
-        return auxiliaryObjectClassDefinitions;
-    }
-
-    @Override
-    public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-        return auxiliaryObjectClassDefinitions.stream()
-                .anyMatch(def -> QNameUtil.match(def.getTypeName(), expectedObjectClassName));
-    }
-
-    @Override
-    public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
-        return definitionBean.getAuxiliaryObjectClassMappings();
-    }
-
-    @Override
-    public @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-        return protectedObjectPatterns;
-    }
-
-    void addProtectedObjectPattern(ResourceObjectPattern pattern) {
-        protectedObjectPatterns.add(pattern);
-    }
-
-    @Override
-    public ResourcePasswordDefinitionType getPasswordDefinition() {
-        ResourceCredentialsDefinitionType credentials = definitionBean.getCredentials();
-        if (credentials == null) {
-            return null;
-        }
-        return credentials.getPassword();
-    }
-
-    @Override
-    public ObjectReferenceType getSecurityPolicyRef() {
-        return definitionBean.getSecurityPolicyRef();
-    }
-
-    @Override
-    public ResourceActivationDefinitionType getActivationSchemaHandling() {
-        return definitionBean.getActivation();
-    }
-
-    //endregion
-
-    //region Capabilities ========================================================
-    @Override
-    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
-        return ResourceTypeUtil.getEnabledCapability(resource, definitionBean, capabilityClass);
-    }
-    //endregion
-
-    @Override
     public void accept(Visitor<Definition> visitor) {
         super.accept(visitor);
-        rawObjectClassDefinition.accept(visitor);
-        auxiliaryObjectClassDefinitions.forEach(def -> def.accept(visitor));
-        associationDefinitions.forEach(def -> def.accept(visitor));
+        refinedObjectClassDefinition.accept(visitor);
     }
 
     @Override
@@ -349,11 +145,18 @@ public final class ResourceObjectTypeDefinitionImpl
         if (!super.accept(visitor, visitation)) {
             return false;
         } else {
-            rawObjectClassDefinition.accept(visitor, visitation);
-            auxiliaryObjectClassDefinitions.forEach(def -> def.accept(visitor, visitation));
-            associationDefinitions.forEach(def -> def.accept(visitor));
+            refinedObjectClassDefinition.accept(visitor, visitation);
             return true;
         }
+    }
+
+    @Override
+    public void trimTo(@NotNull Collection<ItemPath> paths) {
+        if (isImmutable()) {
+            return; // This would fail anyway
+        }
+        super.trimTo(paths);
+        refinedObjectClassDefinition.trimTo(paths);
     }
 
     //region Cloning ========================================================
@@ -371,19 +174,9 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     protected ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
         ResourceObjectTypeDefinitionImpl clone = new ResourceObjectTypeDefinitionImpl(
-                layer, identification, rawObjectClassDefinition, definitionBean, resourceOid);
+                layer, identification, refinedObjectClassDefinition, definitionBean, resourceOid);
         clone.copyDefinitionDataFrom(layer, this);
         return clone;
-    }
-
-    private void copyDefinitionDataFrom(
-            @NotNull LayerType layer,
-            @NotNull ResourceObjectTypeDefinition source) {
-        super.copyDefinitionDataFrom(layer, source);
-        associationDefinitions.addAll(source.getAssociationDefinitions());
-        auxiliaryObjectClassDefinitions.addAll(source.getAuxiliaryDefinitions());
-        protectedObjectPatterns.addAll(source.getProtectedObjectPatterns());
-        displayNameAttributeName = source.getDisplayNameAttributeName();
     }
 
     /**
@@ -394,17 +187,6 @@ public final class ResourceObjectTypeDefinitionImpl
     public ResourceObjectTypeDefinition deepClone(@NotNull DeepCloneOperation operation) {
         return clone(); // TODO ok?
     }
-    //endregion
-
-    //region Delegations ========================================================
-
-    @Override
-    public boolean isEmpty() {
-        return super.isEmpty()
-                && associationDefinitions.isEmpty()
-                && auxiliaryObjectClassDefinitions.isEmpty();
-    }
-
     //endregion
 
     //region ==== Parsing =================================================================================
@@ -451,7 +233,7 @@ public final class ResourceObjectTypeDefinitionImpl
                 && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames)
-                && rawObjectClassDefinition.equals(that.rawObjectClassDefinition)
+                && refinedObjectClassDefinition.equals(that.refinedObjectClassDefinition)
                 && auxiliaryObjectClassDefinitions.equals(that.auxiliaryObjectClassDefinitions)
                 && Objects.equals(resourceOid, that.resourceOid)
                 && definitionBean.equals(that.definitionBean)
@@ -467,20 +249,6 @@ public final class ResourceObjectTypeDefinitionImpl
     //endregion
 
     @Override
-    public void trimTo(@NotNull Collection<ItemPath> paths) {
-        if (isImmutable()) {
-            return; // This would fail anyway
-        }
-        rawObjectClassDefinition.trimTo(paths);
-        List<QName> names = paths.stream()
-                .filter(ItemPath::isSingleName)
-                .map(ItemPath::asSingleName)
-                .collect(Collectors.toList());
-        attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
-        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
-    }
-
-    @Override
     public MutableResourceObjectClassDefinition toMutable() {
         throw new UnsupportedOperationException();
     }
@@ -488,9 +256,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public void performFreeze() {
         super.performFreeze();
-        associationDefinitions.freeze();
-        rawObjectClassDefinition.freeze(); // TODO really?
-        auxiliaryObjectClassDefinitions.freeze();
+        refinedObjectClassDefinition.freeze(); // TODO really?
     }
 
     @Override
@@ -503,13 +269,9 @@ public final class ResourceObjectTypeDefinitionImpl
         return Optional.empty();
     }
 
-    public @NotNull ResourceObjectTypeDefinitionType getDefinitionBean() {
-        return definitionBean;
-    }
-
     @Override
     public @Nullable CorrelationDefinitionType getCorrelationDefinitionBean() {
-        return definitionBean.getCorrelation(); // TODO: inheritance
+        return definitionBean.getCorrelation();
     }
 
     @Override
@@ -553,22 +315,14 @@ public final class ResourceObjectTypeDefinitionImpl
         }
     }
 
-    void addAssociationDefinition(@NotNull ResourceAssociationDefinition associationDef) {
-        associationDefinitions.add(associationDef);
-    }
-
-    void addAuxiliaryObjectClassDefinition(@NotNull ResourceObjectDefinition definition) {
-        auxiliaryObjectClassDefinitions.add(definition);
-    }
-
     @Override
     public @Nullable QName getDescriptionAttributeName() {
-        return rawObjectClassDefinition.getDescriptionAttributeName();
+        return refinedObjectClassDefinition.getDescriptionAttributeName();
     }
 
     @Override
     public @Nullable QName getNamingAttributeName() {
-        return rawObjectClassDefinition.getNamingAttributeName();
+        return refinedObjectClassDefinition.getNamingAttributeName();
     }
 
     @Override
@@ -576,12 +330,8 @@ public final class ResourceObjectTypeDefinitionImpl
         if (displayNameAttributeName != null) {
             return displayNameAttributeName;
         } else {
-            return rawObjectClassDefinition.getDisplayNameAttributeName();
+            return refinedObjectClassDefinition.getDisplayNameAttributeName();
         }
-    }
-
-    public void setDisplayNameAttributeName(QName name) {
-        this.displayNameAttributeName = name;
     }
 
     @Override
@@ -613,11 +363,5 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         sb.append(",kind=").append(getKind().value());
         sb.append(",intent=").append(getIntent());
-    }
-
-    @Override
-    protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", definitionBean, indent + 1);
     }
 }

@@ -24,8 +24,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
-import com.evolveum.midpoint.testing.conntest.ad.AbstractAdLdapTest;
-
 import com.evolveum.midpoint.testing.conntest.ad.AdTestMixin;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -543,10 +541,10 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
-        paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
+        paging.setOrdering(getAttributePath("cn"), OrderDirection.ASCENDING);
         query.setPaging(paging);
 
         SearchResultList<PrismObject<ShadowType>> shadows = doSearch(query, 2, task, result);

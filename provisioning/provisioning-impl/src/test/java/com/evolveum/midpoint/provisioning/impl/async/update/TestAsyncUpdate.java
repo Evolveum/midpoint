@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.async.update;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -72,7 +74,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     private static final File CHANGE_125 = new File(TEST_DIR, "change-125-banderson-notification-only.xml");
     private static final File CHANGE_130 = new File(TEST_DIR, "change-130-banderson-delete.xml");
 
-    private static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+    private static final QName RESOURCE_ACCOUNT_OBJECTCLASS = RI_ACCOUNT_OBJECT_CLASS;
 
     static final String ASYNC_UPDATE_CONNECTOR = "AsyncUpdateConnector";
 

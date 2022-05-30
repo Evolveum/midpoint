@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,6 +140,18 @@ public class ResourceShadowCoordinates
 
     public boolean isWildcard() {
         return kind == null && objectClass == null;
+    }
+
+    public boolean haveUnknownValuesPresent() {
+        return kind == ShadowKindType.UNKNOWN
+                || SchemaConstants.INTENT_UNKNOWN.equals(intent);
+    }
+
+    public void checkNotUnknown() {
+        if (haveUnknownValuesPresent()) {
+            throw new IllegalStateException(
+                    "Unknown kind/intent values are not expected here: " + toHumanReadableDescription(false));
+        }
     }
 
     @Override

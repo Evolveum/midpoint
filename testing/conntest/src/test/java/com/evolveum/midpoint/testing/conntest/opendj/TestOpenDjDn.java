@@ -17,6 +17,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_DN;
+
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -52,7 +54,7 @@ public class TestOpenDjDn extends AbstractOpenDjNoiseTest {
     public void test025SchemaDn() {
         ResourceAttributeDefinition<?> dnDef = accountDefinition.findAttributeDefinition("dn");
         displayDumpable("DN defintion", dnDef);
-        PrismAsserts.assertDefinition(dnDef, new QName(MidPointConstants.NS_RI, "dn"), DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertDefinition(dnDef, QNAME_DN, DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());
         assertTrue("dn modify", dnDef.canModify());
         assertTrue("dn add", dnDef.canAdd());

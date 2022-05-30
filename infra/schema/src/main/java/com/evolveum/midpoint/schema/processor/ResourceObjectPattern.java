@@ -9,33 +9,29 @@ package com.evolveum.midpoint.schema.processor;
 import java.io.Serializable;
 import java.util.Collection;
 
-import javax.xml.namespace.QName;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
- *
  */
 public class ResourceObjectPattern implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Collection<ResourceAttribute<?>> identifiers;
-    private ResourceObjectTypeDefinition rOcDef;
-    private ObjectFilter objectFilter;
+    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
+    @NotNull private final ObjectFilter objectFilter;
 
-    public ResourceObjectPattern(ResourceObjectTypeDefinition rOcDef) {
-        this.rOcDef = rOcDef;
+    public ResourceObjectPattern(@NotNull ResourceObjectDefinition resourceObjectDefinition, @NotNull ObjectFilter objectFilter) {
+        this.resourceObjectDefinition = resourceObjectDefinition;
+        this.objectFilter = objectFilter;
     }
 
     public static boolean matches(PrismObject<ShadowType> shadowToMatch,
@@ -49,54 +45,19 @@ public class ResourceObjectPattern implements Serializable {
         return false;
     }
 
-    public boolean matches(PrismObject<ShadowType> shadowToMatch, MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
-        if (objectFilter != null) {
-            ObjectTypeUtil.normalizeFilter(objectFilter, relationRegistry);    // we suppose references in shadowToMatch are normalized (on return from repo)
-            return ObjectQuery.match(shadowToMatch, objectFilter, matchingRuleRegistry);
-        } else {
-            // Deprecated method
-            ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadowToMatch);
-            if (attributesContainer == null) {
-                return false;
-            }
-            Collection<ResourceAttribute<?>> attributesToMatch = attributesContainer.getAttributes();
-            for (ResourceAttribute<?> identifier: identifiers) {
-                if (!matches(identifier, attributesToMatch, matchingRuleRegistry)) {
-                    return false;
-                }
-            }
-            return true;
-        }
+    public boolean matches(
+            PrismObject<ShadowType> shadowToMatch,
+            MatchingRuleRegistry matchingRuleRegistry,
+            RelationRegistry relationRegistry) throws SchemaException {
+        ObjectTypeUtil.normalizeFilter(objectFilter, relationRegistry); // we suppose references in shadowToMatch are normalized (on return from repo)
+        return ObjectQuery.match(shadowToMatch, objectFilter, matchingRuleRegistry);
     }
 
-    private boolean matches(ResourceAttribute<?> identifier, Collection<? extends ResourceAttribute<?>> attributesToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        for (ResourceAttribute<?> attributeToMatch: attributesToMatch) {
-            if (matches(identifier, attributeToMatch, matchingRuleRegistry)) {
-                return true;
-            }
-        }
-        return false;
+    public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
-    private boolean matches(ResourceAttribute<?> identifier, ResourceAttribute<?> attributeToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        if (!identifier.getElementName().equals(attributeToMatch.getElementName())) {
-            return false;
-        }
-        ResourceAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getElementName());
-        QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
-        if (matchingRuleQName == null || matchingRuleRegistry == null) {
-            return identifier.equals(attributeToMatch, EquivalenceStrategy.REAL_VALUE);
-        }
-        MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
-        return matchingRule.match(identifier.getRealValue(), attributeToMatch.getRealValue());
-    }
-
-    public ObjectFilter getObjectFilter() {
+    public @NotNull ObjectFilter getObjectFilter() {
         return objectFilter;
     }
-
-    public void setFilter(ObjectFilter filter) {
-        this.objectFilter = filter;
-    }
-
 }

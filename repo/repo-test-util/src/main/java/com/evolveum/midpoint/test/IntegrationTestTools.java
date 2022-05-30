@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import java.util.*;
@@ -21,6 +23,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
@@ -172,14 +175,17 @@ public class IntegrationTestTools {
     public static <T> void assertAttribute(
             ShadowType shadow, ResourceType resource, String name, T... expectedValues) {
         assertAttribute("Wrong attribute " + name + " in " + shadow, shadow,
-                new QName(MidPointConstants.NS_RI, name), expectedValues);
+                toRiQName(name), expectedValues);
+    }
+
+    @NotNull
+    private static QName toRiQName(String name) {
+        return new QName(MidPointConstants.NS_RI, name);
     }
 
     @SafeVarargs
-    public static <T> void assertAttribute(PrismObject<? extends ShadowType> shadow,
-            ResourceType resource, String name, T... expectedValues) {
-        assertAttribute("Wrong attribute " + name + " in " + shadow, shadow,
-                new QName(MidPointConstants.NS_RI, name), expectedValues);
+    public static <T> void assertAttribute(PrismObject<? extends ShadowType> shadow, String name, T... expectedValues) {
+        assertAttribute("Wrong attribute " + name + " in " + shadow, shadow, toRiQName(name), expectedValues);
     }
 
     @SafeVarargs
@@ -318,7 +324,7 @@ public class IntegrationTestTools {
             Class<?> expetcedAttributeDefinitionClass) {
 
         assertProvisioningShadow(account, expetcedAttributeDefinitionClass,
-                new QName(MidPointConstants.NS_RI, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+                toRiQName(SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
     }
 
     public static void assertProvisioningShadow(PrismObject<ShadowType> account,
@@ -632,7 +638,7 @@ public class IntegrationTestTools {
 
     public static ObjectQuery createAllShadowsQuery(
             ResourceType resourceType, String objectClassLocalName, PrismContext prismContext) {
-        return createAllShadowsQuery(resourceType, new QName(MidPointConstants.NS_RI, objectClassLocalName), prismContext);
+        return createAllShadowsQuery(resourceType, toRiQName(objectClassLocalName), prismContext);
     }
 
     @UnusedTestElement
@@ -652,7 +658,7 @@ public class IntegrationTestTools {
             OperationResult parentResult)
             throws SchemaException, ConfigurationException {
         checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
-        assertEquals(new QName(MidPointConstants.NS_RI, SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
+        assertEquals(toRiQName(SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME),
                 shadowType.getObjectClass());
     }
 
@@ -679,7 +685,7 @@ public class IntegrationTestTools {
             PrismContext prismContext,
             OperationResult parentResult) throws SchemaException, ConfigurationException {
         checkShadow(shadowType, resourceType, repositoryService, checker, uidMatchingRule, prismContext, parentResult);
-        assertEquals(new QName(MidPointConstants.NS_RI, objectClassLocalName),
+        assertEquals(toRiQName(objectClassLocalName),
                 shadowType.getObjectClass());
     }
 
@@ -882,18 +888,17 @@ public class IntegrationTestTools {
     public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType)
             throws SchemaException {
         assertNotNull("No resource schema in " + resourceType, resourceSchema);
-        QName objectClassQname = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinitionRequired(objectClassQname);
-        assertNotNull("No object class definition for " + objectClassQname + " in resource schema", accountDefinition);
+        ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        assertNotNull("No object class definition for " + RI_ACCOUNT_OBJECT_CLASS + " in resource schema", accountDefinition);
 
-        assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountDefinition());
-        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
-        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
+        assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
+        assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isEmpty());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.isIgnored());
 
         Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
-        assertNotNull("Null identifiers for " + objectClassQname, identifiers);
-        assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
+        assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);
+        assertFalse("Empty identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers.isEmpty());
 
         ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
@@ -904,8 +909,8 @@ public class IntegrationTestTools {
         assertEquals("Wrong displayOrder for attribute " + SchemaTestConstants.ICFS_UID, (Integer) 100, uidAttributeDefinition.getDisplayOrder());
 
         Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
-        assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
-        assertFalse("Empty secondary identifiers for " + objectClassQname, secondaryIdentifiers.isEmpty());
+        assertNotNull("Null secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers);
+        assertFalse("Empty secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers.isEmpty());
 
         ResourceAttributeDefinition nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
         assertNotNull("No definition for attribute " + SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);

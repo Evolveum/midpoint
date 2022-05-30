@@ -9,8 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeToXml;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -26,6 +25,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
@@ -70,10 +72,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -112,15 +110,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
             "cz", "Džek Sperou",
             "hr", "Ðek Sperou"
     };
-
-    private static final QName QNAME_SN = new QName(NS_RI, "sn");
-    private static final ItemPath PATH_SN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_SN);
-
-    private static final QName QNAME_DN = new QName(NS_RI, "dn");
-    private static final ItemPath PATH_DN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_DN);
-
-    private static final QName QNAME_CN = new QName(NS_RI, "cn");
-    private static final ItemPath PATH_CN = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_CN);
 
     private static final File RESOURCE_OPENDJ_NO_READ_FILE = new File(TEST_DIR, "resource-opendj-no-read.xml");
     private static final File RESOURCE_OPENDJ_NO_CREATE_FILE = new File(TEST_DIR, "/resource-opendj-no-create.xml");
@@ -691,11 +680,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", provisioningShadow.getName());
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-
         assertNotNull(provisioningShadow.getOid());
         assertNotNull(provisioningShadow.getName());
-        assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), provisioningShadow.getObjectClass());
+        assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, provisioningShadow.getObjectClass());
         assertEquals(RESOURCE_OPENDJ_OID, provisioningShadow.getResourceRef().getOid());
         String idPrimaryVal = getAttributeValue(provisioningShadow, getPrimaryIdentifierQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ")", idPrimaryVal);
@@ -703,19 +690,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
         // Capitalization is the same as returned by OpenDJ
         assertEquals("Wrong secondary identifier", "uid=jbond,ou=People,dc=example,dc=com", idSecondaryVal);
-        assertEquals("Wrong LDAP uid", "jbond", getAttributeValue(provisioningShadow, new QName(resourceNamespace, "uid")));
-        assertEquals("Wrong LDAP cn", "James Bond", getAttributeValue(provisioningShadow, new QName(resourceNamespace, "cn")));
-        assertEquals("Wrong LDAP sn", "Bond", getAttributeValue(provisioningShadow, new QName(resourceNamespace, "sn")));
+        assertEquals("Wrong LDAP uid", "jbond", getAttributeValue(provisioningShadow, new QName(NS_RI, "uid")));
+        assertEquals("Wrong LDAP cn", "James Bond", getAttributeValue(provisioningShadow, new QName(NS_RI, "cn")));
+        assertEquals("Wrong LDAP sn", "Bond", getAttributeValue(provisioningShadow, new QName(NS_RI, "sn")));
         assertNotNull("Missing activation", provisioningShadow.getActivation());
         assertNotNull("Missing activation status", provisioningShadow.getActivation().getAdministrativeStatus());
         assertEquals("Not enabled", ActivationStatusType.ENABLED, provisioningShadow.getActivation().getAdministrativeStatus());
         assertShadowPassword(provisioningShadow);
-        Object createTimestamp = ShadowUtil.getAttributeValue(provisioningShadow, new QName(resourceNamespace, "createTimestamp"));
+        Object createTimestamp = ShadowUtil.getAttributeValue(provisioningShadow, new QName(NS_RI, "createTimestamp"));
         assertTimestamp("createTimestamp", createTimestamp);
 
         ShadowType repoShadow = getShadowRepo(provisioningShadow.getOid()).asObjectable();
         display("Account repo", repoShadow);
-        assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), repoShadow.getObjectClass());
+        assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, repoShadow.getObjectClass());
         assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
         idPrimaryVal = getAttributeValue(repoShadow, getPrimaryIdentifierQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ") (repo)", idPrimaryVal);
@@ -864,13 +851,20 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     @Test
-    public void test125AddObjectNull() {
+    public void test125AddObjectNull() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        assertThatThrownBy(() -> provisioningService.addObject(null, null, null, task, result))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessage("Object to add must not be null.");
+        try {
+            provisioningService.addObject(null, null, null, task, result);
+        } catch (NullPointerException e) {
+            displayExpectedException(e);
+            assertThat(e.getMessage()).as("exception message").isEqualTo("Object to add must not be null.");
+        } catch (IllegalArgumentException e) {
+            // When running with @NotNull parameters checked
+            displayExpectedException(e);
+            assertThat(e.getMessage()).as("exception message").contains("Argument for @NotNull parameter 'object'");
+        }
     }
 
     @Test
@@ -951,7 +945,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         display("Object after change", accountType);
 
         String uid = ShadowUtil.getSingleStringAttributeValue(accountType, getPrimaryIdentifierQName());
-        List<Object> snValues = ShadowUtil.getAttributeValues(accountType, QNAME_SN);
+        List<Object> snValues = ShadowUtil.getAttributeValues(accountType, MidPointTestConstants.QNAME_SN);
         assertNotNull("No 'sn' attribute", snValues);
         assertFalse("Surname attributes must not be empty", snValues.isEmpty());
         assertEquals(1, snValues.size());
@@ -1179,10 +1173,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-        QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
-
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), OBJECT_CLASS_INETORGPERSON_QNAME);
 
         final Collection<ObjectType> objects = new HashSet<>();
 
@@ -1194,16 +1185,16 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
             assertNotNull(shadow.getOid());
             assertNotNull(shadow.getName());
-            assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
+            assertEquals(OBJECT_CLASS_INETORGPERSON_QNAME, shadow.getObjectClass());
             assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
             String idPrimaryVal = getAttributeValue(shadow, getPrimaryIdentifierQName());
             assertNotNull("No primary identifier (" + getPrimaryIdentifierQName().getLocalPart() + ")", idPrimaryVal);
             String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
             assertNotNull("No secondary (" + getSecondaryIdentifierQName().getLocalPart() + ")", idSecondaryVal);
             assertEquals("Wrong shadow name", idSecondaryVal.toLowerCase(), shadow.getName().getOrig().toLowerCase());
-            assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
-            assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
-            assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));
+            assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(NS_RI, "uid")));
+            assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(NS_RI, "cn")));
+            assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(NS_RI, "sn")));
             assertNotNull("Missing activation", shadow.getActivation());
             assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
             assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
@@ -1234,8 +1225,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-        QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
+        QName objectClass = new QName(NS_RI, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 3);
@@ -1274,8 +1264,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-        QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
+        QName objectClass = new QName(NS_RI, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
         ObjectPaging paging = prismContext.queryFactory().createPaging(null, 3);
@@ -1767,7 +1756,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OPENDJ_OID)
                 .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
                 .and().item(ShadowType.F_INTENT).eq("unlimitedGroup")
-                .and().item(PATH_CN, getAccountAttributeDefinitionRequired(QNAME_CN)).eq("Will Turner")
+                .and().item(MidPointTestConstants.PATH_CN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_CN)).eq("Will Turner")
                 .build();
 
         when();
@@ -1884,7 +1873,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(null, 4);
-        paging.setOrdering(prismContext.queryFactory().createOrdering(PATH_SN, OrderDirection.ASCENDING));
+        paging.setOrdering(prismContext.queryFactory().createOrdering(MidPointTestConstants.PATH_SN, OrderDirection.ASCENDING));
         query.setPaging(paging);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1917,7 +1906,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 4);
-        paging.setOrdering(prismContext.queryFactory().createOrdering(PATH_SN, OrderDirection.ASCENDING));
+        paging.setOrdering(prismContext.queryFactory().createOrdering(MidPointTestConstants.PATH_SN, OrderDirection.ASCENDING));
         query.setPaging(paging);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -2522,7 +2511,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
+                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 
@@ -2556,14 +2545,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> rotDelta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
+                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
                 .replace("uid=morgan-rotten,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
         repositoryService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, rotDelta.getModifications(), result);
 
         // This is no-op on resource. (The DN on resource has not changed.)
         ObjectDelta<ShadowType> delta = deltaFor(ShadowType.class)
-                .item(PATH_DN, getAccountAttributeDefinitionRequired(QNAME_DN))
+                .item(MidPointTestConstants.PATH_DN, getAccountAttributeDefinitionRequired(MidPointTestConstants.QNAME_DN))
                 .replace("uid=morgan,ou=People,dc=example,dc=com")
                 .asObjectDelta(ACCOUNT_MORGAN_OID);
 

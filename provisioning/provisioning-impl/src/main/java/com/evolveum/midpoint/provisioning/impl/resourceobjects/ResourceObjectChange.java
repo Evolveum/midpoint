@@ -268,7 +268,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
     }
 
-    /** Returned context is not wildcard. */
+    /** Post-condition: Returned context is not wildcard. */
     private ProvisioningContext applyObjectClassAndTask(@NotNull QName ocName, @NotNull Task task)
             throws SchemaException, ConfigurationException {
         // We know that current context has now OC name

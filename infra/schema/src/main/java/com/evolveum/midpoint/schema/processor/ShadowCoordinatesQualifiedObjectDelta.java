@@ -14,12 +14,12 @@ import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 /**
  * An {@link ObjectDelta} enriched by {@link ResourceShadowCoordinates} (pointing to a resource object type).
  *
- * Not used much. Consider removal.
+ * Currently used only in tests. Consider removal.
  */
 public interface ShadowCoordinatesQualifiedObjectDelta<T extends Objectable>
         extends ObjectDelta<T> {
 
     ResourceShadowCoordinates getCoordinates();
 
-    void setCoordinates(ResourceShadowCoordinates discriminator);
+    void setCoordinates(ResourceShadowCoordinates coordinates);
 }

@@ -44,7 +44,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -74,7 +73,6 @@ class SearchHelper {
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private ShadowsLocalBeans localBeans;
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
@@ -88,10 +86,8 @@ class SearchHelper {
 
     private ProvisioningContext createContextForSearch(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null);
-        ProvisioningContext ctx = ctxFactory.createForCoordinates(coordinates, task, parentResult);
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+        ProvisioningContext ctx = ctxFactory.createForBulkOperation(query, task, parentResult);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;
@@ -283,13 +279,11 @@ class SearchHelper {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        ObjectFilter filter = query != null ? query.getFilter() : null;
-        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(filter);
-        assert query != null; // otherwise coordinates couldn't be found
-
-        ProvisioningContext ctx = ctxFactory.createForCoordinates(coordinates, task, result);
+        ProvisioningContext ctx = ctxFactory.createForBulkOperation(query, task, result);
         ctx.assertDefinition();
         DefinitionsUtil.applyDefinition(ctx, query);
+
+        assert query != null; // otherwise coordinates couldn't be found
 
         ResourceObjectDefinition objectClassDef = ctx.getObjectDefinitionRequired();
         ResourceType resourceType = ctx.getResource();
@@ -311,8 +305,12 @@ class SearchHelper {
                     ObjectQuery attributeQuery = createAttributeQuery(query);
                     int count;
                     try {
-                        count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery,
-                                objectClassDef.getPagedSearches(resourceType), ctx.getUcfExecutionContext(), result);
+                        count = connector.count(
+                                objectClassDef,
+                                attributeQuery,
+                                objectClassDef.getPagedSearches(resourceType),
+                                ctx.getUcfExecutionContext(),
+                                result);
                     } catch (CommunicationException | GenericFrameworkException | SchemaException
                             | UnsupportedOperationException e) {
                         result.recordFatalError(e);
@@ -388,8 +386,7 @@ class SearchHelper {
     private SearchResultMetadata searchShadowsInRepositoryIteratively(ProvisioningContext ctx,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> originalOptions,
             ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
+            throws SchemaException {
         // This is because we need to apply definitions later
         var options = GetOperationOptions.updateToReadWrite(originalOptions);
         ResultHandler<ShadowType> repoHandler = createRepoShadowHandler(ctx, options, shadowHandler);

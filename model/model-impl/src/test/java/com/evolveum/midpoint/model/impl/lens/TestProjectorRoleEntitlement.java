@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME;
+
 import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
@@ -108,17 +112,16 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         ObjectDelta<ShadowType> projSecondaryDelta = projContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, projSecondaryDelta.getChangeType());
 
-        PropertyDelta<String> groupDescriptionDelta = projSecondaryDelta.findPropertyDelta(
-                getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        PropertyDelta<String> groupDescriptionDelta =
+                projSecondaryDelta.findPropertyDelta(DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH);
         assertNotNull("No group description delta", groupDescriptionDelta);
         PrismAsserts.assertReplace(groupDescriptionDelta, "Bloody pirates");
         PrismAsserts.assertOrigin(groupDescriptionDelta, OriginType.OUTBOUND);
 
         PrismObject<ShadowType> projectionNew = projContext.getObjectNew();
         IntegrationTestTools.assertIcfsNameAttribute(projectionNew, "pirate");
-        IntegrationTestTools.assertAttribute(projectionNew,
-                getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
-                "Bloody pirates");
+        IntegrationTestTools.assertAttribute(
+                projectionNew, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME, "Bloody pirates");
     }
 
     @Test
@@ -195,9 +198,8 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, projSecondaryDelta.getChangeType());
 
         PrismAsserts.assertPropertyReplace(projSecondaryDelta, getIcfsNameAttributePath(), "Pirate");
-        PrismAsserts.assertPropertyReplace(projSecondaryDelta,
-                getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
-                "Bloody pirates");
+        PrismAsserts.assertPropertyReplace(
+                projSecondaryDelta, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH,"Bloody pirates");
         PrismAsserts.assertOrigin(projSecondaryDelta, OriginType.OUTBOUND);
 
     }

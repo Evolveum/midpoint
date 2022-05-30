@@ -242,10 +242,14 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
         boolean notificationOnly = changeBean.getObject() == null && delta == null;
         return new UcfAsyncUpdateChange(
-                changeSequentialNumber, primaryIdentifierRealValueHolder.getValue(),
-                objectClassDef.getObjectClassDefinition(), identifiers,
-                delta, asPrismObject(changeBean.getObject()),
-                notificationOnly, acknowledgeSink);
+                changeSequentialNumber,
+                primaryIdentifierRealValueHolder.getValue(),
+                objectClassDef.getObjectClassDefinition(),
+                identifiers,
+                delta,
+                asPrismObject(changeBean.getObject()),
+                notificationOnly,
+                acknowledgeSink);
     }
 
     private void setFromDefaults(ShadowType object, QName objectClassName) {

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjects
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 
 /**
- * A definition that describes either an object class (as fetched from the resource),
+ * A definition that describes either an object class (as fetched from the resource, optionally refined by `schemaHandling`),
  * or an object type (as defined in `schemaHandling` part of resource definition).
  *
  * It is used as a common interface to both "raw" and "refined" definitions. (Raw definitions are used e.g. in cases
@@ -70,10 +70,16 @@ public interface ResourceObjectDefinition
         LayeredDefinition {
 
     /**
-     * Returns the object class definition. It is either this object itself,
-     * or the linked object class definition (for object type).
+     * Returns the (raw or refined) object class definition.
+     *
+     * It is either this object itself (for object classes), or the linked object class definition (for object types).
      */
     @NotNull ResourceObjectClassDefinition getObjectClassDefinition();
+
+    /**
+     * Returns the raw object class definition.
+     */
+    @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition();
 
     /**
      * Returns the name of the object class.
@@ -417,6 +423,14 @@ public interface ResourceObjectDefinition
     //endregion
 
     //region Other
+    /**
+     * Returns the "raw" configuration bean for this object type.
+     *
+     * BEWARE: In the case of inherited object types, this is only the partial information.
+     * (Parts inherited from the parents are not returned.)
+     */
+    @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
+
     /**
      * Creates a layer-specific version of this definition.
      */

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 
 import static org.testng.AssertJUnit.*;
@@ -17,8 +19,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -33,7 +33,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -100,12 +98,12 @@ public class TestProjector extends AbstractLensTest {
 
         // Account Deltas
         ObjectDelta<ShadowType> accountDeltaPrimary = createModifyAccountShadowReplaceAttributeDelta(
-                ACCOUNT_SHADOW_ELAINE_DUMMY_OID, getDummyResourceObject(), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie Marley");
+                ACCOUNT_SHADOW_ELAINE_DUMMY_OID, getDummyResourceObject(), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie Marley");
         ObjectDelta<ShadowType> accountDeltaPrimaryClone = accountDeltaPrimary.clone();
         assert accountDeltaPrimaryClone != accountDeltaPrimary : "clone is not cloning";
         assert accountDeltaPrimaryClone.getModifications() != accountDeltaPrimary.getModifications() : "clone is not cloning (modifications)";
         ObjectDelta<ShadowType> accountDeltaSecondary = createModifyAccountShadowReplaceAttributeDelta(
-                ACCOUNT_SHADOW_ELAINE_DUMMY_OID, getDummyResourceObject(), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie LeChuck");
+                ACCOUNT_SHADOW_ELAINE_DUMMY_OID, getDummyResourceObject(), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie LeChuck");
         ObjectDelta<ShadowType> accountDeltaSecondaryClone = accountDeltaSecondary.clone();
         accountContext.setPrimaryDelta(accountDeltaPrimary);
         accountContext.swallowToSecondaryDelta(accountDeltaSecondary.getModifications());
@@ -212,8 +210,7 @@ public class TestProjector extends AbstractLensTest {
         assertNotNull("No account type in account primary add delta", intentProperty);
         assertEquals(DEFAULT_INTENT, intentProperty.getRealValue());
         getDummyResourceType();
-        assertEquals(new QName(MidPointConstants.NS_RI, "AccountObjectClass"),
-                accountToAddPrimary.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
+        assertEquals(RI_ACCOUNT_OBJECT_CLASS, accountToAddPrimary.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
         assertEquals(getDummyResourceType().getOid(), resourceRef.getOid());
         accountToAddPrimary.checkConsistence();
@@ -315,7 +312,7 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
                 getDummyResourceController().getAttributeFullnamePath(), "Jack Sparrow");
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
-                getWeaponAttributePath(), "mouth", "pistol");
+                DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "mouth", "pistol");
 
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
 
@@ -362,8 +359,8 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
-                getLocationAttributePath(), "Tortuga");
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getWeaponAttributePath(), "Sword");
+                DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH, "Tortuga");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "Sword");
 
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS, OriginType.OUTBOUND);
 
@@ -413,10 +410,10 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
 
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getFullNameAttributePath(), "Captain Hector Barbossa");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Captain Hector Barbossa");
 
-        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getFullNameAttributePath()), OriginType.OUTBOUND);
-        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getWeaponAttributePath()), OriginType.ASSIGNMENTS);
+        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH), OriginType.OUTBOUND);
+        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH), OriginType.ASSIGNMENTS);
 
         assertSerializable(context);
     }
@@ -527,9 +524,9 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         // There is a lot of changes caused by the reconciliation. But we are only interested in the new one
         assertEquals("Unexpected number of account secondary changes", 3, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getQuoteAttributePath(), "Pirate of Caribbean");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "Pirate of Caribbean");
 
-        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getQuoteAttributePath()), OriginType.ASSIGNMENTS);
+        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH), OriginType.ASSIGNMENTS);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION), OriginType.OUTBOUND);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION_TOKEN), OriginType.OUTBOUND);
 
@@ -552,7 +549,7 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "Water");
+                DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "Water");
         context.recompute();
 
         displayDumpable("Input context", context);
@@ -588,7 +585,7 @@ public class TestProjector extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID,
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I'm disinclined to acquiesce to your request.");
+                DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I'm disinclined to acquiesce to your request.");
         context.recompute();
 
         displayDumpable("Input context", context);
@@ -613,7 +610,7 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(ChangeType.MODIFY, accountPrimaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountPrimaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountPrimaryDelta,
-                getQuoteAttributePath(),
+                DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH,
                 "I'm disinclined to acquiesce to your request.");
 
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -622,10 +619,10 @@ public class TestProjector extends AbstractLensTest {
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getQuoteAttributePath(), "Arr!");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "Arr!");
 
-        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getQuoteAttributePath()), OriginType.OUTBOUND); // OK?
-        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(getWeaponAttributePath()), OriginType.ASSIGNMENTS);
+        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH), OriginType.OUTBOUND); // OK?
+        PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH), OriginType.ASSIGNMENTS);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION), OriginType.OUTBOUND);
         PrismAsserts.assertOrigin(accountSecondaryDelta.findItemDelta(ShadowType.F_ITERATION_TOKEN), OriginType.OUTBOUND);
 
@@ -822,9 +819,8 @@ public class TestProjector extends AbstractLensTest {
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
-                getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-                "Damned mutineer");
+        PrismAsserts.assertPropertyAdd(
+                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH, "Damned mutineer");
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
 
         assertSerializable(context);
@@ -1065,8 +1061,8 @@ public class TestProjector extends AbstractLensTest {
 
         // Change the guybrush account on dummy resource directly. This creates inconsistency.
         DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
-        dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
+        dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
+        dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
 
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANNEL_RECON);
@@ -1106,7 +1102,7 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
         // Full name is not changed, it has normal mapping strength
         // Location is changed back, it has strong mapping
-        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(getLocationAttributePath());
+        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH);
         assertNotNull("No location delta in projection secondary delta", locationDelta);
         PrismAsserts.assertReplace(locationDelta, "Melee Island");
 
@@ -1181,21 +1177,5 @@ public class TestProjector extends AbstractLensTest {
             }
         }
         PrismAsserts.assertOrigin(delta, expectedOrigi);
-    }
-
-    private ItemPath getWeaponAttributePath() {
-        return getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
-    }
-
-    private ItemPath getFullNameAttributePath() {
-        return getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
-    }
-
-    private ItemPath getLocationAttributePath() {
-        return getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);
-    }
-
-    private ItemPath getQuoteAttributePath() {
-        return getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
     }
 }

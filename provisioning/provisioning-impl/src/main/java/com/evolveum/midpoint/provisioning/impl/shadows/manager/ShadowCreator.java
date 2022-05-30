@@ -46,8 +46,6 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * Creates shadows as needed.
  *
@@ -67,16 +65,13 @@ class ShadowCreator {
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
     @Autowired private Protector protector;
-    @Autowired private ShadowFinder shadowFinder;
     @Autowired private Helper helper;
-    @Autowired private ShadowManager shadowManager;
     @Autowired private CreatorUpdaterHelper creatorUpdaterHelper;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
 
     @NotNull PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
             PrismObject<ShadowType> resourceObject, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
         LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
         PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceObject);
         ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable()); // TODO eventually replace by repo cache invalidation
@@ -121,8 +116,7 @@ class ShadowCreator {
      */
     @NotNull PrismObject<ShadowType> createRepositoryShadow(ProvisioningContext ctx,
             PrismObject<ShadowType> resourceObjectOrShadow)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, EncryptionException {
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObjectOrShadow);
 
@@ -179,12 +173,12 @@ class ShadowCreator {
 //        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
         // Store only password meta-data in repo - unless there is explicit caching
-        CredentialsType creds = repoShadowType.getCredentials();
-        if (creds != null) {
-            PasswordType passwordType = creds.getPassword();
+        CredentialsType credentials = repoShadowType.getCredentials();
+        if (credentials != null) {
+            PasswordType passwordType = credentials.getPassword();
             if (passwordType != null) {
                 preparePasswordForStorage(passwordType, ctx);
-                ObjectReferenceType owner = ctx.getTask() != null ? ctx.getTask().getOwnerRef() : null;
+                ObjectReferenceType owner = ctx.getTask().getOwnerRef();
                 ProvisioningUtil.addPasswordMetadata(passwordType, clock.currentTimeXMLGregorianCalendar(), owner);
             }
             // TODO: other credential types - later
@@ -197,7 +191,9 @@ class ShadowCreator {
         }
 
         if (repoShadowType.getName() == null) {
-            repoShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceObjectOrShadow)));
+            repoShadowType.setName(
+                    new PolyStringType(
+                            ShadowUtil.determineShadowNameRequired(resourceObjectOrShadow)));
         }
 
         if (repoShadowType.getObjectClass() == null) {

@@ -60,7 +60,7 @@ class DeleteHelper {
 
     private static final String OP_RESOURCE_OPERATION = ShadowsFacade.class.getName() + ".resourceOperation";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteHelper.class);
 
     @Autowired private ErrorHandlerLocator errorHandlerLocator;
     @Autowired private ResourceManager resourceManager;

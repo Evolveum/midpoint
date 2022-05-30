@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.misc;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.util.Collection;
@@ -89,7 +91,7 @@ public class ShadowAttributeIdSyncStoreReadTest extends AbstractInternalModelInt
 
         Task importTask = createTask();
         importTask.setOwner(userAdministrator);
-        modelService.importFromResource(RESOURCE_ID, dummy.getAccountObjectClass(), importTask, result.createSubresult("import"));
+        modelService.importFromResource(RESOURCE_ID, RI_ACCOUNT_OBJECT_CLASS, importTask, result.createSubresult("import"));
         waitForTaskFinish(importTask, false);
 
 

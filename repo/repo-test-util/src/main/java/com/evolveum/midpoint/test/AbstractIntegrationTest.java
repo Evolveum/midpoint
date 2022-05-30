@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -207,7 +211,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     /**
      * Fast and simple way how to enable tracing of test methods.
      */
-    protected PredefinedTestMethodTracing predefinedTestMethodTracing;
+    private PredefinedTestMethodTracing predefinedTestMethodTracing;
 
     private volatile boolean initSystemExecuted = false;
 
@@ -373,10 +377,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    public PredefinedTestMethodTracing getPredefinedTestMethodTracing() {
-        return predefinedTestMethodTracing;
-    }
-
+    @SuppressWarnings("unused") // for temporary use
     public void setPredefinedTestMethodTracing(PredefinedTestMethodTracing predefinedTestMethodTracing) {
         this.predefinedTestMethodTracing = predefinedTestMethodTracing;
     }
@@ -1032,7 +1033,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertAccountShadowCommon(
             PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType)
             throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null, false);
+        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, null, false);
     }
 
     protected void assertAccountShadowCommon(
@@ -1042,15 +1043,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             ResourceType resourceType,
             MatchingRule<String> nameMatchingRule,
             boolean requireNormalizedIdentifiers) throws SchemaException, ConfigurationException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentifiers);
-    }
-
-    protected QName getAccountObjectClass(ResourceType resourceType) {
-        return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-    }
-
-    protected QName getGroupObjectClass(ResourceType resourceType) {
-        return new QName(MidPointConstants.NS_RI, "GroupObjectClass");
+        assertShadowCommon(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, nameMatchingRule, requireNormalizedIdentifiers);
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
@@ -1218,7 +1211,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertAccountShadowRepo(String oid, String username, ResourceType resourceType)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        assertShadowRepo(oid, username, resourceType, getAccountObjectClass(resourceType));
+        assertShadowRepo(oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS);
     }
 
     protected void assertShadowRepo(
@@ -1233,7 +1226,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertAccountShadowRepo(
             PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType)
             throws SchemaException, ConfigurationException {
-        assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
+        assertShadowRepo(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, null);
     }
 
     protected void assertAccountShadowRepo(
@@ -1242,7 +1235,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             String username,
             ResourceType resourceType,
             MatchingRule<String> matchingRule) throws SchemaException, ConfigurationException {
-        assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
+        assertShadowRepo(accountShadow, oid, username, resourceType, RI_ACCOUNT_OBJECT_CLASS, matchingRule);
     }
 
     protected void assertShadowRepo(
@@ -1553,7 +1546,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         //TODO: set matching rule instead of null
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(identifier)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
                 .build();
     }
@@ -2484,8 +2477,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName,
             T... expectedValues) {
-        QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-        assertAttribute(shadow, attrQname, expectedValues);
+        assertAttribute(shadow, getAttrQName(attrName), expectedValues);
     }
 
     protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule,
@@ -2504,8 +2496,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
-        QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-        assertNoAttribute(shadow, attrQname);
+        assertNoAttribute(shadow, getAttrQName(attrName));
     }
 
     protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
@@ -2899,7 +2890,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(
             String accountOid, PrismObject<ResourceType> resource, String attributeName, Object... newRealValue)
             throws SchemaException, ConfigurationException {
-        return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttributeQName(resource, attributeName), newRealValue);
+        return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttrQName(attributeName), newRealValue);
     }
 
     protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(
@@ -2926,7 +2917,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T> PropertyDelta<T> createAttributeReplaceDelta(
             PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue)
             throws SchemaException, ConfigurationException {
-        return createAttributeReplaceDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
+        return createAttributeReplaceDelta(resource, getAttrQName(attributeLocalName), newRealValue);
     }
 
     protected <T> PropertyDelta<T> createAttributeReplaceDelta(
@@ -2943,7 +2934,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T> PropertyDelta<T> createAttributeAddDelta(
             PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue)
             throws SchemaException, ConfigurationException {
-        return createAttributeAddDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
+        return createAttributeAddDelta(resource, getAttrQName(attributeLocalName), newRealValue);
     }
 
     protected <T> PropertyDelta<T> createAttributeAddDelta(
@@ -2960,7 +2951,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T> PropertyDelta<T> createAttributeDeleteDelta(
             PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue)
             throws SchemaException, ConfigurationException {
-        return createAttributeDeleteDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
+        return createAttributeDeleteDelta(resource, getAttrQName(attributeLocalName), newRealValue);
     }
 
     protected <T> PropertyDelta<T> createAttributeDeleteDelta(
@@ -2989,16 +2980,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .createModificationAddProperty(ShadowType.class, accountOid, propertyName, newRealValue);
     }
 
-    protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {
-        String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-        return new QName(resourceNamespace, attributeLocalName);
+    protected ItemPath getAttributePath(String attributeLocalName) {
+        return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttrQName(attributeLocalName));
     }
 
-    protected ItemPath getAttributePath(PrismObject<ResourceType> resource, String attributeLocalName) {
-        return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeQName(resource, attributeLocalName));
-    }
-
-    protected ObjectDelta<ShadowType> createAccountPaswordDelta(String shadowOid, String newPassword, String oldPassword) throws SchemaException {
+    protected ObjectDelta<ShadowType> createAccountPasswordDelta(String shadowOid, String newPassword, String oldPassword)
+            throws SchemaException {
         ProtectedStringType newPasswordPs = new ProtectedStringType();
         newPasswordPs.setClearValue(newPassword);
         ProtectedStringType oldPasswordPs = null;
@@ -4229,7 +4216,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ResourceAttributeDefinition<?> attrDef = accountDef.findAttributeDefinitionRequired(attributeName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassDefinition().getTypeName())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassName())
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
                 .build();
     }
