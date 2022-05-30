@@ -1,0 +1,127 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+def verbose = 0
+try {
+    verbose = Integer.parseInt(params.VERBOSE ?: '0')
+} catch (Exception e) { /* ignored */ }
+
+podTemplate(
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'postgres',
+                        image: "${params.POSTGRES_IMAGE ?: 'postgres:13-alpine'}",
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                                envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
+                                envVar(key: 'POSTGRES_USER', value: 'midtest'),
+                                envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
+                        ],
+                ),
+                containerTemplate(name: 'maven',
+                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17'}",
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: "${params.BUILDER_CPU ?: '4'}",
+                        resourceLimitCpu: "${params.BUILDER_CPU ?: '4'}",
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        stage("checkout") {
+            git branch: "${params.BRANCH ?: 'support-4.4'}",
+                    url: 'https://github.com/Evolveum/midpoint.git'
+        }
+        stage("db-init") {
+            container('postgres') {
+                sh """#!/bin/bash -ex
+                    set -x
+                    psql --version
+                    psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/generic-old/postgresql-4.4-all.sql \
+                        -f repo/repo-sql-impl-test/sql-procedures/postgresql.sql
+                    #psql -U midtest -c "\\dt" # uncomment to list the tables
+                """
+            }
+        }
+        stage("build-with-tests") {
+            container('maven') {
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        env | sort
+                        mvn --version
+                        df -h
+		            fi
+
+			        mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist clean install \
+			            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+                        -Dmidpoint.repository.jdbcPassword=password \
+                        -Dmidpoint.repository.jdbcUsername=midtest \
+			            -Dmidpoint.repository.driverClassName=org.postgresql.Driver \
+                        -Dmidpoint.repository.hibernateHbm2ddl=validate \
+                        -Dmidpoint.repository.hibernateDialect=com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            }
+        }
+        stage("tests-extra") {
+            container('maven') {
+                // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+		            fi
+
+			        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing \
+			            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
+                        -Dmidpoint.repository.jdbcPassword=password \
+                        -Dmidpoint.repository.jdbcUsername=midtest \
+			            -Dmidpoint.repository.driverClassName=org.postgresql.Driver \
+                        -Dmidpoint.repository.hibernateHbm2ddl=validate \
+                        -Dmidpoint.repository.hibernateDialect=com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect \
+			            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            }
+        }
+        stage("collect-test-results") {
+            container('maven') {
+                step([
+                        $class: 'Publisher',
+//                        $class: 'LabeledTestResultGroupPublisher',
+                        reportFilenamePattern: '**/testng-results.xml'
+                ])
+            }
+        }
+    }
+}
