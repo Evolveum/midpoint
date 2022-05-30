@@ -32,7 +32,7 @@ podTemplate(
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'db',
-                        image: params.DB_IMAGE ?: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04',
+                        image: params.DB_IMAGE ?: 'mcr.microsoft.com/mssql/server:2017-CU29-ubuntu-16.04',
                         runAsUser: '0',
                         ttyEnabled: true,
                         resourceRequestCpu: '2',
