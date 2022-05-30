@@ -40,6 +40,7 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
     private void initLayout() {
         add(AttributeAppender.append("class", "catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
+        setOutputMarkupId(true);
 
         WebMarkupContainer logo = new WebMarkupContainer(ID_LOGO);
         logo.add(AttributeAppender.append("class", () -> getModelObject().getLogo()));
@@ -69,7 +70,7 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                CatalogTilePanel.this.onAdd(target);
             }
         };
         add(add);
@@ -78,13 +79,22 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                CatalogTilePanel.this.onDetails(target);
             }
         };
         add(details);
     }
 
-    protected void onClick(AjaxRequestTarget target) {
+    protected void onAdd(AjaxRequestTarget target) {
 
+    }
+
+    protected void onDetails(AjaxRequestTarget target) {
+
+    }
+
+    protected void onClick(AjaxRequestTarget target) {
+        getModelObject().toggle();
+        target.add(this);
     }
 }

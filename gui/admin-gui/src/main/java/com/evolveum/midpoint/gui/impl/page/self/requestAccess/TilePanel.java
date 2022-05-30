@@ -35,6 +35,7 @@ public class TilePanel extends BasePanel<Tile> {
     private void initLayout() {
         add(AttributeAppender.append("class", "tile-panel d-flex flex-column align-items-center bg-white rounded p-3"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
+        setOutputMarkupId(true);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
@@ -55,6 +56,7 @@ public class TilePanel extends BasePanel<Tile> {
     }
 
     protected void onClick(AjaxRequestTarget target) {
-
+        getModelObject().toggle();
+        target.add(this);
     }
 }
