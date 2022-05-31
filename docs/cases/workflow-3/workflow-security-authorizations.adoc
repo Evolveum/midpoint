@@ -10,23 +10,22 @@
 
 == Model level
 
-Workflows (approvals) work with two basic kinds of objects: approval requests and work items.
+Workflows (approvals) work with two basic kinds of objects: *approval requests* and *work items*.
 
-. Approval requests are implemented as background tasks, i.e. TaskType.
+. *Approval requests* are implemented as background tasks, i.e. `TaskType`.
 Approval-related part is stored in task's workflowContext container.
 
-. Work items are separate entities.
+. *Work items* are separate entities.
 They are not stored in repository.
 They are not prism objects in the strict sense.
-So, for example, they cannot be retrieved by getObject or searchObjects, nor updated via modifyObject method.
-They can be accessed by searchContainers method, and manipulated by specific methods in WorkflowService.
+So, for example, they cannot be retrieved by `getObject` or `searchObjects`, nor updated via `modifyObject` method.
+They can be accessed by `searchContainers` method, and manipulated by specific methods in `WorkflowService`.
 
 Therefore, for approval requests the basic task-related security mechanisms apply.
 
 Security for work items is currently implemented in very simple way:
 
-. No special authorizations - at a model level - are needed to: +
-
+. No special authorizations are needed at a model level to:
 
 .. approve or reject an allocated work item - this action is available to each user that has directly allocated a work item,
 
@@ -35,36 +34,34 @@ He can also release it later;
 
 .. see own work items (allocated or offered to current user).
 
-
-
 . Other actions require authorizations listed in the following table.
 
-Note that *<prefix>* is the standard prefix denoting authorization actions at the model level, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3".*
+Note that *<prefix>* is the standard prefix denoting authorization actions at the *model* level, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3".*
 
 [%autowidth]
 |===
 | Operation | Action URI | Comment
 
 | Approve or reject any work item
-| <prefix>#completeAllWorkItems
-|  +
+| `<prefix>#completeAllWorkItems`
+| Means ability to approve of work items that have not been explicitly delegated to a user.
 
 
 
 | Delegate any work item
-| <prefix>#delegateAllWorkItems
-|  +
+| `<prefix>#delegateAllWorkItems`
+|
 
 
 
 | Delegate own work item
-| <prefix>#delegateOwnWorkItems
+| `<prefix>#delegateOwnWorkItems`
 | Means delegation of work items assigned or delegated to a user.
 
 
 | View any work item
-| <prefix>#readAllWorkItems
-|  +
+| `<prefix>#readAllWorkItems`
+|
 
 
 
@@ -87,43 +84,43 @@ At the GUI level, there are the following action URIs available.
 
 | My work items
 | <prefix>#myWorkItems
-|  +
+|
 
 
 
 | Items claimable by me
 | <prefix>#claimableWorkItems
-|  +
+|
 
 
 
 | All work items
 | <prefix>#allWorkItems
-|  +
+|
 
 
 
 | Work item details
 | <prefix>#workItem
-|  +
+|
 
 
 
 | My requests
 | <prefix>#myRequests
-|  +
+|
 
 
 
 | Requests about me
 | <prefix>#requestsAboutMe
-|  +
+|
 
 
 
 | All requests
 | <prefix>#allRequests
-|  +
+|
 
 
 
@@ -163,9 +160,9 @@ Please note that these action URIs were changed in midPoint 3.4.
 | <prefix>#casesView
 | <prefix>#casesAll
 | PageCases
-|  +
+|
 
-|  +
+|
 
 
 
@@ -174,7 +171,7 @@ Please note that these action URIs were changed in midPoint 3.4.
 | <prefix>#casesAll
 | PageCase
 | <prefix>#task
-|  +
+|
 
 
 
@@ -240,41 +237,43 @@ But it can be accepted as a short form of "case management work items" (which is
 . When implementing Attorney items authorization, we would perhaps need to create a special subclass of `PageCaseWorkItems` (e.g. `PageCaseWorkItemsAttorney`) to be able to attach <prefix>#attorneyCaseWorkItems action URI to it.
 
 . Q: Although the structure of certifications is a bit similar to the one of case management (case  work items), in GUI they have a different terminology - see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security]:
++
 
 [%autowidth]
 |===
-| _Certification definitions_
-| _prefix#certificationDefinitions_
-|  +
+| Operation | Action URI | Comment
+
+| Certification definitions
+| <prefix>#certificationDefinitions
+|
 
 
 
-| _Add/edit certification definition_
-| _prefix#certificationDefinition_
-| _Currently there is no way how to distinguish between add and edit at the GUI level._
+| Add/edit certification definition
+| <prefix>#certificationDefinition
+| Currently there is no way how to distinguish between add and edit at the GUI level.
 
 
-| _Certification campaigns_
-| _prefix#certificationCampaigns_
-|  +
-
-
-
-| _View specific campaign_
-| _prefix#certificationCampaign_
-|  +
+| Certification campaigns
+| <prefix>#certificationCampaigns
+|
 
 
 
-| _My cases to decide_
-| _prefix#certificationDecisions_
+| View specific campaign
+| <prefix>#certificationCampaign
+|
+
+
+
+| My cases to decide
+| <prefix>#certificationDecisions
 | Note: in GUI these are labeled My work items.
 
 
-| _All certification-related pages_
-| _prefix#certificationAll_
-|  +
-
+|All certification-related pages
+| <prefix>#certificationAll
+|
 
 
 |===
