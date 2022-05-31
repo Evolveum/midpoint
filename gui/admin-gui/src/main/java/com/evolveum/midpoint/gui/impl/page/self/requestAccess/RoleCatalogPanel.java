@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.wizard.Badge;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -59,8 +61,11 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
     }
 
     @Override
-    public Component createHeaderContent(String id) {
-        return new RoleCatalogHeaderPanel(id);
+    public IModel<List<Badge>> getTitleBadges() {
+        return Model.ofList(List.of(
+                new Badge("badge badge-info", "Requesting for 4 users"),
+                new Badge("badge badge-danger", "1 fatal conflict"),
+                new Badge("badge badge-danger", "fa fa-exclamation-triangle", "1 fatal conflict")));
     }
 
     @Override

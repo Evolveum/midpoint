@@ -14,6 +14,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.model.Model;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -24,12 +29,16 @@ public interface WizardPanel {
     }
 
     default Component createHeaderContent(String id) {
-        return new WebMarkupContainer(id);
+        return new BadgePanel(id, getTitleBadges());
     }
 
     default IModel<String> getTitle() {
         String key = getClass().getSimpleName() + ".title";
         return () -> Application.get().getResourceSettings().getLocalizer().getString(key, null, key);
+    }
+
+    default IModel<List<Badge>> getTitleBadges() {
+        return Model.ofList(new ArrayList<>());
     }
 
     default VisibleEnableBehaviour getHeaderBehaviour() {
