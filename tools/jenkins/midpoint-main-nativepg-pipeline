@@ -1,7 +1,11 @@
-def verbose = 0
-try {
-    verbose = Integer.parseInt(params.VERBOSE ?: '0')
-} catch (Exception e) { /* ignored */ }
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+def verbose = params.VERBOSE ?: '0'
 
 podTemplate(
         activeDeadlineSeconds: 21600, // 6h total build limit
@@ -17,7 +21,7 @@ podTemplate(
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'postgres',
-                        image: "${params.POSTGRES_IMAGE ?: 'postgres:13-alpine'}",
+                        image: params.POSTGRES_IMAGE ?: 'postgres:13-alpine',
                         runAsUser: '0',
                         ttyEnabled: true,
                         resourceRequestCpu: '2',
@@ -32,7 +36,7 @@ podTemplate(
                         ],
                         ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
-                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11'}",
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11',
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
@@ -44,7 +48,7 @@ podTemplate(
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${params.BRANCH ?: 'support-4.4'}",
+            git branch: params.BRANCH ?: 'support-4.4',
                     url: 'https://github.com/Evolveum/midpoint.git'
         }
         stage("db-init") {
