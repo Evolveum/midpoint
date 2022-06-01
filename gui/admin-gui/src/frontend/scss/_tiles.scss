@@ -23,7 +23,7 @@
 }
 
 @mixin selectable-tile-dark-mode {
-  border-color: $light-alt;
+  border-color: $secondary-alt;
   background-color: lighten($dark, 7.5%) !important;
   color: $white !important;
 

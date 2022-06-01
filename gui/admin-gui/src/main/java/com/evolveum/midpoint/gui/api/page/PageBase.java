@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -113,14 +115,16 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
-
+    private static final String ID_LOGOUT_FORM = "logoutForm";
     private static final String ID_MODE = "mode";
+    private static final String ID_CART_ITEM = "cartItem";
+    private static final String ID_CART_LINK = "cartLink";
+    private static final String ID_CART_COUNT = "cartCount";
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
-    private static final String ID_LOGOUT_FORM = "logoutForm";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -391,6 +395,7 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     private void initCartButton(WebMarkupContainer mainHeader) {
+        // todo old, to be removed
         AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
             private static final long serialVersionUID = 1L;
 
@@ -411,14 +416,24 @@ public abstract class PageBase extends PageAdminLTE {
                 return Integer.toString(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size());
             }
         });
-        cartItemsCount.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() == 0);
-            }
-        });
+        cartItemsCount.add(new VisibleBehaviour(() -> !(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() == 0)));
         cartItemsCount.setOutputMarkupId(true);
         cartButton.add(cartItemsCount);
+
+        // new header item starts here
+        AjaxLink cartLink = new AjaxLink<>(ID_CART_LINK) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                // todo implement
+            }
+        };
+        cartLink.add(new VisibleBehaviour(() -> getPage() instanceof PageRequestAccess));
+        mainHeader.add(cartLink);
+
+        // todo add count model
+        Label cartCount = new Label(ID_CART_COUNT);
+        cartLink.add(cartCount);
     }
 
     private void initLayout() {

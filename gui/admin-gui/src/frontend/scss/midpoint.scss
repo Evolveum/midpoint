@@ -1685,14 +1685,15 @@ th.debug-list-buttons {
   width: 160px;
 }
 
-.notification {
-  &.nav-item > .nav-link > .badge {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    font-size: 0.5em;
-  }
-}
+// used in navbar items for notification badges, replaced by standard admin-lte class .navbar-badge
+//.notification {
+//  &.nav-item > .nav-link > .badge {
+//    position: absolute;
+//    top: 5px;
+//    right: 10px;
+//    font-size: 0.5em;
+//  }
+//}
 
 .details-menu-panel {
   min-width: 273px;

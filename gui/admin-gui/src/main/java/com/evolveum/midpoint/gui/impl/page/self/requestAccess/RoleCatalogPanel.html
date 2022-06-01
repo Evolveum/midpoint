@@ -13,11 +13,15 @@
             <div wicket:id="menu"/>
         </div>
         <div class="flex-grow-1">
-            <div class="d-flex flex-grow-1 flex-wrap gap-3" wicket:id="tilesContainer">
-                <wicket:container wicket:id="tiles">
-                    <div wicket:id="tile"/>
-                </wicket:container>
+            <div class="d-flex flex-column flex-grow-1 gap-3" wicket:id="tilesContainer">
+                <div class="align-self-end" wicket:id="tilesSearch"/>
+                <div class="d-flex flex-grow-1 flex-wrap gap-3">
+                    <wicket:container wicket:id="tiles">
+                        <div wicket:id="tile"/>
+                    </wicket:container>
+                </div>
             </div>
+
             <div wicket:id="table"/>
         </div>
     </div>
