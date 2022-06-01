@@ -1,0 +1,66 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+/*
+ * Contains all styles for all kinds of tile panels
+ */
+
+@mixin selectable-tile {
+  border: 2px solid $white;
+  border-radius: $border-radius;
+  background-color: $white;
+  cursor: pointer;
+
+  &:hover,
+  &.active {
+    border: 2px solid $primary;
+    border-radius: $border-radius;
+  }
+}
+
+@mixin selectable-tile-dark-mode {
+  border-color: $light-alt;
+  background-color: lighten($dark, 7.5%) !important;
+  color: $white !important;
+
+  &:hover,
+  &.active {
+    border-color: $primary-alt;
+  }
+}
+
+.tile-panel {
+  width: 250px;
+  height: 250px;
+
+  @include selectable-tile();
+}
+
+@include dark-mode () {
+  .tile-panel {
+    @include selectable-tile-dark-mode();
+  }
+}
+
+.catalog-tile-panel {
+  width: 317px;
+  height: 376px;
+  @include selectable-tile();
+
+  & > .logo {
+    width: 84px;
+    height: 84px;
+    border-radius: 108px;
+    background-color: rgba(60, 141, 188, 0.1);
+  }
+}
+
+@include dark-mode () {
+  .catalog-tile-panel {
+    @include selectable-tile-dark-mode();
+  }
+}

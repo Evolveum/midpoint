@@ -25,15 +25,8 @@
 @import "wicket";
 @import "bs-stepper-custom";
 
-//@import "midpoint/prism-container";
-//@import "midpoint/wizard";
-//@import "midpoint/tree.less";
-//@import "midpoint/page-user-details.less";
-//@import "midpoint/page-debugs.less";
-//@import "midpoint/capabilities.less";
-//@import "midpoint/tree-theme-basic.less";
-//@import "midpoint/operation-result.less";
-//@import "midpoint/icon-style.less";
+@import "tiles";
+@import "tables";
 
 body.custom-hold-transition {
 	.content-wrapper,
@@ -1755,62 +1748,6 @@ th.debug-list-buttons {
   }
 }
 
-@mixin selectable-tile {
-  border: 2px solid $white;
-  border-radius: $border-radius;
-  background-color: $white;
-  cursor: pointer;
-
-  &:hover,
-  &.active {
-    border: 2px solid $primary;
-    border-radius: $border-radius;
-  }
-}
-
-@mixin selectable-tile-dark-mode {
-  border-color: $light-alt;
-  background-color: lighten($dark, 7.5%) !important;
-  color: $white !important;
-
-  &:hover,
-  &.active {
-    border-color: $primary-alt;
-  }
-}
-
-.tile-panel {
-  width: 250px;
-  height: 250px;
-
-  @include selectable-tile();
-}
-
-@include dark-mode () {
-  .tile-panel {
-    @include selectable-tile-dark-mode();
-  }
-}
-
-.catalog-tile-panel {
-  width: 317px;
-  height: 376px;
-  @include selectable-tile();
-
-  & > .logo {
-    width: 84px;
-    height: 84px;
-    border-radius: 108px;
-    background-color: rgba(60, 141, 188, 0.1);
-  }
-}
-
-@include dark-mode () {
-  .catalog-tile-panel {
-    @include selectable-tile-dark-mode();
-  }
-}
-
 .details-menu-panel {
   min-width: 273px;
 
@@ -1825,8 +1762,4 @@ th.debug-list-buttons {
       flex-flow: column;
     }
   }
-}
-
-.bs-stepper .step-trigger:hover {
-  background-color: inherit;
 }
