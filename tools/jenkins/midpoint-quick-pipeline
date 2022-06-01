@@ -36,10 +36,12 @@ podTemplate(
     node(POD_LABEL) {
         try {
             stage("checkout") {
-                if [ "${verbose}" -ge 1 ]
-                then
-                    df -h
-                fi
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
                 git branch: params.BRANCH ?: 'master',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
