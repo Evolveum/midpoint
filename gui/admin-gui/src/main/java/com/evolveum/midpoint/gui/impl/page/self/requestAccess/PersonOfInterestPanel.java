@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.wizard.Wizard;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -58,14 +59,27 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
 
+    private IModel<Wizard> wizard;
+
+    private IModel<RequestAccess> model;
     private IModel<List<Tile>> tiles;
 
-    public PersonOfInterestPanel(String id) {
+    public PersonOfInterestPanel(String id, IModel<Wizard> wizard, IModel<RequestAccess> model) {
         super(id);
+
+        this.wizard = wizard;
+        this.model = model;
 
         initModels();
         initLayout();
     }
+
+//    @Override
+//    protected void onBeforeRender() {
+//        super.onBeforeRender();
+//
+//        wizard.getObject().nextStep();
+//    }
 
     @Override
     public VisibleEnableBehaviour getHeaderBehaviour() {
@@ -156,6 +170,11 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {
-
+        new Toast()
+                .title("some title")
+                .body("example body " + 1000 * Math.random())
+                .cssClass("bg-success")
+                .autohide(true)
+                .show(target);
     }
 }

@@ -79,7 +79,7 @@ public class PageRequestAccess extends PageSelf {
     }
 
     private List<WizardPanel> createSteps(WizardBorder border) {
-        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(ID_PERSON_OF_INTEREST) {
+        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(ID_PERSON_OF_INTEREST, border.getModel(), model) {
 
             @Override
             protected void onNextPerformed(AjaxRequestTarget target) {
