@@ -83,7 +83,7 @@ podTemplate(
                     recipients: env.DEFAULT_MAIL_RECIPIENT,
                     sendToIndividuals: false])
             } catch (Exception e) {
-                println 'Couldn't send email: ' + e
+                println 'Could not send email: ' + e
             }
         }
     }
