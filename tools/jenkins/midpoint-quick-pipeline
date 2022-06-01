@@ -34,32 +34,56 @@ podTemplate(
         ]
 ) {
     node(POD_LABEL) {
-        stage("checkout") {
-            git branch: params.BRANCH ?: 'master',
-                    url: 'https://github.com/Evolveum/midpoint.git'
-        }
-        stage("build") {
-            container('maven') {
-                sh """#!/bin/bash -ex
-                    if [ "${verbose}" -ge 1 ]
-                    then
-                        id
-                        env | sort
-                        mvn --version
-                    fi
+        try {
+            stage("checkout") {
+                git branch: params.BRANCH ?: 'master',
+                        url: 'https://github.com/Evolveum/midpoint.git'
+            }
+            stage("build") {
+                container('maven') {
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            id
+                            env | sort
+                            mvn --version
+                        fi
 
-                    mvn -B -ntp -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+                        mvn -B -ntp -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
 
-                    if [ "${verbose}" -ge 1 ]
-                    then
-                        df -h
-                    fi
-                """
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
 
-                step([$class: 'Publisher',
-                    reportFilenamePattern: '**/testng-results.xml',
-                    // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
-                ])
+                    step([$class: 'Publisher',
+                        reportFilenamePattern: '**/testng-results.xml',
+                        // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
+                    ])
+                }
+            }
+        } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
+            try {
+                /*
+                mail (
+                    to: env.DEFAULT_MAIL_RECIPIENT,
+                    subject: 'test',
+                    body: 'more test'
+                )
+                */
+
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+            } catch (Exception e) {
+                println 'Couldn't send email: ' + e
             }
         }
     }
