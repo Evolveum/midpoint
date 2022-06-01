@@ -36,7 +36,7 @@ import java.util.function.Supplier;
 public class AbstractInducementPanel<AR extends AbstractRoleType> extends AbstractAssignmentTypePanel {
 
     public AbstractInducementPanel(String id, IModel<PrismObjectWrapper<AR>> model, ContainerPanelConfigurationType config) {
-        super(id, null, config);
+        super(id, null, config, model.getObject().getTypeClass(), model.getObject().getOid());
 
         setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AbstractRoleType.F_INDUCEMENT, (Supplier<PageBase> & Serializable) () -> getPageBase()));
     }

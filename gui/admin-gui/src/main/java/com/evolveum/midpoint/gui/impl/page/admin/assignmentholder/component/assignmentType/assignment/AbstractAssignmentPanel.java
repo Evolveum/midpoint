@@ -52,8 +52,7 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
     private static final Trace LOGGER = TraceManager.getTrace(AbstractAssignmentPanel.class);
 
     public AbstractAssignmentPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
-        super(id, null, config);
-
+        super(id, null, config, model.getObject().getTypeClass(), model.getObject().getOid());
         setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, (Supplier<PageBase> & Serializable) () -> getPageBase()));
     }
 
