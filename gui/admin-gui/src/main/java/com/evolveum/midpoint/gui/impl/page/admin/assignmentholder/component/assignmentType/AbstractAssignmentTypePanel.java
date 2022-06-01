@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -65,6 +67,7 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.AssignmentListProvider;
+import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -83,10 +86,16 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
-    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config) {
+    private Class<? extends Objectable> objectType;
+    private String objectOid;
+
+    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
         this.model = model;
+        this.objectType = type;
+        this.objectOid = oid;
     }
+
 
     protected void setModel(IModel<PrismContainerWrapper<AssignmentType>> model) {
         this.model = model;
@@ -530,12 +539,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     @Override
-    protected AssignmentListProvider createProvider() {
-        return createAssignmentProvider(getSearchModel(), loadValuesModel());
-    }
-
-    private AssignmentListProvider createAssignmentProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
-        AssignmentListProvider assignmentListProvider = new AssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments) {
+    protected ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> createProvider() {
+        var searchModel = getSearchModel();
+        var assignments = loadValuesModel();
+        var itemPath = model.getObject().getPath();
+        var assignmentListProvider = new RepoAssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid, itemPath) {
 
             @Override
             protected PageStorage getPageStorage() {
