@@ -11,7 +11,9 @@ podTemplate(
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
         // No need for secret volume, no mvn deploy done here.
-        workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
+        //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "midpoint-quick-pipeline-workspace"),
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
@@ -47,6 +49,11 @@ podTemplate(
                     fi
 
                     mvn -B -ntp -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
                 """
 
                 step([$class: 'Publisher',
