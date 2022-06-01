@@ -36,6 +36,10 @@ podTemplate(
     node(POD_LABEL) {
         try {
             stage("checkout") {
+                if [ "${verbose}" -ge 1 ]
+                then
+                    df -h
+                fi
                 git branch: params.BRANCH ?: 'master',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
@@ -82,6 +86,11 @@ podTemplate(
                     notifyEveryUnstableBuild: true,
                     recipients: env.DEFAULT_MAIL_RECIPIENT,
                     sendToIndividuals: false])
+
+                if [ "${verbose}" -ge 1 ]
+                then
+                    df -h
+                fi
             } catch (Exception e) {
                 println 'Could not send email: ' + e
             }
