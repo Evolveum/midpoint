@@ -99,15 +99,6 @@ li.dropdown.user.user-menu {
   }
 }
 
-//table context menu border fix
-th.cog, td.cog {
-  & ul.dropdown-menu.pull-right {
-    border-color: #337ab7;
-  }
-}
-//end table context menu border fix
-
-
 // sidebar styles extension
 .sidebar-menu .treeview-menu > li > span > .fe {
   width: 20px;
@@ -1113,51 +1104,6 @@ span.tree-content > table tr td:first-child {
 	.box-content {
 		padding: 15px;
 	}
-}
-
-// Tables where the first column is the name of the property/attribute
-// (e.g. audit log item details)
-// see MID-4300
-
-td.prop-name {
-	min-width: 90px;
-	font-weight: bold;
-}
-
-th.icon {
-	// The content of this column is just a single icon.
-	// WARNING: this means both the header and the table data
-	//          have just a single icon. No text.
-	// See com.evolveum.midpoint.web.component.data.column.IconColumn
-	width: 30px;
-}
-
-th.mid-width-column, td.mid-width-column {
-	width: 180px;
-}
-
-th.min-width-column, td.min-width-column {
-	width: 70px;
-}
-
-th.max-width-column, td.max-width-column {
-	width: 350px;
-}
-
-th.shrink {
-	// We want this column to fit as tightly as possible.
-	// E.g. for columns that have textual label but
-	// the content is just an icon or something much smaller
-	// than the header.
-	width: -moz-min-content;
-}
-
-th.countLabel{
-	// The content of this column is just some integer value.
-	// WARNING: this means both the header and the table data
-	//          have just some integer value.
-	// See com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions
-	width: 70px;
 }
 
 .expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
