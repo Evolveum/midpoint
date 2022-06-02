@@ -21,6 +21,7 @@ public class VisibleEnableBehaviour extends Behavior {
     private static final long serialVersionUID = 1L;
 
     public static final VisibleEnableBehaviour ALWAYS_VISIBLE_ENABLED = new VisibleEnableBehaviour();
+    public static final VisibleEnableBehaviour ALWAYS_INVISIBLE = new VisibleEnableBehaviour(() -> false);
 
     private SerializableSupplier<Boolean> visible;
 

@@ -83,6 +83,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_TEMPLATE_ICON = "fa fa-file-alt";
 
+    public static final String CLASS_OBJECT_CONNECTOR_ICON = "fa fa-microchip";
+
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string

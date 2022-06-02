@@ -377,6 +377,13 @@ public class SearchFactory {
             SearchConfigurationWrapper<C> defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
                     discriminator, modelServiceLocator);
             searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);
+            if (!searchConfWrapper.getAllowedModeList().contains(searchConfWrapper.getDefaultSearchBoxMode())) {
+                if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.BASIC)) {
+                    searchConfWrapper.setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
+                } else {
+                    searchConfWrapper.setDefaultSearchBoxMode(searchConfWrapper.getAllowedModeList().get(0));
+                }
+            }
         } else {
             searchConfWrapper = searchConfigurationWrapper;
         }
@@ -562,12 +569,12 @@ public class SearchFactory {
         if (customConfig == null) {
             return config;
         }
-        if (customConfig.getDefaultSearchBoxMode() != null) {
-            config.setDefaultSearchBoxMode(customConfig.getDefaultSearchBoxMode());
-        }
         if (CollectionUtils.isNotEmpty(customConfig.getAllowedModeList())) {
             config.getAllowedModeList().clear();
             config.getAllowedModeList().addAll(customConfig.getAllowedModeList());
+        }
+        if (customConfig.getDefaultSearchBoxMode() != null  && config.getAllowedModeList().contains(customConfig.getDefaultScope())) {
+            config.setDefaultSearchBoxMode(customConfig.getDefaultSearchBoxMode());
         }
         if (customConfig.getDefaultScope() != null) {
             config.setDefaultScope(customConfig.getDefaultScope());
