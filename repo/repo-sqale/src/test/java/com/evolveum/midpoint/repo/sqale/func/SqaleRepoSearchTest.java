@@ -1104,10 +1104,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         queryRecorder.clearBufferAndStartRecording();
         try {
             searchUsersTest("matching the exists filter for metadata (embedded mapping)",
-                f -> f.exists(UserType.F_METADATA)
-                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
-                        .eqPoly("creator"),
-                user1Oid);
+                    f -> f.exists(UserType.F_METADATA)
+                            .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                            .eqPoly("creator"),
+                    user1Oid);
         } finally {
             display(queryRecorder.getQueryBuffer().peek().toString());
         }
@@ -2461,11 +2461,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findOrgByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User", OrgType.class, f ->
-                            f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
-                                    .id(user4Oid),
-                    org111Oid
-            );
+            searchObjectTest("Org by User", OrgType.class,
+                    f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                            .id(user4Oid),
+                    org111Oid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2476,11 +2475,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findRoleByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User", RoleType.class, f ->
-                            f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                                    .id(user3Oid),
-                    roleOid
-            );
+            searchObjectTest("Org by User", RoleType.class,
+                    f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                            .id(user3Oid),
+                    roleOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2491,12 +2489,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findRoleByAssignmentOfUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by Assignment ownedBy user", RoleType.class, f ->
-                            f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                                    .ownedBy(UserType.class)
-                                    .id(user3Oid),
-                    roleOid
-            );
+            searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                            .ownedBy(UserType.class)
+                            .id(user3Oid),
+                    roleOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2507,12 +2504,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test981findUserByAssignmentTarget() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class, f ->
-                f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
-                .item(RoleType.F_NAME).eq("role-ass-vs-ind")
-            ,
-                    user3Oid
-            );
+            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                    f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
+                            .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
+                    user3Oid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
