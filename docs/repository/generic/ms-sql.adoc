@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-date: 2020-07-28T13:51:49.292+02:00
 :page-deprecated-since: "4.4"
 :page-upkeep-status: orange
+:page-toc: top
 
 [NOTE]
 ====
