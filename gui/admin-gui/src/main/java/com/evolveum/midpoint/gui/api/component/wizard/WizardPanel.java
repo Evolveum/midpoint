@@ -7,49 +7,133 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import org.apache.wicket.Application;
+import java.util.stream.Collectors;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public interface WizardPanel {
+public class WizardPanel extends BasePanel {
 
-    default String appendCssToWizard() {
-        return null;
+    private static final long serialVersionUID = 1L;
+
+    private static final String ID_HEADER = "header";
+    private static final String ID_STEPS = "steps";
+    private static final String ID_STEP = "step";
+    private static final String ID_LINE = "line";
+    private static final String ID_CONTENT_HEADER = "contentHeader";
+    public static final String ID_CONTENT_BODY = "contentBody";
+
+    private WizardModel wizardModel;
+
+    public WizardPanel(String id, WizardModel wizardModel) {
+        super(id);
+
+        this.wizardModel = wizardModel;
+        this.wizardModel.setPanel(this);
+
+        initLayout();
+
+        this.wizardModel.init();
     }
 
-    default Component createHeaderContent(String id) {
-        return new BadgePanel(id, getTitleBadges());
+    @Override
+    protected void onComponentTag(ComponentTag tag) {
+        checkComponentTag(tag, "div");
+
+        super.onComponentTag(tag);
     }
 
-    default IModel<String> getTitle() {
-        String key = getClass().getSimpleName() + ".title";
-        return () -> Application.get().getResourceSettings().getLocalizer().getString(key, null, key);
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        addOrReplace((Component) getCurrentPanel());
     }
 
-    default IModel<List<Badge>> getTitleBadges() {
-        return Model.ofList(new ArrayList<>());
+    private void initLayout() {
+        add(AttributeAppender.prepend("class", "bs-stepper"));
+        add(AttributeAppender.append("class", () -> getCurrentPanel().appendCssToWizard()));
+
+        WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
+        header.setOutputMarkupId(true);
+        add(header);
+
+        ListView<IModel<String>> steps = new ListView<>(ID_STEPS, () -> wizardModel.getSteps().stream().map(s -> s.getTitle()).collect(Collectors.toList())) {
+
+            @Override
+            protected void populateItem(ListItem<IModel<String>> listItem) {
+                WizardHeaderStepPanel step = new WizardHeaderStepPanel(ID_STEP, listItem.getIndex(), listItem.getModelObject());
+                step.add(AttributeAppender.append("class", () -> wizardModel.getActiveStepIndex() == listItem.getIndex() ? "active" : null));
+                listItem.add(step);
+
+                WebMarkupContainer line = new WebMarkupContainer(ID_LINE);
+                // hide last "line"
+                line.add(new VisibleBehaviour(() -> listItem.getIndex() < wizardModel.getSteps().size() - 1));
+                listItem.add(line);
+            }
+        };
+        header.add(steps);
+
+        IModel<String> currentPanelTitle = () -> getCurrentPanel().getTitle().getObject();
+        IModel<String> nextPanelTitle = () -> {
+            WizardStep next = wizardModel.getNextPanel();
+            return next != null ? next.getTitle().getObject() : null;
+        };
+        WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, currentPanelTitle, nextPanelTitle) {
+
+            @Override
+            protected Component createHeaderContent(String id) {
+                return getCurrentPanel().createHeaderContent(id);
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                wizardModel.previous();
+
+                target.add(WizardPanel.this);
+            }
+
+            @Override
+            protected void onNextPerformed(AjaxRequestTarget target) {
+                wizardModel.next();
+
+                target.add(WizardPanel.this);
+            }
+        };
+        contentHeader.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                VisibleEnableBehaviour b = getCurrentPanel().getHeaderBehaviour();
+                return b != null ? b.isVisible() : true;
+            }
+
+            @Override
+            public boolean isEnabled() {
+                VisibleEnableBehaviour b = getCurrentPanel().getHeaderBehaviour();
+                return b != null ? b.isEnabled() : true;
+            }
+        });
+        contentHeader.setOutputMarkupId(true);
+        add(contentHeader);
+
+        addOrReplace(new WebMarkupContainer(ID_CONTENT_BODY));
     }
 
-    default VisibleEnableBehaviour getHeaderBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
-    }
-
-    default VisibleEnableBehaviour getBackBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
-    }
-
-    default VisibleEnableBehaviour getNextBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+    public WizardStep getCurrentPanel() {
+        return wizardModel.getActiveStep();
     }
 }

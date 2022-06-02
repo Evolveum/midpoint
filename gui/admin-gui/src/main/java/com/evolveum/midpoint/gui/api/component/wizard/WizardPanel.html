@@ -7,7 +7,7 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:border>
+<wicket:panel>
     <div class="bs-stepper-header flex-wrap flex-column flex-sm-row" role="tablist" wicket:id="header">
         <wicket:container wicket:id="steps">
             <div class="flex flex-row no-wrap" wicket:id="step"/>
@@ -16,7 +16,7 @@
     </div>
     <div class="bs-stepper-content">
         <div wicket:id="contentHeader"/>
-        <wicket:body/>
+        <div wicket:id="contentBody"/>
     </div>
-</wicket:border>
+</wicket:panel>
 </html>

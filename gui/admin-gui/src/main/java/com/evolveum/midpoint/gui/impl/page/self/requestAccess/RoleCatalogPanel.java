@@ -12,16 +12,15 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
 
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -35,7 +34,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -47,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RoleCatalogPanel extends BasePanel implements WizardPanel {
+public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
@@ -65,8 +63,8 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
 
     private IModel<ViewToggle> viewToggleModel = Model.of(ViewToggle.TILE);
 
-    public RoleCatalogPanel(String id) {
-        super(id);
+    public RoleCatalogPanel(IModel<RequestAccess> model) {
+        super(model);
 
         initLayout();
     }

@@ -22,15 +22,14 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ShoppingCartPanel extends BasePanel implements WizardPanel {
+public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
     private static final String ID_TABLE = "table";
 
@@ -41,8 +40,8 @@ public class ShoppingCartPanel extends BasePanel implements WizardPanel {
     private static final String ID_EDIT = "edit";
     private static final String ID_REMOVE = "remove";
 
-    public ShoppingCartPanel(String id) {
-        super(id);
+    public ShoppingCartPanel(IModel<RequestAccess> model) {
+        super(model);
 
         initLayout();
     }

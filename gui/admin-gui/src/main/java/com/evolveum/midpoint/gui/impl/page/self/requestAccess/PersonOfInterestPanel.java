@@ -18,9 +18,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.Wizard;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
+public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,28 +57,14 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
     private static final String ID_BACK = "back";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
-
-    private IModel<Wizard> wizard;
-
-    private IModel<RequestAccess> model;
     private IModel<List<Tile>> tiles;
 
-    public PersonOfInterestPanel(String id, IModel<Wizard> wizard, IModel<RequestAccess> model) {
-        super(id);
-
-        this.wizard = wizard;
-        this.model = model;
+    public PersonOfInterestPanel(IModel<RequestAccess> model) {
+        super(model);
 
         initModels();
         initLayout();
     }
-
-//    @Override
-//    protected void onBeforeRender() {
-//        super.onBeforeRender();
-//
-//        wizard.getObject().nextStep();
-//    }
 
     @Override
     public VisibleEnableBehaviour getHeaderBehaviour() {
@@ -128,7 +113,10 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
         next.setOutputMarkupPlaceholderTag(true);
         add(next);
 
-        Label nextLabel = new Label(ID_NEXT_LABEL, createNextStepLabel());
+        Label nextLabel = new Label(ID_NEXT_LABEL, () -> {
+            WizardStep step = getWizard().getNextPanel();
+            return step != null ? step.getTitle().getObject() : null;
+        });
         next.add(nextLabel);
 
         WebMarkupContainer listContainer = new WebMarkupContainer(ID_LIST_CONTAINER);
@@ -161,14 +149,6 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
         listContainer.add(list);
     }
 
-    protected void onNextPerformed(AjaxRequestTarget target) {
-
-    }
-
-    protected IModel<String> createNextStepLabel() {
-        return () -> null;
-    }
-
     protected void onBackPerformed(AjaxRequestTarget target) {
         new Toast()
                 .title("some title")
@@ -176,5 +156,11 @@ public class PersonOfInterestPanel extends BasePanel implements WizardPanel {
                 .cssClass("bg-success")
                 .autohide(true)
                 .show(target);
+    }
+
+    private void onNextPerformed(AjaxRequestTarget target) {
+        getWizard().next();
+
+        target.add(getWizard().getPanel());
     }
 }
