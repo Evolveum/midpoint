@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
+
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -51,7 +55,6 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -59,7 +62,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -1284,7 +1286,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         ResourceShadowCoordinates coords = new ResourceShadowCoordinates(
                 RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP, (String) null);
-        ProvisioningContext ctx = provisioningContextFactory.createForCoordinates(coords, task, result);
+        ProvisioningContext ctx = provisioningContextFactory.createForCoordinates(coords, null, task, result);
 
         // WHEN
         AttributesToReturn attributesToReturn = ctx.createAttributesToReturn();
@@ -1704,8 +1706,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     protected void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, Object... attrValues) {
-        PrismAsserts.assertNoItem(shadowRepo, ItemPath.create(ShadowType.F_ATTRIBUTES,
-                new ItemName(ResourceTypeUtil.getResourceNamespace(resource), attrName)));
+        PrismAsserts.assertNoItem(shadowRepo, ItemPath.create(ShadowType.F_ATTRIBUTES, getAttrQName(attrName)));
     }
 
     protected void assertRepoShadowCacheActivation(PrismObject<ShadowType> shadowRepo, ActivationStatusType expectedAdministrativeStatus) {
@@ -1754,6 +1755,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 requireNonNull(
                         ResourceSchemaFactory.getRawSchema(resource));
         return requireNonNull(
-                resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME));
+                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS));
     }
 }

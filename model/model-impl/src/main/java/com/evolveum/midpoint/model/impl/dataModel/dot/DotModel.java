@@ -266,7 +266,7 @@ public class DotModel {
             sb.append(formatted ? LF : "/");
         }
         sb.append("(");
-        sb.append(definition.getObjectClassDefinition().getTypeName().getLocalPart());
+        sb.append(definition.getObjectClassName().getLocalPart());
         sb.append(")");
         return sb.toString();
     }

@@ -659,17 +659,19 @@ public class ShadowUtil {
         return shadowType.getCachingMetadata().getRetrievalTimestamp() != null;
     }
 
-    public static <T extends ShadowType> PolyString determineShadowName(ShadowType shadow)
-            throws SchemaException {
-        return determineShadowName(shadow.asPrismObject());
-    }
-
     public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
         String stringName = determineShadowStringName(shadow);
         return stringName != null ? PolyString.fromOrig(stringName) : null;
     }
 
-    public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
+    public static <T extends ShadowType> PolyString determineShadowNameRequired(PrismObject<T> shadow) throws SchemaException {
+        return PolyString.fromOrig(
+                MiscUtil.requireNonNull(
+                        determineShadowStringName(shadow),
+                        () -> "Name could not be determined for " + shadow));
+    }
+
+    private static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;

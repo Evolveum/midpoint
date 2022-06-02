@@ -33,6 +33,9 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -102,7 +105,7 @@ public class TestEnergy extends AbstractStoryTest {
         assertTask(TASK_RECONCILE_AD.oid, "Reconciliation after")
                 .display();
 
-        QName groupOcName = RESOURCE_AD.controller.getGroupObjectClass();
+        QName groupOcName = RI_GROUP_OBJECT_CLASS;
 
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
 
@@ -146,7 +149,7 @@ public class TestEnergy extends AbstractStoryTest {
         assertTask(TASK_RECONCILE_AD.oid, "Reconciliation after")
                 .display();
 
-        QName groupOcName = RESOURCE_AD.controller.getGroupObjectClass();
+        QName groupOcName = RI_GROUP_OBJECT_CLASS;
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
 
         assertShadow(findShadowByName(groupOcName, "MP_ALPHA", ad, result), "after")
@@ -171,7 +174,7 @@ public class TestEnergy extends AbstractStoryTest {
 
     @SuppressWarnings("SameParameterValue")
     private void setKindIntent(String shadowName, ShadowKindType kind, String intent, OperationResult result) throws CommonException {
-        QName groupOcName = RESOURCE_AD.controller.getGroupObjectClass();
+        QName groupOcName = RI_GROUP_OBJECT_CLASS;
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
         PrismObject<ShadowType> shadow = findShadowByName(groupOcName, shadowName, ad, result);
         repositoryService.modifyObject(ShadowType.class, shadow.getOid(),
@@ -198,8 +201,7 @@ public class TestEnergy extends AbstractStoryTest {
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class,
                 ObjectQueryUtil.createResourceAndObjectClassQuery(
                         RESOURCE_AD.oid,
-                        RESOURCE_AD.controller.getAccountObjectClass(),
-                        prismContext),
+                        RI_ACCOUNT_OBJECT_CLASS),
                 null, task, result);
         display("shadows", shadows);
 
@@ -210,7 +212,7 @@ public class TestEnergy extends AbstractStoryTest {
 
         then();
 
-        QName groupOcName = RESOURCE_AD.controller.getGroupObjectClass();
+        QName groupOcName = RI_GROUP_OBJECT_CLASS;
         PrismObject<ResourceType> ad = getObject(ResourceType.class, RESOURCE_AD.oid);
 
         PrismObject<ShadowType> mp_delta = findShadowByName(groupOcName, "MP_DELTA", ad, result);

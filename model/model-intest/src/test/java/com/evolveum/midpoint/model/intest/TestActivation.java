@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -24,6 +26,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -2120,7 +2124,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
+        getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();

@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
-
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -238,8 +237,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
         List<QName> objectClassesToGenerate = new ArrayList<>();
-        QName accountObjectClass = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
-        objectClassesToGenerate.add(accountObjectClass);
+        objectClassesToGenerate.add(RI_ACCOUNT_OBJECT_CLASS);
 
         cc.configure(configContainer, objectClassesToGenerate, result);
 
@@ -280,7 +278,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         ResourceObjectClassDefinition defaultAccountDefinition =
-                resourceSchema.findObjectClassDefinition(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         ShadowType shadowType = new ShadowType();
         PrismTestUtil.getPrismContext().adopt(shadowType);
         shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
@@ -309,7 +307,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         UcfExecutionContext ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         // Determine object class from the schema
 
         final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
@@ -342,7 +340,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test100FetchEmptyChanges() throws Exception {
         OperationResult result = createOperationResult();
         ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
         // WHEN
         UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
@@ -363,7 +361,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
     public void test101FetchAddChange() throws Exception {
         OperationResult result = createOperationResult();
         ResourceObjectClassDefinition accountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME);
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
 
         UcfSyncToken lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
         assertNotNull("No last sync token", lastToken);

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -93,7 +94,7 @@ public class TestManyThreads extends AbstractStoryTest {
 
                 ObjectQuery query = prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY.oid)
-                        .and().item(ShadowType.F_OBJECT_CLASS).eq(dummyResourceCtl.getAccountObjectClass())
+                        .and().item(ShadowType.F_OBJECT_CLASS).eq(RI_ACCOUNT_OBJECT_CLASS)
                         .build();
                 SearchResultList<PrismObject<ShadowType>> accounts = modelService
                         .searchObjects(ShadowType.class, query, null, localTask, localResult);

@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -236,9 +240,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        modifyObjectAddProperty(ShadowType.class, guybrushShadowOrangeOid,
-                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
-                task, result, ROLE_PIRATE_OID);
+        modifyObjectAddProperty(
+                ShadowType.class,
+                guybrushShadowOrangeOid,
+                DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH,
+                task,
+                result,
+                ROLE_PIRATE_OID);
 
         // THEN
         result.computeStatus();
@@ -319,9 +327,13 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        modifyObjectDeleteProperty(ShadowType.class, guybrushShadowOrangeOid,
-                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
-                task, result, ROLE_PIRATE_OID);
+        modifyObjectDeleteProperty(
+                ShadowType.class,
+                guybrushShadowOrangeOid,
+                DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_PATH,
+                task,
+                result,
+                ROLE_PIRATE_OID);
 
         // THEN
         result.computeStatus();
@@ -362,8 +374,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid,
-                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+        modifyObjectReplaceProperty(
+                ShadowType.class, guybrushShadowOrangeOid,
+                DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH,
                 task, result, "Look behind you, a Three-Headed Monkey!");
 
         // THEN
@@ -410,8 +423,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid,
-                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+        modifyObjectReplaceProperty(
+                ShadowType.class, guybrushShadowOrangeOid,
+                DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH,
                 task, result, "I wanna be a pirrrrrrate!");
 
         // THEN
@@ -458,8 +472,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
 
         // WHEN
-        modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid,
-                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+        modifyObjectReplaceProperty(
+                ShadowType.class, guybrushShadowOrangeOid,
+                DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH,
                 task, result, "How much wood could a woodchuck chuck if a woodchuck could chuck wood?");
 
         // THEN
@@ -642,8 +657,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // WHEN
-        modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid,
-                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+        modifyObjectReplaceProperty(
+                ShadowType.class, guybrushShadowOrangeOid,
+                DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH,
                 task, result, "Look behind you, a Three-Headed Monkey!");
 
         // THEN

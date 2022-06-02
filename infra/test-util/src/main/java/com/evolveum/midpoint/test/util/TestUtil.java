@@ -27,9 +27,11 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 
@@ -669,5 +671,9 @@ public class TestUtil {
                 Thread.sleep(100);
             }
         }
+    }
+
+    public static @NotNull ItemName getAttrQName(@NotNull String attrName) {
+        return new ItemName(MidPointConstants.NS_RI, attrName);
     }
 }

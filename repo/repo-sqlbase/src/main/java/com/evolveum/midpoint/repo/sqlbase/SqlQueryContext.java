@@ -508,6 +508,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return entityPathMapping;
     }
 
+    public QueryModelMapping<S, Q, R> queryMapping() {
+        return mapping();
+    }
+
     public void markNotFilterUsage() {
         notFilterUsed = true;
     }

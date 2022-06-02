@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
- * Handles changes retrieved by {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions,
+ * Handles changes retrieved by {@link ProvisioningService#synchronize(ResourceShadowCoordinates, LiveSyncOptions,
  * LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)} method.
  */
 @Experimental

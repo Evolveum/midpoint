@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -267,7 +268,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private int countDummyAccountShadows(OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(dummyResourceCtl.getAccountObjectClass())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(RI_ACCOUNT_OBJECT_CLASS)
                 .build();
         displayValue("objects",
                 DebugUtil.debugDump(repositoryService.searchObjects(ShadowType.class, query, null, result)));

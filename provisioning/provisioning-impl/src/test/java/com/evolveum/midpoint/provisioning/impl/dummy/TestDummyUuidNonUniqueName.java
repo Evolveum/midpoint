@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -14,6 +16,8 @@ import java.io.File;
 import java.util.List;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -176,7 +180,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass"))
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(RI_ACCOUNT_OBJECT_CLASS)
                 .and().itemWithDef(getIcfNameDefinition(), ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getItemName()).eq(ACCOUNT_FETTUCINI_NAME)
                 .build();
 

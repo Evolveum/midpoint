@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import static com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest.Color.*;
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -499,8 +499,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertShadowOperationalData(accountWallyGreen);
 
         PrismObject<ShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject());
-        String fullNameDummyAttribute = IntegrationTestTools.getAttributeValue(accountWallyDefault.asObjectable(),
-                new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceObject()), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        String fullNameDummyAttribute =
+                IntegrationTestTools.getAttributeValue(accountWallyDefault.asObjectable(), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
         if (!"Bloodnose".equals(fullNameDummyAttribute) && !"Wally B. Feed".equals(fullNameDummyAttribute)) {
             AssertJUnit.fail("Wrong full name on default dummy resource: " + fullNameDummyAttribute);
         }

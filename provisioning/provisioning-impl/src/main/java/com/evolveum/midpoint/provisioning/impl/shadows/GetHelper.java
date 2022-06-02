@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.validateS
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 
 import java.util.Collection;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
@@ -20,8 +21,8 @@ import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -77,13 +78,18 @@ class GetHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(GetHelper.class);
 
-    public @NotNull PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repoShadow,
-            Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult)
+    /**
+     * Provides more-or-less the whole functionality of provisioning `getObject` method for shadows.
+     */
+    public @NotNull PrismObject<ShadowType> getShadow(
+            @NotNull String oid,
+            @Nullable PrismObject<ShadowType> repoShadow,
+            @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-
-        Validate.notNull(oid, "Object id must not be null.");
 
         if (repoShadow == null) {
             LOGGER.trace("Start getting object with oid {}; identifiers override = {}", oid, identifiersOverride);
@@ -226,7 +232,9 @@ class GetHelper {
                 parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repoShadow, ex);
                 throw ex;
             }
-            identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
+
+            identifiers = Objects.requireNonNull(
+                    ShadowUtil.getAllIdentifiers(repoShadow));
         }
 
         try {
@@ -420,7 +428,9 @@ class GetHelper {
         }
     }
 
-    private boolean isCachedShadowValid(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow) throws ConfigurationException {
+    private boolean isCachedShadowValid(
+            Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow)
+            throws ConfigurationException {
         long stalenessOption = getStaleness(SelectorOptions.findRootOptions(options));
         if (stalenessOption == 0L) {
             return false;

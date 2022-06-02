@@ -8,14 +8,13 @@ package com.evolveum.midpoint.testing.conntest;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-import javax.xml.namespace.QName;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_DN;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**
@@ -43,7 +42,7 @@ public abstract class Abstract389DsDnTest extends Abstract389DsTest {
     public void test025SchemaDn() {
         ResourceAttributeDefinition<?> dnDef = accountDefinition.findAttributeDefinition("dn");
         displayDumpable("DN definition", dnDef);
-        PrismAsserts.assertDefinition(dnDef, new QName(MidPointConstants.NS_RI, "dn"), DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertDefinition(dnDef, QNAME_DN, DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());
         assertTrue("dn modify", dnDef.canModify());
         assertTrue("dn add", dnDef.canAdd());

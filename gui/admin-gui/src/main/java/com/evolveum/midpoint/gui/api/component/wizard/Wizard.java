@@ -8,10 +8,6 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -20,19 +16,11 @@ public class Wizard implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private List<IModel<String>> stepLabels;
-
+    private int stepCount;
     private int activeStepIndex;
 
-    public List<IModel<String>> getStepLabels() {
-        if (stepLabels == null) {
-            stepLabels = new ArrayList<>();
-        }
-        return stepLabels;
-    }
-
-    public void setStepLabels(List<IModel<String>> stepLabels) {
-        this.stepLabels = stepLabels;
+    public Wizard(int stepCount) {
+        this.stepCount = stepCount;
     }
 
     public int getActiveStepIndex() {
@@ -43,15 +31,15 @@ public class Wizard implements Serializable {
         if (activeStepIndex < 0) {
             activeStepIndex = 0;
         }
-        if (activeStepIndex >= getStepLabels().size()) {
-            activeStepIndex = getStepLabels().size() - 1;
+        if (activeStepIndex >= stepCount) {
+            activeStepIndex = stepCount - 1;
         }
 
         this.activeStepIndex = activeStepIndex;
     }
 
     public void nextStep() {
-        if (activeStepIndex + 1 >= getStepLabels().size()) {
+        if (activeStepIndex + 1 >= stepCount) {
             return;
         }
 

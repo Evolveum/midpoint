@@ -50,7 +50,7 @@
       }
 
       > a > .fa-angle-left {
-        @include fa-icon-rotate(270deg, 3);
+        transform: rotate(270deg);
       }
     }
   }

@@ -36,9 +36,11 @@ import static java.util.Collections.emptyList;
  * @author Radovan Semancik
  */
 public class AssignmentTargetSearchExpressionEvaluator
-            extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>,
-                                                      PrismContainerDefinition<AssignmentType>,
-                                                      AssignmentTargetSearchExpressionEvaluatorType> {
+            extends AbstractSearchExpressionEvaluator<
+                PrismContainerValue<AssignmentType>,
+                AssignmentHolderType,
+                PrismContainerDefinition<AssignmentType>,
+                AssignmentTargetSearchExpressionEvaluatorType> {
 
     AssignmentTargetSearchExpressionEvaluator(QName elementName,
             AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
@@ -49,11 +51,13 @@ public class AssignmentTargetSearchExpressionEvaluator
                 modelService, securityContextManager, localizationService, cacheConfigurationManager);
     }
 
-    protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName,
+    protected PrismContainerValue<AssignmentType> createPrismValue(
+            String oid,
+            QName targetTypeQName,
             List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas,
             ExpressionEvaluationContext context) {
 
-        AssignmentType assignment = new AssignmentType(prismContext)
+        AssignmentType assignment = new AssignmentType()
                 .targetRef(oid, targetTypeQName, getRelation());
         assignment.getSubtype().addAll(getSubtypes());
 

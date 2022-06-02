@@ -17,6 +17,7 @@ import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -92,8 +93,11 @@ public class ResourceObjectClass implements DebugDumpable {
                 '}';
     }
 
-    public @NotNull ResourceShadowDiscriminator getCoords() {
-        return new ResourceShadowDiscriminator(resource.getOid(), kind, intent,
+    public @NotNull ResourceShadowCoordinates getCoords() {
+        return new ResourceShadowCoordinates(
+                resource.getOid(),
+                kind,
+                intent,
                 resourceObjectDefinition != null ? resourceObjectDefinition.getTypeName() : null);
     }
 
@@ -150,7 +154,7 @@ public class ResourceObjectClass implements DebugDumpable {
      * The query is interpreted by provisioning module - see:
      *
      * * {@link ProvisioningService#searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)},
-     * * {@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions, LiveSyncTokenStorage,
+     * * {@link ProvisioningService#synchronize(ResourceShadowCoordinates, LiveSyncOptions, LiveSyncTokenStorage,
      * LiveSyncEventHandler, Task, OperationResult)},
      *
      * The handling of kind/intent pair is quite straightforward. But when using object class name only,

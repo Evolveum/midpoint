@@ -13,9 +13,11 @@
 @import "../../../node_modules/admin-lte/build/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables-alt";
 @import "../../../node_modules/admin-lte/build/scss/mixins/_miscellaneous";
+@import "../../../node_modules/admin-lte/build/scss/mixins/dark-mode";
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
 // AdminLTE and Bootstrap end
 
+@import "admin-lte-overrides";
 @import "icon-style";
 @import "prism-forms";
 @import "midpoint-utils";
@@ -23,15 +25,8 @@
 @import "wicket";
 @import "bs-stepper-custom";
 
-//@import "midpoint/prism-container";
-//@import "midpoint/wizard";
-//@import "midpoint/tree.less";
-//@import "midpoint/page-user-details.less";
-//@import "midpoint/page-debugs.less";
-//@import "midpoint/capabilities.less";
-//@import "midpoint/tree-theme-basic.less";
-//@import "midpoint/operation-result.less";
-//@import "midpoint/icon-style.less";
+@import "tiles";
+@import "tables";
 
 body.custom-hold-transition {
 	.content-wrapper,
@@ -58,6 +53,7 @@ body.custom-hold-transition {
       background: url("../img/midpoint_logo_white_180.png") no-repeat 25px -7px;
     }
   }
+
   & > a.custom-logo {
 
     & > img {
@@ -69,6 +65,9 @@ body.custom-hold-transition {
 	}
   }
 
+  & > .sidebar > nav > ul.nav-sidebar > li.nav-item > a.active {
+    box-shadow: none;
+  }
 }
 
 div.navbar-custom-menu {
@@ -100,15 +99,6 @@ li.dropdown.user.user-menu {
   }
 }
 
-//table context menu border fix
-th.cog, td.cog {
-  & ul.dropdown-menu.pull-right {
-    border-color: #337ab7;
-  }
-}
-//end table context menu border fix
-
-
 // sidebar styles extension
 .sidebar-menu .treeview-menu > li > span > .fe {
   width: 20px;
@@ -132,7 +122,6 @@ th.cog, td.cog {
         @include rotate(90deg);
       }
     }
-
   }
 }
 // end sidebar styles extension
@@ -1117,51 +1106,6 @@ span.tree-content > table tr td:first-child {
 	}
 }
 
-// Tables where the first column is the name of the property/attribute
-// (e.g. audit log item details)
-// see MID-4300
-
-td.prop-name {
-	min-width: 90px;
-	font-weight: bold;
-}
-
-th.icon {
-	// The content of this column is just a single icon.
-	// WARNING: this means both the header and the table data
-	//          have just a single icon. No text.
-	// See com.evolveum.midpoint.web.component.data.column.IconColumn
-	width: 30px;
-}
-
-th.mid-width-column, td.mid-width-column {
-	width: 180px;
-}
-
-th.min-width-column, td.min-width-column {
-	width: 70px;
-}
-
-th.max-width-column, td.max-width-column {
-	width: 350px;
-}
-
-th.shrink {
-	// We want this column to fit as tightly as possible.
-	// E.g. for columns that have textual label but
-	// the content is just an icon or something much smaller
-	// than the header.
-	width: -moz-min-content;
-}
-
-th.countLabel{
-	// The content of this column is just some integer value.
-	// WARNING: this means both the header and the table data
-	//          have just some integer value.
-	// See com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions
-	width: 70px;
-}
-
 .expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
 	color: $text-label-color;
 }
@@ -1741,31 +1685,15 @@ th.debug-list-buttons {
   width: 160px;
 }
 
-.notification {
-  &.nav-item > .nav-link > .badge {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    font-size: 0.5em;
-  }
-}
-
-.user-panel {
-  border-bottom: 0 !important;
-}
-
-.tile-panel {
-  width: 250px;
-  height: 250px;
-  border: 2px solid $white;
-  border-radius: $border-radius;
-  cursor: pointer;
-
-  &:hover {
-    border: 2px solid $lightblue;
-    border-radius: $border-radius;
-  }
-}
+// used in navbar items for notification badges, replaced by standard admin-lte class .navbar-badge
+//.notification {
+//  &.nav-item > .nav-link > .badge {
+//    position: absolute;
+//    top: 5px;
+//    right: 10px;
+//    font-size: 0.5em;
+//  }
+//}
 
 .details-menu-panel {
   min-width: 273px;

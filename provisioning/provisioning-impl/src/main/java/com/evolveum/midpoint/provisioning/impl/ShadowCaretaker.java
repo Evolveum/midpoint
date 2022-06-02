@@ -200,7 +200,7 @@ public class ShadowCaretaker {
         QName objectClassQName = rawResourceObjectBean.getObjectClass();
         List<QName> auxiliaryObjectClassQNames = rawResourceObjectBean.getAuxiliaryObjectClass();
         if (auxiliaryObjectClassQNames.isEmpty()
-                && objectClassQName.equals(ctx.getObjectClassDefinitionRequired().getTypeName())) {
+                && objectClassQName.equals(ctx.getObjectClassNameRequired())) {
             // shortcut, no need to reapply anything
             return ctx;
         }

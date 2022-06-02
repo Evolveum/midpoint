@@ -31,7 +31,8 @@ Used when building via xjc.
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-security-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-security-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-metadata-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-metadata-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-gui-3.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-resources-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-resources-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-provisioning-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-provisioning-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-correlation-3.xsd" />
 
     <!-- WSDLs -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />

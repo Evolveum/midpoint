@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 
@@ -40,12 +41,16 @@ public class FullTextFilterProcessor implements FilterProcessor<FullTextFilter> 
             return null; // no condition, matches everything
         }
 
+        if (!(context.mapping() instanceof QObjectMapping)) {
+            throw new QueryException("Fulltext currently supported only on objects");
+        }
+
         Predicate predicate = null;
         for (String word : words) {
             // and() is null safe on both sides
             predicate = ExpressionUtils.and(predicate,
                     // We know it's object context, so we can risk the cast.
-                    ((QObject<?>) context.root()).fullTextInfo.contains(word));
+                    context.path(QObject.class).fullTextInfo.contains(word));
         }
 
         return predicate;

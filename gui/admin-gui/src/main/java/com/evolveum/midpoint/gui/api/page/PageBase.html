@@ -43,21 +43,28 @@
                 </li>
                 <wicket:enclosure child="cartButton">
                     <li class="nav-item">
-                        <a wicket:id="cartButton" class="nav-link shopping-cart-icon">
-                            <i class="fa fa-shopping-cart fa-2x shopping-cart-icon"></i>
-                            <span wicket:id="itemsCount" class="badge bg-red"
+                        <a wicket:id="cartButton" class="nav-link">
+                            <i class="fa fa-shopping-cart"></i>
+                            <span wicket:id="itemsCount" class="badge bg-danger"
                                     style="position: absolute; top: 1px; margin-left: -10px;"></span>
                         </a>
                     </li>
                 </wicket:enclosure>
-                <wicket:remove>
-                    <!-- todo waiting for proper implementation -->
-                    <li class="nav-item notification">
-                        <a class="nav-link">
-                            <i class="fas fa-bell"></i>
-                            <span class="badge badge-danger">1</span>
+                <wicket:enclosure child="cartLink">
+                    <li class="nav-item">
+                        <a class="nav-link" wicket:id="cartLink">
+                            <i class="fas fa-cart-shopping"></i>
+                            <span class="badge badge-danger navbar-badge" wicket:id="cartCount"/>
                         </a>
                     </li>
+                </wicket:enclosure>
+                <wicket:remove>
+                <li class="nav-item notification">
+                    <a class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge badge-danger">1</span>
+                    </a>
+                </li>
                 </wicket:remove>
                 <li class="nav-item dropdown">
                     <div wicket:id="locale"/>

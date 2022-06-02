@@ -40,8 +40,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityS
  * Helper class for updating schema and capabilities in a resource.
  *
  * Used during resource completion and resource testing.
- *
- * TODO implement also in-memory updates
  */
 class ResourceUpdater {
 
@@ -108,8 +106,7 @@ class ResourceUpdater {
         }
     }
 
-    void updateCapabilitiesCachingMetadata(
-            @NotNull ConnectorSpec connectorSpec, @NotNull CapabilitiesType existingCapabilitiesBean)
+    void updateCapabilitiesCachingMetadata(@NotNull ConnectorSpec connectorSpec)
             throws SchemaException {
         CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
         if (updateRepository) {

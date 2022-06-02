@@ -266,7 +266,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         QName name = itemRefToName(ref);
         if (name != null) {
             if (name.getNamespaceURI() == null) {
-                name = new QName(ResourceTypeUtil.getResourceNamespace(ctx.resourceObject), name.getLocalPart());            // TODO is this correct?
+                name = new QName(MidPointConstants.NS_RI, name.getLocalPart()); // TODO is this correct?
             }
             if (!existingNames.add(name)) {
                 duplicates.add(name);

@@ -6,24 +6,26 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionResolver;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -54,27 +56,25 @@ public class ProvisioningContextFactory {
      * Creates the context when exact resource + object type is known. This is the most direct approach;
      * almost no extra activities have to be done.
      */
-    public ProvisioningContext createForDefinition(
+    @NotNull ProvisioningContext createForDefinition(
             @NotNull ResourceType resource,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Task task)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-        return new ProvisioningContext(task, resource, objectDefinition, this);
+            @SuppressWarnings("SameParameterValue") Boolean wholeClass,
+            @NotNull Task task) {
+        return new ProvisioningContext(task, resource, objectDefinition, wholeClass, this);
     }
 
     /**
      * Creates the context when exact resource + coordinates are known.
      *
-     * The coordinates may point to a specific object type, or to a whole object class.
-     *
      * "Unknown" values for kind/intent are not supported here.
      */
-    public ProvisioningContext createForCoordinates(
+    public @NotNull ProvisioningContext createForCoordinates(
             @NotNull ResourceShadowCoordinates coords,
+            Boolean wholeClass,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         ResourceType resource = getResource(coords.getResourceOid(), task, result);
         return new ProvisioningContext(
                 task,
@@ -86,7 +86,69 @@ public class ProvisioningContextFactory {
                         coords.getObjectClass(),
                         List.of(),
                         false),
+                wholeClass,
                 this);
+    }
+
+    /**
+     * Creates the context for "bulk operation", like search, live sync, or async update.
+     * It is important to preserve the intention of the caller here, so e.g. if it specified
+     * only the object class, we have to set the {@link ProvisioningContext#wholeClass}
+     * appropriately.
+     *
+     * "Unknown" values for kind/intent are not supported here.
+     */
+    public @NotNull ProvisioningContext createForBulkOperation(
+            @NotNull ResourceShadowCoordinates coords,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+        ResourceType resource = getResource(coords.getResourceOid(), task, result);
+        ScopedDefinition scopedDefinition = createScopedDefinitionForBulkOperation(coords, resource);
+        return new ProvisioningContext(
+                task,
+                resource,
+                scopedDefinition.definition,
+                scopedDefinition.wholeClass,
+                this);
+    }
+
+    /** Just a variant of the above. */
+    public @NotNull ProvisioningContext createForBulkOperation(
+            @Nullable ObjectQuery query,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+        return createForBulkOperation(ObjectQueryUtil.getCoordinates(query), task, result);
+    }
+
+    private ScopedDefinition createScopedDefinitionForBulkOperation(ResourceShadowCoordinates coords, ResourceType resource)
+            throws SchemaException, ConfigurationException {
+
+        coords.checkNotUnknown(); // This is also checked when looking for definition, but let's be explicit
+
+        ShadowKindType kind = coords.getKind();
+        String intent = coords.getIntent();
+        QName objectClassName = coords.getObjectClass();
+
+        ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
+                resource,
+                kind,
+                intent,
+                objectClassName,
+                List.of(),
+                false);
+
+        Boolean wholeClass;
+        if (kind != null) {
+            wholeClass = false;
+        } else if (objectClassName != null) {
+            wholeClass = true; // definition may be of class (if we are lucky) or of type (in legacy situation)
+        } else {
+            wholeClass = null; // not important
+        }
+
+        return new ScopedDefinition(definition, wholeClass);
     }
 
     /**
@@ -107,13 +169,14 @@ public class ProvisioningContextFactory {
                         intent,
                         null,
                         List.of(),
-                        false));
+                        false),
+                false); // The client has explicitly requested kind/intent, so it wants the type, not the class.
     }
 
     /**
      * Spawns the context for an object class on the same resource.
      *
-     * @param useRawDefinition If true, we want to get "raw" object class definition, not a refined (object type) one.
+     * @param useRawDefinition If true, we want to get "raw" object class definition, not a refined (object class or type) one.
      */
     ProvisioningContext spawnForObjectClass(
             @NotNull ProvisioningContext originalCtx,
@@ -130,7 +193,8 @@ public class ProvisioningContextFactory {
         return new ProvisioningContext(
                 originalCtx,
                 task,
-                useRawDefinition ? definition.getObjectClassDefinition() : definition);
+                useRawDefinition ? definition.getRawObjectClassDefinition() : definition,
+                true);
     }
 
     /**
@@ -149,6 +213,7 @@ public class ProvisioningContextFactory {
                 task,
                 resource,
                 getObjectDefinition(resource, shadow, List.of()),
+                null, // we don't expect any searches nor other bulk actions
                 this);
     }
 
@@ -171,6 +236,7 @@ public class ProvisioningContextFactory {
                 task,
                 resource,
                 getObjectDefinition(resource, shadow, additionalAuxiliaryObjectClassNames),
+                null, // we don't expect any searches nor other bulk actions
                 this);
     }
 
@@ -186,6 +252,7 @@ public class ProvisioningContextFactory {
                 task,
                 resource,
                 getObjectDefinition(resource, shadow, List.of()),
+                null, // we don't expect any searches nor other bulk actions
                 this);
     }
 
@@ -201,7 +268,9 @@ public class ProvisioningContextFactory {
         return new ProvisioningContext(
                 originalCtx,
                 originalCtx.getTask(),
-                getObjectDefinition(originalCtx.getResource(), shadow, List.of()));
+                getObjectDefinition(originalCtx.getResource(), shadow, List.of()),
+                null // we don't expect any searches nor other bulk actions
+        );
     }
 
     private void assertSameResource(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> shadow) {
@@ -246,5 +315,16 @@ public class ProvisioningContextFactory {
 
     @NotNull public LightweightIdentifierGenerator getLightweightIdentifierGenerator() {
         return lightweightIdentifierGenerator;
+    }
+
+    /** Object type/class definition with `wholeClass` option. */
+    private static class ScopedDefinition {
+        @Nullable private final ResourceObjectDefinition definition;
+        @Nullable private final Boolean wholeClass;
+
+        private ScopedDefinition(@Nullable ResourceObjectDefinition definition, @Nullable Boolean wholeClass) {
+            this.definition = definition;
+            this.wholeClass = wholeClass;
+        }
     }
 }

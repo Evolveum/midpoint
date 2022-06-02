@@ -65,28 +65,27 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer item = new WebMarkupContainer(ID_ITEM);
         item.setOutputMarkupId(true);
         item.add(AttributeModifier.append("class", () -> {
-                MainMenuItem mainMenuItem = getModelObject();
-                if (mainMenuItem.isMenuActive(getPageBase())) {
-                    return "active";
-                }
+            MainMenuItem mmi = getModelObject();
 
-                if (mainMenuItem.hasActiveSubmenu(getPageBase())) {
-                    return "active menu-open";
-                }
-                return null;
-            }));
+            return mmi.hasActiveSubmenu(getPageBase()) ? "menu-is-opening menu-open" : null;
+        }));
         add(item);
 
         item.add(AttributeModifier.append("style", () -> isMenuExpanded() ? "" : "display: none;"));
 
         AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
-                private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    mainMenuPerformed();
-                }
-            };
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                mainMenuPerformed();
+            }
+        };
+        link.add(AttributeModifier.append("class", () -> {
+            MainMenuItem mmi = getModelObject();
+
+            return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ? "active" : null;
+        }));
         item.add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
@@ -123,8 +122,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private void createSubmenu(final ListItem<MenuItem> listItem) {
         IModel<MenuItem> menuItem = listItem.getModel();
 
-        listItem.add(AttributeModifier.replace("class", () -> menuItem.getObject().isMenuActive(getPageBase()) ? "active" : null));
-
         Link<String> subLink = new Link<>(ID_SUB_LINK) {
             private static final long serialVersionUID = 1L;
 
@@ -133,10 +130,11 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 menuItemPerformed(menuItem.getObject());
             }
         };
+        subLink.add(AttributeModifier.append("class", () -> menuItem.getObject().isMenuActive(getPageBase()) ? "active" : null));
         listItem.add(subLink);
 
         WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
-            subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
+        subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
         subLink.add(subLinkIcon);
 
         Label subLabel = new Label(ID_SUB_LABEL, new StringResourceModel("${nameModel}", menuItem).setDefaultValue(new PropertyModel<>(menuItem, "nameModel")));

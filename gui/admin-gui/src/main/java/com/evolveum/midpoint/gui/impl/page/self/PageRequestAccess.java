@@ -6,23 +6,27 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.DetailsMenuPanel;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardBorder;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PersonOfInterestPanel;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.self.PageSelf;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.component.wizard.Wizard;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardBorder;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -48,19 +52,13 @@ public class PageRequestAccess extends PageSelf {
     private static final String ID_WIZARD = "wizard";
     private static final String ID_PERSON_OF_INTEREST = "personOfInterest";
     private static final String ID_ROLE_CATALOG = "roleCatalog";
+    private static final String ID_SHOPPING_CART = "shoppingCart";
 
-    private IModel<Wizard> wizard;
+    private IModel<RequestAccess> model = Model.of(new RequestAccess());
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
-        Wizard w = new Wizard();
-        w.getStepLabels().add(() -> "Person of interest");
-        w.getStepLabels().add(() -> "Role catalog");
-        w.getStepLabels().add(() -> "Shopping cart");
-
-        wizard = Model.of(w);
 
         initLayout();
     }
@@ -69,37 +67,39 @@ public class PageRequestAccess extends PageSelf {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        WizardBorder wizard = new WizardBorder(ID_WIZARD, this.wizard);
+        WizardBorder wizard = new WizardBorder(ID_WIZARD) {
+
+            @Override
+            protected List<WizardPanel> createSteps() {
+                return PageRequestAccess.this.createSteps(this);
+            }
+        };
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
+    }
 
-        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(ID_PERSON_OF_INTEREST) {
+    private List<WizardPanel> createSteps(WizardBorder border) {
+        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(ID_PERSON_OF_INTEREST, border.getModel(), model) {
 
             @Override
             protected void onNextPerformed(AjaxRequestTarget target) {
-                Wizard w = PageRequestAccess.this.wizard.getObject();
-                w.nextStep();
+                border.getModel().getObject().nextStep();
 
-                target.add(wizard);
+                target.add(border);
             }
-        };
-        personOfInterest.add(wizard.createWizardStepVisibleBehaviour(0));
-        wizard.add(personOfInterest);
-
-        RoleCatalogPanel roleCatalog = new RoleCatalogPanel(ID_ROLE_CATALOG) {
 
             @Override
-            protected void onBackPerformed(AjaxRequestTarget target) {
-                Wizard w = PageRequestAccess.this.wizard.getObject();
-                w.previousStep();
-
-                target.add(wizard);
+            protected IModel<String> createNextStepLabel() {
+                return () -> {
+                    WizardPanel next = border.getNextPanel();
+                    return next != null ? next.getTitle().getObject() : null;
+                };
             }
         };
-        roleCatalog.add(wizard.createWizardStepVisibleBehaviour(1));
-        wizard.add(roleCatalog);
 
-        //todo delete
-        add(new DetailsMenuPanel("menu"));
+        RoleCatalogPanel roleCatalog = new RoleCatalogPanel(ID_ROLE_CATALOG);
+        ShoppingCartPanel shoppingCart = new ShoppingCartPanel(ID_SHOPPING_CART);
+
+        return Arrays.asList(personOfInterest, roleCatalog, shoppingCart);
     }
 }

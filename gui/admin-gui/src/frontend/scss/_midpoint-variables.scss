@@ -7,7 +7,12 @@
 
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions.scss";
 
+@import "bootstrap-variables";
+
 @import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
+
+@import "admin-lte-variables";
+
 @import "../../../node_modules/admin-lte/build/scss/variables";
 @import "../../../node_modules/admin-lte/build/scss/variables-alt";
 

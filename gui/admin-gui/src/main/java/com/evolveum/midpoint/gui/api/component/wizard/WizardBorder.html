@@ -8,13 +8,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:border>
-    <div class="bs-stepper-header" role="tablist" wicket:id="header">
+    <div class="bs-stepper-header flex-wrap flex-column flex-sm-row" role="tablist" wicket:id="header">
         <wicket:container wicket:id="steps">
-            <div wicket:id="step"/>
+            <div class="flex flex-row no-wrap" wicket:id="step"/>
             <div class="line" wicket:id="line"/>
         </wicket:container>
     </div>
     <div class="bs-stepper-content">
+        <div wicket:id="contentHeader"/>
         <wicket:body/>
     </div>
 </wicket:border>

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -298,8 +300,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountPinkModel = modelService.getObject(ShadowType.class, accountPinkOid, null, task, result);
         assertAccountShadowModel(accountPinkModel, accountPinkOid, "jack1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
         display("accountPinkModel", accountPinkModel);
-        PrismAsserts.assertPropertyValue(accountPinkModel, getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
-                "pistol");
+        PrismAsserts.assertPropertyValue(
+                accountPinkModel, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "pistol");
 
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
