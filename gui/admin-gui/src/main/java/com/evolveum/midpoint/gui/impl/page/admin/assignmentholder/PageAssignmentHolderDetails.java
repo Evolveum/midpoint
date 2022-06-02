@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -58,13 +60,17 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     @Override
     protected void initLayout() {
-        Collection<CompiledObjectCollectionView> applicableArchetypes = findAllApplicableArchetypeViews();
-        if (isAdd() && applicableArchetypes.size() > 1) {
+        if (isAdd() && isApplicableTemplate()) {
             TemplateFragment templateFragment = new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
             add(templateFragment);
         } else {
             super.initLayout();
         }
+    }
+
+    protected boolean isApplicableTemplate() {
+        Collection<CompiledObjectCollectionView> applicableArchetypes = findAllApplicableArchetypeViews();
+        return applicableArchetypes.size() > 1;
     }
 
     class TemplateFragment extends Fragment {
@@ -80,13 +86,13 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             initTemplateLayout();
         }
 
-        private void initTemplateLayout() {
-            add(createTemplatePanel());
+        protected void initTemplateLayout() {
+            add(createTemplatePanel(ID_TEMPLATE));
         }
     }
 
-    private CreateTemplatePanel<AH> createTemplatePanel() {
-        return new CreateTemplatePanel<>(ID_TEMPLATE) {
+    protected WebMarkupContainer createTemplatePanel(String id) {
+        return new CreateTemplatePanel<>(id) {
 
             @Override
             protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {

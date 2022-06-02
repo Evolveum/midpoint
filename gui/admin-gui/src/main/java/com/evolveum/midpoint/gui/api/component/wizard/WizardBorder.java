@@ -83,6 +83,7 @@ public class WizardBorder extends Border {
         }
 
         model = Model.of(new Wizard(steps.size()));
+        model.getObject().setActiveStepIndex(getInitialStep());
 
         add(AttributeAppender.prepend("class", "bs-stepper"));
         add(AttributeAppender.append("class", () -> getCurrentPanel().appendCssToWizard()));
@@ -145,6 +146,10 @@ public class WizardBorder extends Border {
         });
         contentHeader.setOutputMarkupId(true);
         addToBorder(contentHeader);
+    }
+
+    protected int getInitialStep() {
+        return 0;
     }
 
     public VisibleBehaviour createWizardStepVisibleBehaviour(int index) {

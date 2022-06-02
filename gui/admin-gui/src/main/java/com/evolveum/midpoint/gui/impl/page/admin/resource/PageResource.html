@@ -8,7 +8,16 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <wicket:child />
+    <wicket:fragment wicket:id="wizardView">
+        <form wicket:id="mainForm" class="d-flex justify-content-center">
+            <div wicket:id="wizard" class="mt-5">
+                <div wicket:id="selection"/>
+                <div wicket:id="basicSettings"/>
+                <div wicket:id="configuration"/>
+            </div>
+        </form>
+    </wicket:fragment>
+    <wicket:child/>
 </wicket:extend>
 </body>
 </html>
