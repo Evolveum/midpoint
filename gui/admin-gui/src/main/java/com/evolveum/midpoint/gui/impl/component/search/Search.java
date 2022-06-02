@@ -286,18 +286,25 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery getArchetypeQuery(PageBase pageBase) {
-        if (findObjectCollectionSearchItemWrapper() == null || findObjectCollectionSearchItemWrapper().getObjectCollectionView() == null) {
+        CompiledObjectCollectionView view = null;
+        if (findObjectCollectionSearchItemWrapper() != null && findObjectCollectionSearchItemWrapper().getObjectCollectionView() != null) {
+            view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
+            if (view.getFilter() == null) {
+                return null;
+            }
+        } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionViewName())) {
+            view = pageBase.getCompiledGuiProfile()
+                    .findObjectCollectionView(WebComponentUtil.containerClassToQName(pageBase.getPrismContext(), getTypeClass()),
+                            searchConfigurationWrapper.getCollectionViewName());
+        }
+        if (view == null) {
             return null;
         }
-        CompiledObjectCollectionView view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
-        if (view.getFilter() == null) {
-            return null;
-        }
-
         ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
         OperationResult result = new OperationResult("evaluate filter");
         query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, pageBase));
         return query;
+
     }
 
     private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
