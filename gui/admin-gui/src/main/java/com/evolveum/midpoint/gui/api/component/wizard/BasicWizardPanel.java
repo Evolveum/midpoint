@@ -22,7 +22,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lskublik
  */
-public class BasicWizardPanel extends BasePanel implements WizardPanel{
+public class BasicWizardPanel extends WizardStepPanel {
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
@@ -31,10 +31,6 @@ public class BasicWizardPanel extends BasePanel implements WizardPanel{
     private static final String ID_BACK = "back";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
-
-    public BasicWizardPanel(String id) {
-        super(id);
-    }
 
     @Override
     protected void onInitialize() {
@@ -93,8 +89,8 @@ public class BasicWizardPanel extends BasePanel implements WizardPanel{
 
     private IModel<?> createNextStepLabel() {
         MarkupContainer parent = getParent();
-        if (parent instanceof WizardBorder) {
-            WizardPanel panel = ((WizardBorder) parent).getNextPanel();
+        if (parent instanceof WizardPanel) {
+            WizardStep panel = ((WizardPanel) parent).getWizardModel().getNextPanel();
             return panel.getTitle();
         }
         return Model.of();
@@ -102,18 +98,20 @@ public class BasicWizardPanel extends BasePanel implements WizardPanel{
 
     private void onNextPerformed(AjaxRequestTarget target) {
         MarkupContainer parent = getParent();
-        if (parent instanceof WizardBorder) {
-            ((WizardBorder) parent).nextStep(target);
+        if (parent instanceof WizardPanel) {
+            ((WizardPanel) parent).getWizardModel().next();
+            target.add(parent);
         }
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {
         MarkupContainer parent = getParent();
-        if (parent instanceof WizardBorder) {
-            WizardBorder wizard = (WizardBorder) parent;
-            int index = wizard.getModel().getObject().getActiveStepIndex();
+        if (parent instanceof WizardPanel) {
+            WizardPanel wizard = (WizardPanel) parent;
+            int index = wizard.getWizardModel().getActiveStepIndex();
             if (index > 0) {
-                wizard.previousStep(target);
+                wizard.getWizardModel().previous();
+                target.add(wizard);
                 return;
             }
         }

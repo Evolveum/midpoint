@@ -49,6 +49,10 @@ public class WizardPanel extends BasePanel {
         this.wizardModel.init();
     }
 
+    public WizardModel getWizardModel() {
+        return wizardModel;
+    }
+
     @Override
     protected void onComponentTag(ComponentTag tag) {
         checkComponentTag(tag, "div");

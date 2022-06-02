@@ -39,8 +39,7 @@ public class BasicSettingStepPanel extends BasicWizardPanel {
 
     private final IModel<PrismObjectWrapper<ResourceType>> resourceModel;
 
-    public BasicSettingStepPanel(String id, IModel<PrismObjectWrapper<ResourceType>> model) {
-        super(id);
+    public BasicSettingStepPanel(IModel<PrismObjectWrapper<ResourceType>> model) {
         this.resourceModel = model;
     }
 
@@ -61,8 +60,6 @@ public class BasicSettingStepPanel extends BasicWizardPanel {
 
     @Override
     protected Component createContentPanel(String id) {
-
-        ;
         return new QuickFormPanel(id, () -> this.resourceModel.getObject().getValue()) {
             @Override
             protected String getIcon() {

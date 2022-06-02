@@ -10,8 +10,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardBorder;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
@@ -115,27 +116,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             protected void initFragmentLayout() {
                 Form mainForm = new Form(ID_MAIN_FORM);
                 add(mainForm);
-                WizardBorder wizard = new WizardBorder(ID_WIZARD) {
-
-                    @Override
-                    protected List<WizardPanel> createSteps() {
-                        return PageResource.this.createSteps();
-                    }
-
-                    @Override
-                    protected int getInitialStep() {
-                        return 1;
-                    }
-                };
+                WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(PageResource.this.createSteps()));
                 wizard.setOutputMarkupId(true);
                 mainForm.add(wizard);
             }
         };
-
     }
 
-    private List<WizardPanel> createSteps() {
-        BasicWizardPanel selection = new BasicWizardPanel(ID_SELECTION){
+    private List<WizardStep> createSteps() {
+        BasicWizardPanel selection = new BasicWizardPanel(){
             @Override
             public IModel<String> getTitle() {
                 return createStringResource("PageResource.wizard.step.selection");
@@ -144,9 +133,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         //TODO rework
         selection.add(new VisibleBehaviour(() -> false)); //fake first step
 
-        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(ID_BASIC_SETTINGS, getModel());
+        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(getModel());
 
-        ConfigurationStepPanel configuration = new ConfigurationStepPanel(ID_CONFIGURATION, getModel());
+        ConfigurationStepPanel configuration = new ConfigurationStepPanel(getModel());
 
         return List.of(selection, basicSettings, configuration);
     }
