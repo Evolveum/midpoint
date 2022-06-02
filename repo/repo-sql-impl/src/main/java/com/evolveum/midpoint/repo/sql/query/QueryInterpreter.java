@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -103,7 +103,9 @@ public class QueryInterpreter {
         boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
         LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
-        InterpretationContext context = new InterpretationContext(this, type, prismContext, relationRegistry, extItemDictionary, session);
+        // I'm sorry about the 7th parameter, but this will die with the old repo soon.
+        InterpretationContext context = new InterpretationContext(this, type, prismContext,
+                relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
         interpretQueryFilter(context, query);
         String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
         ResultStyle resultStyle = getResultStyle(context);
@@ -133,7 +135,7 @@ public class QueryInterpreter {
         if (distinct && !distinctBlobCapable) {
             String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
             InterpretationContext wrapperContext = new InterpretationContext(
-                    this, type, prismContext, relationRegistry, extItemDictionary, session);
+                    this, type, prismContext, relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
             try {
                 interpretPagingAndSorting(wrapperContext, query, false);
             } catch (QueryException e) {

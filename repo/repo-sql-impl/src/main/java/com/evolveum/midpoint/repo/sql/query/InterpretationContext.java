@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -44,7 +45,8 @@ public class InterpretationContext {
 
     public InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
             PrismContext prismContext, RelationRegistry relationRegistry,
-            ExtItemDictionary extItemDictionary, Session session) throws QueryException {
+            ExtItemDictionary extItemDictionary, Session session, SupportedDatabase databaseType)
+            throws QueryException {
 
         Objects.requireNonNull(interpreter, "interpreter");
         Objects.requireNonNull(type, "type");
@@ -68,7 +70,7 @@ public class InterpretationContext {
 
         rootEntityDefinition = registry.findEntityDefinition(type);
 
-        this.hibernateQuery = new RootHibernateQuery(rootEntityDefinition);
+        this.hibernateQuery = new RootHibernateQuery(rootEntityDefinition, databaseType);
     }
 
     public PrismContext getPrismContext() {
