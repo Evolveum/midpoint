@@ -74,16 +74,69 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     }
 
     private List<ShadowWrapper> loadShadowWrappers() {
-        Task task = getModelServiceLocator().createSimpleTask(OPERATION_LOAD_SHADOW);
+        LOGGER.trace("Loading shadow wrapper");
+        long start = System.currentTimeMillis();
+        List<ShadowWrapper> list = new ArrayList<>();
+
         PrismObjectWrapper<F> focusWrapper = getObjectWrapperModel().getObject();
         PrismObject<F> focus = focusWrapper.getObject();
-        return WebComponentUtil.loadShadowWrapperList(focus, createLoadOptionForShadowWrapper(), task, getPageBase());
+        PrismReference prismReference = focus.findReference(UserType.F_LINK_REF);
+        if (prismReference == null || prismReference.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<PrismReferenceValue> references = prismReference.getValues();
+
+        Task task = getModelServiceLocator().createSimpleTask(OPERATION_LOAD_SHADOW);
+        for (PrismReferenceValue reference : references) {
+            if (reference == null || (reference.getOid() == null && reference.getTargetType() == null)) {
+                LOGGER.trace("Skiping reference for shadow with null oid");
+                continue; // default value
+            }
+            long shadowTimestampBefore = System.currentTimeMillis();
+            OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
+            PrismObject<ShadowType> projection = getPrismObjectForShadowWrapper(reference.getOid(),
+                    true, task, subResult, createLoadOptionForShadowWrapper());
+
+            long shadowTimestampAfter = System.currentTimeMillis();
+            LOGGER.trace("Got shadow: {} in {}", projection, shadowTimestampAfter - shadowTimestampBefore);
+            if (projection == null) {
+                LOGGER.error("Couldn't load shadow projection");
+                continue;
+            }
+
+            long timestampWrapperStart = System.currentTimeMillis();
+            try {
+
+                ShadowWrapper wrapper = loadShadowWrapper(projection, true, task, subResult);
+                wrapper.setLoadWithNoFetch(true);
+                list.add(wrapper);
+
+            } catch (Throwable e) {
+                getPageBase().showResult(subResult, "pageAdminFocus.message.couldntCreateShadowWrapper");
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);
+            }
+            long timestampWrapperEnd = System.currentTimeMillis();
+            LOGGER.trace("Load wrapper in {}", timestampWrapperEnd - timestampWrapperStart);
+        }
+        long end = System.currentTimeMillis();
+        LOGGER.trace("Load projctions in {}", end - start);
+        return list;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper() {
         return getPageBase().getOperationOptionsBuilder()
                 .resolveNames()
                 .build();
+    }
+
+    @NotNull
+    public ShadowWrapper loadShadowWrapper(PrismObject<ShadowType> projection, boolean noFetch, Task task, OperationResult result) throws SchemaException {
+        PrismObjectWrapperFactory<ShadowType> factory = getPageBase().findObjectWrapperFactory(projection.getDefinition());
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(noFetch ? false : true);
+        ShadowWrapper wrapper = (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
+        wrapper.setProjectionStatus(UserDtoStatus.MODIFY);
+        return wrapper;
     }
 
     public void setSelfProfile(boolean selfProfile) {
@@ -94,6 +147,28 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return isSelfProfile;
     }
 
+    private PrismObject<ShadowType> getPrismObjectForShadowWrapper(String oid, boolean noFetch,
+            Task task, OperationResult subResult, Collection<SelectorOptions<GetOperationOptions>> loadOptions) {
+        if (oid == null) {
+            return null;
+        }
+
+        if (noFetch) {
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(loadOptions);
+            if (rootOptions == null) {
+                loadOptions.add(new SelectorOptions<>(GetOperationOptions.createNoFetch()));
+            } else {
+                rootOptions.setNoFetch(true);
+            }
+        }
+
+        PrismObject<ShadowType> projection = WebModelServiceUtils.loadObject(ShadowType.class, oid, loadOptions, getPageBase(), task, subResult);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Loaded projection {} ({}):\n{}", oid, loadOptions, projection == null ? null : projection.debugDump());
+        }
+
+        return projection;
+    }
 
     public LoadableDetachableModel<List<ShadowWrapper>> getProjectionModel() {
         return projectionModel;
