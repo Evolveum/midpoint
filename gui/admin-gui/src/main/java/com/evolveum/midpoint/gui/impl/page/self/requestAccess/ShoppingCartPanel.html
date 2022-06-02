@@ -19,19 +19,23 @@
                         <wicket:message key="ShoppingCartPanel.checkout"/>
                     </h3>
                 </div>
-                <div class="card-body d-flex flex-column gap-2">
-                    <label class="mb-0">
-                        <wicket:message key="ShoppingCartPanel.validity"/>
-                        <i class="fas fa-info-circle fa-xs text-primary"></i>
-                    </label>
-                    <select class="form-control">
-                        <!-- todo -->
-                    </select>
-                    <label class="mb-0">
-                        <wicket:message key="ShoppingCartPanel.comment"/>
-                        <i class="fas fa-info-circle fa-xs text-primary"></i>
-                    </label>
-                    <textarea class="form-control" rows="4"></textarea>
+                <div class="card-body d-flex flex-column gap-3 pb-1">
+                    <div class="form-group mb-0">
+                        <label>
+                            <wicket:message key="ShoppingCartPanel.validity"/>
+                            <i class="fas fa-info-circle fa-xs text-primary"></i>
+                        </label>
+                        <select class="form-control">
+                            <!-- todo -->
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label>
+                            <wicket:message key="ShoppingCartPanel.comment"/>
+                            <i class="fas fa-info-circle fa-xs text-primary"></i>
+                        </label>
+                        <textarea class="form-control" rows="4"></textarea>
+                    </div>
                     <a class="btn btn-danger">
                         <i class="fas fa-triangle-exclamation mr-1"></i>
                         <wicket:message key="ShoppingCartPanel.openConflict"/>

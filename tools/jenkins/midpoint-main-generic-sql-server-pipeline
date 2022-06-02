@@ -6,10 +6,7 @@
  */
 
 // Our MS SQL Server docs: https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/
-def verbose = 0
-try {
-    verbose = Integer.parseInt(params.VERBOSE ?: '0')
-} catch (Exception e) { /* ignored */ }
+def verbose = params.VERBOSE ?: '0'
 
 // ; needs to be escaped with \ for bash below (that is \\ in Groovy string)
 def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://localhost:1433\\;database=midtest\\;trustServerCertificate=true' +

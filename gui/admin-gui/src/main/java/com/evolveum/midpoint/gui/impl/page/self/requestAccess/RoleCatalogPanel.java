@@ -12,6 +12,15 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -46,6 +55,8 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
     private static final String ID_MENU = "menu";
     private static final String ID_TILES_CONTAINER = "tilesContainer";
     private static final String ID_TILES = "tiles";
+
+    private static final String ID_TILES_SEARCH = "tilesSearch";
     private static final String ID_TILE = "tile";
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
@@ -96,6 +107,21 @@ public class RoleCatalogPanel extends BasePanel implements WizardPanel {
         WebMarkupContainer tilesContainer = new WebMarkupContainer(ID_TILES_CONTAINER);
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
         add(tilesContainer);
+
+        IModel<Search> searchModel = new LoadableModel<>(false) {
+            @Override
+            protected Search load() {
+                return SearchFactory.createSearch(RoleType.class, getPageBase());
+            }
+        };
+        SearchPanel tilesSearch = new SearchPanel(ID_TILES_SEARCH, searchModel) {
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                // todo implement
+            }
+        };
+        tilesContainer.add(tilesSearch);
 
         List<CatalogTile> list = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
