@@ -65,14 +65,15 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
     private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
-    private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
    private Map<String, List<StringLimitationResult>> limitationsByPolicyOid = new HashMap<>();
    private String currentPasswordValue = null;
+   private IModel<ProtectedStringType> passwordValueModel;
 
     public ChangePasswordPanel(String id, IModel<F> objectModel) {
         super(id, objectModel);
+        passwordValueModel =  new PropertyModel<>(objectModel,
+                FocusType.F_CREDENTIALS + "." + CredentialsType.F_PASSWORD + "." + PasswordType.F_VALUE);
     }
 
     protected void onInitialize() {
@@ -109,8 +110,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
 
-        IModel<ProtectedStringType> passwordValueModel =  new PropertyModel<>(getModel(),
-                FocusType.F_CREDENTIALS + "." + CredentialsType.F_PASSWORD + "." + PasswordType.F_VALUE);
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, passwordValueModel, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
@@ -202,4 +201,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return null;
     }
 
+    protected ProtectedStringType getNewPasswordValue() {
+        return passwordValueModel.getObject();
+    }
 }

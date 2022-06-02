@@ -84,7 +84,7 @@ public class PageSelfCredentials extends PageBase {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new ChangePasswordPanel(panelId, Model.of(getPrincipalFocus())) {
+                return new PropagatePasswordPanel(panelId, Model.of(getPrincipalFocus())) {
                     private static final long serialVersionUID = 1L;
 
 //                    @Override

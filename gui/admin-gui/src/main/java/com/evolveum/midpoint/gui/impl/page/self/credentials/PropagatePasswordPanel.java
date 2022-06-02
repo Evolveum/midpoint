@@ -6,38 +6,65 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.visit.IVisitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordPanel<F> {
 
+    private static final String DOT_CLASS = PropagatePasswordPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadUserAccounts";
+    private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
+    private static final String OPERATION_LOAD_VALUE_POLICY = DOT_CLASS + "loadValuePolicy";
+    private static final Trace LOGGER = TraceManager.getTrace(PropagatePasswordPanel.class);
     private static final String ID_PROPAGATE_PASSWORD_CHECKBOX = "propagatePasswordCheckbox";
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
@@ -59,91 +86,410 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         propagatePasswordCheckbox.setOutputMarkupId(true);
         add(propagatePasswordCheckbox);
 
-        MultivalueContainerListPanel<ShadowType> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<ShadowType>(ID_INDIVIDUAL_SYSTEMS_TABLE, ShadowType.class) {
+        ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
+        BoxedTablePanel<PasswordAccountDto> provisioningTable = new BoxedTablePanel<>(ID_INDIVIDUAL_SYSTEMS_TABLE,
+                provider, initColumns()) {
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return true;
+            }
+        };
+        provisioningTable.setOutputMarkupId(true);
+        add(provisioningTable);
+    }
+
+    private IModel<List<PasswordAccountDto>> getShadowModel() {
+        return () -> {
+            List<PasswordAccountDto> accountDtoList = new ArrayList<>();
+            accountDtoList.add(createDefaultPasswordAccountDto());
+            PrismReference linkReferences = getModelObject().asPrismObject().findReference(FocusType.F_LINK_REF);
+            if (linkReferences == null) {
+                return accountDtoList;
+            }
+            final Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                    .item(ShadowType.F_RESOURCE_REF).resolve()
+                    .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,
+                            ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()
+                    .build();
+            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
+            OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+            for (PrismReferenceValue value : linkReferences.getValues()) {
+                try {
+                    String accountOid = value.getOid();
+                    PrismObject<ShadowType> account = getPageBase().getModelService().getObject(ShadowType.class,
+                            accountOid, options, task, result);
+
+                    accountDtoList.add(createPasswordAccountDto(account, task, result));
+                    result.recordSuccessIfUnknown();
+                } catch (Exception ex) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
+                    result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccount.fatalError"), ex);
+                }
+            }
+
+            return accountDtoList;
+        };
+    }
+
+    private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) {
+        PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);
+        String resourceName;
+        if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
+            resourceName = getString("PageSelfCredentials.couldntResolve");
+        } else {
+            resourceName = WebComponentUtil.getName(resourceRef.getValue().getObject());
+        }
+
+        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account, resourceName, resourceRef.getOid());
+
+        ShadowType shadowType = account.asObjectable();
+        ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();
+        if (resource != null) {
+            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+            passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));
+            passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));
+            try {
+                ResourceObjectDefinition rOCDef = getPageBase().getModelInteractionService().getEditObjectClassDefinition(account,
+                        resource.asPrismObject(), AuthorizationPhaseType.REQUEST, task, result);
+
+                if (rOCDef != null) {
+                    passwordAccountDto.setPasswordOutbound(getPasswordOutbound(resource, rOCDef));
+                    CredentialsPolicyType credentialsPolicy = getPasswordCredentialsPolicy(rOCDef);
+                    if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
+                            && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
+                        PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                                credentialsPolicy.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
+                        if (valuePolicy != null) {
+                            passwordAccountDto.setPasswordValuePolicy(valuePolicy.asObjectable());
+                        }
+                    }
+                } else {
+                    passwordAccountDto.setPasswordOutbound(false);
+                }
+
+            } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Fail to get ResourceObjectTypeDefinition for {} ", e, account);
+                result.recordFatalError("Fail to get ResourceObjectTypeDefinition for " + account, e);
+                getPageBase().showResult(result);
+                passwordAccountDto.setPasswordOutbound(false);
+            }
+
+        } else {
+            passwordAccountDto.setPasswordCapabilityEnabled(false);
+            passwordAccountDto.setPasswordOutbound(false);
+        }
+
+        return passwordAccountDto;
+    }
+
+    private List<IColumn<PasswordAccountDto, String>> initColumns() {
+        List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxColumn<>(Model.of(""), Selectable.F_SELECTED) {
+            @Override
+            protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
+                return Model.of(true);
+//                return () -> {
+//                    PasswordAccountDto passwordAccountDto = rowModel.getObject();
+//                    if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordCapabilityEnabled()) {
+//                        passwordAccountDto.setSelected(false);
+//                        return false;
+//                    }
+//                    if (CredentialsPropagationUserControlType.ONLY_MAPPING.equals(getModelObject().getPropagation())) {
+//                        if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordOutbound()) {
+//                            passwordAccountDto.setSelected(false);
+//                        }
+//                        return false;
+//                    }
+//                    if (passwordAccountDto.isMidpoint() && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(getModelObject().getPropagation())) {
+//                        return false;
+//                    }
+//                    if (!passwordAccountDto.isMidpoint() && midpointAccountSelected.getObject() && passwordAccountDto.isPasswordOutbound()) {
+//                        passwordAccountDto.setSelected(true);
+//                        return false;
+//                    }
+//                    return true;
+//                };
+            }
+
+            @Override
+            protected void processBehaviourOfCheckBox(IsolatedCheckBoxPanel check, IModel<PasswordAccountDto> rowModel) {
+                super.processBehaviourOfCheckBox(check, rowModel);
+                IModel<String> titleModel = () -> {
+                    PasswordAccountDto passwordAccountDto = rowModel.getObject();
+                    if (!getEnabled(rowModel).getObject()) {
+                        String key;
+                        if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordCapabilityEnabled()) {
+                            key = "ChangePasswordPanel.legendMessage.no.password.capability";
+                        } else {
+                            key = "ChangePasswordPanel.legendMessage.policy";
+                        }
+                        return createStringResource(key).getString();
+                    }
+                    return "";
+                };
+                check.add(AttributeAppender.append("title", titleModel));
+            }
+
+            @Override
+            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<PasswordAccountDto> rowModel, IModel<Boolean> selected) {
+                super.onUpdateRow(target, table, rowModel, selected);
+                if (rowModel.getObject().isMidpoint()) {
+                    table.visitChildren(IsolatedCheckBoxPanel.class,
+                            (IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>) (panel, iVisit) -> {
+                                target.add(panel);
+                            });
+                }
+            }
+        });
+
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.name")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
+                    final IModel<PasswordAccountDto> rowModel) {
+                item.add(new Label(componentId, new IModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ISelectableDataProvider<ShadowType, PrismContainerValueWrapper<ShadowType>> createProvider() {
-                        return new ProjectionsListProvider(PropagatePasswordPanel.this, getSearchModel(), getShadowModel()) {
-                            @Override
-                            protected PageStorage getPageStorage() {
-                                PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
-                                if (storage == null) {
-                                    storage = getSession().getSessionStorage().initPageStorage(SessionStorage.KEY_FOCUS_PROJECTION_TABLE);
-                                }
-                                return storage;
-                            }
-                        };
+                    public String getObject() {
+                        PasswordAccountDto dto = rowModel.getObject();
+                        return dto.getDisplayName();
                     }
+                }));
+            }
+        });
+
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.resourceName")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
+                    final IModel<PasswordAccountDto> rowModel) {
+                IModel<String> helpModel = () -> {
+                    String title = "";
+                    if (!rowModel.getObject().isMidpoint() && !rowModel.getObject().isPasswordCapabilityEnabled()) {
+                        title = createStringResource("ChangePasswordPanel.legendMessage.no.password.capability").getString();
+                    }
+                    if (rowModel.getObject().isMaintenanceState()) {
+                        title = title
+                                + (StringUtils.isEmpty(title) ? "" : " ")
+                                + createStringResource("ChangePasswordPanel.legendMessage.maintenance").getString();
+                    }
+                    return title;
+                };
+
+                item.add(new LabelWithHelpPanel(componentId, new IModel<>() {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
-                            List<PrismContainerValueWrapper<ShadowType>> listItems) {
+                    public String getObject() {
+                        PasswordAccountDto dto = rowModel.getObject();
+                        return dto.getResourceName();
                     }
-
+                }) {
                     @Override
-                    protected UserProfileStorage.TableId getTableId() {
-                        return UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE; //todo change
+                    protected IModel<String> getHelpModel() {
+                        return helpModel;
                     }
+                });
+            }
+        });
 
-                    @Override
-                    protected boolean isCreateNewObjectVisible() {
-                        return false;
+        IconColumn enabled = new IconColumn<PasswordAccountDto>(createStringResource("ChangePasswordPanel.enabled")) {
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
+                String cssClass = "fa fa-question text-info";
+                String tooltip = "ActivationStatusType.null";
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isEnabled() != null) {
+                    if (rowModel.getObject().isEnabled()) {
+                        cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED;
+                        tooltip = "ActivationStatusType.ENABLED";
+                    } else {
+                        cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED;
+                        tooltip = "ActivationStatusType.DISABLED";
                     }
+                }
+                return GuiDisplayTypeUtil.createDisplayType(cssClass + " fa-fw fa-lg", "", createStringResource(tooltip).getString());
+            }
 
-                    @Override
-                    protected IModel<PrismContainerWrapper<ShadowType>> getContainerModel() {
-                        return null;
-                    }
+            @Override
+            public String getCssClass() {
+                return "mp-w-lg-1";
+            }
+        };
+        columns.add(enabled);
 
-                    @Override
-                    protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createDefaultColumns() {
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.passwordValidation")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
+                IModel<List<StringLimitationResult>> limitationsModel = () -> {
+                    if (rowModel.getObject().getPasswordValuePolicy() == null) {
                         return new ArrayList<>();
                     }
 
-                    @Override
-                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-                        return new AbstractColumn<>(
-                                createStringResource("ChangePasswordPanel.name")) {
-                            @Override
-                            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ShadowType>>> item, String componentId, IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
-                                item.add(new Label(componentId, Model.of(WebComponentUtil.getName(shadowModel.getObject().getRealValue()))));
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createCheckboxColumn() {
-                        return new CheckBoxHeaderColumn<>();
-                    }
-
-                    @Override
-                    protected Search createSearch(Class<ShadowType> type) {
-                        Search search = SearchFactory.createProjectionsTabSearch(getPageBase());
-//                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
-//                        if (defaultDeadItem != null) {
-//                            defaultDeadItem.setVisible(false);
-//                        }
-//                        addDeadSearchItem(search);
-                        return search;
-                    }
-
+                    return getLimitationsForActualPassword(rowModel.getObject().getPasswordValuePolicy(),
+                            rowModel.getObject().getObject());
                 };
-        add(multivalueContainerListPanel);
+                PasswordPolicyValidationPanel validationPanel = new PasswordPolicyValidationPanel(componentId, limitationsModel);
+                validationPanel.add(new VisibleEnableBehaviour() {
+                    @Override
+                    public boolean isVisible() {
+                        return !limitationsModel.getObject().isEmpty();
+                    }
+                });
+                cellItem.add(validationPanel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "mp-w-lg-2";
+            }
+        });
+
+//        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.propagationResult")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
+//                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
+//                    @Override
+//                    protected OperationResult load() {
+//                        if (getModelObject().getProgress() == null
+//                                || getModelObject().getProgress().getProgressReportActivities().isEmpty()) {
+//                            return null;
+//                        }
+//
+//                        for (ProgressReportActivityDto progressActivity : getModelObject().getProgress().getProgressReportActivities()) {
+//                            if (rowModel.getObject().isSelected() && progressActivity.getStatus() != null && rowModel.getObject().isMidpoint()
+//                                    && (ProgressInformation.ActivityType.FOCUS_OPERATION.equals(progressActivity.getActivityType())
+//                                    || (ProgressInformation.ActivityType.PROJECTOR.equals(progressActivity.getActivityType())
+//                                    && !OperationResultStatusType.SUCCESS.equals(progressActivity.getStatus())))) {
+//                                return progressActivity.getOperationResult();
+//                            } else if (progressActivity.getStatus() != null && !rowModel.getObject().isMidpoint()
+//                                    && ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION.equals(progressActivity.getActivityType())
+//                                    && progressActivity.getResourceOperationResultList() != null
+//                                    && !progressActivity.getResourceOperationResultList().isEmpty()) {
+//                                String resourceOid = rowModel.getObject().getResourceOid();
+//                                if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getResourceShadowDiscriminator() != null
+//                                        && resourceOid.equals(progressActivity.getResourceShadowDiscriminator().getResourceOid())) {
+//                                    return progressActivity.getOperationResult();
+//                                }
+//
+//                            }
+//                        }
+//                        return new OperationResult("Empty result");
+//                    }
+//                };
+//                ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel) {
+//                    @Override
+//                    protected boolean isProjectionResult() {
+//                        return !rowModel.getObject().isMidpoint();
+//                    }
+//
+//                    @Override
+//                    protected DisplayType getDisplayForEmptyResult() {
+//                        String policyOid = rowModel.getObject().getPasswordValuePolicyOid();
+//                        if (StringUtils.isNotEmpty(policyOid) && com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel.this.getModelObject().getPasswordPolicies().containsKey(policyOid)) {
+//                            if (limitationsByPolicyOid.get(policyOid) != null) {
+//                                var ref = new Object() {
+//                                    boolean result = true;
+//                                };
+//                                limitationsByPolicyOid.get(policyOid).forEach((limit) -> {
+//                                    if (ref.result && !limit.isSuccess()) {
+//                                        ref.result = false;
+//                                    }
+//                                });
+//                                if (!ref.result && rowModel.getObject().isSelected()) {
+//                                    return GuiDisplayTypeUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "",
+//                                            createStringResource("ChangePasswordPanel.result.validationError").getString());
+//                                }
+//                            }
+//                        }
+//                        return null;
+//                    }
+//                };
+//                resultPanel.setOutputMarkupId(true);
+//                cellItem.add(resultPanel);
+//            }
+//
+//            @Override
+//            public String getCssClass() {
+//                return "mp-w-lg-2";
+//            }
+//        });
+
+        return columns;
     }
 
-    private IModel<List<PrismContainerValueWrapper<ShadowType>>> getShadowModel() {
-        return () -> {
-            List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-            Task task = getPageBase().createSimpleTask("loadAccounts");
-            List<ShadowWrapper> shadowWrappers = WebComponentUtil.loadShadowWrapperList(getModelObject().asPrismObject(), null, task,
-                    getPageBase());
-            for (ShadowWrapper projection : shadowWrappers) {
-                items.add(projection.getValue());
-            }
-            return items;
-        };
+    private PasswordAccountDto createDefaultPasswordAccountDto() {
+        String customSystemName = WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name");
+        PasswordAccountDto accountDto = new PasswordAccountDto(getModelObject().asPrismObject(), getModelObject().asPrismObject().getName().getOrig(),
+                getString("PageSelfCredentials.resourceMidpoint", customSystemName),
+                WebComponentUtil.isActivationEnabled(getModelObject().asPrismObject(), ActivationType.F_EFFECTIVE_STATUS), true);
+        CredentialsPolicyType credentialsPolicyType = WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getPageBase(),
+                getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY));
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_VALUE_POLICY);
+        ObjectReferenceType passwordPolicyRef = credentialsPolicyType != null && credentialsPolicyType.getPassword() != null ?
+                credentialsPolicyType.getPassword().getValuePolicyRef() : null;
+        PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                passwordPolicyRef, getPageBase(), task, task.getResult());
+            accountDto.setPasswordValuePolicy(valuePolicy.asObjectable());
+        return accountDto;
     }
+
+    private boolean getPasswordOutbound(ResourceType resource, ResourceObjectDefinition rOCDef) {
+        for (MappingType mapping : rOCDef.getPasswordOutbound()) {
+            if (MappingStrengthType.WEAK == mapping.getStrength()) {
+                CredentialsCapabilityType capability = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
+                if (CapabilityUtil.isPasswordReadable(capability)) {
+                    return true;
+                }
+                continue;
+            }
+            // at least one mapping which is not WEAK
+            return true;
+        }
+        return false;
+    }
+
+    private CredentialsPolicyType getPasswordCredentialsPolicy(ResourceObjectDefinition rOCDef) {
+        LOGGER.debug("Getting credentials policy");
+        Task task = getPageBase().createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
+        OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);
+        CredentialsPolicyType credentialsPolicyType = null;
+        try {
+            SecurityPolicyType securityPolicy = getPageBase().getModelInteractionService().getSecurityPolicy(rOCDef, task, result);
+            if (securityPolicy != null) {
+                credentialsPolicyType = securityPolicy.getCredentials();
+            }
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security policy", ex);
+            result.recordFatalError(
+                    getString("PageAbstractSelfCredentials.message.getPasswordSecurityPolicy.fatalError", ex.getMessage()), ex);
+        } finally {
+            result.computeStatus();
+        }
+        return credentialsPolicyType;
+    }
+
+    private List<StringLimitationResult> getLimitationsForActualPassword(ValuePolicyType valuePolicy, PrismObject<? extends ObjectType> object) {
+        if (valuePolicy != null) {
+            Task task = getPageBase().createAnonymousTask("validation of password");
+            try {
+                return getPageBase().getModelInteractionService().validateValue(getNewPasswordValue(), valuePolicy, object, task, task.getResult());
+            } catch (Exception e) {
+                LOGGER.error("Couldn't validate password security policy", e);
+            }
+        }
+        return new ArrayList<>();
+    }
+
 }
