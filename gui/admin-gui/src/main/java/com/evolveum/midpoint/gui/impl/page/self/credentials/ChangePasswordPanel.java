@@ -58,13 +58,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String ID_OLD_PASSWORD_CONTAINER = "oldPasswordContainer";
     private static final String ID_OLD_PASSWORD_FIELD = "oldPassword";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
-    public static final String ID_ACCOUNTS_TABLE = "accounts";
-    public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
 
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
-    private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
    private Map<String, List<StringLimitationResult>> limitationsByPolicyOid = new HashMap<>();
    private String currentPasswordValue = null;
@@ -110,7 +106,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
 
-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, passwordValueModel, getModelObject().asPrismObject()) {
+        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, passwordValueModel, false, true, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
             @Override

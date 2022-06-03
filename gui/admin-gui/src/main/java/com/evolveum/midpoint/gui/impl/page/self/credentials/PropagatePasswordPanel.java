@@ -9,11 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -31,17 +29,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -82,7 +79,15 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     private void initLayout() {
         CheckBoxPanel propagatePasswordCheckbox = new CheckBoxPanel(ID_PROPAGATE_PASSWORD_CHECKBOX, Model.of(propagatePassword),
-                createStringResource("ChangePasswordPanel.changePasswordOnIndividualSystems"));
+                createStringResource("ChangePasswordPanel.changePasswordOnIndividualSystems")) {
+
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onUpdate(AjaxRequestTarget target) {
+                target.add(PropagatePasswordPanel.this);
+            }
+
+        };
         propagatePasswordCheckbox.setOutputMarkupId(true);
         add(propagatePasswordCheckbox);
 
@@ -96,7 +101,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 return true;
             }
         };
-        provisioningTable.setOutputMarkupId(true);
+        provisioningTable.add(new VisibleBehaviour(() -> propagatePasswordCheckbox.getCheckboxModel().getObject() != null
+                && propagatePasswordCheckbox.getCheckboxModel().getObject()));
         add(provisioningTable);
     }
 
@@ -187,7 +193,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxColumn<>(Model.of(""), Selectable.F_SELECTED) {
+        columns.add(new CheckBoxHeaderColumn<>() {
             @Override
             protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
                 return Model.of(true);
@@ -492,4 +498,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         return new ArrayList<>();
     }
 
+    private Component getTableComponent() {
+        return get(ID_INDIVIDUAL_SYSTEMS_TABLE);
+    }
 }
