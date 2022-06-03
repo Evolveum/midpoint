@@ -10,16 +10,16 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
 /**
  * Condition in HQL.
  */
 public abstract class Condition {
 
-    protected final RootHibernateQuery rootHibernateQuery;
+    protected final HibernateQuery rootHibernateQuery;
 
-    public Condition(RootHibernateQuery rootHibernateQuery) {
+    public Condition(HibernateQuery rootHibernateQuery) {
         Objects.requireNonNull(rootHibernateQuery, "rootHibernateQuery");
         this.rootHibernateQuery = rootHibernateQuery;
     }

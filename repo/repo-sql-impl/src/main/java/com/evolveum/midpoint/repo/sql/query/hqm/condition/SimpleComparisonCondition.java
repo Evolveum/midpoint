@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 public class SimpleComparisonCondition extends PropertyCondition {
 
@@ -18,7 +17,7 @@ public class SimpleComparisonCondition extends PropertyCondition {
     private final String operator;
     private final boolean ignoreCase;
 
-    public SimpleComparisonCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, Object value, String operator, boolean ignoreCase) {
+    public SimpleComparisonCondition(HibernateQuery rootHibernateQuery, String propertyPath, Object value, String operator, boolean ignoreCase) {
         super(rootHibernateQuery, propertyPath);
         Objects.requireNonNull(value, "value");
         Objects.requireNonNull(operator, "operator");
@@ -53,7 +52,7 @@ public class SimpleComparisonCondition extends PropertyCondition {
         // Design note: probably a bit cyclic dependency, but the knowledge about escaping still
         // needs to be on both places anyway, so it's less messy than an additional parameter.
         if (operator.equals("like")) {
-            sb.append(" escape '" + RootHibernateQuery.LIKE_ESCAPE_CHAR + '\'');
+            sb.append(" escape '" + HibernateQuery.LIKE_ESCAPE_CHAR + '\'');
         }
     }
 

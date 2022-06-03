@@ -1192,6 +1192,78 @@ public class SearchTest extends BaseSQLRepoTest {
         assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
     }
 
+    @Test
+    public void test923AssignmentsAndInducementsOwnedByRoles() throws SchemaException {
+        given("query for assignments or inducements owned by any user");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ownedBy(RoleType.class)
+                .block()
+                .endBlock()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        // TODO
+        then("only assignment to the specified organization is returned");
+        System.out.println("size = " + assignments.size());
+        System.out.println("assignments = " + assignments);
+//        assertThat(result.isSuccess()).isTrue();
+//        assertThat(assignments).hasSize(1);
+        // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
+//        assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
+    }
+
+    @Test
+    public void test924AssignmentsWithSpecifiedTargetNameUsingOwnedBy() throws SchemaException {
+        given("query for assignment to organization with specified name");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
+                .block()
+                .endBlock()
+//                .item(AssignmentType.F_TARGET_REF).ref(null, OrgType.COMPLEX_TYPE)
+//                .and()
+//                .item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+//                .eq("F0085")
+                // skipping owner this time, although this is fishy as it is not currently in the returned values
+                .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignment to the specified organization is returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(1);
+        // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
+        assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
+
+        /*
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent using exists", AccessCertificationWorkItemType.class,
+                f -> f.ownedBy(AccessCertificationCaseType.class)
+                        .block()
+                        .id(1)
+                        .and()
+                        .ownedBy(AccessCertificationCampaignType.class)
+                        .id(accCertCampaign1Oid)
+                        .endBlock());
+        // The resulting query only uses IDs that are available directly in the container table,
+        // but our query uses exists which can be used for anything... we don't optimize this.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12);
+    }
+
+         */
+    }
+
     /**
      * See MID-5474 (just a quick attempt to replicate)
      */

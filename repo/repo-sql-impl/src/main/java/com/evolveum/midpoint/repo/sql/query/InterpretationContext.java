@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
@@ -34,7 +34,7 @@ public class InterpretationContext {
 
     private final Class<? extends Containerable> type;
 
-    private final RootHibernateQuery hibernateQuery;
+    private HibernateQuery hibernateQuery; // de-facto final
 
     /**
      * Definition of the root entity. Root entity corresponds to the ObjectType class that was requested
@@ -46,6 +46,24 @@ public class InterpretationContext {
     public InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
             PrismContext prismContext, RelationRegistry relationRegistry,
             ExtItemDictionary extItemDictionary, Session session, SupportedDatabase databaseType)
+            throws QueryException {
+        this(interpreter, type, prismContext, relationRegistry, extItemDictionary, session);
+
+        this.hibernateQuery = new HibernateQuery(rootEntityDefinition, databaseType);
+    }
+
+    public InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
+            PrismContext prismContext, RelationRegistry relationRegistry,
+            ExtItemDictionary extItemDictionary, Session session, HibernateQuery parentQuery)
+            throws QueryException {
+        this(interpreter, type, prismContext, relationRegistry, extItemDictionary, session);
+
+        this.hibernateQuery = parentQuery.createSubquery(rootEntityDefinition);
+    }
+
+    private InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
+            PrismContext prismContext, RelationRegistry relationRegistry,
+            ExtItemDictionary extItemDictionary, Session session)
             throws QueryException {
 
         Objects.requireNonNull(interpreter, "interpreter");
@@ -69,8 +87,6 @@ public class InterpretationContext {
         // even before some ItemValueRestriction requests the narrowing.
 
         rootEntityDefinition = registry.findEntityDefinition(type);
-
-        this.hibernateQuery = new RootHibernateQuery(rootEntityDefinition, databaseType);
     }
 
     public PrismContext getPrismContext() {
@@ -93,7 +109,7 @@ public class InterpretationContext {
         return type;
     }
 
-    public RootHibernateQuery getHibernateQuery() {
+    public HibernateQuery getHibernateQuery() {
         return hibernateQuery;
     }
 
@@ -115,5 +131,10 @@ public class InterpretationContext {
 
     public ExtItemDictionary getExtItemDictionary() {
         return extItemDictionary;
+    }
+
+    public InterpretationContext createSubcontext(Class<? extends Containerable> type) throws QueryException {
+        return new InterpretationContext(interpreter, type, prismContext,
+                relationRegistry, extItemDictionary, session, hibernateQuery);
     }
 }

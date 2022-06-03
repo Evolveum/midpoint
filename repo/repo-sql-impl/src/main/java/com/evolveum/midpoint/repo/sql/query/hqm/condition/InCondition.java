@@ -11,20 +11,19 @@ import java.util.Collection;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 public class InCondition extends PropertyCondition {
 
     private Collection<?> values;
     private String innerQueryText;
 
-    public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, String innerQueryText) {
+    public InCondition(HibernateQuery rootHibernateQuery, String propertyPath, String innerQueryText) {
         super(rootHibernateQuery, propertyPath);
         Objects.requireNonNull(innerQueryText);
         this.innerQueryText = innerQueryText;
     }
 
-    public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, Collection<?> values) {
+    public InCondition(HibernateQuery rootHibernateQuery, String propertyPath, Collection<?> values) {
         super(rootHibernateQuery, propertyPath);
         Objects.requireNonNull(values);
         this.values = values;
