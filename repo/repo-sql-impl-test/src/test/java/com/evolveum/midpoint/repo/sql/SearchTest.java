@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
+import org.assertj.core.api.Condition;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -1194,9 +1195,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test923AssignmentsAndInducementsOwnedByRoles() throws SchemaException {
-        given("query for assignments or inducements owned by any user");
+        given("query for assignments or inducements owned by any abstract role");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
-                .ownedBy(RoleType.class)
+                .ownedBy(AbstractRoleType.class)
                 .block()
                 .endBlock()
                 .build();
@@ -1207,29 +1208,30 @@ public class SearchTest extends BaseSQLRepoTest {
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
         result.recomputeStatus();
 
-        // TODO
-        then("only assignment to the specified organization is returned");
-        System.out.println("size = " + assignments.size());
-        System.out.println("assignments = " + assignments);
-//        assertThat(result.isSuccess()).isTrue();
-//        assertThat(assignments).hasSize(1);
-        // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
-//        assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
+        then("only assignments/inducements from abstract roles are returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(4)
+                // two and two are the same (one from a role, second from a service)
+                .areExactly(2, new Condition<>(a -> a.getId().equals(5L)
+                        && a.getConstruction().getResourceRef().getOid().equals("10000000-0000-0000-0000-000000000005"),
+                        "assignment with ID 5 and construction ref ...005"))
+                .areExactly(2, new Condition<>(a -> a.getId().equals(1L)
+                        && a.getConstruction().getResourceRef().getOid().equals("10000000-0000-0000-0000-000000000004"),
+                        "assignment with ID 1 and construction ref ...004"));
     }
 
     @Test
-    public void test924AssignmentsWithSpecifiedTargetNameUsingOwnedBy() throws SchemaException {
-        given("query for assignment to organization with specified name");
+    public void test924AssignmentsAndInducementsOwnedByIncludingInnerFilter() throws SchemaException {
+        given("query for assignments or inducements owned by any user including inner filter");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
-                .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
+                .ownedBy(AbstractRoleType.class)
                 .block()
+                // the inner condition path starts from AbstractRoleType
+                .item(F_NAME).startsWithPoly("Jud") // only assignments/inducements from the Role "Judge"
                 .endBlock()
-//                .item(AssignmentType.F_TARGET_REF).ref(null, OrgType.COMPLEX_TYPE)
-//                .and()
-//                .item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
-//                .eq("F0085")
-                // skipping owner this time, although this is fishy as it is not currently in the returned values
-                .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .and()
+                // this path starts from AssignmentType, we're back in the outer query
+                .item(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref("10000000-0000-0000-0000-000000000004")
                 .build();
         OperationResult result = new OperationResult("search");
 
@@ -1238,13 +1240,14 @@ public class SearchTest extends BaseSQLRepoTest {
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
         result.recomputeStatus();
 
-        then("only assignment to the specified organization is returned");
+        then("only assignments/inducements from roles matching the inner filter are returned");
         assertThat(result.isSuccess()).isTrue();
-        assertThat(assignments).hasSize(1);
-        // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
-        assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getId().equals(1L)
+                        && a.getConstruction().getResourceRef().getOid().equals("10000000-0000-0000-0000-000000000004"));
+    }
 
-        /*
+        /* TODO remove when test exists
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
                 f -> f.ownedBy(AccessCertificationCaseType.class)
@@ -1259,10 +1262,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertThat(result)
                 .extracting(a -> a.getStageNumber())
                 .containsExactlyInAnyOrder(11, 12);
-    }
-
          */
-    }
 
     /**
      * See MID-5474 (just a quick attempt to replicate)

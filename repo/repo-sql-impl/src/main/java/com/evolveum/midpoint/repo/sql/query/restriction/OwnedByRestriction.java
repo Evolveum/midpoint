@@ -12,12 +12,15 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OwnedByFilter;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.EntityReference;
+import com.evolveum.midpoint.repo.sql.query.hqm.GenericProjectionElement;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.query.resolution.ProperDataSearchResult;
@@ -31,8 +34,8 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
 
     private final JpaEntityDefinition owningEntityDefinition;
 
-    public static OwnedByRestriction create(InterpretationContext context, OwnedByFilter filter,
-            JpaEntityDefinition baseEntityDefinition, Restriction<?> parent)
+    public static OwnedByRestriction create(
+            InterpretationContext context, OwnedByFilter filter, JpaEntityDefinition baseEntityDefinition)
             throws QueryException {
         Class<?> ownedType = baseEntityDefinition.getJaxbClass();
         if (!SUPPORTED_OWNED_TYPES.contains(ownedType)) {
@@ -48,6 +51,7 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
         JpaEntityDefinition owningEntityDefinition =
                 QueryDefinitionRegistry.getInstance().findEntityDefinition(typeName);
         if (path != null) {
+            //noinspection unchecked
             ProperDataSearchResult<?> searchResult = context.getItemPathResolver().findProperDataDefinition(
                     owningEntityDefinition, path, null, JpaDataNodeDefinition.class, context.getPrismContext());
 
@@ -56,61 +60,53 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
                         ") doesn't point to a hibernate entity or property within " + owningEntityDefinition);
             }
         }
-        return new OwnedByRestriction(context, filter, baseEntityDefinition, parent, owningEntityDefinition);
+        return new OwnedByRestriction(context, filter, baseEntityDefinition, owningEntityDefinition);
     }
 
     private OwnedByRestriction(
             InterpretationContext context,
             OwnedByFilter filter,
             JpaEntityDefinition baseEntityDefinition,
-            Restriction<?> parent,
             JpaEntityDefinition owningEntityDefinition) {
-        // TODO is parent even necessary for constructing EXISTS? Let's just pass it as is...
-        super(context, filter, baseEntityDefinition, parent);
+        // We don't provide parent, not relevant here; it is not harmful here either, but
+        // see interpretFilter() where it would be - so we just keep it consistently null.
+        super(context, filter, baseEntityDefinition, null);
 
         this.owningEntityDefinition = owningEntityDefinition;
     }
 
     @Override
     public Condition interpret() throws QueryException {
-        /* TODO old code from ExistsRestriction
-        HqlDataInstance dataInstance = getItemPathResolver()
-                // definition needed only for ANY, not our concern here
-                .resolveItemPath(filter.getPath(), null, getBaseHqlEntity(), false);
-
-        boolean isAll = filter.getFilter() == null || filter.getFilter() instanceof AllFilter;
-        JpaDataNodeDefinition jpaDefinition = dataInstance.getJpaDefinition();
-        if (!isAll) {
-            if (!(jpaDefinition instanceof JpaEntityDefinition)) {    // partially checked already (for non-null-ness)
-                throw new QueryException("ExistsRestriction with non-empty subfilter points to non-entity node: " + jpaDefinition);
-            }
-            setHqlDataInstance(dataInstance);
-            QueryInterpreter interpreter = context.getInterpreter();
-            return interpreter.interpretFilter(context, filter.getFilter(), this);
-        } else if (jpaDefinition instanceof JpaPropertyDefinition && (((JpaPropertyDefinition) jpaDefinition).isCount())) {
-            RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-            return hibernateQuery.createSimpleComparisonCondition(dataInstance.getHqlPath(), 0, ">");
-        } else {
-            // TODO support exists also for other properties (single valued or multi valued)
-            throw new UnsupportedOperationException("Exists filter with 'all' subfilter is currently not supported");
-        }
-        */
-
         //noinspection ConstantConditions
         InterpretationContext subcontext = context.createSubcontext(
                 owningEntityDefinition.getJaxbClass().asSubclass(Containerable.class));
         HqlEntityInstance ownedEntity = getBaseHqlEntity();
-        EntityReference subqueryEntity = subcontext.getHibernateQuery().getPrimaryEntity();
+        HibernateQuery subquery = subcontext.getHibernateQuery();
+        EntityReference subqueryEntity = subquery.getPrimaryEntity();
 
-        return new Condition(context.getHibernateQuery()) {
+        subquery.addProjectionElement(new GenericProjectionElement("1")); // select 1
+        subquery.addCondition(
+                subquery.createCompareXY(
+                        subqueryEntity.getAlias() + ".oid", ownedEntity.getHqlPath() + ".ownerOid", "=", false));
+        ObjectFilter innerFilter = filter.getFilter();
+        if (innerFilter != null) {
+            subquery.addCondition(
+                    // Don't provide parent, it would only confuse filter evaluation.
+                    subcontext.getInterpreter().interpretFilter(subcontext, filter.getFilter(), null));
+        }
+
+        // TODO introduce new ExistsCondition with subquery
+        return new Condition(subquery) {
             @Override
             public void dumpToHql(StringBuilder sb, int indent) {
-                String subAlias = subqueryEntity.getAlias();
-                // TODO building the query should be done by the subcontext somehow, including inner filter interpretation
-                sb.append("exists (select 1 from ").append(subqueryEntity.getName()).append(' ').append(subAlias)
-                        .append(" where ").append(subAlias).append(".oid = ")
-                        .append(ownedEntity.getHqlPath()).append(".ownerOid)");
-                System.out.println("sb = " + sb);
+                HibernateQuery.indent(sb, indent);
+                sb.append("exists (\n");
+                hibernateQuery.dumpToHql(sb, indent + 1, false);
+                sb.append('\n');
+                HibernateQuery.indent(sb, indent);
+                sb.append(')');
+
+                System.out.println("sb = " + sb); // TODO out
             }
         };
     }

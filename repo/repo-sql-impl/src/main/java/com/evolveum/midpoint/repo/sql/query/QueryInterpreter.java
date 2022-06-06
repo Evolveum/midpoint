@@ -214,13 +214,14 @@ public class QueryInterpreter {
         }
     }
 
-    public Condition interpretFilter(InterpretationContext context, ObjectFilter filter, Restriction parent) throws QueryException {
-        Restriction restriction = findAndCreateRestriction(filter, context, parent);
+    public Condition interpretFilter(InterpretationContext context, ObjectFilter filter, Restriction<?> parent) throws QueryException {
+        Restriction<?> restriction = findAndCreateRestriction(filter, context, parent);
         return restriction.interpret();
     }
 
-    private <T extends ObjectFilter> Restriction findAndCreateRestriction(@NotNull T filter,
-            @NotNull InterpretationContext context, Restriction parent) throws QueryException {
+    private <T extends ObjectFilter> Restriction<?> findAndCreateRestriction(
+            @NotNull T filter, @NotNull InterpretationContext context, Restriction<?> parent)
+            throws QueryException {
 
         LOGGER.trace("Determining restriction for filter {}", filter);
 
@@ -297,7 +298,7 @@ public class QueryInterpreter {
                 return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getLinkDefinition());
             }
         } else if (filter instanceof OwnedByFilter) {
-            return OwnedByRestriction.create(context, (OwnedByFilter) filter, baseEntityDefinition, parent);
+            return OwnedByRestriction.create(context, (OwnedByFilter) filter, baseEntityDefinition);
         } else if (filter instanceof NoneFilter || filter instanceof AllFilter || filter instanceof UndefinedFilter) {
             // these should be filtered out by the client
             throw new IllegalStateException("Trivial filters are not supported by QueryInterpreter: " + filter.debugDump());

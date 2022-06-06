@@ -59,8 +59,7 @@ public class HibernateQuery {
 
     private final SupportedDatabase databaseType;
 
-    /** Prefix for all aliases of this query - empty for root query, but used for subqueries. */
-    private final @NotNull String aliasPrefix;
+    private final HibernateQuery parentQuery;
 
     private Integer maxResults;
     private Integer firstResult;
@@ -71,8 +70,8 @@ public class HibernateQuery {
         this(primaryEntityDef, databaseType, null);
     }
 
-    public HibernateQuery(JpaEntityDefinition primaryEntityDef, SupportedDatabase databaseType, String aliasPrefix) {
-        this.aliasPrefix = aliasPrefix != null ? aliasPrefix : "";
+    public HibernateQuery(JpaEntityDefinition primaryEntityDef, SupportedDatabase databaseType, HibernateQuery parentQuery) {
+        this.parentQuery = parentQuery;
         this.primaryEntity = createItemSpecification(primaryEntityDef);
         this.databaseType = databaseType;
     }
@@ -84,16 +83,26 @@ public class HibernateQuery {
     }
 
     public String addParameter(String prefix, Object value, Type type) {
+        if (parentQuery != null) {
+            return parentQuery.addParameter(prefix, value, type);
+        }
+
         String name = findFreeName(prefix);
         parameters.put(name, new QueryParameterValue(value, type));
         return name;
     }
 
     public String addParameter(String prefix, Object value) {
+        // No need to delegate to parent, the following method does it too:
         return addParameter(prefix, value, null);
     }
 
     public void addParametersFrom(Map<String, QueryParameterValue> newParameters) {
+        if (parentQuery != null) {
+            parentQuery.addParametersFrom(newParameters);
+            return;
+        }
+
         for (Map.Entry<String, QueryParameterValue> entry : newParameters.entrySet()) {
             if (parameters.containsKey(entry.getKey())) {
                 throw new IllegalArgumentException("Parameter " + entry.getKey() + " already exists.");
@@ -103,7 +112,7 @@ public class HibernateQuery {
     }
 
     public Map<String, QueryParameterValue> getParameters() {
-        return parameters;
+        return parentQuery != null ? parentQuery.getParameters() : parameters;
     }
 
     private String findFreeName(String prefix) {
@@ -119,6 +128,10 @@ public class HibernateQuery {
 
     @SuppressWarnings("rawtypes")
     public Query getAsHqlQuery(Session session) {
+        if (parentQuery != null) {
+            throw new IllegalStateException("Generating query from non-root query object!");
+        }
+
         String text = getAsHqlText(0, distinct);
         LOGGER.trace("HQL text generated:\n{}", text);
         Query query = session.createQuery(text);
@@ -313,6 +326,12 @@ public class HibernateQuery {
     public String getAsHqlText(int indent, boolean distinct) {
         StringBuilder sb = new StringBuilder();
 
+        dumpToHql(sb, indent, distinct);
+
+        return sb.toString();
+    }
+
+    public void dumpToHql(StringBuilder sb, int indent, boolean distinct) {
         indent(sb, indent);
         sb.append("select");
         if (distinct) {
@@ -359,8 +378,6 @@ public class HibernateQuery {
                 }
             }
         }
-
-        return sb.toString();
     }
 
     public EntityReference createItemSpecification(JpaEntityDefinition entityDef) {
@@ -378,11 +395,11 @@ public class HibernateQuery {
     }
 
     public String createAlias(String name, boolean entity) {
-        String aliasBase;
-
-        //we want to skip 'R' prefix for entity definition names (a bit of hack)
+        // Prefixing aliases with parent query info to keep them unique.
+        String aliasPrefix = parentQuery != null ? parentQuery.getPrimaryEntityAlias() : "";
+        // We want to skip 'R' prefix for entity definition names.
         int prefixIndex = entity ? 1 : 0;
-        aliasBase = aliasPrefix + Character.toString(name.charAt(prefixIndex)).toLowerCase();
+        String aliasBase = aliasPrefix + Character.toString(name.charAt(prefixIndex)).toLowerCase();
 
         int index = 2;
         String alias = aliasBase;
@@ -430,7 +447,7 @@ public class HibernateQuery {
      * Subquery has the same database type and all its aliases will be prefixed with parent's primary alias.
      */
     public HibernateQuery createSubquery(JpaEntityDefinition rootEntityDefinition) {
-        return new HibernateQuery(rootEntityDefinition, databaseType, getPrimaryEntityAlias());
+        return new HibernateQuery(rootEntityDefinition, databaseType, this);
     }
 
     public static class Ordering {
