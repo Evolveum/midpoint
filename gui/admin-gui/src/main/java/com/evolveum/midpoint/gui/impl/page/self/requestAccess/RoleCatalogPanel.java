@@ -10,16 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.wizard.Badge;
-
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -27,20 +19,22 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.gui.api.component.wizard.Badge;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -51,20 +45,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private static final String ID_VIEW_TOGGLE = "viewToggle";
     private static final String ID_MENU = "menu";
-    private static final String ID_TILES_CONTAINER = "tilesContainer";
-    private static final String ID_TILES = "tiles";
-
-    private static final String ID_TILES_SEARCH = "tilesSearch";
-    private static final String ID_TILE = "tile";
-    private static final String ID_TABLE = "table";
+    private static final String ID_TILES = "tilesTable";
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
 
-    private IModel<ViewToggle> viewToggleModel = Model.of(ViewToggle.TILE);
-
     public RoleCatalogPanel(IModel<RequestAccess> model) {
         super(model);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
         initLayout();
     }
@@ -90,63 +82,28 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        ViewTogglePanel viewToggle = new ViewTogglePanel(ID_VIEW_TOGGLE, viewToggleModel) {
-
-            @Override
-            protected void onTogglePerformed(AjaxRequestTarget target, ViewToggle newState) {
-                super.onTogglePerformed(target, newState);
-                target.add(RoleCatalogPanel.this);
-            }
-        };
-        add(viewToggle);
-        DetailsMenuPanel menu = new DetailsMenuPanel(ID_MENU);
-        add(menu);
-
-        WebMarkupContainer tilesContainer = new WebMarkupContainer(ID_TILES_CONTAINER);
-        tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
-        add(tilesContainer);
-
         IModel<Search> searchModel = new LoadableModel<>(false) {
             @Override
             protected Search load() {
                 return SearchFactory.createSearch(RoleType.class, getPageBase());
             }
         };
-        SearchPanel tilesSearch = new SearchPanel(ID_TILES_SEARCH, searchModel) {
 
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                // todo implement
-            }
-        };
-        tilesContainer.add(tilesSearch);
+//        List<CatalogTile> list = new ArrayList<>();
+//        for (int i = 0; i < 5; i++) {
+//            CatalogTile t = new CatalogTile("fas fa-building", "Canteen");
+//            t.setLogo("fas fa-utensils fa-2x");
+//            t.setDescription("Grants you access to canteen services, coffee bar and vending machines");
+//            list.add(t);
+//        }
 
-        List<CatalogTile> list = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            CatalogTile t = new CatalogTile("fas fa-building", "Canteen");
-            t.setLogo("fas fa-utensils fa-2x");
-            t.setDescription("Grants you access to canteen services, coffee bar and vending machines");
-            list.add(t);
-        }
+        ISortableDataProvider provider = new ObjectDataProvider(this, searchModel);
 
-        IModel<List<CatalogTile>> model = Model.ofList(list);
-
-        ListView<CatalogTile> tiles = new ListView<>(ID_TILES, model) {
-
-            @Override
-            protected void populateItem(ListItem<CatalogTile> item) {
-                CatalogTilePanel tile = new CatalogTilePanel(ID_TILE, item.getModel());
-                item.add(tile);
-            }
-        };
-        tilesContainer.add(tiles);
-
-        ISortableDataProvider provider = new ListDataProvider(this, () -> new ArrayList<>());
         List<IColumn> columns = createColumns();
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
+        TileTablePanel tilesTable = new TileTablePanel(ID_TILES, provider, columns) {
 
             @Override
-            protected WebMarkupContainer createButtonToolbar(String id) {
+            protected WebMarkupContainer createTableButtonToolbar(String id) {
                 Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
                 fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
 
@@ -166,9 +123,31 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
                 return fragment;
             }
+
+            @Override
+            protected WebMarkupContainer createTilesHeader(String id) {
+                return new SearchPanel(id, searchModel) {
+
+                    @Override
+                    protected void searchPerformed(AjaxRequestTarget target) {
+                        // todo implement
+                    }
+                };
+            }
         };
-        table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
-        add(table);
+        add(tilesTable);
+
+        ViewTogglePanel viewToggle = new ViewTogglePanel(ID_VIEW_TOGGLE, tilesTable.getViewToggleModel()) {
+
+            @Override
+            protected void onTogglePerformed(AjaxRequestTarget target, ViewToggle newState) {
+                super.onTogglePerformed(target, newState);
+                target.add(RoleCatalogPanel.this);
+            }
+        };
+        add(viewToggle);
+        DetailsMenuPanel menu = new DetailsMenuPanel(ID_MENU);
+        add(menu);
     }
 
     private List<IColumn> createColumns() {
@@ -180,11 +159,26 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                 return new DisplayType();
             }
         });
-        columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "name"));
-        columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "name"));
-        columns.add(new LinkColumn(createStringResource("RoleCatalogPanel.details")));
+        columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
+        columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
+        columns.add(new LinkColumn(createStringResource("RoleCatalogPanel.details")) {
+
+            @Override
+            protected IModel createLinkModel(IModel rowModel) {
+                return createStringResource("RoleCatalogPanel.details");
+            }
+
+            @Override
+            public void onClick(IModel rowModel) {
+                onDetails(rowModel);
+            }
+        });
 
         return columns;
+    }
+
+    protected void onDetails(IModel rowModel) {
+
     }
 
     protected void addSelectedPerformed(AjaxRequestTarget target) {
