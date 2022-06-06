@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -184,6 +185,12 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
         return true;
     }
 
+
+    // FIXME: This is post-process query, which can not by run currently by any repository
+    //        Probably we should do some post-filtering?
+    // assignment: 
+    //      (construction/association not exists and status = ADDED)
+    //      OR construction/association/ref exists
     @Override
     protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(List<PrismContainerValueWrapper<AssignmentType>> assignments) {
         List<PrismContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
