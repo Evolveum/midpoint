@@ -30,8 +30,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -62,13 +64,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
     private static final String OPERATION_LOAD_CREDENTIALS_POLICY = DOT_CLASS + "loadCredentialsPolicy";
-    private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
+    protected static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
 
-   private String currentPasswordValue = null;
+   protected String currentPasswordValue = null;
    protected ProtectedStringType newPasswordValue = new ProtectedStringType();
-   private LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
+   protected LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
     private boolean savedPassword = false;
+    protected ProgressDto progress = null;
 
     public ChangePasswordPanel(String id, IModel<F> objectModel) {
         super(id, objectModel);
@@ -145,7 +148,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
-        LoadableModel<List<StringLimitationResult>> limitationsModel = new LoadableModel<>(true) {
+        LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
             @Override
             protected List<StringLimitationResult> load() {
@@ -239,7 +242,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     }
 
 
-    protected void changePasswordPerformed(AjaxRequestTarget target) {
+    private void changePasswordPerformed(AjaxRequestTarget target) {
         ProtectedStringType currentPassword = null;
         if (isCheckOldPassword()) {
             LOGGER.debug("Check old password");
@@ -290,20 +293,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             if (!newPasswordValue.isEncrypted()) {
                 WebComponentUtil.encryptProtectedString(newPasswordValue, true, getPageBase().getMidpointApplication());
             }
-            final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-                    CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-
-            PrismObjectDefinition<UserType> objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-
-            PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
-                    .createModificationReplaceProperty(valuePath, objDef, newPasswordValue);
-            if (currentPassword != null) {
-                delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
-            }
-            deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), delta, UserType.class));
-
+            ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
+                    CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+            collectDeltas(deltas, currentPassword, valuePath);
             getPageBase().getModelService().executeChanges(
                     deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
                     Collections.singleton(reporter), result);
@@ -314,7 +307,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
         } finally {
             reporter.recordExecutionStop();
-//            getPasswordDto().setProgress(reporter.getProgress());
+            progress = reporter.getProgress();
             result.computeStatusIfUnknown();
 
             if (!result.isError()) {
@@ -324,6 +317,19 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         }
 
         finishChangePassword(result, target, showFeedback);
+    }
+
+    protected void collectDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas, ProtectedStringType currentPassword, ItemPath valuePath) {
+        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+
+        PrismObjectDefinition<UserType> objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+                .createModificationReplaceProperty(valuePath, objDef, newPasswordValue);
+        if (currentPassword != null) {
+            delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
+        }
+        deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), delta, UserType.class));
     }
 
     protected void setNullEncryptedPasswordData() {

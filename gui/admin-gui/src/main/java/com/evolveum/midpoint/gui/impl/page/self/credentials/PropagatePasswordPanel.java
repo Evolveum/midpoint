@@ -24,9 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -36,22 +34,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
-import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -64,10 +57,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisitor;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordPanel<F> {
 
@@ -80,6 +70,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
     private boolean propagatePassword = false;
+    ListDataProvider<PasswordAccountDto> provider = null;
 
     public PropagatePasswordPanel(String id, IModel<F> focusModel) {
         super(id, focusModel);
@@ -105,7 +96,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         propagatePasswordCheckbox.setOutputMarkupId(true);
         add(propagatePasswordCheckbox);
 
-        ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
+        provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
         BoxedTablePanel<PasswordAccountDto> provisioningTable = new BoxedTablePanel<>(ID_INDIVIDUAL_SYSTEMS_TABLE,
                 provider, initColumns()) {
             private static final long serialVersionUID = 1L;
@@ -210,28 +201,29 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         columns.add(new CheckBoxHeaderColumn<>() {
             @Override
             protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
-                return Model.of(true);
-//                return () -> {
-//                    PasswordAccountDto passwordAccountDto = rowModel.getObject();
-//                    if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordCapabilityEnabled()) {
-//                        passwordAccountDto.setSelected(false);
-//                        return false;
-//                    }
-//                    if (CredentialsPropagationUserControlType.ONLY_MAPPING.equals(getModelObject().getPropagation())) {
-//                        if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordOutbound()) {
-//                            passwordAccountDto.setSelected(false);
-//                        }
-//                        return false;
-//                    }
-//                    if (passwordAccountDto.isMidpoint() && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(getModelObject().getPropagation())) {
-//                        return false;
-//                    }
-//                    if (!passwordAccountDto.isMidpoint() && midpointAccountSelected.getObject() && passwordAccountDto.isPasswordOutbound()) {
-//                        passwordAccountDto.setSelected(true);
-//                        return false;
-//                    }
-//                    return true;
-//                };
+                return () -> {
+                    CredentialsPropagationUserControlType propagationUserControl = getCredentialsPropagationUserControl();
+                    PasswordAccountDto passwordAccountDto = rowModel.getObject();
+                    if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordCapabilityEnabled()) {
+                        passwordAccountDto.setSelected(false);
+                        return false;
+                    }
+                    if (CredentialsPropagationUserControlType.ONLY_MAPPING.equals(propagationUserControl)) {
+                        if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordOutbound()) {
+                            passwordAccountDto.setSelected(false);
+                        }
+                        return false;
+                    }
+                    if (passwordAccountDto.isMidpoint()
+                            && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(propagationUserControl)) {
+                        return false;
+                    }
+                    if (!passwordAccountDto.isMidpoint() && isMidpointAccountSelected() && passwordAccountDto.isPasswordOutbound()) {
+                        passwordAccountDto.setSelected(true);
+                        return false;
+                    }
+                    return true;
+                };
             }
 
             @Override
@@ -381,8 +373,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 //                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
 //                    @Override
 //                    protected OperationResult load() {
-//                        if (getModelObject().getProgress() == null
-//                                || getModelObject().getProgress().getProgressReportActivities().isEmpty()) {
+//                        if (progress == null
+//                                || progress.getProgressReportActivities().isEmpty()) {
 //                            return null;
 //                        }
 //
@@ -446,6 +438,17 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 //        });
 
         return columns;
+    }
+
+    private boolean isMidpointAccountSelected() {
+        Iterator<PasswordAccountDto> accounts = (Iterator<PasswordAccountDto>) provider.internalIterator(0, provider.size() - 1);
+        while (accounts.hasNext()) {
+            PasswordAccountDto account = accounts.next();
+            if (account.isMidpoint()) {
+                return account.isSelected();
+            }
+        }
+        return false;
     }
 
     private PasswordAccountDto createDefaultPasswordAccountDto() {
@@ -517,131 +520,63 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         return new ArrayList<>();
     }
 
-//    @Override
-//    protected void changePasswordPerformed(AjaxRequestTarget target) {
-//        ProtectedStringType currentPassword = null;
-//        if (isCheckOldPassword()) {
-//            LOGGER.debug("Check old password");
-//            if (currentPasswordValue == null || currentPasswordValue.trim().equals("")) {
-//                warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));
-//                target.add(getPageBase().getFeedbackPanel());
-//                return;
-//            } else {
-//                OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
-//                Task checkPasswordTask = getPageBase().createSimpleTask(OPERATION_CHECK_PASSWORD);
-//                try {
-//                    currentPassword = new ProtectedStringType();
-//                    currentPassword.setClearValue(currentPasswordValue);
-//                    boolean isCorrectPassword = getPageBase().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
-//                            checkPasswordTask, checkPasswordResult);
-//                    if (!isCorrectPassword) {
-//                        error(getString("PageSelfCredentials.incorrectOldPassword"));
-//                        target.add(getPageBase().getFeedbackPanel());
-//                        return;
-//                    }
-//                } catch (Exception ex) {
-//                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);
-//                    checkPasswordResult.recordFatalError(
-//                            getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);
-//                    target.add(getPageBase().getFeedbackPanel());
-//                    return;
-//                } finally {
-//                    checkPasswordResult.computeStatus();
-//                }
-//            }
-//        }
-//
-//        if (newPasswordValueModel.getObject() == null) {
-//            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
-//            target.add(getPageBase().getFeedbackPanel());
-//            return;
-//        }
-//
-//
-//
-//        List<com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
-//        if (selectedAccounts.isEmpty()) {
-//            warn(getString("PageSelfCredentials.noAccountSelected"));
-//            target.add(getFeedbackPanel());
-//            return;
-//        }
-//
-//        OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
-//        ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());
-//        reporter.getProgress().clear();
-//        reporter.setWriteOpResultForProgressActivity(true);
-//
-//        reporter.recordExecutionStart();
-//        boolean showFeedback = true;
-//        try {
-//            MyPasswordsDto dto = getPasswordDto();
-//            ProtectedStringType password = dto.getPassword();
-//            if (!password.isEncrypted()) {
-//                WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
-//            }
-//            final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-//                    CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-//            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-//            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-//
-//            for (com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto accDto : selectedAccounts) {
-//                PrismObjectDefinition objDef = accDto.isMidpoint() ?
-//                        registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
-//                        registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
-//
-//                PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
-//                        .createModificationReplaceProperty(valuePath, objDef, password);
-//                if (currentPassword != null) {
-//                    delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
-//                }
-//
-//                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
-//
-//                deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
-//                ));
-//            }
-//            getModelService().executeChanges(
-//                    deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), Collections.singleton(reporter), result);
-//            result.computeStatus();
-//        } catch (Exception ex) {
-//            setNullEncryptedPasswordData();
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
-//            result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
-//        } finally {
-//            reporter.recordExecutionStop();
-//            getPasswordDto().setProgress(reporter.getProgress());
-//            if (getActualTabPanel() != null) {
-//                ((com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel) getActualTabPanel()).updateResultColumnOfTable(target);
-//            }
-//            result.computeStatusIfUnknown();
-//            if (shouldLoadAccounts()) {
-//                showFeedback = false;
-//                if (result.isError()) {
-//                    error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
-//                } else {
-//                    success(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
-//                }
-//            }
-//            if (!result.isError()) {
-//                this.savedPassword = true;
-//                target.add(PageAbstractSelfCredentials.this.get(ID_MAIN_FORM));
-//            }
-//        }
-//
-//        finishChangePassword(result, target, showFeedback);
-//    }
-//
-//    protected void updateResultColumnOfTable(AjaxRequestTarget target) {
-//        getTable().visitChildren(ColumnResultPanel.class,
-//                (IVisitor<ColumnResultPanel, ColumnResultPanel>) (panel, iVisit) -> {
-//                    if (panel.getModel() instanceof LoadableModel) {
-//                        ((LoadableModel) panel.getModel()).reset();
-//                    }
-//                    target.add(panel);
-//                });
-//    }
+    protected void collectDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas, ProtectedStringType currentPassword, ItemPath valuePath) {
+        List<PasswordAccountDto> selectedAccounts = Lists.newArrayList(provider.internalIterator(0, provider.size()));
+        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+        selectedAccounts.forEach(account -> {
+            PrismObjectDefinition objDef = account.isMidpoint() ?
+                    registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
+                    registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-    private Component getTableComponent() {
-        return get(ID_INDIVIDUAL_SYSTEMS_TABLE);
+            PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+                    .createModificationReplaceProperty(valuePath, objDef, currentPassword);
+            if (currentPassword != null) {
+                delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
+            }
+
+            Class<? extends ObjectType> type = account.isMidpoint() ? UserType.class : ShadowType.class;
+
+            deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(account.getOid(), delta, type));
+        });
+    }
+
+    protected void finishChangePassword(OperationResult result, AjaxRequestTarget target, boolean showFeedback) {
+        updateResultColumnOfTable(target);
+        if (shouldLoadAccounts()) {
+            showFeedback = false;
+            if (result.isError()) {
+                error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
+            } else {
+                success(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+            }
+        }
+        super.finishChangePassword(result, target, showFeedback);
+    }
+
+    protected boolean shouldLoadAccounts() {
+        return getCredentialsPropagationUserControl() == null
+                || CredentialsPropagationUserControlType.USER_CHOICE.equals(getCredentialsPropagationUserControl())
+                || CredentialsPropagationUserControlType.ONLY_MAPPING.equals(getCredentialsPropagationUserControl())
+                || CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(getCredentialsPropagationUserControl());
+    }
+
+    protected void updateResultColumnOfTable(AjaxRequestTarget target) {
+        getTableComponent().getDataTable().visitChildren(ColumnResultPanel.class,
+                (IVisitor<ColumnResultPanel, ColumnResultPanel>) (panel, iVisit) -> {
+                    if (panel.getModel() instanceof LoadableModel) {
+                        ((LoadableModel) panel.getModel()).reset();
+                    }
+                    target.add(panel);
+                });
+    }
+
+    protected CredentialsPropagationUserControlType getCredentialsPropagationUserControl() {
+        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
+        return credentialsPolicy != null && credentialsPolicy.getPassword() != null ?
+                credentialsPolicy.getPassword().getPropagationUserControl() : null;
+    }
+
+    private BoxedTablePanel<PasswordAccountDto> getTableComponent() {
+        return (BoxedTablePanel<PasswordAccountDto>) get(ID_INDIVIDUAL_SYSTEMS_TABLE);
     }
 }
