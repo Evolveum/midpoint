@@ -97,19 +97,21 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 //            list.add(t);
 //        }
 
-        ISortableDataProvider provider = new ObjectDataProvider(this, searchModel);
+        ObjectDataProvider provider = new ObjectDataProvider(this, searchModel);
 
         List<IColumn> columns = createColumns();
         TileTablePanel tilesTable = new TileTablePanel(ID_TILES, provider, columns) {
 
             @Override
             protected WebMarkupContainer createTableButtonToolbar(String id) {
+                TileTablePanel ttp = this;
+
                 Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
                 fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        addSelectedPerformed(target);
+                        addSelectedPerformed(provider, ttp, target);
                     }
                 });
 
@@ -125,14 +127,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             }
 
             @Override
-            protected WebMarkupContainer createTilesHeader(String id) {
-                return new SearchPanel(id, searchModel) {
-
-                    @Override
-                    protected void searchPerformed(AjaxRequestTarget target) {
-                        // todo implement
-                    }
-                };
+            protected IModel<Search> createSearchModel() {
+                return searchModel;
             }
         };
         add(tilesTable);
@@ -181,8 +177,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     }
 
-    protected void addSelectedPerformed(AjaxRequestTarget target) {
-
+    protected void addSelectedPerformed(ObjectDataProvider provider, TileTablePanel tileTable, AjaxRequestTarget target) {
+        List selected = provider.getSelectedData();
+        new Toast().cssClass("bg-success").title("funky").body("selected: " + selected.size()).show(target);
     }
 
     protected void addAllPerformed(AjaxRequestTarget target) {
