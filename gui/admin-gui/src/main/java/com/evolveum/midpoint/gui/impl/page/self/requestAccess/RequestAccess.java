@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -19,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public class RequestAccess implements Serializable {
 
     private List<ObjectReferenceType> personOfInterest;
+
+    private List<AssignmentType> shoppingCartAssignments;
 
     public List<ObjectReferenceType> getPersonOfInterest() {
         if (personOfInterest == null) {
@@ -29,5 +32,16 @@ public class RequestAccess implements Serializable {
 
     public void setPersonOfInterest(List<ObjectReferenceType> personOfInterest) {
         this.personOfInterest = personOfInterest;
+    }
+
+    public List<AssignmentType> getShoppingCartAssignments() {
+        if (shoppingCartAssignments == null) {
+            shoppingCartAssignments = new ArrayList<>();
+        }
+        return shoppingCartAssignments;
+    }
+
+    public void setShoppingCartAssignments(List<AssignmentType> shoppingCartAssignments) {
+        this.shoppingCartAssignments = shoppingCartAssignments;
     }
 }

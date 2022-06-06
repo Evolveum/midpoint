@@ -10,6 +10,12 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -57,7 +63,7 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
     private static final String ID_BACK = "back";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
-    private IModel<List<Tile>> tiles;
+    private IModel<List<Tile<PersonOfInterest>>> tiles;
 
     public PersonOfInterestPanel(IModel<RequestAccess> model) {
         super(model);
@@ -79,11 +85,13 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
     private void initModels() {
         tiles = new LoadableModel<>(false) {
             @Override
-            protected List<Tile> load() {
-                List<Tile> list = new ArrayList<>();
+            protected List<Tile<PersonOfInterest>> load() {
+                List<Tile<PersonOfInterest>> list = new ArrayList<>();
 
                 for (PersonOfInterest poi : PersonOfInterest.values()) {
-                    list.add(new Tile(poi.getIcon(), getString(poi)));
+                    Tile tile = new Tile(poi.getIcon(), getString(poi));
+                    tile.setValue(poi);
+                    list.add(tile);
                 }
 
                 return list;
@@ -122,17 +130,17 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
         WebMarkupContainer listContainer = new WebMarkupContainer(ID_LIST_CONTAINER);
         listContainer.setOutputMarkupId(true);
         add(listContainer);
-        ListView<Tile> list = new ListView<>(ID_LIST, tiles) {
+        ListView<Tile<PersonOfInterest>> list = new ListView<>(ID_LIST, tiles) {
 
             @Override
-            protected void populateItem(ListItem<Tile> item) {
+            protected void populateItem(ListItem<Tile<PersonOfInterest>> item) {
                 TilePanel tp = new TilePanel(ID_TILE, () -> item.getModelObject()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
                         boolean selected = getModelObject().isSelected();
 
-                        List<Tile> tiles = PersonOfInterestPanel.this.tiles.getObject();
+                        List<Tile<PersonOfInterest>> tiles = PersonOfInterestPanel.this.tiles.getObject();
                         tiles.forEach(t -> t.setSelected(false));
 
                         if (!selected) {
@@ -159,6 +167,12 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void onNextPerformed(AjaxRequestTarget target) {
+        // todo fix
+        ObjectReferenceType myself = new ObjectReferenceType()
+                .oid(SecurityUtil.getPrincipalOidIfAuthenticated())
+                .type(UserType.COMPLEX_TYPE);
+        getModelObject().getPersonOfInterest().add(myself);
+
         getWizard().next();
 
         target.add(getWizard().getPanel());

@@ -1,0 +1,39 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form class="d-flex flex-column" wicket:id="valueForm">
+        <div class="d-inline-flex">
+            <div class="d-flex flex-column w-100" wicket:id="valueContainer">
+                <div wicket:id="input"/>
+                <wicket:enclosure child="feedback">
+                    <div>
+                        <span wicket:id="feedback" class="text-danger"/>
+                    </div>
+                </wicket:enclosure>
+            </div>
+            <wicket:container class="ml-auto" wicket:id="header">
+                    <span class="btn-group  m-auto">
+                        <a class="btn btn-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete">
+                            <i class="fa fa-minus-circle"></i>
+                        </a>
+                        <a class="btn btn-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata">
+                            <i class="fa fa-tag"></i>
+                        </a>
+                    </span>
+            </wicket:container>
+        </div>
+        <wicket:enclosure child="metadata">
+            <div class="mt-1">
+                <div wicket:id="metadata"/>
+            </div>
+        </wicket:enclosure>
+    </form>
+</wicket:panel>
+</html>

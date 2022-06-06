@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:enclosure child="tilesContainer">
+        <div class="d-flex flex-column flex-grow-1 gap-3">
+            <div wicket:id="tilesHeader"/>
+            <div class="d-flex flex-grow-1 flex-wrap gap-3" wicket:id="tilesContainer">
+                <wicket:container wicket:id="tiles">
+                    <div wicket:id="tile"/>
+                </wicket:container>
+            </div>
+            <div class="align-self-end" wicket:id="tilesPaging"/>
+        </div>
+    </wicket:enclosure>
+
+    <div wicket:id="table"/>
+</wicket:panel>
+</html>

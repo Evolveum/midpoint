@@ -28,6 +28,8 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
 
     private static final String ID_HEADER = "header";
+    protected static final String ID_VALUE = "value";
+
 
     /**
      * @param id
@@ -50,7 +52,7 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item) {
-        PrismPropertyValuePanel<T> panel = new PrismPropertyValuePanel<T>("value", item.getModel(), getSettings()) {
+        PrismPropertyValuePanel<T> panel = new PrismPropertyValuePanel<T>(ID_VALUE, item.getModel(), getSettings()) {
 
             @Override
             protected void remove(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {

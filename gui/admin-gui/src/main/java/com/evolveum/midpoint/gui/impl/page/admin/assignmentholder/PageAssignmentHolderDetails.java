@@ -61,11 +61,15 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     @Override
     protected void initLayout() {
         if (isAdd() && isApplicableTemplate()) {
-            TemplateFragment templateFragment = new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
+            Fragment templateFragment  = createTemplateFragment();
             add(templateFragment);
         } else {
             super.initLayout();
         }
+    }
+
+    protected Fragment createTemplateFragment() {
+        return new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
     }
 
     protected boolean isApplicableTemplate() {
@@ -73,7 +77,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return applicableArchetypes.size() > 1;
     }
 
-    class TemplateFragment extends Fragment {
+    private class TemplateFragment extends Fragment {
 
         public TemplateFragment(String id, String markupId, MarkupContainer markupProvider) {
             super(id, markupId, markupProvider);
@@ -87,12 +91,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         }
 
         protected void initTemplateLayout() {
-            add(createTemplatePanel(ID_TEMPLATE));
+            add(createTemplatePanel());
         }
     }
 
-    protected WebMarkupContainer createTemplatePanel(String id) {
-        return new CreateTemplatePanel<>(id) {
+    private WebMarkupContainer createTemplatePanel() {
+        return new CreateTemplatePanel<>(ID_TEMPLATE) {
 
             @Override
             protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
@@ -121,12 +125,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 }
 
                 reloadObjectDetailsModel(assignmentHolder);
-                Fragment fragment = createDetailsFragment();
+                Fragment fragment = createFragmentAfterChoseTemplate();
                 fragment.setOutputMarkupId(true);
                 PageAssignmentHolderDetails.this.replace(fragment);
                 target.add(fragment);
             }
         };
+    }
+
+    protected Fragment createFragmentAfterChoseTemplate() {
+        return createDetailsFragment();
     }
 
     protected List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionViews) {

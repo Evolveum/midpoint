@@ -46,7 +46,7 @@ public class CountToolbar extends AbstractToolbar {
         count.setRenderBodyOnly(true);
         td.add(count);
 
-        PageSizePopover popover = new PageSizePopover(ID_PAGE_SIZE) {
+        TableConfigurationPanel popover = new TableConfigurationPanel(ID_PAGE_SIZE) {
 
             @Override
             protected void pageSizeChanged(AjaxRequestTarget target) {
@@ -67,7 +67,7 @@ public class CountToolbar extends AbstractToolbar {
         };
     }
 
-    public static String createCountString(Component component, IPageable pageable){
+    public static String createCountString(Component component, IPageable pageable) {
         long from = 0;
         long to = 0;
         long count = 0;
@@ -100,7 +100,7 @@ public class CountToolbar extends AbstractToolbar {
                         new Object[] { from, to }).getString();
             }
 
-            return PageBase.createStringResourceStatic("CountToolbar.label", new Object[]{from, to, count}).getString();
+            return PageBase.createStringResourceStatic("CountToolbar.label", new Object[] { from, to, count }).getString();
         }
 
         return PageBase.createStringResourceStatic("CountToolbar.noFound").getString();
