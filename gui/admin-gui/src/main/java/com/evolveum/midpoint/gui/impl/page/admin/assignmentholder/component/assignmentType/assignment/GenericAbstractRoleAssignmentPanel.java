@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -16,7 +18,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -38,6 +42,15 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
 
     public GenericAbstractRoleAssignmentPanel(String id, IModel<PrismObjectWrapper<F>> assignmentContainerWrapperModel, ContainerPanelConfigurationType config) {
         super(id, assignmentContainerWrapperModel, config);
+    }
+
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        // This should do customPostSearch on repository level.
+        return QueryBuilder.queryFor(AssignmentType.class, getPrismContext())
+            .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
+            .item(ObjectType.F_SUBTYPE).contains("access")
+            .build();
     }
 
     @Override
