@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReindex;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -1194,7 +1196,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test923AssignmentsAndInducementsOwnedByRoles() throws SchemaException {
+    public void test923AssignmentsAndInducementsOwnedByAbstractRoles() throws SchemaException {
         given("query for assignments or inducements owned by any abstract role");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownedBy(AbstractRoleType.class)
@@ -1221,8 +1223,8 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test924AssignmentsAndInducementsOwnedByIncludingInnerFilter() throws SchemaException {
-        given("query for assignments or inducements owned by any user including inner filter");
+    public void test924AssignmentsAndInducementsOwnedByAbstractRolesIncludingInnerFilter() throws SchemaException {
+        given("query for assignments or inducements owned by any abstract role with specified name (inner filter)");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownedBy(AbstractRoleType.class)
                 .block()
@@ -1240,7 +1242,31 @@ public class SearchTest extends BaseSQLRepoTest {
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
         result.recomputeStatus();
 
-        then("only assignments/inducements from roles matching the inner filter are returned");
+        then("only assignments/inducements matching the outer filter from roles matching the inner filter are returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getId().equals(1L)
+                        && a.getConstruction().getResourceRef().getOid().equals("10000000-0000-0000-0000-000000000004"));
+    }
+
+    @Test(enabled = false) // TODO
+    public void test925AssignmentsOwnedByRole() throws SchemaException {
+        given("query for assignments (using path) owned by the specified role");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ownedBy(AbstractRoleType.class, AbstractRoleType.F_ASSIGNMENT) // path for assignments only
+                .block()
+                // the inner condition path starts from AbstractRoleType
+                .item(F_NAME).eq("Judge") // only assignments from the Role "Judge"
+                .endBlock()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignments from the specified role are returned (not inducements)");
         assertThat(result.isSuccess()).isTrue();
         assertThat(assignments).singleElement()
                 .matches(a -> a.getId().equals(1L)
@@ -1263,6 +1289,33 @@ public class SearchTest extends BaseSQLRepoTest {
                 .extracting(a -> a.getStageNumber())
                 .containsExactlyInAnyOrder(11, 12);
          */
+
+    @Test
+    public void test929OwnedByComplainsAboutInvalidPath() {
+        expect("query fails when ownedBy path points to non-owning type");
+        OperationResult result = new OperationResult("search");
+        assertThatThrownBy(() -> repositoryService.searchContainers(AssignmentType.class,
+                prismContext.queryFor(AssignmentType.class)
+                        .ownedBy(AbstractRoleType.class, AbstractRoleType.F_RISK_LEVEL) // risk level is not assignment
+                        .block()
+                        .endBlock()
+                        .build(), null, result))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(QueryException.class)
+                .hasMessage("Path for OwnedByFilter (riskLevel) points to a type 'String', expected type is 'AssignmentType'.");
+        assertThatOperationResult(result).isFatalError();
+
+        expect("query fails when ownedBy path points to non-owning type (collection version)");
+        assertThatThrownBy(() -> repositoryService.searchContainers(AssignmentType.class,
+                prismContext.queryFor(AssignmentType.class)
+                        .ownedBy(AbstractRoleType.class, AbstractRoleType.F_LINK_REF) // multi-value ref, not assignment
+                        .block()
+                        .endBlock()
+                        .build(), null, new OperationResult("search")))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(QueryException.class)
+                .hasMessage("Path for OwnedByFilter (linkRef) is a reference, not a container of expected type 'AssignmentType'.");
+    }
 
     /**
      * See MID-5474 (just a quick attempt to replicate)

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import java.util.Objects;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.EntityReference;
 import com.evolveum.midpoint.repo.sql.query.hqm.GenericProjectionElement;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class OwnedByRestriction extends Restriction<OwnedByFilter> {
 
+    // TODO: Extend to cases, work items, etc...
     public static final Set<Class<?>> SUPPORTED_OWNED_TYPES = Set.of(AssignmentType.class);
 
     private final JpaEntityDefinition owningEntityDefinition;
@@ -37,11 +40,10 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
     public static OwnedByRestriction create(
             InterpretationContext context, OwnedByFilter filter, JpaEntityDefinition baseEntityDefinition)
             throws QueryException {
-        Class<?> ownedType = baseEntityDefinition.getJaxbClass();
+        Class<?> ownedType = Objects.requireNonNull(baseEntityDefinition.getJaxbClass());
         if (!SUPPORTED_OWNED_TYPES.contains(ownedType)) {
             throw new QueryException("OwnedBy filter is not supported for type '"
-                    + (ownedType != null ? ownedType.getSimpleName() : null)
-                    + "'; supported types are: " + SUPPORTED_OWNED_TYPES);
+                    + ownedType.getSimpleName() + "'; supported types are: " + SUPPORTED_OWNED_TYPES);
         }
 
         ItemPath path = filter.getPath();
@@ -58,6 +60,17 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
             if (searchResult == null) {
                 throw new QueryException("Path for OwnedByFilter (" + path +
                         ") doesn't point to a hibernate entity or property within " + owningEntityDefinition);
+            }
+            JpaDataNodeDefinition<?> pathTargetDefinition = Objects.requireNonNull(searchResult.getTargetDefinition());
+            if (pathTargetDefinition instanceof JpaReferenceDefinition<?>) {
+                throw new QueryException("Path for OwnedByFilter (" + path +
+                        ") is a reference, not a container of expected type '" + ownedType.getSimpleName() + "'.");
+            }
+            Class<?> targetType = pathTargetDefinition.getJaxbClass();
+            if (!ownedType.equals(targetType)) {
+                throw new QueryException("Path for OwnedByFilter (" + path + ") points to a type '"
+                        + (targetType != null ? targetType.getSimpleName() : "?")
+                        + "', expected type is '" + ownedType.getSimpleName() + "'.");
             }
         }
         return new OwnedByRestriction(context, filter, baseEntityDefinition, owningEntityDefinition);
