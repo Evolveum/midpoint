@@ -10,6 +10,9 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+<!--    <div wicket:id="feedbackContainer" class="feedbackContainer">-->
+<!--        <div wicket:id="feedback" class="messagePanel"/>-->
+<!--    </div>-->
     <div class="d-flex flex-column justify-content-center mt-5 col-12">
         <span class="bg-white rounded p-2 pl-3 pr-3 border border-light">
             <i  wicket:id="icon"></i>
@@ -17,12 +20,9 @@
         </span>
 
         <div class="bg-white rounded p-3 border border-light" wicket:id="propertiesContainer">
-            <div wicket:id="properties">
-                <div wicket:id="propertyContainer">
-                    <span class="mt-4 text-gray font-weight-bold text-center" wicket:id="propertyTitle"/>
-                    <div wicket:id="propertyInput"/>
-                </div>
-            </div>
+            <wicket:container wicket:id="properties">
+                <div class="pb-3" wicket:id="property"/>
+            </wicket:container>
         </div>
     </div>
 </wicket:panel>
