@@ -22,6 +22,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -73,6 +75,7 @@ public class WizardPanel extends BasePanel {
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
         header.setOutputMarkupId(true);
+        header.add(getVisibilityOfStepsHeader());
         add(header);
 
         ListView<IModel<String>> steps = new ListView<>(ID_STEPS, () -> wizardModel.getSteps().stream().map(s -> s.getTitle()).collect(Collectors.toList())) {
@@ -105,7 +108,11 @@ public class WizardPanel extends BasePanel {
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                wizardModel.previous();
+                if (wizardModel.getActiveStepIndex() == 0) {
+                    getPageBase().redirectBack();
+                } else {
+                    wizardModel.previous();
+                }
 
                 target.add(WizardPanel.this);
             }
@@ -115,6 +122,11 @@ public class WizardPanel extends BasePanel {
                 wizardModel.next();
 
                 target.add(WizardPanel.this);
+            }
+
+            @Override
+            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
+                return wizardModel.getActiveStep().getNextBehaviour();
             }
         };
         contentHeader.add(new VisibleEnableBehaviour() {
@@ -135,6 +147,11 @@ public class WizardPanel extends BasePanel {
         add(contentHeader);
 
         addOrReplace(new WebMarkupContainer(ID_CONTENT_BODY));
+    }
+
+    @NotNull
+    protected VisibleEnableBehaviour getVisibilityOfStepsHeader() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     public WizardStep getCurrentPanel() {

@@ -7,27 +7,34 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,27 +46,34 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class CreateResourceTemplatePanel extends BasePanel {
+public abstract class ResourceTemplateStepPanel extends WizardStepPanel {
 
     private static final String ID_TILES_CONTAINER = "tileContainer";
     private static final String ID_TILES = "tiles";
     private static final String ID_TILE = "tile";
-    private static final String ID_SEARCH = "search";
-    private static final String ID_BACK = "back";
+//    private static final String ID_SEARCH = "search";
+//    private static final String ID_BACK = "back";
     private static final String CREATE_RESOURCE_TEMPLATE_STORAGE_KEY = "resourceTemplateStorage";
 
     private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
     private LoadableModel<List<TemplateTile<ResourceTemplate>>> tilesModel;
 
-    public CreateResourceTemplatePanel(String id) {
-        super(id);
+    private final ResourceDetailsModel resourceModel;
+
+    public ResourceTemplateStepPanel(ResourceDetailsModel model) {
+        super();
+        this.resourceModel = model;
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("PageResource.wizard.step.selection");
     }
 
     @Override
     protected void onInitialize() {
-        super.onInitialize();
-        initSearchModel();
         initTilesModel();
+        super.onInitialize();
         initLayout();
     }
 
@@ -86,20 +100,29 @@ public abstract class CreateResourceTemplatePanel extends BasePanel {
         }
     }
 
-    private void initLayout() {
-        setOutputMarkupId(true);
+    @Override
+    public Component createHeaderContent(String id) {
+        initSearchModel();
 
-        AjaxLink back = new AjaxLink<>(ID_BACK) {
+        SearchPanel<AssignmentHolderType> searchPanel = new SearchPanel<>(id, searchModel) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                getPageBase().redirectBack();
+            public void searchPerformed(AjaxRequestTarget target) {
+                tilesModel.reset();
+                target.add(getTilesContainer());
+            }
+
+            @Override
+            protected void saveSearch(Search search, AjaxRequestTarget target) {
+                getStorage().setSearch(search);
             }
         };
-        add(back);
+        searchPanel.add(AttributeAppender.append("class", () -> "ml-auto"));
+        return searchPanel;
+    }
 
-        SearchPanel<AssignmentHolderType> search = initSearch();
-        add(search);
+    private void initLayout() {
+        setOutputMarkupId(true);
 
         WebMarkupContainer tilesContainer = new WebMarkupContainer(ID_TILES_CONTAINER);
         tilesContainer.setOutputMarkupId(true);
@@ -118,22 +141,6 @@ public abstract class CreateResourceTemplatePanel extends BasePanel {
         tilesContainer.add(tiles);
     }
 
-    private SearchPanel<AssignmentHolderType> initSearch() {
-        return new SearchPanel<>(ID_SEARCH, searchModel) {
-
-            @Override
-            public void searchPerformed(AjaxRequestTarget target) {
-                tilesModel.reset();
-                target.add(getTilesContainer());
-            }
-
-            @Override
-            protected void saveSearch(Search search, AjaxRequestTarget target) {
-                getStorage().setSearch(search);
-            }
-        };
-    }
-
     private WebMarkupContainer getTilesContainer() {
         return (WebMarkupContainer) get(ID_TILES_CONTAINER);
     }
@@ -148,29 +155,35 @@ public abstract class CreateResourceTemplatePanel extends BasePanel {
 
     private void onTemplateChosePerformed(TemplateTile<ResourceTemplate> tile, AjaxRequestTarget target) {
         try {
-            PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
+            PrismObjectDefinition<ResourceType> def =
+                    PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(ResourceType.COMPLEX_TYPE);
             PrismObject<ResourceType> obj = def.instantiate();
 
             ResourceTemplate resourceTemplate = tile.getTemplateObject();
             if (resourceTemplate != null){
                 if (QNameUtil.match(ConnectorType.COMPLEX_TYPE, resourceTemplate.type)) {
-                    obj.asObjectable().connectorRef(
-                            new ObjectReferenceType()
-                                    .oid(resourceTemplate.oid)
-                                    .type(ConnectorType.COMPLEX_TYPE));
+                    PrismReferenceWrapper<Referencable> connectorRef =
+                            resourceModel.getObjectWrapper().getValue().findReference(ResourceType.F_CONNECTOR_REF);
+                    connectorRef.getValue().setRealValue(new ObjectReferenceType()
+                            .oid(resourceTemplate.oid)
+                            .type(ConnectorType.COMPLEX_TYPE));
                 }
 //                else (resourceTemplate.resourceTemplate != null) {
                 //TODO Use template for actual new resource
 //                }
             }
-            onTemplateChosePerformed(obj, target);
+            getWizard().next();
+            target.add(getParent());
         } catch (SchemaException ex) {
             getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
     }
 
-    abstract protected void onTemplateChosePerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target);
+    @Override
+    public String appendCssToWizard() {
+        return "w-100";
+    }
 
     protected LoadableModel<List<TemplateTile<ResourceTemplate>>> loadTileDescriptions() {
         return new LoadableModel<>(false) {
@@ -212,16 +225,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel {
         };
     }
 
-    protected QName getType() {
-        return ResourceType.COMPLEX_TYPE;
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 
     protected class ResourceTemplate implements Serializable {
 
-
-
         private String oid;
-
         private QName type;
 
         ResourceTemplate(String oid, QName type){

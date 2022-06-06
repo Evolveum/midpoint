@@ -88,32 +88,24 @@ public class BasicWizardPanel extends WizardStepPanel {
     }
 
     private IModel<?> createNextStepLabel() {
-        MarkupContainer parent = getParent();
-        if (parent instanceof WizardPanel) {
-            WizardStep panel = ((WizardPanel) parent).getWizardModel().getNextPanel();
-            return panel.getTitle();
+        WizardStep nextPanel = getWizard().getNextPanel();
+        if (nextPanel != null){
+            return nextPanel.getTitle();
         }
         return Model.of();
     }
 
     private void onNextPerformed(AjaxRequestTarget target) {
-        MarkupContainer parent = getParent();
-        if (parent instanceof WizardPanel) {
-            ((WizardPanel) parent).getWizardModel().next();
-            target.add(parent);
-        }
+        getWizard().next();
+        target.add(getParent());
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {
-        MarkupContainer parent = getParent();
-        if (parent instanceof WizardPanel) {
-            WizardPanel wizard = (WizardPanel) parent;
-            int index = wizard.getWizardModel().getActiveStepIndex();
-            if (index > 0) {
-                wizard.getWizardModel().previous();
-                target.add(wizard);
-                return;
-            }
+        int index = getWizard().getActiveStepIndex();
+        if (index > 0) {
+            getWizard().previous();
+            target.add(getParent());
+            return;
         }
         getPageBase().redirectBack();
     }
