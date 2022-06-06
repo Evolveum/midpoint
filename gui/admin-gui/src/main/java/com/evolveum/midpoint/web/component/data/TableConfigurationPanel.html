@@ -8,34 +8,23 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="cogButton" class="btn-group btn-group-sm">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-cog"></i>
-        </button>
-        <div class="dropdown-menu">
-            <a class="dropdown-item" wicket:id="pageSize"><wicket:message key="TableConfigurationPanel.pageSize"/></a>
-            <a class="dropdown-item" wicket:id="tableColumns"><wicket:message key="TableConfigurationPanel.tableColumns"/></a>
-        </div>
-    </div>
+    <a class="btn btn-default" wicket:id="cog" wicket:message="title:TableConfigurationPanel.pageSize">
+        <i class="fa fa-cog"></i>
+    </a>
 
-    <div wicket:id="popover" class="popover fade down in">
-        <div class="arrow"></div>
-        <h3 class="popover-header"><wicket:message key="PageSizePopover.title"/></h3>
-        <div class="popover-body">
-            <form wicket:id="form">
-                <span wicket:id="inputFeedback" class="text-danger"/>
-                <div class="input-group flex-nowrap">
-                    <input wicket:id="input" type="text" size="3" style="display: inline-block; width: auto;"
-                           class="form-control form-control-sm">
-                    <div class="input-group-append" style="width: auto;">
-                        <button wicket:id="button" type="button" class="btn btn-sm btn-success">
-                            <i class="fa fa-check"></i>
-                        </button>
-                    </div>
+    <div wicket:id="popover">
+        <form wicket:id="form">
+            <span wicket:id="inputFeedback" class="text-danger"/>
+            <div class="input-group flex-nowrap">
+                <input wicket:id="input" type="text" size="3" style="display: inline-block; width: auto;"
+                       class="form-control form-control-sm">
+                <div class="input-group-append" style="width: auto;">
+                    <button wicket:id="button" type="button" class="btn btn-sm btn-success">
+                        <i class="fa fa-check"></i>
+                    </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </wicket:panel>
 </html>
