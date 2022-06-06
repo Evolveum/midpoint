@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 /**
  * Specific for SQL Server.
@@ -21,7 +20,7 @@ public class ExistsCondition extends Condition {
     private final String innerQueryText;
     private final String linkingCondition;
 
-    public ExistsCondition(RootHibernateQuery rootHibernateQuery, String innerQueryText, String linkingCondition) {
+    public ExistsCondition(HibernateQuery rootHibernateQuery, String innerQueryText, String linkingCondition) {
         super(rootHibernateQuery);
         Objects.requireNonNull(innerQueryText);
         Objects.requireNonNull(linkingCondition);

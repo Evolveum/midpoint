@@ -55,7 +55,7 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -489,7 +489,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQuery realQuery = getInterpretedQueryWhole(session, GenericObjectType.class, query, false, null);
-            RootHibernateQuery source = ((RQueryImpl) realQuery).getQuerySource();
+            HibernateQuery source = ((RQueryImpl) realQuery).getQuerySource();
             String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
 
             // note l and l2 cannot be merged as they point to different extension properties (intType, longType)

@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -23,41 +24,37 @@ public abstract class ItemRestriction<T extends ObjectFilter> extends Restrictio
 
     /**
      * Item path (relative to parent restriction), copied from the appropriate filter.
-     * Not null, although possibly empty. (TODO really can be empty?)
      */
-    protected final ItemPath itemPath;
+    protected final @NotNull ItemPath itemPath;
 
     /**
      * Item definition - necessary only for Any items.
      */
-    protected final ItemDefinition itemDefinition;
+    protected final ItemDefinition<?> itemDefinition;
 
     /**
      * Information about resolved itemPath. Needed when accessing the data.
      * Contains also information on previous steps, useful to enable looking upwards via ".." operator.
      * Filled-in within interpret() method.
      */
-    protected HqlDataInstance hqlDataInstance;
+    protected HqlDataInstance<?> hqlDataInstance;
 
-    public ItemRestriction(InterpretationContext context, T filter, ItemPath itemPath, ItemDefinition itemDefinition, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
+    public ItemRestriction(InterpretationContext context, T filter, @NotNull ItemPath itemPath,
+            ItemDefinition<?> itemDefinition, JpaEntityDefinition baseEntityDefinition, Restriction<?> parent) {
         super(context, filter, baseEntityDefinition, parent);
-        if (itemPath != null) {
-            this.itemPath = itemPath;
-        } else {
-            this.itemPath = ItemPath.EMPTY_PATH;
-        }
+        this.itemPath = Objects.requireNonNull(itemPath);
         this.itemDefinition = itemDefinition;
     }
 
-    public ItemPath getItemPath() {
+    public @NotNull ItemPath getItemPath() {
         return itemPath;
     }
 
-    public HqlDataInstance getHqlDataInstance() {
+    public HqlDataInstance<?> getHqlDataInstance() {
         return hqlDataInstance;
     }
 
-    public void setHqlDataInstance(HqlDataInstance hqlDataInstance) {
+    public void setHqlDataInstance(HqlDataInstance<?> hqlDataInstance) {
         Objects.requireNonNull(hqlDataInstance);
         this.hqlDataInstance = hqlDataInstance;
     }

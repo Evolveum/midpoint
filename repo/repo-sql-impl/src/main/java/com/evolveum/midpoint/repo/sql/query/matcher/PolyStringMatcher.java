@@ -11,7 +11,7 @@ import com.google.common.base.Strings;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
@@ -30,7 +30,7 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
     @Override
-    public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
+    public Condition match(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
             throws QueryException {
 
         boolean ignoreCase = STRICT_IGNORE_CASE.equals(matcher)
@@ -52,14 +52,14 @@ public class PolyStringMatcher extends Matcher<PolyString> {
         }
     }
 
-    private Condition createNormMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
+    private Condition createNormMatch(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
             boolean ignoreCase) throws QueryException {
 
         String realValue = PolyString.getNorm(value);
         return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
     }
 
-    private Condition createOrigMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
+    private Condition createOrigMatch(HibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
             boolean ignoreCase) throws QueryException {
 
         String realValue = PolyString.getOrig(value);

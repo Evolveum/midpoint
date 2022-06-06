@@ -14,17 +14,17 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.query.Query;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
 /**
  * @author lazyman
  */
 public class RQueryImpl implements RQuery {
 
-    private final RootHibernateQuery querySource; // only for diagnostic purposes
+    private final HibernateQuery querySource; // only for diagnostic purposes
     private final Query<?> query;
 
-    public RQueryImpl(Query<?> query, RootHibernateQuery querySource) {
+    public RQueryImpl(Query<?> query, HibernateQuery querySource) {
         Objects.requireNonNull(query, "Query must not be null.");
         this.query = query;
         this.querySource = querySource;
@@ -51,7 +51,7 @@ public class RQueryImpl implements RQuery {
         return query;
     }
 
-    public RootHibernateQuery getQuerySource() {
+    public HibernateQuery getQuerySource() {
         return querySource;
     }
 }

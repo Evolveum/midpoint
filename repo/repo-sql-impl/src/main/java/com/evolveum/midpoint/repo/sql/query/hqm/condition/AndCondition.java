@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
 import java.util.Collection;
 
 public class AndCondition extends JunctionCondition {
 
-    public AndCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {
+    public AndCondition(HibernateQuery rootHibernateQuery, Condition... conditions) {
         super(rootHibernateQuery, conditions);
     }
 
-    public AndCondition(RootHibernateQuery rootHibernateQuery, Collection<Condition> conditions) {
+    public AndCondition(HibernateQuery rootHibernateQuery, Collection<Condition> conditions) {
         super(rootHibernateQuery, conditions);
     }
 

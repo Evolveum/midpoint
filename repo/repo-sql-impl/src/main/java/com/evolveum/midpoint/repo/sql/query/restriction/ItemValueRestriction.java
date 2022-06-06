@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.IsNotNullCondition;
@@ -120,7 +120,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         if (!isNegated()) {
             return condition;
         }
-        RootHibernateQuery hibernateQuery = getContext().getHibernateQuery();
+        HibernateQuery hibernateQuery = getContext().getHibernateQuery();
         AndCondition conjunction = hibernateQuery.createAnd();
         conjunction.add(condition);
         conjunction.add(hibernateQuery.createIsNotNull(propertyPath));
