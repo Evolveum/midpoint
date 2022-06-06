@@ -14,8 +14,6 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyCredentialsDto;
-import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -25,7 +23,6 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +68,6 @@ public class PageSelfCredentials extends PageBase {
         credentialsTabPanel.setOutputMarkupId(true);
 
         mainForm.add(credentialsTabPanel);
-        initButtons(mainForm);
 
         add(mainForm);
 
@@ -88,28 +84,14 @@ public class PageSelfCredentials extends PageBase {
                     private static final long serialVersionUID = 1L;
 
 //                    @Override
-//                    protected boolean shouldShowPasswordPropagation() {
-//                        return true;//shouldLoadAccounts();
-//                    }
-//
-//                    @Override
 //                    protected boolean isCheckOldPassword() {
 //                        return true;//PageAbstractSelfCredentials.this.isCheckOldPassword();
 //                    }
 //
-//                    @Override
-//                    protected boolean canEditPassword() {
-//                        return true;//!savedPassword;
-//                    }
                 };
             }
         });
         return tabs;
     }
-
-    private void initButtons(Form<?> mainForm) {
-
-    }
-
 
 }

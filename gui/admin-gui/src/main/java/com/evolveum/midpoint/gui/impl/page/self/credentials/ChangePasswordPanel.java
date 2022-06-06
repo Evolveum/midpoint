@@ -10,43 +10,42 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.PasswordPolicyValidationPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.visit.IVisitor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
@@ -55,58 +54,67 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordPanel.class);
 
     private static final String ID_PASSWORD_PANEL = "passwordPanel";
-    private static final String ID_OLD_PASSWORD_CONTAINER = "oldPasswordContainer";
-    private static final String ID_OLD_PASSWORD_FIELD = "oldPassword";
+    private static final String ID_CURRENT_PASSWORD_FIELD = "currentPassword";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
+    private static final String ID_CHANGE_PASSWORD = "changePassword";
+    private static final String ID_PASSWORD_VALIDATION_PANEL = "passwordValidationPanel";
 
-    private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
+    private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
     private static final String OPERATION_VALIDATE_PASSWORD = DOT_CLASS + "validatePassword";
+    private static final String OPERATION_LOAD_CREDENTIALS_POLICY = DOT_CLASS + "loadCredentialsPolicy";
+    private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
+    private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
 
-   private Map<String, List<StringLimitationResult>> limitationsByPolicyOid = new HashMap<>();
    private String currentPasswordValue = null;
-   private IModel<ProtectedStringType> passwordValueModel;
+   protected ProtectedStringType newPasswordValue = new ProtectedStringType();
+   private LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
+    private boolean savedPassword = false;
 
     public ChangePasswordPanel(String id, IModel<F> objectModel) {
         super(id, objectModel);
-        passwordValueModel =  new PropertyModel<>(objectModel,
-                FocusType.F_CREDENTIALS + "." + CredentialsType.F_PASSWORD + "." + PasswordType.F_VALUE);
     }
 
     protected void onInitialize() {
         super.onInitialize();
+        initCredentialsPolicyModel();
         initLayout();
     }
 
-    private void initLayout() {
-        WebMarkupContainer oldPasswordContainer = new WebMarkupContainer(ID_OLD_PASSWORD_CONTAINER);
-        oldPasswordContainer.add(new VisibleEnableBehaviour() {
+    private void initCredentialsPolicyModel() {
+        credentialsPolicyModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
-
             @Override
-            public boolean isEnabled() {
-                return true;//canEditPassword();
+            protected CredentialsPolicyType load() {
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CREDENTIALS_POLICY);
+                return WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getPageBase(), task);
+            }
+        };
+    }
+
+    private void initLayout() {
+        IModel<String> currentPasswordModel = new IModel<String>() {
+            @Override
+            public String getObject() {
+                return currentPasswordValue;
             }
 
             @Override
-            public boolean isVisible() {
-                return true;//isCheckOldPassword();
+            public void setObject(String value) {
+                currentPasswordValue = value;
             }
-        });
-//        add(oldPasswordContainer);
-
-        PasswordTextField oldPasswordField =
-                new PasswordTextField(ID_OLD_PASSWORD_FIELD, Model.of(currentPasswordValue));
-        oldPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        oldPasswordField.setRequired(false);
-        oldPasswordField.setResetPassword(false);
-        oldPasswordField.setOutputMarkupId(true);
- //       oldPasswordContainer.
-                add(oldPasswordField);
+        };
+        PasswordTextField currentPasswordField =
+                new PasswordTextField(ID_CURRENT_PASSWORD_FIELD, currentPasswordModel);
+        currentPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        currentPasswordField.setRequired(false);
+        currentPasswordField.setResetPassword(false);
+        currentPasswordField.setOutputMarkupId(true);
+        add(currentPasswordField);
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
 
-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, passwordValueModel, false, true, getModelObject().asPrismObject()) {
+        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, Model.of(newPasswordValue), false, true, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -117,7 +125,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             protected void updatePasswordValidation(AjaxRequestTarget target) {
                 super.updatePasswordValidation(target);
-                limitationsByPolicyOid.clear();
+                updateNewPasswordValuePerformed(target);
 //                getTable().visitChildren(PasswordPolicyValidationPanel.class,
 //                        (IVisitor<PasswordPolicyValidationPanel, PasswordPolicyValidationPanel>) (panel, iVisit) -> {
 //                            panel.refreshValidationPopup(target);
@@ -126,7 +134,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
             @Override
             protected boolean canEditPassword() {
-                return true;//com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel.this.canEditPassword();
+                return !savedPassword;
             }
 
             @Override
@@ -137,16 +145,35 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
-        LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
+        LoadableModel<List<StringLimitationResult>> limitationsModel = new LoadableModel<>(true) {
+            private static final long serialVersionUID = 1L;
             @Override
             protected List<StringLimitationResult> load() {
-                return getLimitationsForActualPassword(passwordValueModel.getObject());
+                return getLimitationsForActualPassword(newPasswordValue);
             }
         };
 
-        PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel("passwordValidationPanel", limitationsModel);
+        PasswordLimitationsPanel passwordLimitationsPanel = new PasswordLimitationsPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
+
+        AjaxButton changePasswordButton = new AjaxButton(ID_CHANGE_PASSWORD,
+                createStringResource("ChangePasswordPanel.changePasswordButton")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                changePasswordPerformed(target);
+            }
+        };
+        changePasswordButton.setOutputMarkupId(true);
+        add(changePasswordButton);
+
+    }
+
+    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
+        target.add(get(ID_PASSWORD_VALIDATION_PANEL));
     }
 
     private List<StringLimitationResult> getLimitationsForActualPassword(ProtectedStringType passwordValue) {
@@ -163,6 +190,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return new ArrayList<>();
     }
 
+    protected boolean isCheckOldPassword() {
+        return (getPasswordChangeSecurity() == null) ||
+                (getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD) ||
+                        (getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD_IF_EXISTS) &&
+                                getModelObject().asPrismObject()
+                                .findProperty(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)) != null));
+    }
+
     protected <F extends FocusType> ValuePolicyType getValuePolicy() {
         ValuePolicyType valuePolicyType = null;
         try {
@@ -170,11 +205,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             if (getPageBase() != null) {
                 if (user != null) {
                     Task task = getPageBase().createSimpleTask("load value policy");
-                    valuePolicyType = searchValuePolicy(task);
+                    valuePolicyType = getSearchValuePolicy(task);
                 } else {
                     valuePolicyType = getPageBase().getSecurityContextManager().runPrivileged((Producer<ValuePolicyType>) () -> {
                         Task task = getPageBase().createAnonymousTask("load value policy");
-                        return searchValuePolicy(task);
+                        return getSearchValuePolicy(task);
                     });
                 }
             }
@@ -184,12 +219,12 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return valuePolicyType;
     }
 
-    private ValuePolicyType searchValuePolicy(Task task) {
-        CredentialsPolicyType credentials = WebComponentUtil.getPasswordCredentialsPolicy(getModelObject().asPrismObject(), getPageBase(), task);
-        if (credentials != null && credentials.getPassword() != null
-                && credentials.getPassword().getValuePolicyRef() != null) {
+    private ValuePolicyType getSearchValuePolicy(Task task) {
+        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
+        if (credentialsPolicy != null && credentialsPolicy.getPassword() != null
+                && credentialsPolicy.getPassword().getValuePolicyRef() != null) {
             PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
-                    credentials.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
+                    credentialsPolicy.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
             if (valuePolicy != null) {
                 return valuePolicy.asObjectable();
             }
@@ -197,7 +232,117 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return null;
     }
 
-    protected ProtectedStringType getNewPasswordValue() {
-        return passwordValueModel.getObject();
+    private PasswordChangeSecurityType getPasswordChangeSecurity() {
+        CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
+        return credentialsPolicy != null && credentialsPolicy.getPassword() != null ?
+                credentialsPolicy.getPassword().getPasswordChangeSecurity() : null;
     }
+
+
+    protected void changePasswordPerformed(AjaxRequestTarget target) {
+        ProtectedStringType currentPassword = null;
+        if (isCheckOldPassword()) {
+            LOGGER.debug("Check old password");
+            if (currentPasswordValue == null || currentPasswordValue.trim().equals("")) {
+                warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));
+                target.add(getPageBase().getFeedbackPanel());
+                return;
+            } else {
+                OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
+                Task checkPasswordTask = getPageBase().createSimpleTask(OPERATION_CHECK_PASSWORD);
+                try {
+                    currentPassword = new ProtectedStringType();
+                    currentPassword.setClearValue(currentPasswordValue);
+                    boolean isCorrectPassword = getPageBase().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
+                            checkPasswordTask, checkPasswordResult);
+                    if (!isCorrectPassword) {
+                        error(getString("PageSelfCredentials.incorrectOldPassword"));
+                        target.add(getPageBase().getFeedbackPanel());
+                        return;
+                    }
+                } catch (Exception ex) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);
+                    checkPasswordResult.recordFatalError(
+                            getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                } finally {
+                    checkPasswordResult.computeStatus();
+                }
+            }
+        }
+
+        if (newPasswordValue == null) {
+            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
+        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD);
+        ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());
+        reporter.getProgress().clear();
+        reporter.setWriteOpResultForProgressActivity(true);
+
+        reporter.recordExecutionStart();
+        boolean showFeedback = true;
+        try {
+            if (!newPasswordValue.isEncrypted()) {
+                WebComponentUtil.encryptProtectedString(newPasswordValue, true, getPageBase().getMidpointApplication());
+            }
+            final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
+                    CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+            PrismObjectDefinition<UserType> objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
+
+            PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+                    .createModificationReplaceProperty(valuePath, objDef, newPasswordValue);
+            if (currentPassword != null) {
+                delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
+            }
+            deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), delta, UserType.class));
+
+            getPageBase().getModelService().executeChanges(
+                    deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
+                    Collections.singleton(reporter), result);
+            result.computeStatus();
+        } catch (Exception ex) {
+            setNullEncryptedPasswordData();
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
+            result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
+        } finally {
+            reporter.recordExecutionStop();
+//            getPasswordDto().setProgress(reporter.getProgress());
+            result.computeStatusIfUnknown();
+
+            if (!result.isError()) {
+                this.savedPassword = true;
+                target.add(ChangePasswordPanel.this);
+            }
+        }
+
+        finishChangePassword(result, target, showFeedback);
+    }
+
+    protected void setNullEncryptedPasswordData() {
+        if (newPasswordValue != null) {
+            newPasswordValue.setEncryptedData(null);
+        }
+    }
+
+    protected void finishChangePassword(OperationResult result, AjaxRequestTarget target, boolean showFeedback) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            setNullEncryptedPasswordData();
+            if (showFeedback) {
+                getPageBase().showResult(result);
+            }
+            target.add(getPageBase().getFeedbackPanel());
+        } else {
+
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
+
 }
