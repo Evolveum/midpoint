@@ -1196,7 +1196,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test923AssignmentsAndInducementsOwnedByAbstractRoles() throws SchemaException {
+    public void test930AssignmentsAndInducementsOwnedByAbstractRoles() throws SchemaException {
         given("query for assignments or inducements owned by any abstract role");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownedBy(AbstractRoleType.class)
@@ -1223,7 +1223,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test924AssignmentsAndInducementsOwnedByAbstractRolesIncludingInnerFilter() throws SchemaException {
+    public void test931AssignmentsAndInducementsOwnedByAbstractRolesIncludingInnerFilter() throws SchemaException {
         given("query for assignments or inducements owned by any abstract role with specified name (inner filter)");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownedBy(AbstractRoleType.class)
@@ -1249,8 +1249,8 @@ public class SearchTest extends BaseSQLRepoTest {
                         && a.getConstruction().getResourceRef().getOid().equals("10000000-0000-0000-0000-000000000004"));
     }
 
-    @Test(enabled = false) // TODO
-    public void test925AssignmentsOwnedByRole() throws SchemaException {
+    @Test
+    public void test932AssignmentsOwnedByRole() throws SchemaException {
         given("query for assignments (using path) owned by the specified role");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownedBy(AbstractRoleType.class, AbstractRoleType.F_ASSIGNMENT) // path for assignments only
@@ -1291,7 +1291,7 @@ public class SearchTest extends BaseSQLRepoTest {
          */
 
     @Test
-    public void test929OwnedByComplainsAboutInvalidTypesAndPathsCombinations() {
+    public void test939OwnedByComplainsAboutInvalidTypesAndPathsCombinations() {
         expect("query fails when ownedBy types (owned and owning) do not make sense");
         OperationResult result = new OperationResult("search");
         assertThatThrownBy(() -> repositoryService.searchContainers(AssignmentType.class,
@@ -1333,7 +1333,7 @@ public class SearchTest extends BaseSQLRepoTest {
      * See MID-5474 (just a quick attempt to replicate)
      */
     @Test
-    public void test930IterateAndModify() throws Exception {
+    public void test970IterateAndModify() throws Exception {
         OperationResult result = new OperationResult("iterateAndModify");
 
         AtomicInteger count = new AtomicInteger(0);
@@ -1364,7 +1364,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-5515
     @Test
-    public void test935SearchNameNull() throws Exception {
+    public void test971SearchNameNull() throws Exception {
         OperationResult result = new OperationResult("testSearchNameNull");
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(F_NAME).isNull()
@@ -1379,7 +1379,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-5515
     @Test
-    public void test932SearchNameNotNull() throws Exception {
+    public void test972SearchNameNotNull() throws Exception {
         OperationResult result = new OperationResult("testSearchNameNotNull");
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .not().item(F_NAME).isNull()
@@ -1395,7 +1395,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-4575
     @Test
-    public void test950SearchPasswordCreateTimestamp() throws Exception {
+    public void test980SearchPasswordCreateTimestamp() throws Exception {
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
                         PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
