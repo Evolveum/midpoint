@@ -51,8 +51,6 @@ public class PageRequestAccess extends PageSelf {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
 
-    private IModel<RequestAccess> model = Model.of(new RequestAccess());
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -70,6 +68,8 @@ public class PageRequestAccess extends PageSelf {
     }
 
     private List<WizardStep> createSteps() {
+        IModel<RequestAccess> model = () -> getSessionStorage().getRequestAccess();
+
         PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(model);
         RoleCatalogPanel roleCatalog = new RoleCatalogPanel(model);
         ShoppingCartPanel shoppingCart = new ShoppingCartPanel(model);

@@ -130,6 +130,9 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     }
 
     protected void clearCartPerformed(AjaxRequestTarget target) {
+        getModelObject().getShoppingCartAssignments().clear();
 
+        getPageBase().reloadShoppingCartIcon(target);
+        target.add(get(ID_TABLE));
     }
 }

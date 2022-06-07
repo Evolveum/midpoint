@@ -52,8 +52,10 @@
   @include selectable-tile();
 
   & > .logo {
+    min-width: 84px;
     width: 84px;
     height: 84px;
+    min-height: 84px;
     border-radius: 108px;
     background-color: rgba(60, 141, 188, 0.1);
   }

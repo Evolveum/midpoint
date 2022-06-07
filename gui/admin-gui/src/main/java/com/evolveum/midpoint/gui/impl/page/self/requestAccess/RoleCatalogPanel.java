@@ -10,8 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -178,11 +184,26 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     protected void addSelectedPerformed(ObjectDataProvider provider, TileTablePanel tileTable, AjaxRequestTarget target) {
-        List selected = provider.getSelectedData();
+        List<ObjectType> selected = provider.getSelectedData();
         new Toast().cssClass("bg-success").title("funky").body("selected: " + selected.size()).show(target);
+
+        RequestAccess requestAccess = getModelObject();
+        for (ObjectType object : selected) {
+            AssignmentType a = new AssignmentType()
+                    .targetRef(object.getOid(), ObjectTypes.getObjectType(object.getClass()).getTypeQName());
+            requestAccess.getShoppingCartAssignments().add(a);
+        }
+
+        getPageBase().reloadShoppingCartIcon(target);
+        target.add(get(ID_TILES));
     }
 
     protected void addAllPerformed(AjaxRequestTarget target) {
 
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(() -> !getPageBase().getSessionStorage().getRequestAccess().getShoppingCartAssignments().isEmpty());
     }
 }

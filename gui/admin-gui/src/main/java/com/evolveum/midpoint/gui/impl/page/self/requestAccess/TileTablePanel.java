@@ -92,7 +92,13 @@ public class TileTablePanel<T extends Serializable> extends BasePanel<T> {
         tilesContainer.setOutputMarkupId(true);
         tilesContainer.add(tiles);
 
-        NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, tiles, true);
+        NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, tiles, true) {
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
+        };
         add(tilesPaging);
 
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
