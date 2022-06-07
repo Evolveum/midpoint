@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReindex;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -1273,6 +1274,35 @@ public class SearchTest extends BaseSQLRepoTest {
                         && a.getConstruction().getResourceRef().getOid().equals("10000000-0000-0000-0000-000000000004"));
     }
 
+    @Test
+    public void test935WorkItemsOwnedByAccessCertificationCase() throws SchemaException {
+        given("query for work items owned by access certification case");
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
+                .ownedBy(AccessCertificationCaseType.class,
+                        AccessCertificationCaseType.F_WORK_ITEM) // valid, but superfluous path
+                .block()
+                .ownedBy(AccessCertificationCampaignType.class)
+                .block()
+                .item(F_NAME).eqPoly("All user assignments 1")
+                .endBlock()
+                .endBlock()
+                .and()
+                // 3 out of 7 match this condition on the WI itself
+                .item(AccessCertificationWorkItemType.F_OUTPUT_CHANGE_TIMESTAMP)
+                .gt(createXMLGregorianCalendar("2015-12-04T01:10:14.614+01:00"))
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AccessCertificationWorkItemType> assignments =
+                repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only work items for the specific certification case are returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(3);
+    }
+
         /* TODO remove when test exists
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
@@ -1327,6 +1357,17 @@ public class SearchTest extends BaseSQLRepoTest {
                 .isInstanceOf(SystemException.class)
                 .hasCauseInstanceOf(QueryException.class)
                 .hasMessage("OwnedBy filter for type 'AssignmentType' used with invalid path: linkRef");
+
+        expect("query fails when ownedBy is used with non-container searches");
+        assertThatThrownBy(() -> repositoryService.searchObjects(ObjectType.class,
+                prismContext.queryFor(ObjectType.class)
+                        .ownedBy(ObjectType.class)
+                        .block()
+                        .endBlock()
+                        .build(), null, new OperationResult("search")))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(QueryException.class)
+                .hasMessageStartingWith("OwnedBy filter is not supported for type 'ObjectType'");
     }
 
     /**

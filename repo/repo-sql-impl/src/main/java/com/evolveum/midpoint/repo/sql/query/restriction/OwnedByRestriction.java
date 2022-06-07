@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OwnedByFilter;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
@@ -127,8 +128,17 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
         EntityReference subqueryEntity = subquery.getPrimaryEntity();
 
         subquery.addProjectionElement(new GenericProjectionElement("1")); // select 1
-        subquery.addCondition(subquery.createCompareXY(
-                subqueryEntity.getAlias() + ".oid", ownedEntity.getHqlPath() + ".ownerOid", "=", false));
+        if (ownedEntity.getJpaDefinition().getJpaClass().equals(RAccessCertificationWorkItem.class)) {
+            // Currently, the generic repo does not support AccCertWI owned by AccCert directly.
+            // Subquery here is for RAccessCertificationCase, both id and oid must match.
+            subquery.addCondition(subquery.createCompareXY(
+                    subqueryEntity.getAlias() + ".ownerOid", ownedEntity.getHqlPath() + ".ownerOwnerOid", "=", false));
+            subquery.addCondition(subquery.createCompareXY(
+                    subqueryEntity.getAlias() + ".id", ownedEntity.getHqlPath() + ".ownerId", "=", false));
+        } else {
+            subquery.addCondition(subquery.createCompareXY(
+                    subqueryEntity.getAlias() + ".oid", ownedEntity.getHqlPath() + ".ownerOid", "=", false));
+        }
 
         // Consistency of path and type is checked before (see static factory method above).
         if (AbstractRoleType.F_INDUCEMENT.equals(filter.getPath())) {
