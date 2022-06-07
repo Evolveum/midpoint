@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -158,7 +160,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         ShadowType shadowType = account.asObjectable();
         ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();
         if (resource != null) {
-            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+            ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(),
+                    shadowType.getKind(), shadowType.getIntent());
             passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));
             passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));
             try {
@@ -202,6 +205,9 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             @Override
             protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
                 return () -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return true;
+                    }
                     CredentialsPropagationUserControlType propagationUserControl = getCredentialsPropagationUserControl();
                     PasswordAccountDto passwordAccountDto = rowModel.getObject();
                     if (!passwordAccountDto.isMidpoint() && !passwordAccountDto.isPasswordCapabilityEnabled()) {
@@ -365,77 +371,68 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
         });
 
-//        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.propagationResult")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
-//                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
-//                    @Override
-//                    protected OperationResult load() {
-//                        if (progress == null
-//                                || progress.getProgressReportActivities().isEmpty()) {
-//                            return null;
-//                        }
-//
-//                        for (ProgressReportActivityDto progressActivity : getModelObject().getProgress().getProgressReportActivities()) {
-//                            if (rowModel.getObject().isSelected() && progressActivity.getStatus() != null && rowModel.getObject().isMidpoint()
-//                                    && (ProgressInformation.ActivityType.FOCUS_OPERATION.equals(progressActivity.getActivityType())
-//                                    || (ProgressInformation.ActivityType.PROJECTOR.equals(progressActivity.getActivityType())
-//                                    && !OperationResultStatusType.SUCCESS.equals(progressActivity.getStatus())))) {
-//                                return progressActivity.getOperationResult();
-//                            } else if (progressActivity.getStatus() != null && !rowModel.getObject().isMidpoint()
-//                                    && ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION.equals(progressActivity.getActivityType())
-//                                    && progressActivity.getResourceOperationResultList() != null
-//                                    && !progressActivity.getResourceOperationResultList().isEmpty()) {
-//                                String resourceOid = rowModel.getObject().getResourceOid();
-//                                if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getResourceShadowDiscriminator() != null
-//                                        && resourceOid.equals(progressActivity.getResourceShadowDiscriminator().getResourceOid())) {
-//                                    return progressActivity.getOperationResult();
-//                                }
-//
-//                            }
-//                        }
-//                        return new OperationResult("Empty result");
-//                    }
-//                };
-//                ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel) {
-//                    @Override
-//                    protected boolean isProjectionResult() {
-//                        return !rowModel.getObject().isMidpoint();
-//                    }
-//
-//                    @Override
-//                    protected DisplayType getDisplayForEmptyResult() {
-//                        String policyOid = rowModel.getObject().getPasswordValuePolicyOid();
-//                        if (StringUtils.isNotEmpty(policyOid) && com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel.this.getModelObject().getPasswordPolicies().containsKey(policyOid)) {
-//                            if (limitationsByPolicyOid.get(policyOid) != null) {
-//                                var ref = new Object() {
-//                                    boolean result = true;
-//                                };
-//                                limitationsByPolicyOid.get(policyOid).forEach((limit) -> {
-//                                    if (ref.result && !limit.isSuccess()) {
-//                                        ref.result = false;
-//                                    }
-//                                });
-//                                if (!ref.result && rowModel.getObject().isSelected()) {
-//                                    return GuiDisplayTypeUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "",
-//                                            createStringResource("ChangePasswordPanel.result.validationError").getString());
-//                                }
-//                            }
-//                        }
-//                        return null;
-//                    }
-//                };
-//                resultPanel.setOutputMarkupId(true);
-//                cellItem.add(resultPanel);
-//            }
-//
-//            @Override
-//            public String getCssClass() {
-//                return "mp-w-lg-2";
-//            }
-//        });
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.propagationResult")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
+                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
+                    @Override
+                    protected OperationResult load() {
+                        if (progress == null
+                                || progress.getProgressReportActivities().isEmpty()) {
+                            return null;
+                        }
+
+                        for (ProgressReportActivityDto progressActivity : progress.getProgressReportActivities()) {
+                            if (rowModel.getObject().isSelected() && progressActivity.getStatus() != null && rowModel.getObject().isMidpoint()
+                                    && (ProgressInformation.ActivityType.FOCUS_OPERATION.equals(progressActivity.getActivityType())
+                                    || (ProgressInformation.ActivityType.PROJECTOR.equals(progressActivity.getActivityType())
+                                    && !OperationResultStatusType.SUCCESS.equals(progressActivity.getStatus())))) {
+                                return progressActivity.getOperationResult();
+                            } else if (progressActivity.getStatus() != null && !rowModel.getObject().isMidpoint()
+                                    && ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION.equals(progressActivity.getActivityType())
+                                    && progressActivity.getResourceOperationResultList() != null
+                                    && !progressActivity.getResourceOperationResultList().isEmpty()) {
+                                String resourceOid = rowModel.getObject().getResourceOid();
+                                if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getResourceShadowDiscriminator() != null
+                                        && resourceOid.equals(progressActivity.getResourceShadowDiscriminator().getResourceOid())) {
+                                    return progressActivity.getOperationResult();
+                                }
+
+                            }
+                        }
+                        return new OperationResult("Empty result");
+                    }
+                };
+                ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel) {
+                    @Override
+                    protected boolean isProjectionResult() {
+                        return !rowModel.getObject().isMidpoint();
+                    }
+
+                    @Override
+                    protected DisplayType getDisplayForEmptyResult() {
+                        List<StringLimitationResult> limitations = getLimitationsForActualPassword(rowModel.getObject().getPasswordValuePolicy(),
+                                rowModel.getObject().getObject());
+                        for (StringLimitationResult limit : limitations) {
+                            if (!limit.isSuccess() && rowModel.getObject().isSelected()) {
+                                return GuiDisplayTypeUtil.createDisplayType("fa-fw fa fa-times-circle text-muted fa-lg", "",
+                                        createStringResource("ChangePasswordPanel.result.validationError").getString());
+                            }
+                        }
+                        return null;
+                    }
+                };
+                resultPanel.setOutputMarkupId(true);
+                cellItem.add(resultPanel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "mp-w-lg-2";
+            }
+        });
 
         return columns;
     }
