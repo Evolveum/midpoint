@@ -7,8 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,20 +23,13 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class TileTablePanel<T extends Serializable> extends BasePanel<T> {
+public class TileTablePanel<T extends Tile, O extends Serializable> extends BasePanel<O> {
 
     private static final String ID_TILES_CONTAINER = "tilesContainer";
     private static final String ID_TILES = "tiles";
@@ -71,22 +68,17 @@ public class TileTablePanel<T extends Serializable> extends BasePanel<T> {
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
         add(tilesContainer);
 
-        PageableListView<CatalogTile, SelectableBean<ObjectType>> tiles = new PageableListView<CatalogTile, SelectableBean<ObjectType>>(ID_TILES, provider) {
+        PageableListView<T, O> tiles = new PageableListView<T, O>(ID_TILES, provider) {
 
             @Override
-            protected void populateItem(ListItem<CatalogTile> item) {
-                CatalogTilePanel tile = new CatalogTilePanel(ID_TILE, item.getModel());
+            protected void populateItem(ListItem<T> item) {
+                Component tile = createTile(ID_TILE, item.getModel());
                 item.add(tile);
             }
 
             @Override
-            protected CatalogTile createItem(SelectableBean<ObjectType> object) {
-                // todo improve
-                CatalogTile t = new CatalogTile("fas fa-building", WebComponentUtil.getName(object.getValue()));
-                t.setLogo("fas fa-utensils fa-2x");
-                t.setDescription(object.getValue().getDescription());
-
-                return t;
+            protected T createItem(O object) {
+                return createTileObject(object);
             }
         };
         tilesContainer.setOutputMarkupId(true);
@@ -115,6 +107,14 @@ public class TileTablePanel<T extends Serializable> extends BasePanel<T> {
         };
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
+    }
+
+    protected Component createTile(String id, IModel<T> model) {
+        return new CatalogTilePanel(id, model);
+    }
+
+    protected T createTileObject(O object) {
+        return null;
     }
 
     public void refresh(AjaxRequestTarget target) {
