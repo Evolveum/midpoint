@@ -1291,19 +1291,31 @@ public class SearchTest extends BaseSQLRepoTest {
          */
 
     @Test
-    public void test929OwnedByComplainsAboutInvalidPath() {
-        expect("query fails when ownedBy path points to non-owning type");
+    public void test929OwnedByComplainsAboutInvalidTypesAndPathsCombinations() {
+        expect("query fails when ownedBy types (owned and owning) do not make sense");
         OperationResult result = new OperationResult("search");
         assertThatThrownBy(() -> repositoryService.searchContainers(AssignmentType.class,
                 prismContext.queryFor(AssignmentType.class)
-                        .ownedBy(AbstractRoleType.class, AbstractRoleType.F_RISK_LEVEL) // risk level is not assignment
+                        .ownedBy(ObjectType.class)
                         .block()
                         .endBlock()
                         .build(), null, result))
                 .isInstanceOf(SystemException.class)
                 .hasCauseInstanceOf(QueryException.class)
-                .hasMessage("Path for OwnedByFilter (riskLevel) points to a type 'String', expected type is 'AssignmentType'.");
+                .hasMessage("OwnedBy filter with invalid owning type 'ObjectType', type "
+                        + "'AssignmentType' can be owned by 'AssignmentHolderType' or its subtype.");
         assertThatOperationResult(result).isFatalError();
+
+        expect("query fails when ownedBy path points to non-owning type");
+        assertThatThrownBy(() -> repositoryService.searchContainers(AssignmentType.class,
+                prismContext.queryFor(AssignmentType.class)
+                        .ownedBy(AbstractRoleType.class, AbstractRoleType.F_RISK_LEVEL) // risk level is not assignment
+                        .block()
+                        .endBlock()
+                        .build(), null, new OperationResult("search")))
+                .isInstanceOf(SystemException.class)
+                .hasCauseInstanceOf(QueryException.class)
+                .hasMessage("OwnedBy filter for type 'AssignmentType' used with invalid path: riskLevel");
 
         expect("query fails when ownedBy path points to non-owning type (collection version)");
         assertThatThrownBy(() -> repositoryService.searchContainers(AssignmentType.class,
@@ -1314,7 +1326,7 @@ public class SearchTest extends BaseSQLRepoTest {
                         .build(), null, new OperationResult("search")))
                 .isInstanceOf(SystemException.class)
                 .hasCauseInstanceOf(QueryException.class)
-                .hasMessage("Path for OwnedByFilter (linkRef) is a reference, not a container of expected type 'AssignmentType'.");
+                .hasMessage("OwnedBy filter for type 'AssignmentType' used with invalid path: linkRef");
     }
 
     /**
