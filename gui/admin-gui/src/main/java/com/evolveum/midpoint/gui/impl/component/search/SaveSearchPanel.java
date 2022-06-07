@@ -78,9 +78,11 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private Class<C> type;
     IModel<String> feedbackMessageModel = Model.of();
     IModel<String> queryNameModel = Model.of();
-    public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<C> type) {
+    private String defaultCollectionViewIdentifier = null;
+    public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<C> type, String defaultCollectionViewIdentifier) {
         super(id, searchModel);
         this.type = type;
+        this.defaultCollectionViewIdentifier = defaultCollectionViewIdentifier;
     }
 
     @Override
@@ -229,11 +231,8 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         FocusType principalFocus = getPageBase().getPrincipalFocus();
         boolean newObjectListView = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false) == null;
         GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, true);
-        if (view == null) {
-            view = new GuiObjectListViewType();
-            view.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-            //view.setIdentifier(); //todo set collection view identifier
-            ((UserType)principalFocus).getAdminGuiConfiguration().getObjectCollectionViews().objectCollectionView(view);
+        if (view.getIdentifier() == null) {
+            view.setIdentifier(defaultCollectionViewIdentifier);
         }
         SearchBoxConfigurationType searchConfig = view.getSearchBoxConfiguration();
         if (searchConfig == null) {
