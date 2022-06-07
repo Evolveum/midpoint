@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column align-items-center mt-3">
+        <h2 class="mb-3 font-weight-bold " wicket:id="text"/>
+        <h5 class="text-secondary" wicket:id="subText"/>
+        <div wicket:id="content"/>
+        <div class="d-flex gap-3 justify-content-center mt-5">
+            <a class="btn btn-outline-primary" wicket:id="back">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <wicket:message key="WizardHeader.back"/>
+            </a>
+            <a class="btn btn-success" wicket:id="next">
+                <wicket:message key="WizardHeader.next"/>
+                <span wicket:id="nextLabel"/>
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>

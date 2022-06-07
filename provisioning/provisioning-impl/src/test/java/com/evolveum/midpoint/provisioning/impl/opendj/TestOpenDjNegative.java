@@ -25,7 +25,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -191,10 +190,10 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+        final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass);
 
         try {
 
@@ -218,7 +217,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+        final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
@@ -404,9 +403,11 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
      */
     @Test
     public void test511GetObjectShadow() throws Exception {
+        Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        PrismObject<ShadowType> acct = provisioningService.getObject(ShadowType.class, ACCOUNT_JBOND_OID, null, taskManager.createTaskInstance(), result);
+        PrismObject<ShadowType> acct =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_JBOND_OID, null, task, result);
 
         display("Account", acct);
 
@@ -428,7 +429,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+        final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
@@ -453,7 +454,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+        final String resourceNamespace = MidPointConstants.NS_RI;
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.testing.conntest.ad.multidomain;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getRootSyncTokenRealValueRequired;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.PATH_CN;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -707,10 +709,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
-        paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
+        paging.setOrdering(PATH_CN, OrderDirection.ASCENDING);
         query.setPaging(paging);
 
         SearchResultList<PrismObject<ShadowType>> shadows = doSearch(query, 2, task, result);

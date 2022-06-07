@@ -88,7 +88,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
         super(params);
-        isAdd = params == null && object == null;
+        isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
     }

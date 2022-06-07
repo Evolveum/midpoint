@@ -11,6 +11,8 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -65,8 +67,8 @@ public class TestResourceSchema extends AbstractSchemaTest {
         System.out.println("Parsed schema from " + filename + ":");
         System.out.println(schema.debugDump());
 
-        ResourceObjectClassDefinition accDef = schema.findObjectClassDefinition(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
-        assertEquals("Wrong account objectclass", new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"), accDef.getTypeName());
+        ResourceObjectClassDefinition accDef = schema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
+        assertEquals("Wrong account objectclass", RI_ACCOUNT_OBJECT_CLASS, accDef.getTypeName());
         assertTrue("Not a default account", accDef.isDefaultAccountDefinition());
 
         PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
@@ -172,9 +174,9 @@ public class TestResourceSchema extends AbstractSchemaTest {
     }
 
     private void assertResourceSchema(ResourceSchema unSchema) {
-        ResourceObjectClassDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        ResourceObjectClassDefinition objectClassDef = unSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No object class def", objectClassDef);
-        assertEquals(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"), objectClassDef.getTypeName());
+        assertEquals(RI_ACCOUNT_OBJECT_CLASS, objectClassDef.getTypeName());
         assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultAccountDefinition());
 
         PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
@@ -261,7 +263,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // Property container
         ResourceObjectClassDefinitionImpl containerDefinition = (ResourceObjectClassDefinitionImpl)
-                schema.createObjectClassDefinition(new QName(MidPointConstants.NS_RI, "AccountObjectClass"));
+                schema.createObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         containerDefinition.setDefaultAccountDefinition(true);
         //containerDefinition.setDisplayName("The Account"); // currently not supported
         containerDefinition.setNativeObjectClass("ACCOUNT");

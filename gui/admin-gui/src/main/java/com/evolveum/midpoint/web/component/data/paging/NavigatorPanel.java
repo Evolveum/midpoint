@@ -63,6 +63,7 @@ public class NavigatorPanel extends Panel {
 
     private void initLayout() {
         WebMarkupContainer pagination = new WebMarkupContainer(ID_PAGINATION);
+        pagination.add(AttributeAppender.append("class", () -> getPaginationCssClass()));
         add(pagination);
 
         initFirst(pagination);
@@ -70,6 +71,10 @@ public class NavigatorPanel extends Panel {
         initNavigation(pagination);
         initNext(pagination);
         initLast(pagination);
+    }
+
+    protected String getPaginationCssClass() {
+        return "pagination-sm";
     }
 
     private void initPrevious(WebMarkupContainer pagination) {

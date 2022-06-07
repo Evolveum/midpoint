@@ -11,15 +11,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -32,15 +23,19 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.web.session.SessionStorage;
-
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.session.SessionStorage;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -161,8 +156,11 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                 onMenuClick(model);
             }
         });
-        header.add(AttributeAppender.append("class", new ReadOnlyModel<>(() -> isMenuExpanded(model.getObject()) ? "" : "closed")));
-        Label name = new Label(ID_NAME, new StringResourceModel("${name}",  model));
+        header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
+        Label name = new Label(ID_NAME, () -> {
+            String key = model.getObject().getName();
+            return getString(key, null, key);
+        });
         header.add(name);
         return header;
     }
@@ -181,7 +179,6 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
                 item.setOutputMarkupId(true);
                 listItem.add(item);
-
             }
         };
 

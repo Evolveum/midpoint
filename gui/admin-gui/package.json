@@ -12,6 +12,7 @@
   "license": "Apache License 2.0 and European Union Public License",
   "devDependencies": {
     "@fontsource/source-sans-pro": "^4.5.9",
+    "@fortawesome/fontawesome-free": "^6.1.1",
     "ace-builds": "^1.4.14",
     "admin-lte": "3.2.0",
     "babel-loader": "^8.2.4",
@@ -32,6 +33,7 @@
     "style-loader": "^3.3.1",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2",
-    "webpack-merge": "^5.8.0"
+    "webpack-merge": "^5.8.0",
+    "tempusdominus-bootstrap-4": "^5.39.2"
   }
 }

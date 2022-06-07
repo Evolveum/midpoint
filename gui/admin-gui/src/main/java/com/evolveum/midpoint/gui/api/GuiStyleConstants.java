@@ -83,6 +83,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_TEMPLATE_ICON = "fa fa-file-alt";
 
+    public static final String CLASS_OBJECT_CONNECTOR_ICON = "fa fa-microchip";
+
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
@@ -109,6 +111,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_PROFILE = "fa fa-user";
     public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield-alt";
     public static final String CLASS_ICON_REQUEST = "fa fa-pen-square";
+    public static final String CLASS_ICON_REQUEST_ACCESS ="fas fa-plus-circle";
     public static final String CLASS_ICON_CONSENT = "fa fa-check-square";
 
     public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";

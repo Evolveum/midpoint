@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ACCOUNT_OBJECT_CLASS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 /**
  *  Tests model.notifyChange using manually constructed ResourceObjectShadowChangeDescriptionType objects.
@@ -286,7 +286,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resourceDummyGrouper);
         assert schema != null;
         ResourceAttributeDefinition<?> privilegeDefinition =
-                schema.findObjectClassDefinitionRequired(ACCOUNT_OBJECT_CLASS_NAME)
+                schema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS)
                 .findAttributeDefinition(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME), privilegeDefinition)

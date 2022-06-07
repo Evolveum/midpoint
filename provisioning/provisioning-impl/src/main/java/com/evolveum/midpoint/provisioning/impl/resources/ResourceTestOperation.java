@@ -64,28 +64,28 @@ class ResourceTestOperation {
     /** No defaults in this object! Everything must be resolved. */
     @NotNull protected final ResourceTestOptions options;
 
-    @NotNull protected final String operationDesc;
+    @NotNull private final String operationDesc;
 
     @NotNull protected final Task task;
     @NotNull protected final CommonBeans beans;
-    @NotNull protected final ResourceSchemaHelper schemaHelper;
+    @NotNull private final ResourceSchemaHelper schemaHelper;
 
     /**
      * Extracted connector specs. Should not be modified.
      */
-    @NotNull protected final List<ConnectorSpec> allConnectorSpecs;
+    @NotNull private final List<ConnectorSpec> allConnectorSpecs;
 
     /**
      * Native capabilities of individual connectors that are fetched during the operation. Should not be modified afterwards.
      */
-    @NotNull protected final NativeConnectorsCapabilities nativeConnectorsCapabilities = NativeConnectorsCapabilities.empty();
+    @NotNull private final NativeConnectorsCapabilities nativeConnectorsCapabilities = NativeConnectorsCapabilities.empty();
 
     /**
      * Resource schema that is fetched during the operation. Should not be modified afterwards. (TODO what about adjusting?)
      */
-    protected ResourceSchema rawResourceSchema;
+    private ResourceSchema rawResourceSchema;
 
-    protected boolean resourceSchemaWasFetched;
+    private boolean resourceSchemaWasFetched;
 
     /**
      * @param resource Must be mutable. Must be expanded. May or may not have OID.
@@ -362,8 +362,10 @@ class ResourceTestOperation {
             rawResourceSchema =
                     new ResourceSchemaAdjuster(resource, rawResourceSchema)
                             .adjustSchema();
-            new RefinedResourceSchemaParser(resource)
-                    .parseWithGivenSchema(rawResourceSchema);
+            if (rawResourceSchema != null) {
+                new RefinedResourceSchemaParser(resource, rawResourceSchema)
+                        .parse();
+            }
             schemaHelper.updateSchemaToConnectors(resource, rawResourceSchema, result);
         } catch (Exception e) {
             throw TestFailedException.record(
@@ -396,14 +398,14 @@ class ResourceTestOperation {
 
         if (resourceSchemaWasFetched) {
             updater.updateSchema(rawResourceSchema);
-        } else if (noSchemaCachingMetadata() && PrismSchema.isNotEmpty(rawResourceSchema)) {
+        } else if (areSchemaCachingMetadataMissing() && PrismSchema.isNotEmpty(rawResourceSchema)) {
             updater.updateSchemaCachingMetadata();
         }
 
         updater.applyModifications(result);
     }
 
-    private boolean noSchemaCachingMetadata() {
+    private boolean areSchemaCachingMetadataMissing() {
         XmlSchemaType schema = resource.getSchema();
         return schema == null || schema.getCachingMetadata() == null;
     }
@@ -623,8 +625,8 @@ class ResourceTestOperation {
         }
     }
 
-    // TODO move to ResourceUpdater
-    protected void setResourceAvailabilityStatus(
+    // TODO consider moving to ResourceUpdater (maybe!)
+    private void setResourceAvailabilityStatus(
             AvailabilityStatusType status, String statusChangeReason, OperationResult result)
             throws ObjectNotFoundException {
         if (shouldUpdateRepository()) {
@@ -643,10 +645,6 @@ class ResourceTestOperation {
     private boolean shouldUpdateRepository() {
         return options.isUpdateInRepository()
                 && isResourceInRepository();
-    }
-
-    protected String getTestName() {
-        return "Connector test";
     }
 
     private boolean isResourceInRepository() {

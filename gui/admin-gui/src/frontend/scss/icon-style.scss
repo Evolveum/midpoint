@@ -7,235 +7,193 @@
 
 $default: #f4f4f4;
 
- i.icon-stroke-layer {
- 	-webkit-text-stroke: 2px white;
- 	-moz-text-stroke: 2px white;
- }
+$icon-stroke-colors: () !default;
+$icon-stroke-colors: map-merge((
+        "success": $green,
+        "default": $default,
+        "primary": $lightblue,
+        "info": $info,
+        "warning": $yellow,
+        "danger": $red,
+), $icon-stroke-colors);
 
- .btn-success > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: $green;
- 	-moz-text-stroke-color: $green;
- }
+$text-stroke-colors: () !default;
+$text-stroke-colors: map-merge((
+        "success": #00a65a,
+        "default": #f4f4f4,
+        "primary": #3c8dbc,
+        "info": #00c0ef,
+        "warning": #f39c12,
+        "danger": #dd4b39,
+), $text-stroke-colors);
 
- .btn-default > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: $default;
- 	-moz-text-stroke-color: $default;
- }
+@mixin icon-stroke-layer($color) {
+  -webkit-text-stroke: 2px $color;
+  -moz-text-stroke: 2px $color;
+}
 
- .btn-primary > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: $lightblue;
- 	-moz-text-stroke-color: $lightblue;
- }
+@mixin text-shadow-stroke($color) {
+  text-shadow: 1px 0px $color, 0px -1px $color, 1px -1px $color, -1px 0px $color, -1px -1px $color;
+}
 
- .btn-info > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: $info;
- 	-moz-text-stroke-color: $info;
- }
+i.icon-stroke-layer {
+  @include icon-stroke-layer(white);
+}
 
- .btn-warning > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: $yellow;
- 	-moz-text-stroke-color: $yellow;
- }
+@each $name, $color in $icon-stroke-colors {
+  .btn-#{$name} > i.icon-stroke-layer {
+    @include icon-stroke-layer($color);
+  }
+}
 
- .btn-danger > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: $red;
- 	-moz-text-stroke-color: $red;
- }
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  i.icon-stroke-layer {
+    @include text-shadow-stroke(white);
+  }
 
- @media all and (-ms-high-contrast: none), (-ms-high-contrast: active){
- 	i.icon-stroke-layer {
- 		text-shadow: 1px 0px white,
-               		 0px -1px white,
-               		 1px -1px white,
-               		 -1px 0px white,
-               		 -1px -1px white;
- 	}
+  @each $name, $color in $text-stroke-colors {
+    .btn-#{$name} > i.icon-stroke-layer {
+      @include text-shadow-stroke($color);
+    }
+  }
+}
 
- 	.btn-success > i.icon-stroke-layer {
- 		text-shadow: 1px 0px #00a65a,
-               		 0px -1px #00a65a,
-               		 1px -1px #00a65a,
-               		 -1px 0px #00a65a,
-               		 -1px -1px #00a65a;
- 	}
+i.icon-basic-transparent {
+  color: #0029ff00;
+}
 
- 	.btn-default > i.icon-stroke-layer {
- 		text-shadow: 1px 0px #f4f4f4,
-               		 0px -1px #f4f4f4,
-               		 1px -1px #f4f4f4,
-               		 -1px 0px #f4f4f4,
-               		 -1px -1px #f4f4f4;
- 	}
+i.icon-basic-transparent-for-column {
+  color: #0029ff00;
+  font-size: 157%;
+}
 
- 	.btn-primary > i.icon-stroke-layer {
- 		text-shadow: 1px 0px #3c8dbc,
-               		 0px -1px #3c8dbc,
-               		 1px -1px #3c8dbc,
-               		 -1px 0px #3c8dbc,
-               		 -1px -1px #3c8dbc;
- 	}
+i.icon-basic-layer {
+  font-size: 200% !important;
+  position: absolute;
+  top: 6%;
+  left: 0;
+  right: 0;
+}
 
- 	.btn-info > i.icon-stroke-layer {
- 		text-shadow: 1px 0px #00c0ef,
-               		 0px -1px #00c0ef,
-               		 1px -1px #00c0ef,
-               		 -1px 0px #00c0ef,
-               		 -1px -1px #00c0ef;
- 	}
+i.icon-basic-layer-for-column {
+  font-size: 157% !important;
+  position: absolute;
+  top: 6%;
+  left: 0;
+  right: 0;
+}
 
- 	.btn-warning > i.icon-stroke-layer {
- 		text-shadow: 1px 0px #f39c12,
-               		 0px -1px #f39c12,
-               		 1px -1px #f39c12,
-               		 -1px 0px #f39c12,
-               		 -1px -1px #f39c12;
- 	}
+i.in-row-layer {
+  padding-left: 5px;
+}
 
- 	.btn-danger > i.icon-stroke-layer {
- 		text-shadow: 1px 0px #dd4b39,
-               		 0px -1px #dd4b39,
-               		 1px -1px #dd4b39,
-               		 -1px 0px #dd4b39,
-               		 -1px -1px #dd4b39;
- 	}
- }
+i.bottom-right-layer {
+  font-size: 65% !important;
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+}
 
- i.icon-basic-transparent {
- 	color: #0029ff00;
- }
+i.bottom-right-layer-for-column {
+  font-size: 80% !important;
+  position: absolute;
+  left: 50%;
+  bottom: -15%;
+}
 
- i.icon-basic-transparent-for-column {
- 	color: #0029ff00;
- 	font-size: 157%;
- }
+i.center-with-right-shift-layer {
+  font-size: 125%;
+  padding-right: 30%;
+  bottom: 20%;
+}
 
- i.icon-basic-layer {
- 	font-size: 200% !important;
- 	position: absolute;
- 	top: 6%;
- 	left: 0;
- 	right: 0;
- }
+i.bottom-left-layer {
+  font-size: 85% !important;
+  position: absolute;
+  left: 10%;
+  bottom: 5%;
+}
 
- i.icon-basic-layer-for-column {
- 	font-size: 157% !important;
- 	position: absolute;
- 	top: 6%;
- 	left: 0;
- 	right: 0;
- }
+i.bottom-left-layer-for-column {
+  font-size: 80% !important;
+  position: absolute;
+  left: -40%;
+  bottom: -15%;
+}
 
- i.in-row-layer {
- 	padding-left:5px;
- }
+i.top-left-layer {
+  font-size: 85% !important;
+  position: absolute;
+  left: 10%;
+  top: 5%;
+}
 
- i.bottom-right-layer {
-  	font-size: 65% !important;
-  	position: absolute;
-  	right: 10%;
-  	bottom: 10%;
- }
+i.top-right-layer-for-column {
+  font-size: 80% !important;
+  position: absolute;
+  left: 65%;
+  top: -15%;
+}
 
- i.bottom-right-layer-for-column {
- 	font-size: 80% !important;
-  	position: absolute;
-  	left: 50%;
-  	bottom: -15%;
- }
+i.top-right-layer {
+  font-size: 65% !important;
+  position: absolute;
+  right: 10%;
+  top: 0%;
+}
 
- i.center-with-right-shift-layer {
-  	font-size: 125%;
-  	padding-right: 30%;
-  	bottom: 20%;
- }
+i.center-layer {
+  font-size: 90% !important;
+  position: absolute;
+  top: 40%;
+  right: 0;
+  left: 0;
+}
 
- i.bottom-left-layer {
-  	font-size: 85% !important;
-  	position: absolute;
-  	left: 10%;
-  	bottom: 5%;
- }
+i.center-layer-for-column {
+  position: absolute;
+  top: 30%;
+  right: 0;
+  left: 0;
+}
 
- i.bottom-left-layer-for-column {
-	font-size: 80% !important;
-  	position: absolute;
-  	left: -40%;
-  	bottom: -15%;
- }
+i.center-icon-stroke-layer {
+  -webkit-text-stroke: 1px white;
+  -moz-text-stroke: 1px white;
+}
 
- i.top-left-layer {
-  	font-size: 85% !important;
-  	position: absolute;
-  	left: 10%;
-  	top: 5%;
- }
+i.font-size-130-per {
+  font-size: 130% !important;
+  top: 24%;
+}
 
- i.top-right-layer-for-column {
-  	font-size: 80% !important;
-  	position: absolute;
-  	left: 65%;
-  	top: -15%;
- }
+i.change-password-icon-result-center {
+  padding-right: 5px;
+  margin-left: 2.5px;
+}
 
- i.top-right-layer {
-  	font-size: 65% !important;
-  	position: absolute;
-  	right: 10%;
-  	top: 0%;
- }
+.color-green {
+  color: $green !important;
+}
 
- i.center-layer {
-  	font-size: 90% !important;
-  	position: absolute;
-  	top: 40%;
-  	right: 0;
-  	left: 0;
- }
+.color-yellow {
+  color: $yellow !important;
+}
 
- i.center-layer-for-column {
-  	position: absolute;
-  	top: 30%;
-  	right: 0;
-  	left: 0;
- }
+.color-red {
+  color: $red !important;
+}
 
- i.center-icon-stroke-layer {
- 	-webkit-text-stroke: 1px white;
- 	-moz-text-stroke: 1px white;
- }
+.color-blue {
+  color: $blue !important;
+}
 
- i.font-size-130-per{
- 	font-size: 130% !important;
- 	top: 24%;
- }
+i.flip-icon {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
 
- i.change-password-icon-result-center{
-    padding-right: 5px;
-    margin-left: 2.5px;
- }
-
- .color-green{
- 	color: $green !important;
- }
-
- .color-yellow{
- 	color: $yellow !important;
- }
-
- .color-red{
- 	color: $red !important;
- }
-
- .color-blue{
- 	color: $blue !important;
- }
-
- i.flip-icon{
-    -webkit-transform: scaleX(-1);
-    transform: scaleX(-1);
- }
-
- i.flip-icon-margin{
-     margin-left: -7px;
-     margin-right: 7px;
- }
+i.flip-icon-margin {
+  margin-left: -7px;
+  margin-right: 7px;
+}

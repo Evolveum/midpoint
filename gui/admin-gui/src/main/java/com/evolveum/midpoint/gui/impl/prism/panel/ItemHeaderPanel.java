@@ -77,7 +77,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         createHelpText();
         createExperimentalTooltip();
         createDeprecated();
-        createRequeired();
+        createRequired(ID_REQUIRED);
 
         //TODO: pending operations
     }
@@ -141,8 +141,8 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         add(deprecated);
     }
 
-    private void createRequeired() {
-        WebMarkupContainer required = new WebMarkupContainer(ID_REQUIRED);
+    protected void createRequired(String id) {
+        WebMarkupContainer required = new WebMarkupContainer(id);
         required.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMandatory()));
         add(required);
     }

@@ -79,7 +79,8 @@ class DefinitionsHelper {
         ProvisioningContext ctx;
         if (shadow == null) {
             stateCheck(coordinates != null, "No shadow nor coordinates");
-            ctx = ctxFactory.createForCoordinates(coordinates, task, result);
+            // The wholeClass flag is not needed. This context is short-lived and not used for connector operations.
+            ctx = ctxFactory.createForCoordinates(coordinates, null, task, result);
         } else {
             ctx = ctxFactory.createForShadow(shadow, task, result);
         }
@@ -96,9 +97,12 @@ class DefinitionsHelper {
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
+        // The wholeClass flag is not needed. This context is short-lived and not used for connector operations.
         ProvisioningContext ctx = ctxFactory.createForCoordinates(
-                ObjectQueryUtil.getCoordinates(query.getFilter()),
-                task, result);
+                ObjectQueryUtil.getCoordinates(query),
+                null,
+                task,
+                result);
         DefinitionsUtil.applyDefinition(ctx, query);
     }
 }

@@ -81,14 +81,6 @@ public interface ResourceObjectTypeDefinition
     /** Returns the configured capability of given class, if present. */
     @Nullable <T extends CapabilityType> T getConfiguredCapability(Class<T> capabilityClass);
 
-    /**
-     * Returns the "raw" configuration bean for this object type.
-     *
-     * BEWARE: In the case of inherited object types, this is only the partial information.
-     * (Parts inherited from the parents are not returned.)
-     */
-    @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
-
     /** Returns the correlation definition bean, if present here. (It may be standalone.) */
     @Nullable CorrelationDefinitionType getCorrelationDefinitionBean();
 

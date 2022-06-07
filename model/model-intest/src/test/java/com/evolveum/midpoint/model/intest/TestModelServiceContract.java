@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -24,6 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1150,9 +1155,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 accountJackOid, dummyResourceCtl.getAttributeFullnamePath(), "Cpt. Jack Sparrow");
-        accountDelta.addModificationReplaceProperty(
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "Queen Anne's Revenge");
+        accountDelta.addModificationReplaceProperty(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
 
         when();
         executeChanges(accountDelta, null, task, result);
@@ -1182,9 +1185,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // All the changes should be reflected to the account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Cpt. Jack Sparrow");
-        PrismAsserts.assertPropertyValue(accountModel,
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "Queen Anne's Revenge");
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
 
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
@@ -2254,9 +2255,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         ShadowCoordinatesQualifiedObjectDelta<ShadowType> accountDelta = RefineryObjectFactory.createShadowDiscriminatorModificationReplaceProperty(ShadowType.class,
                 RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
-        accountDelta.addModificationAddProperty(
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
-                "smell");
+        accountDelta.addModificationAddProperty(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "smell");
         deltas.add(accountDelta);
         deltas.add(accountAssignmentUserDelta);
 
@@ -3148,8 +3147,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackBlueOid, null, task, result);
+        getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME);
         assertShadowModel(accountModel, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME),
-                getAccountObjectClass(getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME)));
+                RI_ACCOUNT_OBJECT_CLASS);
         assertEnableTimestampShadow(accountModel, startTime, endTime);
 
         // Check account in dummy resource
@@ -3186,9 +3186,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 accountJackBlueOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributeFullnamePath(),
                 "Cpt. Jack Sparrow");
-        accountDelta.addModificationReplaceProperty(
-                getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-                "Queen Anne's Revenge");
+        accountDelta.addModificationReplaceProperty(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
         deltas.add(accountDelta);
 
         ModelExecuteOptions options = executeOptions().reconcile();

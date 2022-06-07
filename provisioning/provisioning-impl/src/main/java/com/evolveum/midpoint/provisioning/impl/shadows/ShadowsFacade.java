@@ -61,9 +61,13 @@ public class ShadowsFacade {
      * @param identifiersOverride Identifiers that are known to the caller and that should override
      * the ones (if any) in the shadow.
      */
-    public PrismObject<ShadowType> getShadow(String oid, @Nullable PrismObject<ShadowType> repositoryShadow,
-            Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult result)
+    public PrismObject<ShadowType> getShadow(
+            @NotNull String oid,
+            @Nullable PrismObject<ShadowType> repositoryShadow,
+            @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return getHelper.getShadow(oid, repositoryShadow, identifiersOverride, options, task, result);

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.manual;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -67,7 +69,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
 
-    public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+    public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = RI_ACCOUNT_OBJECT_CLASS;
 
     protected static final String MANUAL_CONNECTOR_TYPE = "ManualConnector";
 

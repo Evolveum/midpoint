@@ -15,12 +15,15 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqale.filtering.*;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -44,6 +47,8 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
      * e.g. container owners (parents) or references targets.
      */
     private final SqaleObjectLoader objectLoader;
+
+    private QueryModelMapping<S, Q, R> queryMapping;
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
             Class<S> schemaType,
@@ -84,6 +89,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             SqaleObjectLoader objectLoader) {
         super(entityPath, mapping, sqlRepoContext, query);
         this.objectLoader = objectLoader;
+        this.queryMapping = mapping;
     }
 
     private SqaleQueryContext(
@@ -93,6 +99,15 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             SQLQuery<?> sqlQuery) {
         super(entityPath, mapping, parentContext, sqlQuery);
         this.objectLoader = parentContext.objectLoader;
+        this.queryMapping = mapping;
+    }
+
+    private SqaleQueryContext(Q entityPath, QueryTableMapping<S, Q, R> queryTableMapping,
+            SqaleQueryContext<S, Q, R> parentContext, SQLQuery<?> sqlQuery,
+            SqaleNestedMapping<S, Q, R> nestedMapping) {
+        super(entityPath, queryTableMapping, parentContext, sqlQuery);
+        this.objectLoader = parentContext.objectLoader;
+        this.queryMapping = nestedMapping;
     }
 
     @Override
@@ -181,5 +196,15 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
                 jdbcSession.commit();
             }
         }
+    }
+
+    @Override
+    public QueryModelMapping<S, Q, R> queryMapping() {
+        return queryMapping;
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> nestedContext(SqaleNestedMapping<TS, TQ, TR> nestedMapping) {
+        return new SqaleQueryContext(entityPath, mapping(), this, sqlQuery, nestedMapping);
     }
 }

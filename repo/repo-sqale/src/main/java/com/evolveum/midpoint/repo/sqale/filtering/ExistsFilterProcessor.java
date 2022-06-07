@@ -71,9 +71,9 @@ public class ExistsFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         //noinspection unchecked
         SqaleQueryContext<?, TQ, TR> subcontext = (SqaleQueryContext<?, TQ, TR>) resolution.context;
         // TODO this check should only apply for the last component of EXISTS, see SqaleRepoSearchTest.test422SearchObjectBySingleValueReferenceTargetUsingExists
-        if (!(resolution.mapping instanceof QueryTableMapping)) {
-            throw new QueryException("Repository supports exists only for multi-value containers or refs");
-        }
+        //if (!(resolution.mapping instanceof QueryTableMapping)) {
+        //    throw new QueryException("Repository supports exists only for multi-value containers or refs");
+        //}
 
         ExistsFilterProcessor<TQ, TR> nestedProcessor =
                 new ExistsFilterProcessor<>(subcontext, resolution.mapping);

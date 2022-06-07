@@ -8,6 +8,8 @@ package com.evolveum.midpoint.common.refinery;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -44,7 +46,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -208,7 +209,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         ResourceAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
         assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
-        assertEquals("Wrong entitlement displayNameAttribute", new QName(MidPointConstants.NS_RI, "cn"), entDisplayNameAttributeDef.getItemName());
+        assertEquals("Wrong entitlement displayNameAttribute", QNAME_CN, entDisplayNameAttributeDef.getItemName());
 
         assertEquals("Unexpected number of entitlement associations", 1, accountDef.getAssociationDefinitions().size());
     }
@@ -237,7 +238,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         ResourceAttributeDefinition<?> displayNameAttributeDef = accountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
-        assertEquals("Wrong account displayNameAttribute", new QName(MidPointConstants.NS_RI, "uid"), displayNameAttributeDef.getItemName());
+        assertEquals("Wrong account displayNameAttribute", QNAME_UID, displayNameAttributeDef.getItemName());
 
         // This is compatibility with PrismContainerDefinition, it should work well
         Collection<? extends ItemDefinition<?>> propertyDefinitions = accountDef.getDefinitions();
@@ -363,9 +364,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
     }
 
     private void assertAccountShadow(PrismObject<ShadowType> accObject, PrismObject<ResourceType> resource) throws SchemaException {
-        QName objectClassQName = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
         PrismAsserts.assertPropertyValue(accObject, ShadowType.F_NAME, createPolyString("jack"));
-        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_OBJECT_CLASS, objectClassQName);
+        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_OBJECT_CLASS, (QName) RI_ACCOUNT_OBJECT_CLASS);
         PrismAsserts.assertPropertyValue(accObject, ShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.C_ATTRIBUTES);
@@ -374,10 +374,10 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertAttributeDefs(attrDef, null, LayerType.MODEL);
 
         PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
-        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "cn"), "Jack Sparrow");
-        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "givenName"), "Jack");
-        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "sn"), "Sparrow");
-        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "uid"), "jack");
+        PrismAsserts.assertPropertyValue(attributes, QNAME_CN, "Jack Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, QNAME_GIVEN_NAME, "Jack");
+        PrismAsserts.assertPropertyValue(attributes, QNAME_SN, "Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, QNAME_UID, "jack");
 
         assertEquals("JAXB class name doesn't match (1)", ShadowType.class, accObject.getCompileTimeClass());
 
@@ -385,15 +385,15 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         ShadowType accObjectType = accObject.asObjectable();
         assertEquals("Wrong JAXB name", createPolyStringType("jack"), accObjectType.getName());
-        assertEquals("Wrong JAXB objectClass", objectClassQName, accObjectType.getObjectClass());
+        assertEquals("Wrong JAXB objectClass", RI_ACCOUNT_OBJECT_CLASS, accObjectType.getObjectClass());
         ShadowAttributesType attributesType = accObjectType.getAttributes();
         assertNotNull("null ResourceObjectShadowAttributesType (JAXB)", attributesType);
         List<Object> attributeElements = attributesType.getAny();
         TestUtil.assertElement(attributeElements, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
-        TestUtil.assertElement(attributeElements, getAttrQName(resource, "cn"), "Jack Sparrow");
-        TestUtil.assertElement(attributeElements, getAttrQName(resource, "givenName"), "Jack");
-        TestUtil.assertElement(attributeElements, getAttrQName(resource, "sn"), "Sparrow");
-        TestUtil.assertElement(attributeElements, getAttrQName(resource, "uid"), "jack");
+        TestUtil.assertElement(attributeElements, QNAME_CN, "Jack Sparrow");
+        TestUtil.assertElement(attributeElements, QNAME_GIVEN_NAME, "Jack");
+        TestUtil.assertElement(attributeElements, QNAME_SN, "Sparrow");
+        TestUtil.assertElement(attributeElements, QNAME_UID, "jack");
 
         String accString = PrismTestUtil.serializeObjectToString(accObjectType.asPrismObject());
         System.out.println("Result of JAXB marshalling:\n" + accString);
@@ -402,7 +402,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
     }
 
     private ItemName getAttrQName(PrismObject<ResourceType> resource, String localPart) {
-        return new ItemName(ResourceTypeUtil.getResourceNamespace(resource), localPart);
+        return new ItemName(MidPointConstants.NS_RI, localPart);
     }
 
     @Test
@@ -482,13 +482,13 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 false, true, false, // Access: create, read, update
                 sourceLayer, validationLayer);
 
-        assertAttributeDef(attrs, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING,
+        assertAttributeDef(attrs, QNAME_CN, DOMUtil.XSD_STRING,
                 1, (validationLayer == LayerType.MODEL || validationLayer == LayerType.PRESENTATION) ? 1 : -1, "Common Name", 1,
                 true, validationLayer == LayerType.PRESENTATION,
                 true, true, true, // Access: create, read, update
                 sourceLayer, validationLayer);
 
-        assertAttributeDef(attrs, new QName(MidPointConstants.NS_RI, "uid"),
+        assertAttributeDef(attrs, QNAME_UID,
                 DOMUtil.XSD_STRING,
                 validationLayer == LayerType.SCHEMA ? 0 : 1, // minOccurs
                 validationLayer == LayerType.SCHEMA ? -1 : 1, // maxOccurs
@@ -497,7 +497,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 true, true, validationLayer != LayerType.PRESENTATION, // Access: create, read, update
                 sourceLayer, validationLayer);
 
-        assertAttributeDef(attrs, new QName(MidPointConstants.NS_RI, "employeeNumber"),
+        assertAttributeDef(attrs, QNAME_EMPLOYEE_NUMBER,
                 DOMUtil.XSD_STRING, 0, 1, null, null,
                 false, false,
                 true, true, true, // Access: create, read, update
@@ -587,31 +587,31 @@ public class TestRefinedSchema extends AbstractUnitTest {
         Collection<? extends ResourceAttributeDefinition<?>> rAccountAttrs = rAccountDef.getAttributeDefinitions();
         assertFalse(rAccountAttrs.isEmpty());
 
-        assertAttributeDef(rAccountAttrs, new QName(MidPointConstants.NS_RI, "dn"),
+        assertAttributeDef(rAccountAttrs, QNAME_DN,
                 DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
-        assertAttributeDef(rAccountAttrs, new QName(MidPointConstants.NS_RI, "entryUUID"),
+        assertAttributeDef(rAccountAttrs, QNAME_ENTRY_UUID,
                 DOMUtil.XSD_STRING, 0, 1, "entryUUID", 100,
                 false, false,
                 false, true, false, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
-        assertAttributeDef(rAccountAttrs, new QName(MidPointConstants.NS_RI, "cn"),
+        assertAttributeDef(rAccountAttrs, QNAME_CN,
                 DOMUtil.XSD_STRING, 1, -1, "Common Name", 590,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
-        assertAttributeDef(rAccountAttrs, new QName(MidPointConstants.NS_RI, "uid"),
+        assertAttributeDef(rAccountAttrs, QNAME_UID,
                 DOMUtil.XSD_STRING, 0, -1, "Login Name", 300,
                 true, false,
                 true, true, true, // Access: create, read, update
                 LayerType.SCHEMA, LayerType.PRESENTATION);
 
-        assertAttributeDef(rAccountAttrs, new QName(MidPointConstants.NS_RI, "employeeNumber"),
+        assertAttributeDef(rAccountAttrs, QNAME_EMPLOYEE_NUMBER,
                 DOMUtil.XSD_STRING, 0, 1, "employeeNumber", 140,
                 false, false,
                 true, true, true, // Access: create, read, update
@@ -633,7 +633,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         ResourceAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
-        assertEquals("Wrong account displayNameAttribute", new QName(MidPointConstants.NS_RI, "dn"),
+        assertEquals("Wrong account displayNameAttribute", QNAME_DN,
                 displayNameAttributeDef.getItemName());
 
         // This is compatibility with PrismContainerDefinition, it should work well
@@ -655,7 +655,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         ResourceAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
         assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
-        assertEquals("Wrong entitlement displayNameAttribute", new QName(MidPointConstants.NS_RI, "dn"),
+        assertEquals("Wrong entitlement displayNameAttribute", QNAME_DN,
                 entDisplayNameAttributeDef.getItemName());
 
         assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());

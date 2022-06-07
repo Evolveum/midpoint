@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
@@ -169,7 +171,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         shadow.checkConsistence(true, true);
 
-        IntegrationTestTools.assertAttribute(shadow, getAttributeQName(getDummyResourceObject(), DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+        getDummyResourceObject();
+        IntegrationTestTools.assertAttribute(shadow, getAttrQName(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
                 "Bloodthirsty Pirates");
     }
 
@@ -651,12 +654,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
-        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                groupOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
-                "Bloody Pirates");
-        shadowDelta.addModificationReplaceProperty(
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_CC),
-                "MELEE123");
+        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+                ShadowType.class, groupOid, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH, "Bloody Pirates");
+        shadowDelta.addModificationReplaceProperty(DUMMY_GROUP_ATTRIBUTE_CC_PATH, "MELEE123");
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(shadowDelta);
 
         // WHEN
@@ -683,9 +683,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
         display("Entitlement shadow after", shadowModel);
         assertDummyGroupShadowModel(shadowModel, groupOid, GROUP_PIRATE_DUMMY_NAME);
-        PrismAsserts.assertPropertyValue(shadowModel,
-                dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
-                "Bloody Pirates");
+        PrismAsserts.assertPropertyValue(shadowModel, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH, "Bloody Pirates");
 
         // Check account in dummy resource
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Bloody Pirates");

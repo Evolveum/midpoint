@@ -8,3 +8,15 @@
 .active .bs-stepper-circle {
   background-color: $lightblue;
 }
+
+.bs-stepper-circle {
+  background-color: $secondary;
+}
+
+.bs-stepper-label {
+  color: $secondary;
+}
+
+.bs-stepper .step-trigger:hover {
+  background-color: inherit;
+}

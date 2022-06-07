@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH;
 import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
@@ -139,15 +140,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     private static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
     private static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
 
-    private static final QName DUMMY_ACCOUNT_OBJECT_CLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass");
-
     // LIME dummy resource. This is a pure authoritative resource. It has only inbound mappings.
     private static final File RESOURCE_DUMMY_LIME_FILE = new File(TEST_DIR, "resource-dummy-lime.xml");
     private static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
     private static final String RESOURCE_DUMMY_LIME_NAME = "lime";
-    private static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
 
-    private static final QName DUMMY_LIME_ACCOUNT_OBJECT_CLASS = new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass");
+    private static final QName DUMMY_LIME_ACCOUNT_OBJECT_CLASS = RI_ACCOUNT_OBJECT_CLASS;
 
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_LIME = new TestResource<>(
             TEST_DIR, "user-template-lime.xml", "3cf43520-241d-11e6-afa5-a377b674950d");
@@ -391,7 +389,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -469,7 +467,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -2655,7 +2653,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.importFromResource(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS, task, result);
 
         // THEN
         then();
@@ -2755,7 +2753,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                DUMMY_ACCOUNT_OBJECT_CLASS, prismContext);
+                RI_ACCOUNT_OBJECT_CLASS, prismContext);
 
         // WHEN
         when();
@@ -2778,7 +2776,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query =
-                ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, DUMMY_ACCOUNT_OBJECT_CLASS, prismContext)
+                ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS, prismContext)
                         .and().item(
                                 ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
                                 ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING))
@@ -2904,7 +2902,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws CommonException {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                DUMMY_ACCOUNT_OBJECT_CLASS, prismContext);
+                RI_ACCOUNT_OBJECT_CLASS, prismContext);
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = (shadow, parentResult) -> {

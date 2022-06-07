@@ -493,7 +493,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(20, 50);
-        paging.setOrdering(getAttributePath(resource, "uid"), OrderDirection.ASCENDING);
+        paging.setOrdering(getAttributePath("uid"), OrderDirection.ASCENDING);
         query.setPaging(paging);
 
         SearchResultList<PrismObject<ShadowType>> shadows = doSearch(query, 50, task, result);
@@ -526,7 +526,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(20, 222);
-        paging.setOrdering(getAttributePath(resource, "uid"), OrderDirection.ASCENDING);
+        paging.setOrdering(getAttributePath("uid"), OrderDirection.ASCENDING);
         query.setPaging(paging);
 
         SearchResultList<PrismObject<ShadowType>> shadows = doSearch(query, 222, task, result);
@@ -599,7 +599,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
     private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectPaging paging = prismContext.queryFactory().createPaging(offset, maxSize);
-        paging.setOrdering(getAttributePath(resource, sortAttrName), OrderDirection.ASCENDING);
+        paging.setOrdering(getAttributePath(sortAttrName), OrderDirection.ASCENDING);
         query.setPaging(paging);
 
         final MutableInt count = new MutableInt();

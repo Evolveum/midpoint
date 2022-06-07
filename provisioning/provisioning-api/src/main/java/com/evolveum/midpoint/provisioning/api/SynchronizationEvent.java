@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -35,8 +34,10 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
      * Sequential number of this event.
      *
      * It is unique at least in the context of the current synchronization operation
-     * ({@link ProvisioningService#synchronize(ResourceShadowDiscriminator, LiveSyncOptions, LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)}
-     * or {@link ProvisioningService#processAsynchronousUpdates(com.evolveum.midpoint.schema.ResourceShadowCoordinates, AsyncUpdateEventHandler, Task, OperationResult)}).
+     * ({@link ProvisioningService#synchronize(com.evolveum.midpoint.schema.ResourceShadowCoordinates, LiveSyncOptions,
+     * LiveSyncTokenStorage, LiveSyncEventHandler, Task, OperationResult)}
+     * or {@link ProvisioningService#processAsynchronousUpdates(com.evolveum.midpoint.schema.ResourceShadowCoordinates,
+     * AsyncUpdateEventHandler, Task, OperationResult)}).
      */
     int getSequentialNumber();
 

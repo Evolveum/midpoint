@@ -83,15 +83,13 @@ public class ResourceSchemaFactory {
         if (existingRefinedSchema != null) {
             return existingRefinedSchema;
         } else {
-            if (resource.isImmutable()) {
-                throw new IllegalStateException("Trying to set parsed schema on immutable resource: " + resource);
+            stateCheck(!resource.isImmutable(), "Trying to setup parsed schema on immutable resource: %s", resource);
+            ResourceSchema completeSchema = parseCompleteSchema(resource.asObjectable());
+            resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, completeSchema);
+            if (completeSchema != null) {
+                completeSchema.freeze();
             }
-            ResourceSchema refinedSchema = parseCompleteSchema(resource.asObjectable());
-            resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
-            if (refinedSchema != null) {
-                refinedSchema.freeze();
-            }
-            return refinedSchema;
+            return completeSchema;
         }
     }
 
@@ -178,7 +176,12 @@ public class ResourceSchemaFactory {
      */
     @VisibleForTesting
     public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
-        return new RefinedResourceSchemaParser(resource)
-                .parse();
+        var rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        if (rawResourceSchema != null) {
+            return new RefinedResourceSchemaParser(resource, rawResourceSchema)
+                    .parse();
+        } else {
+            return null;
+        }
     }
 }

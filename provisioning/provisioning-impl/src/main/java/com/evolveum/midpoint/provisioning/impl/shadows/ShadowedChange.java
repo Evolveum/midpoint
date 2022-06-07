@@ -314,8 +314,13 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                         .doNotDiscovery().build();
                 try {
                     // TODO why we use shadow cache and not resource object converter?!
-                    resourceObject = beans.shadowsFacade.getShadow(repoShadow.getOid(), repoShadow, getIdentifiers(),
-                            options, context.getTask(), result);
+                    resourceObject = beans.shadowsFacade.getShadow(
+                            repoShadow.getOid(),
+                            repoShadow,
+                            getIdentifiers(),
+                            options,
+                            context.getTask(),
+                            result);
                 } catch (ObjectNotFoundException e) {
                     // The object on the resource does not exist (any more?).
                     LOGGER.warn("Object {} does not exist on the resource any more", repoShadow);

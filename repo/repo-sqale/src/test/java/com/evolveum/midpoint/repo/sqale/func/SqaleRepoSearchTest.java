@@ -1100,20 +1100,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test350ExistsWithEmbeddedContainer() {
-        // TODO this does not work currently, because implementation creates query sub-contexts
-        //  only for table mapping, not embedded ones. It needs multiple changes and perhaps
-        //  multi-type hierarchy like update context uses. Possible approach:
-        //  a) like in update, having simpler common context type that can support non-table mappings;
-        //  b) support non-table mappings with current types, but that is less clean and probably more problematic.
-        assertThatThrownBy(() ->
-                searchUsersTest("matching the exists filter for metadata (embedded mapping)",
-                        f -> f.exists(UserType.F_METADATA)
-                                .item(MetadataType.F_CREATOR_REF).isNull(),
-                        user1Oid))
-                // At least we say it clearly with the exception instead of confusing "mapper not found" deeper.
-                .isInstanceOf(SystemException.class)
-                .hasMessage("Repository supports exists only for multi-value containers or refs");
+    public void test350ExistsWithEmbeddedContainer() throws SchemaException {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                    f -> f.exists(UserType.F_METADATA)
+                            .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                            .eqPoly("creator"),
+                    user1Oid);
+        } finally {
+            display(queryRecorder.getQueryBuffer().peek().toString());
+        }
     }
 
     // endregion
@@ -1190,13 +1187,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user2Oid);
     }
 
-    @Test(enabled = false) // TODO in ExistsFilterProcessor
+    @Test
     public void test422SearchObjectByMultiValueRefTargetUsingExists() throws SchemaException {
         // EXISTS with multi value ref target inside embedded single-value container
         searchUsersTest("with object create approver name using EXISTS",
                 f -> f.exists(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE)
                         .item(UserType.F_NAME).eq(new PolyString("user-1")),
-                user1Oid);
+                user2Oid);
     }
 
     @Test
@@ -2464,11 +2461,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findOrgByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User", OrgType.class, f ->
-                            f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
-                                    .id(user4Oid),
-                    org111Oid
-            );
+            searchObjectTest("Org by User", OrgType.class,
+                    f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                            .id(user4Oid),
+                    org111Oid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2479,11 +2475,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findRoleByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User", RoleType.class, f ->
-                            f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                                    .id(user3Oid),
-                    roleOid
-            );
+            searchObjectTest("Org by User", RoleType.class,
+                    f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                            .id(user3Oid),
+                    roleOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2494,12 +2489,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test980findRoleByAssignmentOfUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by Assignment ownedBy user", RoleType.class, f ->
-                            f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                                    .ownedBy(UserType.class)
-                                    .id(user3Oid),
-                    roleOid
-            );
+            searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                            .ownedBy(UserType.class)
+                            .id(user3Oid),
+                    roleOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2510,12 +2504,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test981findUserByAssignmentTarget() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class, f ->
-                f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
-                .item(RoleType.F_NAME).eq("role-ass-vs-ind")
-            ,
-                    user3Oid
-            );
+            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                    f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
+                            .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
+                    user3Oid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());

@@ -252,6 +252,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
+        return structuralDefinition.getRawObjectClassDefinition();
+    }
+
+    @Override
     public @NotNull ResourceObjectTypeDelineation getDelineation() {
         return structuralDefinition.getDelineation();
     }
@@ -372,10 +377,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public List<String> getIgnoredNamespaces() {
         return structuralDefinition.getIgnoredNamespaces();
-    }
-
-    public Collection<ResourceAssociationDefinition> getEntitlementAssociationDefinitions() {
-        return getAssociationDefinitions(ShadowKindType.ENTITLEMENT);
     }
 
     @Override
@@ -553,6 +554,11 @@ public class CompositeObjectDefinitionImpl
                 .map(def -> def.deepClone(operation))
                 .collect(Collectors.toCollection(ArrayList::new));
         return new CompositeObjectDefinitionImpl(structuralClone, auxiliaryClones);
+    }
+
+    @Override
+    public @NotNull ResourceObjectTypeDefinitionType getDefinitionBean() {
+        return structuralDefinition.getDefinitionBean();
     }
 
     @Override

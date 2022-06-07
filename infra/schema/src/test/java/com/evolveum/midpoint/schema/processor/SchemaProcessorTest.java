@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -54,7 +56,7 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
         Document schemaDom = DOMUtil.parseFile(filename);
         ResourceSchema schema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(schemaDom), filename);
 
-        ResourceObjectDefinition objectDef = schema.findDefinitionForObjectClass(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+        ResourceObjectDefinition objectDef = schema.findDefinitionForObjectClass(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("AccountObjectClass definition not found", objectDef);
 
         ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new ItemName(icfNS, "uid"));
@@ -153,7 +155,7 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
 
         // Property container
         ResourceObjectClassDefinitionImpl objectClassDef = (ResourceObjectClassDefinitionImpl)
-                schema.createObjectClassDefinition(new QName(MidPointConstants.NS_RI, "AccountObjectClass"));
+                schema.createObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         objectClassDef.setDefaultAccountDefinition(true);
         objectClassDef.setNativeObjectClass("ACCOUNT");
 
@@ -197,9 +199,9 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
         // THEN
 
         ResourceObjectClassDefinition newObjectClassDef =
-                newSchema.findObjectClassDefinitionRequired(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+                newSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         assertThat(newObjectClassDef.getTypeName())
-                .isEqualTo(new ItemName(MidPointConstants.NS_RI, "AccountObjectClass"));
+                .isEqualTo(RI_ACCOUNT_OBJECT_CLASS);
         assertThat(newObjectClassDef.isDefaultAccountDefinition())
                 .isTrue();
         assertThat(newObjectClassDef.getNativeObjectClass())

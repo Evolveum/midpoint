@@ -23,6 +23,6 @@ public class DetailsMenuPanel extends BasePanel {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "details-menu-panel d-flex rounded bg-white align-self-stretch align-self-sm-start"));
+        add(AttributeAppender.append("class", "details-menu-panel d-flex rounded bg-white align-self-stretch align-self-md-start"));
     }
 }

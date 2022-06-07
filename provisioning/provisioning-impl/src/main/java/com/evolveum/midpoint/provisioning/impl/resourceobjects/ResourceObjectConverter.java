@@ -174,6 +174,7 @@ public class ResourceObjectConverter {
                 return true;
             };
             try {
+                // TODO constraints? scope?
                 connector.search(
                         objectDefinition,
                         query,
@@ -954,7 +955,9 @@ public class ResourceObjectConverter {
         if (repoShadow != null) {
             currentShadow.setOid(repoShadow.getOid());
         }
-        currentShadow.asObjectable().setName(new PolyStringType(ShadowUtil.determineShadowName(currentShadow)));
+        currentShadow.asObjectable().setName(
+                new PolyStringType(
+                        ShadowUtil.determineShadowNameRequired(currentShadow)));
         return currentShadow;
     }
 

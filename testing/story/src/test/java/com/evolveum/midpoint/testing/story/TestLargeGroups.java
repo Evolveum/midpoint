@@ -40,6 +40,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.Collection;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -125,7 +126,7 @@ public class TestLargeGroups extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
         ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
-                .getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);
+                .getAttributeDefinition(resourceDummy, RI_GROUP_OBJECT_CLASS, SchemaConstants.ICFS_NAME);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceDummy.getOid())
                 .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)

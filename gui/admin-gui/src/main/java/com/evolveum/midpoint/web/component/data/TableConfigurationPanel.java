@@ -6,32 +6,28 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.search.Popover;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
-
 /**
  * @author Viliam Repan (lazyman)
  */
 public class TableConfigurationPanel extends BasePanel {
 
-    private static final String ID_COG_BUTTON = "cogButton";
-    private static final String ID_PAGE_SIZE = "pageSize";
-    private static final String ID_TABLE_COLUMNS = "tableColumns";
+    private static final String ID_COG = "cog";
     private static final String ID_POPOVER = "popover";
     private static final String ID_FORM = "form";
     private static final String ID_INPUT = "input";
@@ -43,44 +39,26 @@ public class TableConfigurationPanel extends BasePanel {
         initLayout();
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(OnDomReadyHeaderItem.forScript(
-                "MidPointTheme.initPageSizePopover('"
-                        + get(createComponentPath(ID_COG_BUTTON, ID_PAGE_SIZE)).getMarkupId()
-                        + "','" + get(ID_POPOVER).getMarkupId()
-                        + "','" + get(ID_COG_BUTTON).getMarkupId()
-                        + "');"));
-    }
-
-    //    @Override
     protected void initLayout() {
-        WebMarkupContainer cogButton = new WebMarkupContainer(ID_COG_BUTTON);
-        cogButton.setOutputMarkupId(true);
-        add(cogButton);
+        Popover popover = initPopoverLayout();
 
-        WebMarkupContainer pageSize = new WebMarkupContainer(ID_PAGE_SIZE);
-        pageSize.setOutputMarkupId(true);
-        cogButton.add(pageSize);
-
-        AjaxLink<Void> tableColumns = new AjaxLink<Void>(ID_TABLE_COLUMNS) {
+        AjaxLink cog = new AjaxLink<>(ID_COG) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                tableColumnsPerformed(target);
+                popover.toggle(target);
             }
         };
-        cogButton.add(tableColumns);
-        tableColumns.setVisible(false); //todo implement [lazyman]
+        cog.setOutputMarkupId(true);
+        add(cog);
 
-        initPopoverLayout();
+        popover.setReference(cog);
     }
 
-    private void initPopoverLayout() {
-        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
+    private Popover initPopoverLayout() {
+        Popover popover = new Popover(ID_POPOVER);
         popover.setOutputMarkupId(true);
+        popover.setReference(popover);
         add(popover);
 
         Form<?> form = new MidpointForm<>(ID_FORM);
@@ -111,10 +89,8 @@ public class TableConfigurationPanel extends BasePanel {
         feedback.setOutputMarkupId(true);
         form.add(feedback);
         form.add(input);
-    }
 
-    private void tableColumnsPerformed(AjaxRequestTarget target) {
-        //todo implement table columns support [lazyman]
+        return popover;
     }
 
     private IModel<Integer> createInputModel() {
@@ -150,8 +126,5 @@ public class TableConfigurationPanel extends BasePanel {
     }
 
     protected void pageSizeChanged(AjaxRequestTarget target) {
-    }
-
-    protected void onPageSizeChangedError(AjaxRequestTarget target) {
     }
 }

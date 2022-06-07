@@ -10,8 +10,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -26,9 +29,12 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 /**
  * Default implementation of {@link ResourceObjectClassDefinition}.
+ *
+ * TODO should we have subclasses for raw/refined variants? Maybe.
  *
  * @author semancik
  */
@@ -40,33 +46,81 @@ public class ResourceObjectClassDefinitionImpl
 
     @NotNull private final QName objectClassName;
 
-    /** See {@link ResourceObjectDefinition#getDescriptionAttribute()} */
+    /**
+     * Definition of the raw resource object class definition.
+     * Null if the object itself is raw.
+     * Immutable.
+     */
+    @Nullable private final ResourceObjectClassDefinition rawObjectClassDefinition;
+
+    /** See {@link ResourceObjectDefinition#getDescriptionAttribute()}. Set only for raw schema! */
     private QName descriptionAttributeName;
 
-    /** See {@link ResourceObjectDefinition#getDisplayNameAttribute()} */
-    private QName displayNameAttributeName;
-
-    /** See {@link ResourceObjectDefinition#getNamingAttribute()} ()} */
+    /** See {@link ResourceObjectDefinition#getNamingAttribute()}. Set only for raw schema! */
     private QName namingAttributeName;
 
-    /** See {@link ResourceObjectClassDefinition#isDefaultAccountDefinition()} */
+    /** See {@link ResourceObjectClassDefinition#isDefaultAccountDefinition()}. Set only for raw schema! */
     private boolean defaultAccountDefinition;
 
+    /** Set only for raw schema! */
     private String nativeObjectClass;
 
+    /** Set only for raw schema! */
     private boolean auxiliary;
 
-    public ResourceObjectClassDefinitionImpl(
-            @NotNull QName objectClassName) {
-        this(DEFAULT_LAYER, objectClassName);
-    }
-
-    /** Used for cloning and layering. */
     private ResourceObjectClassDefinitionImpl(
             @NotNull LayerType layer,
-            @NotNull QName objectClassName) {
-        super(layer);
+            @NotNull QName objectClassName,
+            @NotNull ResourceObjectTypeDefinitionType definitionBean,
+            @Nullable ResourceObjectClassDefinition rawObjectClassDefinition) {
+        super(layer, definitionBean);
         this.objectClassName = objectClassName;
+        this.rawObjectClassDefinition = rawObjectClassDefinition;
+        if (rawObjectClassDefinition == null) {
+            // Looks like a hack - TODO resolve this
+            setNoDelineation();
+        }
+    }
+
+    public static ResourceObjectClassDefinitionImpl raw(@NotNull QName objectClassName) {
+        return new ResourceObjectClassDefinitionImpl(
+                DEFAULT_LAYER,
+                objectClassName,
+                new ResourceObjectTypeDefinitionType(),
+                null);
+    }
+
+    public static ResourceObjectClassDefinitionImpl refined(
+            @NotNull ResourceObjectClassDefinition raw, @Nullable ResourceObjectTypeDefinitionType definitionBean)
+            throws ConfigurationException {
+        if (definitionBean != null) {
+            checkDefinitionSanity(definitionBean);
+        }
+        return new ResourceObjectClassDefinitionImpl(
+                DEFAULT_LAYER,
+                raw.getObjectClassName(),
+                Objects.requireNonNullElseGet(definitionBean, ResourceObjectTypeDefinitionType::new),
+                raw);
+    }
+
+    private static void checkDefinitionSanity(@NotNull ResourceObjectTypeDefinitionType bean) throws ConfigurationException {
+        QName name = bean.getObjectClass();
+        configCheck(bean.getObjectClass() != null,
+                "Object class name must be specified in object class refinement: %s", bean);
+        configCheck(bean.getKind() == null,
+                "Kind must not be specified for object class refinement: %s", name);
+        configCheck(bean.getIntent() == null,
+                "Intent must not be specified for object class refinement: %s", name);
+        configCheck(bean.getSuper() == null,
+                "Super-type must not be specified for object class refinement: %s", name);
+        configCheck(bean.isDefault() == null,
+                "'default' flag must not be specified for object class refinement: %s", name);
+        configCheck(bean.isDefaultForKind() == null,
+                "'defaultForKind' flag must not be specified for object class refinement: %s", name);
+        configCheck(bean.isDefaultForObjectClass() == null,
+                "'defaultForObjectClass' flag must not be specified for object class refinement: %s", name);
+        configCheck(bean.isAbstract() == null,
+                "'abstract' flag must not be specified for object class refinement: %s", name);
     }
 
     @Override
@@ -75,9 +129,13 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public String getDisplayName() {
-        // Currently not supported for raw object classes
-        return null;
+    public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
+        return this;
+    }
+
+    @Override
+    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
+        return Objects.requireNonNullElse(rawObjectClassDefinition, this);
     }
 
     @Override
@@ -110,7 +168,8 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public @Nullable QName getDescriptionAttributeName() {
-        return descriptionAttributeName;
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        return rawDef != null ? rawDef.getDescriptionAttributeName() : descriptionAttributeName;
     }
 
     @Override
@@ -121,7 +180,8 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public @Nullable QName getNamingAttributeName() {
-        return namingAttributeName;
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        return rawDef != null ? rawDef.getNamingAttributeName() : namingAttributeName;
     }
 
     @Override
@@ -132,18 +192,14 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public @Nullable QName getDisplayNameAttributeName() {
-        return displayNameAttributeName;
-    }
-
-    @Override
-    public void setDisplayNameAttributeName(QName name) {
-        checkMutable();
-        this.displayNameAttributeName = name;
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        return rawDef != null ? rawDef.getDisplayNameAttributeName() : displayNameAttributeName;
     }
 
     @Override
     public String getNativeObjectClass() {
-        return nativeObjectClass;
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        return rawDef != null ? rawDef.getNativeObjectClass() : nativeObjectClass;
     }
 
     @Override
@@ -154,7 +210,8 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public boolean isAuxiliary() {
-        return auxiliary;
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        return rawDef != null ? rawDef.isAuxiliary() : auxiliary;
     }
 
     @Override
@@ -165,7 +222,8 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public boolean isDefaultAccountDefinition() {
-        return defaultAccountDefinition;
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        return rawDef != null ? rawDef.isDefaultAccountDefinition() : defaultAccountDefinition;
     }
 
     @Override
@@ -200,6 +258,38 @@ public class ResourceObjectClassDefinitionImpl
                 objectClassDefinition.toResourceAttributeContainerDefinition(elementName));
     }
 
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        super.accept(visitor);
+        if (rawObjectClassDefinition != null) {
+            rawObjectClassDefinition.accept(visitor);
+        }
+    }
+
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        if (!super.accept(visitor, visitation)) {
+            return false;
+        } else {
+            if (rawObjectClassDefinition != null) {
+                rawObjectClassDefinition.accept(visitor, visitation);
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public void trimTo(@NotNull Collection<ItemPath> paths) {
+        if (isImmutable()) {
+            return; // This would fail anyway
+        }
+        super.trimTo(paths);
+        if (rawObjectClassDefinition != null) {
+            // It is most probably immutable, but let us give it a chance.
+            rawObjectClassDefinition.trimTo(paths);
+        }
+    }
+
     @NotNull
     @Override
     public ResourceObjectClassDefinitionImpl clone() {
@@ -208,7 +298,8 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     protected ResourceObjectClassDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
-        ResourceObjectClassDefinitionImpl clone = new ResourceObjectClassDefinitionImpl(layer, objectClassName);
+        ResourceObjectClassDefinitionImpl clone =
+                new ResourceObjectClassDefinitionImpl(layer, objectClassName, definitionBean, rawObjectClassDefinition);
         clone.copyDefinitionDataFrom(layer, this);
         return clone;
     }
@@ -355,6 +446,16 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public boolean isRaw() {
+        return rawObjectClassDefinition == null;
+    }
+
+    @Override
+    public boolean hasRefinements() {
+        return !isRaw() && !definitionBean.asPrismContainerValue().hasNoItems();
+    }
+
+    @Override
     public boolean hasSubstitutions() {
         // TODO
         return false;
@@ -416,11 +517,6 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
-        return this;
-    }
-
-    @Override
     public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
         // we have no refinements here, so we look only at the level of resource
         return ResourceTypeUtil.getEnabledCapability(resource, capabilityClass);
@@ -437,20 +533,25 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public String toString() {
-        return "ResourceObjectClassDefinitionImpl{" +
-                "objectClassName=" + objectClassName.getLocalPart() +
-                ", attributeDefinitions: " + attributeDefinitions.size() +
-                ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
-                ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
-                ", defaultInAKind=" + defaultAccountDefinition +
-                ", nativeObjectClass='" + nativeObjectClass + '\'' +
-                ", auxiliary=" + auxiliary +
-                "}";
-    }
-
-    @Override
-    public @NotNull Collection<ResourceAssociationDefinition> getAssociationDefinitions() {
-        return List.of();
+        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
+        if (rawDef != null) {
+            return "ResourceObjectClassDefinitionImpl (refined) {" +
+                    "raw=" + rawDef +
+                    ", attributeDefinitions: " + attributeDefinitions.size() +
+                    ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
+                    ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
+                    "}";
+        } else {
+            return "ResourceObjectClassDefinitionImpl (raw) {" +
+                    "objectClassName=" + objectClassName.getLocalPart() +
+                    ", attributeDefinitions: " + attributeDefinitions.size() +
+                    ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
+                    ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
+                    ", defaultAccountDefinition=" + defaultAccountDefinition +
+                    ", nativeObjectClass='" + nativeObjectClass + '\'' +
+                    ", auxiliary=" + auxiliary +
+                    "}";
+        }
     }
 
     @Override
@@ -459,77 +560,30 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public String getDescription() {
-        return null; // no information in raw object class
+    protected void addDebugDumpHeaderExtension(StringBuilder sb) {
+        if (isRaw()) {
+            sb.append(",raw");
+        } else {
+            if (hasRefinements()) {
+                sb.append(",refined (with refinements)");
+            } else {
+                sb.append(",refined (no refinements)");
+            }
+        }
     }
 
     @Override
-    public String getDocumentation() {
-        return null; // no information in raw object class
+    protected void addDebugDumpTrailer(StringBuilder sb, int indent) {
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "description attribute name", getDescriptionAttributeName(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "naming attribute name", getNamingAttributeName(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "default account definition", isDefaultAccountDefinition(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "native object class", getNativeObjectClass(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "auxiliary", isAuxiliary(), indent + 1);
     }
 
     @Override
     public String getResourceOid() {
         return null; // TODO remove this
-    }
-
-    @Override
-    public ResourceObjectMultiplicityType getObjectMultiplicity() {
-        return null; // no information in raw object class
-    }
-
-    @Override
-    public ProjectionPolicyType getProjectionPolicy() {
-        return null; // no information in raw object class
-    }
-
-    @Override
-    public @NotNull Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
-        return List.of(); // no information in raw object class
-    }
-
-    @Override
-    public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-        return false; // no information in raw object class
-    }
-
-    @Override
-    public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
-        return null; // no information in raw object class
-    }
-
-    @Override
-    public @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-        return List.of(); // no information in raw object class
-    }
-
-    @Override
-    public ResourceActivationDefinitionType getActivationSchemaHandling() {
-        return null; // no information in raw object class
-    }
-
-    @Override
-    public @NotNull ResourceObjectTypeDelineation getDelineation() {
-        return ResourceObjectTypeDelineation.none(); // no specific delineation in raw object class
-    }
-
-    @Override
-    public ResourceObjectReferenceType getBaseContext() {
-        return null; // no information in raw object class
-    }
-
-    @Override
-    public SearchHierarchyScope getSearchHierarchyScope() {
-        return null; // no information in raw object class
-    }
-
-    @Override
-    public @NotNull ResourceObjectVolatilityType getVolatility() {
-        return ResourceObjectVolatilityType.NONE; // no information in raw object class
-    }
-
-    @Override
-    public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
-        return null; // no information in raw object class
     }
 }

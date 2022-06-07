@@ -63,6 +63,11 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     Trace LOGGER = TraceManager.getTrace(ResourceSchema.class);
 
+    /** Returns definitions for all the object classes and types (currently that should be all definitions). */
+    default @NotNull Collection<ResourceObjectDefinition> getResourceObjectDefinitions() {
+        return getDefinitions(ResourceObjectDefinition.class);
+    }
+
     /** Returns definitions for all the object classes. */
     default @NotNull Collection<ResourceObjectClassDefinition> getObjectClassDefinitions() {
         return getDefinitions(ResourceObjectClassDefinition.class);
@@ -127,6 +132,11 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
         } else {
             return null;
         }
+    }
+
+    default @Nullable ResourceObjectTypeDefinition findObjectTypeDefinition(
+            @NotNull ResourceObjectTypeIdentification identification) {
+        return findObjectTypeDefinition(identification.getKind(), identification.getIntent());
     }
 
     /**
