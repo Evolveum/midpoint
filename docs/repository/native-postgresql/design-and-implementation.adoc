@@ -759,6 +759,31 @@ select ARRAY(SELECT jsonb_object_keys(ext) INTERSECT select mvids from mvkeys) m
 where array(select jsonb_object_keys(ext)) && (select array_agg(mvids) from mvkeys);
 ----
 
+==== Handy audit queries
+
+[source,sql]
+----
+-- Finding audit events with any of the specified changed items
+-- (provided array can contain also non-existent values):
+select * from ma_audit_event
+  -- && returns true if the intersection of the two arrays is not empty
+  where changeditempaths && array['\${common}3#familyName', '\${common}3#fullName'];
+
+-- Finding audit events with all of the specified changed items
+-- (event can have additional items):
+select * from ma_audit_event
+  -- @> returns true if the array on the right is superset of the array on the left
+  where changeditempaths @> array['\${common}3#familyName', '\${common}3#fullName'];
+
+-- Unwrapping changeditempaths to separate rows and removing the common prefix:
+select replace(changedItem, '\${common}3#', ''), *
+from ma_audit_event, unnest(changeditempaths) as changedItem
+-- this allows for simpler conditions on a each value:
+where changedItem in ('\${common}3#familyName', '\${common}3#fullName')
+-- and also allows ordering by the changedItem
+order by id, changedItem
+----
+
 == See also
 
 * https://youtu.be/5ld4U7AqCck[Native Repository webinar]
