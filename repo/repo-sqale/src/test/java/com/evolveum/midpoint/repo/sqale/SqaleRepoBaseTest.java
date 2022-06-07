@@ -260,9 +260,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected void assertCachedUri(Integer uriId, String uri) {
-        assertThat(uriId)
-                .withFailMessage("Unexpected NULL ID for cached URI %s", uri)
-                .isNotNull();
+        assertThat(uriId).as("cached URI %s", uri).isNotNull();
         assertThat(cachedUriById(uriId)).isEqualTo(uri);
     }
 
@@ -627,10 +625,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     // endregion
 
     protected JdbcSession startTransaction() {
+        //noinspection resource
         return sqlRepoContext.newJdbcSession().startTransaction();
     }
 
     protected JdbcSession startReadOnlyTransaction() {
+        //noinspection resource
         return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
     }
 }
