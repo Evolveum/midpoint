@@ -26,6 +26,10 @@ public interface WizardStep extends Serializable {
     default void init(WizardModel wizard) {
     }
 
+    default String getStepId() {
+        return null;
+    }
+
     default String appendCssToWizard() {
         return null;
     }

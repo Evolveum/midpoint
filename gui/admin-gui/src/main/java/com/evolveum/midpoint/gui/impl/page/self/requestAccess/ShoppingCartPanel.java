@@ -31,6 +31,8 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
  */
 public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
+    public static final String STEP_ID = "shoppingCart";
+
     private static final String ID_TABLE = "table";
 
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
@@ -44,6 +46,11 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         super(model);
 
         initLayout();
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     @Override

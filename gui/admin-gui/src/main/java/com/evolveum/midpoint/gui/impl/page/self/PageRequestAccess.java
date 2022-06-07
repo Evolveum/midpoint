@@ -28,6 +28,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -48,14 +51,45 @@ public class PageRequestAccess extends PageSelf {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestAccess.class);
 
+    public static final String PARAM_STEP = "step";
+
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
+
+    public PageRequestAccess() {
+    }
+
+    public PageRequestAccess(PageParameters parameters) {
+        super(parameters);
+    }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
 
         initLayout();
+
+        PageParameters params = getPageParameters();
+        if (params == null) {
+            return;
+        }
+
+        StringValue step = params.get(PARAM_STEP);
+        if (step == null) {
+            return;
+        }
+
+        WizardPanel panel = getWizard();
+        if (panel == null) {
+            return;
+        }
+
+        WizardModel model = panel.getWizardModel();
+        model.setActiveStepById(step.toString());
+    }
+
+    private WizardPanel getWizard() {
+        return (WizardPanel) get(createComponentPath(ID_MAIN_FORM, ID_WIZARD));
     }
 
     private void initLayout() {

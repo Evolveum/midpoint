@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.wicket.util.io.IClusterable;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,21 @@ public class WizardModel implements IClusterable {
 
     public WizardStep getActiveStep() {
         return steps.get(activeStepIndex);
+    }
+
+    public void setActiveStepById(String id) {
+        if (id == null) {
+            return;
+        }
+
+        for (int i = 0; i < steps.size(); i++) {
+            WizardStep step = steps.get(i);
+
+            if (Objects.equals(id, step.getStepId())) {
+                setActiveStepIndex(i);
+                break;
+            }
+        }
     }
 
     public int getActiveStepIndex() {

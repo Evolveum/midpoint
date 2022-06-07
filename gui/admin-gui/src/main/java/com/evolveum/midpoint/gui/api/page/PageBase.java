@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -403,7 +404,10 @@ public abstract class PageBase extends PageAdminLTE {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageRequestAccess.class);
+                PageParameters params = new PageParameters();
+                params.set(PageRequestAccess.PARAM_STEP, ShoppingCartPanel.STEP_ID);
+
+                setResponsePage(new PageRequestAccess(params));
             }
         };
         cartLink.add(new VisibleBehaviour(() -> getPage() instanceof PageRequestAccess || !getSessionStorage().getRequestAccess().getShoppingCartAssignments().isEmpty()));
