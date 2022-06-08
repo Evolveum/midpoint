@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,8 +71,24 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     @Override
     public IModel<List<Badge>> getTitleBadges() {
-        return Model.ofList(List.of(
-                new Badge("badge badge-info", "Requesting for 4 users")));
+        return () -> {
+            String text;
+
+            int count = 0;
+            if (isRequestingForMyself()) {
+                text = count > 1 ? getString("RoleCatalogPanel.badgeMyselfAndOthers", count - 1) : getString("RoleCatalogPanel.badgeMyself");
+            } else {
+                text = getString("RoleCatalogPanel.badgeOthers", count);
+            }
+
+            return List.of(new Badge("badge badge-info", text));
+        };
+    }
+
+    private boolean isRequestingForMyself() {
+        String principalOid = SecurityUtil.getPrincipalOidIfAuthenticated();
+        RequestAccess request = getModelObject();
+        return request.getPersonOfInterest().stream().filter(o -> Objects.equals(principalOid, o.getOid())).count() > 0;
     }
 
     @Override

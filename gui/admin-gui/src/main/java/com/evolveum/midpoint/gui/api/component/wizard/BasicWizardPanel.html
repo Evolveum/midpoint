@@ -1,17 +1,20 @@
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-column align-items-center mt-3">
-        <h2 class="mb-3 font-weight-bold " wicket:id="text"/>
-        <h5 class="text-secondary" wicket:id="subText"/>
+    <div class="d-flex flex-column align-items-center mt-5">
+        <h2 class="mb-3" wicket:id="text"/>
+        <h5 class="text-secondary mb-5" wicket:id="subText"/>
+
+        <wicket:child/>
+        <!-- todo remove -->
         <div wicket:id="content"/>
+
         <div class="d-flex gap-3 justify-content-center mt-5">
             <a class="btn btn-outline-primary" wicket:id="back">
                 <i class="fas fa-arrow-left mr-2"></i>

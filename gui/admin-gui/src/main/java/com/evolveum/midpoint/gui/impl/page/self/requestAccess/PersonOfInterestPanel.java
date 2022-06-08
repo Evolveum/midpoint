@@ -10,40 +10,37 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
+public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
-    public enum PersonOfInterest {
+    private enum PersonOfInterest {
 
         MYSELF("fas fa-user-circle"),
 
-        GROUP_OTHERS("fas fa-user-friends"),
+        GROUP_OTHERS("fas fa-user-friends");
 
-        TEAM("fas fa-users");
+        // disabled for now
+        // TEAM("fas fa-users");
 
         private String icon;
 
@@ -56,14 +53,22 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
         }
     }
 
+    private enum SelectionState {
+
+        TILES, USERS
+    }
+
+    private static final String ID_FRAGMENTS = "fragments";
+    private static final String ID_TILE_FRAGMENT = "tileFragment";
+    private static final String ID_SELECTION_FRAGMENT = "selectionFragment";
     private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST = "list";
 
     private static final String ID_TILE = "tile";
-    private static final String ID_BACK = "back";
-    private static final String ID_NEXT = "next";
-    private static final String ID_NEXT_LABEL = "nextLabel";
+
     private IModel<List<Tile<PersonOfInterest>>> tiles;
+
+    private IModel<SelectionState> selectionState = Model.of(SelectionState.TILES);
 
     public PersonOfInterestPanel(IModel<RequestAccess> model) {
         super(model);
@@ -73,13 +78,24 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
     }
 
     @Override
-    public VisibleEnableBehaviour getHeaderBehaviour() {
-        return new VisibleEnableBehaviour(() -> false);
+    public IModel<String> getTitle() {
+        return () -> getString("PersonOfInterestPanel.title");
     }
 
     @Override
-    public IModel<String> getTitle() {
-        return () -> getString("PersonOfInterestPanel.title");
+    protected IModel<String> getTextModel() {
+        return () -> {
+            String key = selectionState.getObject() == SelectionState.TILES ? "PersonOfInterestPanel.text" : "PersonOfInterestPanel.selection.text";
+            return getString(key);
+        };
+    }
+
+    @Override
+    protected IModel<String> getSubTextModel() {
+        return () -> {
+            String key = selectionState.getObject() == SelectionState.TILES ? "PersonOfInterestPanel.subtext" : "PersonOfInterestPanel.selection.subtext";
+            return getString(key);
+        };
     }
 
     private void initModels() {
@@ -99,37 +115,23 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
         };
     }
 
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleBehaviour(() -> tiles.getObject().stream().filter(t -> t.isSelected()).count() > 0);
+    }
+
     private void initLayout() {
-        AjaxLink back = new AjaxLink<>(ID_BACK) {
+        setOutputMarkupId(true);
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onBackPerformed(target);
-            }
-        };
-        add(back);
+        add(new WebMarkupContainer(ID_FRAGMENTS));
+    }
 
-        AjaxLink next = new AjaxLink<>(ID_NEXT) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onNextPerformed(target);
-            }
-        };
-        next.add(new VisibleBehaviour(() -> tiles.getObject().stream().filter(t -> t.isSelected()).count() > 0));
-        next.setOutputMarkupId(true);
-        next.setOutputMarkupPlaceholderTag(true);
-        add(next);
-
-        Label nextLabel = new Label(ID_NEXT_LABEL, () -> {
-            WizardStep step = getWizard().getNextPanel();
-            return step != null ? step.getTitle().getObject() : null;
-        });
-        next.add(nextLabel);
+    private Fragment initTileFragment() {
+        Fragment fragment = new Fragment(ID_FRAGMENTS, ID_TILE_FRAGMENT, this);
 
         WebMarkupContainer listContainer = new WebMarkupContainer(ID_LIST_CONTAINER);
         listContainer.setOutputMarkupId(true);
-        add(listContainer);
+        fragment.add(listContainer);
         ListView<Tile<PersonOfInterest>> list = new ListView<>(ID_LIST, tiles) {
 
             @Override
@@ -138,36 +140,48 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
-                        boolean selected = getModelObject().isSelected();
-
-                        List<Tile<PersonOfInterest>> tiles = PersonOfInterestPanel.this.tiles.getObject();
-                        tiles.forEach(t -> t.setSelected(false));
-
-                        if (!selected) {
-                            getModelObject().setSelected(true);
+                        Tile<PersonOfInterest> tile = item.getModelObject();
+                        switch (tile.getValue()) {
+                            case MYSELF:
+                                myselfPerformed(target);
+                                break;
+                            case GROUP_OTHERS:
+                                groupOthersPerformed(target);
+                                break;
                         }
-
-                        target.add(listContainer);
-                        target.add(next);
                     }
                 };
                 item.add(tp);
             }
         };
         listContainer.add(list);
+
+        return fragment;
     }
 
-    protected void onBackPerformed(AjaxRequestTarget target) {
-        new Toast()
-                .title("some title")
-                .body("example body " + 1000 * Math.random())
-                .cssClass("bg-success")
-                .autohide(true)
-                .show(target);
+    private Fragment initSelectionFragment() {
+        Fragment fragment = new Fragment(ID_FRAGMENTS, ID_SELECTION_FRAGMENT, this);
+
+        return fragment;
     }
 
-    private void onNextPerformed(AjaxRequestTarget target) {
-        // todo fix
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        Fragment fragment;
+        switch (selectionState.getObject()) {
+            case USERS:
+                fragment = initSelectionFragment();
+                break;
+            case TILES:
+            default:
+                fragment = initTileFragment();
+        }
+        addOrReplace(fragment);
+    }
+
+    private void myselfPerformed(AjaxRequestTarget target) {
         ObjectReferenceType myself = new ObjectReferenceType()
                 .oid(SecurityUtil.getPrincipalOidIfAuthenticated())
                 .type(UserType.COMPLEX_TYPE);
@@ -176,5 +190,28 @@ public class PersonOfInterestPanel extends WizardStepPanel<RequestAccess> {
         getWizard().next();
 
         target.add(getWizard().getPanel());
+    }
+
+    private void groupOthersPerformed(AjaxRequestTarget target) {
+        selectionState.setObject(SelectionState.USERS);
+        target.add(this);
+    }
+
+    @Override
+    protected void onBackPerformed(AjaxRequestTarget target) {
+        if (selectionState.getObject() == SelectionState.TILES) {
+            super.onBackPerformed(target);
+            return;
+        }
+
+        selectionState.setObject(SelectionState.TILES);
+        target.add(this);
+    }
+
+
+    @Override
+    protected void onNextPerformed(AjaxRequestTarget target) {
+        // todo save state
+
     }
 }

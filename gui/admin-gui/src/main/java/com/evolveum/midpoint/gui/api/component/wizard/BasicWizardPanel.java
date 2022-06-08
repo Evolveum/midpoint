@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,18 +17,28 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 /**
  * @author lskublik
  */
-public class BasicWizardPanel extends WizardStepPanel {
+public class BasicWizardPanel<T> extends WizardStepPanel<T> {
+
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
-
     private static final String ID_CONTENT = "content";
     private static final String ID_BACK = "back";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
+
+    public BasicWizardPanel() {
+    }
+
+    public BasicWizardPanel(IModel<T> model) {
+        super(model);
+    }
 
     @Override
     protected void onInitialize() {
@@ -40,9 +48,13 @@ public class BasicWizardPanel extends WizardStepPanel {
     }
 
     private void initLayout() {
+        Label mainText = new Label(ID_TEXT, getTextModel());
+        mainText.add(new VisibleBehaviour(() -> getTextModel().getObject() != null));
+        add(mainText);
 
-        add(new Label(ID_TEXT, getTextModel()));
-        add(new Label(ID_SUBTEXT, getSubTextModel()));
+        Label secondaryText = new Label(ID_SUBTEXT, getSubTextModel());
+        secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
+        add(secondaryText);
 
         add(createContentPanel(ID_CONTENT));
 
@@ -70,43 +82,46 @@ public class BasicWizardPanel extends WizardStepPanel {
         next.setOutputMarkupPlaceholderTag(true);
         add(next);
 
-        Label nextLabel = new Label(ID_NEXT_LABEL, createNextStepLabel());
+        Label nextLabel = new Label(ID_NEXT_LABEL, () -> {
+            WizardStep step = getWizard().getNextPanel();
+            return step != null ? step.getTitle().getObject() : null;
+        });
         next.add(nextLabel);
-
     }
 
     protected Component createContentPanel(String id) {
         return new WebMarkupContainer(id);
     }
 
-    protected IModel<?> getTextModel() {
+    protected AjaxLink getNext() {
+        return (AjaxLink) get(ID_NEXT);
+    }
+
+    protected AjaxLink getBack() {
+        return (AjaxLink) get(ID_BACK);
+    }
+
+    protected IModel<String> getTextModel() {
         return Model.of();
     }
 
-    protected IModel<?> getSubTextModel() {
+    protected IModel<String> getSubTextModel() {
         return Model.of();
     }
 
-    private IModel<?> createNextStepLabel() {
-        WizardStep nextPanel = getWizard().getNextPanel();
-        if (nextPanel != null){
-            return nextPanel.getTitle();
-        }
-        return Model.of();
-    }
-
-    private void onNextPerformed(AjaxRequestTarget target) {
+    protected void onNextPerformed(AjaxRequestTarget target) {
         getWizard().next();
-        target.add(getParent());
+        target.add(getWizard().getPanel());
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {
         int index = getWizard().getActiveStepIndex();
         if (index > 0) {
             getWizard().previous();
-            target.add(getParent());
+            target.add(getWizard().getPanel());
             return;
         }
+
         getPageBase().redirectBack();
     }
 
