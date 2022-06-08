@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -114,7 +114,6 @@ public class TestSqlRepositoryConfigurationFactory {
         updateConfigurationStringProperty(configuration, properties, PROPERTY_INCOMPATIBLE_SCHEMA_ACTION);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VERSION_IF_MISSING);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VERSION_OVERRIDE);
-        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VARIANT);
 
         updateConfigurationStringProperty(configuration, properties, PROPERTY_TRANSACTION_ISOLATION);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);

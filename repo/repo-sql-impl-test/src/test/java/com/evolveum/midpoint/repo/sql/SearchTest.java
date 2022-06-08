@@ -1303,23 +1303,6 @@ public class SearchTest extends BaseSQLRepoTest {
         assertThat(assignments).hasSize(3);
     }
 
-        /* TODO remove when test exists
-        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
-                "by parent using exists", AccessCertificationWorkItemType.class,
-                f -> f.ownedBy(AccessCertificationCaseType.class)
-                        .block()
-                        .id(1)
-                        .and()
-                        .ownedBy(AccessCertificationCampaignType.class)
-                        .id(accCertCampaign1Oid)
-                        .endBlock());
-        // The resulting query only uses IDs that are available directly in the container table,
-        // but our query uses exists which can be used for anything... we don't optimize this.
-        assertThat(result)
-                .extracting(a -> a.getStageNumber())
-                .containsExactlyInAnyOrder(11, 12);
-         */
-
     @Test
     public void test939OwnedByComplainsAboutInvalidTypesAndPathsCombinations() {
         expect("query fails when ownedBy types (owned and owning) do not make sense");
