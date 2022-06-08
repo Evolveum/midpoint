@@ -39,7 +39,12 @@ public class UcfUtil {
         connectorName.append(type);
         connectorName.append(" v");
         connectorName.append(version);
-        StringBuilder displayName = new StringBuilder(StringUtils.substringAfterLast(type, "."));
+        StringBuilder displayName = new StringBuilder();
+        if (type.contains(".")) {
+            displayName.append(StringUtils.substringAfterLast(type, "."));
+        } else {
+            displayName.append(type);
+        }
         if (hostType != null) {
             connectorName.append(" @");
             connectorName.append(hostType.getName());
