@@ -68,7 +68,10 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
     public Iterator<? extends PrismContainerValueWrapper<C>> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
+        return doRepositoryIteration(first, count);
+    }
 
+    protected Iterator<? extends PrismContainerValueWrapper<C>> doRepositoryIteration(long first, long count) {
         Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_CONTAINERS);
         OperationResult result = task.getResult();
         try {
