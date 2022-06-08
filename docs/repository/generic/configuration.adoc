@@ -246,6 +246,10 @@ Currently, the only known variant is `utf8mb4` for MySQL/MariaDB.
 *Beware:* it is the administrator's responsibility to choose the correct variant!
 MidPoint does not try to determine the variant present in the database.
 So be sure to avoid applying e.g. `mysql-upgrade-3.8-3.9-utf8mb4.sql` if the database is not in `utf8mb4` character set, or vice versa.
+
+[IMPORTANT]
+This option is not available in version 4.6 and later.
+MySQL/MariaDB is not supported since version 4.4.
 | (none)
 
 | createMissingCustomColumns
