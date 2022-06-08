@@ -114,12 +114,13 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
 
     void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
-
     /**
      * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
      * but afterwards.
      */
     Collection<? extends Mapping<?,?>> getFocusMappings();
+
+    String toHumanReadableString();
 
     /**
      * Assignment is either being added in the current wave or was added in some of the previous waves.

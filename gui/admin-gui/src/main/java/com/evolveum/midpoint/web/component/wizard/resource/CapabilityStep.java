@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -16,9 +16,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -292,9 +289,7 @@ public class CapabilityStep extends WizardStep {
                             try {
                                 ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resourcePrism);
                                 if (schema != null) {
-                                    // TODO are we OK with "any" account definition?
-                                    ResourceObjectTypeDefinition def =
-                                            schema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+                                    ResourceObjectDefinition def = schema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
                                     if (def != null) {
                                         for (ResourceAttributeDefinition<?> attribute : def.getAttributeDefinitions()) {
                                             choices.add(attribute.getItemName());

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -36,7 +37,7 @@ public class MockLiveSyncTaskHandler {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SynchronizationServiceMock syncServiceMock;
 
-    public void synchronize(ResourceShadowDiscriminator coords, LiveSyncTokenStorage tokenStorage,
+    public void synchronize(ResourceOperationCoordinates coords, LiveSyncTokenStorage tokenStorage,
             Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {

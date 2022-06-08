@@ -968,7 +968,7 @@ class ShadowUpdater {
         @Nullable ResourceObjectDefinition objectDefinition = shadowCtx.getObjectDefinition();
         if (objectDefinition == null) {
             // TODO consider throwing an exception
-            LOGGER.warn("No object class definition for {}", shadowCtx);
+            LOGGER.warn("No resource object definition for {}", shadowCtx);
             return repoShadow;
         }
 

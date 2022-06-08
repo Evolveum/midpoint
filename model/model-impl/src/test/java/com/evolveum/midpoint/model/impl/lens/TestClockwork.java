@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
@@ -80,7 +81,7 @@ public class TestClockwork extends AbstractLensTest {
 
         displayDumpable("Context before serialization", context);
 
-        LensContextType lensContextType = context.toLensContextType();
+        LensContextType lensContextType = context.toBean();
         String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
 
         displayValue("Serialized form", xml);
@@ -246,7 +247,7 @@ public class TestClockwork extends AbstractLensTest {
             if (serialize) {
                 displayDumpable("Context before serialization", context);
 
-                LensContextType lensContextType = context.toLensContextType();
+                LensContextType lensContextType = context.toBean();
                 String xml = prismContext.xmlSerializer().serializeRealValue(
                         lensContextType, SchemaConstants.C_MODEL_CONTEXT);
 
@@ -278,9 +279,9 @@ public class TestClockwork extends AbstractLensTest {
         }
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
-        assertEquals(1, accountContexts.size());
-        LensProjectionContext accContext = accountContexts.iterator().next();
+        Collection<LensProjectionContext> projContexts = context.getProjectionContexts();
+        assertThat(projContexts).as("projection contexts").hasSize(1);
+        LensProjectionContext accContext = projContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
         assertEquals(SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -290,7 +291,6 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals(ChangeType.ADD, executedDelta.getChangeType());
         PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath(), "jack");
         PrismAsserts.assertPropertyAdd(executedDelta, getDummyResourceController().getAttributeFullnamePath(), "Jack Sparrow");
-
     }
 
     private ObjectDelta<?> getExecutedDelta(LensProjectionContext ctx) {

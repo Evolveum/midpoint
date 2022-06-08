@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.executor;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -869,10 +870,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         PrismObject<ShadowType> shadow = getShadow(projCtx, object);
         PrismObject<O> focus = getFocus();
 
-        ResourceShadowDiscriminator rsd = projCtx.getResourceShadowDiscriminator();
-
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
-                focus, shadow, rsd, resource.asPrismObject(), context.getSystemConfiguration(), elementContext);
+                focus, shadow, resource.asPrismObject(), context.getSystemConfiguration(), elementContext);
         // Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
         variables.put(ExpressionConstants.VAR_DELTA, projCtx.getCurrentDelta(), ObjectDelta.class);
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
@@ -881,7 +880,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 new ModelExpressionEnvironment<>(context, projCtx, task, result));
         try {
             ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
-            return scriptExecutor.prepareScripts(resourceScripts, rsd, operation, null, variables, expressionProfile, result);
+            ProjectionContextKey key = projCtx.getKey();
+            return scriptExecutor.prepareScripts(
+                    resourceScripts, key, operation, null, variables, expressionProfile, result);
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }

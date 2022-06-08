@@ -3691,8 +3691,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account"/>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of projection that is the target of reference. E.g "default", "admin", "testing"

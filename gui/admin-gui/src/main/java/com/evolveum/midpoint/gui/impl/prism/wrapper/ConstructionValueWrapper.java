@@ -6,12 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -27,6 +23,8 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import java.util.Objects;
 
 public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<ConstructionType> {
 
@@ -56,38 +54,59 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
 
     public ShadowKindType getKind() {
         ShadowKindType kind = getNewValue().asContainerable().getKind();
-        if (kind == null) {
-            kind = ShadowKindType.ACCOUNT;
-        }
-        return kind;
+        return Objects.requireNonNullElse(kind, ShadowKindType.ACCOUNT);
     }
 
-    public String getIntent(PrismObject<ResourceType> resource) {
-        String intent = getNewValue().asContainerable().getIntent();
-        if (StringUtils.isBlank(intent)) {
-            ResourceObjectDefinition def;
-            try {
-                def = findDefaultObjectClassDefinition(resource);
-                if (def instanceof ResourceObjectTypeDefinition) {
-                    intent = ((ResourceObjectTypeDefinition) def).getIntent();
-                }
-            } catch (SchemaException | ConfigurationException e) {
-                LOGGER.error("Cannot get default object class definition, {}", e.getMessage(), e);
-                intent = "default";
+    public String getIntent() {
+        return getNewValue().asContainerable().getIntent();
+    }
+
+    /**
+     * The difference to {@link #getIntent()} is that this method tries to guess the intent by looking at default
+     * type definition for given shadow kind.
+     */
+    public String determineIntent(PrismObject<ResourceType> resource) {
+        String specifiedIntent = getIntent();
+        if (StringUtils.isNotBlank(specifiedIntent)) {
+            return specifiedIntent;
+        }
+
+        ResourceObjectDefinition def;
+        try {
+            def = findDefaultDefinitionForTheKind(resource);
+            if (def instanceof ResourceObjectTypeDefinition) {
+                return ((ResourceObjectTypeDefinition) def).getIntent();
+            } else {
+                return null;
             }
-
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot get default object definition, {}", e.getMessage(), e);
+            return SchemaConstants.INTENT_DEFAULT; // TODO is this OK?
         }
-        return intent;
     }
 
-    private ResourceObjectDefinition findDefaultObjectClassDefinition(PrismObject<ResourceType> resource)
+    private ResourceObjectDefinition findDefaultDefinitionForTheKind(PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = getRefinedSchema(resource);
         if (schema == null) {
             return null;
         }
 
-        return schema.findObjectDefinition(getKind(), null);
+        return schema.findDefaultDefinitionForKind(getKind());
     }
 
+    public ResourceObjectDefinition getResourceObjectDefinition(PrismObject<ResourceType> resource)
+            throws SchemaException, ConfigurationException {
+        ResourceSchema schema = getRefinedSchema(resource);
+        if (schema == null) {
+            return null;
+        }
+        ShadowKindType kind = getKind();
+        String intent = getIntent();
+        if (intent != null) {
+            return schema.findObjectDefinition(kind, intent);
+        } else {
+            return schema.findDefaultDefinitionForKind(kind);
+        }
+    }
 }

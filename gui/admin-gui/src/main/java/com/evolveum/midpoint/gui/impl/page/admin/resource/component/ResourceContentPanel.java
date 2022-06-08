@@ -12,9 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
@@ -184,8 +182,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     if (ShadowUtil.isKnown(intent)) {
                         ocDef = refinedSchema.findObjectDefinition(getKind(), intent);
                     } else {
-                        // TODO: Can be intent unknown or null here? If so, what should we do with that?
-                        ocDef = refinedSchema.findObjectDefinition(getKind(), null);
+                        ocDef = refinedSchema.findDefaultDefinitionForKind(getKind());
                     }
                     if (ocDef != null) {
                         return ocDef.getObjectClassName().getLocalPart();

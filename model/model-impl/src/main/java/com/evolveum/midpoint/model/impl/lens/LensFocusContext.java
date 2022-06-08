@@ -315,16 +315,16 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return sb.toString();
     }
 
-    LensFocusContextType toLensFocusContextType(LensContext.ExportType exportType) throws SchemaException {
+    LensFocusContextType toBean(LensContext.ExportType exportType) throws SchemaException {
         LensFocusContextType rv = new LensFocusContextType(PrismContext.get());
-        super.storeIntoLensElementContextType(rv, exportType);
+        super.storeIntoBean(rv, exportType);
         if (exportType != LensContext.ExportType.MINIMAL) {
             rv.setSecondaryDeltas(state.getArchivedSecondaryDeltas().toObjectDeltaWavesBean());
         }
         return rv;
     }
 
-    static <O extends ObjectType> LensFocusContext<O> fromLensFocusContextType(
+    static <O extends ObjectType> LensFocusContext<O> fromLensFocusContextBean(
             LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 

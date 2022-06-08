@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 import static java.util.Collections.singleton;
@@ -2253,8 +2254,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
-        ShadowCoordinatesQualifiedObjectDelta<ShadowType> accountDelta = RefineryObjectFactory.createShadowDiscriminatorModificationReplaceProperty(ShadowType.class,
-                RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
+        ShadowCoordinatesQualifiedObjectDelta<ShadowType> accountDelta =
+                RefineryObjectFactory.createShadowDiscriminatorModificationReplaceProperty(
+                        ShadowType.class,
+                        RESOURCE_DUMMY_OID,
+                        ShadowKindType.ACCOUNT,
+                        SchemaConstants.INTENT_DEFAULT,
+                        dummyResourceCtl.getAttributeFullnamePath(),
+                        prismContext,
+                        "Cpt. Jack Sparrow");
         accountDelta.addModificationAddProperty(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "smell");
         deltas.add(accountDelta);
         deltas.add(accountAssignmentUserDelta);
@@ -2339,7 +2347,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         ResourceObjectTypeDefinition accountDefinition =
-                refinedSchema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, null);
+                findObjectTypeDefinitionRequired(refinedSchema, ShadowKindType.ACCOUNT, null);
         PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new ItemName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));

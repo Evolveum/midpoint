@@ -97,7 +97,7 @@ public class AssociationFromLinkExpressionEvaluator
         TypedValue<ResourceObjectDefinition> rAssocTargetDefTypedValue = context.getVariables()
                 .get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
         if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
-            throw new ExpressionEvaluationException("No association target object class definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
+            throw new ExpressionEvaluationException("No association target object definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
         ResourceObjectDefinition associationTargetDef = (ResourceObjectDefinition) rAssocTargetDefTypedValue.getValue();
 

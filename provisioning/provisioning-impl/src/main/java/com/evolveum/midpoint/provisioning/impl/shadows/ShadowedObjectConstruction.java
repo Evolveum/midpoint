@@ -380,7 +380,8 @@ public class ShadowedObjectConstruction {
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
-            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject, false, result);
+            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(
+                    ctxEntitlement, providedResourceObject, false, result);
         }
 
         try {

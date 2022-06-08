@@ -45,8 +45,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -1124,9 +1123,14 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public ModelProjectionContext findProjectionContext(
-                    ResourceShadowDiscriminator rat) {
+            public ModelProjectionContext findProjectionContextByKeyExact(
+                    @NotNull ProjectionContextKey key) {
                 return null;
+            }
+
+            @Override
+            public @NotNull Collection<ModelProjectionContext> findProjectionContexts(@NotNull ProjectionContextFilter filter) {
+                return List.of();
             }
 
             @Override
@@ -1224,7 +1228,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public Collection<ResourceShadowDiscriminator> getHistoricResourceObjects() {
+            public Collection<ProjectionContextKey> getHistoricResourceObjects() {
                 return null;
             }
 

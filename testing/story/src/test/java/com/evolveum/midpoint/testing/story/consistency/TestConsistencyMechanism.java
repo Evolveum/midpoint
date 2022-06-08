@@ -227,6 +227,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     private static final String NS_MY = "http://whatever.com/my";
     private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
 
+    private static final String INTENT_INTERNAL = "internal";
+
     private static ResourceType resourceTypeOpenDjrepo;
     private String aliceAccountDn;
 
@@ -446,7 +448,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // @formatter:off
         ShadowAsserter.forShadow(modelShadow)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent("internal")
+                .assertIntent(INTENT_INTERNAL)
                 .attributes()
                     .assertHasPrimaryIdentifier()
                     .assertHasSecondaryIdentifier()
@@ -492,7 +494,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // @formatter:off
         ShadowAsserter.forShadow(modelShadow)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent("internal")
+                .assertIntent(INTENT_INTERNAL)
                 .attributes()
                     .assertHasPrimaryIdentifier()
                     .assertHasSecondaryIdentifier()
@@ -541,7 +543,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("Jack's account: ", existingJackieAccount);
 
         when("Adding account on the resource to user jackie...");
-        assignAccountToUser(USER_JACKIE_OID, RESOURCE_OPENDJ_OID, "internal");
+        assignAccountToUser(USER_JACKIE_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL);
 
         then("The dn and ri:uid will be jackie1 because jackie already exists and is liked to another user");
         PrismObject<UserType> userJackieAfter = getUser(USER_JACKIE_OID);
@@ -556,7 +558,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
         ShadowAsserter.forShadow(shadow)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent("internal")
+                .assertIntent(INTENT_INTERNAL)
                 .attributes()
                     .assertHasPrimaryIdentifier()
                     .assertHasSecondaryIdentifier()
@@ -1094,7 +1096,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertLiveLinks(0);
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        assignAccount(UserType.class, USER_E_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+        assignAccount(UserType.class, USER_E_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL, task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -1398,7 +1400,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when("assign account on OpenDJ");
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        assignAccount(UserType.class, USER_ELAINE_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+        assignAccount(UserType.class, USER_ELAINE_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL, task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -1657,7 +1659,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         when();
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        assignAccount(UserType.class, USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+        assignAccount(UserType.class, USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL, task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         then();
@@ -1725,7 +1727,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertLiveLinks(0);
 
         //and add account to the user while resource is UP
-        assignAccountToUser(USER_ALICE_OID, RESOURCE_OPENDJ_OID, "internal");
+        assignAccountToUser(USER_ALICE_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL);
 
         //then stop openDJ
         openDJController.stop();
@@ -1980,7 +1982,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance();
 
-        assignAccount(UserType.class, USER_BOB_NO_GIVEN_NAME_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+        assignAccount(UserType.class, USER_BOB_NO_GIVEN_NAME_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL, task, parentResult);
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
@@ -2034,7 +2036,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance();
 
-        assignAccountToUser(USER_JOHN_WEAK_OID, RESOURCE_OPENDJ_OID, "internal");
+        assignAccountToUser(USER_JOHN_WEAK_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL);
 
         assertUser(USER_JOHN_WEAK_OID, "User after")
                 .assertLiveLinks(1);
@@ -2084,7 +2086,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance();
 
-        assignAccount(UserType.class, USER_DONALD_OID, RESOURCE_OPENDJ_OID, "internal");
+        assignAccount(UserType.class, USER_DONALD_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL);
 
         assertUser(USER_DONALD_OID, "User after")
                 .assertLiveLinks(1);
@@ -2210,7 +2212,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertModelShadowNoFetch(shadowOid)
                 .assertIsExists()
                 .assertNotDead()
-                .assertIntent("internal")
+                .assertIntent(INTENT_INTERNAL)
                 .assertKind()
                 .pendingOperations()
                 .by()
@@ -2297,7 +2299,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance();
 
-        assignAccount(UserType.class, USER_DISCOVERY_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+        assignAccount(UserType.class, USER_DISCOVERY_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL, task, parentResult);
 
         parentResult.computeStatus();
         display("add object communication problem result: ", parentResult);
@@ -2446,7 +2448,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
         //WHEN
         when();
-        assignAccount(UserType.class, USER_HERMAN_OID, RESOURCE_OPENDJ_OID, "internal", task, result);
+        assignAccount(UserType.class, USER_HERMAN_OID, RESOURCE_OPENDJ_OID, INTENT_INTERNAL, task, result);
 
         // THEN
         then();
@@ -2652,7 +2654,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //and add account to the user while resource is UP
 
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-        ObjectDelta<UserType> addDelta = createModifyUserAddAccount(USER_ALICE_OID, resourceTypeOpenDjrepo.asPrismObject());
+        ObjectDelta<UserType> addDelta = createModifyUserAddAccount(
+                USER_ALICE_OID, resourceTypeOpenDjrepo.asPrismObject(), INTENT_INTERNAL);
         executeChanges(addDelta, null, task, parentResult);
 
         //then stop openDJ

@@ -282,7 +282,9 @@
                         </q:equal>
                     </filter>
                 </resourceRef>
-                 <strictness>strict</strictness>
+                <kind>account</kind>
+                <intent>default</intent>
+                <strictness>strict</strictness>
            </dependency>
 
         </objectType>

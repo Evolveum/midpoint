@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -76,21 +71,10 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
         // Schema may be null in some error-related border cases
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.MODEL);
 
-        ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
-        String intent = constructionBean.getIntent(); // Null value is interpreted as default-for-kind here.
-
-        ResourceObjectDefinition resourceObjectDefinition = refinedSchema.findObjectDefinition(kind, intent);
-        if (resourceObjectDefinition == null) {
-            if (intent != null) {
-                throw new SchemaException(
-                        "No " + kind + " type with intent '" + intent + "' found in "
-                                + resource + " as specified in construction in " + getSource());
-            } else {
-                throw new SchemaException("No default " + kind + " type found in " + resource
-                        + " as specified in construction in " + getSource());
-            }
-        }
-        setResourceObjectDefinition(resourceObjectDefinition);
+        setResourceObjectDefinition(
+                refinedSchema.findDefinitionForConstructionRequired(
+                        constructionBean,
+                        () -> resource + " as specified in construction in " + getSource()));
 
         for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
             ResourceObjectDefinition auxOcDef = refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassName);
@@ -108,7 +92,8 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
     }
 
     @Override
-    protected EvaluatedAssignedResourceObjectConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        return new EvaluatedAssignedResourceObjectConstructionImpl<>(this, rsd);
+    protected EvaluatedAssignedResourceObjectConstructionImpl<AH> createEvaluatedConstruction(
+            @NotNull ConstructionTargetKey key) {
+        return new EvaluatedAssignedResourceObjectConstructionImpl<>(this, key);
     }
 }

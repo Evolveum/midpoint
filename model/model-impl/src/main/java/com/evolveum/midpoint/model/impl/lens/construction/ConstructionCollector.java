@@ -24,15 +24,23 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
+
 /**
  * Collects evaluated constructions from evaluatedAssignmentTriple into a single-level triple.
- * The collected evaluated constructions are neatly sorted by "key", which is usually ResourceShadowDiscriminator or PersonaKey.
+ * The collected evaluated constructions are neatly sorted by "key", which is usually {@link ConstructionTargetKey}
+ * or {@link PersonaKey}.
  *
  * @param <K> Key type
  *
  * @author Radovan Semancik
  */
-public class ConstructionCollector<AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedAbstractConstruction<AH>> {
+public class ConstructionCollector<
+        AH extends AssignmentHolderType,
+        K extends HumanReadableDescribable,
+        ACT extends AbstractConstructionType,
+        AC extends AbstractConstruction<AH,ACT,EC>,
+        EC extends EvaluatedAbstractConstruction<AH>> {
 
     /**
      * Result of the computation: keyed delta triples of "packs". A pack is basically a set of evaluated constructions with
@@ -75,64 +83,84 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
         }
     }
 
-    private void collectToConstructionMapFromEvaluatedAssignments(EvaluatedAssignmentImpl<AH> evaluatedAssignment, PlusMinusZero mode)
+    private void collectToConstructionMapFromEvaluatedAssignments(
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment,
+            PlusMinusZero mode)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
-        LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
+        LOGGER.trace("Level1: Collecting constructions from evaluated assignment (mode={}):\n{}",
+                mode, evaluatedAssignment.debugDumpLazily(1));
         DeltaSetTriple<AC> constructionTriple = constructionTripleExtractor.apply(evaluatedAssignment);
-        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getZeroSet(), mode, PlusMinusZero.ZERO);
-        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getPlusSet(), mode, PlusMinusZero.PLUS);
-        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getMinusSet(), mode, PlusMinusZero.MINUS);
+        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getZeroSet(), mode, ZERO);
+        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getPlusSet(), mode, PLUS);
+        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getMinusSet(), mode, MINUS);
     }
 
     private void collectToConstructionMapFromConstructions(
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment, Collection<AC> constructions, PlusMinusZero mode1, PlusMinusZero mode2)
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment,
+            Collection<AC> constructions,
+            PlusMinusZero mode1,
+            PlusMinusZero mode2)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         for (AC construction : constructions) {
-            LOGGER.trace("Collecting evaluated constructions from construction (mode1={}, mode2={}):\n{}",
+            LOGGER.trace("Level2: Collecting evaluated constructions from construction (mode1={}, mode2={}):\n{}",
                     mode1, mode2, construction.debugDumpLazily(1));
             DeltaSetTriple<EC> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
             if (evaluatedConstructionTriple != null) {
-                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getZeroSet(), mode1, mode2, PlusMinusZero.ZERO);
-                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getPlusSet(), mode1, mode2, PlusMinusZero.PLUS);
-                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getMinusSet(), mode1, mode2, PlusMinusZero.MINUS);
+                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getZeroSet(), mode1, mode2, ZERO);
+                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getPlusSet(), mode1, mode2, PLUS);
+                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getMinusSet(), mode1, mode2, MINUS);
             }
         }
     }
 
     private void collectToConstructionMapFromEvaluatedConstructions(
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment, Collection<EC> evaluatedConstructions, PlusMinusZero mode1, PlusMinusZero mode2, PlusMinusZero mode3)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment,
+            Collection<EC> evaluatedConstructions,
+            PlusMinusZero mode1,
+            PlusMinusZero mode2,
+            PlusMinusZero mode3)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
 
         for (EC evaluatedConstruction : evaluatedConstructions) {
+            LOGGER.trace("Level3: Collecting evaluated construction (mode1={}, mode2={}, mode3={}):\n{}",
+                    mode1, mode2, mode3, evaluatedConstruction.debugDumpLazily(1));
+
             AbstractConstruction<AH, ?, ?> construction = evaluatedConstruction.getConstruction();
 
             if (construction.isIgnored()) {
-                LOGGER.trace("Construction {} is ignored, skipping {}", construction, evaluatedConstruction);
+                LOGGER.trace("-> construction {} is ignored, skipping the evaluated construction", construction);
                 continue;
             }
 
-            PlusMinusZero mode = PlusMinusZero.compute(PlusMinusZero.compute(mode1, mode2), mode3);
+            PlusMinusZero mode =
+                    PlusMinusZero.compute(
+                            PlusMinusZero.compute(mode1, mode2),
+                            mode3);
             if (mode == null) {
+                LOGGER.trace("-> computed mode is null, skipping the evaluated construction");
                 continue;
             }
 
             // Ugly and temporary hack - some constructions going to plus/minus sets based on validity change
             // FIXME MID-6404
-            if (mode == PlusMinusZero.ZERO) {
+            if (mode == ZERO) {
                 if (!construction.getWasValid() && construction.isValid()) {
-                    mode = PlusMinusZero.PLUS;
+                    mode = PLUS;
                 } else if (construction.getWasValid() && !construction.isValid()) {
-                    mode = PlusMinusZero.MINUS;
+                    mode = MINUS;
                 }
             }
 
+            LOGGER.trace("-> resulting mode (after adjustments): {}", mode);
             Map<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMap = evaluatedConstructionMapTriple.getMap(mode);
-            if (evaluatedConstructionMap == null) { // should not occur
-                continue;
+            if (evaluatedConstructionMap == null) {
+                throw new IllegalStateException("No construction map for mode: " + mode);
             }
 
             K key = keyGenerator.apply(evaluatedConstruction);
+            LOGGER.trace("-> putting under key: {}", key);
 
             EvaluatedConstructionPack<EC> evaluatedConstructionPack;
             if (evaluatedConstructionMap.containsKey(key)) {

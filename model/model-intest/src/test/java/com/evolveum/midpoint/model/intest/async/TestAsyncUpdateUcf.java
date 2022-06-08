@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
@@ -130,7 +129,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
@@ -174,7 +172,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
@@ -212,7 +209,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
@@ -250,7 +246,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
@@ -288,7 +283,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
@@ -326,7 +320,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
@@ -364,7 +357,6 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN

@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -57,7 +56,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
 
     private FullShadowLoadedTraceType trace;
 
-    public ProjectionFullLoadOperation(
+    ProjectionFullLoadOperation(
             @NotNull LensContext<F> context,
             @NotNull LensProjectionContext projCtx,
             @NotNull String reason,
@@ -104,14 +103,14 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                     throw new IllegalStateException("Trying to load shadow with null OID (reason for load: " + reason + ") for "
                             + projCtx.getHumanReadableName());
                 }
-                PrismObject<ShadowType> objectCurrent = beans.provisioningService
-                        .getObject(ShadowType.class, oid, options, task, result);
+                PrismObject<ShadowType> objectCurrent =
+                        beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
                 Validate.notNull(objectCurrent.getOid());
                 if (trace != null) {
                     trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, beans.prismContext));
                 }
                 projCtx.setCurrentObject(objectCurrent);
-                projCtx.determineFullShadowFlag(objectCurrent);
+                projCtx.determineFullShadowFlag(objectCurrent.asObjectable());
                 if (ShadowUtil.isExists(objectCurrent.asObjectable()) || isInMaintenance(projCtx.getResource())) {
                     result.addReturn(DEFAULT, "found");
                 } else {
@@ -142,7 +141,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                 if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
                     trace.setOutputLensContextText(context.debugDump());
                 }
-                trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+                trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
             }
             result.computeStatusIfUnknown();
         }
@@ -191,7 +190,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                 PolyStringType name = resource != null ? resource.getName() : null;
                 trace.setResourceName(name != null ? name : PolyStringType.fromOrig(projCtx.getResourceOid()));
             }
-            trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setInputLensContext(context.toBean(getExportType(trace, result)));
             trace.setReason(reason);
             result.addTrace(trace);
         } else {

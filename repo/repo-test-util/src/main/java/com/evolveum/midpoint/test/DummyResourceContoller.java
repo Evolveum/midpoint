@@ -385,7 +385,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     public void assertRefinedSchemaSanity(ResourceSchema refinedSchema) {
 
-        ResourceObjectTypeDefinition accountDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountDef =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -528,7 +529,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     }
 
     public ResourceObjectTypeDefinition getRefinedAccountDefinition() throws SchemaException, ConfigurationException {
-        return getRefinedSchema().findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        return ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(getRefinedSchema(), ShadowKindType.ACCOUNT);
     }
 
     public ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {

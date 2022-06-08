@@ -137,7 +137,7 @@ public class ResourceObjectClassifier {
                 String intent = sorterResult.getIntent();
                 if (ShadowUtil.isKnown(kind) && ShadowUtil.isKnown(intent)) {
                     // We are interested in _type_ definition because we want to classify the shadow (by assigning kind/intent).
-                    typeDefinition = schema.findObjectTypeDefinition(kind, intent);
+                    typeDefinition = schema.getObjectTypeDefinition(kind, intent);
                 } else {
                     // We don't accept partial sorter results (like kind known, intent unknown, or vice versa).
                     // TODO Shouldn't we try the default classification here?

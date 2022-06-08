@@ -9,7 +9,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.cases;
 
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.api.extensions.WorkItemCompletionResult;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;

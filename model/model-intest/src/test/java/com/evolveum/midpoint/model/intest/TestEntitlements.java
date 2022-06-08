@@ -2413,7 +2413,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 .findObjectClassDefinition(RI_GROUP_OBJECT_CLASS);
         ResourceAttributeDefinition<?> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No icfs:name definition", nameDef);
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass, prismContext)
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass)
                 .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDef).eq(name)
                 .build();
         SearchResultList<PrismObject<ShadowType>> shadows =

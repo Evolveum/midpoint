@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -43,13 +44,13 @@ public class AsyncUpdater {
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ChangeProcessingBeans changeProcessingBeans;
 
-    public void processAsynchronousUpdates(ResourceShadowCoordinates shadowCoordinates, AsyncUpdateEventHandler handler,
+    public void processAsynchronousUpdates(ResourceOperationCoordinates coordinates, AsyncUpdateEventHandler handler,
             Task callerTask, OperationResult callerResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
-        ProvisioningContext globalContext = ctxFactory.createForBulkOperation(shadowCoordinates, callerTask, callerResult);
+        ProvisioningContext globalContext = ctxFactory.createForBulkOperation(coordinates, callerTask, callerResult);
 
         IndividualEventsAcknowledgeGate<AsyncUpdateEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 

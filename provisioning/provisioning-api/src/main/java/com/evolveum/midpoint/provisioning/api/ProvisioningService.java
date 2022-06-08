@@ -12,9 +12,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +25,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -194,14 +191,14 @@ public interface ProvisioningService {
      * object class name - the object class for given object type must match the specified object class name,
      * if it's provided.
      * * If only kind is specified (without intent; and with or without object class name), a complex algorithm
-     * for determining the intent is carried out. See {@link ResourceSchema#findObjectDefinitionForKindInternal(ShadowKindType,
-     * QName)} for details. (The simplest case is when {@link ResourceObjectTypeDefinition#isDefaultForKind()} is set for
-     * an object type. Then that one is used.)
+     * for determining the intent is carried out. See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType,
+     * ShadowKindType, String, QName)} for details. (The simplest case is when
+     * {@link ResourceObjectTypeDefinition#isDefaultForKind()} is set for an object type. Then that one is used.)
      *
      * Note that it's not possible to specify intent without kind.
      * Also, `unknown` values for kind or intent are not supported.
      *
-     * @param shadowCoordinates Where to attempt synchronization. See description above.
+     * @param coordinates Where to attempt synchronization. See description above.
      * @param options Options driving the synchronization process (execution mode, batch size, ...)
      * @param tokenStorage Interface for getting and setting the token for the activity
      * @param handler Handler that processes live sync events
@@ -214,7 +211,7 @@ public interface ProvisioningService {
      * @throws GenericConnectorException Unknown connector framework error
      */
     @NotNull SynchronizationResult synchronize(
-            @NotNull ResourceShadowCoordinates shadowCoordinates,
+            @NotNull ResourceOperationCoordinates coordinates,
             @Nullable LiveSyncOptions options,
             @NotNull LiveSyncTokenStorage tokenStorage,
             @NotNull LiveSyncEventHandler handler,
@@ -237,20 +234,24 @@ public interface ProvisioningService {
      * Execution of updates is done in the context of the task worker threads (i.e. lightweight asynchronous
      * subtask), if there are any. If there are none, execution is done in the thread that receives the message.
      *
-     * @param shadowCoordinates
+     * @param coordinates
      *
      *          What objects to synchronize. Note that although it is possible to specify other parameters in addition
      *          to resource OID (e.g. objectClass), these settings are not supported now.
      */
-    void processAsynchronousUpdates(@NotNull ResourceShadowCoordinates shadowCoordinates,
+    void processAsynchronousUpdates(@NotNull ResourceOperationCoordinates coordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
 
     /**
-     * Search for objects. Returns a list of objects that match search criteria (may be empty if there are no matching objects).
+     * Searches for objects. Returns a list of objects that match search criteria.
+     * The list is never null. It is empty if there are no matching objects.
      *
-     * Should fail if object type is wrong. Should fail if unknown property is specified in the query.
+     * The method call should fail if object type is wrong. Should fail if the query is wrong, e.g. if it contains
+     * a reference to an unknown attribute.
+     *
+     * == Specifying the coordinates
      *
      * When dealing with shadow queries in non-raw mode, there are the following requirements:
      *
@@ -259,21 +260,30 @@ public interface ProvisioningService {
      *
      * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
      *
-     * The object class used for on-resource search is then determined like this:
+     * == Determining the object class or type to be searched for
+     *
+     * When issuing the on-resource search, the object class of objects must be known; and sometimes even more information
+     * (like whose attributes are returned by default and whose have to be requested explicitly) needs to be known.
+     *
+     * Technically speaking, we have to know the object class name, and - sometimes - even the refined object class
+     * (or object type) definition.
+     *
+     * The object class or type used for on-resource search is then determined like this:
      *
      * - if `kind` is specified, a combination of `kind`, `intent`, and `objectclass` is used to find object type definition,
      * - if `kind` is not specified, `objectclass` is used to find the most appropriate object class or object type definition.
-     * TODO TODO TODO
      *
-     * See also MID-7470.
+     * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)} for
+     * the details.
      *
-     * Note that when using kind and/or intent, the method may return objects that do not match these conditions.
-     * (The reason is that the connector does not know about kind+intent. It gets just the object class and
-     * optionally an attribute query. So the search will return all members of that object class.)
-     * It is the responsibility of the caller to sort these extra objects out.
+     * == Extra resource objects
      *
-     * FIXME @see ObjectQueryUtil#getCoordinates(ObjectFilter, PrismContext)
-     * FIXME @see ResourceSchema#determineCompositeObjectClassDefinition(ResourceShadowDiscriminator)
+     * Note that when using kind and/or intent, the method may return objects that do not match these conditions. It depends
+     * on how precisely is the respective type definition, namely if its delineation: base context, hierarchy scope,
+     * and/or object filter(s) precisely describe objects that belong to this type. If these features do not describe
+     * the type adequately (e.g. if the classification has to be done using conditions written in Groovy), then the
+     * returned set of objects may contain ones that are not of requested type. It is then the responsibility of the
+     * caller to sort these extra objects out.
      *
      * == Processing of {@link ResourceType} objects
      *
@@ -638,7 +648,6 @@ public interface ProvisioningService {
             PrismObject<ShadowType> shadowObjectOld,
             ResourceType resource,
             String shadowOid,
-            ResourceShadowCoordinates shadowCoordinates,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
             @NotNull Task task,
@@ -690,7 +699,7 @@ public interface ProvisioningService {
     @Nullable String generateShadowTag(
             @NotNull ShadowType combinedObject,
             @NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeDefinition definition,
+            @NotNull ResourceObjectDefinition definition,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException;

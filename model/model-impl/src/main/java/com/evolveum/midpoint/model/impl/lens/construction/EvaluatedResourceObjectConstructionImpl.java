@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Evaluated construction of a resource object.
  *
- * More such objects can stem from single {@link ResourceObjectConstruction} in the presence of multiaccounts.
+ * More such objects can stem from single {@link ResourceObjectConstruction} in the presence of multi-accounts.
  *
  * The evaluation itself is delegated to {@link ConstructionEvaluation} class that, in turn, delegates
  * to {@link AttributeEvaluation} and {@link AssociationEvaluation}. However, these classes shouldn't be
@@ -58,20 +56,20 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     @NotNull protected final ROC construction;
 
     /**
-     * Specification of the resource object.
+     * Specification of the resource object that this construction points to.
      */
-    @NotNull protected final ResourceShadowDiscriminator rsd;
+    @NotNull final ConstructionTargetKey targetKey;
 
     /**
      * Mappings for the resource object attributes.
      */
-    @NotNull protected final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>>
+    @NotNull private final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>>
             attributeMappings = new ArrayList<>();
 
     /**
      * Mappings for the resource object associations.
      */
-    @NotNull protected final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
+    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
 
     /**
      * Projection context for the resource object.
@@ -89,10 +87,11 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     /**
      * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
      */
-    EvaluatedResourceObjectConstructionImpl(@NotNull final ROC construction,
-            @NotNull final ResourceShadowDiscriminator rsd) {
+    EvaluatedResourceObjectConstructionImpl(
+            @NotNull final ROC construction,
+            @NotNull final ConstructionTargetKey targetKey) {
         this.construction = construction;
-        this.rsd = rsd;
+        this.targetKey = targetKey;
     }
 
     //region Trivia
@@ -101,31 +100,29 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         return construction;
     }
 
-    public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
-        return rsd;
-    }
-
     @Override
     public @NotNull PrismObject<ResourceType> getResource() {
         // We assume that for assigned constructions with missing resource we never come here.
         return construction.getResource().asPrismObject();
     }
 
-    @Override
-    public @NotNull ShadowKindType getKind() {
-        return Objects.requireNonNullElse( // TODO is this OK?
-                rsd.getKind(),
-                ShadowKindType.ACCOUNT);
+    public @NotNull ConstructionTargetKey getTargetKey() {
+        return targetKey;
     }
 
     @Override
-    public String getIntent() {
-        return rsd.getIntent();
+    public @NotNull ShadowKindType getKind() {
+        return targetKey.getKind();
+    }
+
+    @Override
+    public @NotNull String getIntent() {
+        return targetKey.getIntent();
     }
 
     @Override
     public String getTag() {
-        return rsd.getTag();
+        return targetKey.getTag();
     }
 
     @Override
@@ -148,11 +145,11 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         return projectionContext;
     }
 
-    protected void setProjectionContext(LensProjectionContext projectionContext) {
+    void setProjectionContext(LensProjectionContext projectionContext) {
         this.projectionContext = projectionContext;
     }
 
-    protected String getHumanReadableConstructionDescription() {
+    String getHumanReadableConstructionDescription() {
         return "construction for (" + (construction.getResolvedResource() != null ? construction.getResolvedResource().resource : null)
                 + "/" + getKind() + "/" + getIntent() + "/" + getTag() + ") in " + construction.getSource();
     }
@@ -161,7 +158,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, this.getClass().getSimpleName(), indent);
-        DebugUtil.debugDumpWithLabelShortDumpLn(sb, "discriminator", rsd, indent + 1);
+        DebugUtil.debugDumpWithLabelShortDumpLn(sb, "target", targetKey, indent + 1);
         // We do not want to dump construction here. This can lead to cycles.
         // We usually dump EvaluatedConstruction in a Construction dump anyway, therefore the context should be quite clear.
         DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
@@ -187,7 +184,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(" +
-                "discriminator=" + rsd +
+                "key=" + targetKey +
                 ", construction=" + construction +
                 ", projectionContext='" + projectionContext +
                 ')';
@@ -209,7 +206,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         return null;
     }
 
-    protected void addAttributeMapping(MappingImpl<PrismPropertyValue<?>, PrismPropertyDefinition<?>> mapping) {
+    void addAttributeMapping(MappingImpl<PrismPropertyValue<?>, PrismPropertyDefinition<?>> mapping) {
         attributeMappings.add(mapping);
     }
 
@@ -217,7 +214,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         return associationMappings;
     }
 
-    protected void addAssociationMapping(
+    void addAssociationMapping(
             MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
         associationMappings.add(mapping);
     }
@@ -230,14 +227,15 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
             throw new IllegalStateException("Attempting to evaluate an EvaluatedConstruction twice: " + this);
         }
         OperationResult result = parentResult.subresult(OP_EVALUATE)
-                .addParam("resourceShadowDiscriminator", rsd.toHumanReadableDescription())
+                .addParam("resourceShadowDiscriminator", targetKey.toHumanReadableDescription())
                 .setMinor()
                 .build();
         if (result.isTracingAny(ResourceObjectConstructionEvaluationTraceType.class)) {
-            ResourceObjectConstructionEvaluationTraceType trace =
-                    new ResourceObjectConstructionEvaluationTraceType(PrismContext.get());
+            ResourceObjectConstructionEvaluationTraceType trace = new ResourceObjectConstructionEvaluationTraceType();
             trace.setConstruction(construction.constructionBean);
-            trace.setResourceShadowDiscriminator(LensUtil.createDiscriminatorBean(rsd, construction.lensContext));
+            trace.setResourceShadowDiscriminator(
+                    LensUtil.createDiscriminatorBean( // this is a temporary solution; schema should be changed instead
+                            targetKey.toProjectionContextKey(), construction.lensContext));
             if (construction.assignmentPath != null && result.isTracingNormal(ResourceObjectConstructionEvaluationTraceType.class)) {
                 trace.setAssignmentPath(construction.assignmentPath.toAssignmentPathType(false));
             }

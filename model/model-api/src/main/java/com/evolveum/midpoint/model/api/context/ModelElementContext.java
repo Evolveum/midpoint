@@ -153,4 +153,6 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      * @return All archetypes (structural and auxiliary)
      */
     List<ArchetypeType> getArchetypes();
+
+    @NotNull ModelContext<?> getModelContext();
 }

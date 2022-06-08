@@ -163,8 +163,8 @@ public class RefinedResourceSchemaParser {
     }
 
     private void assertTypeNotDefinedYet(ResourceObjectTypeDefinition definition) throws ConfigurationException {
-        ResourceObjectTypeIdentification identification = definition.getIdentification();
-        var existing = completeSchema.findObjectTypeDefinition(identification);
+        ResourceObjectTypeIdentification identification = definition.getTypeIdentification();
+        var existing = completeSchema.getObjectTypeDefinition(identification);
         if (existing != null) {
             throw new ConfigurationException("Multiple definitions of " + identification + " in " + contextDescription);
         }

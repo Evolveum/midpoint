@@ -459,5 +459,11 @@ public interface ResourceObjectDefinition
     default boolean matchesObjectClassName(@Nullable QName name) {
         return name == null || QNameUtil.match(name, getObjectClassName());
     }
+
+    /** Is this definition bound to a specific resource type? If yes, this method returns its identification. */
+    @Nullable ResourceObjectTypeIdentification getTypeIdentification();
+
+    /** Is this definition bound to a specific resource type? If yes, this method returns its definition. */
+    @Nullable ResourceObjectTypeDefinition getTypeDefinition();
     //endregion
 }

@@ -148,20 +148,7 @@ public class ClockworkAuditHelper {
         if (primaryObject != null) {
             auditRecord.setTarget(primaryObject);
             if (recordResourceOids) {
-                if (primaryObject.getRealValue() instanceof FocusType) {
-                    FocusType focus = (FocusType) primaryObject.getRealValue();
-                    for (ObjectReferenceType shadowRef : focus.getLinkRef()) {
-                        LensProjectionContext projectionContext = context.findProjectionContextByOid(shadowRef.getOid());
-                        if (projectionContext != null && StringUtils.isNotBlank(projectionContext.getResourceOid())) {
-                            auditRecord.addResourceOid(projectionContext.getResourceOid());
-                        }
-                    }
-                } else if (primaryObject.getRealValue() instanceof ShadowType) {
-                    ObjectReferenceType resource = ((ShadowType) primaryObject.getRealValue()).getResourceRef();
-                    if (resource != null && resource.getOid() != null) {
-                        auditRecord.addResourceOid(resource.getOid());
-                    }
-                }
+                recordResourceOids(auditRecord, primaryObject.getRealValue(), context);
             }
         }
 
@@ -222,6 +209,29 @@ public class ClockworkAuditHelper {
         } else {
             assert stage == AuditEventStage.REQUEST;
             context.setRequestAudited(true);
+        }
+    }
+
+    private <F extends ObjectType> void recordResourceOids(
+            AuditEventRecord auditRecord, ObjectType primaryObject, LensContext<F> context) {
+        if (primaryObject instanceof FocusType) {
+            FocusType focus = (FocusType) primaryObject;
+            for (ObjectReferenceType linkRef : focus.getLinkRef()) {
+                String shadowOid = linkRef.getOid();
+                if (shadowOid != null) {
+                    for (LensProjectionContext projCtx : context.findProjectionContextsByOid(shadowOid)) {
+                        String resourceOid = projCtx.getResourceOid();
+                        if (resourceOid != null) {
+                            auditRecord.addResourceOid(resourceOid);
+                        }
+                    }
+                }
+            }
+        } else if (primaryObject instanceof ShadowType) {
+            ObjectReferenceType resource = ((ShadowType) primaryObject).getResourceRef();
+            if (resource != null && resource.getOid() != null) {
+                auditRecord.addResourceOid(resource.getOid());
+            }
         }
     }
 

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -574,12 +573,11 @@ public class ModelImplUtils {
     public static <O extends ObjectType> VariablesMap getDefaultVariablesMap(
             PrismObject<? extends ObjectType> focus,
             PrismObject<? extends ShadowType> shadow,
-            ResourceShadowDiscriminator discr,
             PrismObject<ResourceType> resource,
             PrismObject<SystemConfigurationType> configuration,
             LensElementContext<O> affectedElementContext) {
         VariablesMap variables = new VariablesMap();
-        ExpressionUtil.addDefaultVariablesMap(variables, focus, shadow, discr, resource, configuration);
+        ExpressionUtil.addDefaultVariablesMap(variables, focus, shadow, resource, configuration);
         addOperation(variables, affectedElementContext);
         return variables;
     }

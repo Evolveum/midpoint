@@ -135,7 +135,7 @@ public class ClockworkClick<F extends ObjectType> {
             if (result.isTracingNormal(ClockworkClickTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
             }
-            trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setInputLensContext(context.toBean(getExportType(trace, result)));
             result.getTraces().add(trace);
         } else {
             trace = null;
@@ -147,7 +147,7 @@ public class ClockworkClick<F extends ObjectType> {
             if (result.isTracingNormal(ClockworkClickTraceType.class)) {
                 trace.setOutputLensContextText(context.debugDump());
             }
-            trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
         }
     }
 

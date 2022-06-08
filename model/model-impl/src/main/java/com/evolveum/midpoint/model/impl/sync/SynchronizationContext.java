@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -82,8 +85,13 @@ public class SynchronizationContext<F extends FocusType>
 
     @NotNull private final Task task;
 
-    /** Definition of corresponding object type (currently found by kind+intent). */
-    @Nullable private final ResourceObjectTypeDefinition objectTypeDefinition;
+    /** Kind+intent, if known. */
+    @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+
+    /**
+     * Definition of corresponding object (currently found by kind+intent).
+     */
+    @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
 
     /** What kind to use _if there's no definition_: To preserve last known kind even if classification fails. */
     @NotNull private final ShadowKindType kindIfNoDefinition;
@@ -133,7 +141,8 @@ public class SynchronizationContext<F extends FocusType>
 
     public SynchronizationContext(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
-            @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
+            @Nullable ResourceObjectTypeIdentification typeIdentification,
+            @Nullable ResourceObjectDefinition objectDefinition,
             @Nullable SynchronizationPolicy synchronizationPolicy,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @Nullable String tag,
@@ -145,7 +154,8 @@ public class SynchronizationContext<F extends FocusType>
         this.systemConfiguration = processingContext.getSystemConfiguration();
         this.task = processingContext.getTask();
         this.beans = processingContext.getBeans();
-        this.objectTypeDefinition = objectTypeDefinition;
+        this.typeIdentification = typeIdentification;
+        this.resourceObjectDefinition = objectDefinition;
         this.kindIfNoDefinition =
                 Objects.requireNonNullElse(
                         processingContext.getShadowedResourceObject().getKind(),
@@ -179,15 +189,26 @@ public class SynchronizationContext<F extends FocusType>
      * Note that the returned value may be `UNKNOWN`.
      */
     public @NotNull ShadowKindType getKind() {
-        return objectTypeDefinition != null ?
-                objectTypeDefinition.getKind() : kindIfNoDefinition;
+        return typeIdentification != null ?
+                typeIdentification.getKind() : kindIfNoDefinition;
     }
 
     /**
      * Note that the returned value may be `unknown`.
      */
     public @NotNull String getIntent() throws SchemaException {
-        return objectTypeDefinition != null ? objectTypeDefinition.getIntent() : SchemaConstants.INTENT_UNKNOWN;
+        return typeIdentification != null ? typeIdentification.getIntent() : SchemaConstants.INTENT_UNKNOWN;
+    }
+
+    /**
+     * Returns the identification of the (determined) type definition - or null if the type is not known.
+     *
+     * Note that it's not necessary to look at the shadow kind/intent if this method returns `null`, because this type
+     * is derived directly from the values in the shadow. It can be even more precise, because the shadow may be
+     * unclassified when this context is created.
+     */
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return resourceObjectDefinition != null ? resourceObjectDefinition.getTypeIdentification() : null;
     }
 
     public CorrelationContext getCorrelationContext() {
@@ -198,9 +219,8 @@ public class SynchronizationContext<F extends FocusType>
         this.correlationContext = correlationContext;
     }
 
-    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired()
-            throws SchemaException, ConfigurationException {
-        return MiscUtil.requireNonNull(objectTypeDefinition, () -> new IllegalStateException("No object type definition"));
+    public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
+        return MiscUtil.stateNonNull(resourceObjectDefinition, () -> "No object definition");
     }
 
     public String getTag() {
@@ -374,7 +394,7 @@ public class SynchronizationContext<F extends FocusType>
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectTypeDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", resourceObjectDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", pendingShadowDeltas, indent + 1);

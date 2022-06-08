@@ -82,6 +82,8 @@
          </attribute>
          <dependency>
             <resourceRef oid="10000000-1000-0000-0000-0000000004a0"/>
+             <kind>account</kind>
+             <intent>default</intent>
             <strictness>strict</strictness>
          </dependency>
 

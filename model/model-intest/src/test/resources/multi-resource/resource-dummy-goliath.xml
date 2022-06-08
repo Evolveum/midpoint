@@ -96,6 +96,8 @@
             </attribute>
             <dependency>
                 <resourceRef oid="10000000-0000-0000-0000-000000300001"/>
+                <kind>account</kind>
+                <intent>default</intent>
                 <strictness>relaxed</strictness>
             </dependency>
             <activation>

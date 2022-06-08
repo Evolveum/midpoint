@@ -221,7 +221,7 @@ public class ConstraintsChecker {
         }
         if (matchingObjects.size() > 1) {
             LOGGER.error("Found {} objects with attribute {}:\n{}",
-                    matchingObjects.size() ,identifier.toHumanReadableString(), matchingObjects);
+                    matchingObjects.size(), identifier.toHumanReadableString(), matchingObjects);
             if (LOGGER.isDebugEnabled()) {
                 for (PrismObject<ShadowType> foundObject: matchingObjects) {
                     LOGGER.debug("Conflicting object:\n{}", foundObject.debugDump());
@@ -231,15 +231,15 @@ public class ConstraintsChecker {
             return false;
         }
         LOGGER.trace("Comparing {} and {}", matchingObjects.get(0).getOid(), shadowOid);
-        boolean match = matchingObjects.get(0).getOid().equals(shadowOid);
-        if (!match) {
+        boolean unique = matchingObjects.get(0).getOid().equals(shadowOid);
+        if (!unique) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ":\n"
                         + matchingObjects.get(0).debugDump());
             }
             message("Found conflicting existing object with attribute " + identifier.toHumanReadableString()
                     + ": " + matchingObjects.get(0));
-            match = !constraintViolationConfirmer.confirmViolation(matchingObjects.get(0));
+            unique = !constraintViolationConfirmer.confirmViolation(matchingObjects.get(0));
             constraintsCheckingResult.setConflictingShadow(matchingObjects.get(0));
             // We do not cache "OK" here because the violation confirmer could depend on
             // attributes/items that are not under our observations.
@@ -254,7 +254,7 @@ public class ConstraintsChecker {
             }
             return true;
         }
-        return match;
+        return unique;
     }
 
     private void message(String message) {

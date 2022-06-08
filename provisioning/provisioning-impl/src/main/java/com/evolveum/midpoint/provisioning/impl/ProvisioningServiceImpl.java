@@ -26,7 +26,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.google.common.base.Preconditions;
@@ -89,8 +88,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * * Creating and closing the operation-level {@link OperationResult} (and recording any exceptions in the standard manner).
  * More complex methods (e.g. `getObject`, `searchObjects`, `searchObjectsIterative`) may *clean up* the result before returning.
  * (Except for auxiliary methods like {@link #classifyResourceObject(ShadowType, ResourceType,
- * ObjectSynchronizationDiscriminatorType, Task, OperationResult)} and {@link #generateShadowTag(ShadowType, ResourceType,
- * ResourceObjectTypeDefinition, Task, OperationResult)}).
+ * ObjectSynchronizationDiscriminatorType, Task, OperationResult)} and {@link ProvisioningService#generateShadowTag(ShadowType, ResourceType, ResourceObjectDefinition, Task, OperationResult)}).
  *
  * * Logging at the operation level.
  *
@@ -179,7 +177,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             // TODO There may be fetch result stored in the object by lower layers. We assume (hope) that this parent result
             //  contains its value as one of the children.
             PrismObject<T> clone = resultingObject.cloneIfImmutable();
-            clone.asObjectable().setFetchResult(result.createOperationResultType());
+            clone.asObjectable().setFetchResult(result.createBeanReduced());
             return clone;
         }
     }
@@ -260,7 +258,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public @NotNull SynchronizationResult synchronize(
-            @NotNull ResourceShadowCoordinates shadowCoordinates,
+            @NotNull ResourceOperationCoordinates coordinates,
             LiveSyncOptions options,
             @NotNull LiveSyncTokenStorage tokenStorage,
             @NotNull LiveSyncEventHandler handler,
@@ -269,8 +267,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
-        Validate.notNull(shadowCoordinates, "Coordinates must not be null.");
-        String resourceOid = shadowCoordinates.getResourceOid();
+        Validate.notNull(coordinates, "Coordinates must not be null.");
+        String resourceOid = coordinates.getResourceOid();
         Validate.notNull(resourceOid, "Resource oid must not be null.");
         Validate.notNull(task, "Task must not be null.");
         Validate.notNull(tokenStorage, "Token storage must not be null.");
@@ -290,7 +288,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ResourceTypeUtil.checkNotInMaintenance(resource.asObjectable());
 
             LOGGER.debug("Start synchronization of {}", resource);
-            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, options, tokenStorage, handler, task, result);
+            liveSyncResult = liveSynchronizer.synchronize(coordinates, options, tokenStorage, handler, task, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
@@ -314,11 +312,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public void processAsynchronousUpdates(@NotNull ResourceShadowCoordinates shadowCoordinates,
+    public void processAsynchronousUpdates(@NotNull ResourceOperationCoordinates coordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        String resourceOid = shadowCoordinates.getResourceOid();
+        String resourceOid = coordinates.getResourceOid();
         Validate.notNull(resourceOid, "Resource oid must not be null.");
 
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".startListeningForAsyncUpdates");
@@ -326,8 +324,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_TASK, task.toString());
 
         try {
-            LOGGER.trace("Starting processing async updates for {}", shadowCoordinates);
-            asyncUpdater.processAsynchronousUpdates(shadowCoordinates, handler, task, result);
+            LOGGER.trace("Starting processing async updates for {}", coordinates);
+            asyncUpdater.processAsynchronousUpdates(coordinates, handler, task, result);
             result.recordSuccess();
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
@@ -976,7 +974,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             PrismObject<ShadowType> shadowObject,
             PrismObject<ShadowType> shadowObjectOld,
             ResourceType resource, String shadowOid,
-            ResourceShadowCoordinates shadowCoordinates,
             ConstraintViolationConfirmer constraintViolationConfirmer,
             ConstraintsCheckingStrategyType strategy,
             @NotNull Task task,
@@ -1094,7 +1091,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     public @Nullable String generateShadowTag(
             @NotNull ShadowType combinedObject,
             @NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeDefinition definition,
+            @NotNull ResourceObjectDefinition definition,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {

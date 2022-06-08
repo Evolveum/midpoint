@@ -24,7 +24,7 @@ public class CheckingProgressListener implements ProgressListener {
         lensContext.checkConsistence();
         for (LensProjectionContext projectionContext: lensContext.getProjectionContexts()) {
             // MID-3213
-            assert projectionContext.getResourceShadowDiscriminator().getResourceOid() != null;
+            assert projectionContext.getKey().getResourceOid() != null;
         }
     }
 

@@ -53,7 +53,7 @@
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
     <logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
-     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="DEBUG" />

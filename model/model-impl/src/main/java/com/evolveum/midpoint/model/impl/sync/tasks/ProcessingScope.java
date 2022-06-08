@@ -23,11 +23,8 @@ import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionResolver;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -119,7 +116,7 @@ public class ProcessingScope implements DebugDumpable {
 
         ResourceObjectDefinition definition;
         try {
-            definition = ResourceObjectDefinitionResolver.getForBulkOperation(resource, kind, intent, objectClassName);
+            definition = ResourceSchemaUtil.findDefinitionForBulkOperation(resource, kind, intent, objectClassName);
         } catch (CommonException e) {
             throw new ActivityRunException(
                     "Couldn't determine object definition for " + kind + "/" + intent + "/" + objectClassName + " on " + resource,
@@ -138,7 +135,7 @@ public class ProcessingScope implements DebugDumpable {
             @NotNull ResourceType resource,
             @NotNull ShadowType shadow) throws ActivityRunException, SchemaException {
         ResourceSchema resourceSchema = getCompleteSchema(resource);
-        ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadow);
+        ResourceObjectDefinition definition = resourceSchema.findDefinitionForShadow(shadow);
         return new ProcessingScope(resource, definition, null, null, null);
 
     }
@@ -165,8 +162,8 @@ public class ProcessingScope implements DebugDumpable {
                 '}';
     }
 
-    public @NotNull ResourceShadowCoordinates getCoords() {
-        return new ResourceShadowCoordinates(resource.getOid(), kind, intent, objectClassName);
+    public @NotNull ResourceOperationCoordinates getCoords() {
+        return ResourceOperationCoordinates.of(resource.getOid(), kind, intent, objectClassName);
     }
 
     public @NotNull ResourceType getResource() {
@@ -213,7 +210,7 @@ public class ProcessingScope implements DebugDumpable {
      * The query is interpreted by provisioning module - see:
      *
      * * {@link ProvisioningService#searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)},
-     * * {@link ProvisioningService#synchronize(ResourceShadowCoordinates, LiveSyncOptions, LiveSyncTokenStorage,
+     * * {@link ProvisioningService#synchronize(ResourceOperationCoordinates, LiveSyncOptions, LiveSyncTokenStorage,
      * LiveSyncEventHandler, Task, OperationResult)}.
      *
      * We don't try to outsmart the provisioning module - so we simply pass all parameters just like we obtained them.
@@ -277,8 +274,6 @@ public class ProcessingScope implements DebugDumpable {
 
         /**
          * Does the shadow kind match?
-         *
-         * Originally we looked also at the kind corresponding to the refined object class definition (if present).
          */
         private boolean matchesKind(PrismObject<ShadowType> shadow) {
             return kind == null || ShadowUtil.getKind(shadow) == kind;

@@ -13,7 +13,7 @@ import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
 import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
 import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
 import com.evolveum.midpoint.provisioning.impl.TokenUtil;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
@@ -65,7 +65,7 @@ public class LiveSynchronizer {
 
     @NotNull
     public SynchronizationOperationResult synchronize(
-            ResourceShadowCoordinates shadowCoordinates,
+            ResourceOperationCoordinates coordinates,
             LiveSyncOptions options,
             LiveSyncTokenStorage tokenStorage,
             LiveSyncEventHandler handler,
@@ -74,7 +74,7 @@ public class LiveSynchronizer {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, options, tokenStorage, gResult);
+        LiveSyncCtx ctx = new LiveSyncCtx(coordinates, task, options, tokenStorage, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -225,7 +225,7 @@ public class LiveSynchronizer {
         private LiveSyncToken finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
 
         private LiveSyncCtx(
-                @NotNull ResourceShadowCoordinates shadowCoordinates,
+                @NotNull ResourceOperationCoordinates coordinates,
                 @NotNull Task task,
                 LiveSyncOptions options,
                 @NotNull LiveSyncTokenStorage tokenStorage,
@@ -233,14 +233,14 @@ public class LiveSynchronizer {
                 throws ObjectNotFoundException, SchemaException, ConfigurationException,
                 ExpressionEvaluationException {
             this.syncResult = new SynchronizationOperationResult();
-            this.context = ctxFactory.createForBulkOperation(shadowCoordinates, task, result);
+            this.context = ctxFactory.createForBulkOperation(coordinates, task, result);
             this.task = task;
             this.options = options != null ? options : new LiveSyncOptions();
             this.tokenStorage = tokenStorage;
             this.oldestTokenWatcher = new OldestTokenWatcher();
         }
 
-        public LiveSyncToken getInitialToken() {
+        LiveSyncToken getInitialToken() {
             return syncResult.getInitialToken();
         }
 
@@ -256,7 +256,7 @@ public class LiveSynchronizer {
             return options.getExecutionMode() == ExecutionModeType.DRY_RUN;
         }
 
-        public Integer getBatchSize() {
+        Integer getBatchSize() {
             return options.getBatchSize();
         }
 

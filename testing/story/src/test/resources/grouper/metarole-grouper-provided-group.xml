@@ -158,14 +158,16 @@
                 <expression>
                     <script>
                         <code>
-                            import com.evolveum.midpoint.model.impl.expr.*
-                            import com.evolveum.midpoint.schema.*
+                            import com.evolveum.midpoint.model.api.context.ProjectionContextFilter
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
                             GROUPER_RESOURCE_OID = '1eff65de-5bb6-483d-9edf-8cc2c2ee0233'
 
-                            rsd = new ResourceShadowDiscriminator(GROUPER_RESOURCE_OID, ShadowKindType.ENTITLEMENT, 'group', null, false)
-                            if (midpoint.modelContext.findProjectionContext(rsd) != null) {
+                            def filter =
+                                    new ProjectionContextFilter(GROUPER_RESOURCE_OID, ShadowKindType.ENTITLEMENT, 'group')
+                                            .gone(false)
+
+                            if (!midpoint.modelContext.findProjectionContexts(filter).isEmpty()) {
                                 log.info('Projection context for Grouper group found, marking as "active"')
                                 'active'
                             } else {

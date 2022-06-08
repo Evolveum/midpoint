@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.web.component.search.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -370,12 +370,12 @@ public class SearchFactory {
     }
 
     private static <C extends Containerable> Search<C> createSearch(
-            SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowDiscriminator discriminator,
+            SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowCoordinates coordinates,
             ModelServiceLocator modelServiceLocator, Search.PanelType panelType, boolean mergeWithDefaultSearchWrapper) {
         SearchConfigurationWrapper<C> searchConfWrapper;
         if (mergeWithDefaultSearchWrapper) {
-            SearchConfigurationWrapper<C> defaultWrapper = createDefaultSearchBoxConfigurationWrapper(searchConfigurationWrapper.getTypeClass(),
-                    discriminator, modelServiceLocator);
+            SearchConfigurationWrapper<C> defaultWrapper = createDefaultSearchBoxConfigurationWrapper(
+                    searchConfigurationWrapper.getTypeClass(), coordinates, modelServiceLocator);
             searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);
         } else {
             searchConfWrapper = searchConfigurationWrapper;
@@ -417,13 +417,13 @@ public class SearchFactory {
     }
 
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
-            SearchItemType item, ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
+            SearchItemType item, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         if (item.getPath() == null) {
             return null;
         }
-        PrismContainerDefinition<C> def = null;
+        PrismContainerDefinition<C> def;
         if (ObjectType.class.isAssignableFrom(type) && modelServiceLocator != null) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+            def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
         } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         }
@@ -744,12 +744,12 @@ public class SearchFactory {
         return createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(Class<C> type,
-            ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(
+            Class<C> type, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(type);
         PrismContainerDefinition<C> def = null;
         if (ObjectType.class.isAssignableFrom(type)) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, discriminator, modelServiceLocator);
+            def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
         } else {
             def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         }
@@ -776,7 +776,7 @@ public class SearchFactory {
     }
 
     public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
-            Class<T> type, ResourceShadowDiscriminator discriminator,
+            Class<T> type, ResourceShadowCoordinates coordinates,
             ModelServiceLocator modelServiceLocator) {
 
         Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
@@ -789,8 +789,8 @@ public class SearchFactory {
             PrismObject empty = modelServiceLocator.getPrismContext().createObject(type);
 
             if (ShadowType.class.equals(type)) {
-                return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(discriminator,
-                        AuthorizationPhaseType.REQUEST, task, result);
+                return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(
+                        coordinates, AuthorizationPhaseType.REQUEST, task, result);
             } else {
                 return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
                         empty, AuthorizationPhaseType.REQUEST, task, result);

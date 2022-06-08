@@ -432,8 +432,10 @@ public class ObjectMerger {
         }
     }
 
-    private boolean projectionMatches(ShadowType candidateProjection,
-            List<ShadowType> projectionsLeft, List<ShadowType> projectionsRight,
+    private boolean projectionMatches(
+            ShadowType candidateProjection,
+            List<ShadowType> projectionsLeft,
+            List<ShadowType> projectionsRight,
             ProjectionMergeConfigurationType projectionMergeConfig) {
         ShadowDiscriminatorType discriminatorType = projectionMergeConfig.getProjectionDiscriminator();
         if (discriminatorType != null && !ShadowUtil.matchesPattern(candidateProjection, discriminatorType)) {

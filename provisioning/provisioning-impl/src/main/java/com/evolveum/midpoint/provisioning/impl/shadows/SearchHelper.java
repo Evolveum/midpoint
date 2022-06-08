@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -87,7 +89,10 @@ class SearchHelper {
     private ProvisioningContext createContextForSearch(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
-        ProvisioningContext ctx = ctxFactory.createForBulkOperation(query, task, parentResult);
+        ResourceOperationCoordinates operationCoordinates = ObjectQueryUtil.getOperationCoordinates(query);
+        operationCoordinates.checkNotUnknown();
+        operationCoordinates.checkNotResourceScoped();
+        ProvisioningContext ctx = ctxFactory.createForBulkOperation(operationCoordinates, task, parentResult);
         ctx.setGetOperationOptions(options);
         ctx.assertDefinition();
         return ctx;
@@ -117,9 +122,13 @@ class SearchHelper {
         }
     }
 
-    private SearchResultMetadata searchObjectIterativeResource(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            OperationResult parentResult, GetOperationOptions rootOptions)
+    private SearchResultMetadata searchObjectIterativeResource(
+            ProvisioningContext ctx,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            ResultHandler<ShadowType> handler,
+            OperationResult parentResult,
+            GetOperationOptions rootOptions)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -258,18 +267,18 @@ class SearchHelper {
 
     @NotNull
     public SearchResultList<PrismObject<ShadowType>> searchObjects(final ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, final OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> options, final OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         DefinitionsUtil.applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (shouldDoRepoSearch(rootOptions)) {
-            return searchShadowsInRepository(ctx, query, options, parentResult);
+            return searchShadowsInRepository(ctx, query, options, result);
         } else {
             SearchResultList<PrismObject<ShadowType>> rv = new SearchResultList<>();
-            SearchResultMetadata metadata = searchObjectsIterative(ctx, query, options, (s, opResult) -> rv.add(s),
-                    parentResult);
+            SearchResultMetadata metadata =
+                    searchObjectsIterative(ctx, query, options, (s, lResult) -> rv.add(s), result);
             rv.setMetadata(metadata);
             return rv;
         }
@@ -279,7 +288,10 @@ class SearchHelper {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        ProvisioningContext ctx = ctxFactory.createForBulkOperation(query, task, result);
+        ResourceOperationCoordinates operationCoordinates = ObjectQueryUtil.getOperationCoordinates(query);
+        operationCoordinates.checkNotUnknown();
+        operationCoordinates.checkNotResourceScoped();
+        ProvisioningContext ctx = ctxFactory.createForBulkOperation(operationCoordinates, task, result);
         ctx.assertDefinition();
         DefinitionsUtil.applyDefinition(ctx, query);
 
@@ -405,8 +417,8 @@ class SearchHelper {
                 objResult.computeStatus();
                 objResult.recordSuccessIfUnknown();
                 if (!objResult.isSuccess()) {
-                    OperationResultType resultType = objResult.createOperationResultType();
-                    shadow.asObjectable().setFetchResult(resultType);
+                    shadow.asObjectable().setFetchResult(
+                            objResult.createBeanReduced());
                 }
 
                 return cont;
@@ -416,7 +428,7 @@ class SearchHelper {
             } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException |
                     ExpressionEvaluationException | SecurityViolationException e) {
                 objResult.recordFatalError(e);
-                shadow.asObjectable().setFetchResult(objResult.createOperationResultType());
+                shadow.asObjectable().setFetchResult(objResult.createBeanReduced());
                 throw new SystemException(e);
             }
         };

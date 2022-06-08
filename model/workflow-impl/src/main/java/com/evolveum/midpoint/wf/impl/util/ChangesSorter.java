@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
+import static com.evolveum.midpoint.model.api.ObjectTreeDeltas.fromObjectTreeDeltasType;
 
 /**
  * Deals with sorting out changes into categories (see ChangesByState).

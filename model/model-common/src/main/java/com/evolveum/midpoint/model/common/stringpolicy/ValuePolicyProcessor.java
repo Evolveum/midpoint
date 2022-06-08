@@ -539,8 +539,15 @@ public class ValuePolicyProcessor {
         return limitation;
     }
 
-    private <O extends ObjectType, R extends ObjectType> boolean checkProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType, ObjectBasedValuePolicyOriginResolver<O> originResolver,
-            Consumer<ProhibitedValueItemType> failAction, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType, R extends ObjectType> boolean checkProhibitedValues(
+            String newPassword,
+            ProhibitedValuesType prohibitedValuesType,
+            ObjectBasedValuePolicyOriginResolver<O> originResolver,
+            Consumer<ProhibitedValueItemType> failAction,
+            String shortDesc,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (prohibitedValuesType == null || originResolver == null) {
             return true;

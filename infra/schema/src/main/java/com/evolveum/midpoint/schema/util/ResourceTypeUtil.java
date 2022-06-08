@@ -34,6 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_RESULTS_HANDLER_CONFIGURATION;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType.STRICT;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -386,35 +387,6 @@ public class ResourceTypeUtil {
         }
     }
 
-    public static ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType(
-            ResourceType resource, ShadowKindType kind, String intent) {
-        if (resource == null) {
-            throw new IllegalArgumentException("The resource is null");
-        }
-        SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-        if (schemaHandling == null) {
-            return null;
-        }
-        if (kind == null) {
-            kind = ShadowKindType.ACCOUNT;
-        }
-        // TODO review the code below
-        for (ResourceObjectTypeDefinitionType objType : schemaHandling.getObjectType()) {
-            if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
-                if (intent == null && Boolean.TRUE.equals(objType.isDefault())) {
-                    return objType;
-                }
-                if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
-                    return objType;
-                }
-                if (objType.getIntent() == null && Boolean.TRUE.equals(objType.isDefault()) && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
-                    return objType;
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * @throws ConfigurationException e.g. if the connectorName matches no configuration
      */
@@ -496,20 +468,11 @@ public class ResourceTypeUtil {
 
     public static ResourceObjectTypeDependencyStrictnessType getDependencyStrictness(
             ResourceObjectTypeDependencyType dependency) {
-        if (dependency.getStrictness() == null) {
-            return ResourceObjectTypeDependencyStrictnessType.STRICT;
-        } else {
-            return dependency.getStrictness();
-        }
+        return Objects.requireNonNullElse(dependency.getStrictness(), STRICT);
     }
 
     public static boolean isForceLoadDependentShadow(ResourceObjectTypeDependencyType dependency) {
-        Boolean force = dependency.isForceLoad();
-        if (force == null) {
-            return false;
-        }
-
-        return force;
+        return Boolean.TRUE.equals(dependency.isForceLoad());
     }
 
     public static boolean isDown(ResourceType resource) {

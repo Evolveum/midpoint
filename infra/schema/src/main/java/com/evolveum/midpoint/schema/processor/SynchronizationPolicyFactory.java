@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
-
 import static java.util.Objects.requireNonNullElse;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,80 +18,23 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import com.evolveum.midpoint.util.MiscUtil;
-
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Creates {@link SynchronizationPolicy} objects.
  */
 public class SynchronizationPolicyFactory {
-
-    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationPolicyFactory.class);
-
-    /**
-     * Parses all synchronization policies from given resource (both resource and its parsed schema are required on input).
-     */
-    static Collection<SynchronizationPolicy> getAllPolicies(
-            @NotNull ResourceSchema resourceSchema,
-            @NotNull ResourceType resource) throws ConfigurationException {
-        List<SynchronizationPolicy> policies = new ArrayList<>();
-        collectStandalonePolicies(policies, resourceSchema, resource);
-        collectEmbeddedPolicies(policies, resourceSchema);
-        return policies;
-    }
-
-    private static void collectStandalonePolicies(
-            @NotNull List<SynchronizationPolicy> policies,
-            @NotNull ResourceSchema resourceSchema,
-            @NotNull ResourceType resource) throws ConfigurationException {
-        SynchronizationType synchronization = resource.getSynchronization();
-        if (synchronization != null) {
-            for (ObjectSynchronizationType synchronizationBean : synchronization.getObjectSynchronization()) {
-                SynchronizationPolicy policy = forStandalone(synchronizationBean, resourceSchema);
-                if (policy != null) {
-                    policies.add(policy);
-                } else {
-                    LOGGER.warn("Synchronization configuration couldn't be connected to resource object definition in {}: {}",
-                            resource, synchronizationBean);
-                }
-            }
-        }
-    }
-
-    private static void collectEmbeddedPolicies(
-            @NotNull List<SynchronizationPolicy> policies,
-            @NotNull ResourceSchema resourceSchema) {
-        List<SynchronizationPolicy> standalonePolicies = new ArrayList<>(policies);
-        for (ResourceObjectTypeDefinition typeDef : resourceSchema.getObjectTypeDefinitions()) {
-            if (isProcessed(typeDef, standalonePolicies)) {
-                LOGGER.trace("Skipping {} as it is already processed among standalone policies", typeDef);
-                continue;
-            }
-            policies.add(
-                    forEmbedded(typeDef));
-        }
-    }
-
-    private static boolean isProcessed(ResourceObjectTypeDefinition typeDef, List<SynchronizationPolicy> standalonePolicies) {
-        // We assume that the "equals" method is good enough to use here. But we think that the resource object type definition
-        // in the policy should be the same object, as typeDef parameter value. So we should be safe here.
-        return standalonePolicies.stream().anyMatch(
-                policy -> policy.getResourceObjectDefinition().equals(typeDef));
-    }
 
     /**
      * Creates {@link SynchronizationPolicy} for a synchronization policy present in legacy "synchronization"
@@ -111,7 +53,7 @@ public class SynchronizationPolicyFactory {
         if (StringUtils.isEmpty(intent)) { // Note: intent shouldn't be the empty string!
             // We look for a default definition for this kind. That is consistent with the XSD documentation.
             // After all, this data structure is legacy and shouldn't be used anymore. So we don't need to be super-exact here.
-            objectDefinition = schema.findObjectDefinition(kind, null, synchronizationBean.getObjectClass());
+            objectDefinition = schema.findObjectDefinitionForKindAndObjectClass(kind, synchronizationBean.getObjectClass());
         } else {
             objectDefinition = schema.findObjectDefinition(kind, intent);
         }

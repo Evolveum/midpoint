@@ -18,24 +18,25 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
+import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.sync.action.DeleteShadowAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -46,20 +47,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * @author semancik
@@ -111,9 +108,28 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private boolean completed;
 
     /**
-     * Definition of account type.
+     * Determines the type of resource object this context deals with - if known - plus additional "discriminating" information,
+     * like tag, order, and "gone" flag.
+     *
+     * Uses of this information:
+     *
+     * 1. to determine resource object definition (type or class - if at all possible);
+     * 2. to ensure there are no duplicate projection contexts (= same resource, kind, intent, tag, order, "gone" flag)
+     *
+     * TODO what is the exact handling of the "gone" flag in this respect? Can we have two identical "gone" contexts?
+     *
+     * Note that the information may be incomplete. It is possible that we don't know even the resource OID (for broken links).
+     * Or that the shadow is unclassified, so all we know is its object class.
+     *
+     * Lifecycle: Since 4.6 we try to determine the key as soon as realistically possible; and we try to keep it updated all
+     * the time. So we try to update along with the shadow in this projection context. Resource OID, kind, and intent
+     * are treated by {@link #updateKeyIfNeeded(ShadowType)}. The {@link ProjectionContextKey#gone} flag should be set via
+     * {@link #markGone()} method.
+     *
+     * NOTE: When updating the key, think about invalidating the {@link #state}. It's the most safe to use
+     * {@link #setKey(ProjectionContextKey)} for this.
      */
-    private ResourceShadowDiscriminator resourceShadowDiscriminator;
+    @NotNull private ProjectionContextKey key;
 
     /**
      * Is the resource object fully loaded from the resource?
@@ -248,6 +264,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
+    /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
     private transient Collection<ResourceObjectTypeDependencyType> dependencies;
 
     private transient ResourceObjectDefinition structuralObjectDefinition;
@@ -293,15 +310,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     private transient ValueMetadataType cachedValueMetadata;
 
-    LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator discriminator) {
+    LensProjectionContext(
+            @NotNull LensContext<? extends ObjectType> lensContext,
+            @NotNull ProjectionContextKey key) {
         super(ShadowType.class, lensContext);
-        this.resourceShadowDiscriminator = discriminator;
+        this.key = key;
     }
 
-    private LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator discriminator,
-            ElementState<ShadowType> elementState) {
+    // Used for cloning
+    private LensProjectionContext(
+            @NotNull LensContext<? extends ObjectType> lensContext,
+            @NotNull ProjectionContextKey key,
+            @NotNull ElementState<ShadowType> elementState) {
         super(elementState, lensContext);
-        this.resourceShadowDiscriminator = discriminator;
+        this.key = key;
     }
 
     public ObjectDelta<ShadowType> getSyncDelta() {
@@ -316,6 +338,58 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public void setLoadedObject(@NotNull PrismObject<ShadowType> object) {
         state.setCurrentAndOptionallyOld(object, !state.hasOldObject() && !isAdd());
+        updateKeyIfNeeded(object.asObjectable());
+    }
+
+    @Override
+    public void setInitialObject(@NotNull PrismObject<ShadowType> object) {
+        super.setInitialObject(object);
+        updateKeyIfNeeded(object.asObjectable());
+    }
+
+    @Override
+    public void setCurrentObject(@Nullable PrismObject<ShadowType> object) {
+        super.setCurrentObject(object);
+        if (object != null) {
+            updateKeyIfNeeded(object.asObjectable());
+        }
+    }
+
+    @Override
+    public void setCurrentObjectAndOid(@NotNull PrismObject<ShadowType> object) {
+        super.setCurrentObjectAndOid(object);
+        updateKeyIfNeeded(object.asObjectable());
+    }
+
+    @Override
+    public void replaceOldAndCurrentObject(String oid, PrismObject<ShadowType> objectOld, PrismObject<ShadowType> objectCurrent) {
+        super.replaceOldAndCurrentObject(oid, objectOld, objectCurrent);
+        if (objectCurrent != null) {
+            updateKeyIfNeeded(objectCurrent.asObjectable()); // just for sure?
+        }
+    }
+
+    /**
+     * Updates and checks the key against the information from shadow: resource OID, kind, intent.
+     *
+     * We intentionally not deal with the "gone" flag here. The client is responsible for updating that.
+     */
+    private void updateKeyIfNeeded(@NotNull ShadowType shadow) {
+        ProjectionContextKey updated =
+                key.checkOrUpdateResourceOid(
+                        ShadowUtil.getResourceOidRequired(shadow));
+
+        ResourceObjectTypeIdentification newTypeId = ShadowUtil.getTypeIdentification(shadow);
+        if (newTypeId != null) {
+            updated = updated.checkOrUpdateTypeIdentification(newTypeId);
+        }
+
+        updated = updated.updateTagIfChanged(shadow.getTag()); // currently not updating anything
+
+        if (updated != key) {
+            LOGGER.trace("Updating projection key from {} to {}", key, updated);
+            setKey(updated);
+        }
     }
 
     /**
@@ -342,7 +416,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             } else if (shouldCreateObjectCurrent()) {
                 ResourceObjectDefinition rOCD = getCompositeObjectDefinition();
                 if (rOCD != null) {
-                    return rOCD.createBlankShadow(getResourceOid(), resourceShadowDiscriminator.getTag());
+                    return rOCD.createBlankShadow(getResourceOid(), key.getTag());
                 } else {
                     return null;
                 }
@@ -377,7 +451,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return getSecondaryDelta();
     }
 
-    public boolean isSyncAbsoluteTrigger() {
+    boolean isSyncAbsoluteTrigger() {
         return syncAbsoluteTrigger;
     }
 
@@ -410,64 +484,146 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Override
-    public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
-        return resourceShadowDiscriminator;
+    public @NotNull ProjectionContextKey getKey() {
+        return key;
     }
 
     public void markGone() {
-        if (resourceShadowDiscriminator != null) {
-            resourceShadowDiscriminator.setGone(true);
-        }
+        key = key.gone();
         setExists(false);
         setFullShadow(false);
         humanReadableName = null;
     }
 
-    public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
-        this.resourceShadowDiscriminator = resourceShadowDiscriminator;
-        state.invalidate(); // RSD is a parameter for current object adjuster
+    public void setKey(@NotNull ProjectionContextKey key) {
+        this.key = key;
+        state.invalidate(); // The key (its coordinates in particular) is a parameter for current object adjuster
     }
 
-    public boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd, boolean compareOrder) {
-        Validate.notNull(rsd.getResourceOid());
-        if (resourceShadowDiscriminator == null) {
-            // This may be valid case e.g. in case of broken contexts or if a context is just loading
-            return false;
-        }
-        if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
-            return false;
-        }
-        if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
-            return false;
-        }
-        if (rsd.isGone() != resourceShadowDiscriminator.isGone()) {
-            return false;
-        }
-        if (rsd.getIntent() == null) {
-            // FIXME re-enable & fix this
-//            try {
-//                if (!getStructuralObjectDefinition().isDefaultForKind()) {
-//                    return false;
-//                }
-//            } catch (SchemaException e) {
-//                throw new SystemException("Internal error: "+e.getMessage(), e);
-//            }
-        } else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
-            return false;
-        }
-        if (!Objects.equals(rsd.getTag(), resourceShadowDiscriminator.getTag())) {
-            return false;
-        }
+    public boolean matches(@NotNull ConstructionTargetKey targetKey) {
+        // This is simple because ConstructionTargetKey has resource/kind/intent obligatory. No ambiguities there.
+        return targetKey.getResourceOid().equals(key.getResourceOid())
+                && targetKey.getKind() == key.getKind()
+                && targetKey.getIntent().equals(key.getIntent())
+                && Objects.equals(targetKey.getTag(), key.getTag());
+    }
 
-        if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
+    public boolean matches(@NotNull ProjectionContextFilter filter) {
+        return (filter.getResourceOid() == null || filter.getResourceOid().equals(getResourceOid()))
+                && (filter.getKind() == null || filter.getKind() == getKind())
+                && (filter.getIntent() == null || filter.getIntent().equals(key.getIntent()))
+                && doesTagMatch(filter)
+                && (filter.getGone() == null || key.isGone() == filter.getGone()); // this is OK: Boolean vs. boolean
+    }
+
+    private boolean doesTagMatch(ProjectionContextFilter lookupKey) {
+        String lookupTag = lookupKey.getTag();
+        if (lookupTag != null) {
+            return lookupTag.equals(key.getTag());
+        } else {
+            return lookupKey.isNullTagMeansAny() || key.getTag() == null;
+        }
+    }
+
+    /**
+     * Note that we do not consider the project as matching if it's not classified. The reason is that constructions
+     * are targeted to specific kind/intent. There is a chance that this particular context points to a shadow that
+     * (if properly classified) would match this, but let's ignore this.
+     */
+    public boolean matches(@NotNull ConstructionType construction, @NotNull String resourceOid) {
+        if (!isClassified()) {
             return false;
         }
+        if (!Objects.equals(getResourceOid(), resourceOid)) {
+            return false;
+        }
+        if (getKind() != ConstructionTypeUtil.getKind(construction)) {
+            return false;
+        }
+        String constructionIntent = construction.getIntent();
+        if (constructionIntent != null) {
+            return constructionIntent.equals(key.getIntent());
+        } else {
+            // Construction is targeted at the default intent for given kind.
+            // Let us have a look if our definition is default for its kind.
+            ResourceObjectDefinition definition;
+            try {
+                // TODO what if resource is null here? There will be no definition then.
+                definition = getStructuralObjectDefinition();
+            } catch (Exception e) {
+                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't determine object definition for {}", e, this);
+                setBroken();
+                return false;
+            }
+            ResourceObjectTypeDefinition typeDefinition = definition != null ? definition.getTypeDefinition() : null;
+            if (typeDefinition == null) {
+                // Should not occur (as the key is classified), but let's not crash on this
+                return false;
+            } else {
+                return typeDefinition.isDefaultForKind();
+            }
+        }
+    }
 
-        return true;
+    /**
+     * Returns true if this context is a "lower order brother" of the specified one.
+     */
+    public boolean isLowerOrderOf(@NotNull LensProjectionContext other) {
+        ProjectionContextKey otherKey = other.getKey();
+        if (!Objects.equals(key.getResourceOid(), otherKey.getResourceOid())) {
+            return false;
+        }
+        if (key.getTypeIdentification() != null) {
+            if (!Objects.equals(key.getTypeIdentification(), otherKey.getTypeIdentification())) {
+                return false;
+            }
+        } else {
+            // No type identification... what can we do? Let us compare object class names. But this is far from reliable,
+            // as one context may be classified and the other one may be not.
+            if (!Objects.equals(getObjectClassName(), other.getObjectClassName())) {
+                return false;
+            }
+        }
+        if (!Objects.equals(key.getTag(), otherKey.getTag())) {
+            return false;
+        }
+        // This is questionable - but this is exactly how it was before 4.6.
+        if (key.isGone() != otherKey.isGone()) {
+            return false;
+        }
+        return key.getOrder() < otherKey.getOrder();
+    }
+
+    /**
+     * TODO clarify this!!!
+     */
+    public boolean matches(ProjectionContextKey otherKey, boolean compareOrder) {
+        Validate.notNull(otherKey.getResourceOid());
+        if (!otherKey.getResourceOid().equals(key.getResourceOid())) {
+            return false;
+        }
+        if (key.getTypeIdentification() != null || otherKey.getTypeIdentification() != null) {
+            // TODO what if one key is classified, and the other one is not?
+            //  They may still point to the same type of objects.
+            if (!Objects.equals(key.getTypeIdentification(), otherKey.getTypeIdentification())) {
+                return false;
+            }
+        } else {
+            // TODO what should we do in this case?
+            //  Both keys are unclassified. They may refer to the same type of objects, or may not. Who knows.
+        }
+        if (!Objects.equals(otherKey.getTag(), key.getTag())) {
+            return false;
+        }
+        if (otherKey.isGone() != key.isGone()) {
+            return false;
+        }
+        return !compareOrder
+                || otherKey.getOrder() == key.getOrder();
     }
 
     public boolean isGone() {
-        return resourceShadowDiscriminator != null && resourceShadowDiscriminator.isGone();
+        return key.isGone();
     }
 
     public boolean isReaping() {
@@ -504,8 +660,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean isDelete() {
         // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
-        return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE ||
-                ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(state.getPrimaryDelta());
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
+                || ObjectDelta.isDelete(syncDelta)
+                || ObjectDelta.isDelete(state.getPrimaryDelta());
     }
 
     @Override
@@ -524,12 +681,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setResource(ResourceType resource) {
         this.resource = resource;
+        if (resource != null) {
+            String existingResourceOid = key.getResourceOid();
+            String newResourceOid = Objects.requireNonNull(resource.getOid());
+            if (existingResourceOid != null) {
+                stateCheck(existingResourceOid.equals(newResourceOid),
+                        "Trying to set resource with a different OID than it's there now: new: %s, existing: %s",
+                        resource, key);
+            } else {
+                setKey(key.withResourceOid(newResourceOid));
+            }
+        }
     }
 
     public Map<String, PrismObject<ShadowType>> getEntitlementMap() {
         return entitlementMap;
     }
-
 
     public Boolean isAssigned() {
         return assigned;
@@ -543,7 +710,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return assignedOld;
     }
 
-    public void setAssignedOld(Boolean isAssignedOld) {
+    private void setAssignedOld(Boolean isAssignedOld) {
         this.assignedOld = isAssignedOld;
     }
 
@@ -668,28 +835,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public ShadowKindType getKind() {
-        ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-        if (discr != null) {
-            return discr.getKind();
-        }
-        if (getObjectOld()!=null) {
-            return getObjectOld().asObjectable().getKind();
-        }
-        if (getObjectCurrent()!=null) {
-            return getObjectCurrent().asObjectable().getKind();
-        }
-        if (getObjectNew()!=null) {
-            return getObjectNew().asObjectable().getKind();
-        }
-        return ShadowKindType.ACCOUNT;
+        return getKey().getKind();
     }
 
     public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> getEvaluatedAssignedConstructionDeltaSetTriple() {
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         return (DeltaSetTriple) evaluatedAssignedConstructionDeltaSetTriple;
     }
 
     public <AH extends AssignmentHolderType> void setEvaluatedAssignedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> evaluatedAssignedConstructionDeltaSetTriple) {
+        //noinspection unchecked,rawtypes
         this.evaluatedAssignedConstructionDeltaSetTriple = (DeltaSetTriple) evaluatedAssignedConstructionDeltaSetTriple;
     }
 
@@ -728,18 +883,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAuxiliaryObjectClasses = squeezedAuxiliaryObjectClasses;
     }
 
-    public ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType() {
+    public ResourceObjectDefinition getStructuralDefinitionIfNotBroken() throws SchemaException, ConfigurationException {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
-            return null;
+            return null; // This was pre-4.6 behavior
+        } else {
+            return getStructuralObjectDefinition();
         }
-        ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-        if (discr == null) {
-            return null;            // maybe when an account is deleted
-        }
-        if (resource == null) {
-            return null;
-        }
-        return ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
     }
 
     public ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
@@ -753,16 +902,39 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (structuralObjectDefinition == null) {
             ResourceSchema resourceSchema = getResourceSchema();
             if (resourceSchema == null) {
+                LOGGER.trace("No resource schema -> no structural object definition");
                 return null;
             }
-            structuralObjectDefinition =
-                    resourceSchema.findObjectDefinition(
-                            resourceShadowDiscriminator.getKind(), resourceShadowDiscriminator.getIntent());
+            ResourceObjectTypeIdentification typeIdentification = key.getTypeIdentification();
+            if (typeIdentification != null) {
+                // TODO - or we allow missing definition?
+                //  That could mask a lot of other issues (missing mappings etc).
+                // Note that the definition is requested for kind/intent but may be object class at the end;
+                // if fallback for account/default is applied.
+                structuralObjectDefinition =
+                        resourceSchema.findObjectDefinitionRequired(typeIdentification.getKind(), typeIdentification.getIntent());
+                LOGGER.trace("Obtained structural object definition for {}: {}", typeIdentification, structuralObjectDefinition);
+            } else {
+                QName objectClassName = getObjectClassName();
+                if (objectClassName != null) {
+                    // Note the definition may be class-level but also type-level (if default-for-object-class is present).
+                    structuralObjectDefinition = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
+                    LOGGER.trace("Obtained structural object definition for {}: {}", objectClassName, structuralObjectDefinition);
+                } else {
+                    LOGGER.trace("No type nor object class name -> no structural object definition for {}", this);
+                    return null;
+                }
+            }
             if (structuralObjectDefinition != null) {
                 structuralObjectDefinition.freeze();
             }
         }
         return structuralObjectDefinition;
+    }
+
+    private QName getObjectClassName() {
+        PrismObject<ShadowType> anyShadow = getObjectAny();
+        return anyShadow != null ? anyShadow.asObjectable().getObjectClass() : null;
     }
 
     public Collection<ResourceObjectDefinition> getAuxiliaryObjectClassDefinitions()
@@ -774,8 +946,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException, ConfigurationException {
-        ResourceSchema refinedSchema = getResourceSchema();
-        if (refinedSchema == null) {
+        ResourceSchema schema = getResourceSchema();
+        if (schema == null) {
             return;
         }
         List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
@@ -784,7 +956,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
             ResourceObjectDefinition auxiliaryObjectClassDef =
-                    refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
+                    schema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
             }
@@ -824,25 +996,58 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return attrDef;
         }
         for (ResourceObjectDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
-            attrDef = auxOcDef.findAttributeDefinition(attrName);
-            if (attrDef != null) {
-                return attrDef;
+            ResourceAttributeDefinition<?> auxAttrDef = auxOcDef.findAttributeDefinition(attrName);
+            if (auxAttrDef != null) {
+                return auxAttrDef;
             }
         }
         return null;
     }
 
-    public Collection<ResourceObjectTypeDependencyType> getDependencies() {
+    public Collection<ResourceObjectTypeDependencyType> getDependencies() throws SchemaException, ConfigurationException {
         if (dependencies == null) {
-            ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceObjectTypeDefinitionType();
-            if (resourceAccountTypeDefinitionType == null) {
-                // No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
-                dependencies = new ArrayList<>();
-            } else {
-                dependencies = resourceAccountTypeDefinitionType.getDependency();
+            ResourceObjectDefinition objectDefinition = getStructuralDefinitionIfNotBroken();
+            if (objectDefinition == null) {
+                LOGGER.trace("No object definition, no dependencies for {}", this);
+                // There is a problem. Maybe the projection is broken? Or not initialized yet? Let's not cache this result.
+                return List.of();
             }
+            ResourceObjectTypeIdentification typeIdentification = objectDefinition.getTypeIdentification();
+            if (typeIdentification == null) {
+                LOGGER.trace("No type identification (i.e. not classified), no dependencies for {}", this);
+                // Is the projection not classified yet? Again, let's not cache the result.
+                return List.of();
+            }
+            dependencies = fillInDependencyDefaults(
+                    objectDefinition.getDefinitionBean().getDependency(),
+                    typeIdentification.getKind());
+            LOGGER.trace("Found {} dependencies for {}", dependencies.size(), this);
         }
         return dependencies;
+    }
+
+    private Collection<ResourceObjectTypeDependencyType> fillInDependencyDefaults(
+            List<ResourceObjectTypeDependencyType> rawBeans, @NotNull ShadowKindType defaultKind)
+            throws ConfigurationException {
+        Collection<ResourceObjectTypeDependencyType> processedBeans = new ArrayList<>(rawBeans.size());
+        for (ResourceObjectTypeDependencyType rawBean : rawBeans) {
+            ResourceObjectTypeDependencyType processedBean = rawBean.clone();
+            if (processedBean.getResourceRef() == null) {
+                processedBean.setResourceRef(
+                        ObjectTypeUtil.createObjectRef(resource));
+            }
+            if (processedBean.getKind() == null) {
+                processedBean.setKind(defaultKind);
+            }
+            if (processedBean.getIntent() == null) {
+                throw new ConfigurationException("No intent provided in a dependency definition."
+                        + " This property is mandatory since midPoint 4.6."
+                        + " Please specify the intent in a dependency specification in definition of "
+                        + key.getTypeIdentification() + " in " + resource);
+            }
+            processedBeans.add(processedBean);
+        }
+        return processedBeans;
     }
 
     public SecurityPolicyType getProjectionSecurityPolicy() {
@@ -861,24 +1066,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return canProject;
     }
 
-    public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException, ConfigurationException {
-        // TODO: per-resource assignment enforcement
+    public @NotNull AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementMode()
+            throws SchemaException, ConfigurationException {
+        // FIXME Note here is an irregularity: if ProjectionPolicyType with empty assignmentPolicyEnforcement is present
+        //  in the object class, it is ignored. But if the same is present at the resource level, it is taken into
+        //  account (applying the default i.e. RELATIVE mode of enforcement).
+        ProjectionPolicyType objectClassLevelPolicy = determineObjectClassProjectionPolicy();
+        if (objectClassLevelPolicy != null && objectClassLevelPolicy.getAssignmentPolicyEnforcement() != null) {
+            return objectClassLevelPolicy.getAssignmentPolicyEnforcement();
+        }
+
         ResourceType resource = getResource();
-        ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
-
-        if (objectClassProjectionPolicy != null && objectClassProjectionPolicy.getAssignmentPolicyEnforcement() != null) {
-            return objectClassProjectionPolicy.getAssignmentPolicyEnforcement();
-        }
-
-        ProjectionPolicyType globalAccountSynchronizationSettings = null;
-        if (resource != null) {
-            globalAccountSynchronizationSettings = resource.getProjection();
-        }
-
-        if (globalAccountSynchronizationSettings == null) {
-            globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
-        }
-        return MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
+        ProjectionPolicyType resourceLevelPolicy = resource != null ? resource.getProjection() : null;
+        ProjectionPolicyType effectivePolicy = resourceLevelPolicy != null ?
+                resourceLevelPolicy : lensContext.getAccountSynchronizationSettings();
+        return MiscSchemaUtil.getAssignmentPolicyEnforcementMode(effectivePolicy);
     }
 
     public boolean isLegalize() throws SchemaException, ConfigurationException {
@@ -905,15 +1107,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException, ConfigurationException {
-        ResourceSchema refinedSchema = getResourceSchema();
-        if (refinedSchema == null) {
-            return null;
-        }
-
-        ResourceObjectDefinition objectDef =
-                refinedSchema.findObjectDefinition(
-                        resourceShadowDiscriminator.getKind(), resourceShadowDiscriminator.getIntent());
-
+        ResourceObjectDefinition objectDef = getStructuralObjectDefinition();
         return objectDef != null ?
                 objectDef.getProjectionPolicy() : null;
     }
@@ -946,11 +1140,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinition();
 
                 if (objectTypeDef == null) {
-                    throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
+                    throw new IllegalStateException("Definition for account type " + getKey()
                             + " not found in the context, but it should be there");
                 }
                 PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(
-                        getResourceOid(), resourceShadowDiscriminator.getTag());
+                        getResourceOid(), key.getTag());
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {
@@ -1010,11 +1204,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
             return;
         }
-        if (fresh && !force && resourceShadowDiscriminator != null && !isGone()) {
+        if (fresh && !force && !isGone()) {
             if (resource == null) {
                 throw new IllegalStateException("Null resource in " + this + in(contextDesc));
             }
-            if (resourceShadowDiscriminator == null) {
+            if (key == null) {
                 throw new IllegalStateException("Null resource account type in " + this + in(contextDesc));
             }
         }
@@ -1109,7 +1303,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
-        LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator, state);
+        LensProjectionContext clone = new LensProjectionContext(lensContext, key, state);
         copyValues(clone);
         return clone;
     }
@@ -1126,7 +1320,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
         clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
         clone.resource = this.resource;
-        clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
+        clone.key = this.key;
         clone.squeezedAttributes = cloneSqueezedAttributes();
         if (this.syncDelta != null) {
             clone.syncDelta = this.syncDelta.clone();
@@ -1144,20 +1338,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             clonedMap.put(entry.getKey(), entry.getValue().clone(ItemValueWithOrigin::clone));
         }
         return clonedMap;
-    }
-
-    /**
-     * Returns true if the projection has any value for specified attribute.
-     */
-    public boolean hasValueForAttribute(QName attributeName) {
-        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
-        if (getObjectNew() != null) {
-            PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
-            if (attrNew != null && !attrNew.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -1180,16 +1360,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 sb.append("ID ");
                 sb.append(humanReadableAccountIdentifier);
             }
-            ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-            if (discr != null) {
-                sb.append(", type '");
-                sb.append(discr.getIntent());
-                sb.append("', ");
-                if (discr.getOrder() != 0) {
-                    sb.append("order ").append(discr.getOrder()).append(", ");
-                }
+            sb.append(", ");
+            ProjectionContextKey key = getKey();
+            ResourceObjectTypeIdentification typeId = key.getTypeIdentification();
+            if (typeId != null) {
+                sb.append(typeId);
             } else {
-                sb.append(" (no discriminator) ");
+                sb.append("untyped (");
+                sb.append(PrettyPrinter.prettyPrint(getObjectClassName()));
+                sb.append(")");
+            }
+            sb.append(", ");
+            if (key.getOrder() != 0) {
+                sb.append("order ").append(key.getOrder()).append(", ");
             }
             sb.append(getResource());
             sb.append(")");
@@ -1235,7 +1418,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         getObjectTypeClass();
         sb.append(getObjectTypeClass().getSimpleName());
         sb.append(" ");
-        sb.append(getResourceShadowDiscriminator());
+        sb.append(getKey());
         if (resource != null) {
             sb.append(" : ");
             sb.append(resource.getName().getOrig());
@@ -1322,7 +1505,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object class definition"), String.valueOf(compositeObjectDefinition), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object definition"), String.valueOf(compositeObjectDefinition), indent+1);
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent+1);
@@ -1342,8 +1525,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public String toString() {
-        return "LensProjectionContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() +
-                (resource == null ? "" : " on " + resource) + ")";
+        return "LensProjectionContext(shadow " + getOid() + " of " + key
+                + (resource != null ? " (" + resource.getName() + ")" : "");
     }
 
     /**
@@ -1351,22 +1534,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     public String toHumanReadableString() {
         if (humanReadableString == null) {
-            if (resourceShadowDiscriminator == null) {
-                humanReadableString = "(null" + resource + ")";
-            } else if (resource != null) {
-                humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
+            if (resource != null) {
+                humanReadableString = "("+getKindValue(key.getKind()) + " ("+ key.getIntent()+") on " + resource + ")";
             } else {
-                humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
+                humanReadableString = "("+getKindValue(key.getKind()) + " ("+ key.getIntent()+") on " + key.getResourceOid() + ")";
             }
         }
         return humanReadableString;
     }
 
     public String getHumanReadableKind() {
-        if (resourceShadowDiscriminator == null) {
-            return "resource object";
-        }
-        return getKindValue(resourceShadowDiscriminator.getKind());
+        return getKindValue(key.getKind());
     }
 
     private String getKindValue(ShadowKindType kind) {
@@ -1378,19 +1556,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     protected String getElementDesc() {
-        if (resourceShadowDiscriminator == null) {
-            return "shadow";
-        }
-        return getKindValue(resourceShadowDiscriminator.getKind());
+        return getKindValue(key.getKind());
     }
 
-    void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, LensContext.ExportType exportType) throws SchemaException {
-        LensProjectionContextType bean = lensProjectionContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(bean, exportType);
+    LensProjectionContextType toBean(LensContext.ExportType exportType) throws SchemaException {
+        LensProjectionContextType bean = new LensProjectionContextType();
+        super.storeIntoBean(bean, exportType);
         bean.setWave(wave);
         bean.setCompleted(completed);
-        bean.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
-                resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
+        bean.setResourceShadowDiscriminator(key.toResourceShadowDiscriminatorType());
         bean.setFullShadow(fullShadow);
         bean.setIsExists(exists);
         bean.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
@@ -1412,20 +1586,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
             bean.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
         }
+        return bean;
     }
 
     @NotNull
     static LensProjectionContext fromLensProjectionContextBean(LensProjectionContextType bean,
-            LensContext lensContext, Task task, OperationResult result) throws SchemaException {
+            @NotNull LensContext<?> lensContext, Task task, OperationResult result) throws SchemaException {
 
         String objectTypeClassString = bean.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
             throw new SystemException("Object type class is undefined in LensProjectionContextType");
         }
-        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
-                bean.getResourceShadowDiscriminator(), false);
+        ProjectionContextKey key =
+                ProjectionContextKey.fromBean(
+                        bean.getResourceShadowDiscriminator());
 
-        LensProjectionContext ctx = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
+        LensProjectionContext ctx = new LensProjectionContext(lensContext, key);
 
         PrismContext prismContext = PrismContext.get();
         ctx.retrieveFromLensElementContextBean(bean, task, result);
@@ -1461,9 +1637,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /**
      * Sets the full shadow flag, based on the situation (including the fetch result).
      */
-    public void determineFullShadowFlag(PrismObject<ShadowType> loadedShadow) {
-        ShadowType shadowType = loadedShadow.asObjectable();
-        if (ShadowUtil.isDead(shadowType) || !ShadowUtil.isExists(shadowType)) {
+    public void determineFullShadowFlag(ShadowType loadedShadow) {
+        if (ShadowUtil.isDead(loadedShadow) || !ShadowUtil.isExists(loadedShadow)) {
             setFullShadow(false);
             return;
         }
@@ -1471,7 +1646,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             setFullShadow(false); // resource is in the maintenance, shadow is from repo, result is success
             return;
         }
-        OperationResultType fetchResult = shadowType.getFetchResult();
+        OperationResultType fetchResult = loadedShadow.getFetchResult();
         setFullShadow(fetchResult == null || statusIsOk(fetchResult.getStatus()));
     }
 
@@ -1485,31 +1660,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return toBeArchived;
     }
 
-    public void setToBeArchived(boolean toBeArchived) {
-        this.toBeArchived = toBeArchived;
-    }
-
     public String getResourceOid() {
-        if (resource != null) {
-            return resource.getOid();
-        } else if (resourceShadowDiscriminator != null) {
-            return resourceShadowDiscriminator.getResourceOid();
-        } else {
-            return null;
-        }
+        return resource != null ? resource.getOid() : key.getResourceOid();
     }
 
-    public ResourceObjectVolatilityType getVolatility() throws SchemaException, ConfigurationException {
+    ResourceObjectVolatilityType getVolatility() throws SchemaException, ConfigurationException {
         ResourceObjectDefinition structuralObjectClassDefinition = getStructuralObjectDefinition();
         return structuralObjectClassDefinition != null ? structuralObjectClassDefinition.getVolatility() : null;
-    }
-
-    public boolean hasPendingOperations() {
-        PrismObject<ShadowType> current = getObjectCurrent();
-        if (current == null) {
-            return false;
-        }
-        return !current.asObjectable().getPendingOperation().isEmpty();
     }
 
     @Override
@@ -1548,23 +1705,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return resource != null ? PolyString.getOrig(resource.getName()) : getResourceOid();
     }
 
-    public boolean isSynchronizationSource() {
-        return synchronizationSource;
-    }
-
     public void setSynchronizationSource(boolean synchronizationSource) {
         this.synchronizationSource = synchronizationSource;
     }
 
     public String getDescription() {
         if (resource != null) {
-            return resource + "("+ resourceShadowDiscriminator.getIntent()+")";
+            return resource + "("+ key.getIntent()+")";
         } else {
-            if (resourceShadowDiscriminator != null) {
-                return resourceShadowDiscriminator.toString();
-            } else {
-                return "(UNKNOWN)";
-            }
+            return key.toString();
         }
     }
 
@@ -1572,15 +1721,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * @return True if the projection is "current" i.e. it was not completed and its wave is
      * either not yet determined or equal to the current projection wave.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     @Experimental
     public boolean isCurrentForProjection() {
-        if (completed) {
-            return false;
-        }
-        if (wave != -1 && wave != getLensContext().getProjectionWave()) {
-            return false;
-        }
-        return true;
+        return !completed
+                && (wave == -1 || wave == getLensContext().getProjectionWave());
     }
 
     public boolean isCompleted() {
@@ -1607,73 +1752,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isHigherOrder() {
-        return resourceShadowDiscriminator != null && resourceShadowDiscriminator.getOrder() > 0;
+        return key.getOrder() > 0;
     }
 
     public boolean isBroken() {
         return synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN;
-    }
-
-    /**
-     * Updates basic "coordinates": resource shadow discriminator, resource OID (and resource itself), and shadow OID.
-     */
-    public void updateCoordinates(Task task, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        if (!ShadowType.class.isAssignableFrom(getObjectTypeClass())) {
-            return;
-        }
-        String resourceOid = determineResourceOid();
-        boolean gone = resourceShadowDiscriminator != null && resourceShadowDiscriminator.isGone();
-        ShadowKindType kind = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getKind() : ShadowKindType.ACCOUNT;
-        String intent = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getIntent() : null;
-        String tag = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getTag() : null;
-        int order = resourceShadowDiscriminator != null ? resourceShadowDiscriminator.getOrder() : 0;
-
-        // We still may not have resource OID here. E.g. in case of the delete when the account is not loaded yet. It is
-        // perhaps safe to skip this. It will be sorted out later.
-        if (resourceOid != null) {
-            if (intent == null && getObjectNew() != null) {
-                ShadowType shadowNew = getObjectNew().asObjectable();
-                kind = ShadowUtil.getKind(shadowNew);
-                intent = ShadowUtil.getIntent(shadowNew);
-                tag = shadowNew.getTag();
-            }
-            ResourceType resource = getResource();
-            if (resource == null) {
-                resource = LensUtil.getResourceReadOnly(lensContext, resourceOid, lensContext.getProvisioningService(), task, result);
-                setResource(resource);
-            }
-            String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource);
-            resourceShadowDiscriminator = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, gone);
-            resourceShadowDiscriminator.setOrder(order);
-        }
-        if (getOid() == null && resourceShadowDiscriminator != null && resourceShadowDiscriminator.getOrder() != 0) {
-            // Try to determine OID from lower-order contexts
-            for (LensProjectionContext otherProjCtx: lensContext.getProjectionContexts()) {
-                ResourceShadowDiscriminator otherDiscriminator = otherProjCtx.getResourceShadowDiscriminator();
-                if (resourceShadowDiscriminator.equivalent(otherDiscriminator) && otherProjCtx.getOid() != null) {
-                    setOid(otherProjCtx.getOid());
-                    break;
-                }
-            }
-        }
-    }
-
-    private String determineResourceOid() {
-        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.getResourceOid() != null) {
-            return resourceShadowDiscriminator.getResourceOid();
-        }
-        if (getObjectCurrent() != null) {
-            String fromObjectCurrent = ShadowUtil.getResourceOid(getObjectCurrent().asObjectable());
-            if (fromObjectCurrent != null) {
-                return fromObjectCurrent;
-            }
-        }
-        if (getObjectNew() != null) {
-            return ShadowUtil.getResourceOid(getObjectNew().asObjectable());
-        }
-        return null;
     }
 
     /**
@@ -1682,10 +1765,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * This is to ensure that the changes on such resources will be read back to midPoint.
      * (It is a bit of hack but it looks OK.) See also MID-2436 - volatile objects.
      */
-    public void setDoReconciliationFlagIfVolatile() {
-        ResourceObjectTypeDefinitionType objectDefinition = getResourceObjectTypeDefinitionType();
-        if (objectDefinition != null && objectDefinition.getVolatility() == ResourceObjectVolatilityType.UNPREDICTABLE && !isDoReconciliation()) {
-            LOGGER.trace("Resource object volatility is UNPREDICTABLE => setting doReconciliation to TRUE for {}", getResourceShadowDiscriminator());
+    public void setDoReconciliationFlagIfVolatile() throws SchemaException, ConfigurationException {
+        ResourceObjectDefinition objectDefinition = getStructuralDefinitionIfNotBroken();
+        if (objectDefinition != null
+                && objectDefinition.getVolatility() == ResourceObjectVolatilityType.UNPREDICTABLE
+                && !isDoReconciliation()) {
+            LOGGER.trace("Resource object volatility is UNPREDICTABLE => setting doReconciliation to TRUE for {}", getKey());
             setDoReconciliation(true);
         }
     }
@@ -1696,23 +1781,26 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         state.clearSecondaryDelta();
     }
 
-    /** Assumes that the resource is loaded. */
-    public boolean isInMaintenance() {
-        return ResourceTypeUtil.isInMaintenance(resource);
-    }
-
     /**
      * Returns true if there is any context that depends on us.
      * (Note that "dependency source" means the context that depends on the "dependency target". We are the target here.)
      */
-    public boolean hasDependentContext() {
+    public boolean hasDependentContext() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
             for (ResourceObjectTypeDependencyType dependency : projectionContext.getDependencies()) {
-                if (LensUtil.areDependent(projectionContext, this, dependency)) {
+                if (LensUtil.isDependencyTarget( this, dependency)) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    public boolean isClassified() {
+        return key.isClassified();
+    }
+
+    public int getOrder() {
+        return key.getOrder();
     }
 }

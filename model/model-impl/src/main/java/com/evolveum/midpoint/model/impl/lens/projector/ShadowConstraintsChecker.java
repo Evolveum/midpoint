@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author semancik
@@ -41,7 +42,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 
-    private LensProjectionContext projectionContext;
+    private final LensProjectionContext projectionContext;
     private LensContext<F> context;
     private PrismContext prismContext;
     private ProvisioningService provisioningService;
@@ -49,14 +50,6 @@ public class ShadowConstraintsChecker<F extends FocusType> {
     private ConstraintsCheckingResult constraintsCheckingResult;
 
     ShadowConstraintsChecker(LensProjectionContext accountContext) {
-        this.projectionContext = accountContext;
-    }
-
-    public LensProjectionContext getAccountContext() {
-        return projectionContext;
-    }
-
-    public void setAccountContext(LensProjectionContext accountContext) {
         this.projectionContext = accountContext;
     }
 
@@ -84,7 +77,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         this.context = context;
     }
 
-    public boolean isSatisfiesConstraints() {
+    boolean isSatisfiesConstraints() {
         return satisfiesConstraints;
     }
 
@@ -97,7 +90,9 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         return constraintsCheckingResult.getConflictingShadow();
     }
 
-    public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void check(Task task, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         CompositeObjectDefinition projOcDef = projectionContext.getCompositeObjectDefinition();
         PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
@@ -117,16 +112,24 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         }
 
         ConstraintViolationConfirmer confirmer = (conflictingShadowCandidate) -> {
-                boolean violation = true;
-                LensProjectionContext foundContext = context.findProjectionContextByOid(conflictingShadowCandidate.getOid());
-                if (foundContext != null) {
-                    if (foundContext.isGone()) {
-                        violation = false;
-                    }
-                    LOGGER.trace("Comparing with account in other context resulted to violation confirmation of {}", violation);
-                }
-                return violation;
-            };
+            // If the conflicting shadow is gone, we can (almost) safely assume this is NOT a real conflict (uniqueness violation)
+            // But we must inspect all projection contexts. TODO - can we be really sure then?
+            String candidateOid = conflictingShadowCandidate.getOid();
+            List<LensProjectionContext> matchingContexts = context.findProjectionContextsByOid(candidateOid);
+            if (matchingContexts.isEmpty()) {
+                LOGGER.trace("No contexts found for {}; this looks like a real constraint violation", candidateOid);
+                return true;
+            }
+            if (matchingContexts.stream().allMatch(LensProjectionContext::isGone)) {
+                LOGGER.trace("All {} context(s) of {} are gone. This looks like a phantom constraint violation",
+                        matchingContexts.size(), candidateOid);
+                return false;
+            } else {
+                LOGGER.trace("There are {} context(s) for {}, not all gone. Confirming the constraint violation.",
+                        matchingContexts.size(), candidateOid);
+                return true;
+            }
+        };
 
         constraintsCheckingResult = provisioningService.checkConstraints(
                 projOcDef,
@@ -134,7 +137,6 @@ public class ShadowConstraintsChecker<F extends FocusType> {
                 projectionContext.getObjectOld(),
                 projectionContext.getResource(),
                 projectionContext.getOid(),
-                projectionContext.getResourceShadowDiscriminator(),
                 confirmer,
                 context.getProjectionConstraintsCheckingStrategy(),
                 task, result);
@@ -146,11 +148,13 @@ public class ShadowConstraintsChecker<F extends FocusType> {
         for (QName checkedAttributeName: constraintsCheckingResult.getCheckedAttributes()) {
             if (constraintsCheckingResult.getConflictingAttributes().contains(checkedAttributeName)) {
                 if (isInDelta(checkedAttributeName, projectionContext.getPrimaryDelta())) {
-                    throw new ObjectAlreadyExistsException("Attribute "+checkedAttributeName+" conflicts with existing object (and it is present in primary "+
-                            "account delta therefore no iteration is performed)");
+                    throw new ObjectAlreadyExistsException("Attribute " + checkedAttributeName
+                            + " conflicts with existing object (and it is present in primary"
+                            + " account delta therefore no iteration is performed)");
                 }
             }
         }
+        //noinspection RedundantIfStatement
         if (projectionContext.isGone()) {
             satisfiesConstraints = true;
         } else {

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
@@ -145,6 +146,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     @Override
+    public @NotNull ModelContext<?> getModelContext() {
+        return lensContext;
+    }
+
+    @Override
     public @NotNull Class<O> getObjectTypeClass() {
         return state.getObjectTypeClass();
     }
@@ -242,7 +248,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getSummaryDelta();
     }
 
-    public @NotNull ObjectDeltaWaves<O> getArchivedSecondaryDeltas() {
+    @NotNull ObjectDeltaWaves<O> getArchivedSecondaryDeltas() {
         return state.getArchivedSecondaryDeltas();
     }
 
@@ -281,7 +287,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      *
      * Assumes that clockwork has not started yet.
      */
-    public void setInitialObject(@NotNull PrismObject<O> object, @Nullable ObjectDelta<O> objectDelta) {
+    private void setInitialObject(@NotNull PrismObject<O> object, @Nullable ObjectDelta<O> objectDelta) {
         lensContext.checkNotStarted("set initial object value", this);
         state.setInitialObject(object, ObjectDelta.isAdd(objectDelta));
     }
@@ -383,6 +389,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Dangerous. DO NOT USE unless you know what you are doing.
      * Used from tests and from some scripting hooks.
      */
+    @SuppressWarnings("unused") // called from scripts
     @VisibleForTesting
     public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (!ItemDelta.isEmpty(itemDelta)) {
@@ -453,8 +460,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.rememberState();
     }
 
-    public void restoreElementState(@NotNull RememberedElementState<O> rememberedState)
-            throws SchemaException {
+    public void restoreElementState(@NotNull RememberedElementState<O> rememberedState) {
         state.restoreState(rememberedState);
     }
     //endregion
@@ -739,42 +745,42 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region XML serialization and deserialization
-    void storeIntoLensElementContextType(LensElementContextType lensElementContextType, LensContext.ExportType exportType) throws SchemaException {
+    void storeIntoBean(LensElementContextType bean, LensContext.ExportType exportType) throws SchemaException {
         PrismObject<O> objectOld = state.getOldObject();
         if (objectOld != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, PrismContext.get()));
+                bean.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, PrismContext.get()));
             } else {
-                lensElementContextType.setObjectOld(objectOld.asObjectable().clone());
+                bean.setObjectOld(objectOld.asObjectable().clone());
             }
         }
         PrismObject<O> objectCurrent = state.getCurrentObject();
         if (objectCurrent != null && exportType == LensContext.ExportType.TRACE) {
-            lensElementContextType.setObjectCurrent(objectCurrent.asObjectable().clone());
+            bean.setObjectCurrent(objectCurrent.asObjectable().clone());
         }
         PrismObject<O> objectNew = state.getNewObject();
         if (objectNew != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
-                lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, PrismContext.get()));
+                bean.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, PrismContext.get()));
             } else {
-                lensElementContextType.setObjectNew(objectNew.asObjectable().clone());
+                bean.setObjectNew(objectNew.asObjectable().clone());
             }
         }
         if (exportType != LensContext.ExportType.MINIMAL) {
             ObjectDelta<O> primaryDelta = state.getPrimaryDelta();
             ObjectDelta<O> secondaryDelta = state.getSecondaryDelta();
-            lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta.clone()) : null);
-            lensElementContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta.clone()) : null);
+            bean.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta.clone()) : null);
+            bean.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta.clone()) : null);
             for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
-                lensElementContextType.getExecutedDeltas()
+                bean.getExecutedDeltas()
                         .add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
             }
-            lensElementContextType.setObjectTypeClass(state.getObjectTypeClass().getName());
-            lensElementContextType.setOid(state.getOid());
-            lensElementContextType.setIteration(iteration);
-            lensElementContextType.setIterationToken(iterationToken);
+            bean.setObjectTypeClass(state.getObjectTypeClass().getName());
+            bean.setOid(state.getOid());
+            bean.setIteration(iteration);
+            bean.setIterationToken(iterationToken);
         }
-        lensElementContextType.setFresh(state.isFresh());
+        bean.setFresh(state.isFresh());
     }
 
     void retrieveFromLensElementContextBean(LensElementContextType bean, Task task, OperationResult result)
@@ -798,7 +804,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         // New object is not set. It is computed on demand.
 
         for (LensObjectDeltaOperationType eDeltaOperationBean : bean.getExecutedDeltas()) {
-            LensObjectDeltaOperation objectDeltaOperation =
+            //noinspection unchecked
+            LensObjectDeltaOperation<O> objectDeltaOperation =
                     LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationBean);
             if (objectDeltaOperation.getObjectDelta() != null) {
                 applyProvisioningDefinition(objectDeltaOperation.getObjectDelta(), object, task, result);

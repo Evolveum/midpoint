@@ -134,7 +134,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     protected @NotNull String getDefaultContextDescription(@NotNull CorrelationContext correlationContext) {
         return (typeName + " correlator" +
                 (configurationBean.getName() != null ? " '" + configurationBean.getName() + "'" : ""))
-                + " for " + correlationContext.getObjectTypeDefinition().getHumanReadableName()
+                + " for " + correlationContext.getResourceObjectDefinition().getHumanReadableName()
                 + " in " + correlationContext.getResource();
     }
 

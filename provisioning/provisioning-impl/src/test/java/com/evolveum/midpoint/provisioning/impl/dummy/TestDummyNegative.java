@@ -670,7 +670,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         cleanupAccounts(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, result);
         RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.setSyncStyle(DummySyncStyle.SMART);
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.oid,
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.ofObjectClass(
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.oid,
                 SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
 
         List<LiveSyncEvent> events = new ArrayList<>();

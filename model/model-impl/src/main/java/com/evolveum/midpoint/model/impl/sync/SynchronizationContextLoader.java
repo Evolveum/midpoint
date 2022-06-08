@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Responsible for creating ("loading") the synchronization context.
@@ -119,21 +122,22 @@ class SynchronizationContextLoader {
                         task,
                         result);
 
-        ResourceObjectTypeDefinition definition = determineTypeDefinition(processingContext, schema, sorterResult, result);
+        TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, schema, sorterResult, result);
 
-        String tag = getOrGenerateTag(processingContext, definition, result);
+        String tag = getOrGenerateTag(processingContext, typeAndDefinition.definition, result);
 
         @Nullable SynchronizationPolicy policy =
-                definition != null ?
+                typeAndDefinition.typeIdentification != null ?
                         SynchronizationPolicyFactory.forKindAndIntent(
-                                definition.getKind(),
-                                definition.getIntent(),
+                                typeAndDefinition.typeIdentification.getKind(),
+                                typeAndDefinition.typeIdentification.getIntent(),
                                 updatedResource) :
                         null;
 
         return new SynchronizationContext<>(
                 processingContext,
-                definition,
+                typeAndDefinition.typeIdentification,
+                typeAndDefinition.definition,
                 policy,
                 sorterResult,
                 tag,
@@ -156,7 +160,7 @@ class SynchronizationContextLoader {
         return resource;
     }
 
-    private @Nullable ResourceObjectTypeDefinition determineTypeDefinition(
+    private @NotNull TypeAndDefinition determineObjectTypeAndDefinition(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
             @Nullable ResourceSchema schema,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
@@ -166,22 +170,27 @@ class SynchronizationContextLoader {
         ShadowKindType kind = shadow.getKind();
         String intent = shadow.getIntent();
         if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
-            return beans.provisioningService
+            ResourceObjectClassification classification = beans.provisioningService
                     .classifyResourceObject(
                             processingContext.getShadowedResourceObject(),
                             processingContext.getResource(),
                             sorterResult,
                             processingContext.getTask(),
-                            result)
-                    .getDefinition();
+                            result);
+            ResourceObjectTypeDefinition typeDefinition = classification.getDefinition();
+            if (typeDefinition != null) {
+                return TypeAndDefinition.of(typeDefinition);
+            } else {
+                return TypeAndDefinition.of(schema, shadow.getObjectClass());
+            }
         } else {
-            return schema != null ? schema.findObjectTypeDefinition(kind, intent) : null;
+            return TypeAndDefinition.of(schema, kind, intent);
         }
     }
 
     private @Nullable String getOrGenerateTag(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
-            @Nullable ResourceObjectTypeDefinition definition,
+            @Nullable ResourceObjectDefinition definition,
             @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -199,6 +208,47 @@ class SynchronizationContextLoader {
             }
         } else {
             return shadow.getTag();
+        }
+    }
+
+    /**
+     * Why do we need both type and definition? The object may be classified but only {@link ResourceObjectClassDefinition}
+     * may be available - in the case of `account/default` hack. The reverse is also possible: the object may be unclassified,
+     * but default type definition may apply.
+     */
+    private static class TypeAndDefinition {
+        @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+        @Nullable private final ResourceObjectDefinition definition;
+
+        private TypeAndDefinition(
+                @Nullable ResourceObjectTypeIdentification typeIdentification,
+                @Nullable ResourceObjectDefinition definition) {
+            this.typeIdentification = typeIdentification;
+            this.definition = definition;
+        }
+
+        public static @NotNull TypeAndDefinition of(@NotNull ResourceObjectTypeDefinition typeDefinition) {
+            return new TypeAndDefinition(typeDefinition.getTypeIdentification(), typeDefinition);
+        }
+
+        public static @NotNull TypeAndDefinition of(ResourceSchema schema, ShadowKindType knownKind, String knownIntent) {
+            return new TypeAndDefinition(
+                    ResourceObjectTypeIdentification.of(knownKind, knownIntent),
+                    schema != null ? schema.findObjectDefinition(knownKind, knownIntent) : null);
+        }
+
+        public static @NotNull TypeAndDefinition of(ResourceSchema schema, QName objectClassName) {
+            if (schema != null && objectClassName != null) {
+                ResourceObjectDefinition definition = schema.findDefinitionForObjectClass(objectClassName);
+                if (definition != null && definition.getObjectClassDefinition().isDefaultAccountDefinition()) {
+                    // A kind of "emergency classification" - we hope it will not cause any problems.
+                    return new TypeAndDefinition(ResourceObjectTypeIdentification.defaultAccount(), definition);
+                } else {
+                    return new TypeAndDefinition(null, definition);
+                }
+            } else {
+                return new TypeAndDefinition(null, null);
+            }
         }
     }
 }

@@ -17,6 +17,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 
+import com.evolveum.midpoint.prism.PrismValue;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 

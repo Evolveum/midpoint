@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -36,21 +35,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+
 /**
  * Updates the projection context:
  *
- * 1. Sets the "do reconciliation" flag for volatile resources.
- * 2. Loads the object (from repo or from resource), if needed. See {@link #loadCurrentObjectIfNeeded(OperationResult)}
+ * . Sets the "do reconciliation" flag for volatile resources.
+ * . Loads the object (from repo or from resource), if needed. See {@link #loadCurrentObjectIfNeeded(OperationResult)}
  * and {@link #needToReload()}.
- * 3. Loads the resource, if not loaded yet.
- * 4. Sets or updates the discriminator.
- * 5. Sets projection security policy.
- * 6. Sets "can project" flag if limited propagation option is present.
- * 7. Sets the primary delta old value.
+ * . Loads the resource, if not loaded yet.
+ * . Sets projection security policy.
+ * . Sets "can project" flag if limited propagation option is present.
+ * . Sets the primary delta old value.
+ *
+ * See {@link #updateInternal(OperationResult)}.
  *
  * Note that full object can be loaded also in {@link ProjectionFullLoadOperation}.
  */
-public class ProjectionUpdateOperation<F extends ObjectType> {
+class ProjectionUpdateOperation<F extends ObjectType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionUpdateOperation.class);
 
@@ -69,20 +71,9 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
     /**
      * Current state of the projection object. Either loaded (if needed) or simply got from the context.
      */
-    private PrismObject<ShadowType> projectionObject;
+    private ShadowType projectionObject;
 
-    /**
-     * True if the current projection was found to be a gone during {@link #loadCurrentObject(OperationResult)}
-     * operation.
-     */
-    private boolean foundToBeGone;
-
-    /**
-     * Resource OID corresponding to the context. Set up in {@link #determineAndLoadResource(OperationResult)}.
-     */
-    private String resourceOid;
-
-    public ProjectionUpdateOperation(
+    ProjectionUpdateOperation(
             @NotNull LensContext<F> context,
             @NotNull LensProjectionContext projectionContext,
             @NotNull Task task) {
@@ -99,7 +90,10 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
 
         // TODO: not perfect. Practically, we want loadProjection operation (in context load operation) to contain
         //  all the projection results. But for that we would need code restructure.
-        OperationResult result = parentResult.createMinorSubresult(OP_UPDATE);
+        OperationResult result = parentResult.subresult(OP_UPDATE)
+                .setMinor()
+                .addArbitraryObjectAsParam("context", projectionContext)
+                .build();
         try {
             updateInternal(result);
         } catch (Throwable e) {
@@ -115,10 +109,12 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             SecurityViolationException, ExpressionEvaluationException {
 
         if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-            LOGGER.trace("Skipping loading of broken context {}", projectionContext.getHumanReadableName());
-            result.recordNotApplicable();
+            LOGGER.trace("Not updating broken context {}", projectionContext.getHumanReadableName());
+            result.recordNotApplicable("Broken context");
             return;
         }
+
+        loadResourceInContext(result);
 
         // Here we could skip loading if the projection is completed, but it would cause problems e.g. in wasProvisioned
         // method in dependency processor (it checks objectCurrent, among other things). So let's be conservative
@@ -130,9 +126,6 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             return; // A non-critical error occurred.
         }
 
-        determineAndLoadResource(result);
-
-        determineDiscriminator();
         setProjectionSecurityPolicy(result);
         setCanProjectFlag();
 
@@ -147,13 +140,14 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
     private boolean loadCurrentObjectIfNeeded(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException {
-        projectionObject = projectionContext.getObjectCurrent();
+        projectionObject = asObjectable(projectionContext.getObjectCurrent());
         if (projectionContext.getObjectCurrent() == null || needToReload()) {
             return loadCurrentObject(result);
         } else {
             LOGGER.trace("No need to reload the object");
             if (projectionObjectOid != null) {
-                projectionContext.setExists(ShadowUtil.isExists(projectionObject.asObjectable()));
+                projectionContext.setExists(
+                        ShadowUtil.isExists(projectionObject));
             }
             return false;
         }
@@ -163,10 +157,13 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
      * If "limit propagation" option is set, we set `canProject` to `false` for resources other than triggering one.
      */
     private void setCanProjectFlag() {
-        if (ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
-            if (context.getTriggeringResourceOid() != null && !context.getTriggeringResourceOid().equals(resourceOid)) {
-                projectionContext.setCanProject(false);
-            }
+        String triggeringResourceOid = context.getTriggeringResourceOid();
+        if (!ModelExecuteOptions.isLimitPropagation(context.getOptions()) || triggeringResourceOid == null) {
+            return;
+        }
+
+        if (!triggeringResourceOid.equals(projectionContext.getResourceOid())) {
+            projectionContext.setCanProject(false);
         }
     }
 
@@ -181,49 +178,21 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             LOGGER.trace("Located security policy for: {},\n {}", projectionContext, projectionSecurityPolicy);
             projectionContext.setProjectionSecurityPolicy(projectionSecurityPolicy);
         } else {
-            LOGGER.trace("No structural object class definition, skipping determining security policy");
+            LOGGER.trace("No structural object definition, skipping determining security policy");
         }
     }
 
-    private void determineDiscriminator() {
-        if (projectionContext.getResourceShadowDiscriminator() == null) {
-            ResourceShadowDiscriminator rsd;
-            if (projectionObject != null) {
-                ShadowType accountShadowType = projectionObject.asObjectable();
-                String intent = ShadowUtil.getIntent(accountShadowType);
-                ShadowKindType kind = ShadowUtil.getKind(accountShadowType);
-                rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, accountShadowType.getTag(), foundToBeGone);
-            } else {
-                rsd = new ResourceShadowDiscriminator(null, null, null, null, foundToBeGone);
-            }
-            projectionContext.setResourceShadowDiscriminator(rsd);
-        } else {
-            if (foundToBeGone) {
-                // We do not want to reset gone flag if it was set before
-                projectionContext.markGone();
-            }
-        }
-    }
-
-    private void determineAndLoadResource(OperationResult result)
+    private void loadResourceInContext(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        ResourceType existingResource = projectionContext.getResource();
-        if (existingResource != null) {
-            resourceOid = existingResource.getOid();
+        if (projectionContext.getResource() != null) {
             return;
         }
 
-        if (projectionObject != null) {
-            ShadowType shadow = projectionObject.asObjectable();
-            resourceOid = ShadowUtil.getResourceOid(shadow);
-        } else if (projectionContext.getResourceShadowDiscriminator() != null) {
-            resourceOid = projectionContext.getResourceShadowDiscriminator().getResourceOid();
-        } else if (!foundToBeGone) {
-            throw new IllegalStateException("No shadow, no discriminator and not gone? That won't do."
-                    + " Projection "+projectionContext.getHumanReadableName());
-        }
+        String resourceOid = projectionObject != null ?
+                ShadowUtil.getResourceOidRequired(projectionObject) :
+                projectionContext.getKey().getResourceOid();
 
         if (resourceOid != null) {
             projectionContext.setResource(
@@ -239,19 +208,21 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException {
 
+        LOGGER.trace("Trying to load current object");
+
         if (projectionContext.isAdd() && !projectionContext.isCompleted()) {
             LOGGER.trace("No need to load old object, there is none");
             projectionContext.setExists(false);
             projectionContext.recompute();
-            projectionObject = projectionContext.getObjectNew();
+            projectionObject = asObjectable(projectionContext.getObjectNew());
             return false;
         }
 
         if (projectionObjectOid == null) {
+            LOGGER.trace("No OID, no loading");
             projectionContext.setExists(false);
             projectionContext.setFresh(true); // TODO why?
-            if (projectionContext.getResourceShadowDiscriminator() == null ||
-                    projectionContext.getResourceShadowDiscriminator().getResourceOid() == null) {
+            if (projectionContext.getKey().getResourceOid() == null) {
                 throw new SystemException(
                         "Projection " + projectionContext.getHumanReadableName() + " with null OID, no representation and "
                                 + "no resource OID in projection context " + projectionContext);
@@ -262,16 +233,17 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
         Collection<SelectorOptions<GetOperationOptions>> options = createProjectionLoadingOptions();
 
         try {
-            LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid,
-                    projectionContext.getHumanReadableName(), options);
+            LOGGER.trace("Loading shadow {} for projection {}, options={}",
+                    projectionObjectOid, projectionContext.getHumanReadableName(), options);
 
-            PrismObject<ShadowType> object = beans.provisioningService.getObject(
-                    projectionContext.getObjectTypeClass(), projectionObjectOid, options, task, result);
+            PrismObject<ShadowType> object =
+                    beans.provisioningService.getObject(
+                            ShadowType.class, projectionObjectOid, options, task, result);
 
             logLoadedShadow(object, options);
             checkLoadedShadowConsistency(object);
 
-            projectionObject = object;
+            projectionObject = object.asObjectable();
             projectionContext.setLoadedObject(object);
 
             updateFullShadowFlag();
@@ -291,6 +263,7 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
 
             result.muteLastSubresultError();
             projectionContext.clearCurrentObject();
+            projectionContext.markGone();
             projectionContext.setShadowExistsInRepo(false);
             refreshContextAfterShadowNotFound(options, result);
 
@@ -339,15 +312,14 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
     }
 
     private void updateExistsAndGoneFlags() {
-        if (ShadowUtil.isExists(projectionObject.asObjectable())) {
+        if (ShadowUtil.isExists(projectionObject)) {
             projectionContext.setExists(true);
         } else {
             projectionContext.setExists(false);
-            if (ShadowUtil.isGone(projectionObject.asObjectable())) {
+            if (ShadowUtil.isGone(projectionObject)) {
                 projectionContext.markGone();
                 LOGGER.debug("Found only dead {} for projection context {}.", projectionObject,
                         projectionContext.getHumanReadableName());
-                foundToBeGone = true;
             } else {
                 LOGGER.debug("Found only non-existing but non-dead {} for projection context {}.", projectionObject,
                         projectionContext.getHumanReadableName());
@@ -384,27 +356,30 @@ public class ProjectionUpdateOperation<F extends ObjectType> {
      */
     private boolean needToReload() {
         if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
+            LOGGER.trace("Will reload, because doing reconciliation (and do not have full shadow)");
             return true;
         }
 
-        ResourceShadowDiscriminator rsd = projectionContext.getResourceShadowDiscriminator();
-        if (rsd == null) {
-            return false;
-        }
         // This is kind of brutal. But effective. We are reloading all higher-order dependencies
         // before they are processed. This makes sure we have fresh state when they are re-computed.
         // Because higher-order dependencies may have more than one projection context and the
         // changes applied to one of them are not automatically reflected on on other. therefore we need to reload.
-        if (rsd.getOrder() == 0) {
+        if (projectionContext.getOrder() == 0) {
+            LOGGER.trace("Context is of order 0, no need to reload");
             return false;
         }
+
         int executionWave = context.getExecutionWave();
         int projCtxWave = projectionContext.getWave();
         if (executionWave == projCtxWave - 1) {
-            // Reload right before its execution wave
+            LOGGER.trace("Reloading higher-order context because its wave has come (exec wave = {}, projection wave = {})",
+                    executionWave, projCtxWave);
             return true;
+        } else {
+            LOGGER.trace("Not reloading higher-order context because its wave has not come (exec wave = {}, projection wave = {})",
+                    executionWave, projCtxWave);
+            return false;
         }
-        return false;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions() {

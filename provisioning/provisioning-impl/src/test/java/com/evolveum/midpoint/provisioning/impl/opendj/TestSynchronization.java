@@ -14,6 +14,8 @@ import java.io.File;
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 import com.evolveum.midpoint.provisioning.impl.MockLiveSyncTaskHandler;
 
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -128,8 +129,9 @@ public class TestSynchronization extends AbstractIntegrationTest {
         AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
                 addOperation.getResultCode());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceType.getOid(),
-                AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        ResourceOperationCoordinates coords =
+                ResourceOperationCoordinates.ofObjectClass(
+                        resourceType.getOid(), AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
 
@@ -171,8 +173,9 @@ public class TestSynchronization extends AbstractIntegrationTest {
         AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
                 addOperation.getResultCode());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceType.getOid(),
-                AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        ResourceOperationCoordinates coords =
+                ResourceOperationCoordinates.ofObjectClass(
+                        resourceType.getOid(), AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, getTestTask(), result);

@@ -73,7 +73,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private static final String OP_SETUP_SITUATION = CLASS_NAME_WITH_DOT + "setupSituation";
     private static final String OP_NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
 
-    @Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private ModelBeans beans;
@@ -534,9 +533,5 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private static boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
         // Reconciliation changes are routine. Do not let them pollute the log files.
         return !SchemaConstants.CHANNEL_RECON_URI.equals(change.getSourceChannel());
-    }
-
-    private static <F extends FocusType> boolean isLogDebug(SynchronizationContext<F> syncCtx) {
-        return !SchemaConstants.CHANNEL_RECON_URI.equals(syncCtx.getChannel());
     }
 }

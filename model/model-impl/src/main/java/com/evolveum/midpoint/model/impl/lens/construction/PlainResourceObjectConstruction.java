@@ -13,7 +13,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,8 +56,8 @@ public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
         ResourceObjectDefinition rOcDef = projectionContext.getStructuralObjectDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}",
-                    projectionContext.getResourceShadowDiscriminator(), lensContext.debugDump(1));
-            throw new IllegalStateException("Definition for " + projectionContext.getResourceShadowDiscriminator()
+                    projectionContext.getKey(), lensContext.debugDump(1));
+            throw new IllegalStateException("Definition for " + projectionContext.getKey()
                     + " not found in the context, but it should be there");
         }
         setResourceObjectDefinition(rOcDef);
@@ -70,7 +69,7 @@ public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
     }
 
     @Override
-    protected EvaluatedPlainResourceObjectConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        return new EvaluatedPlainResourceObjectConstructionImpl<>(this, projectionContext);
+    protected EvaluatedPlainResourceObjectConstructionImpl<AH> createEvaluatedConstruction(@NotNull ConstructionTargetKey key) {
+        return new EvaluatedPlainResourceObjectConstructionImpl<>(this, projectionContext, key);
     }
 }

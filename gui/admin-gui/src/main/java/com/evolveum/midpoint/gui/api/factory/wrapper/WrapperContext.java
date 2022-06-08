@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -43,7 +43,7 @@ public class WrapperContext {
 
     //Shadow related attributes
     private ResourceType resource;
-    private ResourceShadowDiscriminator discriminator;
+    private ResourceShadowCoordinates coordinates;
 
     //Association related attributes
     private Collection<ResourceAssociationDefinition> resourceAssociationDefinitions;
@@ -108,8 +108,8 @@ public class WrapperContext {
         return resource;
     }
 
-    public ResourceShadowDiscriminator getDiscriminator() {
-        return discriminator;
+    public ResourceShadowCoordinates getCoordinates() {
+        return coordinates;
     }
 
     public void setResource(ResourceType resource) {
@@ -124,8 +124,8 @@ public class WrapperContext {
         this.resourceAssociationDefinitions = resourceAssociationDefinitions;
     }
 
-    public void setDiscriminator(ResourceShadowDiscriminator discriminator) {
-        this.discriminator = discriminator;
+    public void setCoordinates(ResourceShadowCoordinates coordinates) {
+        this.coordinates = coordinates;
     }
 
     public boolean isShowEmpty() {
@@ -253,7 +253,7 @@ public class WrapperContext {
         ctx.setShowEmpty(showEmpty);
         ctx.setObjectStatus(objectStatus);
         ctx.setResource(resource);
-        ctx.setDiscriminator(discriminator);
+        ctx.setCoordinates(coordinates);
         ctx.setCreateOperational(createOperational);
         ctx.setVirtualItemSpecification(virtualItemSpecification);
         ctx.setObject(object);

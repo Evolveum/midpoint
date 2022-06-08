@@ -57,5 +57,4 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     default ResourceAttributeContainer instantiate(ItemName elementName) {
         return delegate().instantiate(elementName);
     }
-
 }

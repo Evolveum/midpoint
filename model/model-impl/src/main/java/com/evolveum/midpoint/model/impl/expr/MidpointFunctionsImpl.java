@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -303,34 +305,39 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
         ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        ModelElementContext<F> focusContext = ctx.getFocusContextRequired();
-
-        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
-
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null, null, false);
-        ModelProjectionContext projectionContext = ctx.findProjectionContext(rat);
-
-        LOGGER.trace("hasLinkedAccount: found projection context {} for {}", projectionContext, rat);
-        if (projectionContext == null) {
-            // but check if it is not among list of deleted contexts
-            if (scriptContext == null || scriptContext.isEvaluateNew()) {
-                return false;
+        ProjectionContextFilter filter =
+                new ProjectionContextFilter(resourceOid, ShadowKindType.ACCOUNT, null);
+        for (ModelProjectionContext projectionContext : ctx.findProjectionContexts(filter)) {
+            LOGGER.trace("hasLinkedAccount: considering a projection context {} for {}", projectionContext, filter);
+            if (isProjectionConsideredLinked(projectionContext)) {
+                return true;
             }
-            // evaluating old state
-            for (ResourceShadowDiscriminator deletedOne : ctx.getHistoricResourceObjects()) {
-                if (resourceOid.equals(deletedOne.getResourceOid()) && deletedOne.getKind() == ShadowKindType.ACCOUNT
-                        && deletedOne.getIntent() == null || "default"
-                        .equals(deletedOne.getIntent())) { // TODO implement this seriously
-                    LOGGER.trace("Found deleted one: {}", deletedOne); // TODO remove
-                    return true;
-                }
-            }
-            return false;
         }
+        return isThereDeletedAccountContextForEvaluateOld(ctx, resourceOid);
+    }
 
+    private boolean isThereDeletedAccountContextForEvaluateOld(ModelContext<?> ctx, String resourceOid) {
+        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+        if (scriptContext == null || scriptContext.isEvaluateNew()) {
+            return false; // Deleted context counts only if we are evaluating the old state
+        }
+        for (ProjectionContextKey deletedOne : ctx.getHistoricResourceObjects()) {
+            if (resourceOid.equals(deletedOne.getResourceOid()) && deletedOne.getKind() == ShadowKindType.ACCOUNT) {
+                LOGGER.trace("Found deleted one: {}", deletedOne);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isProjectionConsideredLinked(
+            ModelProjectionContext projectionContext) {
         if (projectionContext.isGone()) {
             return false;
         }
+
+        ModelElementContext<?> focusContext = projectionContext.getModelContext().getFocusContextRequired();
+        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 
         SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
         SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
@@ -437,45 +444,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public ShadowType getLinkedShadow(FocusType focus, ResourceType resource) throws SchemaException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return getLinkedShadow(focus, resource.getOid());
-    }
-
-    @Override
-    public ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)
-            throws SchemaException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return getLinkedShadow(focus, resource.getOid(), repositoryObjectOnly);
-    }
-
-    @Override
-    public ShadowType getLinkedShadow(FocusType focus, String resourceOid)
-            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        return getLinkedShadow(focus, resourceOid, false);
-    }
-
-    @Override
-    public @NotNull List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)
-            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        return getLinkedShadows(focus, resourceOid, false);
-    }
-
-    @Override
-    public ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
-            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        List<ShadowType> shadows = getLinkedShadows(focus, resourceOid, repositoryObjectOnly);
-        if (shadows.isEmpty()) {
-            return null;
-        } else {
-            return shadows.get(0);
-        }
-    }
-
-    @Override
     public @NotNull List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -518,44 +486,36 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent)
-            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        return getLinkedShadow(focus, resourceOid, kind, intent, false);
-    }
-
-    @Override
-    public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent,
-            boolean repositoryObjectOnly)
+    public ShadowType getLinkedShadow(
+            FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         List<ObjectReferenceType> linkRefs = focus.getLinkRef();
         for (ObjectReferenceType linkRef : linkRefs) {
-            ShadowType shadowType;
+            ShadowType shadow;
             try {
-                shadowType = getObject(ShadowType.class, linkRef.getOid(),
-                        SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
+                shadow = getObject(ShadowType.class, linkRef.getOid(), createNoFetchCollection());
             } catch (ObjectNotFoundException e) {
                 // Shadow is gone in the meantime. MidPoint will resolve that by itself.
                 // It is safe to ignore this error in this method.
-                LOGGER.trace("Ignoring shadow " + linkRef.getOid() + " linked in " + focus
-                        + " because it no longer exists in repository");
+                LOGGER.trace("Ignoring shadow {} linked in {} because it no longer exists in repository",
+                        linkRef.getOid(), focus);
                 continue;
             }
-            if (ShadowUtil.matches(shadowType, resourceOid, kind, intent)) {
+            if (ShadowUtil.matches(shadow, resourceOid, kind, intent)) {
                 // We have repo shadow here. Re-read resource shadow if necessary.
-                if (!repositoryObjectOnly) {
+                if (repositoryObjectOnly) {
+                    return shadow;
+                } else {
                     try {
-                        shadowType = getObject(ShadowType.class, shadowType.getOid());
+                        return getObject(ShadowType.class, shadow.getOid());
                     } catch (ObjectNotFoundException e) {
                         // Shadow is gone in the meantime. MidPoint will resolve that by itself.
                         // It is safe to ignore this error in this method.
-                        LOGGER.trace("Ignoring shadow " + linkRef.getOid() + " linked in " + focus
-                                + " because it no longer exists on resource");
-                        continue;
+                        LOGGER.trace("Ignoring shadow {} linked in {} because it no longer exists on resource",
+                                linkRef.getOid(), focus);
                     }
                 }
-                return shadowType;
             }
         }
         return null;
@@ -754,8 +714,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
-        // TODO are we OK with "any" account definition?
-        ResourceObjectTypeDefinition rAccountDef = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition rAccountDef = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No attribute '" + attributeName + "' in " + rAccountDef);
@@ -847,7 +806,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException {
-        return ((LensContext<?>) lensContext).toLensContextType();
+        return ((LensContext<?>) lensContext).toBean();
     }
 
     // Convenience functions
@@ -1193,12 +1152,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException {
+    public ObjectDeltaType getResourceDelta(ModelContext<?> context, String resourceOid) throws SchemaException {
         List<ObjectDelta<ShadowType>> deltas = new ArrayList<>();
         for (Object modelProjectionContextObject : context.getProjectionContexts()) {
             LensProjectionContext lensProjectionContext = (LensProjectionContext) modelProjectionContextObject;
-            if (lensProjectionContext.getResourceShadowDiscriminator() != null &&
-                    resourceOid.equals(lensProjectionContext.getResourceShadowDiscriminator().getResourceOid())) {
+            if (lensProjectionContext.getKey() != null &&
+                    resourceOid.equals(lensProjectionContext.getKey().getResourceOid())) {
                 deltas.add(lensProjectionContext.getSummaryDelta());   // union of primary and secondary deltas
             }
         }
@@ -1877,7 +1836,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ResourceType resource = provisioningService.getObject(
                             ResourceType.class,
                             resourceOid,
-                            GetOperationOptions.createNoFetchCollection(),
+                            createNoFetchCollection(),
                             task,
                             result)
                     .asObjectable();

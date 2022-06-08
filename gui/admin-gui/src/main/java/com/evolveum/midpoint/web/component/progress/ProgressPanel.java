@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -22,7 +24,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -207,11 +208,16 @@ public class ProgressPanel extends BasePanel {
             @Override
             public String getObject() {
                 ProgressReportActivityDto si = item.getModelObject();
-                if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && si.getResourceShadowDiscriminator() != null) {
-                    ResourceShadowDiscriminator rsd = si.getResourceShadowDiscriminator();
-                    return createStringResource("ProgressPanel.populateStatusItem.resourceObjectActivity", createStringResource(rsd.getKind()).getString(),
-                            rsd.getIntent(),si.getResourceName()).getString();
+                ProjectionContextKey key = si.getProjectionContextKey();
+                if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && key != null) {
+                    //noinspection unchecked
+                    return createStringResource(
+                            "ProgressPanel.populateStatusItem.resourceObjectActivity",
+                            createStringResource(key.getKind()).getString(),
+                            key.getIntent(),
+                            si.getResourceName()).getString();
                 } else {
+                    //noinspection unchecked
                     return createStringResource(si.getActivityType()).getString();
                 }
             }

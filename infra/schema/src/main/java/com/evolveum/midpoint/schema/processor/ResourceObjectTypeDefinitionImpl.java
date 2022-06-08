@@ -86,6 +86,16 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
+    public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return identification;
+    }
+
+    @Override
+    public @NotNull ResourceObjectTypeDefinition getTypeDefinition() {
+        return this;
+    }
+
+    @Override
     public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
         return refinedObjectClassDefinition;
     }

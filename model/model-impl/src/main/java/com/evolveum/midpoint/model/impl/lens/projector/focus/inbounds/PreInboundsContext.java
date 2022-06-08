@@ -37,5 +37,5 @@ public interface PreInboundsContext<F extends FocusType>
 
     @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();
 
-    @NotNull ResourceObjectDefinition getObjectTypeDefinitionRequired() throws SchemaException, ConfigurationException;
+    @NotNull ResourceObjectDefinition getObjectDefinitionRequired() throws SchemaException, ConfigurationException;
 }

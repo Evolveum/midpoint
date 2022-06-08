@@ -370,10 +370,6 @@ public class ShadowManager {
         return shadowUpdater.fixShadow(ctx, origRepoShadow, result);
     }
 
-    public void setKindIfNecessary(ShadowType repoShadowType, ResourceObjectTypeDefinition objectClassDefinition) {
-        helper.setKindIfNecessary(repoShadowType, objectClassDefinition);
-    }
-
     public void setKindIfNecessary(ShadowType repoShadowType, ProvisioningContext ctx) {
         helper.setKindIfNecessary(repoShadowType, ctx);
     }

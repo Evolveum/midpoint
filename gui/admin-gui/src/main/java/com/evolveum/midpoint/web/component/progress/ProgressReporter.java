@@ -197,7 +197,7 @@ public class ProgressReporter implements ProgressListener {
         }
         for (ModelProjectionContext mpc : modelContext.getProjectionContexts()) {
             ProgressInformation projectionStatus = new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                    mpc.getResourceShadowDiscriminator(), (ProgressInformation.StateType) null);
+                    mpc.getKey(), (ProgressInformation.StateType) null);
             if (findRelevantStatusItem(progressReportActivities, projectionStatus) == null) {
                 progressReportActivities.add(createStatusItem(projectionStatus, modelContext));
             }
@@ -223,9 +223,9 @@ public class ProgressReporter implements ProgressListener {
             ModelContext modelContext) {
 
         si.setActivityType(progressInformation.getActivityType());
-        si.setResourceShadowDiscriminator(progressInformation.getResourceShadowDiscriminator());
-        if (progressInformation.getResourceShadowDiscriminator() != null) {
-            String resourceOid = progressInformation.getResourceShadowDiscriminator().getResourceOid();
+        si.setProjectionContextKey(progressInformation.getProjectionContextKey());
+        if (progressInformation.getProjectionContextKey() != null) {
+            String resourceOid = progressInformation.getProjectionContextKey().getResourceOid();
             String resourceName = resourceOid != null ? getResourceName(resourceOid) : "";
             si.setResourceName(resourceName);
         }
@@ -252,10 +252,11 @@ public class ProgressReporter implements ProgressListener {
         // information about modifications on a resource
         if (progressInformation.getActivityType() == RESOURCE_OBJECT_OPERATION &&
                 progressInformation.getStateType() == EXITING &&
-                progressInformation.getResourceShadowDiscriminator() != null &&
-                progressInformation.getResourceShadowDiscriminator().getResourceOid() != null) {
-            ModelProjectionContext mpc = modelContext.findProjectionContext(progressInformation.getResourceShadowDiscriminator());
-            if (mpc != null) {      // it shouldn't be null!
+                progressInformation.getProjectionContextKey() != null &&
+                progressInformation.getProjectionContextKey().getResourceOid() != null) {
+            ModelProjectionContext mpc =
+                    modelContext.findProjectionContextByKeyExact(progressInformation.getProjectionContextKey());
+            if (mpc != null) { // it shouldn't be null!
 
                 // operations performed (TODO aggregate them somehow?)
                 List<ProgressReportActivityDto.ResourceOperationResult> resourceOperationResultList = new ArrayList<>();

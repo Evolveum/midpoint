@@ -1840,7 +1840,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectDefinition accountDef = schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        ResourceObjectDefinition accountDef = schema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         assertThat(accountDef.getPrimaryIdentifiers())
                 .as("primary identifiers")
                 .hasSize(1);
@@ -1978,7 +1978,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
+        ResourceObjectDefinition rOcDef = intent != null ?
+                rSchema.findObjectDefinitionRequired(kind, intent) :
+                rSchema.findDefaultDefinitionForKindRequired(kind);
         ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource, false);
         List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
         if (shadows.isEmpty()) {
@@ -1992,7 +1994,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ObjectQuery createAccountShadowQuery(
             String username, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition rAccount =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
@@ -2767,9 +2770,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         resourceRef.setOid(resource.getOid());
         shadowType.setResourceRef(resourceRef);
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition objectClassDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
+        shadowType.setIntent(INTENT_DEFAULT);
         ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         ResourceAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
         ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
@@ -3056,26 +3061,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
-        return createModifyUserAddAccount(userOid, resource, null);
+        return createModifyUserAddAccount(userOid, resource, INTENT_DEFAULT);
     }
 
-    protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource, String intent)
+    protected ObjectDelta<UserType> createModifyUserAddAccount(
+            String userOid, PrismObject<ResourceType> resource, @NotNull String intent)
             throws SchemaException, ConfigurationException {
         PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         account.asObjectable().setResourceRef(resourceRef);
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectDefinition rocd;
-        if (StringUtils.isNotBlank(intent)) {
-            rocd = refinedSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, intent);
-            account.asObjectable().setIntent(intent);
-        } else {
-            // TODO or findObjectDefinitionRequired as well?
-            rocd = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
-        }
+        ResourceObjectDefinition rocd = refinedSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, intent);
+        account.asObjectable().setIntent(intent);
         account.asObjectable().setObjectClass(rocd.getObjectClassName());
         account.asObjectable().setKind(ShadowKindType.ACCOUNT);
+        account.asObjectable().setIntent(intent);
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
         );

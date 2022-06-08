@@ -294,7 +294,7 @@ public class DeltaConvertor {
             DeltaConversionOptions options) throws SchemaException {
         odoBean.setObjectDelta(DeltaConvertor.toObjectDeltaType(odo.getObjectDelta(), options));
         if (odo.getExecutionResult() != null) {
-            odoBean.setExecutionResult(odo.getExecutionResult().createOperationResultType());
+            odoBean.setExecutionResult(odo.getExecutionResult().createBeanReduced());
         }
         if (odo.getObjectName() != null) {
             odoBean.setObjectName(new PolyStringType(odo.getObjectName()));

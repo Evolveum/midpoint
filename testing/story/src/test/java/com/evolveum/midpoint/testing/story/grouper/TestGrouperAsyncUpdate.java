@@ -666,7 +666,8 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        PrismObject<ShadowType> shadowInRepo = findShadowByName(ShadowKindType.ENTITLEMENT, "group", groupName, resourceGrouper, result);
+        PrismObject<ShadowType> shadowInRepo = findShadowByName(
+                ShadowKindType.ENTITLEMENT, "group", groupName, resourceGrouper, result);
         assertNotNull("No shadow with name '"+groupName+"'", shadowInRepo);
 
         Collection<SelectorOptions<GetOperationOptions>> options =

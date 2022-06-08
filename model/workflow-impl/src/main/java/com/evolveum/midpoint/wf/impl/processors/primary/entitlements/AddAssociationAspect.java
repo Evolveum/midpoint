@@ -9,6 +9,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -19,8 +20,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -92,13 +92,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         //noinspection unchecked
-        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = changes.getProjectionChangeMapEntries();
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+        Set<Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>>> entries = changes.getProjectionChangeMapEntries();
+        for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : entries) {
             ObjectDelta<ShadowType> delta = entry.getValue();
             if (delta.isAdd()) {
                 requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
             } else if (delta.isModify()) {
-                ModelProjectionContext projectionContext = modelContext.findProjectionContext(entry.getKey());
+                ModelProjectionContext projectionContext = modelContext.findProjectionContextByKeyExact(entry.getKey());
                 requests.addAll(getApprovalRequestsFromShadowModify(
                         config, projectionContext.getObjectOld(), entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
             } else {
@@ -108,8 +108,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         return requests;
     }
 
-    private List<Request> getApprovalRequestsFromShadowAdd(PcpAspectConfigurationType config, ObjectDelta<ShadowType> change,
-                                     ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
+    private List<Request> getApprovalRequestsFromShadowAdd(
+            PcpAspectConfigurationType config,
+            ObjectDelta<ShadowType> change,
+            ProjectionContextKey projectionContextKey,
+            ModelContext<?> modelContext,
+            Task taskFromModel,
+            OperationResult result) {
         LOGGER.trace("Relevant associations in shadow add delta:");
 
         List<Request> approvalRequestList = new ArrayList<>();
@@ -117,43 +122,48 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         Iterator<ShadowAssociationType> associationIterator = shadowType.getAssociation().iterator();
         while (associationIterator.hasNext()) {
             ShadowAssociationType a = associationIterator.next();
-            AssociationAdditionType itemToApprove = createItemToApprove(a, rsd);
-            if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
+            AssociationAdditionType itemToApprove = createItemToApprove(a, projectionContextKey);
+            if (isAssociationRelevant(config, itemToApprove, projectionContextKey, modelContext, taskFromModel, result)) {
                 approvalRequestList.add(createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result));
                 associationIterator.remove();
-                generateProjectionOidIfNeeded(modelContext, shadowType, rsd);
+                generateProjectionOidIfNeeded(modelContext, shadowType, projectionContextKey);
             }
         }
         return approvalRequestList;
     }
 
-    private void generateProjectionOidIfNeeded(ModelContext<?> modelContext, ShadowType shadow, ResourceShadowDiscriminator rsd) {
+    private void generateProjectionOidIfNeeded(ModelContext<?> modelContext, ShadowType shadow, ProjectionContextKey key) {
         if (shadow.getOid() != null) {
             return;
         }
         String newOid = OidUtil.generateOid();
-        LOGGER.trace("This is ADD operation with no shadow OID for {} provided. Generated new OID to be used: {}", rsd, newOid);
+        LOGGER.trace("This is ADD operation with no shadow OID for {} provided. Generated new OID to be used: {}", key, newOid);
         shadow.setOid(newOid);
-        LensProjectionContext projCtx = ((LensProjectionContext) modelContext.findProjectionContext(rsd));
+        LensProjectionContext projCtx = ((LensProjectionContext) modelContext.findProjectionContextByKeyExact(key));
         if (projCtx == null) {
-            throw new IllegalStateException("No projection context for " + rsd + " could be found");
+            throw new IllegalStateException("No projection context for " + key + " could be found");
         } else if (projCtx.getOid() != null) {
-            throw new IllegalStateException("No projection context for " + rsd + " has already an OID: " + projCtx.getOid());
+            throw new IllegalStateException("No projection context for " + key + " has already an OID: " + projCtx.getOid());
         }
         projCtx.setOid(newOid);
     }
 
-    private AssociationAdditionType createItemToApprove(ShadowAssociationType a, ResourceShadowDiscriminator rsd) {
+    private AssociationAdditionType createItemToApprove(ShadowAssociationType a, ProjectionContextKey rsd) {
         ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(a);
-        AssociationAdditionType aat = new AssociationAdditionType(prismContext);
+        AssociationAdditionType aat = new AssociationAdditionType();
         aat.setAssociation(aCopy);
         aat.setResourceShadowDiscriminator(rsd.toResourceShadowDiscriminatorType());
         return aat;
     }
 
-    private List<Request> getApprovalRequestsFromShadowModify(PcpAspectConfigurationType config, PrismObject<ShadowType> shadowOld,
-                                        ObjectDelta<ShadowType> change, ResourceShadowDiscriminator rsd,
-                                        ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
+    private List<Request> getApprovalRequestsFromShadowModify(
+            PcpAspectConfigurationType config,
+            PrismObject<ShadowType> shadowOld,
+            ObjectDelta<ShadowType> change,
+            ProjectionContextKey key,
+            ModelContext<?> modelContext,
+            Task taskFromModel,
+            OperationResult result) {
         LOGGER.trace("Relevant associations in shadow modify delta:");
 
         List<Request> approvalRequestList = new ArrayList<>();
@@ -170,7 +180,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
                 Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToAdd().iterator();
                 while (valueIterator.hasNext()) {
                     PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
-                    Request req = processAssociationToAdd(config, association, rsd, modelContext, taskFromModel, result);
+                    Request req = processAssociationToAdd(config, association, key, modelContext, taskFromModel, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -185,7 +195,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
                     if (existsEquivalentValue(shadowOld, association)) {
                         continue;
                     }
-                    Request req = processAssociationToAdd(config, association, rsd, modelContext, taskFromModel, result);
+                    Request req = processAssociationToAdd(config, association, key, modelContext, taskFromModel, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -213,11 +223,16 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         return false;
     }
 
-    private Request processAssociationToAdd(PcpAspectConfigurationType config, PrismContainerValue<ShadowAssociationType> associationCval,
-                            ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
+    private Request processAssociationToAdd(
+            PcpAspectConfigurationType config,
+            PrismContainerValue<ShadowAssociationType> associationCval,
+            ProjectionContextKey key,
+            ModelContext<?> modelContext,
+            Task taskFromModel,
+            OperationResult result) {
         ShadowAssociationType association = associationCval.asContainerable();
-        AssociationAdditionType itemToApprove = createItemToApprove(association, rsd);
-        if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
+        AssociationAdditionType itemToApprove = createItemToApprove(association, key);
+        if (isAssociationRelevant(config, itemToApprove, key, modelContext, taskFromModel, result)) {
             return createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result);
         } else {
             return null;
@@ -272,26 +287,30 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     private ObjectTreeDeltas associationAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition)
             throws SchemaException {
         ObjectTreeDeltas changes = new ObjectTreeDeltas(prismContext);
-        // TODO reconsider providing default intent here
-        ResourceShadowDiscriminator shadowDiscriminator =
-                ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator(), true);
-        String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
+        ProjectionContextKey projectionContextKey =
+                ProjectionContextKey.fromBean(addition.getResourceShadowDiscriminator());
+        String projectionOid = modelContext.findProjectionContextByKeyExact(projectionContextKey).getOid();
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())
                 .asObjectDelta(projectionOid);
 
-        changes.addProjectionChange(shadowDiscriminator, objectDelta);
+        changes.addProjectionChange(projectionContextKey, objectDelta);
         return changes;
     }
 
     //endregion
 
-    private boolean isAssociationRelevant(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove,
-            ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task task, OperationResult result) {
+    private boolean isAssociationRelevant(
+            PcpAspectConfigurationType config,
+            AssociationAdditionType itemToApprove,
+            ProjectionContextKey projectionContextKey,
+            ModelContext<?> modelContext,
+            Task task,
+            OperationResult result) {
         LOGGER.trace(" - considering: {}", itemToApprove);
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_ASSOCIATION, itemToApprove.getAssociation(), ShadowAssociationType.class);
-        variables.put(ExpressionConstants.VAR_SHADOW_DISCRIMINATOR, rsd, ResourceShadowDiscriminator.class);
+        variables.put(ExpressionConstants.VAR_SHADOW_DISCRIMINATOR, projectionContextKey, ProjectionContextKey.class);
         boolean applicable = primaryChangeAspectHelper.evaluateApplicabilityCondition(
                 config, modelContext, itemToApprove, variables, this, task, result);
         LOGGER.trace("   - result: applicable = {}", applicable);

@@ -14,7 +14,7 @@ import java.util.function.BooleanSupplier;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -290,7 +290,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return result != null ? result : new GuiObjectDetailsPageType().type(typeQName);
     }
 
-    public <O extends ObjectType> GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowDiscriminator shadowDiscriminator) {
+    public <O extends ObjectType> GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowCoordinates coordinates) {
         if (objectDetails == null) {
             return null;
         }
@@ -302,13 +302,13 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
             if (shadowDetailsPageType.getResourceRef() == null) {
                 continue;
             }
-            if (!shadowDiscriminator.getResourceOid().equals(shadowDetailsPageType.getResourceRef().getOid())) {
+            if (!coordinates.getResourceOid().equals(shadowDetailsPageType.getResourceRef().getOid())) {
                 continue;
             }
-            if (shadowDiscriminator.getKind() != shadowDetailsPageType.getKind()) {
+            if (coordinates.getKind() != shadowDetailsPageType.getKind()) {
                 continue;
             }
-            if (!shadowDiscriminator.getIntent().equals(shadowDetailsPageType.getIntent())) {
+            if (!coordinates.getIntent().equals(shadowDetailsPageType.getIntent())) {
                 continue;
             }
             return shadowDetailsPageType;

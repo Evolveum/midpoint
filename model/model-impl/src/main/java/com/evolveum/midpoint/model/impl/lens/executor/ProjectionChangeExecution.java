@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -93,7 +92,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         OperationResult result = parentResult
                 .subresult(OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName())
                 .addParam("resource", projCtx.getResource())
-                .addArbitraryObjectAsContext("discriminator", projCtx.getResourceShadowDiscriminator())
+                .addArbitraryObjectAsContext("projectionContextKey", projCtx.getKey())
                 .build();
 
         boolean completed = true;
@@ -101,7 +100,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
 
             context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                    projCtx.getResourceShadowDiscriminator(), ENTERING));
+                    projCtx.getKey(), ENTERING));
 
             ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
             scriptExecutor.executeReconciliationScripts(BeforeAfterType.BEFORE, result);
@@ -117,7 +116,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
 
             boolean skipDeltaExecution;
             if (projCtx.isBroken() && !ObjectDelta.isDelete(projectionDelta)) {
-                LOGGER.trace("Ignoring non-delete delta for broken context {}", projCtx.getResourceShadowDiscriminator());
+                LOGGER.trace("Ignoring non-delete delta for broken context {}", projCtx.getKey());
                 skipDeltaExecution = true;
             } else {
                 skipDeltaExecution = ObjectDelta.isEmpty(projectionDelta);
@@ -199,7 +198,7 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         } finally {
             result.computeStatusIfUnknown(); // just to be sure the result is closed
             context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                    projCtx.getResourceShadowDiscriminator(), result));
+                    projCtx.getKey(), result));
 
             LOGGER.trace("Setting completed flag for {} to {}", projCtx.toHumanReadableString(), completed);
             projCtx.setCompleted(completed);

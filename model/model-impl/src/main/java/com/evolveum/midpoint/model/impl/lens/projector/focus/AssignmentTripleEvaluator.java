@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
@@ -30,18 +29,15 @@ import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -165,7 +161,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     private AssignmentType createTaskAssignment(Task fromTask) {
-        AssignmentType taskAssignment = new AssignmentType(beans.prismContext);
+        AssignmentType taskAssignment = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.asReferenceValue().setObject(fromTask.getRawTaskObjectClonedIfNecessary());
         taskAssignment.setTargetRef(targetRef);
@@ -557,8 +553,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 .getValue(assignmentElement.getAssignmentId());
     }
 
-    private void collectToZero(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean forceRecon) {
+    private void collectToZero(
+            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment,
+            boolean forceRecon) {
         if (forceRecon) {
             evaluatedAssignment.setForceRecon(true);
         }
@@ -603,8 +601,16 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         try {
             // Evaluate assignment. This follows to the assignment targets, follows to the inducements,
             // evaluates all the expressions, etc.
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, primaryAssignmentMode,
-                    evaluateOld, source, assignmentPlacementDesc, smartAssignment.getOrigin(), task, subResult);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment =
+                    assignmentEvaluator.evaluate(
+                            assignmentIdi,
+                            primaryAssignmentMode,
+                            evaluateOld,
+                            source,
+                            assignmentPlacementDesc,
+                            smartAssignment.getOrigin(),
+                            task,
+                            subResult);
             subResult.recordSuccess();
             LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
             if (evaluatedAssignment.getTarget() != null) {
@@ -612,10 +618,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
             return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
-                        SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
-            }
+            LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
+                    lazy(() -> SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld))));
             if (ModelExecuteOptions.isForce(context.getOptions())) {
                 subResult.recordHandledError(ex);
             } else {
@@ -626,20 +630,15 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             AssignmentType assignmentBean = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
             LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, prettyPrintLazily(assignmentBean));
             ModelImplUtils.recordFatalError(subResult, ex);
-            String resourceOid = FocusTypeUtil.determineConstructionResource(assignmentBean);
-            if (resourceOid == null) {
-                // This is a role assignment or something like that. Just throw the original exception for now.
-                throw ex;
+            ConstructionType construction = assignmentBean.getConstruction();
+            String resourceOid = ConstructionTypeUtil.getResourceOid(construction);
+            if (resourceOid != null) {
+                context.markMatchingProjectionsBroken(construction, resourceOid);
+                return null;
             }
-            ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
-                    FocusTypeUtil.determineConstructionKind(assignmentBean),
-                    FocusTypeUtil.determineConstructionIntent(assignmentBean),
-                    null, false);
-            LensProjectionContext projCtx = context.findProjectionContext(rad);
-            if (projCtx != null) {
-                projCtx.setBroken();
-            }
-            return null;
+            // This is a role assignment or something like that. Or we cannot get resource OID.
+            // Just throw the original exception for now.
+            throw ex;
         } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException |
                 CommunicationException | RuntimeException | Error e) {
             AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);

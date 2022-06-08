@@ -305,7 +305,11 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         }
 
         if (kind != null) {
-            return resourceSchema.findObjectDefinition(kind, intent);
+            if (intent != null) {
+                return resourceSchema.findObjectDefinition(kind, intent);
+            } else {
+                return resourceSchema.findDefaultDefinitionForKind(kind);
+            }
         } else if (objectclass != null) {
             // This means that kind == null, intent != null (suspicious!)
             return resourceSchema.findDefinitionForObjectClass(objectclass);

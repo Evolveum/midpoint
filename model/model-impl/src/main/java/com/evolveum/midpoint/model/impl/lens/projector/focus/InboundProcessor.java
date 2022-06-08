@@ -17,7 +17,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -63,7 +63,7 @@ public class InboundProcessor implements ProjectorProcessor {
         // It's actually a bit questionable if such cross-components interactions should be treated like this
         // or in some higher-level component. But let's try this approach until something nicer is found.
         contextLoader.updateArchetypePolicy(context, result);
-        contextLoader.updateArchetype(context, task, result);
+        contextLoader.updateArchetype(context, result);
         contextLoader.updateFocusTemplate(context, result);
         context.checkConsistenceIfNeeded();
     }

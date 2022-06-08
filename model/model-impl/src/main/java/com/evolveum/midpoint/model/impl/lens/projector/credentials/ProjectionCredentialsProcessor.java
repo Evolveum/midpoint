@@ -16,8 +16,9 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -134,18 +134,18 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         PrismPropertyDefinition<ProtectedStringType> projPasswordPropertyDefinition = accountDefinition
                 .findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        ResourceShadowDiscriminator rsd = projCtx.getResourceShadowDiscriminator();
+        ProjectionContextKey key = projCtx.getKey();
 
         ResourceObjectDefinition objectDefinition = projCtx.getStructuralObjectDefinition();
         if (objectDefinition == null) {
             LOGGER.trace("No ResourceObjectTypeDefinition, therefore also no password outbound definition,"
-                    + " skipping credentials processing for projection {}", rsd);
+                    + " skipping credentials processing for projection {}", key);
             return;
         }
 
         List<MappingType> outboundMappingBeans = objectDefinition.getPasswordOutbound();
         if (outboundMappingBeans.isEmpty()) {
-            LOGGER.trace("No outbound password mapping for {}, skipping credentials processing", rsd);
+            LOGGER.trace("No outbound password mapping for {}, skipping credentials processing", key);
             return;
         }
 
@@ -155,7 +155,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         if (!projCtx.isDoReconciliation()
                 && !projCtx.isAdd()
                 && !isActivated(outboundMappingBeans, objectDeltaObject.getObjectDelta())) {
-            LOGGER.trace("Outbound password mappings not activated for type {}, skipping credentials processing", rsd);
+            LOGGER.trace("Outbound password mappings not activated for type {}, skipping credentials processing", key);
             return;
         }
 
@@ -189,7 +189,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                 (mappingOutputPath, outputStruct) -> {
                     PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = outputStruct.getOutputTriple();
                     if (outputTriple == null) {
-                        LOGGER.trace("Credentials 'password' expression resulted in null output triple, skipping credentials processing for {}", rsd);
+                        LOGGER.trace("Credentials 'password' expression resulted in null output triple, skipping credentials processing for {}", key);
                         return false;
                     }
 
@@ -518,9 +518,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
     private void checkExistingDeltaSanity(LensProjectionContext projCtx,
             PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
         if (passwordDelta != null && (passwordDelta.isAdd() || passwordDelta.isDelete())) {
-            throw new SchemaException("Password for projection " + projCtx.getResourceShadowDiscriminator()
+            throw new SchemaException("Password for projection " + projCtx.getKey()
                     + " cannot be added or deleted, it can only be replaced");
         }
     }
-
 }

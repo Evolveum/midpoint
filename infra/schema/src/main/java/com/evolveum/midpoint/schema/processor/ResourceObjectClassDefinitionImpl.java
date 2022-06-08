@@ -586,4 +586,14 @@ public class ResourceObjectClassDefinitionImpl
     public String getResourceOid() {
         return null; // TODO remove this
     }
+
+    @Override
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return null;
+    }
+
+    @Override
+    public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
+        return null;
+    }
 }

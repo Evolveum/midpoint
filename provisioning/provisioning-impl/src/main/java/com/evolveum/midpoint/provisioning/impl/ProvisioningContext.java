@@ -380,7 +380,7 @@ public class ProvisioningContext {
     }
 
     public void assertDefinition() throws SchemaException {
-        assertDefinition("Cannot locate object class definition");
+        assertDefinition("Cannot locate object type or class definition");
     }
 
     public String getDesc() {

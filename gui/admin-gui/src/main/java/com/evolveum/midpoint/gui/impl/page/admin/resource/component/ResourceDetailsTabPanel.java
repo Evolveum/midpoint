@@ -420,12 +420,12 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                             "No schema defined in resource. Possible configuration problem?");
                 }
                 if (taskKindValue == null && taskIntentValue == null) {
-                    taskObjectClassDef = schema.findObjectDefinition(ShadowKindType.ACCOUNT, null); // TODO ok?
+                    taskObjectClassDef = schema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT); // TODO ok?
                 }
 
                 if (taskKindValue != null) {
                     if (StringUtils.isEmpty(taskIntentValue)) {
-                        taskObjectClassDef = schema.findObjectDefinition(taskKindValue, null); // TODO ok?
+                        taskObjectClassDef = schema.findDefaultDefinitionForKind(taskKindValue); // TODO ok?
                     } else {
                         taskObjectClassDef = schema.findObjectDefinition(taskKindValue, taskIntentValue);
                     }
