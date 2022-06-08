@@ -8,38 +8,37 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -106,18 +105,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         ObjectDataProvider provider = new ObjectDataProvider(this, searchModel);
 
         List<IColumn> columns = createColumns();
-        TileTablePanel tilesTable = new TileTablePanel(ID_TILES, provider, columns) {
+        TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable = new TileTablePanel<>(ID_TILES, provider, columns) {
 
             @Override
             protected WebMarkupContainer createTableButtonToolbar(String id) {
-                TileTablePanel ttp = this;
-
                 Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
                 fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        addSelectedPerformed(provider, ttp, target);
+                        List<ObjectType> selected = provider.getSelectedData();
+                        addItemsPerformed(target, selected);
                     }
                 });
 
@@ -125,11 +123,45 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        addAllPerformed(target);
+                        addAllItemsPerformed(target);
                     }
                 });
 
                 return fragment;
+            }
+
+            @Override
+            protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
+                // todo improve
+                CatalogTile t = new CatalogTile("fas fa-building", WebComponentUtil.getName(object.getValue()));
+                t.setLogo("fas fa-utensils fa-2x");
+                t.setDescription(object.getValue().getDescription());
+                t.setValue(object);
+
+                return t;
+            }
+
+            @Override
+            protected Component createTile(String id, IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                return new CatalogTilePanel(id, model) {
+
+                    @Override
+                    protected void onAdd(AjaxRequestTarget target) {
+                        SelectableBean<ObjectType> bean = model.getObject().getValue();
+                        addItemsPerformed(target, Arrays.asList(bean.getValue()));
+                    }
+
+                    @Override
+                    protected void onDetails(AjaxRequestTarget target) {
+                        SelectableBean<ObjectType> bean = model.getObject().getValue();
+                        itemDetailsPerformed(target, bean.getValue());
+                    }
+
+                    @Override
+                    protected void onClick(AjaxRequestTarget target) {
+                        // no selection to be done
+                    }
+                };
             }
 
             @Override
@@ -163,30 +195,33 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         });
         columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
         columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
-        columns.add(new LinkColumn(createStringResource("RoleCatalogPanel.details")) {
+
+        columns.add(new AbstractColumn(null) {
 
             @Override
-            protected IModel createLinkModel(IModel rowModel) {
-                return createStringResource("RoleCatalogPanel.details");
-            }
+            public void populateItem(Item item, String id, IModel rowModel) {
+                item.add(new AjaxLink<>(id, createStringResource("RoleCatalogPanel.details")) {
 
-            @Override
-            public void onClick(IModel rowModel) {
-                onDetails(rowModel);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+//                        itemDetailsPerformed(target, );
+                    }
+                });
             }
         });
 
         return columns;
     }
 
-    protected void onDetails(IModel rowModel) {
+    private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
 
     }
 
-    protected void addSelectedPerformed(ObjectDataProvider provider, TileTablePanel tileTable, AjaxRequestTarget target) {
-        List<ObjectType> selected = provider.getSelectedData();
-        new Toast().cssClass("bg-success").title("funky").body("selected: " + selected.size()).show(target);
+    private void addAllItemsPerformed(AjaxRequestTarget target) {
 
+    }
+
+    private void addItemsPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
         RequestAccess requestAccess = getModelObject();
         for (ObjectType object : selected) {
             AssignmentType a = new AssignmentType()
@@ -196,10 +231,23 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
         getPageBase().reloadShoppingCartIcon(target);
         target.add(get(ID_TILES));
-    }
 
-    protected void addAllPerformed(AjaxRequestTarget target) {
+        String msg;
+        if (selected.size() > 1) {
+            msg = getString("RoleCatalogPanel.multipleAdded", selected.size());
+        } else {
+            String name = WebComponentUtil.getName(selected.get(0));
+            msg = getString("RoleCatalogPanel.singleAdded",
+                    Strings.escapeMarkup(name, false, true));
+        }
 
+        new Toast()
+                .cssClass("bg-success m-3")
+                .title(getString("RoleCatalogPanel.itemAdded"))
+                .icon("fas fa-cart-shopping")
+                .autohide(true)
+                .delay(10_000)
+                .body(msg).show(target);
     }
 
     @Override

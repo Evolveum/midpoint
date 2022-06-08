@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.model.intest.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
@@ -24,9 +25,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -224,7 +222,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         displayDumpable("Created account", newAccount);
 
         assertThat(oldAccount.getId())
-                .withFailMessage("Account IDs not changed")
+                .as("oldAccount ID")
                 .isNotEqualTo(newAccount.getId());
 
         displayValue("Old shadow OID", augustusShadowOid);
@@ -305,7 +303,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         account = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTINA_NAME);
 
         assertThat(oldAccount.getId())
-                .withFailMessage("Account IDs not changed")
+                .as("oldAccount ID")
                 .isNotEqualTo(account.getId());
 
         displayValue("Old shadow OID", augustusShadowOid);
@@ -362,72 +360,9 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    private void assertReconAuditModifications(int expectedModifications, String taskOid) {
-        // Check audit
-        displayDumpable("Audit", dummyAuditService);
-
-        List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
-
-        // Record from some other task, skip it
-        auditRecords.removeIf(record -> record.getTaskOid() != null && !record.getTaskOid().equals(taskOid));
-
-        int i = 0;
-        while (i < (auditRecords.size() - 1)) {
-            AuditEventRecord reconStartRecord = auditRecords.get(i);
-            if (reconStartRecord.getEventType() == AuditEventType.EXECUTE_CHANGES_RAW) {
-                i++;
-                continue;
-            }
-            assertNotNull("No reconStartRecord audit record", reconStartRecord);
-            assertEquals("Wrong stage in reconStartRecord audit record: " + reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
-            assertEquals("Wrong type in reconStartRecord audit record: " + reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
-            assertTrue("Unexpected delta in reconStartRecord audit record " + reconStartRecord, reconStartRecord.getDeltas().isEmpty());
-            i++;
-            break;
-        }
-
-        int modifications = 0;
-        for (; i < (auditRecords.size() - 1); i += 2) {
-            AuditEventRecord requestRecord = auditRecords.get(i);
-            assertNotNull("No request audit record (" + i + ")", requestRecord);
-
-            if (requestRecord.getEventStage() == AuditEventStage.EXECUTION && requestRecord.getEventType() == AuditEventType.RECONCILIATION) {
-                // end of audit records;
-                break;
-            }
-
-            assertEquals("Got this instead of request audit record (" + i + "): " + requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
-            // Request audit may or may not have a delta. Usual records will not have a delta. But e.g. disableAccount reactions will have.
-
-            AuditEventRecord executionRecord = auditRecords.get(i + 1);
-            assertNotNull("No execution audit record (" + i + ")", executionRecord);
-            assertEquals("Got this instead of execution audit record (" + i + "): " + executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
-
-            assertThat(executionRecord.getDeltas())
-                    .withFailMessage("Empty deltas in execution audit record " + executionRecord)
-                    .isNotEmpty();
-            modifications++;
-
-            while (i + 2 < auditRecords.size()) {
-                AuditEventRecord nextRecord = auditRecords.get(i + 2);
-                if (nextRecord.getEventStage() == AuditEventStage.EXECUTION && nextRecord.getEventType() == requestRecord.getEventType()) {
-                    // this is an additional EXECUTION record due to changes in clockwork
-                    i++;
-                } else {
-                    break;
-                }
-            }
-        }
-        assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
-
-        AuditEventRecord reconStopRecord = auditRecords.get(i);
-        assertNotNull("No reconStopRecord audit record", reconStopRecord);
-        assertEquals("Wrong stage in reconStopRecord audit record: " + reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
-        assertEquals("Wrong type in reconStopRecord audit record: " + reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
-        assertTrue("Unexpected delta in reconStopRecord audit record " + reconStopRecord, reconStopRecord.getDeltas().isEmpty());
-    }
-
-    private void assertImportedUserByOid(String userOid, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertImportedUserByOid(String userOid, String... resourceOids)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(userOid);
         assertNotNull("No user " + userOid, user);
         assertImportedUser(user, resourceOids);

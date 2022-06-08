@@ -17,10 +17,12 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import java.io.Serializable;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CatalogTilePanel extends BasePanel<CatalogTile> {
+public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogTile<T>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,7 +33,7 @@ public class CatalogTilePanel extends BasePanel<CatalogTile> {
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
 
-    public CatalogTilePanel(String id, IModel<CatalogTile> model) {
+    public CatalogTilePanel(String id, IModel<CatalogTile<T>> model) {
         super(id, model);
 
         initLayout();

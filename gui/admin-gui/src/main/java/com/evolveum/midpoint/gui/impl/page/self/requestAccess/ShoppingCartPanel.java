@@ -65,7 +65,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
     private void initLayout() {
         List<IColumn> columns = createColumns();
-        ISortableDataProvider provider = new ListDataProvider(this, () -> List.of(""));
+
+        ISortableDataProvider provider = new ListDataProvider(this, () -> getSession().getSessionStorage().getRequestAccess().getShoppingCartAssignments());
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
 
             @Override
@@ -98,13 +99,13 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 //                return null;
 //            }
 //        });
-        columns.add(new AbstractColumn(createStringResource("Access name")) {
+        columns.add(new AbstractColumn(createStringResource("ShoppingCartPanel.accessName")) {
             @Override
             public void populateItem(Item item, String id, IModel iModel) {
                 item.add(new Label(id, "asdf"));
             }
         });
-        columns.add(new AbstractColumn(createStringResource("Selected users")) {
+        columns.add(new AbstractColumn(createStringResource("ShoppingCartPanel.selectedUsers")) {
             @Override
             public void populateItem(Item item, String id, IModel model) {
                 item.add(new Label(id, "zxcv"));

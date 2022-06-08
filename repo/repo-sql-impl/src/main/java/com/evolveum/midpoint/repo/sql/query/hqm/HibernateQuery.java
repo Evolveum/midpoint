@@ -285,7 +285,7 @@ public class HibernateQuery {
     }
 
     public Condition createExists(String subqueryText, String linkingCondition) {
-        return new ExistsCondition(this, subqueryText, linkingCondition);
+        return new InlineExistsCondition(this, subqueryText, linkingCondition);
     }
 
     public Condition createCompareXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {

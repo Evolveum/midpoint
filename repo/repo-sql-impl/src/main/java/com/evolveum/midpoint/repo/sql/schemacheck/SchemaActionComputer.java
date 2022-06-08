@@ -279,17 +279,12 @@ class SchemaActionComputer {
 
     private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {
         return getDatabaseType().name().toLowerCase()
-                + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
+                + "-upgrade-" + from + "-" + to + ".sql";
     }
 
     private String determineCreateScriptFileName() {
         return getDatabaseType().name().toLowerCase()
-                + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + getVariantSuffix() + ".sql";
-    }
-
-    private String getVariantSuffix() {
-        String variant = repositoryConfiguration.getSchemaVariant();
-        return variant != null ? "-" + variant : "";
+                + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + ".sql";
     }
 
     @NotNull
