@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -118,7 +119,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
                     ajaxRequestTarget.add(feedbackMessage);
                     return;
                 }
-                saveCustomQuery();
+                saveCustomQuery(ajaxRequestTarget);
                 getPageBase().hideMainPopup(ajaxRequestTarget);
             }
         };
@@ -135,7 +136,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         buttonsPanel.add(cancelButton);
     }
 
-    private void saveCustomQuery() {
+    private void saveCustomQuery(AjaxRequestTarget ajaxRequestTarget) {
         Search<C> search = getModelObject();
         AvailableFilterType availableFilter = new AvailableFilterType();
         availableFilter.setDisplay(new DisplayType().label(queryNameModel.getObject()));
@@ -158,7 +159,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
                 availableFilter.getSearchItem().add(oidtSearchItem);
             }
         }
-        saveSearchItemToAdminConfig(availableFilter);
+        saveSearchItemToAdminConfig(availableFilter, ajaxRequestTarget);
     }
 
     private List<SearchItemType> getAvailableFilterSearchItems(Class<C> typeClass, List<AbstractSearchItemWrapper> items, SearchBoxModeType mode) {
@@ -227,17 +228,67 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         return null;
     }
 
-    private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter) {
+    private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter, AjaxRequestTarget ajaxRequestTarget) {
         FocusType principalFocus = getPageBase().getPrincipalFocus();
-        boolean newObjectListView = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false) == null;
-        GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, true);
-        if (view.getIdentifier() == null) {
-            view.setIdentifier(defaultCollectionViewIdentifier);
+//        boolean newObjectListView = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false) == null;
+//        GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false);
+
+        boolean viewExists = true;
+        List<ItemName> path = new ArrayList<>();
+        Object valueToAdd = null;
+        if (!(principalFocus instanceof UserType)) {
+            return;
         }
-        SearchBoxConfigurationType searchConfig = view.getSearchBoxConfiguration();
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            viewExists = false;
+            adminGui = new AdminGuiConfigurationType();
+            path.add(UserType.F_ADMIN_GUI_CONFIGURATION);
+            valueToAdd = adminGui;
+        }
+
+        GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
+        if (views == null) {
+            viewExists = false;
+            views = new GuiObjectListViewsType();
+            adminGui.objectCollectionViews(views);
+            if (valueToAdd == null) {
+                valueToAdd = views;
+                path.add(AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS);
+            }
+        }
+
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+        String viewName = collectionViewParameter == null || collectionViewParameter.isNull() ? defaultCollectionViewIdentifier
+                : collectionViewParameter.toString();
+        GuiObjectListViewType objectListView = null;
+        for (GuiObjectListViewType listView : views.getObjectCollectionView()) {
+            if (viewName.equals(listView.getIdentifier())) {
+                objectListView = listView;
+            }
+        }
+        if (objectListView == null) {
+            viewExists = false;
+            objectListView = new GuiObjectListViewType();
+            objectListView.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
+            views.getObjectCollectionView().add(objectListView);
+            if (valueToAdd == null) {
+                valueToAdd = objectListView;
+                path.add(GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
+            }
+        }
+        if (objectListView.getIdentifier() == null) {
+            objectListView.setIdentifier(defaultCollectionViewIdentifier);
+        }
+        SearchBoxConfigurationType searchConfig = objectListView.getSearchBoxConfiguration();
         if (searchConfig == null) {
             searchConfig = new SearchBoxConfigurationType();
-            view.searchBoxConfiguration(searchConfig);
+            objectListView.searchBoxConfiguration(searchConfig);
+            if (valueToAdd == null) {
+                valueToAdd = availableFilter;
+                path.add(GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION);
+                path.add(SearchBoxConfigurationType.F_AVAILABLE_FILTER);
+            }
         }
         if (searchConfig.getAvailableFilter() == null) {
             searchConfig.beginAvailableFilter();
@@ -245,27 +296,29 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
 
         OperationResult result = new OperationResult("save search to user");
         try {
-            Object[] path;
             ObjectDelta<UserType> userDelta = null;
-            if (newObjectListView) {
+            if (!viewExists) {
                 searchConfig.getAvailableFilter().add(availableFilter);
-                path = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
-                        GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW};
                 userDelta = getPrismContext().deltaFor(UserType.class)
-                        .item(path)
-                        .add(view).asObjectDelta(principalFocus.getOid());
+                        .item(path.toArray(ItemName[]::new))
+                        .add(valueToAdd).asObjectDelta(principalFocus.getOid());
             } else {
-                path = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
-                        GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW, view.getId(), GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION,
+                Object[] viewPath = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
+                        GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW, objectListView.getId(), GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION,
                         SearchBoxConfigurationType.F_AVAILABLE_FILTER};
                 userDelta = getPrismContext().deltaFor(UserType.class)
-                        .item(path)
+                        .item(viewPath)
                         .add(availableFilter).asObjectDelta(principalFocus.getOid());
             }
             WebModelServiceUtils.save(userDelta, result, getPageBase().createSimpleTask("task"), getPageBase());
         } catch (Exception e) {
             LOGGER.error("Unable to save a filter to user, ", e.getLocalizedMessage());
+            error("Unable to save a filter to user, " + e.getLocalizedMessage());
+            ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+            return;
         }
+        getPageBase().showResult(result);
+        ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
     }
 
       @Override
