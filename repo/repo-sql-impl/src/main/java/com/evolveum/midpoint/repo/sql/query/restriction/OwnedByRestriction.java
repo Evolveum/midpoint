@@ -14,16 +14,14 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OwnedByFilter;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.EntityReference;
-import com.evolveum.midpoint.repo.sql.query.hqm.GenericProjectionElement;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query.hqm.condition.ExistsCondition;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -113,8 +111,7 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
             OwnedByFilter filter,
             JpaEntityDefinition baseEntityDefinition,
             Class<? extends Containerable> ownerType) {
-        // We don't provide parent, not relevant here; it is not harmful here either, but
-        // see interpretFilter() where it would be - so we just keep it consistently null.
+        // We don't provide parent, not relevant here; and can even confuse inner filters.
         super(context, filter, baseEntityDefinition, null);
 
         this.ownerType = ownerType;
@@ -123,58 +120,35 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
     @Override
     public Condition interpret() throws QueryException {
         InterpretationContext subcontext = context.createSubcontext(ownerType);
-        HqlEntityInstance ownedEntity = getBaseHqlEntity();
-        HibernateQuery subquery = subcontext.getHibernateQuery();
-        EntityReference subqueryEntity = subquery.getPrimaryEntity();
+        HqlEntityInstance ownedEntity = getBaseHqlEntity(); // owned entity = parent query
 
-        subquery.addProjectionElement(new GenericProjectionElement("1")); // select 1
+        ExistsCondition existsCondition = new ExistsCondition(subcontext);
         if (ownedEntity.getJpaDefinition().getJpaClass().equals(RAccessCertificationWorkItem.class)) {
             // Currently, the generic repo does not support AccCertWI owned by AccCert directly.
             // Subquery here is for RAccessCertificationCase, both id and oid must match.
-            subquery.addCondition(subquery.createCompareXY(
-                    subqueryEntity.getAlias() + ".ownerOid", ownedEntity.getHqlPath() + ".ownerOwnerOid", "=", false));
-            subquery.addCondition(subquery.createCompareXY(
-                    subqueryEntity.getAlias() + ".id", ownedEntity.getHqlPath() + ".ownerId", "=", false));
+            existsCondition.addCorrelationCondition("ownerOid", ownedEntity.getHqlPath() + ".ownerOwnerOid");
+            existsCondition.addCorrelationCondition("id", ownedEntity.getHqlPath() + ".ownerId");
         } else {
-            subquery.addCondition(subquery.createCompareXY(
-                    subqueryEntity.getAlias() + ".oid", ownedEntity.getHqlPath() + ".ownerOid", "=", false));
+            existsCondition.addCorrelationCondition("oid", ownedEntity.getHqlPath() + ".ownerOid");
         }
 
         // Consistency of path and type is checked before (see static factory method above).
         if (AbstractRoleType.F_INDUCEMENT.equals(filter.getPath())) {
-            addAssignmentVsInducementCondition(subquery, RAssignmentOwner.ABSTRACT_ROLE);
+            addAssignmentVsInducementCondition(subcontext, RAssignmentOwner.ABSTRACT_ROLE);
         } else if (AssignmentHolderType.F_ASSIGNMENT.equals(filter.getPath())) {
-            addAssignmentVsInducementCondition(subquery, RAssignmentOwner.FOCUS);
+            addAssignmentVsInducementCondition(subcontext, RAssignmentOwner.FOCUS);
         }
 
-        ObjectFilter innerFilter = filter.getFilter();
-        if (innerFilter != null) {
-            subquery.addCondition(
-                    // Don't provide parent, it would only confuse filter evaluation.
-                    subcontext.getInterpreter().interpretFilter(subcontext, filter.getFilter(), null));
-        }
+        existsCondition.interpretFilter(filter.getFilter());
 
-        // TODO introduce new ExistsCondition with subquery
-        return new Condition(subquery) {
-            @Override
-            public void dumpToHql(StringBuilder sb, int indent) {
-                HibernateQuery.indent(sb, indent);
-                sb.append("exists (\n");
-                hibernateQuery.dumpToHql(sb, indent + 1, false);
-                sb.append('\n');
-                HibernateQuery.indent(sb, indent);
-                sb.append(')');
-
-                System.out.println("sb = " + sb); // TODO out
-            }
-        };
+        return existsCondition;
     }
 
-    private void addAssignmentVsInducementCondition(HibernateQuery subquery, RAssignmentOwner discriminator) {
-        HibernateQuery query = context.getHibernateQuery();
+    private void addAssignmentVsInducementCondition(InterpretationContext subcontext, RAssignmentOwner discriminator) {
+        HibernateQuery subquery = subcontext.getHibernateQuery();
         // We're creating condition for the subquery, but limiting by the outer entity attribute.
         // Adding this directly to the outer query would "work" only if no other filters were combined (e.g. OR other ownedBy).
         subquery.addCondition(subquery.createSimpleComparisonCondition(
-                query.getPrimaryEntity().getAlias() + ".assignmentOwner", discriminator, "="));
+                getBaseHqlEntity().getHqlPath() + ".assignmentOwner", discriminator, "="));
     }
 }
