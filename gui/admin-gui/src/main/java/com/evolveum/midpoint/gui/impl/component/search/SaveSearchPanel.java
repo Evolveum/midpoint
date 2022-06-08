@@ -231,6 +231,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter, AjaxRequestTarget ajaxRequestTarget) {
         FocusType principalFocus = getPageBase().getPrincipalFocus();
         boolean viewExists = true;
+        boolean addItemToPath = true;
         List<ItemName> path = new ArrayList<>();
         Object valueToAdd = null;
         if (!(principalFocus instanceof UserType)) {
@@ -240,19 +241,24 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         if (adminGui == null) {
             viewExists = false;
             adminGui = new AdminGuiConfigurationType();
-            path.add(UserType.F_ADMIN_GUI_CONFIGURATION);
             valueToAdd = adminGui;
+            addItemToPath = false;
         }
+        path.add(UserType.F_ADMIN_GUI_CONFIGURATION);
 
         GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
+        if (addItemToPath) {
+            path.add(AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS);
+        }
         if (views == null) {
             viewExists = false;
             views = new GuiObjectListViewsType();
-            adminGui.objectCollectionViews(views);
-            if (valueToAdd == null) {
+            if (valueToAdd != null) {
+                adminGui.objectCollectionViews(views);
+            } else {
                 valueToAdd = views;
-                path.add(AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS);
             }
+            addItemToPath = false;
         }
 
         StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
@@ -264,27 +270,34 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
                 objectListView = listView;
             }
         }
+        if (addItemToPath) {
+            path.add(GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
+        }
         if (objectListView == null) {
             viewExists = false;
             objectListView = new GuiObjectListViewType();
             objectListView.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-            views.getObjectCollectionView().add(objectListView);
-            if (valueToAdd == null) {
+            if (valueToAdd != null) {
+                views.getObjectCollectionView().add(objectListView);
+            } else {
                 valueToAdd = objectListView;
-                path.add(GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
             }
+            addItemToPath = false;
         }
         if (objectListView.getIdentifier() == null) {
             objectListView.setIdentifier(defaultCollectionViewIdentifier);
         }
         SearchBoxConfigurationType searchConfig = objectListView.getSearchBoxConfiguration();
+        if (addItemToPath) {
+            path.add(GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION);
+            path.add(SearchBoxConfigurationType.F_AVAILABLE_FILTER);
+        }
         if (searchConfig == null) {
             searchConfig = new SearchBoxConfigurationType();
-            objectListView.searchBoxConfiguration(searchConfig);
-            if (valueToAdd == null) {
+            if (valueToAdd != null) {
+                objectListView.setSearchBoxConfiguration(searchConfig);
+            } else {
                 valueToAdd = availableFilter;
-                path.add(GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION);
-                path.add(SearchBoxConfigurationType.F_AVAILABLE_FILTER);
             }
         }
         if (searchConfig.getAvailableFilter() == null) {
@@ -314,6 +327,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
             return;
         }
+        result.recomputeStatus();
         getPageBase().showResult(result);
         ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
     }
