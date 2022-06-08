@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReindex;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
@@ -26,7 +27,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1177,10 +1181,11 @@ public class SearchTest extends BaseSQLRepoTest {
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .item(AssignmentType.F_TARGET_REF).ref(null, OrgType.COMPLEX_TYPE)
                 .and()
-                .item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .item(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
                 .eq("F0085")
-                // skipping owner this time, although this is fishy as it is not currently in the returned values
-                .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                // Skipping owner this time, although this is fishy as it is not currently in the returned values,
+                // which means we will get assignments but we will not know which object is their owner.
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
                 .build();
         OperationResult result = new OperationResult("search");
 
@@ -1352,6 +1357,38 @@ public class SearchTest extends BaseSQLRepoTest {
                 .hasCauseInstanceOf(QueryException.class)
                 .hasMessageStartingWith("OwnedBy filter is not supported for type 'ObjectType'");
     }
+
+    @Test
+    public void test940AssignmentsWithSpecifiedTargetUsingExists() throws SchemaException {
+        given("query for assignments with target object with specified name (using exists)");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .exists(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
+                .item(F_NAME).eq("F0085")
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignments from the specified role are returned (not inducements)");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+    // TODO new .ref() filter with inner filter
+
+    /* TODO optionally referencedBy, if necessary
+                searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                            .ownedBy(UserType.class)
+                            .id(user3Oid),
+                    roleOid);
+
+     */
 
     /**
      * See MID-5474 (just a quick attempt to replicate)

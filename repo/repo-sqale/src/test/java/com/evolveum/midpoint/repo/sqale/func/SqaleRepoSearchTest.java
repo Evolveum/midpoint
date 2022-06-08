@@ -82,7 +82,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String accCertCampaign1Oid;
     private String connector1Oid;
     private String connector2Oid;
-    private String roleOid; // role for assignment-vs-inducement tests
+    private String roleAvIOid; // role for assignment-vs-inducement tests
 
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
@@ -96,13 +96,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        roleOid = repositoryService.addObject(
+        roleAvIOid = repositoryService.addObject(
                 new RoleType()
                         .name("role-ass-vs-ind")
                         .assignment(new AssignmentType()
                                 .lifecycleState("role-ass-lc"))
                         .inducement(new AssignmentType()
                                 .lifecycleState("role-ind-lc"))
+                        .asPrismObject(), null, result);
+
+        String roleOtherOid = repositoryService.addObject(
+                new RoleType().name("role-other")
                         .asPrismObject(), null, result);
 
         // org structure
@@ -211,6 +215,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType()
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
+                        // similar target ref like for user3, but to different role
+                        .targetRef(roleOtherOid, RoleType.COMPLEX_TYPE, relation2)
                         .activation(new ActivationType()
                                 .validFrom("2021-03-01T00:00:00Z")
                                 .validTo("2022-07-04T00:00:00Z"))
@@ -317,7 +323,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass2")
-                        .targetRef(roleOid, RoleType.COMPLEX_TYPE, relation2)
+                        .targetRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
                         .metadata(new MetadataType()
                                 .creatorRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
@@ -667,7 +673,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test160SearchRoleByAssignment() throws SchemaException {
         searchObjectTest("having assignment with specified lifecycle", RoleType.class,
                 f -> f.item(RoleType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"),
-                roleOid);
+                roleAvIOid);
     }
 
     @Test
@@ -682,7 +688,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test162SearchRoleByInducementWithRightName() throws SchemaException {
         searchObjectTest("having inducement with specified lifecycle", RoleType.class,
                 f -> f.item(RoleType.F_INDUCEMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ind-lc"),
-                roleOid);
+                roleAvIOid);
     }
 
     @Test
@@ -2478,7 +2484,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
             searchObjectTest("Org by User", RoleType.class,
                     f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                             .id(user3Oid),
-                    roleOid);
+                    roleAvIOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2493,7 +2499,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                     f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
                             .ownedBy(UserType.class)
                             .id(user3Oid),
-                    roleOid);
+                    roleAvIOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
