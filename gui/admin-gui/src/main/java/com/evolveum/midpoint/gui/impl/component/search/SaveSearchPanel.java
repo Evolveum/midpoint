@@ -230,9 +230,6 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
 
     private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter, AjaxRequestTarget ajaxRequestTarget) {
         FocusType principalFocus = getPageBase().getPrincipalFocus();
-//        boolean newObjectListView = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false) == null;
-//        GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false);
-
         boolean viewExists = true;
         List<ItemName> path = new ArrayList<>();
         Object valueToAdd = null;
