@@ -71,18 +71,16 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
             }
             if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
                 PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, task.getResult());
-                if (org != null) {
-                    if (FocusTypeUtil.determineSubTypes(org).contains("access")) {
-                        resultList.add(ass);
-                    }
+                if (org != null && FocusTypeUtil.determineSubTypes(org).contains("access")) {
+                    resultList.add(ass);
                 }
             }
-
         }
 
         return resultList;
     }
 
+    @Override
     protected ObjectFilter getSubtypeFilter(){
         return getPageBase().getPrismContext().queryFor(OrgType.class)
                 .block()
