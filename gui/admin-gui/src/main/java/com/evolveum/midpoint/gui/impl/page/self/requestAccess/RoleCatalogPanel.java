@@ -69,9 +69,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     @Override
     public IModel<List<Badge>> getTitleBadges() {
         return Model.ofList(List.of(
-                new Badge("badge badge-info", "Requesting for 4 users"),
-                new Badge("badge badge-danger", "1 fatal conflict"),
-                new Badge("badge badge-danger", "fa fa-exclamation-triangle", "1 fatal conflict")));
+                new Badge("badge badge-info", "Requesting for 4 users")));
     }
 
     @Override
@@ -252,6 +250,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleEnableBehaviour(() -> !getPageBase().getSessionStorage().getRequestAccess().getShoppingCartAssignments().isEmpty());
+        return new VisibleEnableBehaviour(() -> !getModelObject().getShoppingCartAssignments().isEmpty());
     }
 }
