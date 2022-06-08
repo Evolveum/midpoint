@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -20,7 +21,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -65,7 +68,7 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
     }
 
     @Override
-    protected Component createContentPanel(String id) {
+    protected WebMarkupContainer createContentPanel(String id) {
         VerticalFormPanel form = new VerticalFormPanel(id, () -> getConfigurationValue()) {
             @Override
             protected String getIcon() {
@@ -97,5 +100,12 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
             LOGGER.error("Couldn't find value of resource configuration container", e);
             return null;
         }
+    }
+
+    @Override
+    protected void updateFeedbackPanels(AjaxRequestTarget target) {
+        getContent().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
+            ((VerticalFormPrismPropertyValuePanel)component).updateFeedbackPanel(target);
+        });
     }
 }

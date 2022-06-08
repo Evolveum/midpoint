@@ -75,7 +75,6 @@ public class WizardPanel extends BasePanel {
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
         header.setOutputMarkupId(true);
-        header.add(getVisibilityOfStepsHeader());
         add(header);
 
         ListView<IModel<String>> steps = new ListView<>(ID_STEPS, () -> wizardModel.getSteps().stream().map(s -> s.getTitle()).collect(Collectors.toList())) {
@@ -147,11 +146,6 @@ public class WizardPanel extends BasePanel {
         add(contentHeader);
 
         addOrReplace(new WebMarkupContainer(ID_CONTENT_BODY));
-    }
-
-    @NotNull
-    protected VisibleEnableBehaviour getVisibilityOfStepsHeader() {
-        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     public WizardStep getCurrentPanel() {

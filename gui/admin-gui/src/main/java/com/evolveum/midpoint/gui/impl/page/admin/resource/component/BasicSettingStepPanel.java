@@ -8,15 +8,17 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -51,7 +53,7 @@ public class BasicSettingStepPanel extends BasicWizardPanel {
     }
 
     @Override
-    protected Component createContentPanel(String id) {
+    protected WebMarkupContainer createContentPanel(String id) {
         VerticalFormPanel form = new VerticalFormPanel(id, () -> this.resourceModel.getObjectWrapper().getValue()) {
             @Override
             protected String getIcon() {
@@ -74,5 +76,12 @@ public class BasicSettingStepPanel extends BasicWizardPanel {
         };
         form.add(AttributeAppender.append("class", "col-8"));
         return form;
+    }
+
+    @Override
+    protected void updateFeedbackPanels(AjaxRequestTarget target) {
+        getContent().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
+            ((VerticalFormPrismPropertyValuePanel)component).updateFeedbackPanel(target);
+        });
     }
 }

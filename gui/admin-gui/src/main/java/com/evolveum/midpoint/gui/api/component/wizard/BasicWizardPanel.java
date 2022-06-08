@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -44,7 +43,9 @@ public class BasicWizardPanel extends WizardStepPanel {
         add(new Label(ID_TEXT, getTextModel()));
         add(new Label(ID_SUBTEXT, getSubTextModel()));
 
-        add(createContentPanel(ID_CONTENT));
+        Component contentPanel = createContentPanel(ID_CONTENT);
+        contentPanel.setOutputMarkupId(true);
+        add(contentPanel);
 
         AjaxLink back = new AjaxLink<>(ID_BACK) {
 
@@ -58,16 +59,22 @@ public class BasicWizardPanel extends WizardStepPanel {
         back.setOutputMarkupPlaceholderTag(true);
         add(back);
 
-        AjaxLink next = new AjaxLink<>(ID_NEXT) {
+        AjaxSubmitButton next = new AjaxSubmitButton(ID_NEXT) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public void onSubmit(AjaxRequestTarget target) {
                 onNextPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                updateFeedbackPanels(target);
             }
         };
         next.add(getNextBehaviour());
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
+        next.setDefaultFormProcessing(true);
         add(next);
 
         Label nextLabel = new Label(ID_NEXT_LABEL, createNextStepLabel());
@@ -75,7 +82,10 @@ public class BasicWizardPanel extends WizardStepPanel {
 
     }
 
-    protected Component createContentPanel(String id) {
+    protected void updateFeedbackPanels(AjaxRequestTarget target) {
+    }
+
+    protected WebMarkupContainer createContentPanel(String id) {
         return new WebMarkupContainer(id);
     }
 
@@ -100,18 +110,30 @@ public class BasicWizardPanel extends WizardStepPanel {
         target.add(getParent());
     }
 
-    protected void onBackPerformed(AjaxRequestTarget target) {
+    private void onBackPerformed(AjaxRequestTarget target) {
         int index = getWizard().getActiveStepIndex();
         if (index > 0) {
             getWizard().previous();
             target.add(getParent());
             return;
         }
+        onBackBeforeWizardPerformed(target);
+    }
+
+    protected void onBackBeforeWizardPerformed(AjaxRequestTarget target) {
         getPageBase().redirectBack();
     }
 
     @Override
     public VisibleEnableBehaviour getHeaderBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    protected WebMarkupContainer getContent() {
+        return (WebMarkupContainer) get(ID_CONTENT);
+    }
+
+    protected AjaxSubmitButton getNextButton(){
+        return (AjaxSubmitButton) get(ID_NEXT);
     }
 }

@@ -12,25 +12,24 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.BasicSettingStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ConfigurationStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.CreateResourceTemplatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.DiscoveryStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTemplateStepPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -41,8 +40,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
-
-import org.jetbrains.annotations.NotNull;
 
 @PageDescriptor(
         urls = {
@@ -61,9 +58,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private static final String ID_WIZARD_VIEW = "wizardView";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
-    private static final String ID_SELECTION = "selection";
-    private static final String ID_BASIC_SETTINGS = "basicSettings";
-    private static final String ID_CONFIGURATION = "configuration";
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -74,28 +68,26 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     @Override
-    protected void initLayout() {
-        if (isAdd()) {
-            Fragment fragment;
-            if (isApplicableTemplate()) {
-                fragment = createTemplateFragment();
-            } else {
-                fragment = createWizardFragment();
-            }
-            add(fragment);
-        } else {
-            super.initLayout();
-        }
-    }
-
-    @Override
     public Class<ResourceType> getType() {
         return ResourceType.class;
     }
 
-    @Override
-    protected Fragment createFragmentAfterChoseTemplate() {
-        return createWizardFragment();
+    protected boolean isApplicableTemplate() {
+        return true;
+    }
+
+    protected WebMarkupContainer createTemplatePanel(String id) {
+        return new CreateResourceTemplatePanel(id) {
+
+            @Override
+            protected void onTemplateChosePerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target) {
+                reloadObjectDetailsModel(newObject);
+                Fragment fragment = createWizardFragment();
+                fragment.setOutputMarkupId(true);
+                PageResource.this.replace(fragment);
+                target.add(fragment);
+            }
+        };
     }
 
     private Fragment createWizardFragment() {
@@ -105,12 +97,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             protected void initFragmentLayout() {
                 Form mainForm = new Form(ID_MAIN_FORM);
                 add(mainForm);
-                WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(PageResource.this.createSteps())){
-                    @Override
-                    protected @NotNull VisibleEnableBehaviour getVisibilityOfStepsHeader() {
-                        return new VisibleEnableBehaviour(() -> getWizardModel().getActiveStepIndex() > 0);
-                    }
-                };
+                WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(PageResource.this.createSteps()));
                 wizard.setOutputMarkupId(true);
                 mainForm.add(wizard);
             }
@@ -118,25 +105,21 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     private List<WizardStep> createSteps() {
-
-        ResourceTemplateStepPanel selection = new ResourceTemplateStepPanel(getObjectDetailsModels()) {
+        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(getObjectDetailsModels()){
             @Override
-            public PageBase getPageBase() {
-                return PageResource.this;
+            protected void onBackBeforeWizardPerformed(AjaxRequestTarget target) {
+                Fragment fragment = createTemplateFragment();
+                fragment.setOutputMarkupId(true);
+                PageResource.this.replace(fragment);
+                target.add(fragment);
             }
         };
-
-        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(getObjectDetailsModels());
 
         ConfigurationStepPanel configuration = new ConfigurationStepPanel(getObjectDetailsModels());
 
         DiscoveryStepPanel discover = new DiscoveryStepPanel(getObjectDetailsModels());
 
-        return List.of(selection, basicSettings, configuration, discover);
-    }
-
-    private WizardPanel getWizardPanel() {
-        return (WizardPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_WIZARD));
+        return List.of(basicSettings, configuration, discover);
     }
 
     @Override

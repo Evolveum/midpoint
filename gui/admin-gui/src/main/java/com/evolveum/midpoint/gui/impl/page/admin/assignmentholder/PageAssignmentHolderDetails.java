@@ -91,12 +91,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         }
 
         protected void initTemplateLayout() {
-            add(createTemplatePanel());
+            add(createTemplatePanel(ID_TEMPLATE));
         }
     }
 
-    private WebMarkupContainer createTemplatePanel() {
-        return new CreateTemplatePanel<>(ID_TEMPLATE) {
+    protected WebMarkupContainer createTemplatePanel(String id) {
+        return new CreateTemplatePanel<>(id) {
 
             @Override
             protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
@@ -125,16 +125,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 }
 
                 reloadObjectDetailsModel(assignmentHolder);
-                Fragment fragment = createFragmentAfterChoseTemplate();
+                Fragment fragment = createDetailsFragment();
                 fragment.setOutputMarkupId(true);
                 PageAssignmentHolderDetails.this.replace(fragment);
                 target.add(fragment);
             }
         };
-    }
-
-    protected Fragment createFragmentAfterChoseTemplate() {
-        return createDetailsFragment();
     }
 
     protected List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionViews) {

@@ -10,9 +10,13 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,6 +38,8 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     private static final String ID_PROPERTIES_CONTAINER = "propertiesContainer";
     private static final String ID_PROPERTIES = "properties";
     private static final String ID_PROPERTY = "property";
+    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
 
 
     private LoadableDetachableModel<List<ItemWrapper<?, ?>>> propertiesModel;
@@ -77,12 +83,24 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         propertiesContainer.setOutputMarkupId(true);
         add(propertiesContainer);
 
+
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        propertiesContainer.add(feedbackContainer);
+
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
+
         ListView<ItemWrapper<?, ?>> properties = new ListView<>(ID_PROPERTIES, propertiesModel) {
             @Override
             protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
                 ItemPanel propertyPanel;
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                         .visibilityHandler(w -> checkVisibility(item.getModelObject()))
+                        .mandatoryHandler(W -> checkMandatory(item.getModelObject()))
                         .build();
                 if (item.getModelObject() instanceof PrismPropertyWrapper) {
                     propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
@@ -101,6 +119,13 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         propertiesContainer.add(properties);
     }
 
+    private boolean checkMandatory(ItemWrapper itemWrapper) {
+        if(itemWrapper.getItemName().equals(ResourceType.F_NAME)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
+    }
+
     protected IModel<?> getTitleModel() {
         return getPageBase().createStringResource(getModelObject().getDisplayName());
     }
@@ -111,5 +136,9 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
 
     protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
         return ItemVisibility.AUTO;
+    }
+
+    public WebMarkupContainer getFeedbackPanel() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 }
