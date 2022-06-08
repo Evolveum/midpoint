@@ -5,10 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-def verbose = 0
-try {
-    verbose = Integer.parseInt(params.VERBOSE ?: '0')
-} catch (Exception e) { /* ignored */ }
+def verbose = params.VERBOSE ?: '0'
 
 podTemplate(
         activeDeadlineSeconds: 21600, // 6h total build limit
@@ -25,19 +22,19 @@ podTemplate(
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
                 containerTemplate(name: 'maven',
-                        image: "${params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11'}",
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-11',
                         runAsUser: '0',
                         ttyEnabled: true,
                         command: 'cat',
-                        resourceRequestCpu: '4',
-                        resourceLimitCpu: '4',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
         stage("checkout") {
-            git branch: "${params.BRANCH ?: 'master'}",
+            git branch: params.BRANCH ?: 'master',
                     url: 'https://github.com/Evolveum/midpoint.git'
         }
         stage("build") {

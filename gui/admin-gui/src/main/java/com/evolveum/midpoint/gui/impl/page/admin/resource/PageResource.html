@@ -8,7 +8,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <wicket:child />
+    <wicket:fragment wicket:id="wizardView">
+        <form wicket:id="mainForm">
+            <div wicket:id="wizard"/>
+        </form>
+    </wicket:fragment>
+    <wicket:child/>
 </wicket:extend>
 </body>
 </html>

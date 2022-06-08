@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JpaAnyReferenceDefinition
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaReferenceDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.OrCondition;
@@ -59,7 +59,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         String hqlPath = hqlDataInstance.getHqlPath();
         LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
 
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
 
         List<PrismReferenceValue> values = filter.getValues();
         if (CollectionUtils.isEmpty(values)) {
@@ -117,7 +117,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
     }
 
-    private Condition createRefCondition(RootHibernateQuery hibernateQuery,
+    private Condition createRefCondition(HibernateQuery hibernateQuery,
             Collection<String> oids, QName relation, QName targetType) {
         String hqlPath = hqlDataInstance.getHqlPath();
 
@@ -162,7 +162,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
     }
 
-    private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
+    private Condition handleEqInOrNull(HibernateQuery hibernateQuery, String propertyName, Object value) {
         if (value == null) {
             return hibernateQuery.createIsNull(propertyName);
         } else {

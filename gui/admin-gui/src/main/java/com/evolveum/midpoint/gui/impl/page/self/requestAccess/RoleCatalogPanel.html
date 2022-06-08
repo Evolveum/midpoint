@@ -9,21 +9,22 @@
 <wicket:panel>
     <div class="d-flex flex-column flex-md-row gap-3">
         <div class="d-flex flex-column align-items-stretch gap-3">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default">
-                    <i class="fa-solid fa-table-list"></i>
-                </button>
-                <button type="button" class="btn btn-default">
-                    <i class="fa-solid fa-table-cells"></i>
-                </button>
-            </div>
+            <div wicket:id="viewToggle"/>
             <div wicket:id="menu"/>
         </div>
-        <div class="d-flex flex-grow-1 flex-wrap gap-3">
-            <wicket:container wicket:id="tiles">
-                <div wicket:id="tile"/>
-            </wicket:container>
-        </div>
+        <div class="flex-grow-1" wicket:id="tilesTable"/>
     </div>
 </wicket:panel>
+
+<wicket:fragment wicket:id="tableFooterFragment">
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" wicket:id="addSelected">
+            <i class="fas fa-cart-plus mr-1"></i>
+            <wicket:message key="RoleCatalogPanel.addSelected"/>
+        </a>
+        <a class="btn btn-outline-primary" wicket:id="addAll">
+            <wicket:message key="RoleCatalogPanel.addAll"/>
+        </a>
+    </div>
+</wicket:fragment>
 </html>

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RequestAccess;
 import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -90,6 +91,16 @@ public class SessionStorage implements Serializable, DebugDumpable {
      * Key is menu label text, value if true then menu is expanded, if false menu is minimized.
      */
     private Map<String, Boolean> mainMenuState = new HashMap<>();
+
+    private RequestAccess requestAccess = new RequestAccess();
+
+    public RequestAccess getRequestAccess() {
+        return requestAccess;
+    }
+
+    public void setRequestAccess(RequestAccess requestAccess) {
+        this.requestAccess = requestAccess;
+    }
 
     public Mode getMode() {
         return mode;

@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -15,6 +18,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -35,6 +40,13 @@ public class WizardHeader extends BasePanel {
         initLayout(currentPanelTitle, nextPanelTitle);
     }
 
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        addOrReplace(createHeaderContent(ID_CONTENT));
+    }
+
     private void initLayout(IModel<String> currentPanelTitle, IModel<String> nextPanelTitle) {
         add(AttributeAppender.append("class", "d-flex align-items-center flex-wrap gap-3 mb-3"));
 
@@ -45,8 +57,10 @@ public class WizardHeader extends BasePanel {
 
         add(new Label(ID_TITLE, currentPanelTitle));
 
-        add(new WebMarkupContainer(ID_CONTENT));
+    }
 
+    protected Component createHeaderContent(String id) {
+        return new WebMarkupContainer(id);
     }
 
     protected AjaxLink createNextButton(String id, IModel<String> nextPanelTitle) {
@@ -61,8 +75,13 @@ public class WizardHeader extends BasePanel {
         next.setOutputMarkupPlaceholderTag(true);
 
         next.add(new Label(ID_NEXT_LABEL, nextPanelTitle));
-
+        next.add(getNextVisibilityBehaviour());
         return next;
+    }
+
+    @NotNull
+    protected VisibleEnableBehaviour getNextVisibilityBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected AjaxLink createBackButton(String id) {

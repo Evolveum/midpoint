@@ -16,3 +16,7 @@
 .bs-stepper-label {
   color: $secondary;
 }
+
+.bs-stepper .step-trigger:hover {
+  background-color: inherit;
+}

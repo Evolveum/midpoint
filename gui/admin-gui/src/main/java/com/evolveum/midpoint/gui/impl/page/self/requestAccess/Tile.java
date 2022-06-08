@@ -12,13 +12,15 @@ import java.io.Serializable;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class Tile implements Serializable {
+public class Tile<T extends Serializable> implements Serializable {
 
     private String icon;
 
     private String title;
 
     private boolean selected;
+
+    private T value;
 
     public Tile() {
         this(null, null);
@@ -55,5 +57,13 @@ public class Tile implements Serializable {
 
     public void toggle() {
         setSelected(!isSelected());
+    }
+
+    public T getValue() {
+        return value;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
     }
 }

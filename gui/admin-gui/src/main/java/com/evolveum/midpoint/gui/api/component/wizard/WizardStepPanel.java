@@ -7,45 +7,31 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class WizardStepPanel extends BasePanel<String> {
+public class WizardStepPanel<T> extends BasePanel<T> implements WizardStep {
 
-    private static final long serialVersionUID = 1L;
+    private WizardModel wizard;
 
-    private static final String ID_CIRCLE = "circle";
+    public WizardStepPanel() {
+        super(WizardPanel.ID_CONTENT_BODY);
+    }
 
-    private static final String ID_LABEL = "label";
-
-    private int index;
-
-    public WizardStepPanel(String id, int index, IModel<String> model) {
-        super(id, model);
-
-        this.index = index;
-
-        initLayout();
+    public WizardStepPanel(IModel<T> model) {
+        super(WizardPanel.ID_CONTENT_BODY, model);
     }
 
     @Override
-    protected void onComponentTag(ComponentTag tag) {
-        checkComponentTag(tag, "div");
-
-        super.onComponentTag(tag);
+    public void init(WizardModel wizard) {
+        this.wizard = wizard;
     }
 
-    private void initLayout() {
-        add(AttributeAppender.prepend("class", "step"));
-
-        add(new Label(ID_CIRCLE, () -> index + 1));
-        add(new Label(ID_LABEL, () -> getModelObject()));
+    public WizardModel getWizard() {
+        return wizard;
     }
 }

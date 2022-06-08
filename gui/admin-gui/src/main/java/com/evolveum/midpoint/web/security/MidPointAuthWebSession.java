@@ -49,6 +49,10 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         LOGGER.debug("Using {} as locale", getLocale());
     }
 
+    public static MidPointAuthWebSession get() {
+        return (MidPointAuthWebSession) Session.get();
+    }
+
     @Override
     public Roles getRoles() {
         Roles roles = new Roles();

@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -58,16 +60,24 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     @Override
     protected void initLayout() {
-        Collection<CompiledObjectCollectionView> applicableArchetypes = findAllApplicableArchetypeViews();
-        if (isAdd() && applicableArchetypes.size() > 1) {
-            TemplateFragment templateFragment = new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
+        if (isAdd() && isApplicableTemplate()) {
+            Fragment templateFragment  = createTemplateFragment();
             add(templateFragment);
         } else {
             super.initLayout();
         }
     }
 
-    class TemplateFragment extends Fragment {
+    protected Fragment createTemplateFragment() {
+        return new TemplateFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageAssignmentHolderDetails.this);
+    }
+
+    protected boolean isApplicableTemplate() {
+        Collection<CompiledObjectCollectionView> applicableArchetypes = findAllApplicableArchetypeViews();
+        return applicableArchetypes.size() > 1;
+    }
+
+    private class TemplateFragment extends Fragment {
 
         public TemplateFragment(String id, String markupId, MarkupContainer markupProvider) {
             super(id, markupId, markupProvider);
@@ -80,12 +90,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             initTemplateLayout();
         }
 
-        private void initTemplateLayout() {
+        protected void initTemplateLayout() {
             add(createTemplatePanel());
         }
     }
 
-    private CreateTemplatePanel<AH> createTemplatePanel() {
+    private WebMarkupContainer createTemplatePanel() {
         return new CreateTemplatePanel<>(ID_TEMPLATE) {
 
             @Override
@@ -115,12 +125,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 }
 
                 reloadObjectDetailsModel(assignmentHolder);
-                Fragment fragment = createDetailsFragment();
+                Fragment fragment = createFragmentAfterChoseTemplate();
                 fragment.setOutputMarkupId(true);
                 PageAssignmentHolderDetails.this.replace(fragment);
                 target.add(fragment);
             }
         };
+    }
+
+    protected Fragment createFragmentAfterChoseTemplate() {
+        return createDetailsFragment();
     }
 
     protected List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionViews) {

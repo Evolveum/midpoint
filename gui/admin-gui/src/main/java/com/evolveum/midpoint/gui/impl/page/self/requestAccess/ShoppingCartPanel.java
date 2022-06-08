@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.wizard.Badge;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -22,15 +24,18 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+
+import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ShoppingCartPanel extends BasePanel implements WizardPanel {
+public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
+
+    public static final String STEP_ID = "shoppingCart";
 
     private static final String ID_TABLE = "table";
 
@@ -41,10 +46,22 @@ public class ShoppingCartPanel extends BasePanel implements WizardPanel {
     private static final String ID_EDIT = "edit";
     private static final String ID_REMOVE = "remove";
 
-    public ShoppingCartPanel(String id) {
-        super(id);
+    public ShoppingCartPanel(IModel<RequestAccess> model) {
+        super(model);
 
         initLayout();
+    }
+
+    @Override
+    public IModel<List<Badge>> getTitleBadges() {
+        return Model.ofList(List.of(
+                new Badge("badge badge-warning", "1 warning"),
+                new Badge("badge badge-danger", "fa fa-exclamation-triangle", "2 conflict found")));
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     @Override
@@ -59,7 +76,8 @@ public class ShoppingCartPanel extends BasePanel implements WizardPanel {
 
     private void initLayout() {
         List<IColumn> columns = createColumns();
-        ISortableDataProvider provider = new ListDataProvider(this, () -> List.of(""));
+
+        ISortableDataProvider provider = new ListDataProvider(this, () -> getSession().getSessionStorage().getRequestAccess().getShoppingCartAssignments());
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
 
             @Override
@@ -92,13 +110,13 @@ public class ShoppingCartPanel extends BasePanel implements WizardPanel {
 //                return null;
 //            }
 //        });
-        columns.add(new AbstractColumn(createStringResource("Access name")) {
+        columns.add(new AbstractColumn(createStringResource("ShoppingCartPanel.accessName")) {
             @Override
             public void populateItem(Item item, String id, IModel iModel) {
                 item.add(new Label(id, "asdf"));
             }
         });
-        columns.add(new AbstractColumn(createStringResource("Selected users")) {
+        columns.add(new AbstractColumn(createStringResource("ShoppingCartPanel.selectedUsers")) {
             @Override
             public void populateItem(Item item, String id, IModel model) {
                 item.add(new Label(id, "zxcv"));
@@ -131,6 +149,9 @@ public class ShoppingCartPanel extends BasePanel implements WizardPanel {
     }
 
     protected void clearCartPerformed(AjaxRequestTarget target) {
+        getModelObject().getShoppingCartAssignments().clear();
 
+        getPageBase().reloadShoppingCartIcon(target);
+        target.add(get(ID_TABLE));
     }
 }

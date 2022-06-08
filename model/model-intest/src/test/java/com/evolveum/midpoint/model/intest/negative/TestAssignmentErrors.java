@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,12 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -39,6 +33,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,6 +101,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertFalse("Account definition in auxiliary", accountDef.getObjectClassDefinition().isAuxiliary());
 
         ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        assertNotNull(uidDef);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -112,6 +111,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
         ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        assertNotNull(nameDef);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -338,14 +338,16 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertExecutionMessage();
 
         //noinspection unchecked
-        LensContext<UserType> lastLensContext = (LensContext) profilingModelInspectorManager.getLastLensContext();
+        LensContext<UserType> lastLensContext = (LensContext<UserType>) profilingModelInspectorManager.getLastLensContext();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = lastLensContext.getExecutedDeltas();
         display("Executed deltas", executedDeltas);
         assertEquals("Unexpected number of execution deltas in context", 2, executedDeltas.size());
         Iterator<ObjectDeltaOperation<? extends ObjectType>> i = executedDeltas.iterator();
         ObjectDeltaOperation<? extends ObjectType> deltaop1 = i.next();
+        assertNotNull(deltaop1.getExecutionResult());
         assertEquals("Unexpected result of first executed deltas", OperationResultStatus.SUCCESS, deltaop1.getExecutionResult().getStatus());
         ObjectDeltaOperation<? extends ObjectType> deltaop2 = i.next();
+        assertNotNull(deltaop2.getExecutionResult());
         assertEquals("Unexpected result of second executed deltas", OperationResultStatus.FATAL_ERROR, deltaop2.getExecutionResult().getStatus());
 
     }
@@ -451,7 +453,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         getDummyResource().resetBreakMode();
 
         PrismObject<UserType> userAfter = getUser(userSharptoothOid);
-        display("User afte", userAfter);
+        display("User after", userAfter);
         assertEncryptedUserPassword(userAfter, newPassword);
 
         assertDummyAccount(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
@@ -489,7 +491,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         display("Shadow after", shadowAfter);
 
         assertThat(shadowOidAfter)
-                .withFailMessage("New and old shadow OIDs are the same")
+                .as("shadowOidAfter")
                 .isNotEqualTo(shadowOidBefore);
 
         // ... and again ...
@@ -596,7 +598,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
         display("Shadow after", shadowAfter);
 
-        assertThat(shadowOidAfter).withFailMessage("New and old shadow OIDs are the same")
+        assertThat(shadowOidAfter)
+                .as("shadowOidAfter")
                 .isNotEqualTo(shadowOidBefore);
 
         // ... and again ...

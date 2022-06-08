@@ -818,7 +818,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test201QueryForRootOrganizationsWithWrongType() throws SchemaException {
-        // Currently this is "undefined", this does not work in old repo, in new repo it
+        // Currently, this is "undefined", this does not work in old repo, in new repo it
         // checks parent-org refs (not closure). Prism does not complain either.
         // First we should fix it on Prism level first, then add type check to OrgFilterProcessor.
         searchObjectTest("searching user with is-root filter", UserType.class,
@@ -1104,10 +1104,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         queryRecorder.clearBufferAndStartRecording();
         try {
             searchUsersTest("matching the exists filter for metadata (embedded mapping)",
-                f -> f.exists(UserType.F_METADATA)
-                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
-                        .eqPoly("creator"),
-                user1Oid);
+                    f -> f.exists(UserType.F_METADATA)
+                            .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                            .eqPoly("creator"),
+                    user1Oid);
         } finally {
             display(queryRecorder.getQueryBuffer().peek().toString());
         }
@@ -1917,7 +1917,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test602SearchContainerWithExistsParent() throws SchemaException {
+    public void test603SearchContainerWithExistsParent() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
                 f -> f.exists(T_PARENT)
@@ -1934,7 +1934,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test603SearchAccessCertificationCaseContainer() throws SchemaException {
+    public void test604SearchAccessCertificationCaseContainer() throws SchemaException {
         SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
                 "by stage number", AccessCertificationCaseType.class,
                 f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
@@ -1989,7 +1989,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test615SearchInducements() throws SchemaException {
+    public void test616SearchInducements() throws SchemaException {
         queryRecorder.clearBufferAndStartRecording();
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "search inducements", AssignmentType.class,
@@ -2002,7 +2002,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test616OrderByMultiValueReferenceTargetPropertyIsNotPossible() {
+    public void test618OrderByMultiValueReferenceTargetPropertyIsNotPossible() {
         assertThatThrownBy(() -> searchContainerTest(
                 "having any approver (with order)", AssignmentType.class,
                 f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
@@ -2392,7 +2392,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test960SearchGetNames() throws SchemaException {
+    public void test961SearchGetNames() throws SchemaException {
         var options = SchemaService.get().getOperationOptionsBuilder().resolveNames().build();
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
         SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
@@ -2458,14 +2458,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980findOrgByUser() throws Exception {
+    public void test980FindOrgByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User", OrgType.class, f ->
-                            f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
-                                    .id(user4Oid),
-                    org111Oid
-            );
+            searchObjectTest("Org by User", OrgType.class,
+                    f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                            .id(user4Oid),
+                    org111Oid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2473,14 +2472,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980findRoleByUser() throws Exception {
+    public void test981FindRoleByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by User", RoleType.class, f ->
-                            f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                                    .id(user3Oid),
-                    roleOid
-            );
+            searchObjectTest("Org by User", RoleType.class,
+                    f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                            .id(user3Oid),
+                    roleOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2488,15 +2486,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980findRoleByAssignmentOfUser() throws Exception {
+    public void test982FindRoleByAssignmentOfUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("Org by Assignment ownedBy user", RoleType.class, f ->
-                            f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                                    .ownedBy(UserType.class)
-                                    .id(user3Oid),
-                    roleOid
-            );
+            searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                            .ownedBy(UserType.class)
+                            .id(user3Oid),
+                    roleOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2504,15 +2501,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test981findUserByAssignmentTarget() throws Exception {
+    public void test983FindUserByAssignmentTarget() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
-            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class, f ->
-                f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
-                .item(RoleType.F_NAME).eq("role-ass-vs-ind")
-            ,
-                    user3Oid
-            );
+            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                    f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
+                            .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
+                    user3Oid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());

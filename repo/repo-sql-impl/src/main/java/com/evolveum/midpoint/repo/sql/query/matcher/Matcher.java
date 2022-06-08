@@ -12,7 +12,7 @@ import java.util.Objects;
 import org.hibernate.criterion.MatchMode;
 
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,12 +26,12 @@ public abstract class Matcher<T> {
     private static final Trace LOGGER = TraceManager.getTrace(Matcher.class);
 
     public abstract Condition match(
-            RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation,
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
             String propertyPath, T value, String matcher)
             throws QueryException;
 
     protected Condition basicMatch(
-            RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation,
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
             String propertyPath, Object value, boolean ignoreCase) throws QueryException {
         Objects.requireNonNull(hibernateQuery, "hibernateQuery");
 
