@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 
 import com.evolveum.midpoint.web.session.GenericPageStorage;
@@ -514,9 +515,9 @@ public class PageDebugList extends PageAdminConfiguration {
     private boolean hasToZip() {
         BoxedTablePanel table = (BoxedTablePanel) getListTable();
         DebugSearchFragment header = (DebugSearchFragment) table.getHeader();
-        AjaxCheckBox zipCheck = header.getZipCheck();
+        CheckBoxPanel zipCheck = header.getZipCheck();
 
-        return zipCheck.getModelObject();
+        return zipCheck.getValue();
     }
 
     private Table getListTable() {
