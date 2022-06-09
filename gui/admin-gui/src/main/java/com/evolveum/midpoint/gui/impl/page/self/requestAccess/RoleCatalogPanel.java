@@ -74,7 +74,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         return () -> {
             String text;
 
-            int count = 0;
+            int count = getModelObject().getPersonOfInterest().size();
             if (isRequestingForMyself()) {
                 text = count > 1 ? getString("RoleCatalogPanel.badgeMyselfAndOthers", count - 1) : getString("RoleCatalogPanel.badgeMyself");
             } else {

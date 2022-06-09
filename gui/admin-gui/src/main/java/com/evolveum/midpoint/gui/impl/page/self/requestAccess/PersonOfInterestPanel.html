@@ -18,8 +18,6 @@
         </wicket:fragment>
 
         <wicket:fragment wicket:id="selectionFragment">
-<!--            https://select2.org/-->
-
             <div class="card w-100">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -31,7 +29,7 @@
                     <div class="input-group">
                         <input type="text" class="form-control">
                         <div class="input-group-append">
-                            <a class="btn btn-default" type="button">
+                            <a class="btn btn-default" type="button" wicket:id="selectManually">
                                 <i class="fa-solid fa-arrow-pointer mr-1"></i>
                                 <wicket:message key="PersonOfInterestPanel.selectManually"/>
                             </a>

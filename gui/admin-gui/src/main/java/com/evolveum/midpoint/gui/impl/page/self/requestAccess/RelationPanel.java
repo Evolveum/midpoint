@@ -11,21 +11,26 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -52,7 +57,23 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     private void initModels() {
-        relations = Model.ofList(new ArrayList<>());
+        relations = new LoadableModel<>(false) {
+
+            @Override
+            protected List<Tile<QName>> load() {
+                List<Tile<QName>> tiles = new ArrayList<>();
+
+                List<QName> list = getAvailableRelationsList();
+                for (QName name : list) {
+                    Tile<QName> tile = new Tile("fas fa-users", name.getLocalPart());
+                    tile.setValue(name);
+
+                    tiles.add(tile);
+                }
+
+                return tiles;
+            }
+        };
     }
 
     @Override
@@ -83,7 +104,13 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
+                        Tile<QName> tile = item.getModelObject();
+                        boolean wasSelected = tile.isSelected();
 
+                        relations.getObject().forEach(t -> t.setSelected(false));
+                        tile.setSelected(!wasSelected);
+
+                        target.add(getWizard().getPanel());
                     }
                 };
                 item.add(tp);
@@ -93,16 +120,22 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     private List<QName> getAvailableRelationsList() {
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+        // todo fix focus parameter
+        FocusType focus = null;
+        try {
+            focus = SecurityUtil.getPrincipal().getFocus();
+        } catch (SecurityViolationException ex) {
+            ex.printStackTrace();
+        }
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
         List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(
-                null,//getTargetUser().asPrismObject(),
-                RoleType.class,
-                WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+
         if (CollectionUtils.isEmpty(assignableRelationsList)) {
-            return availableRelations;
+            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
         }
+
         return assignableRelationsList;
     }
 
@@ -113,7 +146,11 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     protected void onNextPerformed(AjaxRequestTarget target) {
-        // todo save state
+        Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
 
+        getModelObject().setRelation(selected.getValue());
+
+        getWizard().next();
+        target.add(getWizard().getPanel());
     }
 }

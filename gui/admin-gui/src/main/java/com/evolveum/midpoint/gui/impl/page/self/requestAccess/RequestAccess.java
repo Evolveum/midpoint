@@ -68,6 +68,14 @@ public class RequestAccess implements Serializable {
         this.shoppingCartAssignments = shoppingCartAssignments;
     }
 
+    public QName getRelation() {
+        return relation;
+    }
+
+    public void setRelation(QName relation) {
+        this.relation = relation;
+    }
+
     public void computeConflicts() {
 //        MidPointApplication mp = MidPointApplication.get();
 //
