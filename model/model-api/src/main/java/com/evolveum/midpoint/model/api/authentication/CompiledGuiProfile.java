@@ -47,6 +47,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private String preferredDataLanguage;
     private Boolean enableExperimentalFeatures;
     private Boolean useNewDesign = true; //default
+    private boolean useRepositoryAssignmentSearch = false;
     private List<RichHyperlinkType> additionalMenuLink = new ArrayList<>();
     private List<RichHyperlinkType> userDashboardLink = new ArrayList<>();
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
@@ -96,6 +97,17 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     public Boolean isUseNewDesign() {
         return useNewDesign;
     }
+
+    public boolean isUseRepositoryAssignmentSearch() {
+        return useRepositoryAssignmentSearch;
+    }
+
+    public void setUseRepositoryAssignmentSearch(Boolean useRepositoryAssignmentSearch) {
+        if (useRepositoryAssignmentSearch != null) {
+            this.useRepositoryAssignmentSearch = useRepositoryAssignmentSearch;
+        }
+    }
+
 
     @NotNull
     public List<RichHyperlinkType> getAdditionalMenuLink() {

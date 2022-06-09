@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -17,6 +19,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -49,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -111,6 +115,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return isNewObjectButtonVisible(getFocusObject());
     }
 
+    protected boolean isRepositorySearchEnabled() {
+        return getPageBase().getCompiledGuiProfile().isUseRepositoryAssignmentSearch();
+    }
+
     @Override
     protected IModel<PrismContainerWrapper<AssignmentType>> getContainerModel() {
         return model;
@@ -121,6 +129,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         target.add(AbstractAssignmentTypePanel.this);
     }
 
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
         columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
@@ -542,6 +551,33 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> createProvider() {
         var searchModel = getSearchModel();
         var assignments = loadValuesModel();
+        return isRepositorySearchEnabled() ? createRepositoryProvider(searchModel, assignments) : createInMemoryProvider(searchModel, assignments);
+    }
+
+    protected AssignmentListProvider createInMemoryProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
+        var provider = new AssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments) {
+
+            @Override
+            protected PageStorage getPageStorage() {
+                return AbstractAssignmentTypePanel.this.getPageStorage();
+            }
+
+            @Override
+            protected List<PrismContainerValueWrapper<AssignmentType>> postFilter(List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
+                return customPostSearch(assignmentList);
+            }
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return AbstractAssignmentTypePanel.this.getCustomizeQuery();
+            }
+        };
+        provider.setCompiledObjectCollectionView(getObjectCollectionView());
+        return provider;
+    }
+
+    protected RepoAssignmentListProvider createRepositoryProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
+
         var itemPath = model.getObject().getPath();
         var assignmentListProvider = new RepoAssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid, itemPath) {
 
@@ -573,6 +609,17 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected abstract ObjectQuery getCustomizeQuery();
+
+    protected List<PrismContainerValueWrapper<AssignmentType>> prefilterUsingQuery(
+            List<PrismContainerValueWrapper<AssignmentType>> list, ObjectQuery query) {
+        return list.stream().filter(valueWrapper -> {
+            try {
+                return ObjectQuery.match(valueWrapper.getRealValue(), query.getFilter(), getPageBase().getMatchingRuleRegistry());
+            } catch (SchemaException e) {
+                throw new TunnelException(e.getMessage());
+            }
+        }).collect(Collectors.toList());
+    }
 
     @Override
     protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(
