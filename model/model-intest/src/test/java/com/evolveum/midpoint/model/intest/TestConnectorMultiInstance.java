@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -25,7 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.FailableRunnable;
+import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -48,7 +49,6 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     private String accountJackYellowOid;
     private String initialConnectorStaticVal;
     private String initialConnectorToString;
-    private String accountGuybrushBlackOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -250,13 +250,10 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
             shadowHolder1.setValue(shadow);
         });
 
-        Thread t2 = executeInNewThread("get2", new FailableRunnable() {
-            @Override
-            public void run() throws Exception {
-                PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
-                logger.trace("Got shadow {}", shadow);
-                shadowHolder2.setValue(shadow);
-            }
+        Thread t2 = executeInNewThread("get2", () -> {
+            PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
+            logger.trace("Got shadow {}", shadow);
+            shadowHolder2.setValue(shadow);
         });
 
         // Give the new threads a chance to get blocked
@@ -305,7 +302,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_GUYBRUSH_OID);
-        accountGuybrushBlackOid = getSingleLinkOid(userJack);
+        String accountGuybrushBlackOid = getSingleLinkOid(userJack);
 
         assertDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
 
@@ -321,7 +318,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
     }
 
-    private Thread executeInNewThread(final String threadName, final FailableRunnable runnable) {
+    private Thread executeInNewThread(final String threadName, final CheckedRunnable runnable) {
         Thread t = new Thread(() -> {
             try {
                 login(userAdministrator);
@@ -352,7 +349,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     private void assertConnectorToStringDifferent(PrismObject<ShadowType> shadow,
             DummyResourceContoller ctl, String expectedVal) throws SchemaException {
         String connectorVal = getConnectorToString(shadow, ctl);
-        assertFalse("Unexpected Connector toString, expected a different value: " + connectorVal, expectedVal.equals(connectorVal));
+        assertThat(connectorVal).as("Connector toString").isEqualTo(expectedVal);
     }
 
     private void assertConnectorStaticVal(PrismObject<ShadowType> shadow,
