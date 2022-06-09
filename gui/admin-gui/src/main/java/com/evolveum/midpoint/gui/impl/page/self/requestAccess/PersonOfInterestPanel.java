@@ -269,6 +269,8 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     protected void onNextPerformed(AjaxRequestTarget target) {
+        getModelObject().getPersonOfInterest().clear();
+
         Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
         if (myself.isSelected()) {
             ObjectReferenceType ref = new ObjectReferenceType()
