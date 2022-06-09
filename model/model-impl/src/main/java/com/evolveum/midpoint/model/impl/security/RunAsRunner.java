@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.security;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.CheckedRunnable;
+import com.evolveum.midpoint.util.CheckedCommonRunnable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -49,7 +49,7 @@ public class RunAsRunner implements AutoCloseable {
         beans.securityContextManager.setupPreAuthenticatedSecurityContext(originalAuthentication);
     }
 
-    public void runAs(CheckedRunnable runnable, ObjectReferenceType identityRef, OperationResult parentResult)
+    public void runAs(CheckedCommonRunnable runnable, ObjectReferenceType identityRef, OperationResult parentResult)
             throws CommonException {
         establishRequiredIdentity(identityRef, parentResult);
         runnable.run();

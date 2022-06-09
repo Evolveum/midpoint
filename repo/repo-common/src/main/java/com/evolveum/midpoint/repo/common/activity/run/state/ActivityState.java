@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.CheckedRunnable;
+import com.evolveum.midpoint.util.CheckedCommonRunnable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -273,11 +273,11 @@ public abstract class ActivityState implements DebugDumpable {
     //region Misc
     protected abstract @NotNull Task getTask();
 
-    private void convertException(CheckedRunnable runnable) throws ActivityRunException {
+    private void convertException(CheckedCommonRunnable runnable) throws ActivityRunException {
         convertException("Couldn't update activity state", runnable);
     }
 
-    private void convertException(String message, CheckedRunnable runnable) throws ActivityRunException {
+    private void convertException(String message, CheckedCommonRunnable runnable) throws ActivityRunException {
         try {
             runnable.run();
         } catch (CommonException e) {
