@@ -490,7 +490,8 @@ public class DependencyProcessor {
     public static boolean matches(LensProjectionContext ctx, ResourceObjectTypeDependencyType dependency) {
         return getResourceOidRequired(dependency).equals(ctx.getResourceOid())
                 && getKindRequired(dependency) == ctx.getKind()
-                && intentMatches(ctx, dependency);
+                && intentMatches(ctx, dependency)
+                && ctx.getTag() == null; // This is how it was before 4.6.
     }
 
     private static boolean intentMatches(LensProjectionContext ctx, ResourceObjectTypeDependencyType dependency) {

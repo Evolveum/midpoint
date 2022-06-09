@@ -1812,6 +1812,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return key.getOrder();
     }
 
+    public String getTag() {
+        return key.getTag();
+    }
+
     /** Use with care! */
     @Experimental
     public boolean isDefaultForKind(@NotNull ShadowKindType kind) {
