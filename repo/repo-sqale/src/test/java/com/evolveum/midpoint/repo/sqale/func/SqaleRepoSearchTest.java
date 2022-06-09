@@ -1107,16 +1107,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test350ExistsWithEmbeddedContainer() throws SchemaException {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchUsersTest("matching the exists filter for metadata (embedded mapping)",
-                    f -> f.exists(UserType.F_METADATA)
-                            .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
-                            .eqPoly("creator"),
-                    user1Oid);
-        } finally {
-            display(queryRecorder.getQueryBuffer().peek().toString());
-        }
+        searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                f -> f.exists(UserType.F_METADATA)
+                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                        .eqPoly("creator"),
+                user1Oid);
     }
 
     // endregion
@@ -1996,12 +1991,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test616SearchInducements() throws SchemaException {
-        queryRecorder.clearBufferAndStartRecording();
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "search inducements", AssignmentType.class,
                 f -> f.ownedBy(AbstractRoleType.class, AbstractRoleType.F_INDUCEMENT).block().endBlock());
-        queryRecorder.stopRecording();
-        display(queryRecorder.getQueryBuffer().toString());
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("role-ind-lc"));
@@ -2464,60 +2456,38 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980FindOrgByUser() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("Org by User", OrgType.class,
-                    f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
-                            .id(user4Oid),
-                    org111Oid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test980FindOrgByUser() throws SchemaException {
+        searchObjectTest("Org by User", OrgType.class,
+                f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                        .id(user4Oid),
+                org111Oid);
     }
 
     @Test
-    public void test981FindRoleByUser() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("Org by User", RoleType.class,
-                    f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                            .id(user3Oid),
-                    roleAvIOid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test981FindRoleByUser() throws SchemaException {
+        searchObjectTest("Org by User", RoleType.class,
+                f -> f.referencedBy(UserType.class,
+                                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                        .id(user3Oid),
+                roleAvIOid);
     }
 
     @Test
-    public void test982FindRoleByAssignmentOfUser() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
-                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                            .ownedBy(UserType.class)
-                            .id(user3Oid),
-                    roleAvIOid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test982FindRoleByAssignmentOfUser() throws SchemaException {
+        searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                        .ownedBy(UserType.class)
+                        .id(user3Oid),
+                roleAvIOid);
     }
 
     @Test
-    public void test983FindUserByAssignmentTarget() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
-                    f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
-                            .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
-                    user3Oid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test983FindUserByAssignmentTarget() throws SchemaException {
+        searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                                RoleType.COMPLEX_TYPE, relation2)
+                        .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
+                user3Oid);
     }
     // endregion
 }
