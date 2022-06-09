@@ -1,23 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +34,10 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.Counter;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
-import com.evolveum.midpoint.util.FailableProducer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -289,7 +289,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     }
 
     private PrismObject<ShadowType> parallelModifyTest(
-            FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+            Callable<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
 
         // GIVEN
         Task task = getTestTask();
@@ -314,7 +314,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
 
-                    ObjectDelta<ShadowType> delta = deltaProducer.run();
+                    ObjectDelta<ShadowType> delta = deltaProducer.call();
                     displayDumpable("ObjectDelta", delta);
 
                     provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, localTask, localResult);
@@ -491,7 +491,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     }
 
     private PrismObject<ShadowType> parallelModifyTestSlow(
-            FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+            Callable<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
 
         given();
         Task task = getTestTask();
@@ -515,7 +515,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     randomDelay(CONCURRENT_TEST_MAX_START_DELAY_SLOW);
                     logger.info("{} starting to do some work", Thread.currentThread().getName());
 
-                    ObjectDelta<ShadowType> delta = deltaProducer.run();
+                    ObjectDelta<ShadowType> delta = deltaProducer.call();
                     displayDumpable("ObjectDelta", delta);
 
                     provisioningService.modifyObject(ShadowType.class, accountElizabethOid,

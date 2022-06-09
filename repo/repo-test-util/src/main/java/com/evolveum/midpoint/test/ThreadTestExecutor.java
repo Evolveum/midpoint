@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.test;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.CheckedRunnable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
- *  EXPERIMENTAL
+ * EXPERIMENTAL
  */
 public class ThreadTestExecutor {
 
@@ -24,8 +24,8 @@ public class ThreadTestExecutor {
 
     private static final long WAIT_STEP = 100;
 
-    private int threadsCount;
-    private long timeout;
+    private final int threadsCount;
+    private final long timeout;
 
     private List<Thread> threads;
     private List<Thread> failedThreads;
@@ -36,12 +36,7 @@ public class ThreadTestExecutor {
         this.timeout = timeout;
     }
 
-    @FunctionalInterface
-    public interface ThrowingRunnable {
-        void run() throws Exception;
-    }
-
-    public void execute(ThrowingRunnable runnable) throws InterruptedException {
+    public void execute(CheckedRunnable runnable) throws InterruptedException {
         threads = new ArrayList<>();
         failedThreads = new ArrayList<>();
 
