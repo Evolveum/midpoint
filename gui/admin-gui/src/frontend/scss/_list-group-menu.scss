@@ -11,11 +11,12 @@
   margin-bottom: 0;
 }
 
-.list-group-menu {
+@mixin list-group-menu() {
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 273px;
+
   @include list-reset();
 
   & ul, li {
@@ -26,33 +27,17 @@
   @include border-radius($list-group-border-radius);
 }
 
-.list-group-menu-item {
+@mixin list-group-menu-item() {
   display: flex;
   flex-direction: column;
   color: $list-group-color;
   background-color: $list-group-bg;
-  border: $list-group-border-width solid $list-group-border-color;
-
-  &:first-child {
-    @include border-top-radius(inherit);
-
-    & > a {
-      @include border-top-radius(inherit);
-    }
-  }
-
-  &:last-child {
-    @include border-bottom-radius(inherit);
-
-    & > a:last-child {
-      @include border-bottom-radius(inherit);
-    }
-  }
 
   & > a {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    // todo for "sm" version 0.5rem 1rem
     padding: $list-group-item-padding-y $list-group-item-padding-x;
     color: inherit;
 
@@ -86,6 +71,36 @@
     & > i.icon {
       margin-right: 1rem;
     }
+
+    & > span.label {
+      flex-grow: 1;
+    }
+  }
+}
+
+.list-group-menu {
+  @include list-group-menu();
+}
+
+.list-group-menu-item {
+  @include list-group-menu-item;
+
+  border: $list-group-border-width solid $list-group-border-color;
+
+  &:first-child {
+    @include border-top-radius(inherit);
+
+    & > a {
+      @include border-top-radius(inherit);
+    }
+  }
+
+  &:last-child {
+    @include border-bottom-radius(inherit);
+
+    & > a:last-child {
+      @include border-bottom-radius(inherit);
+    }
   }
 
   & + & {
@@ -96,18 +111,24 @@
       border-top-width: $list-group-border-width;
     }
   }
+}
 
-  // 2nd and 3rd menu level
-  // todo finish left padding, active/hover/disabled states
-  & > ul > li {
-    border: 0;
+.list-group-submenu {
+  @include list-group-menu();
+}
 
-    & > a {
-      padding-left: 2rem;
+.list-group-submenu-item {
+  @include list-group-menu-item;
 
-      & > ul > li >a {
-        padding-left: 3rem;
-      }
-    }
+  & .list-group-submenu > .list-group-submenu-item > a {
+    padding-left: 3.25rem;
   }
+
+  & > a {
+    padding-left: 2rem;
+  }
+}
+
+@include dark-mode () {
+  // todo dark mode
 }
