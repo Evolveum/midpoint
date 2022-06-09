@@ -264,8 +264,6 @@
                         <q:text>name = "Dummy Resource"</q:text>
                     </filter>
                 </resourceRef>
-                <kind>account</kind>
-                <intent>default</intent>
                 <strictness>strict</strictness>
            </dependency>
 

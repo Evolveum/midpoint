@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefine
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.sync.action.DeleteShadowAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
@@ -326,6 +327,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.key = key;
     }
 
+    /**
+     * Returns true if the `target` is a target of `dependency` configuration.
+     *
+     * (Meaning that the source that contains `dependency` among its configured dependencies depends on `target`,
+     * i.e. the `dependency` configuration points to `target`.)
+     *
+     * Precondition: dependency is fully specified (resource, kind, intent are not null).
+     */
+    public boolean isDependencyTarget(
+            ResourceObjectTypeDependencyType dependency) {
+        // The DependencyProcessor looks like a better home for the business logic of the matching
+        return DependencyProcessor.matches(this, dependency);
+    }
+
     public ObjectDelta<ShadowType> getSyncDelta() {
         return syncDelta;
     }
@@ -513,7 +528,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 && (filter.getKind() == null || filter.getKind() == getKind())
                 && (filter.getIntent() == null || filter.getIntent().equals(key.getIntent()))
                 && doesTagMatch(filter)
-                && (filter.getGone() == null || key.isGone() == filter.getGone()); // this is OK: Boolean vs. boolean
+                && (filter.getGone() == null || key.isGone() == filter.getGone()); // this "==" is OK: Boolean vs. boolean
     }
 
     private boolean doesTagMatch(ProjectionContextFilter lookupKey) {
@@ -1027,8 +1042,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     private Collection<ResourceObjectTypeDependencyType> fillInDependencyDefaults(
-            List<ResourceObjectTypeDependencyType> rawBeans, @NotNull ShadowKindType defaultKind)
-            throws ConfigurationException {
+            List<ResourceObjectTypeDependencyType> rawBeans, @NotNull ShadowKindType defaultKind) {
         Collection<ResourceObjectTypeDependencyType> processedBeans = new ArrayList<>(rawBeans.size());
         for (ResourceObjectTypeDependencyType rawBean : rawBeans) {
             ResourceObjectTypeDependencyType processedBean = rawBean.clone();
@@ -1038,12 +1052,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
             if (processedBean.getKind() == null) {
                 processedBean.setKind(defaultKind);
-            }
-            if (processedBean.getIntent() == null) {
-                throw new ConfigurationException("No intent provided in a dependency definition."
-                        + " This property is mandatory since midPoint 4.6."
-                        + " Please specify the intent in a dependency specification in definition of "
-                        + key.getTypeIdentification() + " in " + resource);
             }
             processedBeans.add(processedBean);
         }
@@ -1786,9 +1794,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * (Note that "dependency source" means the context that depends on the "dependency target". We are the target here.)
      */
     public boolean hasDependentContext() throws SchemaException, ConfigurationException {
-        for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
-            for (ResourceObjectTypeDependencyType dependency : projectionContext.getDependencies()) {
-                if (LensUtil.isDependencyTarget( this, dependency)) {
+        for (LensProjectionContext candidateSource : lensContext.getProjectionContexts()) {
+            for (ResourceObjectTypeDependencyType dependency : candidateSource.getDependencies()) {
+                if (isDependencyTarget(dependency)) {
                     return true;
                 }
             }
@@ -1802,5 +1810,24 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public int getOrder() {
         return key.getOrder();
+    }
+
+    /** Use with care! */
+    @Experimental
+    public boolean isDefaultForKind(@NotNull ShadowKindType kind) {
+        ResourceObjectDefinition definition;
+        try {
+            definition = getStructuralObjectDefinition();
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.debug("Couldn't determine structural object definition for {}; considering it as not being default for {}",
+                    this, kind, e);
+            return false;
+        }
+        if (definition != null) {
+            return definition.isDefaultFor(kind);
+        } else {
+            LOGGER.debug("No definition: considering {} as not being default for {}", this, kind);
+            return false;
+        }
     }
 }

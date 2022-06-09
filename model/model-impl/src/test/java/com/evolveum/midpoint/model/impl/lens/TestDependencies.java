@@ -89,6 +89,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
     }
 
     // resourceName is expected to be a single character
+    @SuppressWarnings("SameParameterValue")
     private String getDummyAccountOid(String resourceName, String accountName) {
         return "14440000-0000-0000-00" + Integer.toHexString(resourceName.toUpperCase().charAt(0))
                 + "-10000000000" + accountName;

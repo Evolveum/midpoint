@@ -67,8 +67,6 @@
             <dependency>
                 <!-- Dummy Resource B -->
                 <resourceRef oid="14440000-0000-0000-0042-000000000000"/>
-                <kind>account</kind>
-                <intent>default</intent>
                 <strictness>strict</strictness>
             </dependency>
 

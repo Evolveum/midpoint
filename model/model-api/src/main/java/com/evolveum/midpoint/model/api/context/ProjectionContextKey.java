@@ -170,20 +170,6 @@ public abstract class ProjectionContextKey
         return new WithoutResource(null, null, 0, true);
     }
 
-    /**
-     * Bean must be fully specified (resource OID + kind + intent are not null). This is actually the case if it was obtained
-     * via {@link ModelProjectionContext#getDependencies()} method.
-     */
-    public static ProjectionContextKey fromDependency(@NotNull ResourceObjectTypeDependencyType bean) {
-        return classified(
-                MiscUtil.argNonNull(bean.getResourceRef().getOid(), () -> "No resource OID in " + bean),
-                MiscUtil.argNonNull(bean.getKind(), () -> "No kind in " + bean),
-                MiscUtil.argNonNull(bean.getIntent(), () -> "No intent in " + bean),
-                bean.getTag(),
-                or0(bean.getDiscriminatorOrder()),
-                Boolean.TRUE.equals(bean.isTombstone()));
-    }
-
     public static ProjectionContextKey fromCoordinates(@NotNull ResourceShadowCoordinates coordinates) {
         return forKnownResource(
                 MiscUtil.argNonNull(coordinates.getResourceOid(), () -> "No resource OID in " + coordinates),

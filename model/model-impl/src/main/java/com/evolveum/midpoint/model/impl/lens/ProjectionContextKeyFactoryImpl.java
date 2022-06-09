@@ -77,6 +77,7 @@ public class ProjectionContextKeyFactoryImpl implements ProjectionContextKeyFact
                         + "Please specify the kind/intent precisely for %s", shadow);
 
         try {
+            // TODO integrate with the context loader - full shadow should be used if fetched here
             // The "get" operation includes a classification attempt.
             ShadowType updatedShadow = provisioningService
                     .getObject(ShadowType.class, shadowOid, null, task, result)

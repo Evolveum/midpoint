@@ -114,4 +114,9 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     default @NotNull ResourceObjectTypeDefinition getTypeDefinition() {
         return delegate().getTypeDefinition();
     }
+
+    @Override
+    default boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return delegate().isDefaultFor(kind);
+    }
 }

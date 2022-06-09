@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.api.context;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -69,14 +69,6 @@ public class ProjectionContextFilter
             @Nullable ShadowKindType kind,
             @Nullable String intent) {
         this(resourceOid, kind, intent, null, true, null);
-    }
-
-    public static ProjectionContextFilter fromDependency(ResourceObjectTypeDependencyType bean) {
-        return new ProjectionContextFilter(
-                MiscUtil.argNonNull(bean.getResourceRef().getOid(), () -> "No resource OID in " + bean),
-                MiscUtil.argNonNull(bean.getKind(), () -> "No kind in " + bean),
-                MiscUtil.argNonNull(bean.getIntent(), () -> "No intent in " + bean),
-                bean.getTag());
     }
 
     public @Nullable String getResourceOid() {

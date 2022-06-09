@@ -596,4 +596,10 @@ public class ResourceObjectClassDefinitionImpl
     public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
         return null;
     }
+
+    @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        // Normally, object class definitions know nothing about kind/intent. This is the only exception.
+        return kind == ShadowKindType.ACCOUNT && isDefaultAccountDefinition();
+    }
 }

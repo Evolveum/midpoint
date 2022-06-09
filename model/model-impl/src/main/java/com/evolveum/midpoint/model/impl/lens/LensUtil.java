@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,9 +52,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
@@ -233,21 +228,6 @@ public class LensUtil {
             }
         }
         return false;
-    }
-
-    /**
-     * Returns true if the `target` is a target of `dependency` configuration.
-     *
-     * (Meaning that the source that contains `dependency` among its configured dependencies depends on `target`,
-     * i.e. the `dependency` configuration points to `target`.)
-     *
-     * Precondition: dependency is fully specified (resource, kind, intent are not null).
-     */
-    public static boolean isDependencyTarget(
-            LensProjectionContext target,
-            ResourceObjectTypeDependencyType dependency) {
-        return target.matches(
-                ProjectionContextFilter.fromDependency(dependency));
     }
 
     // TODO move to LensContext?

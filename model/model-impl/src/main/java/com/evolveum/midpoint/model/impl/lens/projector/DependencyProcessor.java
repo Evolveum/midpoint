@@ -6,29 +6,31 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getDependencyStrictness;
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isForceLoadDependentShadow;
+import static com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision.*;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil.getDependencyStrictness;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil.isForceLoadDependentShadow;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
+import static com.evolveum.midpoint.util.PrettyPrinter.prettyPrint;
 import static com.evolveum.midpoint.util.PrettyPrinter.prettyPrintLazily;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType.*;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
+import com.evolveum.midpoint.schema.util.ResourceObjectTypeDependencyTypeUtil;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -72,7 +74,7 @@ public class DependencyProcessor {
             }
 
             for (LensProjectionContext projectionContext : projectionArray) {
-                determineProjectionWave(context, projectionContext, null, null, task, result);
+                determineProjectionWave(projectionContext, null, new DependencyPath(), task, result);
                 projectionContext.setWaveIncomplete(false);
             }
 
@@ -99,11 +101,10 @@ public class DependencyProcessor {
         }
     }
 
-    private <F extends ObjectType> LensProjectionContext determineProjectionWave(
-            LensContext<F> context,
+    private LensProjectionContext determineProjectionWave(
             LensProjectionContext projectionContext,
             ResourceObjectTypeDependencyType inDependency,
-            Deque<ResourceObjectTypeDependencyType> depPath,
+            DependencyPath depPath,
             Task task,
             OperationResult result) throws PolicyViolationException, SchemaException, ConfigurationException {
         if (!projectionContext.isWaveIncomplete()) {
@@ -112,26 +113,27 @@ public class DependencyProcessor {
         }
         if (projectionContext.isDelete()) {
             // When deprovisioning (deleting) the dependencies needs to be processed in reverse
-            return determineProjectionWaveDeprovision(context, projectionContext, inDependency, depPath, task, result);
+            return determineProjectionWaveDeprovision(projectionContext, inDependency, depPath, task, result);
         } else {
-            return determineProjectionWaveProvision(context, projectionContext, inDependency, depPath, task, result);
+            return determineProjectionWaveProvision(projectionContext, inDependency, depPath, task, result);
         }
     }
 
-    private <F extends ObjectType> LensProjectionContext determineProjectionWaveProvision(
-            LensContext<F> context,
-            LensProjectionContext projCtx,
-            ResourceObjectTypeDependencyType inDependency,
-            Deque<ResourceObjectTypeDependencyType> depPath,
+    /**
+     * Determines the wave for projCtx. Returns either the same context, or its higher-order copy - to avoid
+     * cycles among projection contexts when there are cycles among object types.
+     */
+    private LensProjectionContext determineProjectionWaveProvision(
+            LensProjectionContext projCtx, // Context for which we compute wave
+            ResourceObjectTypeDependencyType inDependency, // How we've got here (to projCtx)
+            DependencyPath depPath, // to detect cycles in resolution
             Task task,
             OperationResult result) throws PolicyViolationException, SchemaException, ConfigurationException {
-        if (depPath == null) {
-            depPath = new ArrayDeque<>();
-        }
+        LensContext<?> context = projCtx.getLensContext();
         LOGGER.trace("Determining wave for (provision): {}; path: {}", lazy(projCtx::getHumanReadableName), depPath);
-        int determinedWave = 0;
-        int determinedOrder = 0;
-        for (ResourceObjectTypeDependencyType outDependency: projCtx.getDependencies()) {
+        int determinedWave = 0; // Computed as max(upstream.wave) + 1
+        int determinedOrder = 0; // Order of the dependency that determined the final wave - this becomes an order of projCtx
+        for (ResourceObjectTypeDependencyType outDependency : projCtx.getDependencies()) {
             LOGGER.trace("  processing dependency: {}", prettyPrintLazily(outDependency));
             if (inDependency != null && isHigherOrder(outDependency, inDependency)) {
                 // There is incoming dependency. Deal only with dependencies of this order and lower
@@ -139,56 +141,54 @@ public class DependencyProcessor {
                 LOGGER.trace("  -> ignoring (higher order)");
                 continue;
             }
-            checkForCircular(depPath, outDependency, projCtx);
-            depPath.addLast(outDependency);
-            ProjectionContextFilter upstreamCtxFilter = ProjectionContextFilter.fromDependency(outDependency);
-            LensProjectionContext upstreamCtx = findUpstreamContext(context, upstreamCtxFilter, or0(outDependency.getOrder()));
-            LOGGER.trace("  -> filter: {}, found upstream context: {}", upstreamCtxFilter, upstreamCtx);
+            depPath.add(outDependency, projCtx);
+            // Terminology: upstream means "upwards the stream of processing" - i.e. predecessor (~ independent);
+            // downstream is successor in the stream of processing (~ dependent).
+            LensProjectionContext upstreamCtx = findNearestUpstreamContext(context, outDependency);
+            LOGGER.trace("  -> found nearest upstream context: {}", upstreamCtx);
             if (upstreamCtx == null || upstreamCtx.isDelete()) {
                 ResourceObjectTypeDependencyStrictnessType strictness = getDependencyStrictness(outDependency);
-                if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+                if (strictness == STRICT) {
                     LOGGER.trace("  -> unsatisfied strict dependency");
                     throw new PolicyViolationException(
-                            "Unsatisfied strict dependency of [" + getDownstreamDescription(projCtx) + "] dependent on ["
-                                    + getUpstreamDescription(upstreamCtxFilter, task, result) + "]: Account not provisioned");
-                } else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
-                    LOGGER.trace("  -> unsatisfied lax dependency");
-                    // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied lax dependency of [{}] dependent on [{}]: dependency skipped",
+                            String.format("Unsatisfied strict dependency of [%s] dependent on [%s]: Account not provisioned",
+                                    getDownstreamDescription(projCtx),
+                                    getUpstreamDescription(outDependency, task, result)));
+                } else if (strictness == LAX || strictness == RELAXED) {
+                    LOGGER.trace("  -> unsatisfied {} dependency", strictness);
+                    // independent (upstream) projection context not present, just ignore it
+                    LOGGER.debug("Unsatisfied {} dependency of [{}] dependent on [{}]: dependency skipped",
+                            strictness,
                             lazy(() -> getDownstreamDescription(projCtx)),
-                            lazy(() -> getUpstreamDescription(upstreamCtxFilter, task, result)));
-                } else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
-                    LOGGER.trace("  -> unsatisfied relaxed dependency");
-                    // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied relaxed dependency of [{}] dependent on [{}}]: dependency skipped",
-                            lazy(() -> getDownstreamDescription(projCtx)),
-                            lazy(() -> getUpstreamDescription(upstreamCtxFilter, task, result)));
+                            lazy(() -> getUpstreamDescription(outDependency, task, result)));
                 } else {
                     throw new IllegalArgumentException(
                             "Unknown dependency strictness " + outDependency.getStrictness() + " in a dependency to "
-                                    + getUpstreamDescription(upstreamCtxFilter, task, result));
+                                    + getUpstreamDescription(outDependency, task, result));
                 }
             } else {
                 LOGGER.trace("  -> satisfied dependency");
-                upstreamCtx =
-                        determineProjectionWave(context, upstreamCtx, outDependency, depPath, task, result);
+                upstreamCtx = determineProjectionWave(upstreamCtx, outDependency, depPath, task, result);
                 LOGGER.trace("    dependency projection wave: {}", upstreamCtx.getWave());
                 if (upstreamCtx.getWave() + 1 > determinedWave) {
                     determinedWave = upstreamCtx.getWave() + 1;
                     determinedOrder = or0(outDependency.getOrder());
+                    LOGGER.trace("    -> updated wave being computed for {}: {} (order={})",
+                            projCtx, determinedWave, determinedOrder);
                 }
-                LOGGER.trace("    -> determined dependency wave: {} (order={})", determinedWave, determinedOrder);
             }
-            depPath.removeLast();
+            depPath.remove();
         }
-        LensProjectionContext resultCtx = projCtx;
-        if (projCtx.getWave() >= 0 && projCtx.getWave() != determinedWave) {
+        LensProjectionContext resultCtx;
+        if (projCtx.getWave() >= 0
+                && projCtx.getWave() != determinedWave
+                && projCtx.getOrder() != determinedOrder) {
             // Wave for this context was set during the run of this method (it was not set when we
             // started, we checked at the beginning). Therefore this context must have been visited again.
             // therefore there is a circular dependency. Therefore we need to create another context to split it.
-            if (projCtx.getOrder() != determinedOrder) {
-                resultCtx = spawnWithNewOrder(context, projCtx, determinedOrder);
-            }
+            resultCtx = spawnWithNewOrder(projCtx, determinedOrder);
+        } else {
+            resultCtx = projCtx;
         }
         resultCtx.setWave(determinedWave);
         return resultCtx;
@@ -200,16 +200,10 @@ public class DependencyProcessor {
                 + "(oid:" + projectionContext.getResourceOid() + ")";
     }
 
-    private String getUpstreamDescription(
-            ProjectionContextFilter filter, Task task, OperationResult result) {
-        String resourceName = getResourceName(filter.getResourceOid(), task, result);
-        if (resourceName == null) {
-            return filter.toHumanReadableDescription(true);
-        } else {
-            return filter.toHumanReadableDescription(false)
-                    + " resource " + resourceName
-                    + "(oid:" + filter.getResourceOid() + ")";
-        }
+    private String getUpstreamDescription(ResourceObjectTypeDependencyType dependency, Task task, OperationResult result) {
+        String resourceOid = getResourceOidRequired(dependency);
+        String resourceName = getResourceName(resourceOid, task, result);
+        return ResourceObjectTypeDependencyTypeUtil.describe(dependency, resourceName);
     }
 
     private String getResourceName(String resourceOid, Task task, OperationResult result) {
@@ -229,23 +223,19 @@ public class DependencyProcessor {
         }
     }
 
-    private <F extends ObjectType> LensProjectionContext determineProjectionWaveDeprovision(
-            LensContext<F> context,
+    private LensProjectionContext determineProjectionWaveDeprovision(
             LensProjectionContext projCtx,
             ResourceObjectTypeDependencyType inDependency,
-            Deque<ResourceObjectTypeDependencyType> depPath,
+            DependencyPath depPath,
             Task task,
             OperationResult result) throws PolicyViolationException, SchemaException, ConfigurationException {
-        if (depPath == null) {
-            depPath = new ArrayDeque<>();
-        }
         LOGGER.trace("Determining wave for (deprovision): {}, path: {}", lazy(projCtx::getHumanReadableName), depPath);
         int determinedWave = 0;
         int determinedOrder = 0;
 
         // This needs to go in the reverse. We need to figure out who depends on us.
-        for (DependencyAndSource ds : findReverseDependencies(context, projCtx)) {
-            LensProjectionContext dependencySourceContext = ds.sourceProjectionContext;
+        for (DependencyAndSource ds : findReverseDependencies(projCtx)) {
+            LensProjectionContext dependentCtx = ds.sourceProjectionContext; // ~ downstream (seen from the "provisioning" view)
             ResourceObjectTypeDependencyType outDependency = ds.dependency;
             if (inDependency != null && isHigherOrder(outDependency, inDependency)) {
                 // There is incoming dependency. Deal only with dependencies of this order and lower
@@ -254,138 +244,79 @@ public class DependencyProcessor {
                 continue;
             }
 
-            if (!dependencySourceContext.isDelete()) {
-                ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = getDependencyStrictness(outDependency);
-                if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+            if (!dependentCtx.isDelete()) {
+                ResourceObjectTypeDependencyStrictnessType strictness = getDependencyStrictness(outDependency);
+                if (strictness == STRICT) {
                     LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied strict dependency",
                             prettyPrintLazily(outDependency));
                     throw new PolicyViolationException(
-                            "Unsatisfied strict reverse dependency of account " + dependencySourceContext.getKey()
+                            "Unsatisfied strict reverse dependency of account " + dependentCtx.getKey()
                                     + " dependent on " + projCtx.getKey()
                                     + ": Account is provisioned, but the account that it depends on is going to be deprovisioned");
-                } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
-                    LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied lax dependency",
-                            prettyPrintLazily(outDependency));
+                } else if (strictness == LAX || strictness == RELAXED) {
+                    LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied {} dependency",
+                            prettyPrintLazily(outDependency), strictness);
                     // independent object not in the context, just ignore it
                     LOGGER.debug("Unsatisfied lax reversed dependency of account {} dependent on {}; dependency skipped",
-                            dependencySourceContext.getKey(),
-                            projCtx.getKey());
-                } else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
-                    LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied relaxed dependency",
-                            prettyPrintLazily(outDependency));
-                    // independent object not in the context, just ignore it
-                    LOGGER.debug("Unsatisfied relaxed dependency of account {} dependent on {}; dependency skipped",
-                            dependencySourceContext.getKey(),
-                            projCtx.getKey());
+                            dependentCtx.getKey(), projCtx.getKey());
                 } else {
                     throw new IllegalArgumentException("Unknown dependency strictness " + outDependency.getStrictness()
-                            + " in " + dependencySourceContext.getKey());
+                            + " in " + dependentCtx.getKey());
                 }
             } else {
                 LOGGER.trace("  processing (reversed) dependency: {}: satisfied", prettyPrintLazily(outDependency));
-                checkForCircular(depPath, outDependency, projCtx);
-                depPath.addLast(outDependency);
-                dependencySourceContext =
-                        determineProjectionWave(context, dependencySourceContext, outDependency, depPath, task, result);
-                LOGGER.trace("    dependency projection wave: {}", dependencySourceContext.getWave());
-                if (dependencySourceContext.getWave() + 1 > determinedWave) {
-                    determinedWave = dependencySourceContext.getWave() + 1;
+                depPath.add(outDependency, projCtx);
+                dependentCtx =
+                        determineProjectionWave(dependentCtx, outDependency, depPath, task, result);
+                LOGGER.trace("    dependency projection wave: {}", dependentCtx.getWave());
+                if (dependentCtx.getWave() + 1 > determinedWave) {
+                    determinedWave = dependentCtx.getWave() + 1;
                     determinedOrder = or0(outDependency.getOrder());
                 }
                 LOGGER.trace("    determined dependency wave: {} (order={})", determinedWave, determinedOrder);
-                depPath.removeLast();
+                depPath.remove();
             }
         }
 
-        LensProjectionContext resultCtx = projCtx;
-        if (projCtx.getWave() >= 0 && projCtx.getWave() != determinedWave) {
+        LensProjectionContext resultCtx;
+        if (projCtx.getWave() >= 0
+                && projCtx.getWave() != determinedWave
+                && !projCtx.isDelete()) {
             // Wave for this context was set during the run of this method (it was not set when we
             // started, we checked at the beginning). Therefore this context must have been visited again.
             // therefore there is a circular dependency. Therefore we need to create another context to split it.
-            if (!projCtx.isDelete()){
-                resultCtx = spawnWithNewOrder(context, projCtx, determinedOrder);
-            }
+            resultCtx = spawnWithNewOrder(projCtx, determinedOrder);
+        } else {
+            resultCtx = projCtx;
         }
         resultCtx.setWave(determinedWave);
         return resultCtx;
     }
 
     /**
-     * Returns all contexts that depend on provided `targetProjectionContext`.
+     * Returns all contexts that depend on provided `targetContext`:
      */
-    private <F extends ObjectType> Collection<DependencyAndSource> findReverseDependencies(LensContext<F> context,
-            LensProjectionContext targetProjectionContext) throws SchemaException, ConfigurationException {
+    private Collection<DependencyAndSource> findReverseDependencies(
+            LensProjectionContext targetContext) throws SchemaException, ConfigurationException {
         Collection<DependencyAndSource> deps = new ArrayList<>();
-        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-            for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-                if (LensUtil.isDependencyTarget(targetProjectionContext, dependency)) {
-                    DependencyAndSource ds = new DependencyAndSource();
-                    ds.dependency = dependency;
-                    ds.sourceProjectionContext = projectionContext;
-                    deps.add(ds);
+        for (LensProjectionContext candidateSource : targetContext.getLensContext().getProjectionContexts()) {
+            for (ResourceObjectTypeDependencyType dependency : candidateSource.getDependencies()) {
+                if (targetContext.isDependencyTarget(dependency)) {
+                    deps.add(
+                            new DependencyAndSource(dependency, candidateSource));
                 }
             }
         }
         return deps;
     }
 
-    private void checkForCircular(
-            Deque<ResourceObjectTypeDependencyType> depPath,
-            ResourceObjectTypeDependencyType outDependency,
-            LensProjectionContext projectionContext) throws PolicyViolationException {
-        for (ResourceObjectTypeDependencyType pathElement: depPath) {
-            if (pathElement.equals(outDependency)) {
-                throw new PolicyViolationException("Circular dependency in " + projectionContext.getHumanReadableName()
-                        + ", path: " + getPathDescription(depPath));
-            }
-        }
-    }
-
-    private String getPathDescription(Deque<ResourceObjectTypeDependencyType> depPath) {
-        StringBuilder sb = new StringBuilder();
-        Iterator<ResourceObjectTypeDependencyType> iterator = depPath.iterator();
-        while (iterator.hasNext()) {
-            ResourceObjectTypeDependencyType el = iterator.next();
-            ObjectReferenceType resourceRef = el.getResourceRef();
-            if (resourceRef != null) {
-                sb.append(resourceRef.getOid());
-            }
-            sb.append("(").append(el.getKind()).append("/");
-            sb.append(el.getIntent()).append(")");
-            if (iterator.hasNext()) {
-                sb.append("->");
-            }
-        }
-        return sb.toString();
-    }
-
     private boolean isHigherOrder(ResourceObjectTypeDependencyType a, ResourceObjectTypeDependencyType b) {
         return or0(a.getOrder()) > or0(b.getOrder());
     }
 
-    /**
-     * Find upstream context that has the closest order to the dependency-to-be-spawned (given by dependency bean).
-     */
-    private LensProjectionContext findUpstreamContext(
-            LensContext<?> context, ProjectionContextFilter upstreamContextFilter, int specifiedOrder) {
-        LensProjectionContext selected = null;
-        for (LensProjectionContext candidate : context.getProjectionContexts()) {
-            // The upstream-candidate must have order that is not greater than the order of the context-to-be-spawned
-            if (candidate.matches(upstreamContextFilter) && candidate.getOrder() <= specifiedOrder) {
-                if (selected == null || candidate.getOrder() > selected.getKey().getOrder()) {
-                    selected = candidate;
-                }
-            }
-        }
-        return selected;
-    }
-
-    private LensProjectionContext spawnWithNewOrder(
-            LensContext<?> context,
-            LensProjectionContext origCtx,
-            int newOrder) {
+    private LensProjectionContext spawnWithNewOrder(LensProjectionContext origCtx, int newOrder) {
         LensProjectionContext newCtx =
-                context.createProjectionContext(
+                origCtx.getLensContext().createProjectionContext(
                         origCtx.getKey().withOrder(newOrder));
         newCtx.setResource(origCtx.getResource());
         // Force recon for the new context. This is a primitive way how to avoid phantom changes.
@@ -453,94 +384,152 @@ public class DependencyProcessor {
         return null;
     }
 
+    /**
+     * Checks if the dependencies of the current projection contexts are satisfied.
+     *
+     * Throws a {@link PolicyViolationException} only if a strict dependency is not satisfied - but this
+     * is something that should have been checked earlier, so it's actually not expected.
+     */
     private boolean areDependenciesSatisfied(LensProjectionContext projContext)
             throws SchemaException, ConfigurationException, PolicyViolationException {
         LOGGER.trace("Checking whether dependencies of {} are satisfied", projContext);
-        LensContext<?> context = projContext.getLensContext();
         for (ResourceObjectTypeDependencyType dependency : projContext.getDependencies()) {
-            // TODO This is a bit strange ... when we have two occurrences of given "coordinates"
-            //  (resource + kind/intent), they share their dependency definition! So that dependency
-            //  is checked twice (the first time probably unnecessarily)
-            ProjectionContextKey upstreamContextKey = ProjectionContextKey.fromDependency(dependency);
-            LensProjectionContext upstreamContext = context.findProjectionContextByKeyExact(upstreamContextKey);
-            LOGGER.trace("Upstream context with key {} found: {}", upstreamContextKey, upstreamContext);
-            ResourceObjectTypeDependencyStrictnessType strictness = getDependencyStrictness(dependency);
-            if (upstreamContext == null) {
-                if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
-                    // This should not happen, it is checked before projection
-                    throw new PolicyViolationException("Unsatisfied strict dependency of "
-                            + projContext.getKey().toHumanReadableDescription()
-                            + " dependent on " + upstreamContextKey.toHumanReadableDescription()
-                            + ": No context in dependency check");
-                } else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
-                    // independent object not in the context, just ignore it
-                    LOGGER.trace("Unsatisfied lax dependency of account " +
-                            projContext.getKey().toHumanReadableDescription() +
-                            " dependent on " + upstreamContextKey.toHumanReadableDescription() + "; dependency skipped");
-                } else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
-                    // independent object not in the context, just ignore it
-                    LOGGER.trace("Unsatisfied relaxed dependency of account "
-                            + projContext.getKey().toHumanReadableDescription() +
-                            " dependent on " + upstreamContextKey.toHumanReadableDescription() + "; dependency skipped");
-                } else {
-                    throw new IllegalArgumentException(
-                            "Unknown dependency strictness " + dependency.getStrictness() + " in " + upstreamContextKey);
-                }
-            } else {
-                // We have the context of the object that we depend on. We need to check if it was provisioned.
-                if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT
-                        || strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
-                    if (wasUpstreamContextProvisioned(upstreamContext, context.getExecutionWave())) {
-                        // everything OK
-                    } else {
-                        // We do not want to throw exception here. That would stop entire projection.
-                        // Let's just mark the projection as broken and skip it.
-                        LOGGER.warn("Unsatisfied dependency of {} dependent on {}: Projection not provisioned in dependency check"
-                                        + " (execution wave {}, projection wave {}, dependency (upstream) projection wave {})",
-                                projContext.getKey(), upstreamContextKey, context.getExecutionWave(),
-                                projContext.getWave(), upstreamContext.getWave());
-                        projContext.setBroken();
-                        return false;
-                    }
-                } else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
-                    // we don't care what happened, just go on
-                } else {
-                    throw new IllegalArgumentException(
-                            "Unknown dependency strictness " + dependency.getStrictness() + " in " + upstreamContextKey);
-                }
+            if (!isDependencySatisfied(projContext, dependency)) {
+                return false;
             }
         }
         return true;
     }
 
-    <F extends ObjectType> void preprocessDependencies(LensContext<F> context) throws SchemaException, ConfigurationException {
+    private boolean isDependencySatisfied(LensProjectionContext projContext, ResourceObjectTypeDependencyType dependency)
+            throws PolicyViolationException {
+        LOGGER.trace("Checking the following dependency: {}", prettyPrintLazily(dependency));
+        LensContext<?> context = projContext.getLensContext();
+        LensProjectionContext upstreamContext = findFirstUpstreamContext(projContext, dependency);
+        LOGGER.trace("Upstream context found: {}", upstreamContext);
+        ResourceObjectTypeDependencyStrictnessType strictness = getDependencyStrictness(dependency);
+        if (upstreamContext == null) {
+            if (strictness == STRICT) {
+                // This should not happen, it is checked before projection
+                throw new PolicyViolationException("Unsatisfied strict dependency of "
+                        + projContext.getKey().toHumanReadableDescription()
+                        + " dependent on " + prettyPrint(dependency)
+                        + ": upstream projection context was not found");
+            } else if (strictness == LAX || strictness == RELAXED) {
+                // independent object not in the context, just ignore it
+                LOGGER.trace("Unsatisfied {} dependency of account {} dependent on {}; dependency skipped",
+                        strictness, projContext.getKey().toHumanReadableDescription(), prettyPrintLazily(dependency));
+            } else {
+                throw new IllegalArgumentException(getUnknownStrictnessMessage(dependency));
+            }
+        } else {
+            // We have the context of the object that we depend on. We need to check if it was provisioned.
+            if (strictness == STRICT || strictness == RELAXED) {
+                if (wasUpstreamContextProvisioned(upstreamContext, context.getExecutionWave())) {
+                    // everything OK
+                } else {
+                    // We do not want to throw exception here. That would stop entire projection.
+                    // Let's just mark the projection as broken and skip it.
+                    LOGGER.warn("Unsatisfied dependency of {} dependent on {}: Projection not provisioned in dependency check"
+                                    + " (execution wave {}, projection wave {}, dependency (upstream) projection wave {})",
+                            projContext.getKey(), upstreamContext.getKey(), context.getExecutionWave(),
+                            projContext.getWave(), upstreamContext.getWave());
+                    projContext.setBroken();
+                    return false;
+                }
+            } else if (strictness == LAX) {
+                // we don't care what happened, just go on
+            } else {
+                throw new IllegalArgumentException(getUnknownStrictnessMessage(dependency));
+            }
+        }
+        return true;
+    }
 
-        //in the first wave we do not have enough information to preprocess contexts
+    @NotNull
+    private String getUnknownStrictnessMessage(ResourceObjectTypeDependencyType dependency) {
+        return "Unknown dependency strictness " + dependency.getStrictness() + " in " + prettyPrint(dependency);
+    }
+
+    /**
+     * This method is used when determining projection wave for provisioning.
+     *
+     * It resolves the dependency by looking for relevant upstream context.
+     * We try to find one that has the largest order but not above the order of the dependency.
+     *
+     * TODO compare with {@link #findFirstUpstreamContext(LensProjectionContext, ResourceObjectTypeDependencyType)}
+     */
+    private LensProjectionContext findNearestUpstreamContext(
+            LensContext<?> context, ResourceObjectTypeDependencyType dependency) {
+        int dependencyOrder = or0(dependency.getOrder());
+        return context.getProjectionContexts().stream()
+                .filter(ctx -> ctx.getOrder() <= dependencyOrder)
+                .filter(ctx -> !ctx.isGone()) // this is logical, and also it's present in pre-4.6 behavior
+                .filter(ctx -> matches(ctx, dependency))
+                .max(Comparator.comparingInt(LensProjectionContext::getOrder))
+                .orElse(null);
+    }
+
+    /**
+     * This method is used when checking the dependency satisfaction
+     *
+     * TODO method name
+     */
+    private LensProjectionContext findFirstUpstreamContext(
+            @NotNull LensProjectionContext projContext,
+            @NotNull ResourceObjectTypeDependencyType dependency) {
+        return projContext.getLensContext().getProjectionContexts().stream()
+                .filter(ctx -> ctx != projContext)
+                .filter(ctx -> ctx.getOrder() <= projContext.getOrder()) // before 4.6, we strictly matched order=0, this is more logical, though
+                .filter(ctx -> !ctx.isGone()) // this is questionable; but preserving pre-4.6 behavior
+                .filter(ctx -> matches(ctx, dependency))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static boolean matches(LensProjectionContext ctx, ResourceObjectTypeDependencyType dependency) {
+        return getResourceOidRequired(dependency).equals(ctx.getResourceOid())
+                && getKindRequired(dependency) == ctx.getKind()
+                && intentMatches(ctx, dependency);
+    }
+
+    private static boolean intentMatches(LensProjectionContext ctx, ResourceObjectTypeDependencyType dependency) {
+        String explicitIntent = dependency.getIntent();
+        if (explicitIntent != null) {
+            return explicitIntent.equals(ctx.getKey().getIntent());
+        } else {
+            return ctx.isDefaultForKind(dependency.getKind());
+        }
+    }
+
+    /**
+     * Treats dependencies with "force load" flags: sets do-reconciliation flag for both source and target of such a dependency.
+     */
+    void preprocessDependencies(LensContext<?> context) throws SchemaException, ConfigurationException {
+
+        // In the first wave we do not have enough information to preprocess contexts
         if (context.getExecutionWave() == 0) {
             return;
         }
 
-        for (LensProjectionContext projContext : context.getProjectionContexts()) {
-            if (!projContext.isCanProject()) {
+        for (LensProjectionContext currentCtx : context.getProjectionContexts()) {
+            if (!currentCtx.isCanProject()) {
                 continue;
             }
 
-            for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
-                ProjectionContextKey refKey = ProjectionContextKey.fromDependency(dependency);
-                LOGGER.trace("LOOKING FOR {}", refKey);
-                LensProjectionContext dependencyAccountContext = context.findProjectionContextByKeyExact(refKey);
+            for (ResourceObjectTypeDependencyType dependency : currentCtx.getDependencies()) {
                 ResourceObjectTypeDependencyStrictnessType strictness = getDependencyStrictness(dependency);
-                if (dependencyAccountContext != null && dependencyAccountContext.isCanProject()) {
-                    // We have the context of the object that we depend on. We need to check if it was provisioned.
-                    if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT
-                            || strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
-                        if (wasExecuted(dependencyAccountContext)) {
-                            // everything OK
-                            if (isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isDelete()) {
-                                dependencyAccountContext.setDoReconciliation(true);
-                                projContext.setDoReconciliation(true);
-                            }
-                        }
+                if (isForceLoadDependentShadow(dependency)
+                        && (strictness == STRICT || strictness == RELAXED)) {
+                    // Before 4.6, we used RSD to match the contexts. It matched e.g. only contexts with order = 0.
+                    // This one should be more appropriate.
+                    LensProjectionContext upstreamCtx = findFirstUpstreamContext(currentCtx, dependency);
+                    if (upstreamCtx != null
+                            && upstreamCtx.isCanProject()
+                            && !upstreamCtx.isDelete()
+                            && wasExecuted(upstreamCtx)) {
+                        upstreamCtx.setDoReconciliation(true);
+                        currentCtx.setDoReconciliation(true);
                     }
                 }
             }
@@ -561,40 +550,14 @@ public class DependencyProcessor {
 
         LOGGER.trace("checkDependenciesFinal starting");
 
-        for (LensProjectionContext accountContext: context.getProjectionContexts()) {
-            checkDependencies(accountContext);
+        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+            checkDependencies(projCtx);
         }
 
-        for (LensProjectionContext accountContext: context.getProjectionContexts()) {
-            if (accountContext.isDelete()
-                    || accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
-                // It is OK if we depend on something that is not there if we are being removed
-                // but we still need to check if others depends on me
-                for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-                    if (projectionContext.isDelete()
-                            || projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK
-                            || projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
-                            || projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-                        // If someone who is being deleted depends on us then it does not really matter
-                        continue;
-                    }
-                    for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-                        String dependencyResourceOid = dependency.getResourceRef() != null ?
-                                dependency.getResourceRef().getOid() : projectionContext.getResource().getOid();
-                        // TODO what to do if dependencyResourceOid or accountContext.getResource() is null?
-                        if (dependencyResourceOid != null
-                                && accountContext.getResource() != null
-                                && dependencyResourceOid.equals(accountContext.getResource().getOid())
-                                && MiscSchemaUtil.equalsIntent(dependency.getIntent(), projectionContext.getKey().getIntent())) {
-                            // Someone depends on us
-                            if (getDependencyStrictness(dependency) == ResourceObjectTypeDependencyStrictnessType.STRICT) {
-                                throw new PolicyViolationException("Cannot remove "+accountContext.getHumanReadableName()
-                                        +" because "+projectionContext.getHumanReadableName()+" depends on it");
-                            }
-                        }
-                    }
-                }
-
+        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+            if (projCtx.isDelete()
+                    || projCtx.getSynchronizationPolicyDecision() == UNLINK) {
+                checkIfCanRemove(projCtx);
             }
         }
     }
@@ -666,8 +629,85 @@ public class DependencyProcessor {
         }
     }
 
+    private void checkIfCanRemove(LensProjectionContext ctxBeingRemoved)
+            throws SchemaException, ConfigurationException, PolicyViolationException {
+        // It is OK if we depend on something that is not there if we are being removed
+        // but we still need to check if others depends on me (~ are downstream relative to us)
+        for (LensProjectionContext candidateDependentCtx : ctxBeingRemoved.getLensContext().getProjectionContexts()) {
+            if (candidateDependentCtx.isDelete()
+                    || candidateDependentCtx.getSynchronizationPolicyDecision() == UNLINK
+                    || candidateDependentCtx.getSynchronizationPolicyDecision() == BROKEN
+                    || candidateDependentCtx.getSynchronizationPolicyDecision() == IGNORE) {
+                // If someone who is being deleted depends on us then it does not really matter
+                continue;
+            }
+            for (ResourceObjectTypeDependencyType dependency : candidateDependentCtx.getDependencies()) {
+                if (matches(ctxBeingRemoved, dependency) && isStrict(dependency)) {
+                    throw new PolicyViolationException("Cannot remove " + ctxBeingRemoved.getHumanReadableName()
+                            + " because " + candidateDependentCtx.getHumanReadableName() + " depends on it");
+                }
+            }
+        }
+    }
+
     static class DependencyAndSource {
-        ResourceObjectTypeDependencyType dependency;
-        LensProjectionContext sourceProjectionContext;
+        @NotNull private final ResourceObjectTypeDependencyType dependency;
+        @NotNull private final LensProjectionContext sourceProjectionContext;
+
+        DependencyAndSource(
+                @NotNull ResourceObjectTypeDependencyType dependency, @NotNull LensProjectionContext sourceProjectionContext) {
+            this.dependency = dependency;
+            this.sourceProjectionContext = sourceProjectionContext;
+        }
+    }
+
+    static class DependencyPath {
+
+        private final Deque<ResourceObjectTypeDependencyType> depPath = new ArrayDeque<>();
+
+        public void add(ResourceObjectTypeDependencyType dependency, LensProjectionContext projCtx)
+                throws PolicyViolationException {
+            checkForCircular(dependency, projCtx);
+            depPath.addLast(dependency);
+        }
+
+        public void remove() {
+            depPath.removeLast();
+        }
+
+        private void checkForCircular(
+                ResourceObjectTypeDependencyType outDependency,
+                LensProjectionContext projectionContext) throws PolicyViolationException {
+            for (ResourceObjectTypeDependencyType pathElement : depPath) {
+                if (pathElement.equals(outDependency)) {
+                    throw new PolicyViolationException(
+                            "Circular dependency in " + projectionContext.getHumanReadableName()
+                                    + ", path: " + getPathDescription());
+                }
+            }
+        }
+
+        private String getPathDescription() {
+            StringBuilder sb = new StringBuilder();
+            Iterator<ResourceObjectTypeDependencyType> iterator = depPath.iterator();
+            while (iterator.hasNext()) {
+                ResourceObjectTypeDependencyType el = iterator.next();
+                ObjectReferenceType resourceRef = el.getResourceRef();
+                if (resourceRef != null) {
+                    sb.append(resourceRef.getOid());
+                }
+                sb.append("(").append(el.getKind()).append("/");
+                sb.append(el.getIntent()).append(")");
+                if (iterator.hasNext()) {
+                    sb.append("->");
+                }
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(depPath);
+        }
     }
 }

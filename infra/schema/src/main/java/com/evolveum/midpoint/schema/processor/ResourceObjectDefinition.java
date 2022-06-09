@@ -465,5 +465,18 @@ public interface ResourceObjectDefinition
 
     /** Is this definition bound to a specific resource type? If yes, this method returns its definition. */
     @Nullable ResourceObjectTypeDefinition getTypeDefinition();
+
+    /**
+     * Returns true if this definition can be considered as a default for the specified kind.
+     *
+     * Normally, for a type definition it means that it is marked as "default for a kind" and has the specified kind.
+     * But there is a special case of {@link ResourceObjectClassDefinition} with
+     * {@link ResourceObjectClassDefinition#isDefaultAccountDefinition()} being `true`. It is considered to be
+     * the default for {@link ShadowKindType#ACCOUNT}.
+     *
+     * Use with care!
+     */
+    @Experimental
+    boolean isDefaultFor(@NotNull ShadowKindType kind);
     //endregion
 }

@@ -96,6 +96,12 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return getKind() == kind
+                && isDefaultForKind();
+    }
+
+    @Override
     public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
         return refinedObjectClassDefinition;
     }

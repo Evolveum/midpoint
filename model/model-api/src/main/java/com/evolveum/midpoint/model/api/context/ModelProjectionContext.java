@@ -73,7 +73,8 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
     }
 
     /**
-     * Dependencies returned are always complete i.e. their resource OID, kind, and intent are non-null.
+     * Dependencies returned are "almost complete": resource OID and kind are non-null.
+     * Intent may be null; in that case, the default value has to be used.
      *
      * TODO decide what to return if the dependency configuration cannot be obtained; currently it's an empty list
      */

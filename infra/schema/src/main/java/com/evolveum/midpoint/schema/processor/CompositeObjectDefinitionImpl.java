@@ -700,4 +700,9 @@ public class CompositeObjectDefinitionImpl
     public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
         return structuralDefinition.getTypeDefinition();
     }
+
+    @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return structuralDefinition.isDefaultFor(kind);
+    }
 }

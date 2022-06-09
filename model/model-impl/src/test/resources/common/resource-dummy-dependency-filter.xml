@@ -282,8 +282,6 @@
                         </q:equal>
                     </filter>
                 </resourceRef>
-                <kind>account</kind>
-                <intent>default</intent>
                 <strictness>strict</strictness>
            </dependency>
 

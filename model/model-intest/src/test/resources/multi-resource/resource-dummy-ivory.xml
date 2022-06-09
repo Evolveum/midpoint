@@ -148,8 +148,6 @@
             </attribute>
             <dependency>
                 <resourceRef oid="10000000-0000-0000-0000-000000000004"/> <!-- default dummy -->
-                <kind>account</kind>
-                <intent>default</intent>
                 <strictness>lax</strictness>
             </dependency>
             <activation>

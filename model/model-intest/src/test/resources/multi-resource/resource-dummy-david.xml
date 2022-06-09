@@ -129,8 +129,6 @@
             </attribute>
             <dependency>
                 <resourceRef oid="10000000-0000-0000-0000-000000300002"/>
-                <kind>account</kind>
-                <intent>default</intent>
                 <strictness>relaxed</strictness>
                 <order>10</order>
             </dependency>

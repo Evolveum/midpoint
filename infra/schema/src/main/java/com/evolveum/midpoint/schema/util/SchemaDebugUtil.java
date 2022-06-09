@@ -402,6 +402,9 @@ public class SchemaDebugUtil {
         sb.append(depType.getKind());
         sb.append("/");
         sb.append(depType.getIntent());
+        if (depType.getOrder() != null) {
+            sb.append("; order ").append(depType.getOrder());
+        }
         sb.append(")");
         return sb.toString();
     }
