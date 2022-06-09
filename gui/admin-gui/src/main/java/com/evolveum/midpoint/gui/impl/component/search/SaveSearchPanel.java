@@ -48,6 +48,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -141,23 +142,26 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         AvailableFilterType availableFilter = new AvailableFilterType();
         availableFilter.setDisplay(new DisplayType().label(queryNameModel.getObject()));
         availableFilter.setSearchMode(getModelObject().getSearchMode());
+        SearchItemType searchItem = null;
         if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())) {
             availableFilter.getSearchItem().addAll(getAvailableFilterSearchItems(type, search.getItems(), search.getSearchMode()));
-        } else if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
-            SearchItemType axiomSearchItem = createAxiomSearchItem();
-            if (axiomSearchItem != null) {
-                availableFilter.getSearchItem().add(axiomSearchItem);
+        } else {
+            if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
+                searchItem = createAxiomSearchItem();
+            } else if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())) {
+                searchItem = createAdvancedSearchItem();
+            } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
+                searchItem = createFulltextSearchItem();
+            } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchMode())) {
+                searchItem = createOidSearchItem(getModelObject().findOidSearchItemWrapper());
             }
-        } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
-            SearchItemType fulltextSearchItem = createFulltextSearchItem();
-            if (fulltextSearchItem != null) {
-                availableFilter.getSearchItem().add(fulltextSearchItem);
+            if (searchItem != null) {
+                availableFilter.getSearchItem().add(searchItem);
             }
-        } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
-            SearchItemType oidtSearchItem = createOidSearchItem(getModelObject().findOidSearchItemWrapper());
-            if (oidtSearchItem != null) {
-                availableFilter.getSearchItem().add(oidtSearchItem);
-            }
+        }
+        if (CollectionUtils.isEmpty(availableFilter.getSearchItem())) {
+            ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+            return;
         }
         saveSearchItemToAdminConfig(availableFilter, ajaxRequestTarget);
     }
@@ -198,6 +202,22 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             return axiomSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse axiom filter from query: " + getModelObject().getDslQuery());
+        }
+        return null;
+    }
+
+    private SearchItemType createAdvancedSearchItem() {
+        try {
+            SearchItemType advancedSearchItem = new SearchItemType();
+
+            SearchFilterType search = PrismContext.get().parserFor(getModelObject().getAdvancedQuery()).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
+            ObjectFilter advancedFilter = PrismContext.get().getQueryConverter().parseFilter(search, getModelObject().getTypeClass());
+            advancedSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(advancedFilter));
+            return advancedSearchItem;
+        } catch (Exception e) {
+            LOGGER.error("Unable to parse advanced filter from query: ", getModelObject().getAdvancedQuery(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse advanced filter from query: " + getModelObject().getAdvancedQuery());
         }
         return null;
     }
@@ -212,6 +232,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             return fulltextSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to create fulltext filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse fulltext filter from query: " + getModelObject().getFullText());
         }
         return null;
     }
@@ -223,7 +244,8 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             oidSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
             return oidSearchItem;
         } catch (SchemaException e) {
-            LOGGER.error("Unable to create oid filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
+            LOGGER.error("Unable to parse oid filter from query: {}, {}", oidSearchItemWrapper.getValue().getValue(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse oid filter from query: " + oidSearchItemWrapper.getValue().getValue());
         }
         return null;
     }
