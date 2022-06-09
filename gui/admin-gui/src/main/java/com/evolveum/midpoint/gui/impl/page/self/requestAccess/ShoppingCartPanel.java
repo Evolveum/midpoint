@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.wizard.Badge;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -25,6 +27,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+
+import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -46,6 +50,13 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         super(model);
 
         initLayout();
+    }
+
+    @Override
+    public IModel<List<Badge>> getTitleBadges() {
+        return Model.ofList(List.of(
+                new Badge("badge badge-warning", "1 warning"),
+                new Badge("badge badge-danger", "fa fa-exclamation-triangle", "2 conflict found")));
     }
 
     @Override
