@@ -123,7 +123,7 @@ class ClassificationHelper {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException {
-        String tag = classification.isKnown() && shadowTagGenerator != null ?
+        String tag = classification.isKnown() ?
                 shadowTagGenerator.generateTag(
                         combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :
                 null;

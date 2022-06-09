@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
@@ -27,10 +26,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 
 public class SynchronizationUtils {
 
-    private static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(
+    public static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(
             PrismObject<ShadowType> shadow, SynchronizationSituationType situation) {
 
         if (situation == null) {
+            // TODO why this strange construction?
             SynchronizationSituationType oldValue = shadow.asObjectable().getSynchronizationSituation();
             return PrismContext.get().deltaFactory().property()
                     .createModificationDeleteProperty(ShadowType.F_SYNCHRONIZATION_SITUATION, shadow.getDefinition(), oldValue);
@@ -46,6 +46,10 @@ public class SynchronizationUtils {
                 .createReplaceDelta(object.getDefinition(), propName, timestamp);
     }
 
+    /**
+     * @param full if true, we consider this synchronization to be "full", and set the appropriate flag
+     * in `synchronizationSituationDescription` as well as update `fullSynchronizationTimestamp`.
+     */
     public static List<ItemDelta<?, ?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
             SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar timestamp)
             throws SchemaException {
@@ -60,7 +64,7 @@ public class SynchronizationUtils {
         return propertyDeltas;
     }
 
-    private static PropertyDelta<SynchronizationSituationDescriptionType> createSynchronizationSituationDescriptionDelta(
+    public static PropertyDelta<SynchronizationSituationDescriptionType> createSynchronizationSituationDescriptionDelta(
             PrismObject<ShadowType> shadow, SynchronizationSituationType situation, XMLGregorianCalendar timestamp,
             String sourceChannel, boolean full) throws SchemaException {
 
@@ -81,14 +85,7 @@ public class SynchronizationUtils {
                 .asItemDelta();
     }
 
-    public static List<PropertyDelta<?>> createSynchronizationTimestampsDeltas(PrismObject<ShadowType> shadow) {
-        return createSynchronizationTimestampsDeltas(
-                shadow,
-                XmlTypeConverter.createXMLGregorianCalendar(),
-                true);
-    }
-
-    private static List<PropertyDelta<?>> createSynchronizationTimestampsDeltas(PrismObject<ShadowType> shadow,
+    public static List<PropertyDelta<?>> createSynchronizationTimestampsDeltas(PrismObject<ShadowType> shadow,
             XMLGregorianCalendar timestamp, boolean full) {
 
         List<PropertyDelta<?>> deltas = new ArrayList<>();

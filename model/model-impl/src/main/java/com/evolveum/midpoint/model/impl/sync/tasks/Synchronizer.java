@@ -64,7 +64,10 @@ public class Synchronizer {
      * called for each account on a resource. We will pretend that the account
      * was created and invoke notification interface.
      */
-    public void synchronize(PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask,
+    public void synchronize(
+            PrismObject<ShadowType> shadowObject,
+            String itemProcessingIdentifier,
+            Task workerTask,
             OperationResult result) {
         ShadowType shadow = shadowObject.asObjectable();
         if (ObjectTypeUtil.hasFetchError(shadowObject)) {

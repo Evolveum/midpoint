@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
+import com.evolveum.midpoint.task.api.TaskUtil;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
@@ -34,14 +34,12 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -54,13 +52,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @param <F> Type of the matching focus object
  */
-public class SynchronizationContext<F extends FocusType>
+public abstract class SynchronizationContext<F extends FocusType>
         implements PreInboundsContext<F>, ResourceObjectProcessingContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
     @VisibleForTesting
     private static boolean skipMaintenanceCheck;
+
+    @NotNull private final ResourceObjectShadowChangeDescription change;
 
     /**
      * Normally, this is shadowed resource object, i.e. shadow + attributes (simply saying).
@@ -85,6 +85,8 @@ public class SynchronizationContext<F extends FocusType>
 
     @NotNull private final Task task;
 
+    @NotNull private final ExecutionModeType executionMode;
+
     /** Kind+intent, if known. */
     @Nullable private final ResourceObjectTypeIdentification typeIdentification;
 
@@ -92,9 +94,6 @@ public class SynchronizationContext<F extends FocusType>
      * Definition of corresponding object (currently found by kind+intent).
      */
     @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
-
-    /** What kind to use _if there's no definition_: To preserve last known kind even if classification fails. */
-    @NotNull private final ShadowKindType kindIfNoDefinition;
 
     @Nullable private final SynchronizationPolicy synchronizationPolicy;
 
@@ -123,7 +122,12 @@ public class SynchronizationContext<F extends FocusType>
     private final String tag;
 
     private boolean shadowExistsInRepo = true;
-    private final boolean forceIntentChange;
+
+    /**
+     * True if we want to update shadow classification even if the shadow is already classified.
+     * It is used in connection with synchronization sorter - its answers are always applied.
+     */
+    private final boolean forceClassificationUpdate;
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
     @NotNull private final ModelBeans beans;
@@ -133,38 +137,34 @@ public class SynchronizationContext<F extends FocusType>
     private final String itemProcessingIdentifier;
 
     /**
-     * Deltas that should be written to the shadow along with other sync metadata.
-     *
-     * They are already applied to the shadow - immediately as they are added to the list.
+     * Helper object that updates the shadow (in memory and in repo) with correlation and/or synchronization metadata.
      */
-    @NotNull private final List<ItemDelta<?, ?>> pendingShadowDeltas = new ArrayList<>();
+    @NotNull private final ShadowUpdater updater;
 
     public SynchronizationContext(
+            @NotNull ResourceObjectShadowChangeDescription change,
             @NotNull ResourceObjectProcessingContextImpl processingContext,
             @Nullable ResourceObjectTypeIdentification typeIdentification,
             @Nullable ResourceObjectDefinition objectDefinition,
             @Nullable SynchronizationPolicy synchronizationPolicy,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
-            @Nullable String tag,
-            @Nullable String itemProcessingIdentifier) {
+            @Nullable String tag) {
+        this.change = change;
         this.shadowedResourceObject = processingContext.getShadowedResourceObject();
         this.resourceObjectDelta = processingContext.getResourceObjectDelta();
         this.resource = processingContext.getResource();
         this.channel = processingContext.getChannel();
         this.systemConfiguration = processingContext.getSystemConfiguration();
         this.task = processingContext.getTask();
+        this.executionMode = TaskUtil.getExecutionMode(task);
         this.beans = processingContext.getBeans();
         this.typeIdentification = typeIdentification;
         this.resourceObjectDefinition = objectDefinition;
-        this.kindIfNoDefinition =
-                Objects.requireNonNullElse(
-                        processingContext.getShadowedResourceObject().getKind(),
-                        ShadowKindType.UNKNOWN);
         this.synchronizationPolicy = synchronizationPolicy;
         this.tag = tag;
-        this.itemProcessingIdentifier = itemProcessingIdentifier;
+        this.itemProcessingIdentifier = change.getItemProcessingIdentifier();
         if (sorterResult != null) {
-            this.forceIntentChange = true;
+            this.forceClassificationUpdate = true;
             LOGGER.trace("Setting synchronization situation to synchronization context: {}",
                     sorterResult.getSynchronizationSituation());
             situation = sorterResult.getSynchronizationSituation();
@@ -172,32 +172,18 @@ public class SynchronizationContext<F extends FocusType>
             //noinspection unchecked
             this.correlatedOwner = (F) sorterResult.getOwner();
         } else {
-            this.forceIntentChange = false;
+            this.forceClassificationUpdate = false;
         }
+        this.updater = new ShadowUpdater(this, beans);
     }
 
-    public boolean isSynchronizationEnabled() {
+    boolean isSynchronizationEnabled() {
         return synchronizationPolicy != null
                 && synchronizationPolicy.isSynchronizationEnabled();
     }
 
     public boolean isProtected() {
         return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
-    }
-
-    /**
-     * Note that the returned value may be `UNKNOWN`.
-     */
-    public @NotNull ShadowKindType getKind() {
-        return typeIdentification != null ?
-                typeIdentification.getKind() : kindIfNoDefinition;
-    }
-
-    /**
-     * Note that the returned value may be `unknown`.
-     */
-    public @NotNull String getIntent() throws SchemaException {
-        return typeIdentification != null ? typeIdentification.getIntent() : SchemaConstants.INTENT_UNKNOWN;
     }
 
     /**
@@ -208,7 +194,7 @@ public class SynchronizationContext<F extends FocusType>
      * unclassified when this context is created.
      */
     public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
-        return resourceObjectDefinition != null ? resourceObjectDefinition.getTypeIdentification() : null;
+        return typeIdentification;
     }
 
     public CorrelationContext getCorrelationContext() {
@@ -252,10 +238,6 @@ public class SynchronizationContext<F extends FocusType>
 
     public @NotNull SynchronizationPolicy getSynchronizationPolicyRequired() {
         return MiscUtil.requireNonNull(synchronizationPolicy, () -> new IllegalStateException("No synchronization policy"));
-    }
-
-    boolean hasApplicablePolicy() {
-        return synchronizationPolicy != null;
     }
 
     String getPolicyName() {
@@ -324,15 +306,11 @@ public class SynchronizationContext<F extends FocusType>
         }
     }
 
-    public SynchronizationSituation<F> getSynchronizationSituation() {
-        return new SynchronizationSituation<>(getLinkedOwner(), getCorrelatedOwner(), getSituation());
-    }
-
-    public void setLinkedOwner(F owner) {
+    void setLinkedOwner(F owner) {
         this.linkedOwner = owner;
     }
 
-    public void setCorrelatedOwner(F correlatedFocus) {
+    void setCorrelatedOwner(F correlatedFocus) {
         this.correlatedOwner = correlatedFocus;
     }
 
@@ -361,8 +339,8 @@ public class SynchronizationContext<F extends FocusType>
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
 
-    public boolean isForceIntentChange() {
-        return forceIntentChange;
+    boolean isForceClassificationUpdate() {
+        return forceClassificationUpdate;
     }
 
     public String getItemProcessingIdentifier() {
@@ -383,7 +361,7 @@ public class SynchronizationContext<F extends FocusType>
 
     @Override
     public String debugDump(int indent) {
-        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(SynchronizationContext.class, indent);
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
@@ -397,8 +375,8 @@ public class SynchronizationContext<F extends FocusType>
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", resourceObjectDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", pendingShadowDeltas, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pendingShadowDeltas", updater.getDeltas(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceClassificationUpdate, indent + 1);
         return sb.toString();
     }
 
@@ -411,19 +389,8 @@ public class SynchronizationContext<F extends FocusType>
         return SynchronizationContext.skipMaintenanceCheck;
     }
 
-    @NotNull List<ItemDelta<?, ?>> getPendingShadowDeltas() {
-        return pendingShadowDeltas;
-    }
-
-    void clearPendingShadowDeltas() {
-        pendingShadowDeltas.clear();
-    }
-
     void addShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
-        for (ItemDelta<?, ?> delta : deltas) {
-            pendingShadowDeltas.add(delta);
-            delta.applyTo(shadowedResourceObject.asPrismObject());
-        }
+        updater.addShadowDeltas(deltas);
     }
 
     /**
@@ -431,7 +398,7 @@ public class SynchronizationContext<F extends FocusType>
      *
      * Currently a temporary implementation based on checking id-match related flag in task extension.
      */
-    public boolean isCorrelatorsUpdateRequested() {
+    boolean isCorrelatorsUpdateRequested() {
         return Boolean.TRUE.equals(
                 task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_UPDATE_ID_MATCH));
     }
@@ -446,11 +413,95 @@ public class SynchronizationContext<F extends FocusType>
         return isCorrelatorsUpdateRequested() && getLinkedOwner() != null;
     }
 
-    public SystemConfigurationType getSystemConfigurationBean() {
+    SystemConfigurationType getSystemConfigurationBean() {
         return systemConfiguration;
     }
 
     public @NotNull ModelBeans getBeans() {
         return beans;
+    }
+
+    public @NotNull ExecutionModeType getExecutionMode() {
+        return executionMode;
+    }
+
+    public boolean isDryRun() {
+        return executionMode == ExecutionModeType.DRY_RUN;
+    }
+
+    boolean isFullMode() {
+        return executionMode == ExecutionModeType.FULL;
+    }
+
+    public @NotNull ResourceObjectShadowChangeDescription getChange() {
+        return change;
+    }
+
+    void recordSyncExclusion(SynchronizationExclusionReasonType reason) {
+        task.onSynchronizationExclusion(itemProcessingIdentifier, reason);
+    }
+
+    void recordSyncStart() {
+        task.onSynchronizationStart(itemProcessingIdentifier, shadowedResourceObject.getOid(), situation);
+    }
+
+    @NotNull ShadowUpdater getUpdater() {
+        return updater;
+    }
+
+    public abstract boolean isComplete();
+
+    /**
+     * Synchronization context ready for the synchronization, i.e. it has type identification and synchronization policy present.
+     */
+    public static class Complete<F extends FocusType> extends SynchronizationContext<F> {
+
+        Complete(
+                @NotNull ResourceObjectShadowChangeDescription change,
+                @NotNull ResourceObjectProcessingContextImpl processingContext,
+                @NotNull ResourceObjectTypeIdentification typeIdentification,
+                @NotNull ResourceObjectDefinition objectDefinition,
+                @NotNull SynchronizationPolicy synchronizationPolicy,
+                @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
+                @Nullable String tag) {
+            super(change, processingContext, typeIdentification, objectDefinition, synchronizationPolicy, sorterResult, tag);
+        }
+
+        @Override
+        public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+            return Objects.requireNonNull(super.getTypeIdentification());
+        }
+
+        @Override
+        public @NotNull SynchronizationPolicy getSynchronizationPolicy() {
+            return Objects.requireNonNull(super.getSynchronizationPolicy());
+        }
+
+        @Override
+        public boolean isComplete() {
+            return true;
+        }
+    }
+
+    /**
+     * Synchronization context not ready for the synchronization; policy is not present.
+     * Such context cannot be used for synchronization - the sync will be skipped in this case.
+     */
+    static class Incomplete<F extends FocusType> extends SynchronizationContext<F> {
+
+        Incomplete(
+                @NotNull ResourceObjectShadowChangeDescription change,
+                @NotNull ResourceObjectProcessingContextImpl processingContext,
+                @Nullable ResourceObjectTypeIdentification typeIdentification,
+                @Nullable ResourceObjectDefinition objectDefinition,
+                @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
+                @Nullable String tag) {
+            super(change, processingContext, typeIdentification, objectDefinition, null, sorterResult, tag);
+        }
+
+        @Override
+        public boolean isComplete() {
+            return false;
+        }
     }
 }

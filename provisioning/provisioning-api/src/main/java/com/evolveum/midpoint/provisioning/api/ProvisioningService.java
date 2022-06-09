@@ -684,6 +684,8 @@ public interface ProvisioningService {
 
     /**
      * TODO
+     *
+     * This method does _not_ update shadow in the repository (with newly determined classification).
      */
     @NotNull ResourceObjectClassification classifyResourceObject(
             @NotNull ShadowType combinedObject,

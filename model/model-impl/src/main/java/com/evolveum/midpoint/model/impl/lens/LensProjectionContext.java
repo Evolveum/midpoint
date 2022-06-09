@@ -523,23 +523,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 && Objects.equals(targetKey.getTag(), key.getTag());
     }
 
-    public boolean matches(@NotNull ProjectionContextFilter filter) {
-        return (filter.getResourceOid() == null || filter.getResourceOid().equals(getResourceOid()))
-                && (filter.getKind() == null || filter.getKind() == getKind())
-                && (filter.getIntent() == null || filter.getIntent().equals(key.getIntent()))
-                && doesTagMatch(filter)
-                && (filter.getGone() == null || key.isGone() == filter.getGone()); // this "==" is OK: Boolean vs. boolean
-    }
-
-    private boolean doesTagMatch(ProjectionContextFilter lookupKey) {
-        String lookupTag = lookupKey.getTag();
-        if (lookupTag != null) {
-            return lookupTag.equals(key.getTag());
-        } else {
-            return lookupKey.isNullTagMeansAny() || key.getTag() == null;
-        }
-    }
-
     /**
      * Note that we do not consider the project as matching if it's not classified. The reason is that constructions
      * are targeted to specific kind/intent. There is a chance that this particular context points to a shadow that

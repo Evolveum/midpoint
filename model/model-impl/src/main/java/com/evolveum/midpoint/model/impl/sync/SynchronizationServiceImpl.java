@@ -7,14 +7,10 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import static com.evolveum.midpoint.common.SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
-import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,30 +18,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionExecutor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -74,13 +61,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private static final String OP_NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
 
     @Autowired private PrismContext prismContext;
-    @Autowired private Clock clock;
     @Autowired private ModelBeans beans;
-    @Autowired private SynchronizationContextLoader synchronizationContextLoader;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired private SynchronizationContextLoader syncContextLoader;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @Override
     public void notifyChange(
@@ -97,32 +80,30 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             logStart(change);
             checkConsistence(change);
 
-            SynchronizationContext<?> syncCtx = synchronizationContextLoader.
-                    loadSynchronizationContextFromChange(change, task, result);
+            // The sorter is evaluated in the following method call
+            SynchronizationContext<?> syncCtx = syncContextLoader.loadSynchronizationContextFromChange(change, task, result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
-                return;
+                return; // sync metadata are saved by the above method
             }
+            SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
 
-            assert syncCtx.getSynchronizationPolicy() != null;
+            setupLinkedOwnerAndSituation(completeCtx, change, result);
 
-            setupLinkedOwnerAndSituation(syncCtx, change, result);
+            completeCtx.recordSyncStart();
 
-            task.onSynchronizationStart(change.getItemProcessingIdentifier(), change.getShadowOid(), syncCtx.getSituation());
+            completeCtx.getUpdater()
+                    .updateAllSyncMetadata()
+                    .commit(result);
 
-            ExecutionModeType executionMode = TaskUtil.getExecutionMode(task);
-            boolean fullSync = executionMode == ExecutionModeType.FULL;
-            boolean dryRun = executionMode == ExecutionModeType.DRY_RUN;
-
-            saveSyncMetadata(syncCtx, change, fullSync, result);
-
-            if (!dryRun) {
-                new SynchronizationActionExecutor<>(syncCtx, change)
+            if (!completeCtx.isDryRun()) {
+                new SynchronizationActionExecutor<>(completeCtx)
                         .react(result);
                 // Note that exceptions from action execution are not propagated here.
             }
 
-            LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}", executionMode, change.getShadowedResourceObject());
+            LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}",
+                    completeCtx.getExecutionMode(), completeCtx.getShadowedResourceObject());
 
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap
@@ -173,74 +154,56 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      * - synchronization disabled,
      * - protected resource object.
      */
-    private <F extends FocusType> boolean shouldSkipSynchronization(SynchronizationContext<F> syncCtx,
-            OperationResult result) throws SchemaException {
-        Task task = syncCtx.getTask();
-
-        if (!syncCtx.hasApplicablePolicy()) {
-            String message = "SYNCHRONIZATION no matching policy for " + syncCtx.getShadowedResourceObject() + " ("
-                    + syncCtx.getShadowedResourceObject().getObjectClass() + ") " + " on " + syncCtx.getResource()
-                    + ", ignoring change from channel " + syncCtx.getChannel();
+    private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
+            throws SchemaException {
+        if (!syncCtx.isComplete()) {
+            // This means that either the shadow is not classified, or there is no type definition nor sync section
+            // for its type (kind/intent).
+            String message = String.format(
+                    "SYNCHRONIZATION no applicable synchronization policy and/or type definition for %s (%s) on %s, "
+                            + "ignoring change from channel %s",
+                    syncCtx.getShadowedResourceObject(),
+                    syncCtx.getShadowedResourceObject().getObjectClass(),
+                    syncCtx.getResource(),
+                    syncCtx.getChannel());
             LOGGER.debug(message);
-            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false); // TODO record always full sync?
-            executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-            task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.NO_SYNCHRONIZATION_POLICY);
+            syncCtx.getUpdater()
+                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusion(NO_SYNCHRONIZATION_POLICY);
             return true;
         }
 
         if (!syncCtx.isSynchronizationEnabled()) {
-            String message = "SYNCHRONIZATION is not enabled for " + syncCtx.getResource()
-                    + " ignoring change from channel " + syncCtx.getChannel();
+            String message = String.format(
+                    "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s",
+                    syncCtx.getResource(), syncCtx.getChannel());
             LOGGER.debug(message);
-            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true); // TODO record always full sync?
-            executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-            task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.SYNCHRONIZATION_DISABLED);
+            syncCtx.getUpdater()
+                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
+                    .updateCoordinatesIfMissing()
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusion(SYNCHRONIZATION_DISABLED);
             return true;
         }
 
         if (syncCtx.isProtected()) {
-            List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true); // TODO record always full sync?
-            executeShadowModifications(syncCtx.getShadowedResourceObject(), modifications, task, result);
-            result.recordSuccess(); // Maybe "not applicable" would be better (it is so in Synchronizer class)
-            task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.PROTECTED);
-            LOGGER.debug("SYNCHRONIZATION: DONE for protected shadow {}", syncCtx.getShadowedResourceObject());
+            String message = String.format(
+                    "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s",
+                    syncCtx.getShadowedResourceObject(), syncCtx.getChannel());
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
+                    .updateCoordinatesIfMissing()
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusion(PROTECTED);
             return true;
         }
 
         return false;
-    }
-
-    private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(
-            SynchronizationContext<F> syncCtx, boolean saveIntent) throws SchemaException {
-        Validate.notNull(syncCtx.getShadowedResourceObject(), "No current nor old shadow present");
-        ShadowType applicableShadow = syncCtx.getShadowedResourceObject();
-        PrismObject<ShadowType> shadowObject = syncCtx.getShadowedResourceObject().asPrismObject();
-        List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDeltas(shadowObject);
-        if (saveIntent) {
-            if (StringUtils.isNotBlank(syncCtx.getIntent()) && !syncCtx.getIntent().equals(applicableShadow.getIntent())) {
-                PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
-                        shadowObject.getDefinition(), syncCtx.getIntent());
-                modifications.add(intentDelta);
-            }
-            if (StringUtils.isNotBlank(syncCtx.getTag()) && !syncCtx.getTag().equals(applicableShadow.getTag())) {
-                PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_TAG,
-                        shadowObject.getDefinition(), syncCtx.getTag());
-                modifications.add(tagDelta);
-            }
-        }
-        return modifications;
-    }
-
-    private void executeShadowModifications(ShadowType object, List<PropertyDelta<?>> modifications,
-            Task task, OperationResult subResult) {
-        try {
-            repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
-            task.recordObjectActionExecuted(object.asPrismObject(), ChangeType.MODIFY, null);
-        } catch (Throwable t) {
-            task.recordObjectActionExecuted(object.asPrismObject(), ChangeType.MODIFY, t);
-        }
     }
 
     private void checkConsistence(ResourceObjectShadowChangeDescription change) {
@@ -253,7 +216,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void setupLinkedOwnerAndSituation(SynchronizationContext<F> syncCtx,
+    private <F extends FocusType> void setupLinkedOwnerAndSituation(SynchronizationContext.Complete<F> syncCtx,
             ResourceObjectShadowChangeDescription change, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.subresult(OP_SETUP_SITUATION)
@@ -407,7 +370,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             // This is a very crude and preliminary error handling: we just write pending deltas to the shadow
             // (if there are any), to have a record of the unsuccessful correlation. Normally, we should do this
             // along with the other sync metadata. But the error handling in this class is not ready for it (yet).
-            savePendingDeltas(syncCtx, result);
+            syncCtx.getUpdater().commit(result);
             correlationResult.throwCommonOrRuntimeExceptionIfPresent();
             throw new AssertionError("Not here");
         }
@@ -440,88 +403,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}",
                     syncSituationValue, syncCtx.getLinkedOwner(),
                     syncCtx.getCorrelatedOwner());
-        }
-    }
-
-    /**
-     * Saves situation, timestamps, kind and intent (if needed)
-     *
-     * @param full if true, we consider this synchronization to be "full", and set the appropriate flag
-     * in `synchronizationSituationDescription` as well as update `fullSynchronizationTimestamp`.
-     */
-    private <F extends FocusType> void saveSyncMetadata(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, boolean full, OperationResult result) {
-
-        try {
-            ShadowType shadow = syncCtx.getShadowedResourceObject();
-
-            // new situation description
-            XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            syncCtx.addShadowDeltas(
-                    createSynchronizationSituationAndDescriptionDelta(
-                            shadow.asPrismObject(), syncCtx.getSituation(), change.getSourceChannel(), full, now));
-
-            S_ItemEntry builder = prismContext.deltaFor(ShadowType.class);
-
-            if (ShadowUtil.isNotKnown(shadow.getKind())) {
-                builder = builder.item(ShadowType.F_KIND).replace(syncCtx.getKind());
-            }
-
-            if (ShadowUtil.isNotKnown(shadow.getIntent()) ||
-                    syncCtx.isForceIntentChange() &&
-                            !shadow.getIntent().equals(syncCtx.getIntent())) {
-                builder = builder.item(ShadowType.F_INTENT).replace(syncCtx.getIntent());
-            }
-
-            if (shadow.getTag() == null && syncCtx.getTag() != null) {
-                builder = builder.item(ShadowType.F_TAG).replace(syncCtx.getTag());
-            }
-
-            syncCtx.addShadowDeltas(
-                    builder.asItemDeltas());
-
-            savePendingDeltas(syncCtx, result);
-        } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "while preparing shadow modifications");
-        }
-    }
-
-    private void savePendingDeltas(SynchronizationContext<?> syncCtx, OperationResult result) throws SchemaException {
-        Task task = syncCtx.getTask();
-        ShadowType shadow = syncCtx.getShadowedResourceObject();
-        String channel = syncCtx.getChannel();
-
-        try {
-            beans.cacheRepositoryService.modifyObject(
-                    ShadowType.class,
-                    shadow.getOid(),
-                    syncCtx.getPendingShadowDeltas(),
-                    result);
-            syncCtx.clearPendingShadowDeltas();
-            task.recordObjectActionExecuted(shadow.asPrismObject(), null, null, ChangeType.MODIFY, channel, null);
-        } catch (ObjectNotFoundException ex) {
-            task.recordObjectActionExecuted(shadow.asPrismObject(), null, null, ChangeType.MODIFY, channel, ex);
-            // This may happen e.g. during some recon-livesync interactions.
-            // If the shadow is gone then it is gone. No point in recording the
-            // situation any more.
-            LOGGER.debug(
-                    "Could not update situation in account, because shadow {} does not exist any more (this may be harmless)",
-                    shadow.getOid());
-            syncCtx.setShadowExistsInRepo(false);
-            result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
-        } catch (ObjectAlreadyExistsException | SchemaException ex) {
-            task.recordObjectActionExecuted(shadow.asPrismObject(), ChangeType.MODIFY, ex);
-            LoggingUtils.logException(LOGGER,
-                    "### SYNCHRONIZATION # notifyChange(..): Save of synchronization situation failed: could not modify shadow "
-                            + shadow.getOid() + ": " + ex.getMessage(),
-                    ex);
-            result.recordFatalError("Save of synchronization situation failed: could not modify shadow "
-                    + shadow.getOid() + ": " + ex.getMessage(), ex);
-            throw new SystemException("Save of synchronization situation failed: could not modify shadow "
-                    + shadow.getOid() + ": " + ex.getMessage(), ex);
-        } catch (Throwable t) {
-            task.recordObjectActionExecuted(shadow.asPrismObject(), ChangeType.MODIFY, t);
-            throw t;
         }
     }
 

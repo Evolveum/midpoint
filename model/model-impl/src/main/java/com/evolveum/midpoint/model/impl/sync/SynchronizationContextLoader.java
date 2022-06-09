@@ -21,7 +21,6 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -65,15 +64,11 @@ class SynchronizationContextLoader {
                         () -> new IllegalStateException("No resource in change description: " + change));
 
         SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
-                change.getShadowedResourceObject().asObjectable(),
-                change.getObjectDelta(),
+                change,
                 resource.asObjectable(),
-                change.getSourceChannel(),
-                change.getItemProcessingIdentifier(),
-                null,
-                SynchronizationContext.isSkipMaintenanceCheck(),
                 task,
                 result);
+
         if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
             syncCtx.setShadowExistsInRepo(false);
             // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
@@ -83,35 +78,30 @@ class SynchronizationContextLoader {
     }
 
     private <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull ShadowType shadow,
-            ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull ResourceObjectShadowChangeDescription change,
             @NotNull ResourceType originalResource,
-            String sourceChanel,
-            String itemProcessingIdentifier,
-            SystemConfigurationType explicitSystemConfiguration,
-            boolean skipMaintenanceCheck,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
+        ShadowType shadow = change.getShadowedResourceObject().asObjectable();
+
         ResourceType updatedResource;
-        if (skipMaintenanceCheck) {
+        if (SynchronizationContext.isSkipMaintenanceCheck()) {
             updatedResource = originalResource;
         } else {
             updatedResource = checkNotInMaintenance(originalResource, task, result);
         }
 
-        SystemConfigurationType systemConfiguration = explicitSystemConfiguration != null ?
-                explicitSystemConfiguration :
-                systemObjectCache.getSystemConfigurationBean(result);
+        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
 
         @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(updatedResource);
 
         ResourceObjectProcessingContextImpl processingContext =
                 aResourceObjectProcessingContext(shadow, updatedResource, task, beans)
-                        .withResourceObjectDelta(resourceObjectDelta)
-                        .withExplicitChannel(sourceChanel)
+                        .withResourceObjectDelta(change.getObjectDelta())
+                        .withExplicitChannel(change.getSourceChannel())
                         .withSystemConfiguration(systemConfiguration)
                         .build();
 
@@ -134,14 +124,27 @@ class SynchronizationContextLoader {
                                 updatedResource) :
                         null;
 
-        return new SynchronizationContext<>(
-                processingContext,
-                typeAndDefinition.typeIdentification,
-                typeAndDefinition.definition,
-                policy,
-                sorterResult,
-                tag,
-                itemProcessingIdentifier);
+        // i.e. type identification == null => policy == null
+
+        if (policy != null && typeAndDefinition.definition != null) {
+            return new SynchronizationContext.Complete<>(
+                    change,
+                    processingContext,
+                    typeAndDefinition.typeIdentification,
+                    typeAndDefinition.definition,
+                    policy,
+                    sorterResult,
+                    tag);
+
+        } else {
+            return new SynchronizationContext.Incomplete<>(
+                    change,
+                    processingContext,
+                    typeAndDefinition.typeIdentification,
+                    typeAndDefinition.definition,
+                    sorterResult,
+                    tag);
+        }
     }
 
     /**
@@ -169,7 +172,14 @@ class SynchronizationContextLoader {
         ShadowType shadow = processingContext.getShadowedResourceObject();
         ShadowKindType kind = shadow.getKind();
         String intent = shadow.getIntent();
-        if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
+        if (ShadowUtil.isKnown(kind) && ShadowUtil.isKnown(intent)) {
+            if (isClassificationInSorterResult(sorterResult)) {
+                // Sorter result overrides any stored classification information
+                return TypeAndDefinition.of(schema, sorterResult.getKind(), sorterResult.getIntent());
+            } else {
+                return TypeAndDefinition.of(schema, kind, intent);
+            }
+        } else {
             ResourceObjectClassification classification = beans.provisioningService
                     .classifyResourceObject(
                             processingContext.getShadowedResourceObject(),
@@ -183,9 +193,13 @@ class SynchronizationContextLoader {
             } else {
                 return TypeAndDefinition.of(schema, shadow.getObjectClass());
             }
-        } else {
-            return TypeAndDefinition.of(schema, kind, intent);
         }
+    }
+
+    private boolean isClassificationInSorterResult(@Nullable ObjectSynchronizationDiscriminatorType sorterResult) {
+        return sorterResult != null
+                && ShadowUtil.isKnown(sorterResult.getKind())
+                && ShadowUtil.isKnown(sorterResult.getIntent());
     }
 
     private @Nullable String getOrGenerateTag(

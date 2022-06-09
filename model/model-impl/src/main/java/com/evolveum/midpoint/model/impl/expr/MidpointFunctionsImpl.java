@@ -69,7 +69,6 @@ import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalS
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -139,7 +138,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private LocalizationService localizationService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ModelBeans beans;
-    @Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;

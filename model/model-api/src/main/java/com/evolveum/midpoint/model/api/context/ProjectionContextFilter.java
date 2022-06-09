@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.util.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -87,16 +88,28 @@ public class ProjectionContextFilter
         return tag;
     }
 
-    public boolean isNullTagMeansAny() {
-        return nullTagMeansAny;
-    }
-
     public @Nullable Boolean getGone() {
         return gone;
     }
 
     public ProjectionContextFilter gone(Boolean gone) {
         return new ProjectionContextFilter(resourceOid, kind, intent, tag, nullTagMeansAny, gone);
+    }
+
+    public boolean matches(@NotNull ProjectionContextKey key) {
+        return (resourceOid == null || resourceOid.equals(key.getResourceOid()))
+                && (kind == null || kind == key.getKind())
+                && (intent == null || intent.equals(key.getIntent()))
+                && doesTagMatch(key)
+                && (gone == null || key.isGone() == gone); // this "==" is OK: Boolean vs. boolean
+    }
+
+    private boolean doesTagMatch(@NotNull ProjectionContextKey key) {
+        if (tag != null) {
+            return tag.equals(key.getTag());
+        } else {
+            return nullTagMeansAny || key.getTag() == null;
+        }
     }
 
     @Override
@@ -122,7 +135,7 @@ public class ProjectionContextFilter
         }
         if (writeOid) {
             sb.append(" @");
-            sb.append(getResourceOid());
+            sb.append(resourceOid);
         }
         if (gone != null) {
             sb.append(" gone: ").append(gone);
@@ -145,7 +158,7 @@ public class ProjectionContextFilter
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", getResourceOid(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "kind", kind, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "tag", tag, indent + 1);

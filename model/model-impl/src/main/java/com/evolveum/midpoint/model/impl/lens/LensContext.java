@@ -456,7 +456,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public @NotNull Collection<LensProjectionContext> findProjectionContexts(@NotNull ProjectionContextFilter filter) {
         return projectionContexts.stream()
-                .filter(ctx -> ctx.matches(filter))
+                .filter(ctx -> filter.matches(ctx.getKey()))
                 .collect(Collectors.toList());
     }
 
