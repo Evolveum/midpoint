@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -48,9 +49,27 @@ public class FocusMappingsInducementsPanel<AR extends AbstractRoleType> extends 
         return defs;
     }
 
+    protected ObjectQuery createCustomizeQuery() {
+        return getPageBase().getPrismContext().queryFor(AssignmentType.class)
+                .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
+    }
+
     @Override
     protected ObjectQuery getCustomizeQuery() {
-        return PrismContext.get().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
+        // CustomizeQuery is not repo indexed
+        if (isRepositorySearchEnabled()) {
+            return null;
+        }
+        return createCustomizeQuery();
+    }
+
+    @Override
+    protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(
+            List<PrismContainerValueWrapper<AssignmentType>> list) {
+        // customizeQuery is not repository supported, so we need to prefilter list using in-memory search
+        if (isRepositorySearchEnabled()) {
+            return prefilterUsingQuery(list, createCustomizeQuery());
+        }
+        return super.customPostSearch(list);
     }
 }
