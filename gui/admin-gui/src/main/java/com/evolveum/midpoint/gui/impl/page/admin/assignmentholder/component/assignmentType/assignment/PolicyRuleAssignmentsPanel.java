@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -50,6 +51,7 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         super(id, model, config);
     }
 
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -92,8 +94,8 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         itemDetailsPerformed(target, Collections.singletonList(newAssignmentWrapper));
     }
 
-    @Override
-    protected ObjectQuery getCustomizeQuery() {
+
+    protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_POLICY_RULE).build();
     }
@@ -112,5 +114,38 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
 
         return defs;
+    }
+
+    @Override
+    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
+        SearchFactory.addSearchRefWrapper(containerDef,
+                ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+
+        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef));
+        return defs;
+    }
+
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        // CustomizeQuery is not repo indexed
+        if (isRepositorySearchEnabled()) {
+            return null;
+        }
+        return createCustomizeQuery();
+    }
+
+    @Override
+    protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(
+            List<PrismContainerValueWrapper<AssignmentType>> list) {
+        // customizeQuery is not repository supported, so we need to prefilter list using in-memory search
+        if (isRepositorySearchEnabled()) {
+            return prefilterUsingQuery(list, createCustomizeQuery());
+        }
+        return super.customPostSearch(list);
     }
 }
