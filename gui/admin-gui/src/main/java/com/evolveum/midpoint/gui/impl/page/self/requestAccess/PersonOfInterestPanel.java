@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -63,7 +65,6 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
     private static final String ID_SELECTION_FRAGMENT = "selectionFragment";
     private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST = "list";
-
     private static final String ID_TILE = "tile";
 
     private IModel<List<Tile<PersonOfInterest>>> tiles;
@@ -117,7 +118,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleBehaviour(() -> tiles.getObject().stream().filter(t -> t.isSelected()).count() > 0);
+        return new EnableBehaviour(() -> tiles.getObject().stream().filter(t -> t.isSelected()).count() > 0);
     }
 
     private void initLayout() {
@@ -136,7 +137,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
             @Override
             protected void populateItem(ListItem<Tile<PersonOfInterest>> item) {
-                TilePanel tp = new TilePanel(ID_TILE, () -> item.getModelObject()) {
+                TilePanel tp = new TilePanel(ID_TILE, item.getModel()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {

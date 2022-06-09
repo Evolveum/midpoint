@@ -32,6 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 
+import javax.xml.namespace.QName;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
@@ -41,6 +43,7 @@ public class RequestAccess implements Serializable {
 
     private List<ObjectReferenceType> personOfInterest;
 
+    private QName relation;
     private List<AssignmentType> shoppingCartAssignments;
 
     public List<ObjectReferenceType> getPersonOfInterest() {

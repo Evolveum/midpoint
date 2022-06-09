@@ -6,39 +6,39 @@
   -->
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-    <wicket:panel>
-        <wicket:extend>
-            <div class="w-100" wicket:id="fragments"/>
+    <wicket:extend>
+        <div class="w-100" wicket:id="fragments"/>
 
-            <wicket:fragment wicket:id="tileFragment">
-                <div class="d-flex flex-wrap gap-3 justify-content-center mt-5" wicket:id="listContainer">
-                    <wicket:container wicket:id="list">
-                        <div wicket:id="tile"/>
-                    </wicket:container>
+        <wicket:fragment wicket:id="tileFragment">
+            <div class="d-flex flex-wrap gap-3 justify-content-center mt-5" wicket:id="listContainer">
+                <wicket:container wicket:id="list">
+                    <div wicket:id="tile"/>
+                </wicket:container>
+            </div>
+        </wicket:fragment>
+
+        <wicket:fragment wicket:id="selectionFragment">
+<!--            https://select2.org/-->
+
+            <div class="card w-100">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fa-solid fa-user-group mr-1"></i>
+                        <wicket:message key="PersonOfInterestPanel.userSelection"/>
+                    </h3>
                 </div>
-            </wicket:fragment>
-
-            <wicket:fragment wicket:id="selectionFragment">
-                <div class="card w-100">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fa-solid fa-user-group mr-1"></i>
-                            User selection
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="input-group">
-                            <input type="text" class="form-control">
-                            <div class="input-group-append">
-                                <a class="btn btn-default" type="button">
-                                    <i class="fa-solid fa-arrow-pointer mr-1"></i>
-                                    Select manually
-                                </a>
-                            </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="text" class="form-control">
+                        <div class="input-group-append">
+                            <a class="btn btn-default" type="button">
+                                <i class="fa-solid fa-arrow-pointer mr-1"></i>
+                                <wicket:message key="PersonOfInterestPanel.selectManually"/>
+                            </a>
                         </div>
                     </div>
                 </div>
-            </wicket:fragment>
-        </wicket:extend>
-    </wicket:panel>
+            </div>
+        </wicket:fragment>
+    </wicket:extend>
 </html>
