@@ -55,7 +55,7 @@ podTemplate(
                             mvn --version
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
 
                         if [ "${verbose}" -ge 1 ]
                         then

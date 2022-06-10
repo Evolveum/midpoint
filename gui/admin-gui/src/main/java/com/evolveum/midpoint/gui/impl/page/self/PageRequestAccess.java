@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.self;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.*;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -19,10 +21,6 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PersonOfInterestPanel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RequestAccess;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RoleCatalogPanel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -105,9 +103,10 @@ public class PageRequestAccess extends PageSelf {
         IModel<RequestAccess> model = () -> getSessionStorage().getRequestAccess();
 
         PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(model);
+        RelationPanel relationPanel = new RelationPanel(model);
         RoleCatalogPanel roleCatalog = new RoleCatalogPanel(model);
         ShoppingCartPanel shoppingCart = new ShoppingCartPanel(model);
 
-        return Arrays.asList(personOfInterest, roleCatalog, shoppingCart);
+        return Arrays.asList(personOfInterest, relationPanel, roleCatalog, shoppingCart);
     }
 }

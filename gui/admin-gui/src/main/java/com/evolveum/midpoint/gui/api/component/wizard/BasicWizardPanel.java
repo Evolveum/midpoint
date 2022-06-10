@@ -12,6 +12,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -68,6 +69,7 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         back.add(getBackBehaviour());
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
+        back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
         add(back);
 
         AjaxLink next = new AjaxLink<>(ID_NEXT) {
@@ -80,6 +82,7 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         next.add(getNextBehaviour());
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
+        next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
         add(next);
 
         Label nextLabel = new Label(ID_NEXT_LABEL, () -> {

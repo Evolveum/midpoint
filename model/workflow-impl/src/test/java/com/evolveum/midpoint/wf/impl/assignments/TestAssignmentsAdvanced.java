@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,8 +19,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.io.File;
 import java.util.*;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -35,12 +34,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -48,8 +49,6 @@ import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
@@ -1051,9 +1050,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         assertUser(USER_HOLDER_OF_ROLE_BEING_ENABLED.oid, "after")
                 .assignments()
-                    .single()
-                        .activation()
-                            .assertValidTo((XMLGregorianCalendar) null);
+                .single()
+                .activation()
+                .assertValidTo((XMLGregorianCalendar) null);
     }
 
     /**
@@ -1090,10 +1089,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid, "after")
                 .assignments()
-                    .single()
-                        .activation()
-                            .assertValidTo(newValidTo)
-                            .assertEffectiveStatus(ActivationStatusType.DISABLED);
+                .single()
+                .activation()
+                .assertValidTo(newValidTo)
+                .assertEffectiveStatus(ActivationStatusType.DISABLED);
     }
 
     /**
@@ -1133,10 +1132,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, "after")
                 .assignments()
-                    .single()
-                        .activation()
-                            .assertValidTo((XMLGregorianCalendar) null)
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED);
+                .single()
+                .activation()
+                .assertValidTo((XMLGregorianCalendar) null)
+                .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         when("approving the operation");
         approveWorkItem(approvalCase.getWorkItem().get(0), task, result);
@@ -1146,10 +1145,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         assertUser(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL.oid, "after")
                 .assignments()
-                    .single()
-                        .activation()
-                            .assertValidTo(newValidTo)
-                            .assertEffectiveStatus(ActivationStatusType.DISABLED);
+                .single()
+                .activation()
+                .assertValidTo(newValidTo)
+                .assertEffectiveStatus(ActivationStatusType.DISABLED);
     }
 
     /**
@@ -1168,8 +1167,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(
-                        new AssignmentType(prismContext).targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE),
-                        new AssignmentType(prismContext)
+                        new AssignmentType().targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE),
+                        new AssignmentType()
                                 .targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE)
                                 .beginActivation().validFrom("1990-01-01T00:00:00").end())
                 .asObjectDeltaCast(userJackOid);
@@ -1208,8 +1207,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(
-                        new AssignmentType(prismContext).targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE),
-                        new AssignmentType(prismContext)
+                        new AssignmentType().targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE),
+                        new AssignmentType()
                                 .targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE)
                                 .beginActivation().validFrom("1990-01-01T00:00:00").end())
                 .asObjectDeltaCast(userJackOid);
@@ -1250,7 +1249,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext).targetRef(ROLE_SKIPPED_FILE.oid, RoleType.COMPLEX_TYPE))
+                .add(new AssignmentType().targetRef(ROLE_SKIPPED_FILE.oid, RoleType.COMPLEX_TYPE))
                 .asObjectDeltaCast(userJackOid);
 
         executeChanges(delta, null, task, result);
@@ -1274,7 +1273,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                        .add(new AssignmentType(prismContext).targetRef(ROLE_APPROVE_UNASSIGN.oid, RoleType.COMPLEX_TYPE))
+                        .add(new AssignmentType().targetRef(ROLE_APPROVE_UNASSIGN.oid, RoleType.COMPLEX_TYPE))
                         .<UserType>asObjectDeltaCast(userJackOid), null, task, result);
         assertUser(userJackOid, "before")
                 .assertAssignments(1);
@@ -1283,7 +1282,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                        .delete(new AssignmentType(prismContext).targetRef(ROLE_APPROVE_UNASSIGN.oid, RoleType.COMPLEX_TYPE))
+                        .delete(new AssignmentType().targetRef(ROLE_APPROVE_UNASSIGN.oid, RoleType.COMPLEX_TYPE))
                         .<UserType>asObjectDeltaCast(userJackOid), null, task, result);
 
         then();
@@ -1419,7 +1418,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                         new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid, null));
                 if (approve3a) {
                     ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2));
-                    ApprovalInstruction.CheckedRunnable before = () -> {
+                    CheckedRunnable before = () -> {
                         login(getUserFromRepo(userSecurityApproverOid));
                         checkVisibleWorkItem(expectedWorkItem, 1, task, task.getResult());
                         login(getUserFromRepo(userSecurityApproverDeputyOid));
@@ -1475,7 +1474,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             tracer.storeTrace(task, result, null);
         }
 
-        // we do not assert success here, because there are (intentional) exceptions in some of the expressions
+        // we do not assert success here, because there are (intentional) exceptions in some expressions
 
         assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
         assertNotNull("No enforcement preview output", enforceInfo);
@@ -1705,7 +1704,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         if (!byId) {
             return assignment.clone();
         } else {
-            AssignmentType rv = new AssignmentType(prismContext);
+            AssignmentType rv = new AssignmentType();
             rv.setId(assignment.getId());
             return rv;
         }

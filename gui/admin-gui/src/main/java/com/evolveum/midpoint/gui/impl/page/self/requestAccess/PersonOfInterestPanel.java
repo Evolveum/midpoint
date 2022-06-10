@@ -9,8 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -18,6 +20,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -38,9 +41,6 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         MYSELF("fas fa-user-circle"),
 
         GROUP_OTHERS("fas fa-user-friends");
-
-        // disabled for now
-        // TEAM("fas fa-users");
 
         private String icon;
 
@@ -63,12 +63,15 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
     private static final String ID_SELECTION_FRAGMENT = "selectionFragment";
     private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST = "list";
-
     private static final String ID_TILE = "tile";
+
+    private static final String ID_SELECT_MANUALLY = "selectManually";
 
     private IModel<List<Tile<PersonOfInterest>>> tiles;
 
     private IModel<SelectionState> selectionState = Model.of(SelectionState.TILES);
+
+    private IModel<List<ObjectReferenceType>> selectedGroupOfUsers = Model.ofList(new ArrayList<>());
 
     public PersonOfInterestPanel(IModel<RequestAccess> model) {
         super(model);
@@ -117,7 +120,16 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleBehaviour(() -> tiles.getObject().stream().filter(t -> t.isSelected()).count() > 0);
+        return new VisibleBehaviour(() -> {
+            Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
+            Tile<PersonOfInterest> others = getTileBy(PersonOfInterest.GROUP_OTHERS);
+
+            return myself.isSelected() || (others.isSelected() && selectedGroupOfUsers.getObject().size() > 0);
+        });
+    }
+
+    private Tile<PersonOfInterest> getTileBy(PersonOfInterest type) {
+        return tiles.getObject().stream().filter(t -> t.getValue() == type).findFirst().orElseGet(null);
     }
 
     private void initLayout() {
@@ -136,17 +148,17 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
             @Override
             protected void populateItem(ListItem<Tile<PersonOfInterest>> item) {
-                TilePanel tp = new TilePanel(ID_TILE, () -> item.getModelObject()) {
+                TilePanel tp = new TilePanel(ID_TILE, item.getModel()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
                         Tile<PersonOfInterest> tile = item.getModelObject();
                         switch (tile.getValue()) {
                             case MYSELF:
-                                myselfPerformed(target);
+                                myselfPerformed(target, tile);
                                 break;
                             case GROUP_OTHERS:
-                                groupOthersPerformed(target);
+                                groupOthersPerformed(target, tile);
                                 break;
                         }
                     }
@@ -161,6 +173,15 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     private Fragment initSelectionFragment() {
         Fragment fragment = new Fragment(ID_FRAGMENTS, ID_SELECTION_FRAGMENT, this);
+
+        AjaxLink selectManually = new AjaxLink<>(ID_SELECT_MANUALLY) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                selectManuallyPerformed(target);
+            }
+        };
+        fragment.add(selectManually);
 
         return fragment;
     }
@@ -181,20 +202,58 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         addOrReplace(fragment);
     }
 
-    private void myselfPerformed(AjaxRequestTarget target) {
-        ObjectReferenceType myself = new ObjectReferenceType()
-                .oid(SecurityUtil.getPrincipalOidIfAuthenticated())
-                .type(UserType.COMPLEX_TYPE);
-        getModelObject().getPersonOfInterest().add(myself);
+    private void myselfPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> myself) {
+        boolean wasSelected = myself.isSelected();
 
-        getWizard().next();
+        tiles.getObject().forEach(t -> t.setSelected(false));
+        myself.setSelected(!wasSelected);
 
-        target.add(getWizard().getPanel());
+        target.add(this);
     }
 
-    private void groupOthersPerformed(AjaxRequestTarget target) {
-        selectionState.setObject(SelectionState.USERS);
+    private void groupOthersPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> groupOthers) {
+        tiles.getObject().forEach(t -> t.setSelected(false));
+
+        if (!groupOthers.isSelected()) {
+            selectionState.setObject(SelectionState.USERS);
+        }
+
+        groupOthers.toggle();
+
         target.add(this);
+    }
+
+    private void selectManuallyPerformed(AjaxRequestTarget target) {
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(
+                getPageBase().getMainPopupBodyId(), UserType.class,
+                List.of(UserType.COMPLEX_TYPE), true, getPageBase()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
+                addUsersPerformed(target, List.of(user));
+            }
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, QName type, List<UserType> selected) {
+                addUsersPerformed(target, selected);
+            }
+        };
+        getPageBase().showMainPopup(panel, target);
+    }
+
+    private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
+        List<ObjectReferenceType> refs = new ArrayList<>();
+        for (UserType user : users) {
+            refs.add(new ObjectReferenceType()
+                    .oid(user.getOid())
+                    .type(UserType.COMPLEX_TYPE));
+        }
+
+        selectedGroupOfUsers.setObject(refs);
+
+        getPageBase().hideMainPopup(target);
+        target.add(getWizard().getPanel());
     }
 
     @Override
@@ -208,10 +267,21 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         target.add(this);
     }
 
-
     @Override
     protected void onNextPerformed(AjaxRequestTarget target) {
-        // todo save state
+        getModelObject().getPersonOfInterest().clear();
 
+        Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
+        if (myself.isSelected()) {
+            ObjectReferenceType ref = new ObjectReferenceType()
+                    .oid(SecurityUtil.getPrincipalOidIfAuthenticated())
+                    .type(UserType.COMPLEX_TYPE);
+            getModelObject().getPersonOfInterest().add(ref);
+        } else {
+            getModelObject().getPersonOfInterest().addAll(selectedGroupOfUsers.getObject());
+        }
+
+        getWizard().next();
+        target.add(getWizard().getPanel());
     }
 }
