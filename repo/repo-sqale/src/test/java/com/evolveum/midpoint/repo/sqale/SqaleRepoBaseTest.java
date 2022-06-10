@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.TestException;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
+import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -76,6 +78,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     @Autowired protected AuditService auditService;
 
+    /** Also see convenient method {@link #withQueryRecorded(CheckedRunnable)}. */
     protected SqlRecorder queryRecorder;
 
     @BeforeClass
@@ -408,13 +411,24 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        return repositoryService.searchObjects(
-                        type,
-                        query,
-                        selectorOptions != null && selectorOptions.length != 0
-                                ? List.of(selectorOptions) : null,
-                        operationResult)
-                .map(p -> p.asObjectable());
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositoryService.searchObjects(
+                            type,
+                            query,
+                            selectorOptions != null && selectorOptions.length != 0
+                                    ? List.of(selectorOptions) : null,
+                            operationResult)
+                    .map(p -> p.asObjectable());
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.getQueryBuffer().toString());
+            }
+        }
     }
 
     /** Search objects using Axiom query language. */
@@ -632,5 +646,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected JdbcSession startReadOnlyTransaction() {
         //noinspection resource
         return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
+    }
+
+    protected void withQueryRecorded(CheckedRunnable block) {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            block.run();
+        } catch (Exception e) {
+            throw new TestException(e);
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.getQueryBuffer().toString());
+        }
     }
 }
