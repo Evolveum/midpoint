@@ -580,6 +580,6 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     }
 
     private BoxedTablePanel<PasswordAccountDto> getTableComponent() {
-        return (BoxedTablePanel<PasswordAccountDto>) get(ID_INDIVIDUAL_SYSTEMS_TABLE);
+        return (BoxedTablePanel<PasswordAccountDto>) get(createComponentPath(ID_INDIVIDUAL_SYSTEMS_CONTAINER, ID_INDIVIDUAL_SYSTEMS_TABLE));
     }
 }

@@ -29,11 +29,10 @@ import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -156,13 +155,18 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         passwordLimitationsPanel.setOutputMarkupId(true);
         add(passwordLimitationsPanel);
 
-        AjaxButton changePasswordButton = new AjaxButton(ID_CHANGE_PASSWORD,
+        AjaxSubmitButton changePasswordButton = new AjaxSubmitButton(ID_CHANGE_PASSWORD,
                 createStringResource("ChangePasswordPanel.changePasswordButton")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel());
+            }
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
                 changePasswordPerformed(target);
             }
         };
@@ -339,10 +343,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             setNullEncryptedPasswordData();
             if (showFeedback) {
                 getPageBase().showResult(result);
+                target.add(getPageBase().getFeedbackPanel());
             }
-            target.add(getPageBase().getFeedbackPanel());
         } else {
-
             target.add(getPageBase().getFeedbackPanel());
         }
     }
