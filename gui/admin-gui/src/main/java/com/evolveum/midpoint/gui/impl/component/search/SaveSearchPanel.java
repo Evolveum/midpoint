@@ -307,7 +307,9 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             addItemToPath = false;
         }
         if (objectListView.getIdentifier() == null) {
-            objectListView.setIdentifier(defaultCollectionViewIdentifier);
+            StringValue viewIdentifier = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+            objectListView.setIdentifier(viewIdentifier == null || viewIdentifier.isNull() || viewIdentifier.isNull() ?
+                    defaultCollectionViewIdentifier : viewIdentifier.toString());
         }
         SearchBoxConfigurationType searchConfig = objectListView.getSearchBoxConfiguration();
         if (addItemToPath) {
