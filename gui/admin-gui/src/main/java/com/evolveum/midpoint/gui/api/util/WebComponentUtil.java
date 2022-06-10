@@ -707,7 +707,7 @@ public final class WebComponentUtil {
         task.setActivity(
                 new ActivityDefinitionType(PrismContext.get())
                         .beginWork()
-                            .iterativeChangeExecution(workDef)
+                        .iterativeChangeExecution(workDef)
                         .end());
         // @formatter:on
 

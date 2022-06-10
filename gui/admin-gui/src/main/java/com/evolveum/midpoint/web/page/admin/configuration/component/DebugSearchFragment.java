@@ -65,8 +65,8 @@ public class DebugSearchFragment extends Fragment {
         add(searchPanel);
     }
 
-    public AjaxCheckBox getZipCheck() {
-        return (AjaxCheckBox) get(ID_ZIP_CHECK);
+    public CheckBoxPanel getZipCheck() {
+        return (CheckBoxPanel) get(ID_ZIP_CHECK);
     }
 
     protected void searchPerformed(AjaxRequestTarget target) {

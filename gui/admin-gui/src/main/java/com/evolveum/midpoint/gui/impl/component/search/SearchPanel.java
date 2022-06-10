@@ -270,7 +270,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             public void onClick(AjaxRequestTarget target) {
                 SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
                         Model.of(SearchPanel.this.getModelObject()),
-                        SearchPanel.this.getModelObject().getTypeClass());
+                        SearchPanel.this.getModelObject().getTypeClass(),
+                        getCollectionInstanceDefaultIdentifier());
                 getPageBase().showMainPopup(panel, target);
             }
         };
@@ -316,6 +317,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private boolean isCollectionInstancePage() {
         return getPageBase().getClass().getAnnotation(CollectionInstance.class) != null;
+    }
+
+    private String getCollectionInstanceDefaultIdentifier() {
+        CollectionInstance collectionInstance = getPageBase().getClass().getAnnotation(CollectionInstance.class);
+        return collectionInstance != null ? collectionInstance.identifier() : null;
     }
 
     private boolean isPopupWindow() {
