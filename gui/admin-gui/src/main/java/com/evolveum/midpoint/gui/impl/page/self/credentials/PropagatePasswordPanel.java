@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.Toast;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -547,11 +548,21 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         updateResultColumnOfTable(target);
         if (shouldLoadAccounts()) {
             showFeedback = false;
+            String msg;
+            String cssClass;
             if (result.isError()) {
-                error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
+                msg = createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString();
+                cssClass = "bg-danger m-3";
             } else {
-                success(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+                msg = createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString();
+                cssClass = "bg-success m-3";
             }
+            new Toast()
+                    .cssClass(cssClass)
+//                    .title(getString("RoleCatalogPanel.itemAdded"))
+                    .autohide(true)
+                    .delay(10_000)
+                    .body(msg).show(target);
         }
         super.finishChangePassword(result, target, showFeedback);
     }
