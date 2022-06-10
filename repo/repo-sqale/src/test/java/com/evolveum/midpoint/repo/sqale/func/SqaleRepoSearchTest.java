@@ -1174,6 +1174,36 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test430SearchUsersWithSingleValueRefNull() throws SchemaException {
+        searchUsersTest("having no tenant ref",
+                f -> f.item(UserType.F_TENANT_REF).isNull(),
+                user1Oid, user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
+    }
+
+    @Test
+    public void test431SearchUsersWithSingleValueRefNotNull() throws SchemaException {
+        searchUsersTest("having a tenant ref (not null)",
+                f -> f.not().item(UserType.F_TENANT_REF).isNull());
+        // nobody has tenantRef, so it's OK
+    }
+
+    @Test(enabled = false) // TODO
+    public void test432SearchUsersWithMultiValueRefNull() throws SchemaException {
+        // This should generate NOT EXISTS query only with correlation condition: u.oid = refpo.ownerOid
+        searchUsersTest("having no parent org ref",
+                f -> f.item(UserType.F_PARENT_ORG_REF).isNull(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test(enabled = false) // TODO
+    public void test433SearchUsersWithMultiValueRefNotNull() throws SchemaException {
+        // Should generate (NOT NOT) EXISTS query only with correlation condition: u.oid = refpo.ownerOid
+        searchUsersTest("having any parent org ref (one or more)",
+                f -> f.not().item(UserType.F_PARENT_ORG_REF).isNull(),
+                user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
     public void test450SearchObjectOrderedByName() throws SchemaException {
         SearchResultList<UserType> result =
                 searchUsersTest("ordered by name descending",

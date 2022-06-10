@@ -403,13 +403,24 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        return repositoryService.searchObjects(
-                        type,
-                        query,
-                        selectorOptions != null && selectorOptions.length != 0
-                                ? List.of(selectorOptions) : null,
-                        operationResult)
-                .map(p -> p.asObjectable());
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositoryService.searchObjects(
+                            type,
+                            query,
+                            selectorOptions != null && selectorOptions.length != 0
+                                    ? List.of(selectorOptions) : null,
+                            operationResult)
+                    .map(p -> p.asObjectable());
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.getQueryBuffer().toString());
+            }
+        }
     }
 
     /** Search objects using Axiom query language. */
@@ -620,10 +631,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     // endregion
 
     protected JdbcSession startTransaction() {
+        //noinspection resource
         return sqlRepoContext.newJdbcSession().startTransaction();
     }
 
     protected JdbcSession startReadOnlyTransaction() {
+        //noinspection resource
         return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
     }
 }
