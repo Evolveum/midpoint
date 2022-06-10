@@ -700,7 +700,14 @@
             <xsd:element name="shadowDetailsPage" type="tns:GuiShadowDetailsPageType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>GuiObjectDetailsSetType.objectDetailsPage</a:displayName>
+                        <a:displayName>GuiObjectDetailsSetType.shadowDetailsPage</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceDetailsPage" type="tns:GuiResourceDetailsPageType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiObjectDetailsSetType.resourceDetailsPage</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -784,6 +791,37 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectDetailsPageType.intent</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GuiResourceDetailsPageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies form that are used for displaying and
+                editing of specific object type
+
+                EXPERIMENTAL. Might change in the future.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+                <a:displayName>GuiResourceDetailsPageType.details</a:displayName>
+                <a:experimental/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GuiObjectDetailsPageType">
+                <xsd:sequence>
+                    <xsd:element name="connectorRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiResourceDetailsPageType.connectorRef</a:displayName>
+                                <a:objectReferenceTargetType>tns:ConnectorType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

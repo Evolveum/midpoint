@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="valueForm">
+        <div class="prism-header mb-3" wicket:id="header"/>
+        <div class="mb-3 ml-3" wicket:id="metadata"/>
+
+        <div class="bg-white rounded p-3 border border-light" wicket:id="propertiesContainer">
+            <div wicket:id="feedbackContainer" class="feedbackContainer">
+                <div wicket:id="feedback" class="messagePanel"/>
+            </div>
+            <wicket:container wicket:id="properties">
+                <div class="pb-3" wicket:id="property"/>
+            </wicket:container>
+        </div>
+
+        <wicket:container wicket:id="valueContainer">
+            <span wicket:id="input"></span>
+            <div class="row" style="margin-left: 15px;">
+                <span wicket:id="feedback" class="text-danger"/>
+            </div>
+        </wicket:container>
+    </form>
+</wicket:panel>
+</html>

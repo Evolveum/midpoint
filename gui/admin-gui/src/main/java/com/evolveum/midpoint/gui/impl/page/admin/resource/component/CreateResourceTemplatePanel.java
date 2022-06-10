@@ -8,10 +8,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -154,10 +157,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                             new ObjectReferenceType()
                                     .oid(resourceTemplate.oid)
                                     .type(ConnectorType.COMPLEX_TYPE));
+                } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, resourceTemplate.type)) {
+                    obj.asObjectable()._super(
+                            new SuperResourceDeclarationType()
+                                    .resourceRef(
+                                            new ObjectReferenceType()
+                                                .oid(resourceTemplate.oid)
+                                                .type(ResourceType.COMPLEX_TYPE)));
                 }
-//                else (resourceTemplate.resourceTemplate != null) {
-                //TODO Use template for actual new resource
-//                }
             }
             onTemplateChosePerformed(obj, target);
         } catch (SchemaException ex) {
@@ -175,13 +182,13 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             protected List<TemplateTile<ResourceTemplate>> load() {
                 List<TemplateTile<ResourceTemplate>> tiles = new ArrayList<>();
 
-                Task loadConnectorsTask = getPageBase().createSimpleTask("load connectors");
+                Task loadResourceTemplateTask = getPageBase().createSimpleTask("load resource templates");
 
                 @NotNull List<PrismObject<ConnectorType>> connectors =
                         WebModelServiceUtils.searchObjects(
                                 ConnectorType.class,
                                 searchModel.getObject().createObjectQuery(getPageBase()),
-                                loadConnectorsTask.getResult(),
+                                loadResourceTemplateTask.getResult(),
                                 getPageBase());
 
 
@@ -200,6 +207,28 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                                         title,
                                         new ResourceTemplate(connector.getOid(), ConnectorType.COMPLEX_TYPE))
                                         .description(getDescriptionForConnectorType(connectorObject)));
+                    });
+                }
+
+                @NotNull List<PrismObject<ResourceType>> resources =
+                        WebModelServiceUtils.searchObjects(
+                                ResourceType.class,
+                                searchModel.getObject().createObjectQuery(getPageBase()), // TODO fix me
+                                loadResourceTemplateTask.getResult(),
+                                getPageBase());
+
+                if (CollectionUtils.isNotEmpty(resources)) {
+                    resources.forEach(resource -> {
+                        String title = WebComponentUtil.getDisplayNameOrName(resource);
+
+                        DisplayType display =
+                                GuiDisplayTypeUtil.getDisplayTypeForObject(resource, loadResourceTemplateTask.getResult(), getPageBase());
+                        tiles.add(
+                                new TemplateTile(
+                                        WebComponentUtil.getIconCssClass(display),
+                                        title,
+                                        new ResourceTemplate(resource.getOid(), ResourceType.COMPLEX_TYPE))
+                                        .description(resource.asObjectable().getDescription()));
                     });
                 }
 

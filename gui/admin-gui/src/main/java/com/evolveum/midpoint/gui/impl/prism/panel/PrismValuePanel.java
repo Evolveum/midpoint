@@ -81,7 +81,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         createMetadataPanel(form);
     }
 
-    private WebMarkupContainer createHeaderPanel() {
+    protected WebMarkupContainer createHeaderPanel() {
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
@@ -120,7 +120,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    private void createValuePanel(MidpointForm form) {
+    protected void createValuePanel(MidpointForm form) {
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {

@@ -10,16 +10,34 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 
 @Component
-public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl {
+public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ConnectorConfigurationType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorConfigurationWrapperFactoryImpl.class);
 
     @Override
     public boolean match(ItemDefinition def) {
@@ -49,5 +67,55 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
             return Integer.compare(ord1, ord2);
         });
         return relevantDefinitions;
+    }
+
+    @Override
+    public PrismContainerWrapper<ConnectorConfigurationType> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
+        ItemName name = def.getItemName();
+
+        PrismContainer<ConnectorConfigurationType> childItem = parent.getNewValue().findContainer(name);
+        ItemStatus status = getStatus(childItem);
+
+        if (skipCreateWrapper(def, status, context, childItem == null || CollectionUtils.isEmpty(childItem.getValues()))) {
+            LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
+            return null;
+        }
+
+        if (childItem == null || childItem.isEmpty()) {
+
+            PrismReference connectorRef = parent.getNewValue().findReference(ResourceType.F_CONNECTOR_REF);
+            if (connectorRef != null && connectorRef.getValue() != null && connectorRef.getValue().getRealValue() != null
+                    && connectorRef.getValue().getRealValue().getOid() != null) {
+
+                PrismObject<ConnectorType> connector = null;
+                try {
+                    connector = getModelService().getObject(
+                            ConnectorType.class,
+                            connectorRef.getValue().getRealValue().getOid(),
+                            null,
+                            context.getTask(),
+                            context.getResult());
+
+                    if (connector != null) {
+                        ConnectorType connectorType = connector.asObjectable();
+                        PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
+                        PrismContainerDefinition<ConnectorConfigurationType> definition =
+                                ConnectorTypeUtil.findConfigurationContainerDefinitionRequired(connectorType, schema);
+                        // Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
+                        PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
+                        definitionFixed.toMutable().setMaxOccurs(1);
+                        childItem = definitionFixed.instantiate();
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't get connector from reference " + connectorRef, e);
+                }
+            }
+        }
+
+        if (childItem == null) {
+            childItem = parent.getNewValue().findOrCreateContainer(name);
+        }
+
+        return createWrapper(parent, childItem, status, context);
     }
 }

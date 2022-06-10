@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -32,6 +33,8 @@ import javax.xml.namespace.QName;
  * @author lskublik
  */
 public class DiscoveryStepPanel extends BasicWizardPanel {
+
+    private static final String ID_FORM = "form";
 
     private static final Trace LOGGER = TraceManager.getTrace(DiscoveryStepPanel.class);
 
@@ -45,6 +48,7 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        iniLayout();
     }
 
     @Override
@@ -67,9 +71,8 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
         return createStringResource("PageResource.wizard.discovery.subText");
     }
 
-    @Override
-    protected WebMarkupContainer createContentPanel(String id) {
-        VerticalFormPanel form = new VerticalFormPanel(id, () -> getConfigurationValue()) {
+    private void iniLayout() {
+        VerticalFormPanel form = new VerticalFormPanel(ID_FORM, () -> getConfigurationValue()) {
             @Override
             protected String getIcon() {
                 return "fa fa-list-check";
@@ -89,7 +92,7 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
             }
         };
         form.add(AttributeAppender.append("class", "col-8"));
-        return form;
+        add(form);
     }
 
     private PrismContainerValueWrapper<Containerable> getConfigurationValue() {
@@ -104,8 +107,12 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
 
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
-        getContent().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
+        getVerticalForm().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
             ((VerticalFormPrismPropertyValuePanel)component).updateFeedbackPanel(target);
         });
+    }
+
+    private MarkupContainer getVerticalForm() {
+        return (MarkupContainer) get(ID_FORM);
     }
 }

@@ -25,8 +25,6 @@ public class BasicWizardPanel extends WizardStepPanel {
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
-
-    private static final String ID_CONTENT = "content";
     private static final String ID_BACK = "back";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
@@ -42,10 +40,6 @@ public class BasicWizardPanel extends WizardStepPanel {
 
         add(new Label(ID_TEXT, getTextModel()));
         add(new Label(ID_SUBTEXT, getSubTextModel()));
-
-        Component contentPanel = createContentPanel(ID_CONTENT);
-        contentPanel.setOutputMarkupId(true);
-        add(contentPanel);
 
         AjaxLink back = new AjaxLink<>(ID_BACK) {
 
@@ -127,13 +121,5 @@ public class BasicWizardPanel extends WizardStepPanel {
     @Override
     public VisibleEnableBehaviour getHeaderBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-    }
-
-    protected WebMarkupContainer getContent() {
-        return (WebMarkupContainer) get(ID_CONTENT);
-    }
-
-    protected AjaxSubmitButton getNextButton(){
-        return (AjaxSubmitButton) get(ID_NEXT);
     }
 }
