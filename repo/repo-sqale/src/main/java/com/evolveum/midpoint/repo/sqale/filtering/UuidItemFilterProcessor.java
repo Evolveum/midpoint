@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -49,7 +49,7 @@ public class UuidItemFilterProcessor extends SinglePathItemFilterProcessor<Objec
         // This is adapted version of ItemValueFilterProcessor#createBinaryCondition.
         // Because conversion is different for various operations, we don't use ValueFilterValues.
         FilterOperation operation = operation(filter);
-        if (filter.getValues() == null || filter.getValues().isEmpty()) {
+        if (filter.hasNoValue()) {
             if (operation.isAnyEqualOperation()) {
                 return ExpressionUtils.predicate(Ops.IS_NULL, path);
             } else {
@@ -57,6 +57,7 @@ public class UuidItemFilterProcessor extends SinglePathItemFilterProcessor<Objec
             }
         }
 
+        //noinspection ConstantConditions
         if (filter.getValues().size() > 1) {
             if (operation.isAnyEqualOperation()) {
                 List<UUID> oids = filter.getValues().stream()
