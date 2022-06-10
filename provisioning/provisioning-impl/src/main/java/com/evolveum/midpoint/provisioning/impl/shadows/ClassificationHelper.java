@@ -55,14 +55,12 @@ class ClassificationHelper {
      * Classifies the current shadow, based on information from the resource object.
      * As a result, the repository is updated.
      */
-    void classify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, PrismObject<ShadowType> resourceObject,
+    ResourceObjectClassification classify(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> shadow,
+            PrismObject<ShadowType> resourceObject,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-
-        if (classifier == null) { // Occurs when model-impl is not present, i.e. in tests.
-            LOGGER.trace("No classifier. Skipping classification of {}/{}", shadow, resourceObject);
-            return;
-        }
 
         argCheck(shadow.getOid() != null, "Shadow has no OID");
 
@@ -70,6 +68,15 @@ class ClassificationHelper {
         // This is NOT a full shadowization. Just good enough for the classifier to work.
         ShadowType combinedObject = combine(resourceObject, shadow);
 
+        return classifyInternal(ctx, combinedObject, result);
+    }
+
+    private ResourceObjectClassification classifyInternal(
+            ProvisioningContext ctx,
+            ShadowType combinedObject,
+            OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         ResourceObjectClassification classification = classifier.classify(
                 combinedObject,
                 ctx.getResource(),
@@ -77,12 +84,13 @@ class ClassificationHelper {
                 ctx.getTask(),
                 result);
 
-        if (isDifferent(classification, shadow)) {
-            LOGGER.trace("New/updated classification of {} found: {}", shadow, classification);
+        if (isDifferent(classification, combinedObject)) {
+            LOGGER.trace("New/updated classification of {} found: {}", combinedObject, classification);
             updateShadowClassificationAndTag(combinedObject, classification, ctx, result);
         } else {
-            LOGGER.trace("No change in classification of {}: {}", shadow, classification);
+            LOGGER.trace("No change in classification of {}: {}", combinedObject, classification);
         }
+        return classification;
     }
 
     /**
@@ -115,7 +123,7 @@ class ClassificationHelper {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException {
-        String tag = classification.isKnown() && shadowTagGenerator != null ?
+        String tag = classification.isKnown() ?
                 shadowTagGenerator.generateTag(
                         combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :
                 null;
@@ -135,8 +143,8 @@ class ClassificationHelper {
         }
     }
 
-    private boolean isDifferent(ResourceObjectClassification classification, PrismObject<ShadowType> shadow) {
-        return classification.getKind() != shadow.asObjectable().getKind()
-                || !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent());
+    private boolean isDifferent(ResourceObjectClassification classification, ShadowType shadow) {
+        return classification.getKind() != shadow.getKind()
+                || !Objects.equals(classification.getIntent(), shadow.getIntent());
     }
 }

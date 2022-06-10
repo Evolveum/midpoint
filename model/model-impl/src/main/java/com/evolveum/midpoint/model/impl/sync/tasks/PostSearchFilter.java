@@ -16,11 +16,11 @@ import org.jetbrains.annotations.NotNull;
  * Additional filter used to match objects (returned by the iterative search) with the objectclass/kind/intent
  * specification, which is typically given in the synchronization task.
  *
- * Currently it overlaps with {@link ResourceObjectClass}.
+ * Currently it is derived directly from {@link ProcessingScope}.
  *
- * TODO Reconsider if we really want this to be a class distinct from {@link ResourceObjectClass}.
+ * TODO Reconsider if we really want this to be a class distinct from {@link ProcessingScope}.
  */
-public interface SynchronizationObjectsFilter {
+public interface PostSearchFilter {
 
     /**
      * @return True if we should process given shadow in this synchronization task.

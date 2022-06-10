@@ -715,7 +715,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("Broken caching",
                 refinedSchema == ResourceSchemaFactory.getCompleteSchema(resourceBean));
 
-        ResourceObjectTypeDefinition accountDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountDef =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -1285,8 +1286,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         OperationResult result = task.getResult();
 
         ResourceShadowCoordinates coords = new ResourceShadowCoordinates(
-                RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP, (String) null);
-        ProvisioningContext ctx = provisioningContextFactory.createForCoordinates(coords, null, task, result);
+                RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP);
+        ProvisioningContext ctx = provisioningContextFactory.createForShadowCoordinates(coords, task, result);
 
         // WHEN
         AttributesToReturn attributesToReturn = ctx.createAttributesToReturn();

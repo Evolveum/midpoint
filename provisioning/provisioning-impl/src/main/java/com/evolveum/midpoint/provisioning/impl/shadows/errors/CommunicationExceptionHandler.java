@@ -68,7 +68,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
         }
         result.recordPartialError("Could not get "+repositoryShadow+" from the resource "
                 + resource + ", because resource is unreachable. Returning shadow from the repository");
-        repositoryShadow.asObjectable().setFetchResult(result.createOperationResultType());
+        repositoryShadow.asObjectable().setFetchResult(result.createBeanReduced());
         return repositoryShadow;
     }
 

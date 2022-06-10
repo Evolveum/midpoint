@@ -14,6 +14,8 @@
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <resourceRef oid="10000000-0000-0000-0000-000000000305"/>
     <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <intent>default</intent>
     <attributes>
         <icfs:name>jack</icfs:name>
         <ri:fullname>Jack Sparrow</ri:fullname>

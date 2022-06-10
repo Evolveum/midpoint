@@ -86,7 +86,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resourceWhite);
         displayDumpable("Refined schema", refinedSchema);
 
-        ResourceObjectDefinition accountDef = refinedSchema.findObjectDefinition(ShadowKindType.ACCOUNT, null);
+        ResourceObjectDefinition accountDef = refinedSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         // This is an object class definition, as this resource has no schema handling defined
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());

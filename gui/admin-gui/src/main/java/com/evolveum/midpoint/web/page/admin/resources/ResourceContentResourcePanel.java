@@ -86,7 +86,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
             }
         } catch (SchemaException | ConfigurationException e) {
-            warn("Could not get determine object class definition");
+            warn("Could not get determine object definition");
             return itemsList;
         }
 

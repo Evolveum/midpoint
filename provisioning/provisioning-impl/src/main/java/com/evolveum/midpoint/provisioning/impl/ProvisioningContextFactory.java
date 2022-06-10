@@ -12,6 +12,10 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+
+import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +27,6 @@ import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -39,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Creates instances of {@link ProvisioningContext}, either from scratch or spawning from existing one.
  *
  * Deals mainly with resolution of {@link ResourceObjectDefinition} objects. The hard part is delegated
- * to {@link ResourceObjectDefinitionResolver}.
+ * to {@link ResourceSchemaUtil}.
  *
  * Note about the "unknown" values for kind/intent: They should come _only_ when determining
  * a definition for given shadow. They should never be requested by the client of provisioning API.
@@ -68,10 +71,12 @@ public class ProvisioningContextFactory {
      * Creates the context when exact resource + coordinates are known.
      *
      * "Unknown" values for kind/intent are not supported here.
+     *
+     * Note: We set the `wholeClass` flag to `null`, because we are not expecting bulk operation here.
+     * We are simply trying to create the context for a single shadow.
      */
-    public @NotNull ProvisioningContext createForCoordinates(
+    public @NotNull ProvisioningContext createForShadowCoordinates(
             @NotNull ResourceShadowCoordinates coords,
-            Boolean wholeClass,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
@@ -79,14 +84,14 @@ public class ProvisioningContextFactory {
         return new ProvisioningContext(
                 task,
                 resource,
-                ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
+                ResourceSchemaUtil.findObjectDefinitionPrecisely(
                         resource,
                         coords.getKind(),
                         coords.getIntent(),
                         coords.getObjectClass(),
                         List.of(),
                         false),
-                wholeClass,
+                null,
                 this);
     }
 
@@ -99,7 +104,7 @@ public class ProvisioningContextFactory {
      * "Unknown" values for kind/intent are not supported here.
      */
     public @NotNull ProvisioningContext createForBulkOperation(
-            @NotNull ResourceShadowCoordinates coords,
+            @NotNull ResourceOperationCoordinates coords,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
@@ -119,30 +124,26 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-        return createForBulkOperation(ObjectQueryUtil.getCoordinates(query), task, result);
+        return createForBulkOperation(
+                ObjectQueryUtil.getOperationCoordinates(query), task, result);
     }
 
-    private ScopedDefinition createScopedDefinitionForBulkOperation(ResourceShadowCoordinates coords, ResourceType resource)
+    private ScopedDefinition createScopedDefinitionForBulkOperation(ResourceOperationCoordinates coords, ResourceType resource)
             throws SchemaException, ConfigurationException {
 
         coords.checkNotUnknown(); // This is also checked when looking for definition, but let's be explicit
 
         ShadowKindType kind = coords.getKind();
         String intent = coords.getIntent();
-        QName objectClassName = coords.getObjectClass();
+        QName objectClassName = coords.getObjectClassName();
 
-        ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
-                resource,
-                kind,
-                intent,
-                objectClassName,
-                List.of(),
-                false);
+        ResourceObjectDefinition definition =
+                ResourceSchemaUtil.findDefinitionForBulkOperation(resource, kind, intent, objectClassName);
 
         Boolean wholeClass;
-        if (kind != null) {
+        if (coords.areObjectTypeScoped()) {
             wholeClass = false;
-        } else if (objectClassName != null) {
+        } else if (coords.areObjectClassScoped()) {
             wholeClass = true; // definition may be of class (if we are lucky) or of type (in legacy situation)
         } else {
             wholeClass = null; // not important
@@ -163,7 +164,7 @@ public class ProvisioningContextFactory {
         return new ProvisioningContext(
                 originalCtx,
                 originalCtx.getTask(),
-                ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
+                ResourceSchemaUtil.findObjectDefinitionPrecisely(
                         originalCtx.getResource(),
                         kind,
                         intent,
@@ -183,7 +184,7 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull QName objectClassName,
             boolean useRawDefinition) throws SchemaException, ConfigurationException {
-        @NotNull ResourceObjectDefinition definition = ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
+        @NotNull ResourceObjectDefinition definition = ResourceSchemaUtil.findObjectDefinitionPrecisely(
                 originalCtx.getResource(),
                 null,
                 null,
@@ -298,7 +299,9 @@ public class ProvisioningContextFactory {
             @NotNull PrismObject<ShadowType> shadow,
             @NotNull Collection<QName> additionalAuxiliaryObjectClassNames) throws SchemaException, ConfigurationException {
 
-        return ResourceObjectDefinitionResolver.getObjectDefinitionPrecisely(
+        ShadowUtil.checkForPartialClassification(shadow.asObjectable());
+
+        return ResourceSchemaUtil.findObjectDefinitionPrecisely(
                 resource,
                 shadow.asObjectable().getKind(),
                 shadow.asObjectable().getIntent(),

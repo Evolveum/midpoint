@@ -13,10 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -269,8 +266,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         try {
             PrismContext prismContext = pageBase.getPrismContext();
             ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.PRESENTATION);
-            ResourceObjectDefinition objectClassDefinition = refinedSchema
-                    .findObjectDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+            ResourceObjectDefinition objectClassDefinition = refinedSchema.findDefinitionForConstruction(construction);
 
             if (objectClassDefinition == null) {
                 return attributes;

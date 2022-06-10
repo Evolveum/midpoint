@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -525,40 +524,50 @@ public class ShadowUtil {
         return isExists(shadow.asObjectable());
     }
 
-    public static boolean matches(ShadowType shadowType, String resourceOid, ShadowKindType kind, String intent) {
-        if (shadowType == null) {
+    /** Null values mean "any" here. */
+    public static boolean matches(
+            @NotNull ShadowType shadow,
+            @Nullable String resourceOid,
+            @Nullable ShadowKindType kind,
+            @Nullable String intent) {
+        if (resourceOid != null && !shadowHasResourceOid(shadow, resourceOid)) {
             return false;
         }
-        if (!shadowHasResourceOid(shadowType, resourceOid)) {
+        if (kind != null && kind != shadow.getKind()) {
             return false;
         }
-        if (!MiscUtil.equals(kind, shadowType.getKind())) {
-            return false;
-        }
-        if (intent == null) {
-            return true;
-        }
-        return MiscUtil.equals(intent, shadowType.getIntent());
+        return intent == null || intent.equals(shadow.getIntent());
     }
 
-    public static boolean matches(PrismObject<ShadowType> shadow, ResourceShadowDiscriminator discr) {
-        return matches(shadow.asObjectable(), discr);
-    }
+    @SuppressWarnings("RedundantIfStatement")
+    public static boolean matches(@NotNull ShadowType shadow, @NotNull ShadowDiscriminatorType discriminator) {
+        String expectedResourceOid = Referencable.getOid(discriminator.getResourceRef());
+        if (expectedResourceOid != null && !expectedResourceOid.equals(getResourceOid(shadow))) {
+            return false;
+        }
 
-    public static boolean matches(ShadowType shadowType, ResourceShadowDiscriminator discr) {
-        if (shadowType == null) {
+        ShadowKindType expectedKind = discriminator.getKind();
+        if (expectedKind != null && shadow.getKind() != expectedKind) {
             return false;
         }
-        if (discr == null) {
-            return false; // shouldn't occur
-        }
-        if (!shadowHasResourceOid(shadowType, discr.getResourceOid())) {
+
+        String expectedIntent = discriminator.getIntent();
+        if (expectedIntent != null && !expectedIntent.equals(shadow.getIntent())) {
             return false;
         }
-        if (!MiscUtil.equals(discr.getKind(), shadowType.getKind())) {
+
+        String expectedTag = discriminator.getTag();
+        if (expectedTag != null && !expectedTag.equals(shadow.getTag())) {
             return false;
         }
-        return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
+
+        QName expectedObjectClassName = discriminator.getObjectClassName();
+        if (expectedObjectClassName != null && QNameUtil.match(expectedObjectClassName, shadow.getObjectClass())) {
+            return false;
+        }
+
+        // ignoring tombstone and discriminatorOrder
+        return true;
     }
 
     /**
@@ -578,7 +587,7 @@ public class ShadowUtil {
     }
 
     /**
-     * Interprets ResourceShadowDiscriminator as a pattern. E.g. null discriminator kind is
+     * Interprets {@link ShadowDiscriminatorType} as a pattern. E.g. null discriminator kind is
      * interpreted to match any shadow kind.
      */
     public static boolean matchesPattern(ShadowType shadowType, ShadowDiscriminatorType discr) {
@@ -597,7 +606,15 @@ public class ShadowUtil {
         if (discr.getIntent() == null) {
             return true;
         }
-        return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
+        return equalsIntent(shadowType.getIntent(), discr.getIntent()); // TODO ok?
+    }
+
+    // FIXME what if a == b == null ? The method should (most probably) return true in such case.
+    private static boolean equalsIntent(String a, String b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        return a.equals(b);
     }
 
     public static boolean isConflicting(ShadowType shadow1, ShadowType shadow2) {
@@ -607,7 +624,7 @@ public class ShadowUtil {
         if (!MiscUtil.equals(getKind(shadow1), getKind(shadow2))) {
             return false;
         }
-        return ResourceShadowDiscriminator.equalsIntent(shadow1.getIntent(), shadow2.getIntent());
+        return equalsIntent(shadow1.getIntent(), shadow2.getIntent()); // TODO ok?
     }
 
     public static Object getHumanReadableNameLazily(PrismObject<? extends ShadowType> shadow) {
@@ -903,6 +920,15 @@ public class ShadowUtil {
         return isKnown(shadow.getKind()) && isKnown(shadow.getIntent());
     }
 
+    @Contract("null -> null")
+    public static ResourceObjectTypeIdentification getTypeIdentification(ShadowType shadow) {
+        if (shadow != null) {
+            return ResourceObjectTypeIdentification.createIfKnown(shadow);
+        } else {
+            return null;
+        }
+    }
+
     public static void removeAllAttributesExceptPrimaryIdentifier(PrismObject<ShadowType> shadow,
             ResourceObjectDefinition objDef) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
@@ -936,6 +962,13 @@ public class ShadowUtil {
         return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
     }
 
+    /** As {@link #isGone(ShadowType)} but with possibly incomplete information. */
+    public static boolean isGoneApproximate(@NotNull ShadowType shadow) {
+        return shadow.getShadowLifecycleState() != null ?
+                ShadowUtil.isGone(shadow) :
+                ShadowUtil.isDead(shadow); // an approximation
+    }
+
     public static ShadowCorrelationStateType getCorrelationStateRequired(@NotNull ShadowType shadow) {
         return MiscUtil.requireNonNull(
                 shadow.getCorrelation(),
@@ -966,5 +999,17 @@ public class ShadowUtil {
         return MiscUtil.requireNonNull(
                 shadow.getObjectClass(),
                 () -> "No object class in " + shadow);
+    }
+
+    public static boolean isPartiallyClassified(@NotNull ShadowType shadow) {
+        return isKnown(shadow.getKind())
+                && isNotKnown(shadow.getIntent());
+    }
+
+    public static void checkForPartialClassification(@NotNull ShadowType shadow) {
+        if (isPartiallyClassified(shadow)) {
+            // TODO reconsider logging level here
+            LOGGER.warn("{} is partially classified: kind = {}, intent = {}", shadow, shadow.getKind(), shadow.getIntent());
+        }
     }
 }

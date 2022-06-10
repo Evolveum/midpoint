@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.RefinedDefinitionUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -58,7 +59,7 @@ public class ShadowTagGenerator {
     public @Nullable String generateTag(
             @NotNull ShadowType shadow,
             @NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeDefinition definition,
+            @NotNull ResourceObjectDefinition definition,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,

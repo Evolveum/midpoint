@@ -69,7 +69,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         }
 
         result.recordSuccess();
-        repositoryShadow.asObjectable().setFetchResult(result.createOperationResultType());
+        repositoryShadow.asObjectable().setFetchResult(result.createBeanReduced());
 
         return repositoryShadow;
     }

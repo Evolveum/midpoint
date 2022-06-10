@@ -130,8 +130,14 @@ class IterationHelper<AH extends AssignmentHolderType> {
             ConfigurationException, SecurityViolationException {
         if (iterationToken == null) {
             createVariablesPreIterationIfNeeded();
-            iterationToken = LensUtil.formatIterationToken(context, focusContext,
-                    iterationSpecification, iteration, assignmentHolderProcessor.getExpressionFactory(), variablesPreIteration, task, result);
+            iterationToken = LensUtil.formatIterationToken(
+                    focusContext,
+                    iterationSpecification,
+                    iteration,
+                    assignmentHolderProcessor.getExpressionFactory(),
+                    variablesPreIteration,
+                    task,
+                    result);
         }
     }
 
@@ -154,7 +160,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     private void createVariablesPreIterationIfNeeded() {
         if (variablesPreIteration == null) {
             variablesPreIteration = ModelImplUtils.getDefaultVariablesMap(
-                    focusContext.getObjectNew(), null, null, null, context.getSystemConfiguration(), focusContext);
+                    focusContext.getObjectNew(), null, null, context.getSystemConfiguration(), focusContext);
         }
     }
 
@@ -217,8 +223,8 @@ class IterationHelper<AH extends AssignmentHolderType> {
         FocusConstraintsChecker<AH> checker = createChecker(context);
         if (!shouldCheckConstraints() || checker.check(objectNew, result)) {
             LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
-            VariablesMap variablesPostIteration = ModelImplUtils.getDefaultVariablesMap(objectNew,
-                    null, null, null, context.getSystemConfiguration(), focusContext);
+            VariablesMap variablesPostIteration = ModelImplUtils.getDefaultVariablesMap(
+                    objectNew, null, null, context.getSystemConfiguration(), focusContext);
             if (LensUtil.evaluateIterationCondition(context, focusContext,
                     iterationSpecification, iteration, iterationToken, false,
                     assignmentHolderProcessor.getExpressionFactory(), variablesPostIteration,

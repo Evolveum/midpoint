@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import java.io.Serializable;
@@ -16,7 +17,7 @@ import java.io.Serializable;
  *
  * @author Radovan Semancik
  */
-public interface EvaluatedAbstractConstruction<AH extends AssignmentHolderType> extends Serializable {
+public interface EvaluatedAbstractConstruction<AH extends AssignmentHolderType> extends Serializable, DebugDumpable {
 
     AbstractConstruction<AH,?,?> getConstruction();
 

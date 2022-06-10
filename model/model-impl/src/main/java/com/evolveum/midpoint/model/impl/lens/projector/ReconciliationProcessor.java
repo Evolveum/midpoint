@@ -17,6 +17,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -329,7 +330,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 (ResourceAttributeDefinition<T>) projCtx.findAttributeDefinition(attrName);
         if (attributeDefinition == null) {
             throw new SchemaException("No definition for attribute " + attrName + " in " +
-                    projCtx.getResourceShadowDiscriminator());
+                    projCtx.getKey());
         }
 
         DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> pvwoTriple =
@@ -446,7 +447,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                             continue;
                         } else {
                             String message = "Attempt to set more than one value for single-valued attribute "
-                                    + attrName + " in " + projCtx.getResourceShadowDiscriminator();
+                                    + attrName + " in " + projCtx.getKey();
                             LOGGER.debug("{}: value to be added: {}, existing value to replace: {}", message, shouldBeMapping, realValueToReplace);
                             throw new SchemaException(message);
                         }
@@ -535,7 +536,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             ResourceAssociationDefinition associationDefinition = accountDefinition.findAssociationDefinition(assocName);
             if (associationDefinition == null) {
                 throw new SchemaException("No definition for association " + assocName + " in "
-                        + projCtx.getResourceShadowDiscriminator());
+                        + projCtx.getKey());
             }
 
             DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> cvwoTriple =

@@ -62,7 +62,6 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
     private static final String CORRELATION_WITH_CONDITION_NAME = TEST_DIR + "/correlation-with-condition-name.xml";
 
     @Autowired private RepositoryService repositoryService;
-    @Autowired private SynchronizationExpressionsEvaluator evaluator;
     @Autowired private ModelBeans beans;
 
 //    @Test

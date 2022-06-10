@@ -6,31 +6,38 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFocusContextBean;
+import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLensProjectionContextBean;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.*;
-import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -43,14 +50,15 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -58,8 +66,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * @author semancik
@@ -125,7 +131,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * TODO implement as non-transient. TODO consider storing whole projection
      * contexts here.
      */
-    private transient Collection<ResourceShadowDiscriminator> historicResourceObjects;
+    private transient Collection<ProjectionContextKey> historicResourceObjects;
 
     private Class<F> focusClass;
 
@@ -153,11 +159,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * Delta set triple (plus, minus, zero) for evaluated assignments.
      * Relativity is determined by looking at current delta (i.e. objectCurrent -> objectNew).
-     * <p>
+     *
      * If you want to know whether the assignment was added or deleted with regards to objectOld,
-     * please check evaluatedAssignment.origin property -
-     * {@link com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin}.
-     * <p>
+     * please check evaluatedAssignment.origin property - {@link AssignmentOrigin}.
+     *
      * TODO verify if this is really true
      */
     private transient DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
@@ -247,13 +252,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private String taskTreeOid;
 
     /**
-     * Time spent in {@link LensElementContext#getCurrentDelta()} and {@link LensElementContext#getSummaryDelta()} (nanos).
-     *
-     * Temporary feature to help diagnosing MID-7053.
-     */
-    private long deltaAggregationTime;
-
-    /**
      * How many times the clockwork clicked? Used to detect endless loops.
      */
     private int clickCounter;
@@ -269,6 +267,50 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public LensContext(Class<F> focusClass) {
         this.focusClass = focusClass;
+    }
+
+    /**
+     * TODO not sure if this method should be here or in {@link ProjectionsLoadOperation} (that is currently the only client)
+     *  The reason for being here is the similarity to {@link #getOrCreateProjectionContext(LensContext, ConstructionTargetKey)}
+     *  and coupling with {@link #getOrCreateProjectionContext(LensContext, HumanReadableDescribable, Supplier, Supplier)}.
+     */
+    public @NotNull static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
+            LensContext<F> context, ProjectionContextKey contextKey) {
+        return getOrCreateProjectionContext(
+                context,
+                contextKey,
+                () -> context.findProjectionContextByKeyExact(contextKey),
+                () -> context.createProjectionContext(contextKey));
+    }
+
+    public @NotNull static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
+            LensContext<F> context, ConstructionTargetKey targetKey) {
+        return getOrCreateProjectionContext(
+                context,
+                targetKey,
+                () -> context.findFirstProjectionContext(targetKey),
+                () -> context.createProjectionContext(targetKey.toProjectionContextKey()));
+    }
+
+    private @NotNull static <F extends ObjectType, K extends HumanReadableDescribable>
+    GetOrCreateProjectionContextResult getOrCreateProjectionContext(
+            LensContext<F> context,
+            K key,
+            Supplier<LensProjectionContext> finder,
+            Supplier<LensProjectionContext> creator) {
+        LensProjectionContext existingCtx = finder.get();
+        if (existingCtx != null) {
+            LOGGER.trace("Found existing context for {}: {}", key.toHumanReadableDescription(), existingCtx);
+            existingCtx.setDoReconciliation(
+                    context.isDoReconciliationForAllProjections()); // TODO this should be somehow automatic
+            return new GetOrCreateProjectionContextResult(existingCtx, false);
+        } else {
+            LensProjectionContext newCtx = creator.get();
+            LOGGER.trace("Created new projection context for {}: {}", key.toHumanReadableDescription(), newCtx);
+            newCtx.setDoReconciliation(
+                    context.isDoReconciliationForAllProjections()); // TODO this should be somehow automatic
+            return new GetOrCreateProjectionContextResult(newCtx, true);
+        }
     }
 
     public ProvisioningService getProvisioningService() {
@@ -288,7 +330,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return requestIdentifier;
     }
 
-    public void setRequestIdentifier(String requestIdentifier) {
+    private void setRequestIdentifier(String requestIdentifier) {
         this.requestIdentifier = requestIdentifier;
     }
 
@@ -339,7 +381,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return createFocusContext(null);
     }
 
-    public LensFocusContext<F> createFocusContext(Class<F> explicitFocusClass) {
+    LensFocusContext<F> createFocusContext(Class<F> explicitFocusClass) {
         if (explicitFocusClass != null) {
             this.focusClass = explicitFocusClass;
         }
@@ -372,31 +414,88 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         projectionContexts.add(projectionContext);
     }
 
-    public LensProjectionContext findProjectionContextByOid(String oid) {
-        for (LensProjectionContext projCtx : getProjectionContexts()) {
-            if (oid.equals(projCtx.getOid())) {
+    /**
+     * BEWARE!
+     *
+     * Before you call this method, please consider the fact that there may be more projection contexts
+     * matching given shadow OID.
+     */
+    public LensProjectionContext findProjectionContextByOid(@NotNull String oid) {
+        return projectionContexts.stream()
+                .filter(ctx -> oid.equals(ctx.getOid()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public @NotNull List<LensProjectionContext> findProjectionContextsByOid(@NotNull String oid) {
+        return projectionContexts.stream()
+                .filter(ctx -> oid.equals(ctx.getOid()))
+                .collect(Collectors.toList());
+    }
+
+    /** TODO describe this and verify it's OK */
+    public LensProjectionContext findProjectionContextByOidAndKey(@NotNull String oid, @NotNull ProjectionContextKey key) {
+        return projectionContexts.stream()
+                .filter(ctx -> oid.equals(ctx.getOid()))
+                .filter(ctx -> ctx.matches(key, false))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // TODO what about unclassified cases (existing/new)?
+    public LensProjectionContext findProjectionContextByKeyExact(@NotNull ProjectionContextKey key) {
+        Validate.notNull(key);
+        for (LensProjectionContext projCtx : projectionContexts) {
+            if (projCtx.matches(key, true)) {
                 return projCtx;
             }
         }
         return null;
     }
 
-    public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat) {
-        Validate.notNull(rat);
-        for (LensProjectionContext projCtx : getProjectionContexts()) {
-            if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
-                return projCtx;
-            }
-        }
-        return null;
+    @Override
+    public @NotNull Collection<LensProjectionContext> findProjectionContexts(@NotNull ProjectionContextFilter filter) {
+        return projectionContexts.stream()
+                .filter(ctx -> filter.matches(ctx.getKey()))
+                .collect(Collectors.toList());
     }
 
-    public LensProjectionContext findOrCreateProjectionContext(ResourceShadowDiscriminator rat) {
-        LensProjectionContext projectionContext = findProjectionContext(rat);
-        if (projectionContext == null) {
-            projectionContext = createProjectionContext(rat);
-        }
-        return projectionContext;
+    @SuppressWarnings("WeakerAccess")
+    @VisibleForTesting
+    public @Nullable LensProjectionContext findProjectionContext(@NotNull ProjectionContextFilter filter) {
+        Collection<LensProjectionContext> matching = findProjectionContexts(filter);
+        return MiscUtil.extractSingleton(
+                matching,
+                () -> new IllegalStateException("Multiple projection contexts matching " + filter + ": " + matching));
+    }
+
+    /**
+     * TODO TODO TODO Do not use this method (yet)
+     *
+     * Returns the projection context this construction should be applied to.
+     *
+     * There may be more matching ones. We return the one that is the next one to be evaluated (according to the waves/ordering).
+     *
+     * TODO What is more reliable - ordering or waves? Waves may not be computed, while order should be specified. We hope...
+     */
+    public LensProjectionContext findFirstNotCompletedProjectionContext(@NotNull ConstructionTargetKey targetKey) {
+        return getProjectionContexts().stream()
+                .filter(p -> !p.isGone())
+                .filter(p -> p.matches(targetKey))
+                .filter(p -> !p.isCompleted())
+                .min(Comparator.comparing(LensProjectionContext::getOrder))
+                .orElse(null);
+    }
+
+    /**
+     * TODO
+     */
+    public LensProjectionContext findFirstProjectionContext(@NotNull ConstructionTargetKey targetKey) {
+        return getProjectionContexts().stream()
+                .filter(p -> !p.isGone())
+                .filter(p -> p.matches(targetKey))
+                .min(Comparator.comparing(LensProjectionContext::getOrder))
+                .orElse(null);
     }
 
     @Override
@@ -414,17 +513,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public void setFocusTemplateExternallySet(boolean focusTemplateExternallySet) {
         this.focusTemplateExternallySet = focusTemplateExternallySet;
-    }
-
-    public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
-        LensProjectionContext projectionContext = findProjectionContext(rat);
-
-        if (projectionContext == null || projectionContext.getOid() == null
-                || !oid.equals(projectionContext.getOid())) {
-            return null;
-        }
-
-        return projectionContext;
     }
 
     public PrismObject<SystemConfigurationType> getSystemConfiguration() {
@@ -481,16 +569,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return executionWave;
     }
 
-    public void setExecutionWave(int executionWave) {
+    private void setExecutionWave(int executionWave) {
         this.executionWave = executionWave;
     }
 
-    public void incrementExecutionWave() {
+    void incrementExecutionWave() {
         executionWave++;
         LOGGER.trace("Incrementing lens context execution wave to {}", executionWave);
     }
 
-    public int getMaxWave() {
+    int getMaxWave() {
         int maxWave = 0;
         for (LensProjectionContext projContext : projectionContexts) {
             if (projContext.getWave() > maxWave) {
@@ -519,11 +607,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.isFresh = isFresh;
     }
 
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean isRequestAuthorized() {
         return isRequestAuthorized;
     }
 
-    public void setRequestAuthorized(boolean isRequestAuthorized) {
+    void setRequestAuthorized(boolean isRequestAuthorized) {
         this.isRequestAuthorized = isRequestAuthorized;
     }
 
@@ -624,15 +713,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.doReconciliationForAllProjections = doReconciliationForAllProjections;
     }
 
-    public boolean isReconcileFocus() {
-        return doReconciliationForAllProjections || ModelExecuteOptions.isReconcileFocus(options);
-    }
-
-    public boolean isExecutionPhaseOnly() {
+    boolean isExecutionPhaseOnly() {
         return executionPhaseOnly;
     }
 
-    public void setExecutionPhaseOnly(boolean executionPhaseOnly) {
+    void setExecutionPhaseOnly(boolean executionPhaseOnly) {
         this.executionPhaseOnly = executionPhaseOnly;
     }
 
@@ -694,11 +779,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public MetadataType getRequestMetadata() {
+    MetadataType getRequestMetadata() {
         return requestMetadata;
     }
 
-    public void setRequestMetadata(MetadataType requestMetadata) {
+    void setRequestMetadata(MetadataType requestMetadata) {
         this.requestMetadata = requestMetadata;
     }
 
@@ -714,7 +799,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * If set to true then the request will be audited right before execution.
      * If no execution takes place then no request will be audited.
      */
-    public boolean isLazyAuditRequest() {
+    boolean isLazyAuditRequest() {
         return lazyAuditRequest;
     }
 
@@ -722,19 +807,21 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.lazyAuditRequest = lazyAuditRequest;
     }
 
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean isRequestAudited() {
         return requestAudited;
     }
 
-    public void setRequestAudited(boolean requestAudited) {
+    void setRequestAudited(boolean requestAudited) {
         this.requestAudited = requestAudited;
     }
 
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean isExecutionAudited() {
         return executionAudited;
     }
 
-    public void setExecutionAudited(boolean executionAudited) {
+    void setExecutionAudited(boolean executionAudited) {
         this.executionAudited = executionAudited;
     }
 
@@ -780,6 +867,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return false;
     }
 
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
         if (focusContext != null) {
@@ -809,6 +897,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * Returns all executed deltas, user and all accounts.
      */
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     @NotNull
     public Collection<ObjectDeltaOperation<? extends ObjectType>> getUnauditedExecutedDeltas() {
         return getExecutedDeltas(false);
@@ -832,7 +921,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return executedDeltas;
     }
 
-    public void markExecutedDeltasAudited() {
+    void markExecutedDeltasAudited() {
         if (focusContext != null) {
             focusContext.markExecutedDeltasAudited();
         }
@@ -857,7 +946,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public void recomputeProjections() throws SchemaException {
+    private void recomputeProjections() throws SchemaException {
         for (LensProjectionContext projCtx : getProjectionContexts()) {
             projCtx.recompute();
         }
@@ -903,7 +992,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public void checkEncrypted() {
+    private void checkEncrypted() {
         if (focusContext != null && !focusContext.isDelete()) {
             focusContext.checkEncrypted();
         }
@@ -914,18 +1003,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public LensProjectionContext createProjectionContext() {
-        return createProjectionContext(null);
-    }
-
-    public LensProjectionContext createProjectionContext(ResourceShadowDiscriminator rsd) {
-        LensProjectionContext projCtx = createDetachedProjectionContext(rsd);
+    public LensProjectionContext createProjectionContext(@NotNull ProjectionContextKey key) {
+        LensProjectionContext projCtx = createDetachedProjectionContext(key);
+        if (key.getResourceOid() != null) {
+            projCtx.setResource(
+                    getResource(key.getResourceOid()));
+        }
         addProjectionContext(projCtx);
         return projCtx;
     }
 
-    public LensProjectionContext createDetachedProjectionContext(ResourceShadowDiscriminator rsd) {
-        return new LensProjectionContext(this, rsd);
+    public LensProjectionContext createDetachedProjectionContext(@NotNull ProjectionContextKey key) {
+        return new LensProjectionContext(this, key);
     }
 
     private Map<String, ResourceType> getResourceCache() {
@@ -936,36 +1025,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     /**
-     * Returns a resource for specified account type. This is supposed to be
-     * efficient, taking the resource from the cache. It assumes the resource is
-     * in the cache.
-     *
-     * @see LensContext#rememberResource(ResourceType)
-     */
-    public ResourceType getResource(ResourceShadowDiscriminator rat) {
-        return getResource(rat.getResourceOid());
-    }
-
-    /**
-     * Returns a resource for specified account type. This is supposed to be
-     * efficient, taking the resource from the cache. It assumes the resource is
-     * in the cache.
+     * Returns a resource with given OID. This is supposed to be efficient, taking the resource from the cache.
+     * It assumes the resource is in the cache.
      *
      * @see LensContext#rememberResource(ResourceType)
      */
     public ResourceType getResource(String resourceOid) {
         return getResourceCache().get(resourceOid);
-    }
-
-    /**
-     * Puts resources in the cache for later use. The resources should be
-     * fetched from provisioning and have pre-parsed schemas. So the next time
-     * just reuse them without the other overhead.
-     */
-    public void rememberResources(Collection<ResourceType> resources) {
-        for (ResourceType resourceType : resources) {
-            rememberResource(resourceType);
-        }
     }
 
     /**
@@ -1007,7 +1073,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return clone;
     }
 
-    protected void copyValues(LensContext<F> clone) {
+    private void copyValues(LensContext<F> clone) {
         clone.state = this.state;
         clone.channel = this.channel;
         clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
@@ -1015,7 +1081,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         clone.focusClass = this.focusClass;
         clone.isFresh = this.isFresh;
         clone.isRequestAuthorized = this.isRequestAuthorized;
-        clone.resourceCache = cloneResourceCache();
+        clone.resourceCache = resourceCache != null ?
+                new HashMap<>(resourceCache) : null;
         // User template is de-facto immutable, OK to just pass reference here.
         clone.focusTemplate = this.focusTemplate;
         clone.projectionWave = this.projectionWave;
@@ -1034,17 +1101,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             clone.projectionContexts.add(thisProjectionContext.clone(this));
         }
         clone.sequences.putAll(this.sequences);
-    }
-
-    private Map<String, ResourceType> cloneResourceCache() {
-        if (resourceCache == null) {
-            return null;
-        }
-        Map<String, ResourceType> clonedMap = new HashMap<>();
-        for (Entry<String, ResourceType> entry : resourceCache.entrySet()) {
-            clonedMap.put(entry.getKey(), entry.getValue());
-        }
-        return clonedMap;
     }
 
     @Override
@@ -1223,7 +1279,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        for (EvaluatedPolicyRuleTrigger trigger : triggers) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent);
             sb.append("trigger: ").append(trigger);
@@ -1231,9 +1287,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                     && ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
                 sb.append("\n");
                 DebugUtil.indentDebugDump(sb, indent + 1);
-                sb.append("conflict: ")
-                        .append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
-                                .getConflictingAssignment()).toHumanReadableString());
+                sb.append("conflict: ");
+                sb.append(
+                        ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment()
+                                .toHumanReadableString());
             }
             if (trigger instanceof EvaluatedCompositeTrigger) {
                 dumpTriggersCollection(indent + 1, sb, ((EvaluatedCompositeTrigger) trigger).getInnerTriggers());
@@ -1298,8 +1355,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return (int) policyRules.stream().filter(EvaluatedPolicyRule::isTriggered).count();
     }
 
-    public LensContextType toLensContextType() throws SchemaException {
-        return toLensContextType(ExportType.OPERATIONAL);
+    public LensContextType toBean() throws SchemaException {
+        return toBean(ExportType.OPERATIONAL);
     }
 
     /**
@@ -1311,44 +1368,41 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * <p>
      * It is also to be used for the FINAL stage, where we need the context basically for information about executed deltas.
      */
-    public LensContextType toLensContextType(ExportType exportType) throws SchemaException {
+    public LensContextType toBean(ExportType exportType) throws SchemaException {
 
-        PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer
-                .newInstance(PrismContext.get(), LensContextType.COMPLEX_TYPE);
-        LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
+        LensContextType bean = new LensContextType();
 
-        lensContextType.setState(state != null ? state.toModelStateType() : null);
+        bean.setState(state != null ? state.toModelStateType() : null);
         if (exportType != ExportType.MINIMAL) {
-            lensContextType.setRequestIdentifier(requestIdentifier);
-            lensContextType.setChannel(channel);
+            bean.setRequestIdentifier(requestIdentifier);
+            bean.setChannel(channel);
         }
 
         if (focusContext != null) {
-            lensContextType.setFocusContext(focusContext.toLensFocusContextType(exportType));
+            bean.setFocusContext(focusContext.toBean(exportType));
         }
 
-        PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer
-                .findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
         for (LensProjectionContext lensProjectionContext : projectionContexts) {
-            lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, exportType);
+            bean.getProjectionContext().add(
+                    lensProjectionContext.toBean(exportType));
         }
-        lensContextType.setProjectionWave(projectionWave);
-        lensContextType.setExecutionWave(executionWave);
+        bean.setProjectionWave(projectionWave);
+        bean.setExecutionWave(executionWave);
         if (exportType != ExportType.MINIMAL) {
-            lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
-            lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
-            lensContextType.setExecutionPhaseOnly(executionPhaseOnly);
-            lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
-            lensContextType.setLazyAuditRequest(lazyAuditRequest);
-            lensContextType.setRequestAudited(requestAudited);
-            lensContextType.setExecutionAudited(executionAudited);
-            lensContextType.setRequestAuthorized(isRequestAuthorized);
-            lensContextType.setStats(stats);
-            lensContextType.setRequestMetadata(requestMetadata);
-            lensContextType.setOwnerOid(ownerOid);
+            bean.setFocusClass(focusClass != null ? focusClass.getName() : null);
+            bean.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
+            bean.setExecutionPhaseOnly(executionPhaseOnly);
+            bean.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
+            bean.setLazyAuditRequest(lazyAuditRequest);
+            bean.setRequestAudited(requestAudited);
+            bean.setExecutionAudited(executionAudited);
+            bean.setRequestAuthorized(isRequestAuthorized);
+            bean.setStats(stats);
+            bean.setRequestMetadata(requestMetadata);
+            bean.setOwnerOid(ownerOid);
 
             for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
-                lensContextType.getRottenExecutedDeltas()
+                bean.getRottenExecutedDeltas()
                         .add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
             }
         }
@@ -1360,10 +1414,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                                 .sequenceRef(entry.getKey(), SequenceType.COMPLEX_TYPE)
                                 .value(entry.getValue()));
             }
-            lensContextType.setSequences(sBean);
+            bean.setSequences(sBean);
         }
 
-        return lensContextType;
+        return bean;
     }
 
     static <T extends ObjectType> LensObjectDeltaOperation<T> simplifyExecutedDelta(LensObjectDeltaOperation<T> executedDelta) {
@@ -1398,18 +1452,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         lensContext.setRequestIdentifier(bean.getRequestIdentifier());
         lensContext.setState(ModelState.fromModelStateType(bean.getState()));
         lensContext.setChannel(Channel.migrateUri(bean.getChannel()));
-        lensContext.setFocusContext(LensFocusContext
-                .fromLensFocusContextType(bean.getFocusContext(), lensContext, task, result));
+        lensContext.setFocusContext(
+                fromLensFocusContextBean(bean.getFocusContext(), lensContext, task, result));
         for (LensProjectionContextType lensProjectionContextType : bean.getProjectionContext()) {
-            lensContext.addProjectionContext(LensProjectionContext
-                    .fromLensProjectionContextBean(lensProjectionContextType, lensContext, task, result));
+            lensContext.addProjectionContext(
+                    fromLensProjectionContextBean(lensProjectionContextType, lensContext, task, result));
         }
         lensContext.setDoReconciliationForAllProjections(
-                bean.isDoReconciliationForAllProjections() != null
-                        ? bean.isDoReconciliationForAllProjections() : false);
+                bean.isDoReconciliationForAllProjections() != null ?
+                        bean.isDoReconciliationForAllProjections() : false);
         lensContext.setExecutionPhaseOnly(
-                bean.isExecutionPhaseOnly() != null
-                        ? bean.isExecutionPhaseOnly() : false);
+                bean.isExecutionPhaseOnly() != null ?
+                        bean.isExecutionPhaseOnly() : false);
         lensContext.setProjectionWave(
                 bean.getProjectionWave() != null ? bean.getProjectionWave() : 0);
         lensContext.setExecutionWave(
@@ -1431,8 +1485,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         lensContext.setOwnerOid(bean.getOwnerOid());
 
         for (LensObjectDeltaOperationType eDeltaOperationType : bean.getRottenExecutedDeltas()) {
-            LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation
-                    .fromLensObjectDeltaOperationType(eDeltaOperationType);
+            LensObjectDeltaOperation<?> objectDeltaOperation =
+                    LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType);
             if (objectDeltaOperation.getObjectDelta() != null) {
                 lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), task, result);
             }
@@ -1454,7 +1508,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return lensContext;
     }
 
-    private void fixProvisioningTypeInDelta(ObjectDelta delta, Task task, OperationResult result)
+    private void fixProvisioningTypeInDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (delta != null && delta.getObjectTypeClass() != null
                 && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
@@ -1475,7 +1529,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.progressListeners = progressListeners;
     }
 
-    public Collection<ProgressListener> getProgressListeners() {
+    Collection<ProgressListener> getProgressListeners() {
         return progressListeners;
     }
 
@@ -1490,7 +1544,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public boolean isAbortRequested() {
+    private boolean isAbortRequested() {
         if (progressListeners == null) {
             return false;
         }
@@ -1502,7 +1556,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return false;
     }
 
-    public Collection<ResourceShadowDiscriminator> getHistoricResourceObjects() {
+    public Collection<ProjectionContextKey> getHistoricResourceObjects() {
         if (historicResourceObjects == null) {
             historicResourceObjects = new ArrayList<>();
         }
@@ -1580,11 +1634,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.policyRuleEnforcerPreviewOutput = policyRuleEnforcerPreviewOutput;
     }
 
-    public int getConflictResolutionAttemptNumber() {
+    int getConflictResolutionAttemptNumber() {
         return conflictResolutionAttemptNumber;
     }
 
-    public void setConflictResolutionAttemptNumber(int conflictResolutionAttemptNumber) {
+    void setConflictResolutionAttemptNumber(int conflictResolutionAttemptNumber) {
         this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
     }
 
@@ -1606,6 +1660,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasProjectionChange() {
         for (LensProjectionContext projectionContext : getProjectionContexts()) {
             if (projectionContext.getWave() != getExecutionWave()) {
@@ -1635,19 +1690,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.globalSecurityPolicy = globalSecurityPolicy;
     }
 
-    public String getOwnerOid() {
+    String getOwnerOid() {
         return ownerOid;
     }
 
-    public void setOwnerOid(String ownerOid) {
+    void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
-    public PrismObject<UserType> getCachedOwner() {
+    PrismObject<UserType> getCachedOwner() {
         return cachedOwner;
     }
 
-    public void setCachedOwner(PrismObject<UserType> cachedOwner) {
+    void setCachedOwner(PrismObject<UserType> cachedOwner) {
         this.cachedOwner = cachedOwner;
     }
 
@@ -1668,6 +1723,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * This method is invoked by context factories when context build is finished.
      */
     void finishBuild() {
+        if (InternalsConfig.consistencyChecks) checkConsistence();
         if (focusContext != null) {
             focusContext.finishBuild();
         }
@@ -1695,7 +1751,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
         for (ModelProjectionContext projectionContext : getProjectionContexts()) {
             if (projectionContext.getPrimaryDelta() != null) {
-                objectTreeDeltas.addProjectionChange(projectionContext.getResourceShadowDiscriminator(), projectionContext.getPrimaryDelta());
+                objectTreeDeltas.addProjectionChange(projectionContext.getKey(), projectionContext.getPrimaryDelta());
             }
         }
         return objectTreeDeltas;
@@ -1755,6 +1811,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         projectionContexts.removeIf(projCtx -> projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE);
     }
 
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean isInPrimary() {
         return state == ModelState.PRIMARY;
     }
@@ -1843,14 +1900,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return focusContext != null && focusContext.isDelete() && ModelExecuteOptions.isForce(options);
     }
 
-    void recordDeltaAggregationTime(long time) {
-        deltaAggregationTime += time;
-    }
-
-    long getDeltaAggregationTime() {
-        return deltaAggregationTime;
-    }
-
     void resetClickCounter() {
         clickCounter = 0;
         clickLimit = determineClickLimit();
@@ -1882,6 +1931,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
+    @SuppressWarnings("WeakerAccess") // may be used from scripts
     public boolean hasStarted() {
         return state != null;
     }
@@ -1904,7 +1954,41 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         projectionContexts.forEach(LensElementContext::clearAnyDeltasExecutedFlag);
     }
 
+    public boolean isDiscoveryChannel() {
+        return SchemaConstants.CHANNEL_DISCOVERY_URI.equals(channel);
+    }
+
+    /**
+     * Resource OID should correspond to the construction. (However, it may be missing in the construction bean itself,
+     * e.g. if a filter is used there.)
+     */
+    public void markMatchingProjectionsBroken(@NotNull ConstructionType construction, @NotNull String resourceOid) {
+        projectionContexts.stream()
+                .filter(ctx -> ctx.matches(construction, resourceOid))
+                .filter(ctx -> !ctx.isCompleted())
+                .forEach(LensProjectionContext::setBroken);
+    }
+
     public enum ExportType {
         MINIMAL, REDUCED, OPERATIONAL, TRACE
+    }
+
+    // FIXME temporary solution
+    public static class GetOrCreateProjectionContextResult {
+        public final LensProjectionContext context;
+        public final boolean created;
+
+        private GetOrCreateProjectionContextResult(LensProjectionContext context, boolean created) {
+            this.context = context;
+            this.created = created;
+        }
+
+        @Override
+        public String toString() {
+            return "GetOrCreateProjectionContextResult{" +
+                    "context=" + context +
+                    ", created=" + created +
+                    '}';
+        }
     }
 }

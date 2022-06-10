@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.function.Function;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.impl.lens.PersonaKey;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
@@ -50,19 +52,26 @@ public class ConstructionProcessor {
      * @param keyGenerator Method that generates indexing key for constructions, under which they are collected. See K type.
      * @param consumer Object that receives categorized constructions (via methods like onAssigned, onUnchangedValid, ...).
      * @param <AH> Focus type
-     * @param <K> Indexing key type. Currently, for resource object constructions it is {@link com.evolveum.midpoint.schema.ResourceShadowDiscriminator};
-     *            for personas it is {@link com.evolveum.midpoint.model.impl.lens.PersonaProcessor.PersonaKey} (type+subtypes).
+     * @param <K> Indexing key type. Currently, for resource object constructions it is {@link ProjectionContextKey};
+     *            for personas it is {@link PersonaKey} (type+subtypes).
      * @param <ACT> Construction bean type.
      * @param <AC> Construction type.
      * @param <EC> Evaluated construction type.
      *
-     * @return Constructions sorted out by status (plus/minus/zero) and indexing key (e.g. {@link com.evolveum.midpoint.schema.ResourceShadowDiscriminator}).
+     * @return Constructions sorted out by status (plus/minus/zero) and indexing key ({@link ProjectionContextKey}
+     * or {@link PersonaKey}).
      */
-    @SuppressWarnings("JavadocReference")
-    public <AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedAbstractConstruction<AH>>
-    DeltaMapTriple<K, EvaluatedConstructionPack<EC>> distributeConstructions(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+    public <
+            AH extends AssignmentHolderType,
+            K extends HumanReadableDescribable,
+            ACT extends AbstractConstructionType,
+            AC extends AbstractConstruction<AH,ACT,EC>,
+            EC extends EvaluatedAbstractConstruction<AH>>
+    DeltaMapTriple<K, EvaluatedConstructionPack<EC>> distributeConstructions(
+            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor,
-            FailableLensFunction<EC, K> keyGenerator, ComplexConstructionConsumer<K, EC> consumer)
+            FailableLensFunction<EC, K> keyGenerator,
+            ComplexConstructionConsumer<K, EC> consumer)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -71,7 +80,8 @@ public class ConstructionProcessor {
         ConstructionCollector<AH, K, ACT, AC, EC> constructionCollector =
                 new ConstructionCollector<>(constructionTripleExtractor, keyGenerator, prismContext);
         constructionCollector.collect(evaluatedAssignmentTriple);
-        DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple = constructionCollector.getEvaluatedConstructionMapTriple();
+        DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple =
+                constructionCollector.getEvaluatedConstructionMapTriple();
 
         LOGGER.trace("evaluatedConstructionMapTriple:\n{}", evaluatedConstructionMapTriple.debugDumpLazily(1));
 
@@ -94,8 +104,13 @@ public class ConstructionProcessor {
 
             logConstructionPacks(key, zeroEvaluatedConstructionPack, plusEvaluatedConstructionPack);
 
-            distributeConstructionPacks(key, zeroEvaluatedConstructionPack, plusEvaluatedConstructionPack,
-                    consumer, evaluatedConstructionMapTriple, desc);
+            distributeConstructionPacks(
+                    key,
+                    zeroEvaluatedConstructionPack,
+                    plusEvaluatedConstructionPack,
+                    consumer,
+                    evaluatedConstructionMapTriple,
+                    desc);
 
             consumer.after(key, desc, evaluatedConstructionMapTriple);
         }
@@ -103,7 +118,11 @@ public class ConstructionProcessor {
         return evaluatedConstructionMapTriple;
     }
 
-    private <AH extends AssignmentHolderType, K extends HumanReadableDescribable, EC extends EvaluatedAbstractConstruction<AH>> void logConstructionPacks(K key, EvaluatedConstructionPack<EC> zeroEvaluatedConstructionPack, EvaluatedConstructionPack<EC> plusEvaluatedConstructionPack) {
+    private <AH extends AssignmentHolderType, K extends HumanReadableDescribable, EC extends EvaluatedAbstractConstruction<AH>>
+    void logConstructionPacks(
+            K key,
+            EvaluatedConstructionPack<EC> zeroEvaluatedConstructionPack,
+            EvaluatedConstructionPack<EC> plusEvaluatedConstructionPack) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing evaluated construction packs for {}", key.toHumanReadableDescription());
             if (zeroEvaluatedConstructionPack == null) {
@@ -128,9 +147,13 @@ public class ConstructionProcessor {
      * on the construction consumer.
      */
     private <AH extends AssignmentHolderType, K extends HumanReadableDescribable, EC extends EvaluatedAbstractConstruction<AH>>
-    void distributeConstructionPacks(K key, EvaluatedConstructionPack<EC> zeroEvaluatedConstructionPack,
-            EvaluatedConstructionPack<EC> plusEvaluatedConstructionPack, ComplexConstructionConsumer<K, EC> consumer,
-            DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple, String desc)
+    void distributeConstructionPacks(
+            K key,
+            EvaluatedConstructionPack<EC> zeroEvaluatedConstructionPack,
+            EvaluatedConstructionPack<EC> plusEvaluatedConstructionPack,
+            ComplexConstructionConsumer<K, EC> consumer,
+            DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple,
+            String desc)
             throws SchemaException, ConfigurationException {
         // SITUATION: The construction is ASSIGNED
         if (plusEvaluatedConstructionPack != null && plusEvaluatedConstructionPack.hasNonWeakConstruction()) {
@@ -157,7 +180,8 @@ public class ConstructionProcessor {
             LOGGER.trace("Construction {}: unchanged (valid)", desc);
             consumer.onUnchangedValid(key, desc);
 
-        // SITUATION: The projection is both ASSIGNED and UNASSIGNED; TODO evaluatedConstructionMapTriple.plusMap.get(key) is the same as plusEvaluatedConstructionPack, isn't it?
+        // SITUATION: The projection is both ASSIGNED and UNASSIGNED;
+        // TODO evaluatedConstructionMapTriple.plusMap.get(key) is the same as plusEvaluatedConstructionPack, isn't it?
         } else if (evaluatedConstructionMapTriple.getPlusMap().containsKey(key) && evaluatedConstructionMapTriple.getMinusMap().containsKey(key) &&
                 plusEvaluatedConstructionPack != null && plusEvaluatedConstructionPack.hasNonWeakConstruction()) {
             // Account was removed and added in the same operation. This is the case if e.g. one role is
@@ -198,7 +222,8 @@ public class ConstructionProcessor {
             consumer.onUnassigned(key, desc);
 
         // SITUATION: The projection should exist (invalid), there is NO CHANGE in assignments
-        } else if (evaluatedConstructionMapTriple.getZeroMap().containsKey(key) && !evaluatedConstructionMapTriple.getZeroMap().get(key).hasValidAssignment()) {
+        } else if (evaluatedConstructionMapTriple.getZeroMap().containsKey(key)
+                && !evaluatedConstructionMapTriple.getZeroMap().get(key).hasValidAssignment()) {
 
             LOGGER.trace("Construction {}: unchanged (invalid)", desc);
             consumer.onUnchangedInvalid(key, desc);

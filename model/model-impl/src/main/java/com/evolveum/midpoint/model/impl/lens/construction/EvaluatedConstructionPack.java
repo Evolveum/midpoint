@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  *
@@ -31,7 +33,7 @@ public class EvaluatedConstructionPack<EC extends EvaluatedAbstractConstruction>
         this.forceRecon = forceRecon;
     }
 
-    public Collection<EC> getEvaluatedConstructions() {
+    public @NotNull Collection<EC> getEvaluatedConstructions() {
         return evaluatedConstructions;
     }
 

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.api;
 
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -47,9 +47,9 @@ public class ProgressInformation implements Serializable, DebugDumpable {
 
     private ActivityType activityType;
     private StateType stateType;
-    private ResourceShadowDiscriminator resourceShadowDiscriminator;              // if relevant
-    private OperationResult operationResult;                                      // if relevant (mostly on "_EXITING" events)
-    private String message;                                                       // A custom message for cases not covered by the progress info (should be only rarely used).
+    private ProjectionContextKey projectionContextKey; // if relevant
+    private OperationResult operationResult; // if relevant (mostly on "_EXITING" events)
+    private String message; // A custom message for cases not covered by the progress info (should be only rarely used).
 
     public ProgressInformation(ActivityType activityType, StateType stateType) {
         this.activityType = activityType;
@@ -68,14 +68,14 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         this.operationResult = operationResult;
     }
 
-    public ProgressInformation(ActivityType activityType, ResourceShadowDiscriminator resourceShadowDiscriminator, StateType stateType) {
+    public ProgressInformation(ActivityType activityType, ProjectionContextKey projectionContextKey, StateType stateType) {
         this(activityType, stateType);
-        this.resourceShadowDiscriminator = resourceShadowDiscriminator;
+        this.projectionContextKey = projectionContextKey;
     }
 
-    public ProgressInformation(ActivityType activityType, ResourceShadowDiscriminator resourceShadowDiscriminator, OperationResult operationResult) {
+    public ProgressInformation(ActivityType activityType, ProjectionContextKey projectionContextKey, OperationResult operationResult) {
         this(activityType, operationResult);
-        this.resourceShadowDiscriminator = resourceShadowDiscriminator;
+        this.projectionContextKey = projectionContextKey;
     }
 
     public ActivityType getActivityType() {
@@ -102,12 +102,12 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         this.stateType = stateType;
     }
 
-    public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
-        return resourceShadowDiscriminator;
+    public ProjectionContextKey getProjectionContextKey() {
+        return projectionContextKey;
     }
 
-    public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
-        this.resourceShadowDiscriminator = resourceShadowDiscriminator;
+    public void setProjectionContextKey(ProjectionContextKey projectionContextKey) {
+        this.projectionContextKey = projectionContextKey;
     }
 
     public String getMessage() {
@@ -121,20 +121,16 @@ public class ProgressInformation implements Serializable, DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
+        sb.append(INDENT_STRING.repeat(Math.max(0, indent)));
         sb.append(ProgressInformation.class.getSimpleName()).append(" ");
         sb.append("activityType=").append(activityType);
         sb.append(", state=").append(stateType);
-        if (resourceShadowDiscriminator != null) {
-            sb.append(", resourceShadowDiscriminator=").append(resourceShadowDiscriminator.toHumanReadableDescription());
+        if (projectionContextKey != null) {
+            sb.append(", resourceShadowDiscriminator=").append(projectionContextKey.toHumanReadableDescription());
         }
         if (message != null) {
             sb.append("\n");
-            for (int i = 0; i < indent; i++) {
-                sb.append(INDENT_STRING);
-            }
+            sb.append(INDENT_STRING.repeat(Math.max(0, indent)));
             sb.append("message=").append(message);
         }
         if (operationResult != null) {
@@ -147,7 +143,7 @@ public class ProgressInformation implements Serializable, DebugDumpable {
     @Override
     public String toString() {
         return activityType + ":" + stateType
-                + (resourceShadowDiscriminator != null ? ", resource=" + resourceShadowDiscriminator.getResourceOid() : "")
+                + (projectionContextKey != null ? ", resource=" + projectionContextKey.getResourceOid() : "")
                 + (operationResult != null ? ", result=" + operationResult.getStatus() : "")
                 + (message != null ? ": " + message : "");
     }

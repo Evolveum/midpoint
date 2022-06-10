@@ -290,4 +290,20 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
         return delegate().createShadowSearchQuery(resourceOid);
     }
 
+    @Override
+    @Nullable
+    default ResourceObjectTypeIdentification getTypeIdentification() {
+        return delegate().getTypeIdentification();
+    }
+
+    @Override
+    @Nullable
+    default ResourceObjectTypeDefinition getTypeDefinition() {
+        return delegate().getTypeDefinition();
+    }
+
+    @Override
+    default boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return delegate().isDefaultFor(kind);
+    }
 }

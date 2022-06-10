@@ -163,8 +163,8 @@ public class RefinedResourceSchemaParser {
     }
 
     private void assertTypeNotDefinedYet(ResourceObjectTypeDefinition definition) throws ConfigurationException {
-        ResourceObjectTypeIdentification identification = definition.getIdentification();
-        var existing = completeSchema.findObjectTypeDefinition(identification);
+        ResourceObjectTypeIdentification identification = definition.getTypeIdentification();
+        var existing = completeSchema.getObjectTypeDefinition(identification);
         if (existing != null) {
             throw new ConfigurationException("Multiple definitions of " + identification + " in " + contextDescription);
         }
@@ -375,14 +375,13 @@ public class RefinedResourceSchemaParser {
          * However, in practice they must share much more, as described in the description for
          * {@link ResourceObjectAssociationType#getIntent()} (see XSD).
          */
-        private ResourceObjectTypeDefinition resolveAssociationTarget(
-                ResourceAssociationDefinition associationDef)
+        private ResourceObjectTypeDefinition resolveAssociationTarget(ResourceAssociationDefinition associationDef)
                 throws SchemaException {
             @NotNull ShadowKindType kind = associationDef.getKind();
             @NotNull Collection<String> intents = associationDef.getIntents();
             Collection<ResourceObjectTypeDefinition> matching =
                     completeSchema.getObjectTypeDefinitions().stream()
-                            .filter(def -> def.matchesKind(kind) && matchesAnyIntent(def, intents))
+                            .filter(def -> matches(def, associationDef))
                             .collect(Collectors.toList());
             if (matching.isEmpty()) {
                 throw new SchemaException("No object type definition for association " + associationDef + " in " + contextDescription);
@@ -394,8 +393,15 @@ public class RefinedResourceSchemaParser {
             }
         }
 
-        // Just a helper for previous method
-        private boolean matchesAnyIntent(@NotNull ResourceObjectTypeDefinition def, @NotNull Collection<String> intents) {
+        /**
+         * Returns `true` if the (target) type definition matches requirements of the association definition: kind + intent(s).
+         */
+        private boolean matches(
+                @NotNull ResourceObjectTypeDefinition def, @NotNull ResourceAssociationDefinition associationDef) {
+            if (associationDef.getKind() != def.getKind()) {
+                return false;
+            }
+            Collection<String> intents = associationDef.getIntents();
             if (intents.isEmpty()) {
                 return def.isDefaultForKind();
             } else {

@@ -386,35 +386,6 @@ public class ResourceTypeUtil {
         }
     }
 
-    public static ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType(
-            ResourceType resource, ShadowKindType kind, String intent) {
-        if (resource == null) {
-            throw new IllegalArgumentException("The resource is null");
-        }
-        SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-        if (schemaHandling == null) {
-            return null;
-        }
-        if (kind == null) {
-            kind = ShadowKindType.ACCOUNT;
-        }
-        // TODO review the code below
-        for (ResourceObjectTypeDefinitionType objType : schemaHandling.getObjectType()) {
-            if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
-                if (intent == null && Boolean.TRUE.equals(objType.isDefault())) {
-                    return objType;
-                }
-                if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
-                    return objType;
-                }
-                if (objType.getIntent() == null && Boolean.TRUE.equals(objType.isDefault()) && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
-                    return objType;
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * @throws ConfigurationException e.g. if the connectorName matches no configuration
      */
@@ -484,32 +455,6 @@ public class ResourceTypeUtil {
 
     public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(PrismObject<ResourceType> resource) {
         return resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-    }
-
-    public static int getDependencyOrder(ResourceObjectTypeDependencyType dependency) {
-        if (dependency.getOrder() == 0) {
-            return 0;
-        } else {
-            return dependency.getOrder();
-        }
-    }
-
-    public static ResourceObjectTypeDependencyStrictnessType getDependencyStrictness(
-            ResourceObjectTypeDependencyType dependency) {
-        if (dependency.getStrictness() == null) {
-            return ResourceObjectTypeDependencyStrictnessType.STRICT;
-        } else {
-            return dependency.getStrictness();
-        }
-    }
-
-    public static boolean isForceLoadDependentShadow(ResourceObjectTypeDependencyType dependency) {
-        Boolean force = dependency.isForceLoad();
-        if (force == null) {
-            return false;
-        }
-
-        return force;
     }
 
     public static boolean isDown(ResourceType resource) {

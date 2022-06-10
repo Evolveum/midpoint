@@ -1,23 +1,26 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.lang3.Validate;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +32,8 @@ import java.util.*;
 public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
     private ObjectDelta<T> focusChange;
-    private Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projectionChangeMap = new HashMap<>();    // values are non null here
-    private PrismContext prismContext;
+    private final Map<ProjectionContextKey, ObjectDelta<ShadowType>> projectionChangeMap = new HashMap<>();    // values are non null here
+    private final PrismContext prismContext;
 
     public ObjectTreeDeltas(PrismContext prismContext) {
         this.prismContext = prismContext;
@@ -46,12 +49,12 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
     }
 
     @SuppressWarnings("unused")
-    public ObjectDelta<ShadowType> getProjectionChange(ResourceShadowDiscriminator discriminator) {
-        return projectionChangeMap.get(discriminator);
+    public ObjectDelta<ShadowType> getProjectionChange(ProjectionContextKey key) {
+        return projectionChangeMap.get(key);
     }
 
     @SuppressWarnings("unused")
-    public Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> getProjectionChangeMap() {
+    public Map<ProjectionContextKey, ObjectDelta<ShadowType>> getProjectionChangeMap() {
         return projectionChangeMap;
     }
 
@@ -59,11 +62,11 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         this.focusChange = focusChange;
     }
 
-    public void addProjectionChange(ResourceShadowDiscriminator resourceShadowDiscriminator, ObjectDelta<ShadowType> primaryDelta) {
-        if (projectionChangeMap.containsKey(resourceShadowDiscriminator)) {
-            throw new IllegalStateException("Duplicate contexts for " + resourceShadowDiscriminator);
+    public void addProjectionChange(ProjectionContextKey key, ObjectDelta<ShadowType> primaryDelta) {
+        if (projectionChangeMap.containsKey(key)) {
+            throw new IllegalStateException("Duplicate contexts for " + key);
         }
-        projectionChangeMap.put(resourceShadowDiscriminator, primaryDelta.clone());
+        projectionChangeMap.put(key, primaryDelta.clone());
     }
 
     public boolean isEmpty() {
@@ -101,13 +104,13 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         if (focusChange != null) {
             clone.setFocusChange(focusChange.clone());
         }
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : projectionChangeMap.entrySet()) {
+        for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : projectionChangeMap.entrySet()) {
             clone.addProjectionChange(entry.getKey(), entry.getValue());        // TODO clone RSD?
         }
         return clone;
     }
 
-    public Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> getProjectionChangeMapEntries() {
+    public Set<Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>>> getProjectionChangeMapEntries() {
         return projectionChangeMap.entrySet();
     }
 
@@ -121,8 +124,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         if (getFocusChange() != null) {
             jaxb.setFocusPrimaryDelta(DeltaConvertor.toObjectDeltaType(getFocusChange()));
         }
-        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = getProjectionChangeMapEntries();
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+        Set<Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>>> entries = getProjectionChangeMapEntries();
+        for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : entries) {
             ProjectionObjectDeltaType projChange = new ProjectionObjectDeltaType();
             projChange.setResourceShadowDiscriminator(entry.getKey().toResourceShadowDiscriminatorType());
             projChange.setPrimaryDelta(DeltaConvertor.toObjectDeltaType(entry.getValue()));
@@ -161,9 +164,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
             deltas.setFocusChange(DeltaConvertor.createObjectDelta(deltasType.getFocusPrimaryDelta(), prismContext));
         }
         for (ProjectionObjectDeltaType projectionObjectDeltaType : deltasType.getProjectionPrimaryDelta()) {
-            // TODO reconsider providing default intent here
-            ResourceShadowDiscriminator rsd = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
-                    projectionObjectDeltaType.getResourceShadowDiscriminator(), true);
+            ProjectionContextKey rsd = ProjectionContextKey.fromBean(
+                    projectionObjectDeltaType.getResourceShadowDiscriminator());
             ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext);
             //noinspection unchecked
             deltas.addProjectionChange(rsd, objectDelta);
@@ -201,7 +203,7 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         DebugUtil.debugDumpWithLabel(sb, "Focus primary change", focusChange, indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpLabel(sb, "Projections primary changes", indent+1);
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : projectionChangeMap.entrySet()) {
+        for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : projectionChangeMap.entrySet()) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent+2);
             sb.append(entry.getKey());
@@ -220,14 +222,14 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         } else {
             focusChange = deltasToMerge.focusChange;
         }
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
-            ResourceShadowDiscriminator rsd = projEntry.getKey();
-            ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
+        for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
+            ProjectionContextKey key = projEntry.getKey();
+            ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(key);
             ObjectDelta<ShadowType> newDelta = projEntry.getValue();
             if (existingDelta != null) {
                 existingDelta.merge(newDelta);
             } else {
-                projectionChangeMap.put(rsd, newDelta);
+                projectionChangeMap.put(key, newDelta);
             }
         }
     }
@@ -237,8 +239,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
             return;
         }
         focusChange = mergeInCorrectOrder(focusChange, deltasToMerge.focusChange);
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
-            ResourceShadowDiscriminator rsd = projEntry.getKey();
+        for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
+            ProjectionContextKey rsd = projEntry.getKey();
             ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
             ObjectDelta<ShadowType> newDelta = projEntry.getValue();
             projectionChangeMap.put(rsd, mergeInCorrectOrder(existingDelta, newDelta));

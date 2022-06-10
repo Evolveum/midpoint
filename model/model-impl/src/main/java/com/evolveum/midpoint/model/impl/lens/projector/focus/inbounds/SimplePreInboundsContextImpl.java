@@ -96,7 +96,7 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
     }
 
     @Override
-    public @NotNull ResourceObjectDefinition getObjectTypeDefinitionRequired() {
+    public @NotNull ResourceObjectDefinition getObjectDefinitionRequired() {
         return objectTypeDefinition;
     }
 

@@ -30,7 +30,6 @@ import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -64,7 +63,6 @@ public class GuiProfileCompiler {
     @Autowired private SecurityHelper securityHelper;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private PrismContext prismContext;
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 
@@ -284,7 +282,7 @@ public class GuiProfileCompiler {
                 composite.getRoleManagement().setAssignmentApprovalRequestLimit(newValue);
             } else {
                 if (composite.getRoleManagement() == null) {
-                    composite.setRoleManagement(new AdminGuiConfigurationRoleManagementType(prismContext));
+                    composite.setRoleManagement(new AdminGuiConfigurationRoleManagementType());
                 }
                 composite.getRoleManagement().setAssignmentApprovalRequestLimit(
                         adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit());
@@ -300,7 +298,7 @@ public class GuiProfileCompiler {
                 composite.getApprovals().setExpandRolesOnPreview(newValue);
             } else {
                 if (composite.getApprovals() == null) {
-                    composite.setApprovals(new AdminGuiApprovalsConfigurationType(prismContext));
+                    composite.setApprovals(new AdminGuiApprovalsConfigurationType());
                 }
                 composite.getApprovals().setExpandRolesOnPreview(
                         adminGuiConfiguration.getApprovals().isExpandRolesOnPreview());
@@ -461,9 +459,13 @@ public class GuiProfileCompiler {
             LOGGER.warn("Cannot join shadow details configuration as defined in {} and {}. No resource defined", oldConf, newConf);
             return false;
         }
-        ResourceShadowDiscriminator oldDiscriminator = new ResourceShadowDiscriminator(oldConf.getResourceRef().getOid(), oldConf.getKind(), oldConf.getIntent(), null, false);
-        ResourceShadowDiscriminator newDiscriminator = new ResourceShadowDiscriminator(newConf.getResourceRef().getOid(), newConf.getKind(), newConf.getIntent(), null, false);
-        return oldDiscriminator.equals(newDiscriminator);
+        ResourceShadowCoordinates oldCoords =
+                new ResourceShadowCoordinates(
+                        oldConf.getResourceRef().getOid(), oldConf.getKind(), oldConf.getIntent());
+        ResourceShadowCoordinates newCoords =
+                new ResourceShadowCoordinates(
+                        newConf.getResourceRef().getOid(), newConf.getKind(), newConf.getIntent());
+        return oldCoords.equals(newCoords);
     }
 
     private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){
@@ -558,6 +560,4 @@ public class GuiProfileCompiler {
         // TODO: cache compiled profile
         return compiledGuiProfile;
     }
-
-
 }

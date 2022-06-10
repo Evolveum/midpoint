@@ -7,10 +7,14 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -28,7 +32,7 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
 
     void setSyncDelta(ObjectDelta<ShadowType> syncDelta);
 
-    ResourceShadowDiscriminator getResourceShadowDiscriminator();
+    @NotNull ProjectionContextKey getKey();
 
     /**
      * Initial intent regarding the account. It indicates what the initiator of the operation
@@ -67,4 +71,12 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
     @Deprecated default boolean isTombstone() {
         return isGone();
     }
+
+    /**
+     * Dependencies returned are "almost complete": resource OID and kind are non-null.
+     * Intent may be null; in that case, the default value has to be used.
+     *
+     * TODO decide what to return if the dependency configuration cannot be obtained; currently it's an empty list
+     */
+    Collection<ResourceObjectTypeDependencyType> getDependencies() throws SchemaException, ConfigurationException;
 }

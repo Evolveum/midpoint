@@ -222,7 +222,7 @@ public class PipelineData implements DebugDumpable {
                     itemType.setValue(value.getRealValue());
                 }
                 if (!hideResults) {
-                    itemType.setResult(item.getResult().createOperationResultType());
+                    itemType.setResult(item.getResult().createBeanReduced());
                 }
                 rv.getItem().add(itemType);
             }

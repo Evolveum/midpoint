@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectCon
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -38,20 +37,19 @@ public class OutboundProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(OutboundProcessor.class);
 
     @Autowired private Clock clock;
-    @Autowired private ModelBeans modelBeans;
 
     <AH extends AssignmentHolderType>
     void processOutbound(LensContext<AH> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
+        ProjectionContextKey key = projCtx.getKey();
         if (projCtx.isDelete()) {
-            LOGGER.trace("Processing outbound expressions for {} skipped, DELETE account delta", discr);
+            LOGGER.trace("Processing outbound expressions for {} skipped, DELETE account delta", key);
             // No point in evaluating outbound
             return;
         }
 
-        LOGGER.trace("Processing outbound expressions for {} starting", discr);
+        LOGGER.trace("Processing outbound expressions for {} starting", key);
 
         // Each projection is evaluated in a single wave only. So we take into account all changes of focus from wave 0 to this one.
         ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();

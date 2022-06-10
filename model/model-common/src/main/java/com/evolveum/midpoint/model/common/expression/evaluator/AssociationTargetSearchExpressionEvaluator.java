@@ -102,7 +102,7 @@ public class AssociationTargetSearchExpressionEvaluator
         TypedValue<ResourceObjectTypeDefinition> rAssocTargetDefTypedValue =
                 params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
         if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
-            throw new ExpressionEvaluationException("No association target object class definition variable in "+
+            throw new ExpressionEvaluationException("No association target object definition variable in "+
                     params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
         ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();

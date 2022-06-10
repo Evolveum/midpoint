@@ -264,7 +264,7 @@
                         <q:text>name = "Dummy Resource"</q:text>
                     </filter>
                 </resourceRef>
-                 <strictness>strict</strictness>
+                <strictness>strict</strictness>
            </dependency>
 
         </objectType>

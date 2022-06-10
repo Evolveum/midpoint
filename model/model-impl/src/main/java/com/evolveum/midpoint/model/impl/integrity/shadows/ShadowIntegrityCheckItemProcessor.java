@@ -212,14 +212,17 @@ class ShadowIntegrityCheckItemProcessor {
                 checkResult.recordError(ShadowStatistics.NO_RESOURCE_REFINED_SCHEMA, new SchemaException("No resource schema"));
                 return;
             }
+            String shadowIntent = ShadowUtil.getIntent(shadow); // TODO what if shadow is already updated (re-classified)?
             ResourceObjectDefinition objectDefinition =
-                    refinedSchema.findObjectDefinition(kind, ShadowUtil.getIntent(shadow));
+                    ShadowUtil.isKnown(shadowIntent) ?
+                            refinedSchema.findObjectDefinition(kind, shadowIntent) :
+                            refinedSchema.findDefaultDefinitionForKind(kind); // TODO this is really strange, fix this!
             if (objectDefinition instanceof ResourceObjectTypeDefinition) {
                 context.setObjectTypeDefinition((ResourceObjectTypeDefinition) objectDefinition);
             } else {
                 // TODO or warning only?
                 checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_REFINED_SCHEMA,
-                        new SchemaException("No refined object class definition for kind=" + kind + ", intent=" + intent));
+                        new SchemaException("No object type definition for kind=" + kind + ", intent=" + intent));
                 return;
             }
             activityRun.putObjectTypeContext(key, context);

@@ -778,7 +778,7 @@ public class TestVillage extends AbstractStoryTest {
 
         displayValue("LDAP entries", openDJController.dumpEntries());
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext)
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME)
                 .and().itemWithDef(
                         prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
                         ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")

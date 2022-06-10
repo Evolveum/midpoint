@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -185,31 +185,40 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     }
 
     private EC createEvaluatedConstruction(String tag) {
-        ResourceObjectDefinition typeOrClassDef = getResourceObjectDefinitionRequired();
-        ResourceShadowDiscriminator rsd;
-        if (typeOrClassDef instanceof ResourceObjectTypeDefinition) {
+        ResourceObjectDefinition objectDefinition = getResourceObjectDefinitionRequired();
+        ConstructionTargetKey key;
+        ResourceObjectTypeIdentification typeIdentification = objectDefinition.getTypeIdentification();
+        if (typeIdentification != null) {
             // this is the usual case
-            ResourceObjectTypeDefinition typeDef = (ResourceObjectTypeDefinition) this.resourceObjectDefinition;
-            rsd = new ResourceShadowDiscriminator(getResourceOid(), typeDef.getKind(), typeDef.getIntent(), tag, false);
-        } else if (typeOrClassDef instanceof ResourceObjectClassDefinition) {
-            // very strange, let's check if we can go with the default account definition (see TestAssignmentErrors.test100-101)
-            ResourceObjectClassDefinition classDef = (ResourceObjectClassDefinition) typeOrClassDef;
-            if (classDef.isDefaultAccountDefinition()) {
-                rsd = new ResourceShadowDiscriminator(
-                        getResourceOid(), ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, tag, false);
-            } else {
-                throw new IllegalStateException("Construction " + this + " cannot be evaluated because of missing type definition"
-                        + " for " + typeOrClassDef);
-            }
+            key = new ConstructionTargetKey(
+                    getResourceOid(),
+                    typeIdentification.getKind(),
+                    typeIdentification.getIntent(),
+                    tag);
         } else {
-            throw new AssertionError(resourceObjectDefinition);
+            // let's check if we can go with the default account definition (see TestAssignmentErrors.test100-101)
+            if (objectDefinition.getObjectClassDefinition().isDefaultAccountDefinition()) {
+                key = new ConstructionTargetKey(
+                        getResourceOid(),
+                        ShadowKindType.ACCOUNT,
+                        SchemaConstants.INTENT_DEFAULT,
+                        tag);
+            } else {
+                throw new IllegalStateException(
+                        "Construction " + this + " cannot be evaluated because of missing type definition for " + objectDefinition);
+            }
         }
-        return createEvaluatedConstruction(rsd);
+        return createEvaluatedConstruction(key);
     }
 
-    protected abstract EC createEvaluatedConstruction(ResourceShadowDiscriminator rsd);
+    /**
+     * @param targetKey Projection into which this construction belong. Must be classified!
+     */
+    protected abstract EC createEvaluatedConstruction(@NotNull ConstructionTargetKey targetKey);
 
-    protected NextRecompute evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private NextRecompute evaluateConstructions(Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         NextRecompute nextRecompute = null;
 
         // This code may seem primitive and old-fashioned.
@@ -312,10 +321,10 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabel(sb, this.getClass().getSimpleName(), indent);
         if (resourceObjectDefinition == null) {
-            sb.append(" (no object class definition)");
+            sb.append(" (no object type/class definition - yet)");
             if (constructionBean != null && constructionBean.getResourceRef() != null) { // should be always the case
                 sb.append("\n");
-                DebugUtil.debugDumpLabel(sb, "resourceRef / kind / intent", indent + 1);
+                DebugUtil.debugDumpLabel(sb, "resourceRef / kind / intent (in bean)", indent + 1);
                 sb.append(" ");
                 sb.append(ObjectTypeUtil.toShortString(constructionBean.getResourceRef()));
                 sb.append(" / ");
@@ -404,11 +413,11 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
     //region Resource management
 
-    public ResolvedConstructionResource getResolvedResource() {
+    ResolvedConstructionResource getResolvedResource() {
         return resolvedResource;
     }
 
-    protected void setResolvedResource(ResolvedConstructionResource resolvedResource) {
+    void setResolvedResource(ResolvedConstructionResource resolvedResource) {
         this.resolvedResource = resolvedResource;
     }
 
@@ -435,10 +444,10 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         }
     }
 
-    public String getResourceOid() {
+    public @NotNull String getResourceOid() {
         ResourceType resource = getResource();
         if (resource != null) {
-            return resource.getOid();
+            return MiscUtil.stateNonNull(resource.getOid(), () -> "No resource OID");
         } else {
             throw new IllegalStateException("Couldn't obtain resource OID because the resource does not exist in " + getSource());
         }
@@ -453,11 +462,11 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return resourceObjectDefinition;
     }
 
-    public @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
+    @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
         return Objects.requireNonNull(resourceObjectDefinition, () -> "no resource object definition in " + this);
     }
 
-    protected void setResourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
+    void setResourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
         this.resourceObjectDefinition = resourceObjectDefinition;
     }
 
@@ -465,7 +474,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return auxiliaryObjectClassDefinitions;
     }
 
-    protected void addAuxiliaryObjectClassDefinition(ResourceObjectDefinition auxiliaryObjectClassDefinition) {
+    void addAuxiliaryObjectClassDefinition(ResourceObjectDefinition auxiliaryObjectClassDefinition) {
         auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
     }
 
@@ -486,7 +495,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return null;
     }
 
-    public ResourceAssociationDefinition findAssociationDefinition(QName associationName) {
+    ResourceAssociationDefinition findAssociationDefinition(QName associationName) {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
@@ -503,7 +512,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return null;
     }
 
-    public PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
+    PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
         if (associationContainerDefinition == null) {
             PrismObjectDefinition<ShadowType> shadowDefinition = PrismContext.get().getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class);

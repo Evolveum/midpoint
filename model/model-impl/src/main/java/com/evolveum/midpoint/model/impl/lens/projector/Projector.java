@@ -14,6 +14,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -118,8 +119,12 @@ public class Projector {
         }
     }
 
-    private <F extends ObjectType> void projectInternal(@NotNull LensContext<F> context, @NotNull String activityDescription,
-            boolean fromStart, @NotNull Task task, @NotNull OperationResult parentResult)
+    private <F extends ObjectType> void projectInternal(
+            @NotNull LensContext<F> context,
+            @NotNull String activityDescription,
+            boolean fromStart,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
             ConflictDetectedException {
@@ -147,7 +152,7 @@ public class Projector {
         ProjectorRunTraceType trace;
         if (result.isTracingAny(ProjectorRunTraceType.class)) {
             trace = new ProjectorRunTraceType();
-            trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setInputLensContext(context.toBean(getExportType(trace, result)));
             trace.setInputLensContextText(context.debugDump());
             result.addTrace(trace);
         } else {
@@ -189,7 +194,7 @@ public class Projector {
                 // deprovisioned only after the activation is processed.
                 activationProcessor.processProjectionsActivation(context, activityDescription, now, task, result);
 
-                dependencyProcessor.sortProjectionsToWaves(context, result);
+                dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
                 // In the future we may want the ability to select only some projections to process.
                 for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
@@ -214,7 +219,7 @@ public class Projector {
 
             context.incrementProjectionWave();
 
-            dependencyProcessor.checkDependenciesFinal(context, result);
+            dependencyProcessor.checkDependenciesFinal(context);
             context.checkConsistenceIfNeeded();
 
             computeResultStatus(now, result);
@@ -234,7 +239,7 @@ public class Projector {
             result.computeStatusIfUnknown();
             if (trace != null) {
                 trace.setOutputLensContextText(context.debugDump());
-                trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+                trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
             }
             context.inspectProjectorFinish();
             context.reportProgress(new ProgressInformation(PROJECTOR, result));
@@ -290,13 +295,12 @@ public class Projector {
             LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 
             // Some projections may not be loaded at this point, e.g. high-order dependency projections
-            //noinspection unchecked
             contextLoader.updateProjectionContext(context, projectionContext, task, result);
 
             context.checkConsistenceIfNeeded();
 
-            if (!dependencyProcessor.checkDependencies(context, projectionContext, result)) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it has unsatisfied dependencies");
+            if (!dependencyProcessor.checkDependencies(projectionContext)) {
+                result.recordNotApplicable("Skipping projection because it has unsatisfied dependencies");
                 return;
             }
 

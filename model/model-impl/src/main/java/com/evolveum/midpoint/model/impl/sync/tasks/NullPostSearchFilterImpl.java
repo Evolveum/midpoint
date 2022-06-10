@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Object filter that passes all shadows.
  */
-public class NullSynchronizationObjectFilterImpl implements SynchronizationObjectsFilter {
+public class NullPostSearchFilterImpl implements PostSearchFilter {
 
     @Override
     public boolean matches(@NotNull PrismObject<ShadowType> shadow) {

@@ -43,7 +43,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.*;

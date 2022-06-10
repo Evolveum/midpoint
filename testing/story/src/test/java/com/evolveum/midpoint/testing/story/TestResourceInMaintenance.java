@@ -857,11 +857,13 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         }
 
         UserWithAccount invoke(String name, Task task, OperationResult result) throws CommonException {
-            shadow = new ShadowType(prismContext)
+            shadow = new ShadowType()
                     .resourceRef(RESOURCE_OID, ResourceType.COMPLEX_TYPE)
-                    .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
+                    .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                    .kind(ShadowKindType.ACCOUNT)
+                    .intent(SchemaConstants.INTENT_DEFAULT);
 
-            user = new UserType(prismContext)
+            user = new UserType()
                     .name(name)
                     .linkRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext));
 

@@ -9,35 +9,33 @@ package com.evolveum.midpoint.model.impl.sync.action;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
-import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.util.exception.CommonException;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 /**
  * A synchronization action that involves clockwork processing.
@@ -157,14 +155,15 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
         return actionDefinition.isLimitPropagation();
     }
 
-    private void createProjectionContext(ModelExecuteOptions options, LensContext<F> context) throws SchemaException {
+    private void createProjectionContext(ModelExecuteOptions options, LensContext<F> context) {
         ResourceType resource = change.getResource().asObjectable();
         ShadowType shadow = syncCtx.getShadowedResourceObject();
-        ShadowKindType kind = getKind(shadow, syncCtx.getKind());
-        String intent = getIntent(shadow, syncCtx.getIntent());
+        ResourceObjectTypeIdentification typeIdentification = syncCtx.getTypeIdentification();
         boolean tombstone = isTombstone(change);
-        ResourceShadowDiscriminator discriminator = new ResourceShadowDiscriminator(resource.getOid(), kind, intent, shadow.getTag(), tombstone);
-        LensProjectionContext projectionContext = context.createProjectionContext(discriminator);
+        LensProjectionContext projectionContext =
+                context.createProjectionContext(
+                        ProjectionContextKey.forKnownResource(
+                                resource.getOid(), typeIdentification, shadow.getTag(), 0, tombstone));
         projectionContext.setResource(resource);
         projectionContext.setOid(change.getShadowOid());
         projectionContext.setSynchronizationSituationDetected(syncCtx.getSituation());
@@ -219,24 +218,6 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
             return ((PrismContainerValue<?>) (attributes.asPrismContainerValue())).getItems().stream()
                     .anyMatch(Item::isIncomplete);
         }
-    }
-
-    // TODO What if shadow.kind is `unknown`?
-    private ShadowKindType getKind(ShadowType shadow, ShadowKindType objectSynchronizationKind) {
-        ShadowKindType shadowKind = shadow.getKind();
-        if (shadowKind != null) {
-            return shadowKind;
-        }
-        return objectSynchronizationKind;
-    }
-
-    // TODO What if shadow.intent is `unknown`?
-    private String getIntent(ShadowType shadow, String objectSynchronizationIntent) {
-        String shadowIntent = shadow.getIntent();
-        if (shadowIntent != null) {
-            return shadowIntent;
-        }
-        return objectSynchronizationIntent;
     }
 
     // TODO is this OK? What if the dead flag is obsolete?

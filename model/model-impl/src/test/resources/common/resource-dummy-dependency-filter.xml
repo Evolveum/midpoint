@@ -282,7 +282,7 @@
                         </q:equal>
                     </filter>
                 </resourceRef>
-                 <strictness>strict</strictness>
+                <strictness>strict</strictness>
            </dependency>
 
         </objectType>

@@ -86,6 +86,22 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
+    public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return identification;
+    }
+
+    @Override
+    public @NotNull ResourceObjectTypeDefinition getTypeDefinition() {
+        return this;
+    }
+
+    @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return getKind() == kind
+                && isDefaultForKind();
+    }
+
+    @Override
     public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
         return refinedObjectClassDefinition;
     }

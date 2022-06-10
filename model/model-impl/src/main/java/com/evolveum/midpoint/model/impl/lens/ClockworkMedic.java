@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -266,11 +267,10 @@ public class ClockworkMedic {
 
     /**
      * Actually, in the current code (4.2) all methods that check this status are within
-     * {@link com.evolveum.midpoint.model.impl.lens.projector.Projector#projectProjection(LensContext, LensProjectionContext, PartialProcessingOptionsType, XMLGregorianCalendar, String, Task, OperationResult)}
-     * method - and it checks for both projection completed flag and its execution wave. Nevertheless, let us keep the check
-     * here for future use.
+     * {@link Projector#projectProjection(LensContext, LensProjectionContext, PartialProcessingOptionsType, XMLGregorianCalendar,
+     * String, Task, OperationResult)} method - and it checks for both projection completed flag and its execution wave.
+     * Nevertheless, let us keep the check here for future use.
      */
-    @SuppressWarnings("JavadocReference")
     private boolean projectionCurrentCheckPasses(String componentName, LensProjectionContext projectionContext) {
         if (projectionContext != null && !projectionContext.isCurrentForProjection()) {
             LOGGER.trace("Skipping '{}' because projection is not current (already completed or wrong wave)", componentName);
@@ -314,8 +314,8 @@ public class ClockworkMedic {
             String qualifier = context.getOperationQualifier();
             if (projectionContext != null) {
                 qualifier += "." + projectionContext.getResourceOid() + "." +
-                        projectionContext.getResourceShadowDiscriminator().getKind() + "." +
-                        projectionContext.getResourceShadowDiscriminator().getIntent();
+                        projectionContext.getKey().getKind() + "." +
+                        projectionContext.getKey().getIntent();
             }
             OperationResult result = parentResult.subresult(operationName)
                     .addQualifier(qualifier)
@@ -326,10 +326,10 @@ public class ClockworkMedic {
                 if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                     trace.setInputLensContextText(context.debugDump());
                 }
-                trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+                trace.setInputLensContext(context.toBean(getExportType(trace, result)));
                 if (projectionContext != null) {
                     trace.setResourceShadowDiscriminator(
-                            LensUtil.createDiscriminatorBean(projectionContext.getResourceShadowDiscriminator(), context));
+                            LensUtil.createDiscriminatorBean(projectionContext.getKey(), context));
                 }
                 result.addTrace(trace);
             } else {
@@ -354,7 +354,7 @@ public class ClockworkMedic {
                     if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                         trace.setOutputLensContextText(context.debugDump());
                     }
-                    trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+                    trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
                 }
                 if (clockworkInspector != null) {
                     clockworkInspector.projectorComponentFinish(componentName);

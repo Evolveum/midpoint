@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
@@ -1322,7 +1321,6 @@ public class ExpressionUtil {
                 variables,
                 asPrismObject(focus),
                 asPrismObject(shadow),
-                null,
                 asPrismObject(resource),
                 asPrismObject(configuration));
         return variables;
@@ -1332,7 +1330,6 @@ public class ExpressionUtil {
             VariablesMap variables,
             PrismObject<? extends ObjectType> focus,
             PrismObject<? extends ShadowType> shadow,
-            ResourceShadowDiscriminator discr, // TODO Should we keep this?
             PrismObject<ResourceType> resource,
             PrismObject<SystemConfigurationType> configuration) {
 

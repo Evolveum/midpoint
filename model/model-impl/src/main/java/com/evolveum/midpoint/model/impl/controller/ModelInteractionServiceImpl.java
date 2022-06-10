@@ -66,7 +66,7 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
@@ -308,7 +308,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    public PrismObjectDefinition<ShadowType> getEditShadowDefinition(
+            ResourceShadowCoordinates coordinates,
+            AuthorizationPhaseType phase,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
         // HACK hack hack
         // Make a dummy shadow instance here and evaluate the schema for that. It is not 100% correct. But good enough for now.
         // TODO: refactor when we add better support for multi-tenancy
@@ -316,12 +322,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         PrismObject<ShadowType> shadow = prismContext.createObject(ShadowType.class);
         ShadowType shadowType = shadow.asObjectable();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
-        if (discr != null) {
-            resourceRef.setOid(discr.getResourceOid());
+        if (coordinates != null) {
+            resourceRef.setOid(coordinates.getResourceOid());
             shadowType.setResourceRef(resourceRef);
-            shadowType.setKind(discr.getKind());
-            shadowType.setIntent(discr.getIntent());
-            shadowType.setObjectClass(discr.getObjectClass());
+            shadowType.setKind(coordinates.getKind());
+            shadowType.setIntent(coordinates.getIntent());
+            shadowType.setObjectClass(coordinates.getObjectClass());
         }
 
         return getEditObjectDefinition(shadow, phase, task, parentResult);
@@ -339,9 +345,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         Validate.notNull(resource, "Resource must not be null");
 
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectDefinition rocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadow);
+        ResourceObjectDefinition rocd = resourceSchema.findDefinitionForShadow(shadow.asObjectable());
         if (rocd == null) {
-            LOGGER.debug("No object class definition for shadow {}, returning null", shadow.getOid());
+            LOGGER.debug("No resource object definition for shadow {}, returning null", shadow.getOid());
             return null;
         }
         ResourceObjectDefinition objectDefinition = rocd.forLayer(LayerType.PRESENTATION);

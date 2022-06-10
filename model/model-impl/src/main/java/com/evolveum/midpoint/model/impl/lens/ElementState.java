@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -64,8 +64,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOper
  *
  * 2. Because of their complexity and interdependence, state-changing operations
  * are grouped in a separate region: State updates.
+ *
+ * Intentionally not public.
  */
-public class ElementState<O extends ObjectType> implements Serializable, Cloneable {
+class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ElementState.class);
 
@@ -364,7 +366,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
         return summaryDelta;
     }
 
-    public @NotNull ObjectDeltaWaves<O> getArchivedSecondaryDeltas() {
+    @NotNull ObjectDeltaWaves<O> getArchivedSecondaryDeltas() {
         return archivedSecondaryDeltas;
     }
     //endregion
@@ -518,7 +520,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
     //endregion
 
     //region Object-delta-objects
-    public ObjectDeltaObject<O> getRelativeObjectDeltaObject() throws SchemaException, ConfigurationException {
+    ObjectDeltaObject<O> getRelativeObjectDeltaObject() throws SchemaException, ConfigurationException {
         return new ObjectDeltaObject<>(
                 getAdjustedCurrentObject(),
                 getCurrentDelta(),
@@ -526,7 +528,8 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
                 getObjectDefinition());
     }
 
-    public ObjectDeltaObject<O> getAbsoluteObjectDeltaObject() throws SchemaException {
+    @SuppressWarnings("unused") // TODO why not used?
+    public ObjectDeltaObject<O> getAbsoluteObjectDeltaObject() {
         // We assume that current object + current delta = old object + summary delta.
         return new ObjectDeltaObject<>(
                 oldObject,
@@ -656,7 +659,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
      *
      * Should be used only by the context loader.
      */
-    public void setCurrentObjectAndOid(@NotNull PrismObject<O> object) {
+    void setCurrentObjectAndOid(@NotNull PrismObject<O> object) {
         setCurrentObject(object);
         setOid(object.getOid());
     }
@@ -676,7 +679,7 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
     /**
      * Sets both current and (if the operation is not `ADD`) also the old object.
      */
-    public void setInitialObject(@NotNull PrismObject<O> object, boolean isAdd) {
+    void setInitialObject(@NotNull PrismObject<O> object, boolean isAdd) {
         setCurrentAndOptionallyOld(object, !isAdd);
     }
 
@@ -747,12 +750,12 @@ public class ElementState<O extends ObjectType> implements Serializable, Cloneab
      * Currently comprises only the secondary deltas.
      * Later we may add also current and summary deltas and new object.
      */
-    public @NotNull RememberedElementState<O> rememberState() {
+    @NotNull RememberedElementState<O> rememberState() {
         return new RememberedElementState<>(
                 CloneUtil.cloneCloneable(secondaryDelta));
     }
 
-    public void restoreState(@NotNull RememberedElementState<O> rememberedState) {
+    void restoreState(@NotNull RememberedElementState<O> rememberedState) {
         setSecondaryDelta(
                 CloneUtil.cloneCloneable(
                         rememberedState.getSecondaryDelta()));

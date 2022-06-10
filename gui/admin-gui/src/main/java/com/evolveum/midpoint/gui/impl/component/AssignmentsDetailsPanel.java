@@ -185,7 +185,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                 OperationResult result = task.getResult();
                 PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, ((ConstructionValueWrapper) constructionValue).getResourceOid(), getPageBase(), task, result);
                 kind = ((ConstructionValueWrapper) constructionValue).getKind();
-                intent = ((ConstructionValueWrapper) constructionValue).getIntent(resource);
+                intent = ((ConstructionValueWrapper) constructionValue).determineIntent(resource);
             } else {
                 kind = assignment.getConstruction().getKind();
                 intent = assignment.getConstruction().getIntent();

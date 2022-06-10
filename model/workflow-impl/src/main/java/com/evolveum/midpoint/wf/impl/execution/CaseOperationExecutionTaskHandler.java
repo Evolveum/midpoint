@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;

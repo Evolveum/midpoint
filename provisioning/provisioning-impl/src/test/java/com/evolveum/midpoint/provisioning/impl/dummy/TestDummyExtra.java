@@ -16,7 +16,7 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -27,12 +27,9 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -89,7 +86,8 @@ public class TestDummyExtra extends TestDummy {
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition accountRDef = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountRDef =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
 
         Collection<ResourceAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());

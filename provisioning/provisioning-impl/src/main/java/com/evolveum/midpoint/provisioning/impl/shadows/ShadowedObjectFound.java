@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,7 +55,6 @@ public class ShadowedObjectFound implements InitializableMixin {
      *
      * See {@link ResourceObjectFound#primaryIdentifierValue}.
      */
-    @SuppressWarnings("JavadocReference")
     private final Object primaryIdentifierValue;
 
     /**
@@ -83,7 +81,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     /** Information used to initialize this object. */
     @NotNull private final InitializationContext ictx;
 
-    public ShadowedObjectFound(ResourceObjectFound resourceObjectFound, ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
+    ShadowedObjectFound(ResourceObjectFound resourceObjectFound, ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
         this.resourceObject = resourceObjectFound.getResourceObject();
         this.primaryIdentifierValue = resourceObjectFound.getPrimaryIdentifierValue();
         this.initializationState = InitializationState.fromPreviousState(resourceObjectFound.getInitializationState());
@@ -119,7 +117,7 @@ public class ShadowedObjectFound implements InitializableMixin {
      */
     @Override
     public void initializeInternal(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException {
+            throws CommonException, EncryptionException {
 
         if (!initializationState.isInitialStateOk()) {
             // The object is somehow flawed. However, we try to create a shadow.
@@ -160,9 +158,8 @@ public class ShadowedObjectFound implements InitializableMixin {
         ProvisioningContext estimatedCtx = ictx.localBeans.shadowCaretaker.reapplyDefinitions(ictx.ctx, resourceObject);
 
         // Now find or create repository shadow, along with its classification (maybe it is not a good idea to merge the two).
-        PrismObject<ShadowType> repoShadow;
         try {
-            repoShadow = ictx.localBeans.shadowAcquisitionHelper
+            return ictx.localBeans.shadowAcquisitionHelper
                     .acquireRepoShadow(estimatedCtx, resourceObject, false, result);
         } catch (Exception e) {
             // No need to log stack trace now. It will be logged at the place where the exception is processed.
@@ -170,7 +167,6 @@ public class ShadowedObjectFound implements InitializableMixin {
             shadowedObject = acquireRepoShadowInEmergency(result);
             throw e;
         }
-        return repoShadow;
     }
 
     private PrismObject<ShadowType> updateRepoShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
@@ -248,16 +244,13 @@ public class ShadowedObjectFound implements InitializableMixin {
         return resourceObject;
     }
 
-    public PrismObject<ShadowType> getShadowedObject() {
-        return shadowedObject;
-    }
-
-    public @NotNull PrismObject<ShadowType> getAdoptedOrOriginalObject() {
+    private @NotNull PrismObject<ShadowType> getAdoptedOrOriginalObject() {
         return MoreObjects.firstNonNull(shadowedObject, resourceObject);
     }
 
     // TEMPORARY (for migration)
-    public @NotNull PrismObject<ShadowType> getResourceObjectWithFetchResult() {
+    @NotNull
+    private PrismObject<ShadowType> getResourceObjectWithFetchResult() {
         initializationState.checkAfterInitialization();
 
         if (initializationState.isOk()) {
@@ -291,7 +284,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     }
 
     // Maybe temporary
-    public PrismObject<ShadowType> getResultingObject(FetchErrorReportingMethodType errorReportingMethod) {
+    PrismObject<ShadowType> getResultingObject(FetchErrorReportingMethodType errorReportingMethod) {
         initializationState.checkAfterInitialization();
 
         Throwable exception = initializationState.getExceptionEncountered();

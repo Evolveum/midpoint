@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -37,9 +36,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusLoadedTraceType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Responsible for loading the focus context.
+ * Responsible for loading the focus context. Intentionally not public.
  */
-public class FocusLoadOperation<F extends ObjectType> {
+class FocusLoadOperation<F extends ObjectType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusLoadOperation.class);
 
@@ -53,7 +52,7 @@ public class FocusLoadOperation<F extends ObjectType> {
     /** Trace of the operation (if any). */
     private FocusLoadedTraceType trace;
 
-    public FocusLoadOperation(@NotNull LensContext<F> context, @NotNull Task task) {
+    FocusLoadOperation(@NotNull LensContext<F> context, @NotNull Task task) {
         this.context = context;
         this.task = task;
         this.beans = ModelBeans.get();
@@ -148,11 +147,11 @@ public class FocusLoadOperation<F extends ObjectType> {
 
     private void createTraceIfNeeded(OperationResult result) throws SchemaException {
         if (result.isTracingAny(FocusLoadedTraceType.class)) {
-            trace = new FocusLoadedTraceType(beans.prismContext);
+            trace = new FocusLoadedTraceType();
             if (result.isTracingNormal(FocusLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
             }
-            trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setInputLensContext(context.toBean(getExportType(trace, result)));
             result.addTrace(trace);
         } else {
             trace = null;
@@ -170,7 +169,7 @@ public class FocusLoadOperation<F extends ObjectType> {
             if (result.isTracingNormal(FocusLoadedTraceType.class)) {
                 trace.setOutputLensContextText(context.debugDump());
             }
-            trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
         }
     }
 
@@ -212,8 +211,9 @@ public class FocusLoadOperation<F extends ObjectType> {
     private PrismObject<F> findShadowOwner(String projectionOid, OperationResult result) {
         // TODO change to regular search
         //noinspection unchecked
-        return (PrismObject<F>) beans.cacheRepositoryService.searchShadowOwner(projectionOid,
-                SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+        return (PrismObject<F>) beans.cacheRepositoryService.searchShadowOwner(
+                projectionOid,
+                GetOperationOptions.createAllowNotFoundCollection(),
                 result);
     }
 }

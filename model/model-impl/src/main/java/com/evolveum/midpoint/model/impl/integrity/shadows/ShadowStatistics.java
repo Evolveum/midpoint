@@ -29,7 +29,7 @@ public class ShadowStatistics {
     public static final String NO_INTENT_SPECIFIED = "No intent specified";
     public static final String NO_RESOURCE_REFINED_SCHEMA = "No resource refined schema";
     public static final String CANNOT_GET_REFINED_SCHEMA = "Cannot get resource refined schema";
-    public static final String NO_OBJECT_CLASS_REFINED_SCHEMA = "No object class refined schema";
+    public static final String NO_OBJECT_CLASS_REFINED_SCHEMA = "No object class refined schema"; // FIXME better name
     public static final String OTHER_FAILURE = "Other failure";
     public static final String CANNOT_APPLY_FIX = "Cannot apply fix";
     public static final String CANNOT_FETCH_RESOURCE_OBJECT = "Cannot fetch resource object";

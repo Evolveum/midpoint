@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -58,7 +57,7 @@ public class MockFactory {
 
             @Override
             public @NotNull SynchronizationResult synchronize(
-                    @NotNull ResourceShadowCoordinates shadowCoordinates,
+                    @NotNull ResourceOperationCoordinates coordinates,
                     LiveSyncOptions options,
                     @NotNull LiveSyncTokenStorage tokenStorage,
                     @NotNull LiveSyncEventHandler handler,
@@ -69,7 +68,7 @@ public class MockFactory {
 
             @Override
             public void processAsynchronousUpdates(
-                    @NotNull ResourceShadowCoordinates shadowCoordinates,
+                    @NotNull ResourceOperationCoordinates coordinates,
                     @NotNull AsyncUpdateEventHandler handler,
                     @NotNull Task task,
                     @NotNull OperationResult parentResult) {
@@ -248,7 +247,6 @@ public class MockFactory {
                     PrismObject<ShadowType> shadowObjectOld,
                     ResourceType resource,
                     String shadowOid,
-                    ResourceShadowCoordinates shadowCoordinates,
                     ConstraintViolationConfirmer constraintViolationConfirmer,
                     ConstraintsCheckingStrategyType strategy,
                     @NotNull Task task,
@@ -297,7 +295,7 @@ public class MockFactory {
             public @Nullable String generateShadowTag(
                     @NotNull ShadowType combinedObject,
                     @NotNull ResourceType resource,
-                    @NotNull ResourceObjectTypeDefinition definition,
+                    @NotNull ResourceObjectDefinition definition,
                     @NotNull Task task,
                     @NotNull OperationResult result) {
                 return null;

@@ -12,10 +12,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -37,10 +40,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.*;
@@ -131,21 +132,38 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return fillContextWithAccount(context, account, task, result);
     }
 
-    protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, PrismObject<ShadowType> account, Task task, OperationResult result) throws SchemaException,
+    protected LensProjectionContext fillContextWithAccount(
+            LensContext<UserType> context,
+            PrismObject<ShadowType> account,
+            Task task,
+            OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid,
-                ShadowKindType.ACCOUNT, ShadowUtil.getIntent(accountType), null, false);
-        LensProjectionContext accountSyncContext = context.findOrCreateProjectionContext(rat);
+        ProjectionContextKey key = // We can use account/default as the default because we are in tests here
+                ProjectionContextKey.classified(
+                        resourceOid,
+                        Objects.requireNonNullElse(accountType.getKind(), ShadowKindType.ACCOUNT),
+                        Objects.requireNonNullElse(accountType.getIntent(), SchemaConstants.INTENT_DEFAULT),
+                        null);
+        LensProjectionContext accountSyncContext = getOrCreateProjectionContext(context, key);
         accountSyncContext.setOid(account.getOid());
         accountSyncContext.setInitialObject(account);
         accountSyncContext.setResource(resourceType);
         accountSyncContext.setExists(true);
         context.rememberResource(resourceType);
         return accountSyncContext;
+    }
+
+    private LensProjectionContext getOrCreateProjectionContext(LensContext<UserType> context, ProjectionContextKey key) {
+        LensProjectionContext existing = context.findProjectionContextByKeyExact(key);
+        if (existing != null) {
+            return existing;
+        } else {
+            return context.createProjectionContext(key);
+        }
     }
 
     protected <O extends ObjectType> ObjectDelta<O> addFocusModificationToContext(

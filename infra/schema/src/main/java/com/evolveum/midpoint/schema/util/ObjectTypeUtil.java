@@ -1003,7 +1003,7 @@ public class ObjectTypeUtil {
     }
 
     public static void recordFetchError(PrismObject<? extends ObjectType> object, OperationResult result) {
-        OperationResultType resultBean = result.createOperationResultType();
+        OperationResultType resultBean = result.createBeanReduced();
         assert OperationResultUtil.isError(resultBean.getStatus());
         object.asObjectable().setFetchResult(resultBean);
     }

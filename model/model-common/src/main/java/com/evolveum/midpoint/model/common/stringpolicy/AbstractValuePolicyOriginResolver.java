@@ -23,13 +23,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValueItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
@@ -67,8 +61,12 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
     }
 
     @Override
-    public <R extends ObjectType> void resolve(ProhibitedValueItemType prohibitedValueItem, ResultHandler<R> handler,
-            String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+    public <R extends ObjectType> void resolve(
+            ProhibitedValueItemType prohibitedValueItem,
+            ResultHandler<R> handler,
+            String contextDescription,
+            Task task,
+            OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ValuePolicyOriginType origin = defaultIfNull(prohibitedValueItem.getOrigin(), OBJECT);
         switch (origin) {
@@ -104,7 +102,14 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         }
     }
 
-    private <P extends ObjectType> void handleProjections(ResultHandler<P> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <P extends ObjectType> void handleProjections(
+            ResultHandler<P> handler,
+            ProhibitedValueItemType prohibitedValueItem,
+            String contextDescription,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         // Not very efficient. We will usually read the shadows again, as they are already in model context.
         // It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
         // But this is good enough for now.
@@ -140,21 +145,17 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         } else {
             return;
         }
-        // We want to provide default intent to allow configurators to be a little lazy and skip intent specification.
-        // Consider changing this if necessary.
-        ResourceShadowDiscriminator shadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
-                prohibitedValueItemType.getProjectionDiscriminator(), true);
+        ShadowDiscriminatorType discriminator = prohibitedValueItem.getProjectionDiscriminator();
         for (ObjectReferenceType linkRef: focus.getLinkRef()) {
             GetOperationOptions options = GetOperationOptions.createReadOnly();
             options.setNoFetch(true);
             ShadowType resolvedShadow = objectResolver.resolve(linkRef, ShadowType.class,
                     SelectorOptions.createCollection(options),
                     "resolving projection shadow in " + contextDescription, task, result);
-            if (shadowDiscriminator != null) {
-                if (!ShadowUtil.matches(resolvedShadow.asPrismObject(), shadowDiscriminator)) {
-                    LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator", resolvedShadow, contextDescription);
-                    continue;
-                }
+            if (discriminator != null && !ShadowUtil.matches(resolvedShadow, discriminator)) {
+                LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator",
+                        resolvedShadow, contextDescription);
+                continue;
             }
             //noinspection unchecked
             handler.handle((PrismObject<P>) resolvedShadow.asPrismObject(), result);

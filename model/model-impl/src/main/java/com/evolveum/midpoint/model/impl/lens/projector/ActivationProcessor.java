@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -30,8 +31,8 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -318,18 +319,19 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = projCtx.getResourceObjectTypeDefinitionType();
-        if (resourceObjectTypeDefinition == null) {
+        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+        if (resourceObjectDefinition == null) {
             LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
             return;
         }
-        ResourceActivationDefinitionType activationDefinition = resourceObjectTypeDefinition.getActivation();
-        if (activationDefinition == null) {
+        ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
+        if (activationDefinitionBean == null) {
             LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", projCtxDesc);
             return;
         }
 
-        ActivationCapabilityType capActivation = ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), ActivationCapabilityType.class);
+        ActivationCapabilityType capActivation =
+                resourceObjectDefinition.getEnabledCapability(ActivationCapabilityType.class, projCtx.getResource());
         if (capActivation == null) {
             LOGGER.trace("Skipping activation status and validity processing because {} has no activation capability", projCtx.getResource());
             return;
@@ -342,7 +344,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (capStatus != null) {
             evaluateActivationMapping(context, projCtx,
-                    activationDefinition.getAdministrativeStatus(),
+                    activationDefinitionBean.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
@@ -350,25 +352,25 @@ public class ActivationProcessor implements ProjectorProcessor {
             LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
         }
 
-        ResourceBidirectionalMappingType validFromMappingType = activationDefinition.getValidFrom();
+        ResourceBidirectionalMappingType validFromMappingType = activationDefinitionBean.getValidFrom();
         if (validFromMappingType == null || validFromMappingType.getOutbound() == null) {
             LOGGER.trace("Skipping activation validFrom processing because {} does not have appropriate outbound mapping", projCtx.getResource());
         } else if (capValidFrom == null && !ExpressionUtil.hasExplicitTarget(validFromMappingType.getOutbound())) {
             LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
-            evaluateActivationMapping(context, projCtx, activationDefinition.getValidFrom(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean.getValidFrom(),
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
-        ResourceBidirectionalMappingType validToMappingType = activationDefinition.getValidTo();
+        ResourceBidirectionalMappingType validToMappingType = activationDefinitionBean.getValidTo();
         if (validToMappingType == null || validToMappingType.getOutbound() == null) {
             LOGGER.trace("Skipping activation validTo processing because {} does not have appropriate outbound mapping", projCtx.getResource());
         } else if (capValidTo == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
             LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
-            evaluateActivationMapping(context, projCtx, activationDefinition.getValidTo(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean.getValidTo(),
                     SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
@@ -376,7 +378,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (capLockoutStatus != null) {
             evaluateActivationMapping(context, projCtx,
-                    activationDefinition.getLockoutStatus(),
+                    activationDefinitionBean.getLockoutStatus(),
                     SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
                     capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
         } else {
@@ -389,7 +391,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         result.addReturn("decision", String.valueOf(decision));
     }
 
-    private <F extends FocusType> void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {
+    private void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {
         ObjectDelta<ShadowType> projDelta = projCtx.getCurrentDelta();
         if (projDelta == null) {
             return;
@@ -452,22 +454,22 @@ public class ActivationProcessor implements ProjectorProcessor {
     /**
      * We'll evaluate the mappings just to create the triggers.
      */
-    private <F extends FocusType> void processActivationMappingsFuture(LensContext<F> context, LensProjectionContext accCtx,
+    private <F extends FocusType> void processActivationMappingsFuture(LensContext<F> context, LensProjectionContext projCtx,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        String accCtxDesc = accCtx.toHumanReadableString();
-        SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
+        String accCtxDesc = projCtx.toHumanReadableString();
+        SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
 
-        LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", accCtx, decision);
+        LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", projCtx, decision);
 
-        if (accCtx.isGone() || decision == SynchronizationPolicyDecision.BROKEN
+        if (projCtx.isGone() || decision == SynchronizationPolicyDecision.BROKEN
                 || decision == SynchronizationPolicyDecision.IGNORE
                 || decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
             return;
         }
 
-        accCtx.recompute();
+        projCtx.recompute();
 
-        evaluateExistenceMapping(context, accCtx, now, MappingTimeEval.FUTURE, task, result);
+        evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.FUTURE, task, result);
 
         PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
@@ -476,16 +478,17 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceObjectTypeDefinitionType();
-        if (resourceAccountDefType == null) {
+        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+        if (resourceObjectDefinition == null) {
             return;
         }
-        ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
-        if (activationType == null) {
+        ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
+        if (activationDefinitionBean == null) {
             return;
         }
 
-        ActivationCapabilityType capActivation = ResourceTypeUtil.getEnabledCapability(accCtx.getResource(), ActivationCapabilityType.class);
+        ActivationCapabilityType capActivation =
+                resourceObjectDefinition.getEnabledCapability(ActivationCapabilityType.class, projCtx.getResource());
         if (capActivation == null) {
             return;
         }
@@ -495,19 +498,19 @@ public class ActivationProcessor implements ProjectorProcessor {
         ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
 
         if (capStatus != null) {
-            evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     capActivation, now, MappingTimeEval.FUTURE, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
         }
 
         if (capValidFrom != null) {
-            evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
         if (capValidTo != null) {
-            evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
@@ -524,19 +527,19 @@ public class ActivationProcessor implements ProjectorProcessor {
             throw new IllegalStateException("Null 'legal' for "+projCtxDesc);
         }
 
-        ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
-        if (resourceAccountDefType == null) {
+        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+        if (resourceObjectDefinition == null) {
             return legal;
         }
-        ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
-        if (activationType == null) {
+        ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
+        if (activationDefinitionBean == null) {
             return legal;
         }
-        ResourceBidirectionalMappingType existenceType = activationType.getExistence();
-        if (existenceType == null) {
+        ResourceBidirectionalMappingType existenceDefBean = activationDefinitionBean.getExistence();
+        if (existenceDefBean == null) {
             return legal;
         }
-        List<MappingType> outbound = existenceType.getOutbound();
+        List<MappingType> outbound = existenceDefBean.getOutbound();
         if (outbound == null || outbound.isEmpty()) {
             // "default mapping"
             return legal;
@@ -958,11 +961,12 @@ public class ActivationProcessor implements ProjectorProcessor {
     }
 
     @Nullable
-    private ResourceBidirectionalMappingType getLifecycleStateMapping(LensProjectionContext projCtx) {
+    private ResourceBidirectionalMappingType getLifecycleStateMapping(LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         ResourceObjectLifecycleDefinitionType lifecycleDef;
-        ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
-        if (resourceAccountDefType != null) {
-            lifecycleDef = resourceAccountDefType.getLifecycle();
+        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+        if (resourceObjectDefinition != null) {
+            lifecycleDef = resourceObjectDefinition.getDefinitionBean().getLifecycle();
         } else {
             lifecycleDef = null;
         }

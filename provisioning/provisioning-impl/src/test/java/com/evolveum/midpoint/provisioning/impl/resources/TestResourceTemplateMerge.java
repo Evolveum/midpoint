@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.AUTHORITATIVE;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
@@ -331,7 +332,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("there is a definition of account/default");
         ResourceObjectTypeDefinition accountDef =
-                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+                findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         and("gossip is added in types-1");
         ResourceAttributeDefinition<?> gossipDef =
@@ -538,7 +539,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("there is a definition of account/employee");
         ResourceObjectTypeDefinition employeeDef =
-                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, "employee");
+                findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "employee");
 
         and("drink is updated");
         ResourceAttributeDefinition<?> employeeDrinkDef =
@@ -551,7 +552,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("there is a definition of account/admin");
         ResourceObjectTypeDefinition adminDef =
-                schema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, "admin");
+                findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "admin");
 
         and("drink is updated");
         ResourceAttributeDefinition<?> adminDrinkDef =
@@ -562,7 +563,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("there is no definition of account/general");
         ResourceObjectTypeDefinition generalDef =
-                schema.findObjectTypeDefinition(ShadowKindType.ACCOUNT, "general");
+                schema.getObjectTypeDefinition(ShadowKindType.ACCOUNT, "general");
         assertThat(generalDef).as("definition of account/general").isNull();
 
         List<? extends ResourceObjectTypeDefinition> accountDefs = schema.getObjectTypeDefinitions(ShadowKindType.ACCOUNT);

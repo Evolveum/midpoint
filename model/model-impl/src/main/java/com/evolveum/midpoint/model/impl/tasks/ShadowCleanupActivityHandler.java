@@ -14,7 +14,7 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
+import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +109,7 @@ public class ShadowCleanupActivityHandler
     public static final class MyRun extends
             SearchBasedActivityRun<ShadowType, MyWorkDefinition, ShadowCleanupActivityHandler, AbstractActivityWorkStateType> {
 
-        private ResourceObjectClass resourceObjectClass;
+        private ProcessingScope processingScope;
 
         MyRun(@NotNull ActivityRunInstantiationContext<MyWorkDefinition, ShadowCleanupActivityHandler> context,
                 String shortName) {
@@ -130,14 +130,14 @@ public class ShadowCleanupActivityHandler
             ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
             RunningTask runningTask = getRunningTask();
 
-            resourceObjectClass = getActivityHandler().syncTaskHelper
-                    .getResourceObjectClassCheckingMaintenance(resourceObjectSet, runningTask, result);
-            resourceObjectClass.checkResourceUp();
+            processingScope = getActivityHandler().syncTaskHelper
+                    .getProcessingScopeCheckingMaintenance(resourceObjectSet, runningTask, result);
+            processingScope.checkResourceUp();
         }
 
         @Override
         protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-            return resourceObjectClass.getResourceRef();
+            return processingScope.getResourceRef();
         }
 
         @Override
@@ -176,7 +176,7 @@ public class ShadowCleanupActivityHandler
         private void deleteShadow(PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) {
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setObjectDelta(shadow.createDeleteDelta());
-            change.setResource(resourceObjectClass.getResource().asPrismObject());
+            change.setResource(processingScope.getResource().asPrismObject());
             change.setShadowedResourceObject(shadow);
             change.setSourceChannel(SchemaConstants.CHANNEL_CLEANUP_URI);
             getActivityHandler().synchronizationService.notifyChange(change, workerTask, result);

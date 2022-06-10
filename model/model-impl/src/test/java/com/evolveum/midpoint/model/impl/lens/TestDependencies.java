@@ -14,6 +14,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -27,7 +32,6 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -85,6 +89,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
     }
 
     // resourceName is expected to be a single character
+    @SuppressWarnings("SameParameterValue")
     private String getDummyAccountOid(String resourceName, String accountName) {
         return "14440000-0000-0000-00" + Integer.toHexString(resourceName.toUpperCase().charAt(0))
                 + "-10000000000" + accountName;
@@ -107,7 +112,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -134,7 +139,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -164,7 +169,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -194,7 +199,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
         try {
             // WHEN
-            dependencyProcessor.sortProjectionsToWaves(context, result);
+            dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
             displayDumpable("Context after", context);
             AssertJUnit.fail("Unexpected success");
@@ -220,7 +225,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -251,7 +256,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -279,7 +284,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -307,7 +312,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -338,7 +343,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context, result);
+        dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -374,7 +379,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
         try {
             // WHEN
-            dependencyProcessor.sortProjectionsToWaves(context, result);
+            dependencyProcessor.sortProjectionsToWaves(context, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -407,9 +412,15 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         assertEquals("Wrong wave in " + projCtx, expectedWave, projCtx.getWave());
     }
 
-    private LensProjectionContext findAccountContext(LensContext<UserType> context, String resourceOid, int order) {
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null, null, false);
-        discr.setOrder(order);
-        return context.findProjectionContext(discr);
+    private LensProjectionContext findAccountContext(
+            LensContext<UserType> context, @NotNull String resourceOid, int order) {
+        return context.findProjectionContextByKeyExact(
+                ProjectionContextKey.classified(
+                        resourceOid,
+                        ShadowKindType.ACCOUNT,
+                        SchemaConstants.INTENT_DEFAULT, // TODO do we always want to find default account?
+                        null,
+                        order,
+                        false));
     }
 }

@@ -325,23 +325,6 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-//    public static boolean isProtectedShadow(ResourceObjectTypeDefinition objectClassDefinition, PrismObject<ShadowType> shadow,
-//            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
-//        boolean isProtected;
-//        if (objectClassDefinition == null) {
-//            isProtected = false;
-//        } else {
-//            Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
-//            if (protectedAccountPatterns == null) {
-//                isProtected = false;
-//            } else {
-//                isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
-//            }
-//        }
-//        LOGGER.trace("isProtectedShadow: {}: {} = {}", objectClassDefinition, shadow, isProtected);
-//        return isProtected;
-//    }
-
     public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, PrismObject<ShadowType> shadow,
             MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
         boolean isProtected = protectedAccountPatterns != null &&
@@ -356,15 +339,6 @@ public class ProvisioningUtil {
         if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), resourceObjectOrShadow, matchingRuleRegistry, relationRegistry)) {
             resourceObjectOrShadow.asObjectable().setProtectedObject(true);
         }
-    }
-
-    // TODO resource or refined?
-    public static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for " + resource);
-        }
-        return refinedSchema;
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {

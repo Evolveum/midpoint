@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.task.api.Task;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,7 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -88,11 +88,11 @@ public class LensContextHelper {
                 //noinspection unchecked
                 focusContext.addToPrimaryDelta(focusDelta);
             }
-            Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltaToMerge.getProjectionChangeMapEntries();
-            for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+            Set<Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>>> entries = deltaToMerge.getProjectionChangeMapEntries();
+            for (Map.Entry<ProjectionContextKey, ObjectDelta<ShadowType>> entry : entries) {
                 LOGGER.trace("Adding projection delta to root model context; rsd = {}, delta = {}", entry.getKey(),
                         entry.getValue().debugDumpLazily());
-                ModelProjectionContext projectionContext = rootContext.findProjectionContext(entry.getKey());
+                ModelProjectionContext projectionContext = rootContext.findProjectionContextByKeyExact(entry.getKey());
                 if (projectionContext == null) {
                     // TODO more liberal treatment?
                     throw new IllegalStateException("No projection context for " + entry.getKey());

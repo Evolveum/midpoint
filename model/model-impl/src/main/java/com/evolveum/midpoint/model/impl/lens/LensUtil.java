@@ -6,78 +6,64 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.*;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import static java.util.Collections.emptySet;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
-import com.evolveum.midpoint.repo.common.expression.*;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
-import static java.util.Collections.emptySet;
 
 /**
  * @author semancik
@@ -88,166 +74,24 @@ public class LensUtil {
     private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
     private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
-    public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
-            String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result)
+    public static <F extends ObjectType> ResourceType getResourceReadOnly(
+            LensContext<F> context,
+            String resourceOid,
+            ProvisioningService provisioningService,
+            Task task,
+            OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        ResourceType resourceType = context.getResource(resourceOid);
-        if (resourceType == null) {
-            // Fetching from provisioning to take advantage of caching and
-            // pre-parsed schema
-            resourceType = provisioningService
-                    .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result)
-                    .asObjectable();
-            context.rememberResource(resourceType);
+        ResourceType cached = context.getResource(resourceOid);
+        if (cached != null) {
+            return cached;
         }
-        return resourceType;
-    }
-
-    @NotNull
-    public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
-            Task task, OperationResult result) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ResourceType resourceFromContext = context.getResource(resourceOid);
-        if (resourceFromContext != null) {
-            return resourceFromContext;
-        } else {
-            ResourceType resourceFetched = objectResolver.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(),
-                    task, result);
-            context.rememberResource(resourceFetched);
-            return resourceFetched;
-        }
-    }
-
-    public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource)
-            throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.MODEL);
-        ResourceObjectDefinition rObjClassDef = schema.findObjectDefinition(kind, intent);
-        if (rObjClassDef == null) {
-            LOGGER.error("No projection definition for kind={}, intent={} in {}", kind, intent, resource);
-            LOGGER.error("Diagnostic output follows:\n\nResource:\n{}\n\nRefined resource schema:\n{}",
-                    resource.asPrismObject().debugDump(), schema.debugDump());
-            throw new SchemaException("No projection definition for kind="+kind+" intent="+intent+" in "+resource);
-        }
-        return getIntent(rObjClassDef);
-    }
-
-    @Experimental // Quite a hack. We should not ask for an intent from raw OC definition.
-    private static String getIntent(ResourceObjectDefinition definition) {
-        return definition instanceof ResourceObjectTypeDefinition ?
-                ((ResourceObjectTypeDefinition) definition).getIntent() : SchemaConstants.INTENT_DEFAULT; // brutal hack
-    }
-
-    public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, PrismObject<ShadowType> equivalentAccount,
-            ProvisioningService provisioningService, PrismContext prismContext,
-            Task task, OperationResult result) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ShadowType equivalentAccountType = equivalentAccount.asObjectable();
-        ShadowKindType kind = ShadowUtil.getKind(equivalentAccountType);
-        return getProjectionContext(context, ShadowUtil.getResourceOid(equivalentAccountType),
-                kind, equivalentAccountType.getIntent(), equivalentAccountType.getTag(), provisioningService,
-                prismContext, task, result);
-    }
-
-    private static <F extends FocusType> LensProjectionContext getProjectionContext(
-            LensContext<F> context, String resourceOid,
-            ShadowKindType kind, String intent, String tag,
-            ProvisioningService provisioningService, PrismContext prismContext,
-            Task task, OperationResult result) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ResourceType resource = getResourceReadOnly(context, resourceOid, provisioningService, task, result);
-        String refinedIntent = refineProjectionIntent(kind, intent, resource);
-        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, false);
-        return context.findProjectionContext(rsd);
-    }
-
-    // FIXME temporary solution
-    public static class GetOrCreateProjectionContextResult {
-        public final LensProjectionContext context;
-        public final boolean created;
-
-        private GetOrCreateProjectionContextResult(LensProjectionContext context, boolean created) {
-            this.context = context;
-            this.created = created;
-        }
-
-        @Override
-        public String toString() {
-            return "GetOrCreateProjectionContextResult{" +
-                    "context=" + context +
-                    ", created=" + created +
-                    '}';
-        }
-    }
-
-    @NotNull
-    public static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(LensContext<F> context,
-            ResourceShadowDiscriminator rsd) {
-        LensProjectionContext existingCtx = context.findProjectionContext(rsd);
-        if (existingCtx != null) {
-            LOGGER.trace("Found existing context for {}: {}", rsd.toHumanReadableDescription(), existingCtx);
-            existingCtx.setDoReconciliation(context.isDoReconciliationForAllProjections());
-            return new GetOrCreateProjectionContextResult(existingCtx, false);
-        } else {
-            LensProjectionContext newCtx = context.createProjectionContext(rsd);
-            LOGGER.trace("Created new context for {}: {}", rsd.toHumanReadableDescription(), newCtx);
-            ResourceType resource = context.getResource(rsd.getResourceOid());
-            newCtx.setResource(resource);
-            newCtx.setDoReconciliation(context.isDoReconciliationForAllProjections());
-            return new GetOrCreateProjectionContextResult(newCtx, true);
-        }
-    }
-
-    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
-            Collection<? extends ItemValueWithOrigin<V, D>> origins) throws SchemaException {
-        return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
-    }
-
-//    public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
-//            MappingType mapping) throws SchemaException {
-//        List<V> rv = new ArrayList<>();
-//        for (V value : values) {
-//            rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
-//        }
-//        return rv;
-//    }
-
-    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
-            PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
-        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getIdentifier);
-    }
-
-    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
-            MappingType mapping) throws SchemaException {
-        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getName);
-    }
-
-    private static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
-            Supplier<String> originMappingNameSupplier) throws SchemaException {
-        //noinspection unchecked
-        V cloned = (V) value.clone();
-        if (isAssignment && cloned instanceof PrismContainerValue) {
-            ((PrismContainerValue) cloned).setId(null);
-            String originMappingName = originMappingNameSupplier.get();
-            LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
-            if (originMappingName != null) {
-                //noinspection unchecked
-                PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
-                metadataContainer.getValue().asContainerable().setOriginMappingName(originMappingName);
-            }
-        }
-        return cloned;
-    }
-
-    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(
-            Collection<? extends ItemValueWithOrigin<V, D>> origins) {
-        // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
-        for (ItemValueWithOrigin<V, D> origin : origins) {
-            if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
-                return origin.getMapping().getIdentifier();
-            }
-        }
-        return null;
+        // Fetching from provisioning to take advantage of caching and pre-parsed schema
+        ResourceType retrieved = provisioningService
+                .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result)
+                .asObjectable();
+        context.rememberResource(retrieved);
+        return retrieved;
     }
 
     public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status,
@@ -331,29 +175,6 @@ public class LensUtil {
         return idi;
     }
 
-//    /**
-//     * Extracts the delta from this projection context and also from all other projection contexts that have
-//     * equivalent discriminator.
-//     */
-//    public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
-//            LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
-//        PropertyDelta<T> aPrioriDelta = null;
-//        for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
-//            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getSummaryDelta(); // TODO check this
-//            if (aProjDelta != null) {
-//                PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
-//                if (aPropProjDelta != null) {
-//                    if (aPrioriDelta == null) {
-//                        aPrioriDelta = aPropProjDelta.clone();
-//                    } else {
-//                        aPrioriDelta.merge(aPropProjDelta);
-//                    }
-//                }
-//            }
-//        }
-//        return aPrioriDelta;
-//    }
-
     /**
      * Extracts the delta from this projection context and also from all other projection contexts that have
      * equivalent discriminator.
@@ -375,63 +196,51 @@ public class LensUtil {
     }
 
     /**
-     * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
-     * discriminator.
+     * Returns a list of context that have equivalent key with the reference context. Ordered by "order" in the key.
+     *
+     * TODO move to {@link LensContext}?
      */
     static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
             LensContext<F> context, LensProjectionContext refProjCtx) {
-        ResourceShadowDiscriminator refRsd = refProjCtx.getResourceShadowDiscriminator();
-        if (refRsd == null) {
+        ProjectionContextKey refKey = refProjCtx.getKey();
+        if (refKey == null) {
             return List.of();
         }
         Comparator<LensProjectionContext> orderComparator = (ctx1, ctx2) -> {
-            int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
-            int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
+            int order1 = ctx1.getKey().getOrder();
+            int order2 = ctx2.getKey().getOrder();
             return Integer.compare(order1, order2);
         };
         return context.getProjectionContexts().stream()
-                .filter(aProjCtx -> refRsd.equivalent(aProjCtx.getResourceShadowDiscriminator()))
+                .filter(aProjCtx -> refKey.equivalent(aProjCtx.getKey()))
                 .sorted(orderComparator)
                 .collect(Collectors.toList());
     }
 
+    // TODO move to LensContext?
     public static <F extends ObjectType> boolean hasLowerOrderContext(LensContext<F> context,
             LensProjectionContext refProjCtx) {
-        ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+        ProjectionContextKey refKey = refProjCtx.getKey();
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
-            ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
-            if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+            ProjectionContextKey aKey = aProjCtx.getKey();
+            if (refKey.equivalent(aKey) && (refKey.getOrder() > aKey.getOrder())) {
                 return true;
             }
         }
         return false;
     }
 
-    /**
-     * Returns true if there is a dependency of `source` on `target` under given `dependency` configuration.
-     * (Meaning that `source` depends on `target`!)
-     *
-     * I.e. there is a `dependency` configuration in `source` context pointing to `target`.
-     */
-    public static <F extends ObjectType> boolean areDependent(
-            LensProjectionContext source,
-            LensProjectionContext target,
-            ResourceObjectTypeDependencyType dependency) {
-        ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(
-                dependency, source.getResource().getOid(), source.getKind());
-        return target.compareResourceShadowDiscriminator(refDiscr, false);
-    }
-
+    // TODO move to LensContext?
     public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,
             LensProjectionContext refProjCtx) {
         int minOrder = -1;
         LensProjectionContext foundCtx = null;
-        ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+        ProjectionContextKey refKey = refProjCtx.getKey();
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
-            ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
-            if (refDiscr.equivalent(aDiscr) && aDiscr.getOrder() < refDiscr.getOrder()) {
-                if (minOrder < 0 || aDiscr.getOrder() < minOrder) {
-                    minOrder = aDiscr.getOrder();
+            ProjectionContextKey aKey = aProjCtx.getKey();
+            if (refKey.equivalent(aKey) && aKey.getOrder() < refKey.getOrder()) {
+                if (minOrder < 0 || aKey.getOrder() < minOrder) {
+                    minOrder = aKey.getOrder();
                     foundCtx = aProjCtx;
                 }
             }
@@ -447,13 +256,13 @@ public class LensUtil {
             return;
         }
         LensProjectionContext refProjCtx = (LensProjectionContext)objectContext;
-        ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
-        if (refDiscr == null) {
+        ProjectionContextKey refKey = refProjCtx.getKey();
+        if (refKey == null) {
             return;
         }
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
-            ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
-            if (aDiscr != null && refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() < aDiscr.getOrder())) {
+            ProjectionContextKey aKey = aProjCtx.getKey();
+            if (aKey != null && refKey.equivalent(aKey) && (refKey.getOrder() < aKey.getOrder())) {
                 aProjCtx.setOid(oid);
             }
         }
@@ -476,15 +285,20 @@ public class LensUtil {
         return iterationSpecType != null ? or0(iterationSpecType.getMaxIterations()) : 0;
     }
 
-    public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,
-            LensElementContext<?> accountContext, IterationSpecificationType iterationType,
-            int iteration, ExpressionFactory expressionFactory, VariablesMap variables,
-            Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (iterationType == null) {
+    public static <F extends ObjectType> String formatIterationToken(
+            LensElementContext<?> accountContext,
+            IterationSpecificationType iterationSpec,
+            int iteration,
+            ExpressionFactory expressionFactory,
+            VariablesMap variables,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        if (iterationSpec == null) {
             return formatIterationTokenDefault(iteration);
         }
-        ExpressionType tokenExpressionType = iterationType.getTokenExpression();
+        ExpressionType tokenExpressionType = iterationSpec.getTokenExpression();
         if (tokenExpressionType == null) {
             return formatIterationTokenDefault(iteration);
         }
@@ -528,11 +342,19 @@ public class LensUtil {
         return Integer.toString(iteration);
     }
 
-    public static <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
-            LensElementContext<?> accountContext, IterationSpecificationType iterationSpecification,
-            int iteration, String iterationToken, boolean beforeIteration,
-            ExpressionFactory expressionFactory, VariablesMap variables, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public static <F extends ObjectType> boolean evaluateIterationCondition(
+            LensContext<F> context,
+            LensElementContext<?> accountContext,
+            IterationSpecificationType iterationSpecification,
+            int iteration,
+            String iterationToken,
+            boolean beforeIteration,
+            ExpressionFactory expressionFactory,
+            VariablesMap variables,
+            Task task,
+            OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (iterationSpecification == null) {
             return true;
         }
@@ -571,7 +393,6 @@ public class LensUtil {
             return false;
         }
         return realValue;
-
     }
 
     /**
@@ -1208,11 +1029,11 @@ public class LensUtil {
         return booleanDefinition;
     }
 
-    public static ShadowDiscriminatorType createDiscriminatorBean(ResourceShadowDiscriminator rsd, LensContext<?> lensContext) {
-        if (rsd == null) {
+    public static ShadowDiscriminatorType createDiscriminatorBean(ProjectionContextKey key, LensContext<?> lensContext) {
+        if (key == null) {
             return null;
         }
-        ShadowDiscriminatorType bean = rsd.toResourceShadowDiscriminatorType();
+        ShadowDiscriminatorType bean = key.toResourceShadowDiscriminatorType();
         provideResourceName(bean.getResourceRef(), lensContext);
         return bean;
     }

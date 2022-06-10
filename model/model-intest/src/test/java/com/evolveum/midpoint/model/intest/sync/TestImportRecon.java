@@ -422,7 +422,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .assertProgress(7);
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
+        // Two additional fetch operations are because of the need to classify elaine's blue and red accounts.
+        // (They are initially created without kind/intent.) See also PERFORMANCE_ADVISOR log entries.
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 5);
 
         List<PrismObject<UserType>> usersAfter = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", usersAfter);
@@ -1660,7 +1662,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertShadows(17);
 
-        PrismObject<ShadowType> otisShadow = findShadowByName(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, ACCOUNT_OTIS_NAME, resourceDummyAzure, result);
+        PrismObject<ShadowType> otisShadow = findShadowByName(
+                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, ACCOUNT_OTIS_NAME, resourceDummyAzure, result);
 
         dummyResourceAzure.deleteAccountByName(ACCOUNT_OTIS_NAME);
 
@@ -1995,8 +1998,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 RoleType.COMPLEX_TYPE, null, null, false);
         repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
-        PrismObject<ShadowType> rappShadow = findShadowByName(ShadowKindType.ACCOUNT,
-                SchemaConstants.INTENT_DEFAULT, USER_RAPP_USERNAME, resourceDummyAzure, result);
+        PrismObject<ShadowType> rappShadow = findShadowByName(
+                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, USER_RAPP_USERNAME, resourceDummyAzure, result);
 
         dummyResourceAzure.deleteAccountByName(USER_RAPP_USERNAME);
 
@@ -2776,7 +2779,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query =
-                ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS, prismContext)
+                ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS)
                         .and().item(
                                 ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
                                 ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING))

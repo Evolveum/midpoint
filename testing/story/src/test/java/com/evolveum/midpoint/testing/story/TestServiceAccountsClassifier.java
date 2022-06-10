@@ -214,7 +214,8 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
         assertServices(1);
 
-        PrismObject<ShadowType> shadow = findShadowByName(ShadowKindType.ACCOUNT, "default", ACCOUNT_DUMMY_WIKI_TEST_USERNAME, getDummyResourceObject(), result);
+        PrismObject<ShadowType> shadow = findShadowByName(
+                ShadowKindType.ACCOUNT, "default", ACCOUNT_DUMMY_WIKI_TEST_USERNAME, getDummyResourceObject(), result);
         assertShadow(shadow, "after ").assertSynchronizationSituation(SynchronizationSituationType.DISPUTED);
     }
 

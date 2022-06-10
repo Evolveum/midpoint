@@ -311,8 +311,8 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID,
-                new QName(MidPointConstants.NS_RI, OBJECT_CLASS_INETORGPERSON_NAME));
+        ResourceOperationCoordinates coords =
+                ResourceOperationCoordinates.ofObjectClass(RESOURCE_OPENDJ_OID, OBJECT_CLASS_INETORGPERSON_QNAME);
 
         try {
 
@@ -335,7 +335,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID, null, null, null);
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.ofResource(RESOURCE_OPENDJ_OID);
 
         try {
 
@@ -607,8 +607,8 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID,
-                new QName(MidPointConstants.NS_RI, OBJECT_CLASS_INETORGPERSON_NAME));
+        ResourceOperationCoordinates coords =
+                ResourceOperationCoordinates.ofObjectClass(RESOURCE_OPENDJ_OID, OBJECT_CLASS_INETORGPERSON_QNAME);
 
         try {
 

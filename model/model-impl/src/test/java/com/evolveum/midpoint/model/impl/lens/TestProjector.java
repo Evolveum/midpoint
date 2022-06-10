@@ -20,6 +20,9 @@ import java.util.Iterator;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -55,8 +57,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjector extends AbstractLensTest {
 
-    public static final File USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE = new File(TEST_DIR,
-            "user-barbossa-modify-assignment-replace-ac.xml");
+    private static final File USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE =
+            new File(TEST_DIR, "user-barbossa-modify-assignment-replace-ac.xml");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -125,7 +127,7 @@ public class TestProjector extends AbstractLensTest {
         assert withoutOldValues(focusSecondaryDelta).equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
 
         assert accountContext == context.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false))
+                new ProjectionContextFilter(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT))
                 : "wrong account context";
         assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
         assert accountDeltaPrimaryClone.equals(accountDeltaPrimary) : "account primary delta changed";
@@ -145,8 +147,8 @@ public class TestProjector extends AbstractLensTest {
 
         assert withoutOldValues(focusSecondaryDelta).equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
 
-        assert accountContext == context.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false))
+        assert accountContext == context.findProjectionContextByKeyExact(
+                ProjectionContextKey.classified(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, null))
                 : "wrong account context";
         assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
         displayDumpable("Orig account primary delta", accountDeltaPrimaryClone);
@@ -1160,7 +1162,8 @@ public class TestProjector extends AbstractLensTest {
         assertNull("Found jack's shadow!", jackAccount);
     }
 
-    private void assertOriginWithSideEffectChanges(ObjectDelta<UserType> delta, OriginType expectedOrigi) {
+    @SuppressWarnings("SameParameterValue")
+    private void assertOriginWithSideEffectChanges(ObjectDelta<UserType> delta, OriginType expectedOrigin) {
         // Activation is created in user policy. Therefore assert the origin of that as special case
         // and remove it from the delta so the next assert passes
         Iterator<? extends ItemDelta<?, ?>> iterator = delta.getModifications().iterator();
@@ -1176,6 +1179,6 @@ public class TestProjector extends AbstractLensTest {
                 iterator.remove();
             }
         }
-        PrismAsserts.assertOrigin(delta, expectedOrigi);
+        PrismAsserts.assertOrigin(delta, expectedOrigin);
     }
 }

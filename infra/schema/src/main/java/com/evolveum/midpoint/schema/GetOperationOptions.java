@@ -604,6 +604,10 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.allowNotFound;
     }
 
+    public static Collection<SelectorOptions<GetOperationOptions>> createAllowNotFoundCollection() {
+        return SelectorOptions.createCollection(createAllowNotFound());
+    }
+
     /**
      * Return read-only object. The returned object will be only read by the client. The client will not modify it.
      * Immutable object is returned if it is possible.

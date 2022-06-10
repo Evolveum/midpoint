@@ -104,4 +104,19 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     default ResourceAttributeContainer instantiate(ItemName elementName) {
         return delegate().instantiate(elementName);
     }
+
+    @Override
+    default @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return delegate().getTypeIdentification();
+    }
+
+    @Override
+    default @NotNull ResourceObjectTypeDefinition getTypeDefinition() {
+        return delegate().getTypeDefinition();
+    }
+
+    @Override
+    default boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return delegate().isDefaultFor(kind);
+    }
 }

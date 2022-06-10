@@ -6,13 +6,10 @@
  */
 package com.evolveum.midpoint.test.asserter.refinedschema;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.test.asserter.prism.PrismSchemaAsserter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -90,7 +87,8 @@ public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
     }
 
     public ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultDefinition(ShadowKindType kind) {
-        ResourceObjectTypeDefinition objectClassDefinition = getSchema().findDefaultOrAnyObjectTypeDefinition(kind);
+        ResourceObjectTypeDefinition objectClassDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(getSchema(), kind);
         ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter =
                 new ResourceObjectDefinitionAsserter<>(objectClassDefinition, this,
                         "default definition for kind " + kind + " in " + desc());
@@ -99,7 +97,8 @@ public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
     }
 
     public ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultAccountDefinition() {
-        ResourceObjectTypeDefinition objectClassDefinition = getSchema().findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition objectClassDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(getSchema(), ShadowKindType.ACCOUNT);
         ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ResourceObjectDefinitionAsserter<>(objectClassDefinition, this, "default account definition in " + desc());
         copySetupTo(asserter);
         return asserter;

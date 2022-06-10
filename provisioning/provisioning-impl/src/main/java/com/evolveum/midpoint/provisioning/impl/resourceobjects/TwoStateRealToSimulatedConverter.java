@@ -195,7 +195,7 @@ class TwoStateRealToSimulatedConverter<N> {
                     + "  attribute for simulated " + description + " capability" + simulatingAttributeName
                     + " in not present in the schema for objectclass " + ctx + ". Processing of "
                     + description + " for " + ObjectTypeUtil.toShortString(shadow) + " was skipped");
-            shadow.setFetchResult(result.createOperationResultType());
+            shadow.setFetchResult(result.createBeanReduced());
             return null;
         }
 

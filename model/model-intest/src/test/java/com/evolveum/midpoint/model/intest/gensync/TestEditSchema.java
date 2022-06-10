@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -1059,10 +1063,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false);
+        ResourceShadowCoordinates coordinates =
+                new ResourceShadowCoordinates(RESOURCE_DUMMY_OID, ACCOUNT, INTENT_DEFAULT);
 
         when();
-        PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
+        PrismObjectDefinition<ShadowType> editDef =
+                modelInteractionService.getEditShadowDefinition(coordinates, AuthorizationPhaseType.REQUEST, task, result);
 
         then();
         assertSuccess(result);
@@ -1094,11 +1100,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, dummyResourceCtl.getAccountObjectClassQName());
-        displayDumpable("Discr", discr);
+        ResourceShadowCoordinates coordinates =
+                new ResourceShadowCoordinates(RESOURCE_DUMMY_OID, null, null, dummyResourceCtl.getAccountObjectClassQName());
+        displayDumpable("Discr", coordinates);
 
         when();
-        PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
+        PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(coordinates, AuthorizationPhaseType.REQUEST, task, result);
 
         then();
         assertSuccess(result);
@@ -1122,11 +1129,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(null, null);
-        displayDumpable("Discr", discr);
+        ResourceShadowCoordinates coordinates = new ResourceShadowCoordinates(null, null, null, null);
+        displayDumpable("Coordinates", coordinates);
 
         when();
-        PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
+        PrismObjectDefinition<ShadowType> editDef =
+                modelInteractionService.getEditShadowDefinition(coordinates, AuthorizationPhaseType.REQUEST, task, result);
 
         then();
         assertSuccess(result);
@@ -1382,7 +1390,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        PrismObject<TaskType> reconTask = new TaskType(prismContext)
+        PrismObject<TaskType> reconTask = new TaskType()
                 .name("Reconciliation")
                 .archetypeRef(ARCHETYPE_TASK_RECONCILIATION_OID, ArchetypeType.COMPLEX_TYPE)
                 .beginAssignment()

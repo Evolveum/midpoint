@@ -1171,7 +1171,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         addObject(userLechuck);
         String userLechuckOid = userLechuck.getOid();
 
-        PrismObject<ShadowType> accountCharles = createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_SPARROW_NAME, true);
+        PrismObject<ShadowType> accountCharles =
+                createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_SPARROW_NAME, true);
         addObject(accountCharles);
 
         // preconditions

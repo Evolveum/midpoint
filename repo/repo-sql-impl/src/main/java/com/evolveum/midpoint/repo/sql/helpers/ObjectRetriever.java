@@ -390,7 +390,7 @@ public class ObjectRetriever {
                         prismObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
                     }
                     result.recordFatalError("Couldn't retrieve " + type + " " + oid + ": " + t.getMessage(), t);
-                    prismObject.asObjectable().setFetchResult(result.createOperationResultType());
+                    prismObject.asObjectable().setFetchResult(result.createBeanReduced());
                 }
                 rv.add(prismObject);
             }

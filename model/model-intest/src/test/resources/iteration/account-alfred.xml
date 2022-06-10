@@ -8,14 +8,11 @@
   -->
 <shadow
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <resourceRef oid="10000000-0000-0000-0000-0000000dd204"/>           <!-- fuchsia -->
+    <resourceRef oid="10000000-0000-0000-0000-0000000dd204"/> <!-- fuchsia -->
     <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <intent>default</intent>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
     </activation>

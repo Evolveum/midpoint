@@ -7,22 +7,19 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
-import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
+import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -38,11 +35,8 @@ public abstract class PartialReconciliationActivityRun
                 ReconciliationActivityHandler,
                 ReconciliationWorkStateType> {
 
-    /** Object class to reconcile (resource + OC + kind + intent). */
-    ResourceObjectClass resourceObjectClass;
-
-    /** Post-search filter (currently OC, kind, intent). */
-    SynchronizationObjectsFilterImpl objectsFilter;
+    /** Objects to reconcile (resource + OC + kind + intent). */
+    ProcessingScope processingScope;
 
     PartialReconciliationActivityRun(
             @NotNull ActivityRunInstantiationContext<ReconciliationWorkDefinition, ReconciliationActivityHandler> activityRun,
@@ -54,19 +48,18 @@ public abstract class PartialReconciliationActivityRun
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        resourceObjectClass = getModelBeans().syncTaskHelper
-                .getResourceObjectClassCheckingMaintenance(resourceObjectSet, getRunningTask(), result);
-        objectsFilter = resourceObjectClass.getObjectFilter();
+        processingScope = getModelBeans().syncTaskHelper
+                .getProcessingScopeCheckingMaintenance(resourceObjectSet, getRunningTask(), result);
 
-        setContextDescription(getShortName() + " on " + resourceObjectClass.getContextDescription()); // TODO?
+        setContextDescription(getShortName() + " on " + processingScope.getContextDescription()); // TODO?
     }
 
     @Override
     protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-        return resourceObjectClass.getResourceRef();
+        return processingScope.getResourceRef();
     }
 
-    protected @NotNull ResourceObjectSetType getResourceObjectSet() {
+    private @NotNull ResourceObjectSetType getResourceObjectSet() {
         return getWorkDefinition().getResourceObjectSetSpecification();
     }
 

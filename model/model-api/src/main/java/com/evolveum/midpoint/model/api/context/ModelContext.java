@@ -15,11 +15,9 @@ import java.util.stream.Stream;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,7 +46,9 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     @NotNull
     Collection<? extends ModelProjectionContext> getProjectionContexts();
 
-    ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
+    ModelProjectionContext findProjectionContextByKeyExact(@NotNull ProjectionContextKey key);
+
+    @NotNull Collection<? extends ModelProjectionContext> findProjectionContexts(@NotNull ProjectionContextFilter filter);
 
     ModelExecuteOptions getOptions();
 
@@ -105,7 +105,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     @NotNull
     ObjectTreeDeltas<F> getTreeDeltas();
 
-    Collection<ResourceShadowDiscriminator> getHistoricResourceObjects();
+    Collection<ProjectionContextKey> getHistoricResourceObjects();
 
     Long getSequenceCounter(String sequenceOid);
 

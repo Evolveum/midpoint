@@ -2852,9 +2852,11 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertCredentialsPolicy(user);
     }
 
-    private void assertCredentialsPolicy(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void assertCredentialsPolicy(PrismObject<UserType> user)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = createOperationResult("assertCredentialsPolicy");
-        CredentialsPolicyType credentialsPolicy = modelInteractionService.getCredentialsPolicy(user, null, result);
+        CredentialsPolicyType credentialsPolicy = modelInteractionService.getCredentialsPolicy(user, getTestTask(), result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertNotNull("No credentials policy for " + user, credentialsPolicy);

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.tracing;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.PrismObjectImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -41,7 +44,7 @@ public class TracingOutputCreator {
     @Autowired private TaskManager taskManager;
 
     TracingOutputType createTracingOutput(Task task, OperationResult result, TracingProfileType tracingProfile) {
-        TracingOutputType output = new TracingOutputType(prismContext);
+        TracingOutputType output = new TracingOutputType();
         output.beginMetadata()
                 .createTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
                 .profile(tracingProfile);
@@ -69,7 +72,7 @@ public class TracingOutputCreator {
 
     @NotNull
     private TracingEnvironmentType createTracingEnvironmentDescription(Task task, TracingProfileType tracingProfile) {
-        TracingEnvironmentType environment = new TracingEnvironmentType(prismContext);
+        TracingEnvironmentType environment = new TracingEnvironmentType();
         if (!Boolean.TRUE.equals(tracingProfile.isHideDeploymentInformation())) {
             SystemConfigurationType systemConfiguration = tracer.getSystemConfiguration();
             DeploymentInformationType deployment = systemConfiguration != null ? systemConfiguration.getDeploymentInformation() : null;
@@ -201,12 +204,31 @@ public class TracingOutputCreator {
         private PrismObject<? extends ObjectType> stripFetchResult(PrismObject<? extends ObjectType> object) {
             PrismObject<? extends ObjectType> objectToStore;
             if (object.asObjectable().getFetchResult() != null) {
-                objectToStore = object.clone();
-                objectToStore.asObjectable().setFetchResult(null);
+                objectToStore = cloneExceptForFetchResult(object);
             } else {
                 objectToStore = object;
             }
             return objectToStore;
+        }
+
+        <T extends ObjectType> PrismObject<T> cloneExceptForFetchResult(PrismObject<T> source) {
+            PrismObject<T> clone = new PrismObjectImpl<>(
+                    source.getElementName(),
+                    source.getDefinition(),
+                    PrismContext.get());
+            for (Item<?, ?> sourceItem : source.getValue().getItems()) {
+                if (ObjectType.F_FETCH_RESULT.equals(sourceItem.getElementName())) {
+                    continue;
+                }
+                try {
+                    //noinspection unchecked
+                    clone.getValue().add(
+                            sourceItem.clone());
+                } catch (SchemaException e) {
+                    throw SystemException.unexpected(e, "when cloning");
+                }
+            }
+            return clone;
         }
 
         private void logDiagnosticInformation() {
@@ -216,7 +238,7 @@ public class TracingOutputCreator {
     }
 
     private TraceDictionaryType extractDictionary(List<TraceDictionaryType> embeddedDictionaries, OperationResultType resultBean) {
-        TraceDictionaryType dictionary = new TraceDictionaryType(prismContext);
+        TraceDictionaryType dictionary = new TraceDictionaryType();
 
         embeddedDictionaries.forEach(embeddedDictionary ->
                 dictionary.getEntry().addAll(CloneUtil.cloneCollectionMembers(embeddedDictionary.getEntry())));

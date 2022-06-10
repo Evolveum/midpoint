@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ChannelUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -63,14 +64,17 @@ public class ProjectionValueMetadataCreator {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private SecurityContextManager securityContextManager;
 
-    public <V extends PrismValue, D extends ItemDefinition>
+    public <V extends PrismValue, D extends ItemDefinition<?>>
     void setValueMetadata(@NotNull Item<V, D> resourceObjectItem, @NotNull LensProjectionContext projectionCtx,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        apply(resourceObjectItem.getValues(), () -> createMetadata(projectionCtx, resourceObjectItem, env, result), resourceObjectItem::getPath);
+        apply(
+                resourceObjectItem.getValues(),
+                () -> createMetadata(projectionCtx, resourceObjectItem, env, result),
+                resourceObjectItem::getPath);
     }
 
-    public <D extends ItemDefinition, V extends PrismValue>
+    public <D extends ItemDefinition<?>, V extends PrismValue>
     void setValueMetadata(@NotNull ItemDelta<V, D> itemDelta, @NotNull LensProjectionContext projectionCtx,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
@@ -147,7 +151,7 @@ public class ProjectionValueMetadataCreator {
         if (!BooleanUtils.isFalse(useBuiltinPopulators)) {
             boolean useAlways = BooleanUtils.isTrue(useBuiltinPopulators);
             if (valueMetadataBean.getProvenance() == null) {
-                valueMetadataBean.setProvenance(new ProvenanceMetadataType(prismContext));
+                valueMetadataBean.setProvenance(new ProvenanceMetadataType());
             }
             ProvenanceAcquisitionType acquisition;
             if (valueMetadataBean.getProvenance().getAcquisition().size() > 1) {
@@ -155,7 +159,7 @@ public class ProjectionValueMetadataCreator {
             } else if (valueMetadataBean.getProvenance().getAcquisition().size() == 1) {
                 acquisition = valueMetadataBean.getProvenance().getAcquisition().get(0);
             } else {
-                acquisition = new ProvenanceAcquisitionType(prismContext);
+                acquisition = new ProvenanceAcquisitionType();
                 valueMetadataBean.getProvenance().getAcquisition().add(acquisition);
             }
             addBuiltinAcquisitionValue(acquisition, useAlways,
@@ -198,7 +202,7 @@ public class ProjectionValueMetadataCreator {
     }
 
     private boolean hasAcquisitionValue(ProvenanceAcquisitionType acquisition, ItemName itemName) {
-        Item item = acquisition.asPrismContainerValue().findItem(itemName);
+        Item<?, ?> item = acquisition.asPrismContainerValue().findItem(itemName);
         return item != null && !item.isEmpty();
     }
 
@@ -216,7 +220,7 @@ public class ProjectionValueMetadataCreator {
             LensProjectionContext projectionCtx, MappingEvaluationEnvironment env,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        ValueMetadataType valueMetadataBean = new ValueMetadataType(prismContext);
+        ValueMetadataType valueMetadataBean = new ValueMetadataType();
         if (provenanceFeed == null || provenanceFeed.getAcquisitionItemPopulator().isEmpty() && provenanceFeed.getMetadataItemPopulator().isEmpty()) {
             return valueMetadataBean;
         }
@@ -233,7 +237,7 @@ public class ProjectionValueMetadataCreator {
         context.setLocalContextDescription(localContextDescription);
 
         if (!provenanceFeed.getAcquisitionItemPopulator().isEmpty()) {
-            ProvenanceAcquisitionType acquisition = new ProvenanceAcquisitionType(prismContext);
+            ProvenanceAcquisitionType acquisition = new ProvenanceAcquisitionType();
             PrismContainerDefinition<ProvenanceAcquisitionType> acquisitionContainerDef =
                     prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ProvenanceAcquisitionType.class);
             for (PopulateItemType acquisitionItemPopulator : provenanceFeed.getAcquisitionItemPopulator()) {
@@ -263,8 +267,9 @@ public class ProjectionValueMetadataCreator {
         return valueMetadataBean;
     }
 
-    private ProvenanceFeedDefinitionType getProvenanceFeed(LensProjectionContext projectionCtx) {
-        ResourceObjectTypeDefinitionType def = projectionCtx.getResourceObjectTypeDefinitionType();
-        return def != null ? def.getProvenance() : null;
+    private ProvenanceFeedDefinitionType getProvenanceFeed(LensProjectionContext projectionCtx)
+            throws SchemaException, ConfigurationException {
+        ResourceObjectDefinition def = projectionCtx.getStructuralDefinitionIfNotBroken();
+        return def != null ? def.getDefinitionBean().getProvenance() : null;
     }
 }

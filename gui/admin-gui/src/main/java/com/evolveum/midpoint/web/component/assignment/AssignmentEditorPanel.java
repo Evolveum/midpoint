@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,9 +47,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
@@ -716,8 +715,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
             PrismContext prismContext = getPageBase().getPrismContext();
             ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource, LayerType.PRESENTATION);
-            ResourceObjectDefinition objectClassDefinition = refinedSchema
-                    .findObjectDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+            ResourceObjectDefinition objectClassDefinition = refinedSchema.findDefinitionForConstruction(construction);
 
             if (objectClassDefinition == null) {
                 return attributes;

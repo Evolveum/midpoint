@@ -16,7 +16,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public interface ComplexConstructionConsumer<K, EC extends EvaluatedAbstractConstruction> {
+public interface ComplexConstructionConsumer<K, EC extends EvaluatedAbstractConstruction<?>> {
 
     boolean before(K key);
 
