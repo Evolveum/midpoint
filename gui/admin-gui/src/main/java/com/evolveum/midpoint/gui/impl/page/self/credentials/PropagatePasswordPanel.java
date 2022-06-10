@@ -401,8 +401,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                                     && progressActivity.getResourceOperationResultList() != null
                                     && !progressActivity.getResourceOperationResultList().isEmpty()) {
                                 String resourceOid = rowModel.getObject().getResourceOid();
-                                if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getResourceShadowDiscriminator() != null
-                                        && resourceOid.equals(progressActivity.getResourceShadowDiscriminator().getResourceOid())) {
+                                if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getProjectionContextKey() != null
+                                        && resourceOid.equals(progressActivity.getProjectionContextKey().getResourceOid())) {
                                     return progressActivity.getOperationResult();
                                 }
 
