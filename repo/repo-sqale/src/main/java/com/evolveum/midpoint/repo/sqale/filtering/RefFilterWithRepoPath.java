@@ -7,18 +7,12 @@
 package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.ExpressionWrapper;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -28,23 +22,21 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- *
  * Special private implementation of RefFilter intended to reuse all already existing
  * logic in {@link RefItemFilterProcessor} for use of {@link ReferencedByFilterProcessor}.
  *
  * This implementation only supports relation, item path and instead of value, it carries
  * QueryDSL coordinates of referenced object.
- *
  */
 class RefFilterWithRepoPath implements RefFilter {
 
     private static final long serialVersionUID = 1L;
-    private ItemPath path;
-    private QName relation;
-    private UuidPath oidPath;
+    private final ItemPath path;
+    private final QName relation;
+    private final UuidPath oidPath;
 
-    public RefFilterWithRepoPath(ItemPath path2, QName relation, UuidPath oid) {
-        this.path = path2;
+    public RefFilterWithRepoPath(ItemPath path, QName relation, UuidPath oid) {
+        this.path = path;
         this.relation = relation;
         this.oidPath = oid;
     }
@@ -64,89 +56,77 @@ class RefFilterWithRepoPath implements RefFilter {
 
     @Override
     public @NotNull ItemPath getParentPath() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull ItemName getElementName() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @Nullable PrismReferenceDefinition getDefinition() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setDefinition(@Nullable PrismReferenceDefinition definition) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @Nullable QName getMatchingRule() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setMatchingRule(@Nullable QName matchingRule) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @Nullable List<PrismReferenceValue> getValues() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @Nullable PrismReferenceValue getSingleValue() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setValue(PrismReferenceValue value) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @Nullable ExpressionWrapper getExpression() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setExpression(@Nullable ExpressionWrapper expression) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @Nullable ItemPath getRightHandSidePath() {
-        // TODO Auto-generated method stub
-        return null;
+        return null; // this must be implemented, null is OK
     }
 
     @Override
     public void setRightHandSidePath(@Nullable ItemPath rightHandSidePath) {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public @Nullable ItemDefinition getRightHandSideDefinition() {
-        // TODO Auto-generated method stub
-        return null;
+    public @Nullable ItemDefinition<?> getRightHandSideDefinition() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setRightHandSideDefinition(@Nullable ItemDefinition rightHandSideDefinition) {
-        // TODO Auto-generated method stub
-
+    public void setRightHandSideDefinition(@Nullable ItemDefinition<?> rightHandSideDefinition) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -156,81 +136,76 @@ class RefFilterWithRepoPath implements RefFilter {
 
     @Override
     public boolean isRaw() {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        return false;
+    public boolean match(PrismContainerValue<?> cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void checkConsistence(boolean requireDefinitions) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void accept(Visitor visitor) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void revive(PrismContext prismContext) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String debugDump(int indent) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isImmutable() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void freeze() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public PrismContext getPrismContext() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public RefFilter clone() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setOidNullAsAny(boolean oidNullAsAny) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setTargetTypeNullAsAny(boolean targetTypeNullAsAny) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isOidNullAsAny() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isTargetTypeNullAsAny() {
-        return true;
+        throw new UnsupportedOperationException();
     }
-
-
-
-
 }
