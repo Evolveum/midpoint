@@ -5,10 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
+package com.evolveum.midpoint.gui.impl.component.tile;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -21,23 +22,34 @@ import java.io.Serializable;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
+public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogTile<T>> {
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_LOGO = "logo";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_ADD = "add";
+    private static final String ID_DETAILS = "details";
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
 
-    public TilePanel(String id, IModel<Tile<T>> model) {
+    public CatalogTilePanel(String id, IModel<CatalogTile<T>> model) {
         super(id, model);
 
         initLayout();
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "tile-panel d-flex flex-column align-items-center bg-white rounded p-3"));
+        add(AttributeAppender.append("class", "catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
+
+        WebMarkupContainer logo = new WebMarkupContainer(ID_LOGO);
+        logo.add(AttributeAppender.append("class", () -> getModelObject().getLogo()));
+        add(logo);
+
+        Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
+        add(description);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
@@ -52,9 +64,35 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {
-                TilePanel.this.onClick(target);
+                CatalogTilePanel.this.onClick(target);
             }
         });
+
+        AjaxLink add = new AjaxLink<>(ID_ADD) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                CatalogTilePanel.this.onAdd(target);
+            }
+        };
+        add(add);
+
+        AjaxLink details = new AjaxLink<>(ID_DETAILS) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                CatalogTilePanel.this.onDetails(target);
+            }
+        };
+        add(details);
+    }
+
+    protected void onAdd(AjaxRequestTarget target) {
+
+    }
+
+    protected void onDetails(AjaxRequestTarget target) {
+
     }
 
     protected void onClick(AjaxRequestTarget target) {

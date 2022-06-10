@@ -5,6 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+$list-group-item-padding-sm-y: 0.5rem;
+$list-group-item-padding-sm-x: 1rem;
+
 @mixin list-reset() {
   list-style: none;
   padding-left: 0;
@@ -33,7 +36,7 @@
   color: $list-group-color;
   background-color: $list-group-bg;
 
-  & > a {
+  & > a.item-link {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -76,6 +79,11 @@
       flex-grow: 1;
     }
   }
+
+  & > .form-control {
+    margin: 1rem;
+    width: auto;
+  }
 }
 
 .list-group-menu {
@@ -90,7 +98,7 @@
   &:first-child {
     @include border-top-radius(inherit);
 
-    & > a {
+    & > a.item-link {
       @include border-top-radius(inherit);
     }
   }
@@ -98,7 +106,7 @@
   &:last-child {
     @include border-bottom-radius(inherit);
 
-    & > a:last-child {
+    & > a.item-link:last-child {
       @include border-bottom-radius(inherit);
     }
   }
@@ -120,15 +128,36 @@
 .list-group-submenu-item {
   @include list-group-menu-item;
 
+  // 3rd level padding
   & .list-group-submenu > .list-group-submenu-item > a {
     padding-left: 3.25rem;
   }
 
-  & > a {
+  // 2nd level padding
+  & > a.item-link {
     padding-left: 2rem;
   }
 }
 
-@include dark-mode () {
+a.item-link > .form-control {
+  margin: 1rem;
+}
+
+.list-group-menu-sm {
+
+  & a.item-link {
+    padding: $list-group-item-padding-sm-y $list-group-item-padding-sm-x;
+  }
+
+  & .list-group-menu-item,
+  & .list-group-submenu-item {
+    & > .form-control {
+      margin: 0.5rem;
+      width: auto;
+    }
+  }
+}
+
+@include dark-mode() {
   // todo dark mode
 }
