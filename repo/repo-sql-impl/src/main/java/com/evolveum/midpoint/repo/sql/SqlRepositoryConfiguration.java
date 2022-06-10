@@ -210,7 +210,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     public static final String PROPERTY_INCOMPATIBLE_SCHEMA_ACTION = "incompatibleSchemaAction";
     public static final String PROPERTY_SCHEMA_VERSION_IF_MISSING = "schemaVersionIfMissing";
     public static final String PROPERTY_SCHEMA_VERSION_OVERRIDE = "schemaVersionOverride";
-    public static final String PROPERTY_SCHEMA_VARIANT = "schemaVariant";
 
     public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION = "enableNoFetchExtensionValuesInsertion";
     public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION = "enableNoFetchExtensionValuesDeletion";
@@ -288,7 +287,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     @NotNull private final IncompatibleSchemaAction incompatibleSchemaAction;
     private final String schemaVersionIfMissing;
     private final String schemaVersionOverride;
-    private final String schemaVariant;
 
     private boolean enableNoFetchExtensionValuesInsertion;
     private boolean enableNoFetchExtensionValuesDeletion;
@@ -422,7 +420,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
         schemaVersionIfMissing = configuration.getString(PROPERTY_SCHEMA_VERSION_IF_MISSING);
         schemaVersionOverride = configuration.getString(PROPERTY_SCHEMA_VERSION_OVERRIDE);
-        schemaVariant = configuration.getString(PROPERTY_SCHEMA_VARIANT);
 
         initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
 
@@ -881,11 +878,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     public String getSchemaVersionOverride() {
         return schemaVersionOverride;
-    }
-
-    // TODO: Previously used for MySQL/MariaDB, do we still need it?
-    public String getSchemaVariant() {
-        return schemaVariant;
     }
 
     @Override

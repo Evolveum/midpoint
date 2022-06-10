@@ -11,6 +11,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -76,7 +79,6 @@ import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.PageSelf;
@@ -343,8 +345,6 @@ public abstract class PageBase extends PageAdminLTE {
 
             @Override
             protected void populateItem(ListItem<Breadcrumb> item) {
-//                final Breadcrumb dto = item.getModelObject();
-
                 AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
                     private static final long serialVersionUID = 1L;
 
@@ -354,38 +354,17 @@ public abstract class PageBase extends PageAdminLTE {
                     }
                 };
                 item.add(bcLink);
-                bcLink.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isEnabled() {
-                        return item.getModelObject().isUseLink();
-                    }
-                });
+                bcLink.add(new EnableBehaviour(() -> item.getModelObject().isUseLink()));
 
                 WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
-                bcIcon.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null;
-                    }
-                });
+                bcIcon.add(new VisibleBehaviour(() -> item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null));
                 bcIcon.add(AttributeModifier.replace("class", item.getModelObject().getIcon()));
                 bcLink.add(bcIcon);
 
                 Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
                 bcLink.add(bcName);
 
-                item.add(new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return item.getModelObject().isVisible();
-                    }
-                });
+                item.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
             }
         };
         breadcrumbs.add(new VisibleBehaviour(() -> !isErrorPage()));
@@ -425,14 +404,19 @@ public abstract class PageBase extends PageAdminLTE {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                // todo implement
+                PageParameters params = new PageParameters();
+                params.set(PageRequestAccess.PARAM_STEP, ShoppingCartPanel.STEP_ID);
+
+                setResponsePage(new PageRequestAccess(params));
             }
         };
-        cartLink.add(new VisibleBehaviour(() -> getPage() instanceof PageRequestAccess));
+        cartLink.add(new VisibleBehaviour(() -> getPage() instanceof PageRequestAccess || !getSessionStorage().getRequestAccess().getShoppingCartAssignments().isEmpty()));
         mainHeader.add(cartLink);
 
-        // todo add count model
-        Label cartCount = new Label(ID_CART_COUNT);
+        Label cartCount = new Label(ID_CART_COUNT, () -> {
+            List list = getSessionStorage().getRequestAccess().getShoppingCartAssignments();
+            return list.isEmpty() ? null : list.size();
+        } );
         cartLink.add(cartCount);
     }
 
@@ -534,28 +518,14 @@ public abstract class PageBase extends PageAdminLTE {
         getMainPopup().close(target);
     }
 
-    private VisibleEnableBehaviour getShoppingCartVisibleBehavior() {
-        return new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isErrorPage() && isSideMenuVisible() &&
+    private VisibleBehaviour getShoppingCartVisibleBehavior() {
+        return new VisibleBehaviour(() -> !isErrorPage() && isSideMenuVisible() &&
                         (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
-                                && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0);
-            }
-        };
+                                && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0));
     }
 
-    private VisibleEnableBehaviour createUserStatusBehaviour() {
-        return new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isErrorPage() && isSideMenuVisible();
-            }
-        };
+    private VisibleBehaviour createUserStatusBehaviour() {
+        return new VisibleBehaviour(() -> !isErrorPage() && isSideMenuVisible());
     }
 
     protected boolean isSideMenuVisible() {

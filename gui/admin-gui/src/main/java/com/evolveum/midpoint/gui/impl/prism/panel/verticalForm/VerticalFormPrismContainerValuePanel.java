@@ -82,48 +82,48 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable> exten
         }
     }
 
-    @Override
-    protected void createValuePanel(MidpointForm form) {
-
-        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
-        valueContainer.setOutputMarkupId(true);
-        form.add(valueContainer);
-
-
-        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
-        feedbackContainer.setOutputMarkupId(true);
-        feedbackContainer.setOutputMarkupPlaceholderTag(true);
-        propertiesContainer.add(feedbackContainer);
-
-        FeedbackAlerts feedbackList = new FeedbackLabels(ID_FEEDBACK);
-        feedbackList.setOutputMarkupId(true);
-        feedbackList.setOutputMarkupPlaceholderTag(true);
-        propertiesContainer.add(feedbackList);
-
-        ListView<ItemWrapper<?, ?>> properties = new ListView<>(ID_PROPERTIES, propertiesModel) {
-            @Override
-            protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
-                ItemPanel propertyPanel;
-                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                        .visibilityHandler(w -> checkVisibility(item.getModelObject()))
-                        .mandatoryHandler(W -> checkMandatory(item.getModelObject()))
-                        .build();
-                if (item.getModelObject() instanceof PrismPropertyWrapper) {
-                    propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
-                } else {
-                    propertyPanel = new PrismReferencePanel(ID_PROPERTY, item.getModel(), settings);
-                }
-
-                propertyPanel.setOutputMarkupId(true);
-                propertyPanel.add(
-                        new VisibleBehaviour(() -> item.getModelObject().isVisible(
-                                VerticalFormPanel.this.getModelObject(),
-                                w -> checkVisibility(item.getModelObject()))));
-                item.add(propertyPanel);
-            }
-        };
-        propertiesContainer.add(properties);
-    }
+//    @Override
+//    protected void createValuePanel(MidpointForm form) {
+//
+//        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
+//        valueContainer.setOutputMarkupId(true);
+//        form.add(valueContainer);
+//
+//
+//        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+//        feedbackContainer.setOutputMarkupId(true);
+//        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+//        propertiesContainer.add(feedbackContainer);
+//
+//        FeedbackAlerts feedbackList = new FeedbackLabels(ID_FEEDBACK);
+//        feedbackList.setOutputMarkupId(true);
+//        feedbackList.setOutputMarkupPlaceholderTag(true);
+//        propertiesContainer.add(feedbackList);
+//
+//        ListView<ItemWrapper<?, ?>> properties = new ListView<>(ID_PROPERTIES, propertiesModel) {
+//            @Override
+//            protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
+//                ItemPanel propertyPanel;
+//                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+//                        .visibilityHandler(w -> checkVisibility(item.getModelObject()))
+//                        .mandatoryHandler(W -> checkMandatory(item.getModelObject()))
+//                        .build();
+//                if (item.getModelObject() instanceof PrismPropertyWrapper) {
+//                    propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
+//                } else {
+//                    propertyPanel = new PrismReferencePanel(ID_PROPERTY, item.getModel(), settings);
+//                }
+//
+//                propertyPanel.setOutputMarkupId(true);
+//                propertyPanel.add(
+//                        new VisibleBehaviour(() -> item.getModelObject().isVisible(
+//                                VerticalFormPanel.this.getModelObject(),
+//                                w -> checkVisibility(item.getModelObject()))));
+//                item.add(propertyPanel);
+//            }
+//        };
+//        propertiesContainer.add(properties);
+//    }
 
     @Override
     protected WebMarkupContainer createHeaderPanel() {

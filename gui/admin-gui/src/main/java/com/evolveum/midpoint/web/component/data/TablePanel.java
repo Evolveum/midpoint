@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 /**
@@ -82,13 +81,13 @@ public class TablePanel<T> extends Panel implements Table {
             }
 
         };
-        addVisibleBehaviour(count, showCount);
+        count.add(new VisibleBehaviour(() -> showCount.getObject()));
         table.addBottomToolbar(count);
 
         add(table);
 
         NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPagingModel(provider));
-        addVisibleBehaviour(nb2, showPaging);
+        nb2.add(new VisibleBehaviour(() -> showPaging.getObject()));
         add(nb2);
     }
 
@@ -102,24 +101,9 @@ public class TablePanel<T> extends Panel implements Table {
         return true;
     }
 
-    private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {
-        comp.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return model.getObject();
-            }
-        });
-    }
-
     private IModel<Boolean> showPagedPagingModel(ISortableDataProvider provider) {
         if (!(provider instanceof BaseSortableDataProvider)) {
-            return new IModel<Boolean>() {
-                @Override
-                public Boolean getObject() {
-                    return true;
-                }
-            };
+            return () -> true;
         }
 
         BaseSortableDataProvider<?> baseProvider = (BaseSortableDataProvider<?>) provider;

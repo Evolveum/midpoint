@@ -12,7 +12,7 @@ import java.io.Serializable;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CatalogTile extends Tile {
+public class CatalogTile<T extends Serializable> extends Tile<T> {
 
     private String logo;
 

@@ -65,13 +65,11 @@
 </wicket:fragment>
 
 <wicket:fragment wicket:id="tableButtonColumn">
-    <a class="btn btn-link" wicket:id="edit">
-        <i class="fas fa-pen-to-square mr-1"></i>
-        <wicket:message key="ShoppingCartPanel.edit"/>
+    <a class="btn btn-xs btn-outline-primary px-2" wicket:id="edit" wicket:message="title:ShoppingCartPanel.edit">
+        <i class="fas fa-pen-to-square"></i>
     </a>
-    <a class="btn btn-link text-danger" wicket:id="remove">
-        <i class="fas fa-trash-can mr-1"></i>
-        <wicket:message key="ShoppingCartPanel.remove"/>
+    <a class="btn btn-xs btn-outline-danger px-2" wicket:id="remove" wicket:message="title:ShoppingCartPanel.remove">
+        <i class="fas fa-trash-can"></i>
     </a>
 </wicket:fragment>
 </html>

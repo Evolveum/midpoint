@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
 public class OrCondition extends JunctionCondition {
 
-    public OrCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {
-        super(rootHibernateQuery, conditions);
+    public OrCondition(HibernateQuery hibernateQuery, Condition... conditions) {
+        super(hibernateQuery, conditions);
     }
 
     @Override

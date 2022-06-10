@@ -82,7 +82,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String accCertCampaign1Oid;
     private String connector1Oid;
     private String connector2Oid;
-    private String roleOid; // role for assignment-vs-inducement tests
+    private String roleAvIOid; // role for assignment-vs-inducement tests
 
     // other info used in queries
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
@@ -96,13 +96,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
 
-        roleOid = repositoryService.addObject(
+        roleAvIOid = repositoryService.addObject(
                 new RoleType()
                         .name("role-ass-vs-ind")
                         .assignment(new AssignmentType()
                                 .lifecycleState("role-ass-lc"))
                         .inducement(new AssignmentType()
                                 .lifecycleState("role-ind-lc"))
+                        .asPrismObject(), null, result);
+
+        String roleOtherOid = repositoryService.addObject(
+                new RoleType().name("role-other")
                         .asPrismObject(), null, result);
 
         // org structure
@@ -211,6 +215,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType()
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
+                        // similar target ref like for user3, but to different role
+                        .targetRef(roleOtherOid, RoleType.COMPLEX_TYPE, relation2)
                         .activation(new ActivationType()
                                 .validFrom("2021-03-01T00:00:00Z")
                                 .validTo("2022-07-04T00:00:00Z"))
@@ -317,7 +323,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass2")
-                        .targetRef(roleOid, RoleType.COMPLEX_TYPE, relation2)
+                        .targetRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
                         .metadata(new MetadataType()
                                 .creatorRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
@@ -667,7 +673,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test160SearchRoleByAssignment() throws SchemaException {
         searchObjectTest("having assignment with specified lifecycle", RoleType.class,
                 f -> f.item(RoleType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"),
-                roleOid);
+                roleAvIOid);
     }
 
     @Test
@@ -682,7 +688,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test162SearchRoleByInducementWithRightName() throws SchemaException {
         searchObjectTest("having inducement with specified lifecycle", RoleType.class,
                 f -> f.item(RoleType.F_INDUCEMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ind-lc"),
-                roleOid);
+                roleAvIOid);
     }
 
     @Test
@@ -818,7 +824,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test201QueryForRootOrganizationsWithWrongType() throws SchemaException {
-        // Currently this is "undefined", this does not work in old repo, in new repo it
+        // Currently, this is "undefined", this does not work in old repo, in new repo it
         // checks parent-org refs (not closure). Prism does not complain either.
         // First we should fix it on Prism level first, then add type check to OrgFilterProcessor.
         searchObjectTest("searching user with is-root filter", UserType.class,
@@ -1917,7 +1923,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test602SearchContainerWithExistsParent() throws SchemaException {
+    public void test603SearchContainerWithExistsParent() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
                 f -> f.exists(T_PARENT)
@@ -1934,7 +1940,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test603SearchAccessCertificationCaseContainer() throws SchemaException {
+    public void test604SearchAccessCertificationCaseContainer() throws SchemaException {
         SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
                 "by stage number", AccessCertificationCaseType.class,
                 f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
@@ -1989,7 +1995,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test615SearchInducements() throws SchemaException {
+    public void test616SearchInducements() throws SchemaException {
         queryRecorder.clearBufferAndStartRecording();
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "search inducements", AssignmentType.class,
@@ -2002,7 +2008,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test616OrderByMultiValueReferenceTargetPropertyIsNotPossible() {
+    public void test618OrderByMultiValueReferenceTargetPropertyIsNotPossible() {
         assertThatThrownBy(() -> searchContainerTest(
                 "having any approver (with order)", AssignmentType.class,
                 f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
@@ -2392,7 +2398,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test960SearchGetNames() throws SchemaException {
+    public void test961SearchGetNames() throws SchemaException {
         var options = SchemaService.get().getOperationOptionsBuilder().resolveNames().build();
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
         SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
@@ -2458,7 +2464,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980findOrgByUser() throws Exception {
+    public void test980FindOrgByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
             searchObjectTest("Org by User", OrgType.class,
@@ -2472,13 +2478,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980findRoleByUser() throws Exception {
+    public void test981FindRoleByUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
             searchObjectTest("Org by User", RoleType.class,
                     f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                             .id(user3Oid),
-                    roleOid);
+                    roleAvIOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2486,14 +2492,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980findRoleByAssignmentOfUser() throws Exception {
+    public void test982FindRoleByAssignmentOfUser() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
             searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
                     f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
                             .ownedBy(UserType.class)
                             .id(user3Oid),
-                    roleOid);
+                    roleAvIOid);
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.getQueryBuffer().toString());
@@ -2501,7 +2507,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test981findUserByAssignmentTarget() throws Exception {
+    public void test983FindUserByAssignmentTarget() throws Exception {
         queryRecorder.clearBufferAndStartRecording();
         try {
             searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,

@@ -22,6 +22,7 @@
 @import "prism-forms";
 @import "midpoint-utils";
 @import "details-menu";
+@import "list-group-menu";
 @import "wicket";
 @import "bs-stepper-custom";
 
@@ -1224,11 +1225,11 @@ td .prism-property-value {
 // handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
 // replace them with vendor css utility classes
 .dark-mode .search-item {
-  background-color: lighten($dark, 7.5%) !important;
+  background-color: $gray-800 !important;
   color: $white !important;
 }
 
-@include bg-variant(".search-item", $light, true);
+@include bg-variant(".search-item", $gray-300, true);
 
 // deprecated, uses should be replaced by "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"
 .search-item {
@@ -1694,22 +1695,6 @@ th.debug-list-buttons {
 //    font-size: 0.5em;
 //  }
 //}
-
-.details-menu-panel {
-  min-width: 273px;
-
-  & > ul {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    & > li {
-      display: flex;
-      flex-flow: column;
-    }
-  }
-}
 
 .col-5i,
 .col-sm-5i,

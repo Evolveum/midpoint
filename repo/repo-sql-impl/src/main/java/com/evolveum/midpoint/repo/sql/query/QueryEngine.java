@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -53,7 +53,7 @@ public class QueryEngine {
         query = refineAssignmentHolderQuery(type, query);
 
         QueryInterpreter interpreter = new QueryInterpreter(repoConfiguration, extItemDictionary);
-        RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, relationRegistry, countingObjects, session);
+        HibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, relationRegistry, countingObjects, session);
         Query<?> hqlQuery = hibernateQuery.getAsHqlQuery(session);
 
         if (LOGGER.isTraceEnabled()) {

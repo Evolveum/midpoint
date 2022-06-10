@@ -1,52 +1,53 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.restriction;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
+import com.evolveum.midpoint.repo.sql.query.resolution.ItemPathResolver;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 
 /**
- *  An image of an ObjectFilter, forming a restriction tree.
- *  Preserves some state related to the interpretation (translation).
- *  Provides functionality related to the translation.
+ * An image of an ObjectFilter, forming a restriction tree.
+ * Preserves some state related to the interpretation (translation).
+ * Provides functionality related to the translation.
  *
- *  As for the state, we maintain (or, more precisely, we are able to determine) the following:
- *   - base HQL property path for the restriction
- *   - base EntityDefinition for the restriction
- *   - chain of translation states that led to the starting HQL property path (if applicable)
- *  This is stored in baseHqlEntity.
+ * As for the state, we maintain (or, more precisely, we are able to determine) the following:
+ * - base HQL property path for the restriction
+ * - base EntityDefinition for the restriction
+ * - chain of translation states that led to the starting HQL property path (if applicable)
+ * This is stored in baseHqlEntity.
  *
- *  Most restrictions do not change the above properties when propagating them to their children.
- *  However, Type and Exists restrictions do.
- *  The former changes EntityDefinition, the latter all three.
+ * Most restrictions do not change the above properties when propagating them to their children.
+ * However, Type and Exists restrictions do.
+ * The former changes EntityDefinition, the latter all three.
  *
- *  Also, item-related restrictions may, at their own discretion, use an EntityDefinition that
- *  points to a subclass of the one provided by the parent restriction. They do that if the item
- *  referenced (e.g. location) is not available in the provided entity (e.g. RObject or RFocus or RAbstractRole),
- *  but has to be found deeper.
+ * Also, item-related restrictions may, at their own discretion, use an EntityDefinition that
+ * points to a subclass of the one provided by the parent restriction. They do that if the item
+ * referenced (e.g. location) is not available in the provided entity (e.g. RObject or RFocus or RAbstractRole),
+ * but has to be found deeper.
  *
- *  There is one known problem in this respect, though: locality attribute. It is present in UserType as well as
- *  in OrgType. So, if having query like ObjectType: Equals(locality, 'abc') it might be narrowed
- *  as o.localityUser or o.locality. (Maybe there are other attributes like that, I don't know.)
+ * There is one known problem in this respect, though: locality attribute. It is present in UserType as well as
+ * in OrgType. So, if having query like ObjectType: Equals(locality, 'abc') it might be narrowed
+ * as o.localityUser or o.locality. (Maybe there are other attributes like that, I don't know.)
  *
  * @author lazyman
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
     @NotNull protected final InterpretationContext context;
-    protected final Restriction parent;
+    protected final Restriction<?> parent;
     @NotNull protected final T filter;
 
     /**
@@ -64,19 +65,22 @@ public abstract class Restriction<T extends ObjectFilter> {
      *
      * For "Exists" filters children the base corresponds to the base item pointed to by the filter.
      * E.g.
-     *  - in "UserType: Exists (assignment)" it is "a" (provided that there is
-     *    "RUser u left join u.assignments a with ..." already defined).
-     *  - in "UserType: Exists (assignment/activation)" it is "a.activation"
-     *    [although note that using single-valued properties as last path item
-     *    in "Exists" filter is only a syntactic sugar]
+     * - in "UserType: Exists (assignment)" it is "a" (provided that there is
+     * "RUser u left join u.assignments a with ..." already defined).
+     * - in "UserType: Exists (assignment/activation)" it is "a.activation"
+     * [although note that using single-valued properties as last path item
+     * in "Exists" filter is only a syntactic sugar]
      *
      * (3) List of translation steps that had led to the HQL property path. Useful for following ".."
      * segments in item paths.
-     *
      */
     private final HqlEntityInstance baseHqlEntity;
 
-    public Restriction(@NotNull InterpretationContext context, @NotNull T filter, @NotNull JpaEntityDefinition baseEntityDefinition, Restriction parent) {
+    public Restriction(
+            @NotNull InterpretationContext context,
+            @NotNull T filter,
+            @NotNull JpaEntityDefinition baseEntityDefinition,
+            @Nullable Restriction<?> parent) {
         this.context = context;
         this.filter = filter;
         this.parent = parent;
@@ -97,7 +101,7 @@ public abstract class Restriction<T extends ObjectFilter> {
         return context;
     }
 
-    public Restriction getParent() {
+    public Restriction<?> getParent() {
         return parent;
     }
 
@@ -109,10 +113,6 @@ public abstract class Restriction<T extends ObjectFilter> {
 
     protected boolean isNegated() {
         return filter instanceof NotFilter || (parent != null && parent.isNegated());
-    }
-
-    protected String nameOf(Enum e) {
-        return e.getClass().getName() + "." + e.name();
     }
 
     public HqlEntityInstance getBaseHqlEntityForChildren() {

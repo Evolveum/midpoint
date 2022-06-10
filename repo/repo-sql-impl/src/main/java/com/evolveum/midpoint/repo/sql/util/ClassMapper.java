@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,7 +26,7 @@ public final class ClassMapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassMapper.class);
 
-    private static final Map<ObjectTypes, RObjectType> TYPES = new HashMap<>();
+    private static final Map<ObjectTypes, RObjectType> TYPES = new LinkedHashMap<>();
     private static final MultiValuedMap<ObjectTypes, RObjectType> DESCENDANTS = new HashSetValuedHashMap<>();
 
     private ClassMapper() {
@@ -37,6 +37,8 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
         TYPES.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);
         TYPES.put(ObjectTypes.OBJECT, RObjectType.OBJECT);
+        // Also matches RObject, but we want it later to avoid unexpected definitions Ent:RObject (jaxb=AssignmentHolderType).
+        TYPES.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
         TYPES.put(ObjectTypes.PASSWORD_POLICY, RObjectType.VALUE_POLICY);
         TYPES.put(ObjectTypes.RESOURCE, RObjectType.RESOURCE);
         TYPES.put(ObjectTypes.SHADOW, RObjectType.SHADOW);
@@ -51,7 +53,6 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.ORG, RObjectType.ORG);
         TYPES.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
         TYPES.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
-        TYPES.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
         TYPES.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
         TYPES.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
         TYPES.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
@@ -122,11 +123,6 @@ public final class ClassMapper {
         return hqlType;
     }
 
-    public static String getHQLType(Class<? extends ObjectType> clazz) {
-        Class<? extends RObject> hqlType = getHQLTypeClass(clazz);
-        return hqlType.getSimpleName();
-    }
-
     @Contract("!null -> !null; null -> null")
     public static RObjectType getHQLTypeForQName(QName qname) {
         if (qname == null) {
@@ -140,27 +136,6 @@ public final class ClassMapper {
         }
 
         throw new IllegalArgumentException("Couldn't find hql type for qname " + qname);
-    }
-
-    @Contract("!null -> !null; null -> null")
-    public static RObjectType getHQLTypeForClass(Class<? extends ObjectType> clazz) {
-        if (clazz == null) {
-            return null;
-        } else {
-            return getHQLTypeForQName(ObjectTypes.getObjectType(clazz).getTypeQName());
-        }
-    }
-
-    public static Class<? extends RObject> getHqlClassForHqlName(String hqlName) {
-        if (hqlName == null) {
-            return null;
-        }
-        for (RObjectType entry : TYPES.values()) {
-            if (entry.getClazz().getSimpleName().equals(hqlName)) {
-                return entry.getClazz();
-            }
-        }
-        throw new IllegalArgumentException("Couldn't find hql type for hql name " + hqlName);
     }
 
     public static ObjectTypes getObjectTypeForHQLType(RObjectType type) {

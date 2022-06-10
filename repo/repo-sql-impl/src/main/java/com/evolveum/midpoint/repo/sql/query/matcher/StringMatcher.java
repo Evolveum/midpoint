@@ -11,7 +11,7 @@ import com.google.common.base.Strings;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,7 +29,7 @@ public class StringMatcher extends Matcher<String> {
 
     @Override
     public Condition match(
-            RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation,
+            HibernateQuery hibernateQuery, ItemRestrictionOperation operation,
             String propertyName, String value, String matcher)
             throws QueryException {
 

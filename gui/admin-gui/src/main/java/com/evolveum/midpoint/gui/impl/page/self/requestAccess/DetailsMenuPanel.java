@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -24,5 +25,12 @@ public class DetailsMenuPanel extends BasePanel {
 
     private void initLayout() {
         add(AttributeAppender.append("class", "details-menu-panel d-flex rounded bg-white align-self-stretch align-self-md-start"));
+    }
+
+    @Override
+    protected void onComponentTag(ComponentTag tag) {
+        super.onComponentTag(tag);
+
+        checkComponentTag(tag, "ul");
     }
 }
