@@ -12,6 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
+import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.apache.wicket.Component;

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -47,6 +48,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -78,9 +80,11 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private Class<C> type;
     IModel<String> feedbackMessageModel = Model.of();
     IModel<String> queryNameModel = Model.of();
-    public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<C> type) {
+    private String defaultCollectionViewIdentifier = null;
+    public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<C> type, String defaultCollectionViewIdentifier) {
         super(id, searchModel);
         this.type = type;
+        this.defaultCollectionViewIdentifier = defaultCollectionViewIdentifier;
     }
 
     @Override
@@ -116,7 +120,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
                     ajaxRequestTarget.add(feedbackMessage);
                     return;
                 }
-                saveCustomQuery();
+                saveCustomQuery(ajaxRequestTarget);
                 getPageBase().hideMainPopup(ajaxRequestTarget);
             }
         };
@@ -133,30 +137,33 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         buttonsPanel.add(cancelButton);
     }
 
-    private void saveCustomQuery() {
+    private void saveCustomQuery(AjaxRequestTarget ajaxRequestTarget) {
         Search<C> search = getModelObject();
         AvailableFilterType availableFilter = new AvailableFilterType();
         availableFilter.setDisplay(new DisplayType().label(queryNameModel.getObject()));
         availableFilter.setSearchMode(getModelObject().getSearchMode());
+        SearchItemType searchItem = null;
         if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())) {
             availableFilter.getSearchItem().addAll(getAvailableFilterSearchItems(type, search.getItems(), search.getSearchMode()));
-        } else if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
-            SearchItemType axiomSearchItem = createAxiomSearchItem();
-            if (axiomSearchItem != null) {
-                availableFilter.getSearchItem().add(axiomSearchItem);
+        } else {
+            if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
+                searchItem = createAxiomSearchItem();
+            } else if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())) {
+                searchItem = createAdvancedSearchItem();
+            } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
+                searchItem = createFulltextSearchItem();
+            } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchMode())) {
+                searchItem = createOidSearchItem(getModelObject().findOidSearchItemWrapper());
             }
-        } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
-            SearchItemType fulltextSearchItem = createFulltextSearchItem();
-            if (fulltextSearchItem != null) {
-                availableFilter.getSearchItem().add(fulltextSearchItem);
-            }
-        } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
-            SearchItemType oidtSearchItem = createOidSearchItem(getModelObject().findOidSearchItemWrapper());
-            if (oidtSearchItem != null) {
-                availableFilter.getSearchItem().add(oidtSearchItem);
+            if (searchItem != null) {
+                availableFilter.getSearchItem().add(searchItem);
             }
         }
-        saveSearchItemToAdminConfig(availableFilter);
+        if (CollectionUtils.isEmpty(availableFilter.getSearchItem())) {
+            ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        saveSearchItemToAdminConfig(availableFilter, ajaxRequestTarget);
     }
 
     private List<SearchItemType> getAvailableFilterSearchItems(Class<C> typeClass, List<AbstractSearchItemWrapper> items, SearchBoxModeType mode) {
@@ -195,6 +202,22 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             return axiomSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse axiom filter from query: " + getModelObject().getDslQuery());
+        }
+        return null;
+    }
+
+    private SearchItemType createAdvancedSearchItem() {
+        try {
+            SearchItemType advancedSearchItem = new SearchItemType();
+
+            SearchFilterType search = PrismContext.get().parserFor(getModelObject().getAdvancedQuery()).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
+            ObjectFilter advancedFilter = PrismContext.get().getQueryConverter().parseFilter(search, getModelObject().getTypeClass());
+            advancedSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(advancedFilter));
+            return advancedSearchItem;
+        } catch (Exception e) {
+            LOGGER.error("Unable to parse advanced filter from query: ", getModelObject().getAdvancedQuery(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse advanced filter from query: " + getModelObject().getAdvancedQuery());
         }
         return null;
     }
@@ -209,6 +232,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             return fulltextSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to create fulltext filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse fulltext filter from query: " + getModelObject().getFullText());
         }
         return null;
     }
@@ -220,25 +244,85 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             oidSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
             return oidSearchItem;
         } catch (SchemaException e) {
-            LOGGER.error("Unable to create oid filter from query: {}, {}", getModelObject().getFullText(), e.getLocalizedMessage());
+            LOGGER.error("Unable to parse oid filter from query: {}, {}", oidSearchItemWrapper.getValue().getValue(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse oid filter from query: " + oidSearchItemWrapper.getValue().getValue());
         }
         return null;
     }
 
-    private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter) {
+    private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter, AjaxRequestTarget ajaxRequestTarget) {
         FocusType principalFocus = getPageBase().getPrincipalFocus();
-        boolean newObjectListView = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, false) == null;
-        GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, type, true);
-        if (view == null) {
-            view = new GuiObjectListViewType();
-            view.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
-            //view.setIdentifier(); //todo set collection view identifier
-            ((UserType)principalFocus).getAdminGuiConfiguration().getObjectCollectionViews().objectCollectionView(view);
+        boolean viewExists = true;
+        boolean addItemToPath = true;
+        List<ItemName> path = new ArrayList<>();
+        Object valueToAdd = null;
+        if (!(principalFocus instanceof UserType)) {
+            return;
         }
-        SearchBoxConfigurationType searchConfig = view.getSearchBoxConfiguration();
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            viewExists = false;
+            adminGui = new AdminGuiConfigurationType();
+            valueToAdd = adminGui;
+            addItemToPath = false;
+        }
+        path.add(UserType.F_ADMIN_GUI_CONFIGURATION);
+
+        GuiObjectListViewsType views = adminGui.getObjectCollectionViews();
+        if (addItemToPath) {
+            path.add(AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS);
+        }
+        if (views == null) {
+            viewExists = false;
+            views = new GuiObjectListViewsType();
+            if (valueToAdd != null) {
+                adminGui.objectCollectionViews(views);
+            } else {
+                valueToAdd = views;
+            }
+            addItemToPath = false;
+        }
+
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+        String viewName = collectionViewParameter == null || collectionViewParameter.isNull() ? defaultCollectionViewIdentifier
+                : collectionViewParameter.toString();
+        GuiObjectListViewType objectListView = null;
+        for (GuiObjectListViewType listView : views.getObjectCollectionView()) {
+            if (viewName.equals(listView.getIdentifier())) {
+                objectListView = listView;
+            }
+        }
+        if (addItemToPath) {
+            path.add(GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
+        }
+        if (objectListView == null) {
+            viewExists = false;
+            objectListView = new GuiObjectListViewType();
+            objectListView.setType(WebComponentUtil.containerClassToQName(PrismContext.get(), type));
+            if (valueToAdd != null) {
+                views.getObjectCollectionView().add(objectListView);
+            } else {
+                valueToAdd = objectListView;
+            }
+            addItemToPath = false;
+        }
+        if (objectListView.getIdentifier() == null) {
+            StringValue viewIdentifier = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+            objectListView.setIdentifier(viewIdentifier == null || viewIdentifier.isNull() || viewIdentifier.isNull() ?
+                    defaultCollectionViewIdentifier : viewIdentifier.toString());
+        }
+        SearchBoxConfigurationType searchConfig = objectListView.getSearchBoxConfiguration();
+        if (addItemToPath) {
+            path.add(GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION);
+            path.add(SearchBoxConfigurationType.F_AVAILABLE_FILTER);
+        }
         if (searchConfig == null) {
             searchConfig = new SearchBoxConfigurationType();
-            view.searchBoxConfiguration(searchConfig);
+            if (valueToAdd != null) {
+                objectListView.setSearchBoxConfiguration(searchConfig);
+            } else {
+                valueToAdd = availableFilter;
+            }
         }
         if (searchConfig.getAvailableFilter() == null) {
             searchConfig.beginAvailableFilter();
@@ -246,27 +330,30 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
 
         OperationResult result = new OperationResult("save search to user");
         try {
-            Object[] path;
             ObjectDelta<UserType> userDelta = null;
-            if (newObjectListView) {
+            if (!viewExists) {
                 searchConfig.getAvailableFilter().add(availableFilter);
-                path = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
-                        GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW};
                 userDelta = getPrismContext().deltaFor(UserType.class)
-                        .item(path)
-                        .add(view).asObjectDelta(principalFocus.getOid());
+                        .item(path.toArray(ItemName[]::new))
+                        .add(valueToAdd).asObjectDelta(principalFocus.getOid());
             } else {
-                path = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
-                        GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW, view.getId(), GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION,
+                Object[] viewPath = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
+                        GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW, objectListView.getId(), GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION,
                         SearchBoxConfigurationType.F_AVAILABLE_FILTER};
                 userDelta = getPrismContext().deltaFor(UserType.class)
-                        .item(path)
+                        .item(viewPath)
                         .add(availableFilter).asObjectDelta(principalFocus.getOid());
             }
             WebModelServiceUtils.save(userDelta, result, getPageBase().createSimpleTask("task"), getPageBase());
         } catch (Exception e) {
             LOGGER.error("Unable to save a filter to user, ", e.getLocalizedMessage());
+            error("Unable to save a filter to user, " + e.getLocalizedMessage());
+            ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+            return;
         }
+        result.recomputeStatus();
+        getPageBase().showResult(result);
+        ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
     }
 
       @Override
