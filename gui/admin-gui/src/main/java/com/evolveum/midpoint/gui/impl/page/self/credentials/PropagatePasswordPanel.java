@@ -53,6 +53,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -69,6 +70,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private static final String OPERATION_LOAD_VALUE_POLICY = DOT_CLASS + "loadValuePolicy";
     private static final Trace LOGGER = TraceManager.getTrace(PropagatePasswordPanel.class);
     private static final String ID_PROPAGATE_PASSWORD_CHECKBOX = "propagatePasswordCheckbox";
+    private static final String ID_INDIVIDUAL_SYSTEMS_CONTAINER = "individualSystemsContainer";
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
     private boolean propagatePassword = false;
@@ -98,6 +100,12 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         propagatePasswordCheckbox.setOutputMarkupId(true);
         add(propagatePasswordCheckbox);
 
+        WebMarkupContainer individualSystemsContainer = new WebMarkupContainer(ID_INDIVIDUAL_SYSTEMS_CONTAINER);
+        individualSystemsContainer.setOutputMarkupId(true);
+        individualSystemsContainer.add(new VisibleBehaviour(() -> propagatePasswordCheckbox.getCheckboxModel().getObject() != null
+                && propagatePasswordCheckbox.getCheckboxModel().getObject()));
+        add(individualSystemsContainer);
+
         provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
         BoxedTablePanel<PasswordAccountDto> provisioningTable = new BoxedTablePanel<>(ID_INDIVIDUAL_SYSTEMS_TABLE,
                 provider, initColumns()) {
@@ -108,9 +116,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 return true;
             }
         };
-        provisioningTable.add(new VisibleBehaviour(() -> propagatePasswordCheckbox.getCheckboxModel().getObject() != null
-                && propagatePasswordCheckbox.getCheckboxModel().getObject()));
-        add(provisioningTable);
+        individualSystemsContainer.add(provisioningTable);
     }
 
     private IModel<List<PasswordAccountDto>> getShadowModel() {

@@ -129,10 +129,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             protected void updatePasswordValidation(AjaxRequestTarget target) {
                 super.updatePasswordValidation(target);
                 updateNewPasswordValuePerformed(target);
-//                getTable().visitChildren(PasswordPolicyValidationPanel.class,
-//                        (IVisitor<PasswordPolicyValidationPanel, PasswordPolicyValidationPanel>) (panel, iVisit) -> {
-//                            panel.refreshValidationPopup(target);
-//                        });
             }
 
             @Override
