@@ -73,6 +73,7 @@ public class WizardHeader extends BasePanel {
         };
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
+        next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
 
         next.add(new Label(ID_NEXT_LABEL, nextPanelTitle));
         next.add(getNextVisibilityBehaviour());
@@ -94,6 +95,7 @@ public class WizardHeader extends BasePanel {
         };
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
+        back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
 
         return back;
     }

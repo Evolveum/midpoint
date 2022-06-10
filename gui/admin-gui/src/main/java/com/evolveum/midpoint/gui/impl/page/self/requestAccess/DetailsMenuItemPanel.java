@@ -15,22 +15,22 @@ import org.apache.wicket.markup.ComponentTag;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class DetailsMenuPanel extends BasePanel {
+public class DetailsMenuItemPanel extends BasePanel {
 
-    public DetailsMenuPanel(String id) {
+    public DetailsMenuItemPanel(String id) {
         super(id);
 
         initLayout();
-    }
-
-    private void initLayout() {
-        add(AttributeAppender.append("class", "details-menu-panel d-flex rounded bg-white align-self-stretch align-self-md-start"));
     }
 
     @Override
     protected void onComponentTag(ComponentTag tag) {
         super.onComponentTag(tag);
 
-        checkComponentTag(tag, "ul");
+        checkComponentTag(tag, "li");
+    }
+
+    private void initLayout() {
+        add(AttributeAppender.append("class", "border-bottom"));
     }
 }

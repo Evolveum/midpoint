@@ -22,6 +22,7 @@
 @import "prism-forms";
 @import "midpoint-utils";
 @import "details-menu";
+@import "list-group-menu";
 @import "wicket";
 @import "bs-stepper-custom";
 
@@ -1694,22 +1695,6 @@ th.debug-list-buttons {
 //    font-size: 0.5em;
 //  }
 //}
-
-.details-menu-panel {
-  min-width: 273px;
-
-  & > ul {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    & > li {
-      display: flex;
-      flex-flow: column;
-    }
-  }
-}
 
 .col-5i,
 .col-sm-5i,
