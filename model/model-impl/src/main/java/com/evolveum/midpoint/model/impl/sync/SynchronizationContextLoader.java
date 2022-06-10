@@ -20,13 +20,11 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -58,16 +56,8 @@ class SynchronizationContextLoader {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        PrismObject<ResourceType> resource =
-                MiscUtil.requireNonNull(
-                        change.getResource(),
-                        () -> new IllegalStateException("No resource in change description: " + change));
-
-        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
-                change,
-                resource.asObjectable(),
-                task,
-                result);
+        // TODO consider inlining this method
+        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change, task, result);
 
         if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
             syncCtx.setShadowExistsInRepo(false);
@@ -79,7 +69,6 @@ class SynchronizationContextLoader {
 
     private <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
             @NotNull ResourceObjectShadowChangeDescription change,
-            @NotNull ResourceType originalResource,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
@@ -89,9 +78,9 @@ class SynchronizationContextLoader {
 
         ResourceType updatedResource;
         if (SynchronizationContext.isSkipMaintenanceCheck()) {
-            updatedResource = originalResource;
+            updatedResource = change.getResource().asObjectable();
         } else {
-            updatedResource = checkNotInMaintenance(originalResource, task, result);
+            updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
         }
 
         SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
@@ -170,19 +159,21 @@ class SynchronizationContextLoader {
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ShadowType shadow = processingContext.getShadowedResourceObject();
-        ShadowKindType kind = shadow.getKind();
-        String intent = shadow.getIntent();
-        if (ShadowUtil.isKnown(kind) && ShadowUtil.isKnown(intent)) {
+        if (ShadowUtil.isClassified(shadow)) {
             if (isClassificationInSorterResult(sorterResult)) {
-                // Sorter result overrides any stored classification information
+                // Sorter result overrides any classification information stored in the shadow
+                // (and it is also applied to the shadow by SynchronizationContext#forceClassificationUpdate)
                 return TypeAndDefinition.of(schema, sorterResult.getKind(), sorterResult.getIntent());
             } else {
-                return TypeAndDefinition.of(schema, kind, intent);
+                return TypeAndDefinition.of(schema, shadow.getKind(), shadow.getIntent());
             }
         } else {
+            LOGGER.debug("Attempting to classify {} (most probably needless, as the shadow should have been "
+                    + "tried-to-be-classified before getting here)", shadow);
+            // The sorter result is used here (if it contains the classification)
             ResourceObjectClassification classification = beans.provisioningService
                     .classifyResourceObject(
-                            processingContext.getShadowedResourceObject(),
+                            shadow,
                             processingContext.getResource(),
                             sorterResult,
                             processingContext.getTask(),

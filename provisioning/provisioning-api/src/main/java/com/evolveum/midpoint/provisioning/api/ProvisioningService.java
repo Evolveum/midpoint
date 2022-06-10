@@ -81,6 +81,8 @@ public interface ProvisioningService {
      *
      * ... TODO ...
      *
+     * These objects are classified, if they were not (and if they were fetched from the resource).
+     *
      * Notes:
      *
      * 1. The operation result is cleaned up before returning.

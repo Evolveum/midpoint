@@ -547,7 +547,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                     // Create account context from embedded object
                     LensProjectionContext projectionContext =
                             new ShadowLevelOperation(embeddedShadow.asObjectable())
-                                    .createNew( result);
+                                    .createNew(result);
                     projectionContext.setPrimaryDeltaAfterStart(embeddedShadow.createAddDelta());
                     projectionContext.setFullShadow(true);
                     projectionContext.setExists(false);

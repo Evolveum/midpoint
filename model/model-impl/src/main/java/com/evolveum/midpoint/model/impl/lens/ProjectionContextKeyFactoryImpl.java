@@ -12,6 +12,9 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.Resource;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -30,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+
+import java.util.Collection;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
@@ -77,10 +82,21 @@ public class ProjectionContextKeyFactoryImpl implements ProjectionContextKeyFact
                         + "Please specify the kind/intent precisely for %s", shadow);
 
         try {
-            // TODO integrate with the context loader - full shadow should be used if fetched here
-            // The "get" operation includes a classification attempt.
+            // We use the "get" operation to classify the shadow.
+            //
+            // TODO integrate with the context loader - full shadow should be stored in the context, if the fetch
+            //  from resource is successful
+            //
+            // TODO reconsider the options to use
+            //   - We use "future point in time" to allow pending changes to be processed. But this is a bit questionable: if we
+            //     have any pending changes, doesn't it mean that the shadow is most probably already classified?
+            //   - We also don't do discovery - to avoid unexpected processing here. At least for now.
+            Collection<SelectorOptions<GetOperationOptions>> options = SchemaService.get().getOperationOptionsBuilder()
+                    .futurePointInTime()
+                    .doNotDiscovery()
+                    .build();
             ShadowType updatedShadow = provisioningService
-                    .getObject(ShadowType.class, shadowOid, null, task, result)
+                    .getObject(ShadowType.class, shadowOid, options, task, result)
                     .asObjectable();
             PERFORMANCE_ADVISOR.info("Fetched {} (resource: {}) in order to classify it (result: {})",
                     updatedShadow, resourceOid, ShadowUtil.getTypeIdentification(updatedShadow));

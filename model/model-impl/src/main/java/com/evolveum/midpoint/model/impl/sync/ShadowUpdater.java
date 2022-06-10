@@ -61,7 +61,7 @@ public class ShadowUpdater {
         updateSyncSituationDescription(now);
         updateSyncTimestamps(now, syncCtx.isFullMode());
 
-        updateCoordinates(true);
+        updateCoordinatesIfUnknown();
 
         return this;
     }
@@ -98,9 +98,23 @@ public class ShadowUpdater {
                 true);
     }
 
+    /**
+     * Updates kind/intent if some of them are null/empty. This is used if synchronization is skipped.
+     */
     ShadowUpdater updateCoordinatesIfMissing() throws SchemaException {
         assert syncCtx.isComplete();
         return updateCoordinates(false);
+    }
+
+    /**
+     * Updates kind/intent if some of them are null/empty/unknown. This is used if synchronization is NOT skipped.
+     *
+     * TODO why the difference from {@link #updateCoordinatesIfMissing()}? Is there any reason for it?
+     * TODO this behavior should be made configurable
+     */
+    private void updateCoordinatesIfUnknown() throws SchemaException {
+        assert syncCtx.isComplete();
+        updateCoordinates(true);
     }
 
     private ShadowUpdater updateCoordinates(boolean overwriteUnknownValues) throws SchemaException {

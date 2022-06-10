@@ -80,18 +80,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             logStart(change);
             checkConsistence(change);
 
-            // The sorter is evaluated in the following method call
+            // Object type and synchronization policy are determined here. Sorter is evaluated, if present.
             SynchronizationContext<?> syncCtx = syncContextLoader.loadSynchronizationContextFromChange(change, task, result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
                 return; // sync metadata are saved by the above method
             }
             SynchronizationContext.Complete<?> completeCtx = (SynchronizationContext.Complete<?>) syncCtx;
-
             setupLinkedOwnerAndSituation(completeCtx, change, result);
 
-            completeCtx.recordSyncStart();
-
+            completeCtx.recordSyncStartInTask();
             completeCtx.getUpdater()
                     .updateAllSyncMetadata()
                     .commit(result);
@@ -129,10 +127,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      * TODO: Consider situations when one account belongs to two different users. It should correspond to
      *  the {@link SynchronizationSituationType#DISPUTED} situation.
      */
-    @Nullable
-    private PrismObject<FocusType> findShadowOwner(String shadowOid, OperationResult result) throws SchemaException {
+    private <F extends FocusType> @Nullable F findShadowOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+            throws SchemaException {
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
         ObjectQuery query = prismContext.queryFor(FocusType.class)
-                .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
+                .item(FocusType.F_LINK_REF).ref(shadow.getOid(), null, PrismConstants.Q_ANY)
                 .build();
         // TODO read-only later
         SearchResultList<PrismObject<FocusType>> owners =
@@ -141,16 +140,28 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         if (owners.isEmpty()) {
             return null;
         }
+
         if (owners.size() > 1) {
-            LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.", owners.size(), shadowOid);
+            LOGGER.warn("Found {} owners for {}, returning first owner: {}", owners.size(), shadow, owners);
         }
-        return owners.get(0);
+
+        FocusType owner = asObjectable(owners.get(0));
+
+        Class<F> expectedClass = syncCtx.getFocusClass();
+        if (expectedClass.isAssignableFrom(owner.getClass())) {
+            //noinspection unchecked
+            return (F) owner;
+        } else {
+            throw new SchemaException(
+                    String.format("Expected owner of type %s but %s was found instead; for %s",
+                            expectedClass.getSimpleName(), owner, shadow));
+        }
     }
 
     /**
      * Checks for common reasons to skip synchronization:
      *
-     * - no applicable synchronization policy,
+     * - no applicable synchronization policy (~ incomplete context),
      * - synchronization disabled,
      * - protected resource object.
      */
@@ -171,7 +182,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
                     .commit(result);
             result.recordNotApplicable(message);
-            syncCtx.recordSyncExclusion(NO_SYNCHRONIZATION_POLICY);
+            syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY);
             return true;
         }
 
@@ -185,7 +196,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .updateCoordinatesIfMissing()
                     .commit(result);
             result.recordNotApplicable(message);
-            syncCtx.recordSyncExclusion(SYNCHRONIZATION_DISABLED);
+            syncCtx.recordSyncExclusionInTask(SYNCHRONIZATION_DISABLED);
             return true;
         }
 
@@ -199,7 +210,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .updateCoordinatesIfMissing()
                     .commit(result);
             result.recordNotApplicable(message);
-            syncCtx.recordSyncExclusion(PROTECTED);
+            syncCtx.recordSyncExclusionInTask(PROTECTED);
             return true;
         }
 
@@ -216,8 +227,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void setupLinkedOwnerAndSituation(SynchronizationContext.Complete<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, OperationResult parentResult) throws SchemaException {
+    private <F extends FocusType> void setupLinkedOwnerAndSituation(
+            SynchronizationContext.Complete<F> syncCtx,
+            ResourceObjectShadowChangeDescription change,
+            OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.subresult(OP_SETUP_SITUATION)
                 .setMinor()
@@ -229,7 +242,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getFocusClass(), syncCtx.getPolicyName());
 
         try {
-            findLinkedOwner(syncCtx, change, result);
+            F linkedOwner = findShadowOwner(syncCtx, result);
+            syncCtx.setLinkedOwner(linkedOwner);
 
             if (syncCtx.getLinkedOwner() == null || syncCtx.isCorrelatorsUpdateRequested()) {
                 determineSituationWithCorrelators(syncCtx, change, result); // TODO change the name (if sorter is used)
@@ -245,19 +259,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         } finally {
             result.close();
         }
-    }
-
-    private <F extends FocusType> void findLinkedOwner(SynchronizationContext<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, OperationResult result) throws SchemaException {
-
-        if (syncCtx.getLinkedOwner() != null) {
-            // TODO This never occurs. Clarify!
-            return;
-        }
-
-        PrismObject<FocusType> owner = findShadowOwner(change.getShadowOid(), result);
-        //noinspection unchecked
-        syncCtx.setLinkedOwner((F) asObjectable(owner));
     }
 
     private <F extends FocusType> void determineSituationWithoutCorrelators(SynchronizationContext<F> syncCtx,

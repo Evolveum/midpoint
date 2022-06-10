@@ -437,11 +437,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         return change;
     }
 
-    void recordSyncExclusion(SynchronizationExclusionReasonType reason) {
+    void recordSyncExclusionInTask(SynchronizationExclusionReasonType reason) {
         task.onSynchronizationExclusion(itemProcessingIdentifier, reason);
     }
 
-    void recordSyncStart() {
+    void recordSyncStartInTask() {
         task.onSynchronizationStart(itemProcessingIdentifier, shadowedResourceObject.getOid(), situation);
     }
 

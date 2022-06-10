@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -90,7 +91,7 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
     }
 
     public @NotNull PrismObject<ShadowType> getShadowedResourceObject() {
-        return java.util.Objects.requireNonNull(shadowedResourceObject);
+        return Objects.requireNonNull(shadowedResourceObject);
     }
 
     public void setShadowedResourceObject(@NotNull PrismObject<ShadowType> shadowedResourceObject) {
@@ -106,7 +107,7 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
     }
 
     public @NotNull PrismObject<ResourceType> getResource() {
-        return resource;
+        return Objects.requireNonNull(resource, "no resource");
     }
 
     public void setResource(PrismObject<ResourceType> resource) {
