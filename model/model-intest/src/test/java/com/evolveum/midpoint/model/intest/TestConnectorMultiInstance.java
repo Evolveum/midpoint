@@ -70,13 +70,13 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
     @Test
     public void test000Sanity() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
 
-        // WHEN
+        when();
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task, task.getResult());
 
-        // THEN
+        then();
         display("Test result", testResult);
         TestUtil.assertSuccess("Yellow dummy test result", testResult);
 
@@ -85,14 +85,14 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
     @Test
     public void test100JackAssignDummyYellow() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -114,10 +114,10 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
      */
     @Test
     public void test102ReadJackDummyYellowAgain() throws Exception {
-        // WHEN
+        when();
         PrismObject<ShadowType> shadowYellow = getShadowModel(accountJackYellowOid);
 
-        // THEN
+        then();
         display("Shadow yellow", shadowYellow);
 
         assertConnectorInstances("yellow", RESOURCE_DUMMY_YELLOW_OID, 0, 1);
@@ -137,7 +137,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         dummyResourceYellow.setBlockOperations(true);
         final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
 
-        // WHEN
+        when();
         Thread t = executeInNewThread("get1", () -> {
             PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
             logger.trace("Got shadow {}", shadow);
@@ -152,7 +152,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
         dummyResourceYellow.unblock();
 
-        // THEN
+        then();
         t.join();
 
         dummyResourceYellow.setBlockOperations(false);
@@ -180,7 +180,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>();
         final Holder<PrismObject<ShadowType>> shadowHolder2 = new Holder<>();
 
-        // WHEN
+        when();
         Thread t1 = executeInNewThread("get1", () -> {
             PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
             logger.trace("Got shadow {}", shadow);
@@ -213,7 +213,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
         t1.join();
 
-        // THEN
+        then();
 
         PrismObject<ShadowType> shadowYellow1 = shadowHolder1.getValue();
         assertNotNull("No shadow 1", shadowHolder1.getValue());
@@ -243,7 +243,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>();
         final Holder<PrismObject<ShadowType>> shadowHolder2 = new Holder<>();
 
-        // WHEN
+        when();
         Thread t1 = executeInNewThread("get1", () -> {
             PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
             logger.trace("Got shadow {}", shadow);
@@ -268,7 +268,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         t1.join();
         t2.join();
 
-        // THEN
+        then();
         dummyResourceYellow.setBlockOperations(false);
 
         PrismObject<ShadowType> shadowYellow1 = shadowHolder1.getValue();
@@ -291,14 +291,14 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
     @Test
     public void test200GuybrushAssignDummyBlack() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
-        // THEN
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_GUYBRUSH_OID);
@@ -349,7 +349,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
     private void assertConnectorToStringDifferent(PrismObject<ShadowType> shadow,
             DummyResourceContoller ctl, String expectedVal) throws SchemaException {
         String connectorVal = getConnectorToString(shadow, ctl);
-        assertThat(connectorVal).as("Connector toString").isEqualTo(expectedVal);
+        assertThat(connectorVal).as("Connector toString").isNotEqualTo(expectedVal);
     }
 
     private void assertConnectorStaticVal(PrismObject<ShadowType> shadow,
