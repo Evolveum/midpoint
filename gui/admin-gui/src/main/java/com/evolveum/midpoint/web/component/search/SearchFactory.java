@@ -403,6 +403,9 @@ public class SearchFactory {
             List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? getAvailableSearchableItems(typeClass, modelServiceLocator) : availableItemPath;
             if (paths != null) {
                 for (ItemPath path : paths) {
+                    if (findSearchItemDefinitionByPath(definitions, path) != null) {
+                        continue;
+                    }
                     ItemDefinition<?> def = objectDef.findItemDefinition(path);
                     if (def != null) {
                         SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, getAllowedValues(path));
@@ -419,6 +422,18 @@ public class SearchFactory {
         }
 
         return definitions;
+    }
+
+    private static SearchItemDefinition findSearchItemDefinitionByPath(List<SearchItemDefinition> definitions, ItemPath path) {
+        if (path == null) {
+            return null;
+        }
+        for (SearchItemDefinition def : definitions) {
+            if (def.getPath() != null && def.getPath().equivalent(path)) {
+                return def;
+            }
+        }
+        return null;
     }
 
     private static List<DisplayableValue> getAllowedValues(ItemPath path) {
