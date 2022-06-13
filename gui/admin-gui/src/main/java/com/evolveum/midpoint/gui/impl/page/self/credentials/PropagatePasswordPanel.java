@@ -75,6 +75,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
     private boolean propagatePassword = false;
+    private boolean showResultInTable = false;
     ListDataProvider<PasswordAccountDto> provider = null;
 
     public PropagatePasswordPanel(String id, IModel<F> focusModel) {
@@ -104,7 +105,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         WebMarkupContainer individualSystemsContainer = new WebMarkupContainer(ID_INDIVIDUAL_SYSTEMS_CONTAINER);
         individualSystemsContainer.setOutputMarkupId(true);
         individualSystemsContainer.add(new VisibleBehaviour(() -> propagatePasswordCheckbox.getCheckboxModel().getObject() != null
-                && propagatePasswordCheckbox.getCheckboxModel().getObject()));
+                && propagatePasswordCheckbox.getCheckboxModel().getObject() || showResultInTable));
         add(individualSystemsContainer);
 
         provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
@@ -546,6 +547,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     protected void finishChangePassword(OperationResult result, AjaxRequestTarget target, boolean showFeedback) {
         updateResultColumnOfTable(target);
+        showResultInTable = true;
         if (shouldLoadAccounts()) {
             showFeedback = false;
             String msg;
