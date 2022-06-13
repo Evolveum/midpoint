@@ -559,10 +559,10 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
             new Toast()
                     .cssClass(cssClass)
-//                    .title(getString("RoleCatalogPanel.itemAdded"))
                     .autohide(true)
                     .delay(10_000)
-                    .body(msg).show(target);
+                    .title(msg)
+                    .show(target);
         }
         super.finishChangePassword(result, target, showFeedback);
     }
