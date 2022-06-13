@@ -679,7 +679,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
-                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .item(SchemaConstants.ICFS_NAME_PATH, definition)
                 .replace("account123")
                 .asItemDeltas();
 
@@ -700,7 +700,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
-                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .item(SchemaConstants.ICFS_NAME_PATH, definition)
                 .replace("account-new")
                 .asItemDeltas();
 

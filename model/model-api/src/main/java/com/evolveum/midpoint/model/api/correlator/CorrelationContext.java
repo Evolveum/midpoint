@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -99,6 +101,18 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
 
     public @NotNull Class<? extends ObjectType> getFocusType() {
         return preFocus.getClass();
+    }
+
+    public @Nullable String getArchetypeOid() {
+        // Note that the archetype OID can be specified only on the object type. It is not supported
+        // for legacy synchronization definition. Therefore we may safely access it in the following way:
+        ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
+        if (typeDefinition == null) {
+            return null;
+        } else {
+            return SynchronizationPolicy.getArchetypeOid(
+                    typeDefinition.getArchetypeRef());
+        }
     }
 
     public @NotNull ResourceType getResource() {

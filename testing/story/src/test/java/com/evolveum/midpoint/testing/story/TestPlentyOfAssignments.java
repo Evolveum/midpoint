@@ -305,7 +305,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         ResourceObjectClassDefinition rOcDef = rSchema.findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
 
         ObjectFactory objectFactory = new ObjectFactory();
-        ItemPath nameAttributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);
+        ItemPath nameAttributePath = SchemaConstants.ICFS_NAME_PATH;
         for (int i = 0; i < NUMBER_OF_GENERATED_DUMMY_GROUPS; i++) {
             PrismObject<ShadowType> shadow = shadowDef.instantiate();
             ShadowType shadowType = shadow.asObjectable();

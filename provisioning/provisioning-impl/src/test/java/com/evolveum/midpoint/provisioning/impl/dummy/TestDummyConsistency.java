@@ -1577,8 +1577,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResourceCtl.addAccount(ACCOUNT_BETTY_USERNAME, ACCOUNT_BETTY_FULLNAME);
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                ACCOUNT_ELIZABETH_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
-                ACCOUNT_BETTY_USERNAME);
+                ACCOUNT_ELIZABETH_OID, SchemaConstants.ICFS_NAME_PATH, ACCOUNT_BETTY_USERNAME);
 
         // WHEN
         when();
@@ -1653,8 +1652,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.resetBreakMode();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                ACCOUNT_ELIZABETH_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
-                ACCOUNT_BETTY_USERNAME);
+                ACCOUNT_ELIZABETH_OID, SchemaConstants.ICFS_NAME_PATH, ACCOUNT_BETTY_USERNAME);
 
         // WHEN
         when();

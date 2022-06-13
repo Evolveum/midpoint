@@ -3008,9 +3008,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
                 UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
-                ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "morgan");
+                SchemaConstants.ICFS_NAME_PATH, "morgan");
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
-                ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID), "morgan");
+                SchemaConstants.ICFS_UID_PATH, "morgan");
         // This is a side-effect change. It is silently done by provisioning. It is not supposed to
         // appear in audit log.
 //        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,

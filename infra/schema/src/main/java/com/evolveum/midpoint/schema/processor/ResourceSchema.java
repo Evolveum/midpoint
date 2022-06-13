@@ -139,6 +139,28 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     }
 
     /**
+     * As {@link #findObjectDefinition(ShadowKindType, String)} but with aggregate representation of type identification.
+     *
+     * Applies `account/default` hack if nothing relevant can be found.
+     */
+    default @Nullable ResourceObjectDefinition findObjectDefinition(
+            @NotNull ResourceObjectTypeIdentification typeIdentification) {
+        return findObjectDefinition(typeIdentification.getKind(), typeIdentification.getIntent());
+    }
+
+    /**
+     * As {@link #findObjectDefinition(ResourceObjectTypeIdentification)} but the definition must exist.
+     *
+     * Applies `account/default` hack if nothing relevant can be found.
+     */
+    default @NotNull ResourceObjectDefinition findObjectDefinitionRequired(
+            @NotNull ResourceObjectTypeIdentification typeIdentification) {
+        return stateNonNull(
+                findObjectDefinition(typeIdentification),
+                () -> "No object type/class definition for " + typeIdentification + " in " + this);
+    }
+
+    /**
      * Returns a type or class definition for a given object class:
      *
      * - if there's a "default for class" type defined, it is returned (this is a kind of pre-4.5 behavior)

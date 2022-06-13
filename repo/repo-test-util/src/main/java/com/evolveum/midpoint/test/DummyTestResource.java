@@ -12,6 +12,7 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -46,5 +47,10 @@ public class DummyTestResource extends TestResource<ResourceType> {
 
     public PrismObject<ResourceType> getResource() {
         return controller.getResource();
+    }
+
+    // It's logical for this functionality to be invokable right on the DummyTestResource object. Hence this method.
+    public void initAndTest(DummyTestResourceInitializer initializer, Task task, OperationResult result) throws Exception {
+        initializer.initAndTestDummyResource(this, task, result);
     }
 }

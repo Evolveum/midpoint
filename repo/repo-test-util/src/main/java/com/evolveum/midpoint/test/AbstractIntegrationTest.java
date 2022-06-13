@@ -168,6 +168,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     private static final int OPTIMIZED_BUCKETS_THRESHOLD = 8;
 
     protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
+    public static final long DEFAULT_SHORT_TASK_WAIT_TIMEOUT = 30000;
     protected static final long DEFAULT_TASK_SLEEP_TIME = 350;
     protected static final long DEFAULT_TASK_TREE_SLEEP_TIME = 1000;
 
@@ -388,7 +389,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      * Returns default pre-created test-method-scoped {@link Task}.
      * This fails if test-method context is not available.
      */
-    protected Task getTestTask() {
+    public Task getTestTask() {
         return MidpointTestContextWithTask.get().getTask();
     }
 
@@ -3719,7 +3720,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         repositoryService.modifyObject(ResourceType.class, oid, deltas, result);
     }
 
-    protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+    public TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
         Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
         return assertTask(task, message);
     }
@@ -3806,12 +3807,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         waitForTaskCloseOrSuspend(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskCloseOrSuspend(String taskOid, final int timeout) throws Exception {
+    public void waitForTaskCloseOrSuspend(String taskOid, final long timeout) throws CommonException {
         waitForTaskCloseOrSuspend(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
     protected void waitForTaskCloseOrSuspend(
-            final String taskOid, final int timeout, long sleepTime) throws Exception {
+            final String taskOid, final long timeout, long sleepTime) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskCloseOrSuspend");
         Checker checker = new Checker() {
             @Override

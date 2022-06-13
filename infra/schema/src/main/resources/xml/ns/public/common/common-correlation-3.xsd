@@ -225,6 +225,18 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A way how to disable a correlator (either temporarily, or e.g. for sub-types).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.enabled</a:displayName>
+                        <a:displayOrder>17</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="using" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

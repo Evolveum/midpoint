@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -149,8 +151,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         assertRefFilterValue((RefFilter) first, "aae7be60-df56-11df-8608-0002a5d5c51b");
 
         ObjectFilter second = getFilterCondition(filter, 1);
-        PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, ItemPath.create(ShadowType.F_ATTRIBUTES,
-                ICF_NAME));
+        PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, SchemaConstants.ICFS_NAME_PATH);
         PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
         QueryType convertedQueryType = toQueryType(query);

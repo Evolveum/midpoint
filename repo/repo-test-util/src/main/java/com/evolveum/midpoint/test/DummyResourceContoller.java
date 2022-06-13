@@ -396,7 +396,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertFalse("No nativeObjectClass in account",
                 StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClass()));
 
-        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
+        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -405,7 +405,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No UID read",uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
+        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));

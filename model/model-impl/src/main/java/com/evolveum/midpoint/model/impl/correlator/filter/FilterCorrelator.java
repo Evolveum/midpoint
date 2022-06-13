@@ -15,6 +15,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectSet;
 
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +78,9 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
     protected boolean checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
-            @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            @NotNull OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         return new Correlation<>(correlationContext)
                 .checkCandidateOwner(candidateOwner, result);
     }
@@ -207,8 +210,8 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             return query.getFilter().match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
         }
 
-        @NotNull
-        private ObjectQuery getQuery(SearchFilterType conditionalFilter, OperationResult result)
+        /** Here we add the archetype-related clause (if needed). */
+        private @NotNull ObjectQuery getQuery(SearchFilterType conditionalFilter, OperationResult result)
                 throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
                 CommunicationException, SecurityViolationException {
             if (!conditionalFilter.containsFilterClause()) {
@@ -219,7 +222,8 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             try {
                 ObjectQuery rawQuery = PrismContext.get().getQueryConverter()
                         .createObjectQuery(correlationContext.getFocusType(), conditionalFilter);
-                query = evaluateQueryExpressions(rawQuery, result);
+                ObjectQuery evaluatedQuery = evaluateQueryExpressions(rawQuery, result);
+                query = addArchetypeClauseIfNeeded(evaluatedQuery);
             } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
                     ConfigurationException | SecurityViolationException e) {
                 // Logging here to provide information about failing query
@@ -252,6 +256,19 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                         contextDescription,
                         task,
                         result);
+            }
+        }
+
+        private ObjectQuery addArchetypeClauseIfNeeded(ObjectQuery query) {
+            String archetypeOid = correlationContext.getArchetypeOid();
+            if (archetypeOid == null) {
+                return query;
+            } else {
+                return ObjectQueryUtil.addConjunctions(
+                        query,
+                        PrismContext.get().queryFor(FocusType.class)
+                                .item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid)
+                                .buildFilter());
             }
         }
 

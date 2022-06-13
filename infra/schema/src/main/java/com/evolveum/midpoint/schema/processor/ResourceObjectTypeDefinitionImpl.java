@@ -297,13 +297,18 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public Boolean isSynchronizationOpportunistic() {
-        SynchronizationReactionsType synchronization = definitionBean.getSynchronization(); // TODO: inheritance
+        SynchronizationReactionsType synchronization = definitionBean.getSynchronization();
         return synchronization != null ? synchronization.isOpportunistic() : null;
     }
 
     @Override
     public QName getFocusTypeName() {
-        return definitionBean.getFocusType(); // TODO: inheritance
+        return definitionBean.getFocusType();
+    }
+
+    @Override
+    public @Nullable ObjectReferenceType getArchetypeRef() {
+        return definitionBean.getArchetypeRef();
     }
 
     @Override
@@ -319,7 +324,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
-        SynchronizationReactionsType reactions = definitionBean.getSynchronization(); // TODO: inheritance
+        SynchronizationReactionsType reactions = definitionBean.getSynchronization();
         if (reactions == null) {
             return List.of();
         } else {

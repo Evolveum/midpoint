@@ -1904,7 +1904,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyReplace(
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "The crew of The Sea Monkey");
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
-                ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+                SchemaConstants.ICFS_NAME_PATH,
                 "rogers");
         PrismAsserts.assertPropertyAdd(
                 accountSecondaryDelta,

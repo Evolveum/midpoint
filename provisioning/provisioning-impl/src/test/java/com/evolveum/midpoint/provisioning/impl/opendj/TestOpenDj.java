@@ -3253,7 +3253,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         try {
             PropertyDelta<String> delta =
                     prismContext.deltaFactory().property().createModificationReplaceProperty(
-                            ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(NS_RI, "sn")),
+                            MidPointTestConstants.PATH_SN,
                             prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
                             "doesnotmatter");
             provisioningService.modifyObject(
