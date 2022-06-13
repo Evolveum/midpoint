@@ -991,6 +991,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         final boolean isOperationExecution;
         final ObjectTypes.ObjectManager manager;
         final ObjectQuery refinedQuery;
+        private boolean isAssignment;
 
         // TODO: task and result here are ugly and probably wrong
         ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result)
@@ -1000,9 +1001,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             isCertCase = AccessCertificationCaseType.class.equals(type);
             isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
             isOperationExecution = OperationExecutionType.class.equals(type);
+            isAssignment = AssignmentType.class.equals(type);
 
-            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution) {
-                throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and CaseWorkItemType classes");
+            if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment) {
+                throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, CaseWorkItemType and AssignmentType classes");
             }
 
             manager = ObjectTypes.ObjectManager.REPOSITORY;
@@ -1086,7 +1088,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         if (ctx.isCertCase) {
             list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
                     AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-        } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution) {
+        } else if (ctx.isCaseMgmtWorkItem || ctx.isOperationExecution || ctx.isAssignment) {
             // TODO implement security post processing for CaseWorkItems
         } else {
             throw new IllegalStateException();
