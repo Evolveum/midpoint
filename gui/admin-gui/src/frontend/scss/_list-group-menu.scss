@@ -127,6 +127,7 @@ $list-group-item-padding-sm-x: 1rem;
 
 .list-group-submenu-item {
   @include list-group-menu-item;
+  border-radius: inherit;
 
   // 3rd level padding
   & .list-group-submenu > .list-group-submenu-item > a {

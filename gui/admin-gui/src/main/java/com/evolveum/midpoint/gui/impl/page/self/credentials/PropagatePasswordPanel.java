@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.Toast;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -74,6 +75,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private static final String ID_INDIVIDUAL_SYSTEMS_TABLE = "individualSystemsTable";
 
     private boolean propagatePassword = false;
+    private boolean showResultInTable = false;
     ListDataProvider<PasswordAccountDto> provider = null;
 
     public PropagatePasswordPanel(String id, IModel<F> focusModel) {
@@ -103,7 +105,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         WebMarkupContainer individualSystemsContainer = new WebMarkupContainer(ID_INDIVIDUAL_SYSTEMS_CONTAINER);
         individualSystemsContainer.setOutputMarkupId(true);
         individualSystemsContainer.add(new VisibleBehaviour(() -> propagatePasswordCheckbox.getCheckboxModel().getObject() != null
-                && propagatePasswordCheckbox.getCheckboxModel().getObject()));
+                && propagatePasswordCheckbox.getCheckboxModel().getObject() || showResultInTable));
         add(individualSystemsContainer);
 
         provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
@@ -545,13 +547,24 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     protected void finishChangePassword(OperationResult result, AjaxRequestTarget target, boolean showFeedback) {
         updateResultColumnOfTable(target);
+        showResultInTable = true;
         if (shouldLoadAccounts()) {
             showFeedback = false;
+            String msg;
+            String cssClass;
             if (result.isError()) {
-                error(createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString());
+                msg = createStringResource("PageAbstractSelfCredentials.message.resultInTable.error").getString();
+                cssClass = "bg-danger m-3";
             } else {
-                success(createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString());
+                msg = createStringResource("PageAbstractSelfCredentials.message.resultInTable").getString();
+                cssClass = "bg-success m-3";
             }
+            new Toast()
+                    .cssClass(cssClass)
+                    .autohide(true)
+                    .delay(10_000)
+                    .title(msg)
+                    .show(target);
         }
         super.finishChangePassword(result, target, showFeedback);
     }

@@ -387,7 +387,7 @@ public class QueryInterpreter {
         }
 
         JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
-        JpaPropertyDefinition orderByDefinition = (JpaPropertyDefinition) targetDefinition;
+        JpaPropertyDefinition<?> orderByDefinition = (JpaPropertyDefinition<?>) targetDefinition;
         String hqlPropertyPath = context.getItemPathResolver()
                 .resolveItemPath(orderByPath, null, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
                 .getHqlPath();

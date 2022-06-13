@@ -281,6 +281,72 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test230SearchUsersWithSingleValueRefNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_TENANT_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        // Mapping of REmbeddedReference duplicates tenantRef_targetOid is null, but it's not a serious problem.
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("before-config", "atestuserX00002", "atestuserX00003");
+    }
+
+    @Test
+    public void test231SearchUsersWithSingleValueRefNotNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .not().item(UserType.F_TENANT_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123");
+    }
+
+    @Test
+    public void test232SearchUsersWithMultiValueRefNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_PARENT_ORG_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("before-config", "atestuserX00002", "atestuserX00003");
+    }
+
+    @Test
+    public void test233SearchUsersWithMultiValueRefNotNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .not().item(UserType.F_PARENT_ORG_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        // The result is not treated with DISTINCT and there are two refs, so this is OK.
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123", "elaine123");
+    }
+
+    @Test
     public void test300AssignmentOrgRefSearch() throws Exception {
         PrismReferenceValue o123456 = itemFactory().createReferenceValue("o123456", OrgType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -548,8 +614,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one resource", 1, resources.size());
     }
 
@@ -1373,11 +1438,69 @@ public class SearchTest extends BaseSQLRepoTest {
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
         result.recomputeStatus();
 
-        then("only assignments from the specified role are returned (not inducements)");
+        then("only assignments with specified target object name are returned");
         assertThat(result.isSuccess()).isTrue();
         assertThat(assignments).singleElement()
                 .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
     }
+
+    @Test
+    public void test941AssignmentsWithSpecifiedTargetUsingItem() throws SchemaException {
+        given("query for assignments with target object with specified name (using item)");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME).eq("F0085")
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
+        result.recomputeStatus();
+
+        then("only assignments with specified target object name are returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+    @Test(enabled = false) // TODO implement inner filter in ReferenceRestriction
+    public void test950AssignmentsWithSpecifiedTargetUsingRef() throws SchemaException {
+        given("query for assignments with target object using new ref() construct");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ref(AssignmentType.F_TARGET_REF, null, null)
+                .item(F_NAME).eq("F0085")
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
+        result.recomputeStatus();
+
+        then("only assignments with specified target object name are returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+     /*
+    select
+  a...
+from
+  RAssignment a
+    left join a.targetRef.target t
+where
+  a.targetRef is null
+    // TODO missing condition on t
+order by t.name.orig asc
+     */
 
     // TODO new .ref() filter with inner filter
 

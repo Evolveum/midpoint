@@ -7,12 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.cxf.message.Attachment;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,7 +18,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,7 +33,9 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
     private static final String ID_LABEL = "label";
     private static final String ID_BADGE = "badge";
     private static final String ID_CHEVRON = "chevron";
-    private static final String ID_CONTENT = "content";
+    private static final String ID_ITEMS_CONTAINER = "itemsContainer";
+    private static final String ID_ITEMS = "items";
+    private static final String ID_ITEM = "item";
 
     public ListGroupMenuItemPanel(String id, IModel<ListGroupMenuItem> model) {
         super(id, model);
@@ -53,8 +51,6 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "list-group-menu"));
-
         AjaxLink link = new AjaxLink<>(ID_LINK) {
 
             @Override
@@ -67,6 +63,8 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
         add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
+        icon.add(AttributeAppender.append("class",
+                () -> StringUtils.isNotEmpty(getModelObject().getIconCss()) ? getModelObject().getIconCss() : "far fa-fw fa-circle"));
         link.add(icon);
 
         Label label = new Label(ID_LABEL, () -> getModelObject().getLabel());
@@ -78,14 +76,27 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
         link.add(badge);
 
         WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
+        chevron.add(AttributeAppender.append("class",
+                () -> getModelObject().isActive() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
         chevron.add(new VisibleBehaviour(() -> {
             ListGroupMenuItem item = getModelObject();
-            return StringUtils.isNotEmpty(item.getBadge()) && !item.getItems().isEmpty();
+            return StringUtils.isEmpty(item.getBadge()) && !item.getItems().isEmpty();
         }));
         link.add(chevron);
 
-        WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
-        add(content);
+        WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS_CONTAINER);
+        itemsContainer.add(AttributeAppender.append("style", () -> !getModelObject().isActive() ? "display: none;" : null));
+        itemsContainer.add(new VisibleBehaviour(() -> !getModelObject().getItems().isEmpty()));
+        add(itemsContainer);
+
+        ListView<ListGroupMenuItem> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
+
+            @Override
+            protected void populateItem(ListItem<ListGroupMenuItem> item) {
+                item.add(new ListGroupMenuItemPanel(ID_ITEM, item.getModel()));
+            }
+        };
+        itemsContainer.add(items);
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {

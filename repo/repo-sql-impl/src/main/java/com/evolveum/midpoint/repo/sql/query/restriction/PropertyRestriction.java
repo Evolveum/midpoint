@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.ConstantCondition;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -75,7 +75,7 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
     }
 
     Condition createPropertyVsPropertyCondition(String leftPropertyValuePath) throws QueryException {
-        HqlDataInstance rightItem = getItemPathResolver().resolveItemPath(filter.getRightHandSidePath(),
+        HqlDataInstance<?> rightItem = getItemPathResolver().resolveItemPath(filter.getRightHandSidePath(),
                 filter.getRightHandSideDefinition(), getBaseHqlEntityForChildren(), true);
         String rightHqlPath = rightItem.getHqlPath();
         HibernateQuery hibernateQuery = context.getHibernateQuery();
@@ -179,12 +179,12 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
 
         if (SchemaEnum.class.isAssignableFrom(repoType)) {
             //noinspection unchecked
-            return (Enum) RUtil.getRepoEnumValue(schemaValue, (Class<? extends SchemaEnum>) repoType);
+            return (Enum<?>) RUtil.getRepoEnumValue(schemaValue, (Class<? extends SchemaEnum>) repoType);
         }
 
         Object[] constants = repoType.getEnumConstants();
         for (Object constant : constants) {
-            Enum e = (Enum) constant;
+            Enum<?> e = (Enum<?>) constant;
             if (e.name().equals(schemaValue.name())) {
                 return e;
             }
@@ -193,5 +193,4 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         throw new QueryException("Unknown enum value '" + schemaValue + "', which is type of '"
                 + schemaValue.getClass() + "'.");
     }
-
 }

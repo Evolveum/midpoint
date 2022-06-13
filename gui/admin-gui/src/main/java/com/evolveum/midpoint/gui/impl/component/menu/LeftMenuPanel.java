@@ -305,12 +305,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
         pageParameters.add(OnePageParameterEncoder.PARAMETER, WebModelServiceUtils.getLoggedInFocusOid());
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.profile", GuiStyleConstants.CLASS_ICON_PROFILE,
                 WebComponentUtil.resolveSelfPage(), pageParameters));
-        menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.credentials", GuiStyleConstants.CLASS_ICON_CREDENTIALS,
-                PageSelfCredentials.class));
-        /** menu item which leads to new self Credentials page
+        // old self credentials page is commented
+//        menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.credentials", GuiStyleConstants.CLASS_ICON_CREDENTIALS,
+//                PageSelfCredentials.class));
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.credentials", GuiStyleConstants.CLASS_ICON_CREDENTIALS,
                 com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials.class));
-         */
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
             menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.request", GuiStyleConstants.CLASS_ICON_REQUEST,
                     PageAssignmentShoppingCart.class));
