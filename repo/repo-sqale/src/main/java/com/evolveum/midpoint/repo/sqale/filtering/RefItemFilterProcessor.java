@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Filter processor for reference item paths embedded in table as three columns.
- * OID is represented by UUID column, type by ID (see {@link MObjectType} and relation
+ * OID is represented by UUID column, type by ID (see {@link MObjectType}) and relation
  * by Integer (foreign key) to {@link QUri}.
  */
 public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> {
@@ -120,9 +120,7 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
     private Predicate targetFilterPredicate(@Nullable QName targetType, ObjectFilter targetFilter)
             throws RepositoryException {
         targetType = targetType != null ? targetType : ObjectType.COMPLEX_TYPE;
-        var targetClass = targetType != null
-                ? context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType)
-                : ObjectType.class;
+        var targetClass = context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType);
         var subquery = context.subquery(context.repositoryContext().getMappingBySchemaType(targetClass));
         var targetPath = subquery.path(QObject.class);
         subquery.sqlQuery().where(oidPath.eq(targetPath.oid));
