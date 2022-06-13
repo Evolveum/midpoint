@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -69,7 +70,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
    protected String currentPasswordValue = null;
    protected ProtectedStringType newPasswordValue = new ProtectedStringType();
    protected LoadableDetachableModel<CredentialsPolicyType> credentialsPolicyModel;
-    private boolean savedPassword = false;
+    protected boolean savedPassword = false;
     protected ProgressDto progress = null;
 
     public ChangePasswordPanel(String id, IModel<F> objectModel) {
@@ -108,6 +109,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordTextField currentPasswordField =
                 new PasswordTextField(ID_CURRENT_PASSWORD_FIELD, currentPasswordModel);
         currentPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        currentPasswordField.add(new EnableBehaviour(() -> !savedPassword));
         currentPasswordField.setRequired(false);
         currentPasswordField.setResetPassword(false);
         currentPasswordField.setOutputMarkupId(true);
@@ -170,6 +172,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 changePasswordPerformed(target);
             }
         };
+        changePasswordButton.add(new EnableBehaviour(() -> !savedPassword));
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
@@ -282,7 +285,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         }
 
         OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
-        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD);
         ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());
         reporter.getProgress().clear();
         reporter.setWriteOpResultForProgressActivity(true);
@@ -296,7 +298,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-            collectDeltas(deltas, currentPassword, valuePath);
+            collectDeltas(deltas, newPasswordValue, valuePath);
             getPageBase().getModelService().executeChanges(
                     deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI),
                     Collections.singleton(reporter), result);

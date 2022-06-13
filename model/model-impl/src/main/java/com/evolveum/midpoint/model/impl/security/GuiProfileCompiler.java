@@ -216,6 +216,9 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.isUseNewDesign() != null) {
             composite.setUseNewDesign(adminGuiConfiguration.isUseNewDesign());
         }
+        if (adminGuiConfiguration.isUseRepositoryAssignmentSearch() != null) {
+            composite.setUseRepositoryAssignmentSearch(adminGuiConfiguration.isUseRepositoryAssignmentSearch());
+        }
         if (adminGuiConfiguration.getDefaultExportSettings() != null) {
             composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
         }
