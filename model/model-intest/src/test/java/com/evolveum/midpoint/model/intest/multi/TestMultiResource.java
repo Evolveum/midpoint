@@ -29,7 +29,6 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -60,69 +59,61 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/multi-resource");
 
     // LAVENDER dummy resource has a STRICT dependency on default dummy resource
-    protected static final File RESOURCE_DUMMY_LAVENDER_FILE = new File(TEST_DIR, "resource-dummy-lavender.xml");
-    protected static final String RESOURCE_DUMMY_LAVENDER_OID = "10000000-0000-0000-0000-000000000504";
-    protected static final String RESOURCE_DUMMY_LAVENDER_NAME = "lavender";
-    protected static final String RESOURCE_DUMMY_LAVENDER_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_LAVENDER_FILE = new File(TEST_DIR, "resource-dummy-lavender.xml");
+    private static final String RESOURCE_DUMMY_LAVENDER_OID = "10000000-0000-0000-0000-000000000504";
+    private static final String RESOURCE_DUMMY_LAVENDER_NAME = "lavender";
 
     // IVORY dummy resource has a LAX dependency on default dummy resource
-    protected static final File RESOURCE_DUMMY_IVORY_FILE = new File(TEST_DIR, "resource-dummy-ivory.xml");
-    protected static final String RESOURCE_DUMMY_IVORY_OID = "10000000-0000-0000-0000-000000011504";
-    protected static final String RESOURCE_DUMMY_IVORY_NAME = "ivory";
-    protected static final String RESOURCE_DUMMY_IVORY_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_IVORY_FILE = new File(TEST_DIR, "resource-dummy-ivory.xml");
+    private static final String RESOURCE_DUMMY_IVORY_OID = "10000000-0000-0000-0000-000000011504";
+    private static final String RESOURCE_DUMMY_IVORY_NAME = "ivory";
 
     // BEIGE dummy resource has a RELAXED dependency on default dummy resource
-    protected static final File RESOURCE_DUMMY_BEIGE_FILE = new File(TEST_DIR, "resource-dummy-beige.xml");
-    protected static final String RESOURCE_DUMMY_BEIGE_OID = "10000000-0000-0000-0000-00000001b504";
-    protected static final String RESOURCE_DUMMY_BEIGE_NAME = "beige";
-    protected static final String RESOURCE_DUMMY_BEIGE_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_BEIGE_FILE = new File(TEST_DIR, "resource-dummy-beige.xml");
+    private static final String RESOURCE_DUMMY_BEIGE_OID = "10000000-0000-0000-0000-00000001b504";
+    private static final String RESOURCE_DUMMY_BEIGE_NAME = "beige";
 
     // PERU dummy resource has a RELAXED dependency on YELLOW dummy resource
-    protected static final File RESOURCE_DUMMY_PERU_FILE = new File(TEST_DIR, "resource-dummy-peru.xml");
-    protected static final String RESOURCE_DUMMY_PERU_OID = "10000000-0000-0000-0000-00000001c504";
-    protected static final String RESOURCE_DUMMY_PERU_NAME = "peru";
-    protected static final String RESOURCE_DUMMY_PERU_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_PERU_FILE = new File(TEST_DIR, "resource-dummy-peru.xml");
+    private static final String RESOURCE_DUMMY_PERU_OID = "10000000-0000-0000-0000-00000001c504";
+    private static final String RESOURCE_DUMMY_PERU_NAME = "peru";
 
     // PERU dummy resource has a RELAXED dependency on YELLOW dummy resource and disable instead of delete
-    protected static final File RESOURCE_DUMMY_DARK_PERU_FILE = new File(TEST_DIR, "resource-dummy-dark-peru.xml");
-    protected static final String RESOURCE_DUMMY_DARK_PERU_OID = "f5253596-333d-11e8-8894-37a2f88e7609";
-    protected static final String RESOURCE_DUMMY_DARK_PERU_NAME = "dark-peru";
-    protected static final String RESOURCE_DUMMY_DARK_PERU_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_DARK_PERU_FILE = new File(TEST_DIR, "resource-dummy-dark-peru.xml");
+    private static final String RESOURCE_DUMMY_DARK_PERU_OID = "f5253596-333d-11e8-8894-37a2f88e7609";
+    private static final String RESOURCE_DUMMY_DARK_PERU_NAME = "dark-peru";
 
     // Similar to YELLOW, but has disable instead of delete
-    protected static final File RESOURCE_DUMMY_DARK_YELLOW_FILE = new File(TEST_DIR, "resource-dummy-dark-yellow.xml");
-    protected static final String RESOURCE_DUMMY_DARK_YELLOW_OID = "33da1afe-3efb-11e8-a5e3-4fed83f61ae7";
-    protected static final String RESOURCE_DUMMY_DARK_YELLOW_NAME = "dark-yellow";
-    protected static final String RESOURCE_DUMMY_DARK_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_DARK_YELLOW_FILE = new File(TEST_DIR, "resource-dummy-dark-yellow.xml");
+    private static final String RESOURCE_DUMMY_DARK_YELLOW_OID = "33da1afe-3efb-11e8-a5e3-4fed83f61ae7";
+    private static final String RESOURCE_DUMMY_DARK_YELLOW_NAME = "dark-yellow";
 
-    protected static final File RESOURCE_DUMMY_DAVID_FILE = new File(TEST_DIR, "resource-dummy-david.xml");
-    protected static final String RESOURCE_DUMMY_DAVID_OID = "10000000-0000-0000-0000-000000300001";
-    protected static final String RESOURCE_DUMMY_DAVID_NAME = "david";
-    protected static final String RESOURCE_DUMMY_DAVID_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_DAVID_FILE = new File(TEST_DIR, "resource-dummy-david.xml");
+    private static final String RESOURCE_DUMMY_DAVID_OID = "10000000-0000-0000-0000-000000300001";
+    private static final String RESOURCE_DUMMY_DAVID_NAME = "david";
 
-    protected static final File RESOURCE_DUMMY_GOLIATH_FILE = new File(TEST_DIR, "resource-dummy-goliath.xml");
-    protected static final String RESOURCE_DUMMY_GOLIATH_OID = "10000000-0000-0000-0000-000000300002";
-    protected static final String RESOURCE_DUMMY_GOLIATH_NAME = "goliath";
-    protected static final String RESOURCE_DUMMY_GOLIATH_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_GOLIATH_FILE = new File(TEST_DIR, "resource-dummy-goliath.xml");
+    private static final String RESOURCE_DUMMY_GOLIATH_OID = "10000000-0000-0000-0000-000000300002";
+    private static final String RESOURCE_DUMMY_GOLIATH_NAME = "goliath";
 
     // Assigns default dummy resource and red dummy resource
-    protected static final File ROLE_DUMMIES_FILE = new File(TEST_DIR, "role-dummies.xml");
-    protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
+    private static final File ROLE_DUMMIES_FILE = new File(TEST_DIR, "role-dummies.xml");
+    private static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
 
-    protected static final File ROLE_DUMMIES_IVORY_FILE = new File(TEST_DIR, "role-dummies-ivory.xml");
-    protected static final String ROLE_DUMMIES_IVORY_OID = "12345678-d34d-b33f-f00d-55555511dddd";
+    private static final File ROLE_DUMMIES_IVORY_FILE = new File(TEST_DIR, "role-dummies-ivory.xml");
+    private static final String ROLE_DUMMIES_IVORY_OID = "12345678-d34d-b33f-f00d-55555511dddd";
 
-    protected static final File ROLE_DUMMIES_BEIGE_FILE = new File(TEST_DIR, "role-dummies-beige.xml");
-    protected static final String ROLE_DUMMIES_BEIGE_OID = "12345678-d34d-b33f-f00d-5555551bdddd";
+    private static final File ROLE_DUMMIES_BEIGE_FILE = new File(TEST_DIR, "role-dummies-beige.xml");
+    private static final String ROLE_DUMMIES_BEIGE_OID = "12345678-d34d-b33f-f00d-5555551bdddd";
 
-    protected static final File ROLE_FIGHT_FILE = new File(TEST_DIR, "role-fight.xml");
-    protected static final String ROLE_FIGHT_OID = "12345678-d34d-b33f-f00d-5555550303dd";
+    private static final File ROLE_FIGHT_FILE = new File(TEST_DIR, "role-fight.xml");
+    private static final String ROLE_FIGHT_OID = "12345678-d34d-b33f-f00d-5555550303dd";
 
-    protected static final File ROLE_DARK_YELLOW_PERU_FILE = new File(TEST_DIR, "role-dark-yellow-peru.xml");
-    protected static final String ROLE_DARK_YELLOW_PERU_OID = "95213bbc-3357-11e8-aeb8-439c6ddc0fa0";
+    private static final File ROLE_DARK_YELLOW_PERU_FILE = new File(TEST_DIR, "role-dark-yellow-peru.xml");
+    private static final String ROLE_DARK_YELLOW_PERU_OID = "95213bbc-3357-11e8-aeb8-439c6ddc0fa0";
 
-    protected static final String USER_WORLD_NAME = "world";
-    protected static final String USER_WORLD_FULL_NAME = "The World";
+    private static final String USER_WORLD_NAME = "world";
+    private static final String USER_WORLD_FULL_NAME = "The World";
 
     private static final String USER_FIELD_NAME = "field";
 
@@ -918,7 +909,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
      * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
      * resource through the user to the other resource. If dependency does not work then no value is propagated.
      */
-    public void jackAssignRoleDummies() throws Exception {
+    private void jackAssignRoleDummies() throws Exception {
         Task task = createTask("jackAssignRoleDummies");
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
@@ -971,7 +962,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
     }
 
-    public void jackRename() throws Exception {
+    private void jackRename() throws Exception {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -980,7 +971,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         jackRename(USER_JACK_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, task, result);
     }
 
-    public void jackRename(String toName, String toFullName, Task task, OperationResult result)
+    private void jackRename(String toName, String toFullName, Task task, OperationResult result)
             throws Exception {
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_NAME,
                 PrismTestUtil.createPolyString(toName));
@@ -1028,7 +1019,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, toName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
     }
 
-    public void jackUnAssignRoleDummies() throws Exception {
+    private void jackUnAssignRoleDummies() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1064,7 +1055,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
      * The "dummies" role assigns two dummy resources that are in a dependency. The value of DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME is propagated from one
      * resource through the user to the other resource. If dependency does not work then no value is propagated.
      */
-    public void jackAssignRoleDummiesError(
+    private void jackAssignRoleDummiesError(
             String roleOid, String dummyResourceName, boolean expectAccount) throws Exception {
 
         Task task = getTestTask();
@@ -1108,7 +1099,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
     }
 
-    public void jackUnassignRoleDummiesError(
+    private void jackUnassignRoleDummiesError(
             String roleOid, String otherResourceOid) throws Exception {
 
         Task task = getTestTask();
@@ -1820,7 +1811,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock"));
+        traced( () ->
+                modifyUserReplace(
+                        userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock")));
 
         // THEN
         then();
@@ -2491,6 +2484,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
         targetRef.getValue().setOid(ROLE_FIGHT_OID);
         targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
+        //noinspection unchecked,rawtypes
         userBefore.findOrCreateContainer(UserType.F_ASSIGNMENT).add((PrismContainerValue) cval);
 
         // this should add user and at the sate time assign the role fight..->

@@ -94,8 +94,8 @@ final class RemainingShadowsActivityRun
                     .item(syncTimestampItem).le(getReconciliationStartTimestamp(result))
                     .or().item(syncTimestampItem).isNull()
                 .endBlock()
-                    .and().item(ShadowType.F_RESOURCE_REF).ref(resourceObjectClass.getResourceOid())
-                    .and().item(ShadowType.F_OBJECT_CLASS).eq(resourceObjectClass.getObjectClassName())
+                    .and().item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(processingScope.getResolvedObjectClassName())
                 .build();
     }
 
@@ -120,7 +120,7 @@ final class RemainingShadowsActivityRun
 
     @Override
     public ItemDefinitionProvider createItemDefinitionProvider() {
-        return resourceObjectClass.createItemDefinitionProvider();
+        return processingScope.createItemDefinitionProvider();
     }
 
     @Override
@@ -129,7 +129,7 @@ final class RemainingShadowsActivityRun
             RunningTask workerTask, OperationResult result)
             throws CommonException {
 
-        if (!objectsFilter.matches(shadow.asPrismObject())) {
+        if (!processingScope.getPostSearchFilter().matches(shadow.asPrismObject())) {
             result.recordNotApplicable();
             return true;
         }
@@ -219,7 +219,7 @@ final class RemainingShadowsActivityRun
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
-        change.setResource(resourceObjectClass.getResource().asPrismObject());
+        change.setResource(processingScope.getResource().asPrismObject());
         change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
         change.setSimulate(isPreview());

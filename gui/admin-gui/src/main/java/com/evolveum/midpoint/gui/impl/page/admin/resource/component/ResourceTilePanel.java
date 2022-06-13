@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.Tile;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.TilePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;

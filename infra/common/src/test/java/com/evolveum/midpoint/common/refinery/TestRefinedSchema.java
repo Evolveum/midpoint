@@ -8,6 +8,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,7 +112,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertLayerRefinedSchema(schema, LayerType.MODEL, LayerType.MODEL);
         assertLayerRefinedSchema(schema, LayerType.PRESENTATION, LayerType.PRESENTATION);
 
-        ResourceObjectDefinition accountDef = schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        ResourceObjectDefinition accountDef = schema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         ResourceAttributeDefinition<?> userPasswordAttribute = accountDef.findAttributeDefinition("userPassword");
         assertNotNull("No userPassword attribute", userPasswordAttribute);
         assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
@@ -180,8 +181,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
                     .as("definitions for ACCOUNT type")
                     .hasSize(1);
 
-            ResourceObjectDefinition accountTypeDef =
-                    schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+            ResourceObjectDefinition accountTypeDef = schema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
             assertAccountObjectDefinition(accountTypeDef, sourceLayer, validationLayer);
             assertAccountEntitlements(schema, accountTypeDef);
             assertRefinedToLayer(accountTypeDef, sourceLayer);
@@ -196,8 +196,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
     private void assertAccountEntitlements(ResourceSchema schema, ResourceObjectDefinition accountDef) {
         assertFalse("No entitlement definitions", schema.getObjectTypeDefinitions(ShadowKindType.ENTITLEMENT).isEmpty());
         ResourceObjectTypeDefinition rEntDef =
-                schema.findObjectTypeDefinitionRequired(ShadowKindType.ENTITLEMENT, null);
-        schema.findObjectTypeDefinitionRequired(ShadowKindType.ENTITLEMENT, ENTITLEMENT_GROUP_INTENT);
+                findObjectTypeDefinitionRequired(schema, ShadowKindType.ENTITLEMENT, null);
+        findObjectTypeDefinitionRequired(schema, ShadowKindType.ENTITLEMENT, ENTITLEMENT_GROUP_INTENT);
 
         assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 
@@ -309,7 +309,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceType resourceType = resource.asObjectable();
 
         ResourceSchema rSchema = ResourceSchemaFactory.parseCompleteSchema(resourceType);
-        ResourceObjectTypeDefinition defaultAccountDefinition = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition defaultAccountDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in " + rSchema, defaultAccountDefinition);
 
         PrismObject<ShadowType> accObject = prismContext.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
@@ -341,7 +342,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceSchema rSchema = ResourceSchemaFactory.parseCompleteSchema(resource.asObjectable());
         System.out.println("Refined schema:");
         System.out.println(rSchema.debugDump(1));
-        ResourceObjectTypeDefinition defaultAccountDefinition = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition defaultAccountDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in " + rSchema, defaultAccountDefinition);
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.debugDump(1));
@@ -416,7 +418,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceSchema rSchema = ResourceSchemaFactory.parseCompleteSchema(resourceType);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getObjectTypeDefinitions(ShadowKindType.ACCOUNT).isEmpty());
-        ResourceObjectTypeDefinition rAccount = rSchema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        ResourceObjectTypeDefinition rAccount = findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ACCOUNT, null);
 
         // WHEN
         PrismObject<ShadowType> blankShadow = rAccount.createBlankShadow(resource.getOid(), "foo");
@@ -442,7 +444,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceSchema rSchema = ResourceSchemaFactory.parseCompleteSchema(resourceType);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getObjectTypeDefinitions(ShadowKindType.ACCOUNT).isEmpty());
-        ResourceObjectTypeDefinition rAccount = rSchema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        ResourceObjectTypeDefinition rAccount = findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ACCOUNT, null);
 
         // WHEN
         Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedObjectPatterns();
@@ -580,7 +582,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         // ### default account objectType
 
-        ResourceObjectTypeDefinition rAccountDef = rSchema.findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        ResourceObjectTypeDefinition rAccountDef = findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ACCOUNT, null);
 
         assertTrue(rAccountDef.isDefaultForKind());
 
@@ -643,8 +645,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertEquals("Unexpected number of propertyDefinitions", 53, propertyDefinitions.size());
 
         assertFalse("No entitlement definitions", rSchema.getObjectTypeDefinitions(ShadowKindType.ENTITLEMENT).isEmpty());
-        ResourceObjectTypeDefinition rEntDef = rSchema.findObjectTypeDefinitionRequired(ShadowKindType.ENTITLEMENT, null);
-        rSchema.findObjectTypeDefinitionRequired(ShadowKindType.ENTITLEMENT, ENTITLEMENT_LDAP_GROUP_INTENT);
+        ResourceObjectTypeDefinition rEntDef = findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ENTITLEMENT, null);
+        findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ENTITLEMENT, ENTITLEMENT_LDAP_GROUP_INTENT);
 
         assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 

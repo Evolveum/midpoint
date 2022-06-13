@@ -26,6 +26,7 @@ import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -3921,8 +3922,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // Dry run to remember the current sync token in the task instance.
         // Otherwise a last sync token would be used and
         // no change would be detected
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
+        ResourceOperationCoordinates coords = getDefaultAccountObjectClassCoordinates();
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -3936,6 +3936,12 @@ public class TestDummy extends AbstractBasicDummyTest {
         checkAllShadows();
 
         assertSteadyResource();
+    }
+
+    private @NotNull ResourceOperationCoordinates getDefaultAccountObjectClassCoordinates() {
+        return ResourceOperationCoordinates.ofObjectClass(
+                RESOURCE_DUMMY_OID,
+                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
     }
 
     @Test
@@ -3956,8 +3962,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayValue("Resource before sync", dummyResource.debugDump());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
+        ResourceOperationCoordinates coords = getDefaultAccountObjectClassCoordinates();
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4010,8 +4015,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayValue("Resource before sync", dummyResource.debugDump());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
+        ResourceOperationCoordinates coords = getDefaultAccountObjectClassCoordinates();
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4167,8 +4171,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayValue("Resource before sync", dummyResource.debugDump());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                objectClass);
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.of(RESOURCE_DUMMY_OID, objectClass);
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4229,8 +4232,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         DummyAccount dummyAccount = getDummyAccountAssert(DRAKE_USERNAME, drakeIcfUid);
         dummyAccount.replaceAttributeValue("fullname", "Captain Drake");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                objectClass);
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.of(RESOURCE_DUMMY_OID, objectClass);
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4285,8 +4287,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayValue("Resource before sync", dummyResource.debugDump());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                objectClass);
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.of(RESOURCE_DUMMY_OID, objectClass);
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4354,8 +4355,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayValue("Resource before sync", dummyResource.debugDump());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                objectClass);
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.of(RESOURCE_DUMMY_OID, objectClass);
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4414,8 +4414,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         displayValue("Resource before sync", dummyResource.debugDump());
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                objectClass);
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.of(RESOURCE_DUMMY_OID, objectClass);
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
@@ -4460,8 +4459,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_DAEMON_USERNAME, daemonIcfUid);
         dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID,
-                ProvisioningTestUtil.getDefaultAccountObjectClass(resourceBean));
+        ResourceOperationCoordinates coords = getDefaultAccountObjectClassCoordinates();
 
         when();
         mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, syncTask, result);

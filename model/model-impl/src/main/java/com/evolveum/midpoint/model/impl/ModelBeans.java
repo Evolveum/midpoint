@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
 import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.correlator.BuiltInResultCreator;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
@@ -133,4 +134,5 @@ public class ModelBeans {
     @Autowired public BuiltInResultCreator builtInResultCreator;
     @Autowired public SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     @Autowired public SynchronizationActionFactory synchronizationActionFactory;
+    @Autowired public ProjectionContextKeyFactory projectionContextKeyFactory;
 }

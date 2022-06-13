@@ -27,7 +27,7 @@ public class ObjectClassDto extends Selectable<ObjectClassDto>
     @NotNull private final ResourceObjectTypeDefinition refinedDefinition;
 
     public ObjectClassDto(@NotNull ResourceObjectTypeDefinition definition) {
-        Validate.notNull(definition, "Refined object class definition must not be null.");
+        Validate.notNull(definition, "Refined object definition must not be null.");
         this.refinedDefinition = definition;
     }
 

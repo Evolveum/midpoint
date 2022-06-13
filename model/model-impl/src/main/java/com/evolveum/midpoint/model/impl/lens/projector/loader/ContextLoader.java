@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
@@ -16,6 +16,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.executor.FocusChangeExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +28,6 @@ import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoadOperation;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.FocusLoadOperation;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionFullLoadOperation;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionUpdateOperation;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -50,16 +47,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * the account links in focus (linkRef) and focus deltas.
  *
  * @author Radovan Semancik
- *
  */
 @Component
 @ProcessorExecution()
 public class ContextLoader implements ProjectorProcessor {
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private SecurityHelper securityHelper;
 
@@ -79,24 +72,28 @@ public class ContextLoader implements ProjectorProcessor {
      * The loading is repeated if the focus is modified during the `load` operation. See MID-7725.
      */
     @ProcessorMethod
-    <F extends ObjectType> void load(@NotNull LensContext<F> context, @NotNull String activityDescription,
-            @SuppressWarnings("unused") XMLGregorianCalendar now, @NotNull Task task, @NotNull OperationResult parentResult)
+    public <F extends ObjectType> void load(
+            @NotNull LensContext<F> context,
+            @NotNull String activityDescription,
+            XMLGregorianCalendar ignored,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         for (int loadAttempt = 1; ; loadAttempt++) {
-            Set<String> modifiedOids = new HashSet<>();
-            FocusChangeExecution.ChangeExecutionListener listener = modifiedOids::add;
+            Set<String> modifiedFocusOids = new HashSet<>();
+            FocusChangeExecution.ChangeExecutionListener listener = modifiedFocusOids::add;
             FocusChangeExecution.registerChangeExecutionListener(listener);
             try {
                 new ContextLoadOperation<>(context, activityDescription, task)
-                        .load(parentResult);
+                        .load(result);
             } finally {
                 FocusChangeExecution.unregisterChangeExecutionListener(listener);
             }
-            LOGGER.trace("Focus OID/OIDs modified during load operation in this thread: {}", modifiedOids);
+            LOGGER.trace("Focus OID/OIDs modified during load operation in this thread: {}", modifiedFocusOids);
             LensFocusContext<F> focusContext = context.getFocusContext();
-            if (focusContext != null && focusContext.getOid() != null && modifiedOids.contains(focusContext.getOid())) {
+            if (focusContext != null && focusContext.getOid() != null && modifiedFocusOids.contains(focusContext.getOid())) {
                 if (loadAttempt == MAX_LOAD_ATTEMPTS) {
                     LOGGER.warn("Focus was repeatedly modified during loading too many times ({}) - continuing,"
                                     + " but it's suspicious", MAX_LOAD_ATTEMPTS);
@@ -113,27 +110,27 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    public <O extends ObjectType> void loadFocusContext(LensContext<O> context, Task task, OperationResult parentResult)
+    /** Loads just the focus context; projections are ignored at this moment. */
+    public <O extends ObjectType> void loadFocusContext(LensContext<O> context, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         new FocusLoadOperation<>(context, task)
-                .load(parentResult);
+                .load(result);
     }
 
-
-    /**
-     * Updates the projection context. See {@link ProjectionUpdateOperation}.
-     */
-    <F extends ObjectType> void updateProjectionContext(LensContext<F> context,
-            LensProjectionContext projectionContext, Task task, OperationResult result) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
-        projectionContext.updateCoordinates(task, result);
+    /** Updates the projection context. For exact meaning see {@link ProjectionUpdateOperation}. */
+    public <F extends ObjectType> void updateProjectionContext(
+            LensContext<F> context,
+            LensProjectionContext projectionContext,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         new ProjectionUpdateOperation<>(context, projectionContext, task)
                 .update(result);
     }
 
-    public <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, OperationResult result)
+    <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, OperationResult result)
             throws SchemaException, ConfigurationException {
         if (!canProcessArchetype(context)) {
             return null;
@@ -148,7 +145,8 @@ public class ContextLoader implements ProjectorProcessor {
         return context.getSystemConfiguration() != null && context.getFocusContext() != null;
     }
 
-    public <F extends AssignmentHolderType> void updateArchetype(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+    public <F extends AssignmentHolderType> void updateArchetype(LensContext<F> context, OperationResult result)
+            throws SchemaException {
         if (!canProcessArchetype(context)) {
             return;
         }
@@ -219,6 +217,10 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
+    /**
+     * FIXME this method sometimes return repo-only shadow in the case of consistency mechanism is applied;
+     *  see `TestConsistencyReaper.test150` and MID-7970.
+     */
     public void loadFullShadow(@NotNull LensProjectionContext projCtx, String reason,
             Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -228,7 +230,7 @@ public class ContextLoader implements ProjectorProcessor {
     }
 
     @SuppressWarnings("SameParameterValue")
-    void loadFullShadowNoDiscovery(@NotNull LensProjectionContext projCtx, String reason,
+    public void loadFullShadowNoDiscovery(@NotNull LensProjectionContext projCtx, String reason,
             Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -245,7 +247,7 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    public <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
+    <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
             Task task, OperationResult result) throws ExpressionEvaluationException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         loadSecurityPolicy(context, false, task, result);
@@ -267,11 +269,11 @@ public class ContextLoader implements ProjectorProcessor {
                 forceReload, task, result);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Security policy:\n  Global:\n{}\n  Focus:\n{}",
+            LOGGER.trace("Security policies:\n  Global:\n{}\n  Focus:\n{}",
                     DebugUtil.debugDump(globalSecurityPolicy, 2),
                     DebugUtil.debugDump(focusSecurityPolicy, 2));
         } else {
-            LOGGER.debug("Security policy: global: {}, focus: {}", globalSecurityPolicy, focusSecurityPolicy);
+            LOGGER.debug("Security policies: global: {}, focus: {}", globalSecurityPolicy, focusSecurityPolicy);
         }
     }
 

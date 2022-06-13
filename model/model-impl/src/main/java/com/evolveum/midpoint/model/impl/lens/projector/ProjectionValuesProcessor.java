@@ -12,9 +12,11 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -236,7 +238,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                                     .futurePointInTime()
                                                     //.readOnly() [not yet]
                                                     .build();
-                                    fullConflictingShadow = provisioningService.getObject(ShadowType.class, conflictingShadow.getOid(), options, task, iterationResult);
+                                    fullConflictingShadow = provisioningService.getObject(
+                                            ShadowType.class, conflictingShadow.getOid(), options, task, iterationResult);
                                     LOGGER.trace("Full conflicting shadow = {}", fullConflictingShadow);
                                 } catch (ObjectNotFoundException ex) {
                                     // Looks like the conflicting resource object no longer exists. Its shadow in repository
@@ -401,8 +404,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> void treatConflictWithMatchedOwner(LensContext<F> context, LensProjectionContext projContext,
-            OperationResult result, @NotNull RememberedElementState<ShadowType> rememberedProjectionState,
+    private <F extends FocusType> void treatConflictWithMatchedOwner(
+            LensContext<F> context,
+            LensProjectionContext projContext,
+            OperationResult result,
+            @NotNull RememberedElementState<ShadowType> rememberedProjectionState,
             ShadowType fullConflictingShadow)
             throws SchemaException {
         //check if it is add account (primary delta contains add shadow delta)..
@@ -421,18 +427,18 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
 
         LensProjectionContext conflictingCtx =
-                context.findProjectionContext(projContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
+                context.findProjectionContextByOidAndKey(fullConflictingShadow.getOid(), projContext.getKey());
         if (conflictingCtx == null) {
-            conflictingCtx = context.createDetachedProjectionContext(projContext.getResourceShadowDiscriminator());
+            conflictingCtx = context.createDetachedProjectionContext(projContext.getKey());
             conflictingCtx.initializeElementState(
                     fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow, null);
             conflictingCtx.setFullShadow(true);
             conflictingCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
             conflictingCtx.setResource(projContext.getResource());
             conflictingCtx.setDoReconciliation(true);
-            conflictingCtx.getDependencies().clear();
-            conflictingCtx.getDependencies().addAll(projContext.getDependencies());
             conflictingCtx.setWave(projContext.getWave());
+            // As for the dependencies, they will be automatically re-computed based on kind/intent that should be the same
+            // for this context as they are for projContext. So no need of copying them (as it was here before 4.6).
             context.addConflictingProjectionContext(conflictingCtx);
         }
 
@@ -448,7 +454,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             throws SchemaException {
         //found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
         cleanupContext(projContext, fullConflictingShadow, rememberedProjectionState);
-        projContext.replaceOldAndCurrentObject(fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow);
+        projContext.replaceOldAndCurrentObject(
+                fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow);
         projContext.setFullShadow(true);
         projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
         LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
@@ -464,7 +471,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         LOGGER.debug("Conflicting projection already linked to the current focus, no recompute needed, continue processing with conflicting projection.");
         cleanupContext(projContext, fullConflictingShadow, rememberedProjectionState);
         projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-        projContext.replaceOldAndCurrentObject(fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow);
+        projContext.replaceOldAndCurrentObject(
+                fullConflictingShadow.getOid(), fullConflictingShadow.clone(), fullConflictingShadow);
         projContext.setFullShadow(true);
         projContext.setExists(true);
 
@@ -497,70 +505,72 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         return false;
     }
 
-    @SuppressWarnings("RedundantIfStatement")
-    private boolean hasIterationExpression(LensProjectionContext accountContext) {
-        ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
-        if (accDef == null) {
+    private boolean hasIterationExpression(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+        IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
+        if (iterationSpec == null) {
             return false;
         }
-        IterationSpecificationType iterationType = accDef.getIteration();
-        if (iterationType == null) {
-            return false;
-        }
-        if (iterationType.getTokenExpression() != null) {
-            return true;
-        }
-        if (iterationType.getPostIterationCondition() != null) {
-            return true;
-        }
-        if (iterationType.getPreIterationCondition() != null) {
-            return true;
-        }
-        return false;
+        return iterationSpec.getTokenExpression() != null
+                || iterationSpec.getPostIterationCondition() != null
+                || iterationSpec.getPreIterationCondition() != null;
     }
 
-    private int determineMaxIterations(LensProjectionContext accountContext) {
-        ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
-        if (accDef != null) {
-            IterationSpecificationType iteration = accDef.getIteration();
-            return LensUtil.determineMaxIterations(iteration);
-        } else {
-            return LensUtil.determineMaxIterations(null);
-        }
+    @Nullable private IterationSpecificationType getIterationSpecification(LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
+        ResourceObjectDefinition def = projCtx.getStructuralDefinitionIfNotBroken();
+        return def != null ? def.getDefinitionBean().getIteration() : null;
     }
 
-    private <F extends ObjectType> String formatIterationToken(LensContext<F> context,
-            LensProjectionContext accountContext, int iteration, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
-        if (accDef == null) {
+    private int determineMaxIterations(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+        return LensUtil.determineMaxIterations(
+                getIterationSpecification(projCtx));
+    }
+
+    private <F extends ObjectType> String formatIterationToken(
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            int iteration,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
+        if (iterationSpec == null) {
             return LensUtil.formatIterationTokenDefault(iteration);
         }
-        IterationSpecificationType iterationType = accDef.getIteration();
-        VariablesMap variables = createVariablesMap(context, accountContext);
-        return LensUtil.formatIterationToken(context, accountContext, iterationType, iteration,
-                expressionFactory, variables, task, result);
+        VariablesMap variables = createVariablesMap(context, projCtx);
+        return LensUtil.formatIterationToken(
+                projCtx, iterationSpec, iteration, expressionFactory, variables, task, result);
     }
 
     private <F extends ObjectType> VariablesMap createVariablesMap(LensContext<F> context,
             LensProjectionContext projectionContext) {
-        return ModelImplUtils.getDefaultVariablesMap(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
-                projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
-                context.getSystemConfiguration(), projectionContext);
+        return ModelImplUtils.getDefaultVariablesMap(
+                context.getFocusContext().getObjectNew(),
+                projectionContext.getObjectNew(),
+                projectionContext.getResource().asPrismObject(),
+                context.getSystemConfiguration(),
+                projectionContext);
     }
 
-    private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
-            LensProjectionContext accountContext, int iteration, String iterationToken,
-            boolean beforeIteration, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
-        if (accDef == null) {
+    private <F extends ObjectType> boolean evaluateIterationCondition(
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            int iteration,
+            String iterationToken,
+            boolean beforeIteration,
+            Task task,
+            OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
+        if (iterationSpec == null) {
             return true;
         }
-        IterationSpecificationType iterationType = accDef.getIteration();
-        VariablesMap variables = createVariablesMap(context, accountContext);
-        return LensUtil.evaluateIterationCondition(context, accountContext, iterationType,
-                iteration, iterationToken, beforeIteration, expressionFactory, variables, task, result);
+        VariablesMap variables = createVariablesMap(context, projCtx);
+        return LensUtil.evaluateIterationCondition(
+                context, projCtx, iterationSpec, iteration, iterationToken, beforeIteration, expressionFactory, variables,
+                task, result);
     }
 
     /**
@@ -577,7 +587,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         ResourceObjectDefinition rAccountDef = accountContext.getCompositeObjectDefinition();
         if (rAccountDef == null) {
             throw new SchemaException("No definition for account type '"
-                    +accountContext.getResourceShadowDiscriminator()+"' in "+accountContext.getResource());
+                    +accountContext.getKey()+"' in "+accountContext.getResource());
         }
 
         if (primaryDelta.isAdd()) {
@@ -588,7 +598,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
-                                "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
+                                "account "+accountContext.getKey()+" during "+activityDescription);
                     }
                 }
             }
@@ -599,7 +609,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
-                                "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
+                                "account "+accountContext.getKey()+" during "+activityDescription);
                     }
                 }
             }
@@ -658,9 +668,13 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     }
 
     @ProcessorMethod
-    <F extends FocusType> void processPostRecon(LensContext<F> context, LensProjectionContext projContext,
-            @SuppressWarnings("unused") String activityDescription, @SuppressWarnings("unused") XMLGregorianCalendar now,
-            Task task, OperationResult result)
+    <F extends FocusType> void processPostRecon(
+            LensContext<F> context,
+            LensProjectionContext projContext,
+            @SuppressWarnings("unused") String activityDescription,
+            @SuppressWarnings("unused") XMLGregorianCalendar now,
+            Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, ConfigurationException {
         SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
         if (policyDecision == SynchronizationPolicyDecision.UNLINK) {

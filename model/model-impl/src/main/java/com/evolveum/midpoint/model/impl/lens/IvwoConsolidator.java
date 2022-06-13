@@ -11,9 +11,12 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,10 +39,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConsolidationTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemType;
@@ -312,9 +311,44 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             V value = equivalenceClass.getRepresentative().getItemValue();
             // MD#5 - but metadata for weak mappings are not supported yet
 //            computeValueMetadataOnDeltaValue(value, equivalenceClass::getMemberValues);
-            itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, equivalenceClass.members));
+            itemDelta.addValueToAdd(cloneAndApplyAssignmentOrigin(value, isAssignment, equivalenceClass.members));
         }
     }
+
+    private V cloneAndApplyAssignmentOrigin(
+            V value, boolean isAssignment, Collection<? extends ItemValueWithOrigin<V, D>> origins) throws SchemaException {
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
+    }
+
+    private String getAutoCreationIdentifier(Collection<? extends ItemValueWithOrigin<V, D>> origins) {
+        // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
+        for (ItemValueWithOrigin<V, D> origin : origins) {
+            if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
+                return origin.getMapping().getIdentifier();
+            }
+        }
+        return null;
+    }
+
+    private V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
+            Supplier<String> originMappingNameSupplier) throws SchemaException {
+        //noinspection unchecked
+        V cloned = (V) value.clone();
+        if (isAssignment && cloned instanceof PrismContainerValue) {
+            ((PrismContainerValue<?>) cloned).setId(null);
+            String originMappingName = originMappingNameSupplier.get();
+            LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
+            if (originMappingName != null) {
+                ((PrismContainerValue<?>) cloned)
+                        .<MetadataType>findOrCreateContainer(AssignmentType.F_METADATA)
+                        .getValue()
+                        .asContainerable()
+                        .setOriginMappingName(originMappingName);
+            }
+        }
+        return cloned;
+    }
+
 
     private Collection<I> selectWeakNonNegativeValues() {
         Collection<I> nonNegativeIvwos = ivwoTriple.getNonNegativeValues();
@@ -430,7 +464,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
 
         private void addCurrentValueToDeltaAddSet() throws SchemaException {
-            itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(equivalenceClass.getRepresentative(), isAssignment, addingOrigins));
+            itemDelta.addValueToAdd(
+                    cloneAndApplyAssignmentOrigin(equivalenceClass.getRepresentative(), isAssignment, addingOrigins));
         }
 
         private void addCurrentValueToDeltaDeleteSet() {
@@ -852,7 +887,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private void logEnd() {
         LOGGER.trace("Consolidated {} IVwO triple to delta:\n{}", itemPath, itemDelta.debugDumpLazily(1));
         if (result.isTracingNormal(ItemConsolidationTraceType.class)) {
-            ItemConsolidationTraceType trace = new ItemConsolidationTraceType(prismContext);
+            ItemConsolidationTraceType trace = new ItemConsolidationTraceType();
             trace.setItemPath(new ItemPathType(itemPath));
             try {
                 if (ivwoTriple != null) {

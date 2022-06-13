@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.Contract;
@@ -39,10 +39,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -221,8 +217,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         addDummyAccount("banderson");
 
-        ResourceShadowCoordinates coords = new ResourceShadowCoordinates(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         assertNotNull("No last change", lastChange);
@@ -249,8 +245,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         setDummyAccountTestAttribute("banderson", "value1", "value2", "value3");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -284,8 +280,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         setDummyAccountTestAttribute("banderson", "value1", "value2", "value3", "value4");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -319,8 +315,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         setDummyAccountTestAttribute("banderson", "value1", "value3", "value4");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -354,8 +350,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         setDummyAccountTestAttribute("banderson", "value100");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -389,8 +385,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         setDummyAccountTestAttribute("banderson", "value4");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -418,8 +414,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         setDummyAccountTestAttribute("banderson", "value125");
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -442,8 +438,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         syncServiceMock.reset();
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -466,8 +462,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
         syncServiceMock.reset();
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(
+                ResourceOperationCoordinates.ofResource(RESOURCE_ASYNC_OID), task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         assertThat(lastChange).as("last change").isNull();

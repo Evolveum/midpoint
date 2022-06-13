@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,9 +37,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -142,7 +140,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             return refinedSchema.findObjectDefinition(getKind(), intent);
         } else {
             // TODO: Can be intent unknown or null here? If so, what should we do with that?
-            return refinedSchema.findObjectDefinition(getKind(), null);
+            return refinedSchema.findDefaultDefinitionForKind(getKind());
         }
     }
 

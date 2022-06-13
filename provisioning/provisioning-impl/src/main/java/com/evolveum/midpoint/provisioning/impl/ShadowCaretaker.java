@@ -169,7 +169,7 @@ public class ShadowCaretaker {
         }
 
         // We also need to replace the entire object definition to inject
-        // correct object class definition here
+        // correct resource object definition here
         // If we don't do this then the patch (delta.applyTo) will not work
         // correctly because it will not be able to
         // create the attribute container if needed.

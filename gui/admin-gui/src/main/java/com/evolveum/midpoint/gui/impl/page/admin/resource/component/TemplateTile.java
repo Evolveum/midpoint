@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.Tile;
-
-import javax.annotation.Nullable;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
 /**
  * @author lskublik

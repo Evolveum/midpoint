@@ -102,8 +102,14 @@ class CommonHelper {
     }
 
     // TODO move to more appropriate place
-    PrismObject<ShadowType> futurizeShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
-            Collection<SelectorOptions<GetOperationOptions>> options, XMLGregorianCalendar now) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    PrismObject<ShadowType> futurizeShadow(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> repoShadow,
+            PrismObject<ShadowType> resourceShadow,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            XMLGregorianCalendar now)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException {
         if (!ProvisioningUtil.isFuturePointInTime(options)) {
             if (resourceShadow == null) {
                 return repoShadow;

@@ -586,4 +586,20 @@ public class ResourceObjectClassDefinitionImpl
     public String getResourceOid() {
         return null; // TODO remove this
     }
+
+    @Override
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return null;
+    }
+
+    @Override
+    public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
+        return null;
+    }
+
+    @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        // Normally, object class definitions know nothing about kind/intent. This is the only exception.
+        return kind == ShadowKindType.ACCOUNT && isDefaultAccountDefinition();
+    }
 }

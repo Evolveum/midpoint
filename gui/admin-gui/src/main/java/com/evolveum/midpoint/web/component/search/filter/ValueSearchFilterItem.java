@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author honchar
  */
-public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinition, O extends ObjectType> implements Serializable {
+public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinition<?>, O extends ObjectType> implements Serializable {
 
     private static final long serialVersionUID = 1L;
     public static final String F_VALUE = "value";

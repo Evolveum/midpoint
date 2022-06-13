@@ -1814,16 +1814,26 @@ public class OperationResult
         return result;
     }
 
+    /**
+     * As {@link #createOperationResultType()} but does not export minor success entries. This is needed to reduce
+     * the size of e.g. {@link ShadowType} objects with fetchResult that includes full traced clockwork processing.
+     */
+    public OperationResultType createBeanReduced() {
+        return createOperationResultBean(this, null, true);
+    }
+
     public @NotNull OperationResultType createOperationResultType() {
         return createOperationResultType(null);
     }
 
     public @NotNull OperationResultType createOperationResultType(Function<LocalizableMessage, String> resolveKeys) {
-        return createOperationResultBean(this, resolveKeys);
+        return createOperationResultBean(this, resolveKeys, false);
     }
 
     private static @NotNull OperationResultType createOperationResultBean(
-            @NotNull OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
+            @NotNull OperationResult opResult,
+            Function<LocalizableMessage, String> resolveKeys,
+            boolean reduce) {
         OperationResultType bean = new OperationResultType();
         bean.setOperationKind(opResult.getOperationKind());
         bean.setToken(opResult.getToken());
@@ -1880,7 +1890,11 @@ public class OperationResult
         bean.setReturns(opResult.getReturnsBean());
 
         for (OperationResult subResult : opResult.getSubresults()) {
-            bean.getPartialResults().add(createOperationResultBean(subResult, resolveKeys));
+            if (reduce && subResult.isMinor() && subResult.isSuccess()) {
+                continue;
+            }
+            bean.getPartialResults().add(
+                    createOperationResultBean(subResult, resolveKeys, reduce));
         }
 
         bean.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
@@ -2406,12 +2420,9 @@ public class OperationResult
 
     @NotNull
     private static OperationResultHandlingStrategyType getCurrentHandlingStrategy() {
-        OperationResultHandlingStrategyType local = LOCAL_HANDLING_STRATEGY.get();
-        if (local != null) {
-            return local;
-        } else {
-            return globalHandlingStrategy;
-        }
+        return Objects.requireNonNullElse(
+                LOCAL_HANDLING_STRATEGY.get(),
+                globalHandlingStrategy);
     }
 
     private static int getSubresultStripThreshold() {

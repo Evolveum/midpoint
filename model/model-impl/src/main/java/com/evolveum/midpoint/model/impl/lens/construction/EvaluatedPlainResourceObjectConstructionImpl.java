@@ -39,10 +39,13 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPlainResourceObjectConstructionImpl.class);
 
     /**
-     * @pre construction is already evaluated and not ignored (has resource)
+     * Precondition: construction is already evaluated and not ignored (has resource)
      */
-    EvaluatedPlainResourceObjectConstructionImpl(@NotNull final PlainResourceObjectConstruction<AH> construction, @NotNull LensProjectionContext projectionContext) {
-        super(construction, projectionContext.getResourceShadowDiscriminator());
+    EvaluatedPlainResourceObjectConstructionImpl(
+            @NotNull PlainResourceObjectConstruction<AH> construction,
+            @NotNull LensProjectionContext projectionContext,
+            @NotNull ConstructionTargetKey targetKey) {
+        super(construction, targetKey);
         setProjectionContext(projectionContext);
     }
 

@@ -1107,16 +1107,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test350ExistsWithEmbeddedContainer() throws SchemaException {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchUsersTest("matching the exists filter for metadata (embedded mapping)",
-                    f -> f.exists(UserType.F_METADATA)
-                            .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
-                            .eqPoly("creator"),
-                    user1Oid);
-        } finally {
-            display(queryRecorder.getQueryBuffer().peek().toString());
-        }
+        searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                f -> f.exists(UserType.F_METADATA)
+                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                        .eqPoly("creator"),
+                user1Oid);
     }
 
     // endregion
@@ -1200,6 +1195,37 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.exists(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE)
                         .item(UserType.F_NAME).eq(new PolyString("user-1")),
                 user2Oid);
+    }
+
+    @Test
+    public void test430SearchUsersWithSingleValueRefNull() throws SchemaException {
+        searchUsersTest("having no tenant ref",
+                f -> f.item(UserType.F_TENANT_REF).isNull(),
+                user1Oid, user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
+    }
+
+    @Test
+    public void test431SearchUsersWithSingleValueRefNotNull() throws SchemaException {
+        searchUsersTest("having a tenant ref (not null)",
+                f -> f.not().item(UserType.F_TENANT_REF).isNull());
+        // nobody has tenantRef, so it's OK
+    }
+
+    @Test
+    public void test432SearchUsersWithMultiValueRefNull() throws SchemaException {
+        // This should generate NOT EXISTS query only with correlation condition: u.oid = refpo.ownerOid
+        searchUsersTest("having no parent org ref",
+                f -> f.item(UserType.F_PARENT_ORG_REF).isNull(),
+                user1Oid, creatorOid, modifierOid);
+    }
+
+    @Test
+    public void test433SearchUsersWithMultiValueRefNotNull() throws SchemaException {
+        // Should generate (NOT NOT) EXISTS query only with correlation condition: u.oid = refpo.ownerOid
+        // Two NOTs are optimized away on the Querydsl level before even being serialized to SQL.
+        searchUsersTest("having any parent org ref (one or more)",
+                f -> f.not().item(UserType.F_PARENT_ORG_REF).isNull(),
+                user2Oid, user3Oid, user4Oid);
     }
 
     @Test
@@ -1996,12 +2022,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test616SearchInducements() throws SchemaException {
-        queryRecorder.clearBufferAndStartRecording();
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "search inducements", AssignmentType.class,
                 f -> f.ownedBy(AbstractRoleType.class, AbstractRoleType.F_INDUCEMENT).block().endBlock());
-        queryRecorder.stopRecording();
-        display(queryRecorder.getQueryBuffer().toString());
         assertThat(result)
                 .singleElement()
                 .matches(a -> a.getLifecycleState().equals("role-ind-lc"));
@@ -2168,7 +2191,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test910SearchByOid() throws SchemaException {
-        // This is new repo speciality, but this query can't be format/re-parsed
+        // This is new repo speciality, but this query can't be formatted/reparsed.
         when("searching for user having specified OID");
         OperationResult operationResult = createOperationResult();
         SearchResultList<UserType> result = repositorySearchObjects(UserType.class,
@@ -2464,60 +2487,38 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980FindOrgByUser() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("Org by User", OrgType.class,
-                    f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
-                            .id(user4Oid),
-                    org111Oid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test980FindOrgByUser() throws SchemaException {
+        searchObjectTest("Org by User", OrgType.class,
+                f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+                        .id(user4Oid),
+                org111Oid);
     }
 
     @Test
-    public void test981FindRoleByUser() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("Org by User", RoleType.class,
-                    f -> f.referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                            .id(user3Oid),
-                    roleAvIOid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test981FindRoleByUser() throws SchemaException {
+        searchObjectTest("Org by User", RoleType.class,
+                f -> f.referencedBy(UserType.class,
+                                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                        .id(user3Oid),
+                roleAvIOid);
     }
 
     @Test
-    public void test982FindRoleByAssignmentOfUser() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
-                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                            .ownedBy(UserType.class)
-                            .id(user3Oid),
-                    roleAvIOid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test982FindRoleByAssignmentOfUser() throws SchemaException {
+        searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                        .ownedBy(UserType.class)
+                        .id(user3Oid),
+                roleAvIOid);
     }
 
     @Test
-    public void test983FindUserByAssignmentTarget() throws Exception {
-        queryRecorder.clearBufferAndStartRecording();
-        try {
-            searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
-                    f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), RoleType.COMPLEX_TYPE, relation2)
-                            .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
-                    user3Oid);
-        } finally {
-            queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
-        }
+    public void test983FindUserByAssignmentTarget() throws SchemaException {
+        searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                                RoleType.COMPLEX_TYPE, relation2)
+                        .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
+                user3Oid);
     }
     // endregion
 }

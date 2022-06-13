@@ -10,7 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -171,10 +171,12 @@ public class ProgressPanel extends BasePanel {
     private void populateStatusItem(ListItem<ProgressReportActivityDto> item) {
         item.add(new Label(ID_ACTIVITY_DESCRIPTION, (IModel<String>) () -> {
             ProgressReportActivityDto si = item.getModelObject();
-            if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && si.getResourceShadowDiscriminator() != null) {
-                ResourceShadowDiscriminator rsd = si.getResourceShadowDiscriminator();
-                return createStringResource("ProgressPanel.populateStatusItem.resourceObjectActivity", createStringResource(rsd.getKind()).getString(),
-                        rsd.getIntent(),si.getResourceName()).getString();
+            ProjectionContextKey key = si.getProjectionContextKey();
+            if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && key != null) {
+                return createStringResource("ProgressPanel.populateStatusItem.resourceObjectActivity",
+                        createStringResource(key.getKind()).getString(),
+                        key.getIntent(),
+                        si.getResourceName()).getString();
             } else {
                 return createStringResource(si.getActivityType()).getString();
             }

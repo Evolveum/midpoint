@@ -34,7 +34,6 @@ import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -301,21 +300,13 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private String getResourceOid(SearchFilterType searchFilterType) {
-        ResourceShadowDiscriminator discriminator = getResourceShadowDiscriminator(searchFilterType);
-        if (discriminator == null) {
-            return null;
-        }
-        return discriminator.getResourceOid();
-    }
-
-    private ResourceShadowDiscriminator getResourceShadowDiscriminator(SearchFilterType searchFilterType) {
         try {
             ObjectFilter filter = getPrismContext().getQueryConverter().createObjectFilter(ShadowType.class, searchFilterType);
-            return ObjectQueryUtil.getCoordinates(filter);
+            return ObjectQueryUtil.getResourceOidFromFilter(filter);
         } catch (SchemaException e) {
             LOGGER.error("Cannot convert filter: {}", e.getMessage(), e);
+            return null;
         }
-        return null;
     }
 
     private <O extends ObjectType> O getObjectFromObjectRef(DashboardWidgetType model) {

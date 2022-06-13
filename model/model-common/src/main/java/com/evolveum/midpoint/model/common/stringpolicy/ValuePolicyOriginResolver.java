@@ -17,14 +17,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValueItemT
 /**
  *  Resolves "origin object" during value policy evaluation.
  *
- *  (Currently it is limited to origin object for ProhibitedValueItemType specifications.)
+ *  (Currently it is limited to origin object for {@link ProhibitedValueItemType} specifications.)
  */
 public interface ValuePolicyOriginResolver {
 
     /**
      * Resolves "origin object" in given prohibitedValueItem: calls handler for each origin object found.
      */
-    <R extends ObjectType> void resolve(ProhibitedValueItemType prohibitedValueItemType, ResultHandler<R> handler,
-            String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    <R extends ObjectType> void resolve(
+            ProhibitedValueItemType prohibitedValueItem,
+            ResultHandler<R> handler,
+            String contextDescription,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 }

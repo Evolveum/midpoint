@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -14,11 +15,11 @@ import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedPlainResource
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -152,9 +153,7 @@ public class ConsolidationProcessor {
 
         ResourceObjectDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta, result);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Object class definition for {} consolidation:\n{}", projCtx.getResourceShadowDiscriminator(), rOcDef.debugDump());
-        }
+        LOGGER.trace("Definition for {} consolidation:\n{}", projCtx.getKey(), rOcDef.debugDumpLazily());
 
         StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
         consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
@@ -173,7 +172,7 @@ public class ConsolidationProcessor {
             ObjectDelta<ShadowType> existingDelta,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
-        ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
+        ProjectionContextKey key = projCtx.getKey();
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
 
         // AUXILIARY OBJECT CLASSES
@@ -189,7 +188,7 @@ public class ConsolidationProcessor {
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
 
-            LOGGER.trace("CONSOLIDATE auxiliary object classes ({}) from triple:\n{}", discr, ivwoTriple.debugDumpLazily());
+            LOGGER.trace("CONSOLIDATE auxiliary object classes ({}) from triple:\n{}", key, ivwoTriple.debugDumpLazily());
 
             for (ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> ivwo: ivwoTriple.getAllValues()) {
                 QName auxObjectClassName = ivwo.getItemValue().getValue();
@@ -200,8 +199,8 @@ public class ConsolidationProcessor {
                 ResourceObjectDefinition auxOcDef = refinedSchema.findDefinitionForObjectClass(auxObjectClassName);
                 if (auxOcDef == null) {
                     LOGGER.error("Auxiliary object class definition {} for {} not found in the schema, but it should be there, dumping context:\n{}",
-                            auxObjectClassName, discr, context.debugDump());
-                    throw new IllegalStateException("Auxiliary object class definition " + auxObjectClassName + " for "+ discr + " not found in the context, but it should be there");
+                            auxObjectClassName, key, context.debugDump());
+                    throw new IllegalStateException("Auxiliary object class definition " + auxObjectClassName + " for "+ key + " not found in the context, but it should be there");
                 }
                 auxOcDefs.add(auxOcDef);
             }
@@ -221,7 +220,7 @@ public class ConsolidationProcessor {
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(projCtx.hasFullShadow())
                     .isExclusiveStrong(false)
-                    .contextDescription(discr.toHumanReadableDescription())
+                    .contextDescription(key.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
                     .result(result)
                     .prismContext(prismContext)
@@ -242,8 +241,8 @@ public class ConsolidationProcessor {
 
         ResourceObjectDefinition structuralDefinition = projCtx.getStructuralObjectDefinition();
         if (structuralDefinition == null) {
-            LOGGER.error("Structural object class definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
-            throw new IllegalStateException("Structural object class definition for " + discr + " not found in the context, but it should be there");
+            LOGGER.error("Structural object class definition for {} not found in the context, but it should be there, dumping context:\n{}", key, context.debugDump());
+            throw new IllegalStateException("Structural object class definition for " + key + " not found in the context, but it should be there");
         }
 
         return new CompositeObjectDefinitionImpl(structuralDefinition, auxOcDefs);
@@ -259,7 +258,7 @@ public class ConsolidationProcessor {
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry : squeezedAttributes.entrySet()) {
             QName attributeName = entry.getKey();
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> triple = entry.getValue();
-            PropertyDelta<?> propDelta = consolidateAttribute(rOcDef, projCtx.getResourceShadowDiscriminator(), existingDelta, projCtx,
+            PropertyDelta<?> propDelta = consolidateAttribute(rOcDef, projCtx.getKey(), existingDelta, projCtx,
                     addUnchangedValues, attributeName, (DeltaSetTriple)triple, strengthSelector, result);
             if (propDelta != null) {
                 objectDelta.addModification(propDelta);
@@ -268,7 +267,7 @@ public class ConsolidationProcessor {
     }
 
     private <T> PropertyDelta<T> consolidateAttribute(ResourceObjectDefinition rOcDef,
-            ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
+            ProjectionContextKey key, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
             boolean addUnchangedValues, QName itemName,
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> triple,
             StrengthSelector strengthSelector, OperationResult result)
@@ -291,7 +290,7 @@ public class ConsolidationProcessor {
 
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
 
-        return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues,
+        return (PropertyDelta<T>) consolidateItem(rOcDef, key, existingDelta, projCtx, addUnchangedValues,
                 attributeDefinition.isExclusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
     }
 
@@ -302,7 +301,7 @@ public class ConsolidationProcessor {
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> entry : projCtx.getSqueezedAssociations().entrySet()) {
             QName associationName = entry.getKey();
             DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> triple = entry.getValue();
-            ContainerDelta<ShadowAssociationType> containerDelta = consolidateAssociation(rOcDef, projCtx.getResourceShadowDiscriminator(),
+            ContainerDelta<ShadowAssociationType> containerDelta = consolidateAssociation(rOcDef, projCtx.getKey(),
                     existingDelta, projCtx, addUnchangedValues, associationName, triple, strengthSelector, result);
             if (containerDelta != null) {
                 objectDelta.addModification(containerDelta);
@@ -311,12 +310,12 @@ public class ConsolidationProcessor {
     }
 
     private ContainerDelta<ShadowAssociationType> consolidateAssociation(
-            ResourceObjectDefinition rOcDef, ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta,
+            ResourceObjectDefinition rOcDef, ProjectionContextKey key, ObjectDelta<ShadowType> existingDelta,
             LensProjectionContext projCtx, boolean addUnchangedValues, QName associationName,
             DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> triple,
             StrengthSelector strengthSelector, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
-        PrismContainerDefinition<ShadowAssociationType> asspcContainerDef = getAssociationDefinition();
+        PrismContainerDefinition<ShadowAssociationType> assocContainerDef = getAssociationDefinition();
         ResourceAssociationDefinition associationDef = rOcDef.findAssociationDefinition(associationName);
 
         Comparator<PrismContainerValue<ShadowAssociationType>> comparator = (o1, o2) -> {
@@ -349,9 +348,9 @@ public class ConsolidationProcessor {
             return 1;
         };
 
-        ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, discr, existingDelta,
+        ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, key, existingDelta,
                 projCtx, addUnchangedValues, associationDef.isExclusiveStrong(), ShadowType.F_ASSOCIATION,
-                asspcContainerDef, triple, null, comparator, strengthSelector, "association "+associationName, result);
+                assocContainerDef, triple, null, comparator, strengthSelector, "association "+associationName, result);
 
         if (delta != null) {
             setAssociationName(delta.getValuesToAdd(), associationName);
@@ -379,11 +378,20 @@ public class ConsolidationProcessor {
         return associationDefinition;
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItem(ResourceObjectDefinition rOcDef,
-            ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
-            boolean addUnchangedValues, boolean isExclusiveStrong,
-            ItemPath itemPath, D itemDefinition, DeltaSetTriple<ItemValueWithOrigin<V, D>> triple,
-            ValueMatcher<?> valueMatcher, Comparator<V> comparator, StrengthSelector strengthSelector, String itemDesc,
+    private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItem(
+            ResourceObjectDefinition rOcDef,
+            ProjectionContextKey key,
+            ObjectDelta<ShadowType> existingDelta,
+            LensProjectionContext projCtx,
+            boolean addUnchangedValues,
+            boolean isExclusiveStrong,
+            ItemPath itemPath,
+            D itemDefinition,
+            DeltaSetTriple<ItemValueWithOrigin<V, D>> triple,
+            ValueMatcher<?> valueMatcher,
+            Comparator<V> comparator,
+            StrengthSelector strengthSelector,
+            String itemDesc,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -400,7 +408,7 @@ public class ConsolidationProcessor {
             boolean forceAddUnchangedValues = aprioriDeltaIsReplace;
 
             LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
-                    itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
+                    itemDesc, key, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
             boolean existingItemKnown = projCtx.hasFullShadow() || rOcDef.isIdentifier(itemDefinition.getItemName());
             ItemDelta<V, D> itemDelta;
@@ -418,7 +426,7 @@ public class ConsolidationProcessor {
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(existingItemKnown)
                     .isExclusiveStrong(isExclusiveStrong)
-                    .contextDescription(discr.toHumanReadableDescription())
+                    .contextDescription(key.toHumanReadableDescription())
                     .strengthSelector(existingItemKnown ? strengthSelector : strengthSelector.notWeak())
                     .result(result)
                     .prismContext(prismContext)
@@ -429,7 +437,7 @@ public class ConsolidationProcessor {
                 itemDelta = consolidator.consolidateToDeltaNoMetadata();
             }
 
-            LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr, itemDelta.debugDumpLazily());
+            LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",key, itemDelta.debugDumpLazily());
 
             if (aprioriDeltaIsReplace) {
                 // We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
@@ -438,7 +446,7 @@ public class ConsolidationProcessor {
             } else {
                 // Also consider a synchronization delta (if it is present). This may filter out some deltas.
                 itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
-                LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}", discr, DebugUtil.debugDumpLazily(itemDelta));
+                LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}", key, DebugUtil.debugDumpLazily(itemDelta));
             }
 
             if (!ItemDelta.isEmpty(itemDelta)) {
@@ -783,7 +791,7 @@ public class ConsolidationProcessor {
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
         if (projCtx.getEvaluatedAssignedConstructionDeltaSetTriple() != null) {
             squeezeMappingsFromConstructionTriple(squeezedMap, projCtx.getEvaluatedAssignedConstructionDeltaSetTriple(),
-                    extractor, projCtx.getAssignmentPolicyEnforcementType());
+                    extractor, projCtx.getAssignmentPolicyEnforcementMode());
         }
         if (projCtx.getEvaluatedPlainConstruction() != null) {
             // The plus-minus-zero status of outbound account construction is determined by the type of account delta
@@ -1092,8 +1100,7 @@ public class ConsolidationProcessor {
 
         ResourceObjectDefinition rOcDef = projCtx.getCompositeObjectDefinition();
 
-        LOGGER.trace("Object class definition for {} post-recon consolidation:\n{}",
-                projCtx.getResourceShadowDiscriminator(), rOcDef.debugDumpLazily());
+        LOGGER.trace("Definition for {} post-recon consolidation:\n{}", projCtx.getKey(), rOcDef.debugDumpLazily());
 
         consolidateAttributes(projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
         consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);

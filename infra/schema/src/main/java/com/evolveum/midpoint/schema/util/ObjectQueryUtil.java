@@ -15,6 +15,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +35,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -116,14 +118,13 @@ public class ObjectQueryUtil {
         PrismContext prismContext = PrismContext.get();
         return prismContext.queryFactory().createAnd(
                 createResourceFilter(resourceOid),
-                createObjectClassFilter(objectClass, prismContext));
+                createObjectClassFilter(objectClass));
     }
 
-    public static S_AtomicFilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+    public static S_AtomicFilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass) throws SchemaException {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
-        return prismContext.queryFor(ShadowType.class)
+        return PrismContext.get().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
     }
@@ -171,8 +172,8 @@ public class ObjectQueryUtil {
                 .buildFilter();
     }
 
-    public static ObjectFilter createObjectClassFilter(QName objectClass, PrismContext prismContext) {
-        return prismContext.queryFor(ShadowType.class)
+    public static ObjectFilter createObjectClassFilter(QName objectClass) {
+        return PrismContext.get().queryFor(ShadowType.class)
                 .item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
                 .buildFilter();
     }
@@ -542,9 +543,8 @@ public class ObjectQueryUtil {
         }
     }
 
-    private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName,
-            PrismContext prismContext) throws SchemaException {
-        Collection<PrismValue> values = getValuesFromFilter(filter, itemName, prismContext);
+    private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {
+        Collection<PrismValue> values = getValuesFromFilter(filter, itemName);
         if (values == null || values.size() == 0) {
             return null;
         } else if (values.size() > 1) {
@@ -554,26 +554,26 @@ public class ObjectQueryUtil {
         }
     }
 
-    private static <T extends PrismValue> Collection<T> getValuesFromFilter(ObjectFilter filter, QName itemName,
-            PrismContext prismContext) throws SchemaException {
+    private static <T extends PrismValue> Collection<T> getValuesFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {
         ItemPath propertyPath = ItemName.fromQName(itemName);
         if (filter instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) filter).getFullPath())) {
             return ((EqualFilter) filter).getValues();
         } else if (filter instanceof RefFilter && propertyPath.equivalent(((RefFilter) filter).getFullPath())) {
             return (Collection<T>) ((RefFilter) filter).getValues();
         } else if (filter instanceof AndFilter) {
-            return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), itemName, prismContext);
+            return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), itemName);
         } else if (filter instanceof TypeFilter) {
-            return getValuesFromFilter(((TypeFilter) filter).getFilter(), itemName, prismContext);
+            return getValuesFromFilter(((TypeFilter) filter).getFilter(), itemName);
         } else {
             return null;
         }
     }
 
-    private static <T extends PrismValue> Collection<T> getValuesFromFilter(List<? extends ObjectFilter> conditions, QName propertyName, PrismContext prismContext)
+    private static <T extends PrismValue> Collection<T> getValuesFromFilter(
+            List<? extends ObjectFilter> conditions, QName propertyName)
             throws SchemaException {
         for (ObjectFilter f : conditions) {
-            Collection<T> values = getValuesFromFilter(f, propertyName, prismContext);
+            Collection<T> values = getValuesFromFilter(f, propertyName);
             if (values != null) {
                 return values;
             }
@@ -581,33 +581,38 @@ public class ObjectQueryUtil {
         return null;
     }
 
-    private static String getResourceOidFromFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
-        PrismReferenceValue referenceValue = (PrismReferenceValue) getValueFromFilter(filter, ShadowType.F_RESOURCE_REF, prismContext);
+    public static String getResourceOidFromFilter(ObjectFilter filter) throws SchemaException {
+        PrismReferenceValue referenceValue = (PrismReferenceValue) getValueFromFilter(filter, ShadowType.F_RESOURCE_REF);
         return referenceValue != null ? referenceValue.getOid() : null;
     }
 
-    private static <T> T getPropertyRealValueFromFilter(ObjectFilter filter, QName propertyName, PrismContext prismContext) throws SchemaException {
-        PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) getValueFromFilter(filter, propertyName, prismContext);
+    private static <T> T getPropertyRealValueFromFilter(ObjectFilter filter, QName propertyName) throws SchemaException {
+        //noinspection unchecked
+        PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) getValueFromFilter(filter, propertyName);
         return propertyValue != null ? propertyValue.getValue() : null;
     }
 
     @Deprecated // replace by a version without prismContext
-    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter, PrismContext ignored) throws SchemaException {
-        return getCoordinates(filter);
+    public static ResourceShadowCoordinates getShadowCoordinates(ObjectFilter filter, PrismContext ignored) throws SchemaException {
+        return getShadowCoordinates(filter);
     }
 
-    public static ResourceShadowDiscriminator getCoordinates(ObjectQuery query) throws SchemaException {
+    public static @NotNull ResourceOperationCoordinates getOperationCoordinates(ObjectQuery query) throws SchemaException {
         // If query is null, we'll get SchemaException anyway. (But with reasonable explanation.)
-        return getCoordinates(query != null ? query.getFilter() : null);
+        return getOperationCoordinates(query != null ? query.getFilter() : null);
     }
 
-    public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
-        PrismContext prismContext = PrismContext.get();
-        String resourceOid = getResourceOidFromFilter(filter, prismContext);
-        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS, prismContext);
-        ShadowKindType kind = getKindFromFilter(filter, prismContext);
-        String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT, prismContext);
-        String tag = getPropertyRealValueFromFilter(filter, ShadowType.F_TAG, prismContext);
+    public static ResourceShadowCoordinates getShadowCoordinates(ObjectQuery query) throws SchemaException {
+        // If query is null, we'll get SchemaException anyway. (But with reasonable explanation.)
+        return getShadowCoordinates(query != null ? query.getFilter() : null);
+    }
+
+    private static @NotNull ResourceShadowCoordinates getShadowCoordinates(ObjectFilter filter) throws SchemaException {
+        String resourceOid = getResourceOidFromFilter(filter);
+        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS);
+        ShadowKindType kind = getKindFromFilter(filter);
+        String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT);
+        String tag = getPropertyRealValueFromFilter(filter, ShadowType.F_TAG);
 
         if (resourceOid == null) {
             throw new SchemaException("Resource not defined in a search query");
@@ -616,13 +621,21 @@ public class ObjectQueryUtil {
             throw new SchemaException("Neither objectclass not kind is specified in a search query");
         }
 
-        ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, tag, false);
-        coordinates.setObjectClass(objectClass);
-        return coordinates;
+        return new ResourceShadowCoordinates(resourceOid, kind, intent, tag, objectClass);
     }
 
-    private static ShadowKindType getKindFromFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
-        return getPropertyRealValueFromFilter(filter, ShadowType.F_KIND, prismContext);
+    public static @NotNull ResourceOperationCoordinates getOperationCoordinates(ObjectFilter filter) throws SchemaException {
+        return ResourceOperationCoordinates.of(
+                MiscUtil.requireNonNull(
+                        getResourceOidFromFilter(filter),
+                        () -> "Resource not defined in a search query: " + filter),
+                getKindFromFilter(filter),
+                getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT),
+                getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS));
+    }
+
+    private static ShadowKindType getKindFromFilter(ObjectFilter filter) throws SchemaException {
+        return getPropertyRealValueFromFilter(filter, ShadowType.F_KIND);
     }
 
     // Creates references for querying

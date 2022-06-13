@@ -85,7 +85,7 @@ class CorrelationProcessing<F extends FocusType> {
                 shadow,
                 syncCtx.getPreFocus(),
                 syncCtx.getResource(),
-                syncCtx.getObjectTypeDefinitionRequired(),
+                syncCtx.getObjectDefinitionRequired(),
                 syncCtx.getSystemConfiguration(),
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);

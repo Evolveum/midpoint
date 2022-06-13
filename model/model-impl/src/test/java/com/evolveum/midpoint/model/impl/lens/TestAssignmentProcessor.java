@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
@@ -135,7 +136,9 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
-        assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
+        assertThat(accountConstructionDeltaSetTriple.getZeroSet())
+                .as("zero set")
+                .hasSize(2);
 
         EvaluatedAssignedResourceObjectConstructionImpl<UserType> zeroEvaluatedAccountConstruction =
                 getZeroEvaluatedAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
@@ -817,8 +820,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     private EvaluatedAssignedResourceObjectConstructionImpl<UserType> getZeroEvaluatedAccountConstruction(
             DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> accountConstructionDeltaSetTriple,
             String description) {
-        @NotNull Collection<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> set = accountConstructionDeltaSetTriple.getZeroSet();
-        return getEvaluatedAccountConstruction(description, set, "zero");
+        return getEvaluatedAccountConstruction(
+                description,
+                accountConstructionDeltaSetTriple.getZeroSet(),
+                "zero");
     }
 
     private EvaluatedAssignedResourceObjectConstructionImpl<UserType> getPlusEvaluatedAccountConstruction(

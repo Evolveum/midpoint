@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
 
 import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -1338,7 +1340,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
         long actualIncrement = currentStats.getHits() - lastStats.getHits();
         assertThat(actualIncrement)
-                .withFailMessage("Unexpected increment in " + desc + " hit count")
+                .as("Increment in " + desc + " hit count")
                 .isEqualTo(expectedIncrement);
         lastStats.setHits(currentStats.getHits());
     }
@@ -1346,7 +1348,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertCacheMisses(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
         long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
         assertThat(actualIncrement)
-                .withFailMessage("Unexpected increment in " + desc + " miss count")
+                .as("Increment in " + desc + " miss count")
                 .isEqualTo(expectedIncrement);
         lastStats.setMisses(currentStats.getMisses());
     }
@@ -1420,8 +1422,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         resourceRef.setOid(resource.getOid());
         shadowType.setResourceRef(resourceRef);
         shadowType.setKind(ShadowKindType.ACCOUNT);
+        shadowType.setIntent(SchemaConstants.INTENT_DEFAULT);
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition objectClassDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         if (uid != null) {
@@ -1451,7 +1455,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             T... values) throws SchemaException, ConfigurationException {
         ShadowType shadowBean = shadow.asObjectable();
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition objectClassDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(shadowBean.getKind());
+        ResourceObjectTypeDefinition objectClassDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         //noinspection unchecked
@@ -1483,7 +1488,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ShadowType> findShadowByName(
-            ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, OperationResult result)
+            @NotNull ShadowKindType kind,
+            @NotNull String intent,
+            String name,
+            PrismObject<ResourceType> resource,
+            OperationResult result)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition rOcDef = rSchema.findObjectDefinitionRequired(kind, intent);
@@ -1539,7 +1548,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition rAccount =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
@@ -1555,7 +1565,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             String identifier, PrismObject<ResourceType> resource, boolean mustBeLive)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectDefinition accountDefinition = rSchema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, null);
+        ResourceObjectDefinition accountDefinition = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         return createShadowQuerySecondaryIdentifier(accountDefinition, identifier, resource, mustBeLive);
     }
 
@@ -1582,7 +1592,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             String attributeName, String attributeValue, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition rAccount = rSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition rAccount =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
         return createShadowQueryByAttribute(rAccount.getObjectClassDefinition(), attributeName, attributeValue, resource);
     }
 
@@ -1625,7 +1636,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         //noinspection unchecked
         return (ResourceAttributeDefinition<T>) ResourceSchemaFactory
                 .getCompleteSchemaRequired(resource)
-                .findObjectDefinitionRequired(kind, null)
+                .findDefaultDefinitionForKindRequired(kind)
                 .findAttributeDefinitionRequired(new ItemName(MidPointConstants.NS_RI, attributeLocalName));
     }
 
@@ -2251,32 +2262,38 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             "trace %{timestamp} %{testNameShort} %{operationNameShort} %{focusName} %{milliseconds}";
 
     protected TracingProfileType createModelLoggingTracingProfile() {
+        // @formatter:off
         return createDefaultTracingProfile()
                 .beginLoggingOverride()
-                .beginLevelOverride()
-                .logger("com.evolveum.midpoint.model")
-                .level(LoggingLevelType.TRACE)
+                    .beginLevelOverride()
+                        .logger("com.evolveum.midpoint.model")
+                        .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
+        // @formatter:on
     }
 
     protected TracingProfileType addWorkflowLogging(TracingProfileType profile) {
+        // @formatter:off
         return profile.getLoggingOverride()
                 .beginLevelOverride()
-                .logger("com.evolveum.midpoint.wf")
-                .logger("com.evolveum.midpoint.cases")
-                .level(LoggingLevelType.TRACE)
+                    .logger("com.evolveum.midpoint.wf")
+                    .logger("com.evolveum.midpoint.cases")
+                    .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
+        // @formatter:on
     }
 
     protected TracingProfileType addNotificationsLogging(TracingProfileType profile) {
+        // @formatter:off
         return profile.getLoggingOverride()
                 .beginLevelOverride()
-                .logger("com.evolveum.midpoint.notifications")
-                .level(LoggingLevelType.TRACE)
-                .<LoggingOverrideType>end()
+                    .logger("com.evolveum.midpoint.notifications")
+                    .level(LoggingLevelType.TRACE)
+                    .<LoggingOverrideType>end()
                 .end();
+        // @formatter:on
     }
 
     protected TracingProfileType createModelAndWorkflowLoggingTracingProfile() {
@@ -2288,53 +2305,63 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected TracingProfileType addProvisioningLogging(TracingProfileType profile) {
+        // @formatter:off
         return profile.getLoggingOverride()
                 .beginLevelOverride()
-                .logger("com.evolveum.midpoint.provisioning")
-                .level(LoggingLevelType.TRACE)
+                    .logger("com.evolveum.midpoint.provisioning")
+                    .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
+        // @formatter:on
     }
 
     protected TracingProfileType addRepositoryAndSqlLogging(TracingProfileType profile) {
+        // @formatter:off
         return profile.getLoggingOverride()
                 .beginLevelOverride()
-                .logger("com.evolveum.midpoint.repo")
-                .logger("org.hibernate.SQL")
-                .level(LoggingLevelType.TRACE)
+                    .logger("com.evolveum.midpoint.repo")
+                    .logger("org.hibernate.SQL")
+                    .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
+        // @formatter:on
     }
 
     protected TracingProfileType createHibernateLoggingTracingProfile() {
+        // @formatter:off
         return createDefaultTracingProfile()
                 .beginLoggingOverride()
-                .beginLevelOverride()
-                .logger("org.hibernate.SQL")
-                .level(LoggingLevelType.TRACE)
+                    .beginLevelOverride()
+                    .logger("org.hibernate.SQL")
+                    .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .beginLevelOverride()
-                .logger("org.hibernate.type")
-                .level(LoggingLevelType.TRACE)
+                    .logger("org.hibernate.type")
+                    .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
+        // @formatter:on
     }
 
     protected TracingProfileType createDefaultTracingProfile() {
+        // @formatter:off
         return new TracingProfileType()
                 .collectLogEntries(true)
                 .beginTracingTypeProfile()
-                .level(TracingLevelType.NORMAL)
+                    .level(TracingLevelType.NORMAL)
                 .<TracingProfileType>end()
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+        // @formatter:on
     }
 
     protected TracingProfileType createPerformanceTracingProfile() {
+        // @formatter:off
         return new TracingProfileType()
                 .beginTracingTypeProfile()
-                .level(TracingLevelType.MINIMAL)
+                    .level(TracingLevelType.MINIMAL)
                 .<TracingProfileType>end()
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+        // @formatter:on
     }
 
     protected Task createTracedTask() {
@@ -2971,7 +2998,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (refinedSchema == null) {
             throw new SchemaException("No refined schema for " + resource);
         }
-        ResourceObjectTypeDefinition accountDefinition = refinedSchema.findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+        ResourceObjectTypeDefinition accountDefinition =
+                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
         return accountDefinition.findAttributeDefinition(attributeName);
     }
 

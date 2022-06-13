@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -32,5 +34,12 @@ public class EvaluatedPersonaConstructionImpl<AH extends AssignmentHolderType> i
         return "EvaluatedPersonaConstructionImpl(" +
                 ", construction=" + getConstruction() +
                 ')';
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabel(sb, "construction", construction, indent + 1);
+        return sb.toString();
     }
 }

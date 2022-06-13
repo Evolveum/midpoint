@@ -13,6 +13,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;

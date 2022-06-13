@@ -215,7 +215,7 @@ public class MiscSchemaUtil {
         return expectedKind.equals(actualKind);
     }
 
-    public static AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(
+    public static @NotNull AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementMode(
             ProjectionPolicyType accountSynchronizationSettings) {
         if (accountSynchronizationSettings == null) {
             return AssignmentPolicyEnforcementType.RELATIVE; // default

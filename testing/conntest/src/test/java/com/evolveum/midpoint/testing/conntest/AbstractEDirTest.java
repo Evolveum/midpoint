@@ -370,7 +370,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass(), prismContext)
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass())
                 .and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
                 .build();
 
@@ -846,7 +846,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass(), prismContext)
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass())
                 .and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
                 .build();
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 0, task, result);

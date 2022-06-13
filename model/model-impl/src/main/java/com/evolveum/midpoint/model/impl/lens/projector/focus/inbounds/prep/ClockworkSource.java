@@ -37,6 +37,10 @@ import java.util.Objects;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
+/**
+ * Inbound mapping source ({@link MSource}) that is used in clockwork-based inbound mapping evaluation.
+ * This is the standard situation. The other one is e.g. pre-inbounds (correlation-time) evaluation.
+ */
 class ClockworkSource extends MSource {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkSource.class);
@@ -82,7 +86,7 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    boolean isEligibleForInboundProcessing() {
+    boolean isEligibleForInboundProcessing() throws SchemaException, ConfigurationException {
         LOGGER.trace("Starting determination if we should process inbound mappings. Full shadow: {}. A priori delta present: {}.",
                 projectionContext.isFullShadow(), aPrioriDelta != null);
 
@@ -168,7 +172,7 @@ class ClockworkSource extends MSource {
             ItemDelta<?, ?> itemAPrioriDelta,
             List<? extends MappingType> mappingBeans,
             boolean ignored,
-            PropertyLimitations limitations) {
+            PropertyLimitations limitations) throws SchemaException, ConfigurationException {
 
         if (shouldBeMappingSkipped(itemDescription, ignored, limitations)) {
             return ProcessingMode.NONE;

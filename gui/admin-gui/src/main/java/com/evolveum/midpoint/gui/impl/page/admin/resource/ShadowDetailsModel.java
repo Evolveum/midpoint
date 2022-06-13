@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -23,11 +22,11 @@ public class ShadowDetailsModel extends ObjectDetailsModels<ShadowType> {
     }
 
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<ShadowType> prismObject) {
-        return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(getPrismObject().asObjectable()));
+        return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowCoordinates(getPrismObject().asObjectable()));
     }
 
-    private ResourceShadowDiscriminator createResourceShadowDiscriminator(ShadowType shadow) {
-        return new ResourceShadowDiscriminator(shadow.getResourceRef().getOid(), shadow.getKind(), shadow.getIntent(), null, false);
+    private ResourceShadowCoordinates createResourceShadowCoordinates(ShadowType shadow) {
+        return new ResourceShadowCoordinates(shadow.getResourceRef().getOid(), shadow.getKind(), shadow.getIntent());
     }
 
 }

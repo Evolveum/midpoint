@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
@@ -124,43 +126,6 @@ public class FocusTypeUtil {
             }
         }
         return false;
-    }
-
-    public static String determineConstructionResource(AssignmentType assignmentType) {
-        ConstructionType construction = assignmentType.getConstruction();
-        if (construction != null){
-            if (construction.getResourceRef() != null){
-                return construction.getResourceRef().getOid();
-            }
-            return null;
-        }
-        return null;
-    }
-
-    public static String determineConstructionIntent(AssignmentType assignmentType) {
-        ConstructionType construction = assignmentType.getConstruction();
-        if (construction != null){
-            if (construction.getIntent() != null){
-                return construction.getIntent();
-            }
-
-            return SchemaConstants.INTENT_DEFAULT;
-        }
-
-        throw new IllegalArgumentException("Construction not defined in the assigment.");
-    }
-
-    public static ShadowKindType determineConstructionKind(AssignmentType assignmentType) {
-        ConstructionType construction = assignmentType.getConstruction();
-        if (construction != null){
-            if (construction.getKind() != null){
-                return construction.getKind();
-            }
-
-            return ShadowKindType.ACCOUNT;
-        }
-
-        throw new IllegalArgumentException("Construction not defined in the assigment.");
     }
 
     public static ProtectedStringType getPasswordValue(UserType user) {

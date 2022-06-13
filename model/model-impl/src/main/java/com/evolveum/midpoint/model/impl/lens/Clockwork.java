@@ -277,7 +277,7 @@ public class Clockwork {
         if (result.isTracingAny(ClockworkRunTraceType.class)) {
             ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
             trace.setInputLensContextText(context.debugDump());
-            trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
+            trace.setInputLensContext(context.toBean(getExportTypeTraceOrReduced(trace, result)));
             result.addTrace(trace);
             return trace;
         } else {
@@ -289,7 +289,7 @@ public class Clockwork {
             OperationResult result) throws SchemaException {
         if (trace != null) {
             trace.setOutputLensContextText(context.debugDump());
-            trace.setOutputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
+            trace.setOutputLensContext(context.toBean(getExportTypeTraceOrReduced(trace, result)));
             if (context.getFocusContext() != null) {    // todo reconsider this
                 PrismObject<F> objectAny = context.getFocusContext().getObjectAny();
                 if (objectAny != null) {

@@ -165,10 +165,10 @@ public class SchemaTransformer {
             LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
             if (fetchResult == null) {
-                fetchResult = subresult.createOperationResultType();
+                fetchResult = subresult.createBeanReduced();
                 object.asObjectable().setFetchResult(fetchResult);
             } else {
-                fetchResult.getPartialResults().add(subresult.createOperationResultType());
+                fetchResult.getPartialResults().add(subresult.createBeanReduced());
             }
             fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
             subresult.recordFatalError(e); // todo is it safe to keep the object in the result set if it was not completely post-processed?

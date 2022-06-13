@@ -159,7 +159,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             return new FullCorrelationContext(
                     shadow,
                     resource,
-                    policy.getResourceTypeDefinitionRequired(),
+                    policy.getResourceObjectDefinition(),
                     policy,
                     asObjectable(systemObjectCache.getSystemConfiguration(result)));
         }
@@ -190,7 +190,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                         PrismContext.get().createObjectable(
                                 fullContext.synchronizationPolicy.getFocusClass()),
                 fullContext.resource,
-                fullContext.typeDefinition,
+                fullContext.resourceObjectDefinition,
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task);
     }

@@ -1,16 +1,15 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
-import com.querydsl.core.types.Predicate;
-
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.Nullable;
+import com.querydsl.core.types.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
@@ -49,24 +47,21 @@ public class ReferencedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>
         return process(filter.getType(), filter.getPath(), filter.getRelation(), filter.getFilter());
     }
 
-    private <TQ extends FlexibleRelationalPathBase<TR>, TR>  Predicate process(
-            @Nullable ComplexTypeDefinition ownerDefinition, ItemPath path, QName relation, ObjectFilter innerFilter) throws RepositoryException {
+    private Predicate process(@NotNull ComplexTypeDefinition ownerDefinition,
+            ItemPath path, QName relation, ObjectFilter innerFilter) throws RepositoryException {
 
         var targetMapping = context.repositoryContext().getMappingBySchemaType(ownerDefinition.getCompileTimeClass());
-        //var refereePath = path.append(new ObjectReferencePathSegment());
         var targetContext = context.subquery(targetMapping);
         relation = relation != null ? relation : PrismConstants.Q_ANY;
         // We use our package private RefFilter and logic in existing ref filter implementation
-        // to sneak OID from parent
-        targetContext.processFilter(internalRefFilter(path, relation,context.path(QObject.class).oid));
+        // to sneak in the OID from parent.
+        targetContext.processFilter(internalRefFilter(path, relation, context.path(QObject.class).oid));
         // We add nested filter for referencing object
         targetContext.processFilter(innerFilter);
         return targetContext.sqlQuery().exists();
-
     }
 
     private ObjectFilter internalRefFilter(ItemPath path, QName relation, UuidPath oid) {
         return new RefFilterWithRepoPath(path, relation, oid);
     }
-
 }

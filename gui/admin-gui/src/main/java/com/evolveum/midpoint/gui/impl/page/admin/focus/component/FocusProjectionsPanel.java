@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import org.apache.commons.collections4.CollectionUtils;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
@@ -68,7 +68,6 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -489,11 +488,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private GuiShadowDetailsPageType findShadowDetailsPageConfiguration(ShadowType shadowType) {
-        return getPageBase().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowDiscriminator(shadowType));
+        return getPageBase().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowCoordinates(shadowType));
     }
 
-    private ResourceShadowDiscriminator createResourceShadowDiscriminator(ShadowType shadow) {
-        return new ResourceShadowDiscriminator(shadow.getResourceRef().getOid(), shadow.getKind(), shadow.getIntent(), null, false);
+    private ResourceShadowCoordinates createResourceShadowCoordinates(ShadowType shadow) {
+        return new ResourceShadowCoordinates(shadow.getResourceRef().getOid(), shadow.getKind(), shadow.getIntent(), null);
     }
 
     private IModel<ShadowWrapper> getParentModel(IModel<PrismContainerValueWrapper<ShadowType>> model) {
@@ -594,9 +593,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
-                // TODO are we OK with "any" account definition?
-                ResourceObjectTypeDefinition accountDefinition = refinedSchema
-                        .findDefaultOrAnyObjectTypeDefinition(ShadowKindType.ACCOUNT);
+                ResourceObjectDefinition accountDefinition = refinedSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
                 if (accountDefinition == null) {
                     error(getString("pageAdminFocus.message.couldntCreateAccountNoAccountSchema",
                             resource.getName()));
@@ -618,13 +615,21 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         target.add(getMultivalueContainerListPanel());
     }
 
-    private ShadowType createNewShadow(ResourceType resource, ResourceObjectTypeDefinition accountDefinition) {
-        ShadowType shadow = new ShadowType(getPrismContext());
+    private ShadowType createNewShadow(ResourceType resource, ResourceObjectDefinition accountDefinition) {
+        ShadowType shadow = new ShadowType();
         shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource, SchemaConstants.ORG_DEFAULT));
         QName objectClass = accountDefinition.getTypeName();
         shadow.setObjectClass(objectClass);
-        shadow.setIntent(accountDefinition.getIntent());
-        shadow.setKind(accountDefinition.getKind());
+        ResourceObjectTypeIdentification typeId = accountDefinition.getTypeIdentification();
+        if (typeId != null) {
+            shadow.setKind(typeId.getKind());
+            shadow.setIntent(typeId.getIntent());
+        } else if (accountDefinition.getObjectClassDefinition().isDefaultAccountDefinition()) {
+            shadow.setKind(ShadowKindType.ACCOUNT);
+            shadow.setIntent(SchemaConstants.INTENT_DEFAULT);
+        } else {
+            throw new IllegalStateException("No suitable account definition could be found");
+        }
         return shadow;
     }
 

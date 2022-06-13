@@ -92,7 +92,7 @@ class DelineationProcessor {
         }
         ResourceObjectDefinition baseContextObjectDefinition =
                 java.util.Objects.requireNonNull(
-                        ResourceObjectDefinitionResolver.getDefinitionForShadow(ctx.getResourceSchema(), baseContextShadow),
+                        ctx.getResourceSchema().findDefinitionForShadow(baseContextShadow.asObjectable()),
                         () -> "Couldn't determine definition for " + baseContextRef);
         return ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectDefinition);
     }

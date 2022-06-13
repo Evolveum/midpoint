@@ -58,9 +58,8 @@ public final class ResourceObjectsReconciliationActivityRun
 
     private Synchronizer createSynchronizer() {
         return new Synchronizer(
-                resourceObjectClass.getResource(),
-                resourceObjectClass.getResourceObjectDefinitionRequired(),
-                objectsFilter,
+                processingScope.getResource(),
+                processingScope.getPostSearchFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
                 isPreview(),
@@ -80,7 +79,7 @@ public final class ResourceObjectsReconciliationActivityRun
 
     @Override
     public ItemDefinitionProvider createItemDefinitionProvider() {
-        return resourceObjectClass.createItemDefinitionProvider();
+        return processingScope.createItemDefinitionProvider();
     }
 
     @Override

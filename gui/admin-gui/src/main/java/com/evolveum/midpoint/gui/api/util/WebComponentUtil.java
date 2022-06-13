@@ -446,8 +446,8 @@ public final class WebComponentUtil {
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
         try {
-            ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-            ResourceObjectDefinition oc = refinedResourceSchema.findObjectDefinition(construction.getKind(), construction.getIntent());
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
             if (oc == null) {
                 return null;
             }
@@ -707,7 +707,7 @@ public final class WebComponentUtil {
         task.setActivity(
                 new ActivityDefinitionType(PrismContext.get())
                         .beginWork()
-                            .iterativeChangeExecution(workDef)
+                        .iterativeChangeExecution(workDef)
                         .end());
         // @formatter:on
 
@@ -2977,7 +2977,7 @@ public final class WebComponentUtil {
 
         try {
             ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-            ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
+            ocd = resourceSchema.findDefinitionForShadow(shadowType);
         } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
@@ -3078,7 +3078,7 @@ public final class WebComponentUtil {
 
         try {
             ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
-            ocd = ResourceObjectDefinitionResolver.getDefinitionForShadow(resourceSchema, shadowType);
+            ocd = resourceSchema.findDefinitionForShadow(shadowType);
         } catch (SchemaException | ConfigurationException e) {
             LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
         }
@@ -3752,8 +3752,8 @@ public final class WebComponentUtil {
         if (assocDef.getDisplayName() != null) {
             sb.append(assocDef.getDisplayName()).append(", ");
         }
-        if (assocDef.getDefinitionBean() != null && assocDef.getDefinitionBean().getRef() != null) {
-            sb.append("ref: ").append(assocDef.getDefinitionBean().getRef().getItemPath().toString());
+        if (assocDef.getDefinitionBean().getRef() != null) {
+            sb.append("ref: ").append(assocDef.getDefinitionBean().getRef().getItemPath());
         }
         return sb.toString();
     }

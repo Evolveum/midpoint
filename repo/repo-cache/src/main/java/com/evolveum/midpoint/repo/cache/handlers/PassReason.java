@@ -125,8 +125,9 @@ final class PassReason {
      * Cases are perhaps not changing that rapidly but these are objects that are used for communication of various parties;
      * so - to avoid having stale data - we skip caching them altogether.
      */
-    static boolean alwaysNotCacheable(Class<?> type) {
-        return type.equals(TaskType.class) || type.equals(CaseType.class);
+    private static boolean alwaysNotCacheable(Class<?> type) {
+        return type.equals(TaskType.class)
+                || type.equals(CaseType.class);
     }
 
     CacheUseTraceType toCacheUse() {

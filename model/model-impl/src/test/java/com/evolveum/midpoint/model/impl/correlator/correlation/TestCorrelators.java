@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -111,8 +113,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         initDummyIdMatchService();
         instantiateCorrelators(initTask, initResult);
 
-        resourceObjectTypeDefinition = RESOURCE_DETERMINISTIC.controller.getRefinedSchema()
-                .findObjectTypeDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        resourceObjectTypeDefinition =
+                findObjectTypeDefinitionRequired(
+                        RESOURCE_DETERMINISTIC.controller.getRefinedSchema(),
+                        ShadowKindType.ACCOUNT,
+                        SchemaConstants.INTENT_DEFAULT);
     }
 
     /**

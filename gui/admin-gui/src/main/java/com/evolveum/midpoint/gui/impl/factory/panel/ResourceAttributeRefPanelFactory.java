@@ -129,12 +129,7 @@ public class ResourceAttributeRefPanelFactory
             PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
                     constructionWrapper.getResourceOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
                     ctx.getPageBase(), task, result);
-            ResourceSchema schema = constructionWrapper.getRefinedSchema(resource);
-            if (schema == null) {
-                return new ArrayList<>();
-            }
-            ResourceObjectDefinition rOcd =
-                    schema.findObjectDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent(resource));
+            ResourceObjectDefinition rOcd = constructionWrapper.getResourceObjectDefinition(resource);
             if (rOcd == null) {
                 return Collections.emptyList();
             }

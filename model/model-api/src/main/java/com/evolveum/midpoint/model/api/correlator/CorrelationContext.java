@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -48,9 +48,9 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
     @NotNull private final ResourceType resource;
 
     /**
-     * Resource object type definition (~ schemaHandling section).
+     * Usually resource object type definition (~ schemaHandling section).
      */
-    @NotNull private final ResourceObjectTypeDefinition objectTypeDefinition;
+    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
 
     /**
      * System configuration to use during the correlation.
@@ -78,13 +78,13 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
             @NotNull ShadowType resourceObject,
             @NotNull FocusType preFocus,
             @NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task) {
         this.resourceObject = resourceObject;
         this.preFocus = preFocus;
         this.resource = resource;
-        this.objectTypeDefinition = objectTypeDefinition;
+        this.resourceObjectDefinition = objectDefinition;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
     }
@@ -105,8 +105,8 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         return resource;
     }
 
-    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() {
-        return objectTypeDefinition;
+    public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
+        return resourceObjectDefinition;
     }
 
     public @Nullable SystemConfigurationType getSystemConfiguration() {
@@ -154,7 +154,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
     public String toString() {
         return "CorrelationContext("
                 + getFocusType().getSimpleName() + ", "
-                + objectTypeDefinition.getHumanReadableName() + "@" + resource
+                + resourceObjectDefinition.getHumanReadableName() + "@" + resource
                 + ')';
     }
 
@@ -165,7 +165,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "focusType", getFocusType(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectTypeDefinition", String.valueOf(objectTypeDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "correlatorState", correlatorState, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "manualCorrelationContext", manualCorrelationContext, indent + 1);

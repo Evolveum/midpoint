@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.executor;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -98,15 +98,15 @@ class ScriptExecutor<O extends ObjectType> {
 
         PrismObject<O> focus = getFocus(context);
         PrismObject<ShadowType> shadow = getShadow(projCtx, order);
-        ResourceShadowDiscriminator rsd = projCtx.getResourceShadowDiscriminator();
+        ProjectionContextKey key = projCtx.getKey();
         ResourceType resource = projCtx.getResource();
 
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(focus, shadow, rsd, resource.asPrismObject(),
-                context.getSystemConfiguration(), projCtx);
+        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
+                focus, shadow, resource.asPrismObject(), context.getSystemConfiguration(), projCtx);
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                 new ModelExpressionEnvironment<>(context, projCtx, task, result));
         try {
-            OperationProvisioningScriptsType preparedScripts = prepareScripts(scripts, rsd,
+            OperationProvisioningScriptsType preparedScripts = prepareScripts(scripts, key,
                     ProvisioningOperationTypeType.RECONCILE, order, variables, expressionProfile, result);
             for (OperationProvisioningScriptType script : preparedScripts.getScript()) {
                 ModelImplUtils.setRequestee(task, context);
@@ -146,24 +146,29 @@ class ScriptExecutor<O extends ObjectType> {
         return null;
     }
 
-    OperationProvisioningScriptsType prepareScripts(OperationProvisioningScriptsType resourceScripts,
-            ResourceShadowDiscriminator rsd, ProvisioningOperationTypeType operation, BeforeAfterType order,
-            VariablesMap variables, ExpressionProfile expressionProfile, OperationResult result)
+    OperationProvisioningScriptsType prepareScripts(
+            OperationProvisioningScriptsType resourceScripts,
+            @NotNull ProjectionContextKey key,
+            ProvisioningOperationTypeType operation,
+            BeforeAfterType order,
+            VariablesMap variables,
+            ExpressionProfile expressionProfile,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 
         if (resourceScripts != null) {
             OperationProvisioningScriptsType scripts = resourceScripts.clone();
             for (OperationProvisioningScriptType script : scripts.getScript()) {
-                if (rsd != null) {
-                    if (script.getKind() != null && !script.getKind().isEmpty()
-                            && !script.getKind().contains(rsd.getKind())) {
-                        continue;
-                    }
-                    if (script.getIntent() != null && !script.getIntent().isEmpty()
-                            && !script.getIntent().contains(rsd.getIntent()) && rsd.getIntent() != null) {
-                        continue;
-                    }
+                if (script.getKind() != null
+                        && !script.getKind().isEmpty()
+                        && !script.getKind().contains(key.getKind())) {
+                    continue;
+                }
+                if (script.getIntent() != null
+                        && !script.getIntent().isEmpty()
+                        && !script.getIntent().contains(key.getIntent()) && key.getIntent() != null) {
+                    continue;
                 }
                 if (operation != null && !script.getOperation().contains(operation)) {
                     continue;

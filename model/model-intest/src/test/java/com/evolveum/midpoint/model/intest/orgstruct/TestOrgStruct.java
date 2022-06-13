@@ -1684,7 +1684,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
     private void assertManager(String userOid, String managerOid, String orgType, boolean allowSelf, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(userOid);
-        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ModelExpressionEnvironment<>(null, result));
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(getTestTask(), result);
         Collection<UserType> managers = libraryMidpointFunctions.getManagers(user.asObjectable(), orgType, allowSelf);
         ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         if (managerOid == null) {

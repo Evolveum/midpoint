@@ -7,10 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,10 +30,12 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
  *
  * Delegates much to {@link FocusLoadOperation}, {@link ProjectionsLoadOperation}, and {@link ProjectionUpdateOperation}.
  *
+ * Intentionally package-private.
+ *
  * TODO This structure reflects the code before midPoint 4.4. We should perhaps restructure it further,
  *  e.g. to merge {@link ProjectionUpdateOperation} functionality into {@link ProjectionsLoadOperation}.
  */
-public class ContextLoadOperation<F extends ObjectType> {
+class ContextLoadOperation<F extends ObjectType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContextLoadOperation.class);
 
@@ -52,7 +52,7 @@ public class ContextLoadOperation<F extends ObjectType> {
     /** Trace that is used during the context load operation (if any). */
     private ProjectorComponentTraceType trace;
 
-    public ContextLoadOperation(@NotNull LensContext<F> context, @NotNull String activityDescription, @NotNull Task task) {
+    ContextLoadOperation(@NotNull LensContext<F> context, @NotNull String activityDescription, @NotNull Task task) {
         this.context = context;
         this.activityDescription = activityDescription;
         this.task = task;
@@ -68,11 +68,6 @@ public class ContextLoadOperation<F extends ObjectType> {
         context.recompute(); // TODO why?
 
         try {
-
-            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                projectionContext.updateCoordinates(task, result);
-            }
-
             context.checkConsistenceIfNeeded();
 
             loadFocusContext(result);
@@ -119,7 +114,7 @@ public class ContextLoadOperation<F extends ObjectType> {
             context.checkConsistenceIfNeeded();
             context.recompute(); // TODO
 
-            fullCheckConsistenceIfNeeded();
+            context.checkConsistenceIfNeeded();
 
             // Set the "fresh" mark now so following consistency check will be stricter
             context.setFresh(true);
@@ -165,7 +160,7 @@ public class ContextLoadOperation<F extends ObjectType> {
             if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
             }
-            trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setInputLensContext(context.toBean(getExportType(trace, result)));
             result.addTrace(trace);
         } else {
             trace = null;
@@ -177,7 +172,7 @@ public class ContextLoadOperation<F extends ObjectType> {
             if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                 trace.setOutputLensContextText(context.debugDump());
             }
-            trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setOutputLensContext(context.toBean(getExportType(trace, result)));
         }
     }
 
@@ -248,27 +243,13 @@ public class ContextLoadOperation<F extends ObjectType> {
                 LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
 
                 if (projectionContext.isToBeArchived()) {
-                    context.getHistoricResourceObjects().add(projectionContext.getResourceShadowDiscriminator());
+                    context.getHistoricResourceObjects().add(projectionContext.getKey());
                 }
 
                 context.getRottenExecutedDeltas().addAll(
                         projectionContext.getExecutedDeltas());
 
                 projectionIterator.remove();
-            }
-        }
-    }
-
-    private void fullCheckConsistenceIfNeeded() {
-        if (consistencyChecks) {
-            context.checkConsistence();
-            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-                    continue;
-                }
-                if (projectionContext.getResourceShadowDiscriminator() == null) {
-                    throw new IllegalStateException("No discriminator in " + projectionContext);
-                }
             }
         }
     }

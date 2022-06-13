@@ -6,16 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.Collection;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -23,10 +19,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -40,17 +43,17 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
     protected static final File TEST_DIR = new File("src/test/resources/refinedschema");
 
-    public static final File TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE = new File(TEST_DIR,
+    private static final File TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE = new File(TEST_DIR,
             "task-reconcile-dummy-objectclass.xml");
-    public static final String TASK_RECONCILE_DUMMY_OBJECTCLASS_OID = "bed15976-e604-11e5-a181-af0dade5e5a0";
+    private static final String TASK_RECONCILE_DUMMY_OBJECTCLASS_OID = "bed15976-e604-11e5-a181-af0dade5e5a0";
 
-    public static final File TASK_RECONCILE_DUMMY_KIND_INTENT_FILE = new File(TEST_DIR,
+    private static final File TASK_RECONCILE_DUMMY_KIND_INTENT_FILE = new File(TEST_DIR,
             "task-reconcile-dummy-kind-intent.xml");
-    public static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OID = "d4cd18f2-e60c-11e5-a806-3faae6c13aff";
+    private static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OID = "d4cd18f2-e60c-11e5-a806-3faae6c13aff";
 
-    public static final File TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE = new File(TEST_DIR,
+    private static final File TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE = new File(TEST_DIR,
             "task-reconcile-dummy-kind-intent-objectclass.xml");
-    public static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID = "3f2a1140-e60e-11e5-adb7-776abfbb2227";
+    private static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID = "3f2a1140-e60e-11e5-adb7-776abfbb2227";
 
     private ResourceSchema refinedSchema;
     private ResourceSchema refinedSchemaModel;
@@ -125,7 +128,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ResourceObjectDefinition objectClass = ModelImplUtils.determineObjectDefinition(refinedSchema, task);
+        ResourceObjectDefinition objectClass = determineObjectDefinition(refinedSchema, task);
 
         // THEN
         displayDumpable("Object class", objectClass);
@@ -145,7 +148,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ResourceObjectDefinition objectClass = ModelImplUtils.determineObjectDefinition(refinedSchema, task);
+        ResourceObjectDefinition objectClass = determineObjectDefinition(refinedSchema, task);
 
         // THEN
         displayDumpable("Object class", objectClass);
@@ -165,7 +168,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ResourceObjectDefinition objectClass = ModelImplUtils.determineObjectDefinition(refinedSchema, task);
+        ResourceObjectDefinition objectClass = determineObjectDefinition(refinedSchema, task);
 
         // THEN
         displayDumpable("Object class", objectClass);
@@ -185,7 +188,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ResourceObjectDefinition objectClass = ModelImplUtils.determineObjectDefinition(refinedSchemaModel, task);
+        ResourceObjectDefinition objectClass = determineObjectDefinition(refinedSchemaModel, task);
 
         // THEN
         displayDumpable("Object class", objectClass);
@@ -206,7 +209,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ResourceObjectDefinition objectClass = ModelImplUtils.determineObjectDefinition(refinedSchemaModel, task);
+        ResourceObjectDefinition objectClass = determineObjectDefinition(refinedSchemaModel, task);
 
         // THEN
         displayDumpable("Object class", objectClass);
@@ -228,7 +231,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ResourceObjectDefinition objectClass = ModelImplUtils.determineObjectDefinition(refinedSchemaModel, task);
+        ResourceObjectDefinition objectClass = determineObjectDefinition(refinedSchemaModel, task);
 
         // THEN
         displayDumpable("Object class", objectClass);
@@ -240,6 +243,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
                 ShadowKindType.ENTITLEMENT, "privilege", LayerType.MODEL);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertObjectClass(
             ResourceObjectDefinition objectClass, QName objectClassQName) {
         assertNotNull("No object class", objectClass);
@@ -258,9 +262,59 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         assertEquals("Wrong kind in rOcDef " + rOcDef, intent, rOcDef.getIntent());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertLayerRefinedObjectClass(ResourceObjectDefinition objectClass,
             QName objectClassQName, ShadowKindType kind, String intent, LayerType layer) {
         assertRefinedObjectClass(objectClass, objectClassQName, kind, intent);
         assertEquals("Wrong layer", layer, objectClass.getCurrentLayer());
+    }
+
+    // The following three methods were originally in ModelImplUtils. But they are not needed there anymore;
+    // as they are used just in this test class.
+    private ResourceObjectDefinition determineObjectDefinition(ResourceSchema refinedSchema, Task task)
+            throws SchemaException {
+        QName objectclass = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
+        ShadowKindType kind = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_KIND);
+        String intent = getTaskExtensionPropertyValue(task, SchemaConstants.MODEL_EXTENSION_INTENT);
+
+        return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
+    }
+
+    private <T> T getTaskExtensionPropertyValue(Task task, ItemName propertyName) {
+        PrismProperty<T> property = task.getExtensionPropertyOrClone(propertyName);
+        if (property != null) {
+            return property.getValue().getValue();
+        } else {
+            return null;
+        }
+    }
+
+    private ResourceObjectDefinition determineObjectClassInternal(
+            ResourceSchema resourceSchema, QName objectclass, ShadowKindType kind, String intent, Object source)
+            throws SchemaException {
+
+        if (kind == null && intent == null && objectclass != null) {
+            // Return generic object class definition from resource schema. No kind/intent means that we want
+            // to process all kinds and intents in the object class.
+            ResourceObjectDefinition objectClassDefinition =
+                    resourceSchema.findDefinitionForObjectClass(objectclass); // TODO or findObjectClassDefinition?
+            if (objectClassDefinition == null) {
+                throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
+            }
+            return objectClassDefinition;
+        }
+
+        if (kind != null) {
+            if (intent != null) {
+                return resourceSchema.findObjectDefinition(kind, intent);
+            } else {
+                return resourceSchema.findDefaultDefinitionForKind(kind);
+            }
+        } else if (objectclass != null) {
+            // This means that kind == null, intent != null (suspicious!)
+            return resourceSchema.findDefinitionForObjectClass(objectclass);
+        } else {
+            return null;
+        }
     }
 }

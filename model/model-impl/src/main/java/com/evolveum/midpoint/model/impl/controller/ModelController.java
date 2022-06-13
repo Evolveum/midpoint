@@ -18,8 +18,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
-
 import com.evolveum.midpoint.cases.api.CaseManager;
 
 import com.evolveum.midpoint.schema.util.*;
@@ -118,7 +116,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class ModelController implements ModelService, TaskService, CaseService, ScriptingService, AccessCertificationService {
 
     // Constants for OperationResult
-    public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
+    private static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
     private static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
@@ -150,7 +148,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
-    @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Autowired(required = false)                        // not required in all circumstances
     private CaseManager caseManager;
@@ -450,8 +447,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             }
 
             if (context.hasExplosiveProjection()) {
-                PrismObject<? extends ObjectType> focus = Objects.requireNonNull(
-                        context.getFocusContext().getObjectAny(), "no focus object");
+                PrismObject<? extends ObjectType> focus =
+                        Objects.requireNonNull(context.getFocusContext().getObjectAny(), "no focus object");
 
                 LOGGER.debug("Recomputing {} because there was explosive projection", focus);
 

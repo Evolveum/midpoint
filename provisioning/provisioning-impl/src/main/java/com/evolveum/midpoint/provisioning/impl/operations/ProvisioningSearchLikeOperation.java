@@ -202,7 +202,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         // This must be done after result is closed
         if (!result.isSuccess()) {
             completedObject = completedObject.cloneIfImmutable();
-            completedObject.asObjectable().setFetchResult(result.createOperationResultType());
+            completedObject.asObjectable().setFetchResult(result.createBeanReduced());
         }
         return completedObject;
     }

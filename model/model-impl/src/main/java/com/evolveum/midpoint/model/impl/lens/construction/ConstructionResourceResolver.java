@@ -67,7 +67,7 @@ class ConstructionResourceResolver {
                         resource = resolveResourceRefFilter(" resolving resource ", task, result);
                     } else {
                         resource = LensUtil.getResourceReadOnly(construction.lensContext, resourceRef.getOid(),
-                                ModelBeans.get().modelObjectResolver, task, result);
+                                ModelBeans.get().provisioningService, task, result);
                     }
                     return new ResolvedConstructionResource(resource);
                 } catch (ObjectNotFoundException e) {

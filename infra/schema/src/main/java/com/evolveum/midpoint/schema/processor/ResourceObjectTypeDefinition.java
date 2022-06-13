@@ -34,6 +34,13 @@ public interface ResourceObjectTypeDefinition
     }
 
     /**
+     * Identification (kind+intent) of this object type.
+     */
+    @NotNull ResourceObjectTypeIdentification getTypeIdentification();
+
+    @NotNull ResourceObjectTypeDefinition getTypeDefinition();
+
+    /**
      * Kind of objects covered by this object type.
      */
     @NotNull ShadowKindType getKind();
@@ -101,8 +108,4 @@ public interface ResourceObjectTypeDefinition
 
     /** Temporary? */
     @Nullable ExpressionType getClassificationCondition();
-
-    @NotNull default ResourceObjectTypeIdentification getIdentification() {
-        return ResourceObjectTypeIdentification.of(getKind(), getIntent());
-    }
 }

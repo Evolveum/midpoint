@@ -87,7 +87,7 @@ class ResourceObjectReferenceResolver {
     /**
      * Resolves a {@link ResourceObjectReferenceType}.
      *
-     * @param useRawDefinition If true, object class definition is used (instead of object type definition).
+     * @param useRawDefinition If true, raw object class definition is used (instead of refined definition).
      * This is to avoid endless recursion when resolving the base context for object type.
      */
     @Nullable PrismObject<ShadowType> resolve(

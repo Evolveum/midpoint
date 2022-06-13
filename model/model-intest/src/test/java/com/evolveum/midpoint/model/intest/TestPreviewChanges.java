@@ -21,6 +21,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,7 +41,6 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -1322,8 +1323,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model projection context list", projectionContexts);
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1377,8 +1377,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model projection context list", projectionContexts);
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1492,8 +1491,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model projection context list", projectionContexts);
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
         assertNotNull("Null model projection context", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1550,8 +1548,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model projection context list", projectionContexts);
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
         assertNotNull("Null model projection context", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1613,8 +1610,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
         // DEFAULT dummy resource: normal mappings
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context (default)", accContext);
 
         assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1628,8 +1624,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine Threepwood");
 
         // RED dummy resource: strong mappings
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Null model projection context (red)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1643,8 +1638,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine Threepwood");
 
         // BLUE dummy resource: weak mappings
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
         assertNotNull("Null model projection context (blue)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1708,8 +1702,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
         // DEFAULT dummy resource: normal mappings
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context (default)", accContext);
 
         assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1723,8 +1716,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNull("Unexpected account secondary delta: " + accountSecondaryDelta, accountSecondaryDelta);
 
         // RED dummy resource: strong mappings
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Null model projection context (red)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1737,8 +1729,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Elaine Threepwood");
 
         // BLUE dummy resource: weak mappings
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
         assertNotNull("Null model projection context (blue)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1792,8 +1783,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
         // DEFAULT dummy resource: normal mappings
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context (default)", accContext);
 
         assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1807,8 +1797,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
 
         // RED dummy resource: strong mappings
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Null model projection context (red)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1823,8 +1812,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, "Kate Capsize");
 
         // BLUE dummy resource: weak mappings
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
         assertNotNull("Null model projection context (blue)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1886,8 +1874,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertEquals("Unexpected number of projection contexts", 2, projectionContexts.size());
 
         // DEFAULT dummy resource: normal mappings
-        ModelProjectionContext accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContext = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context (default)", accContext);
 
         assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1902,8 +1889,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
 
         // LEMON dummy resource
-        accContext = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_LEMON_OID, ShadowKindType.ACCOUNT, null, null, false));
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_LEMON_OID);
         assertNotNull("Null model projection context (lemon)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1972,8 +1958,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Null model projection context list", projectionContexts);
         assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 
-        ModelProjectionContext accContextDefault = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContextDefault = findAccountContext(modelContext, RESOURCE_DUMMY_OID);
         assertNotNull("Null model projection context (default)", accContextDefault);
 
         assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContextDefault.getSynchronizationPolicyDecision());
@@ -1990,8 +1975,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         // the other modification is disable timestamp
 
-        ModelProjectionContext accContextBlue = modelContext.findProjectionContext(
-                new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null, null, false));
+        ModelProjectionContext accContextBlue = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
         assertNotNull("Null model projection context (blue)", accContextBlue);
 
         assertEquals("Wrong policy decision (blue)", SynchronizationPolicyDecision.KEEP, accContextBlue.getSynchronizationPolicyDecision());
@@ -2007,6 +1991,15 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
                 SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         assertSerializable(modelContext);
+    }
+
+    private ModelProjectionContext findAccountContext(ModelContext<UserType> modelContext, String resourceOid) {
+        Collection<? extends ModelProjectionContext> accountContexts = modelContext.findProjectionContexts(
+                new ProjectionContextFilter(resourceOid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT));
+        return MiscUtil.extractSingletonRequired(
+                accountContexts,
+                () -> new IllegalStateException("Multiple account/default contexts: " + accountContexts),
+                () -> new IllegalStateException("No account/default contexts: " + modelContext.getProjectionContexts()));
     }
 
     /**

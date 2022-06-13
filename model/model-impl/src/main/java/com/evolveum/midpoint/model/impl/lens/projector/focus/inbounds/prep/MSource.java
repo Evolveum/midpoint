@@ -76,7 +76,7 @@ abstract class MSource implements DebugDumpable {
      * Checks if we should process mappings from this source. This is mainly to avoid the cost of loading
      * from resource if there's no explicit reason to do so. See the implementation for details.
      */
-    abstract boolean isEligibleForInboundProcessing();
+    abstract boolean isEligibleForInboundProcessing() throws SchemaException, ConfigurationException;
 
     /**
      * Resource object definition is absolutely necessary for mappings to be processed.
@@ -166,7 +166,7 @@ abstract class MSource implements DebugDumpable {
             String itemDescription, ItemDelta<?, ?> itemAPrioriDelta,
             List<? extends MappingType> mappingBeans,
             boolean ignored,
-            PropertyLimitations limitations);
+            PropertyLimitations limitations) throws SchemaException, ConfigurationException;
 
     /**
      * Returns true if the mapping(s) for given item on this source should be skipped.

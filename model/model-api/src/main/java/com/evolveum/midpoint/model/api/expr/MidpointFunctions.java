@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -1010,30 +1011,67 @@ public interface MidpointFunctions {
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    default ShadowType getLinkedShadow(FocusType focus, String resourceOid)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return getLinkedShadow(focus, resourceOid, false);
+    }
 
     @NotNull
-    List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    default List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return getLinkedShadows(focus, resourceOid, false);
+    }
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    default ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        List<ShadowType> shadows = getLinkedShadows(focus, resourceOid, repositoryObjectOnly);
+        if (shadows.isEmpty()) {
+            return null;
+        } else {
+            return shadows.get(0);
+        }
+    }
 
     @NotNull
-    List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException;
 
-    ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    default ShadowType getLinkedShadow(FocusType focus, ResourceType resource)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return getLinkedShadow(focus, resource.getOid());
+    }
 
-    ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    default ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return getLinkedShadow(focus, resource.getOid(), repositoryObjectOnly);
+    }
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    default ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return getLinkedShadow(focus, resourceOid, kind, intent, false);
+    }
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    /**
+     * Null values of resource oid, kind, and intent mean "any".
+     */
+    ShadowType getLinkedShadow(
+            FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException;
 
     /**
      * Returns aggregated delta that is to be executed on a given resource.
      * @param context model context
      * @param resourceOid OID of the resource in question
      */
-    ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException;
+    ObjectDeltaType getResourceDelta(ModelContext<?> context, String resourceOid) throws SchemaException;
 
     Protector getProtector();
 
@@ -1124,14 +1162,21 @@ public interface MidpointFunctions {
 
     String translate(LocalizableMessageType message);
 
+    /**
+     * Counts accounts having `attributeValue` of `attributeName`.
+     *
+     * Note that this method uses the default definition of {@link ShadowKindType#ACCOUNT} objects, if present.
+     */
     <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** A variant of {@link #countAccounts(String, QName, Object)}. */
     <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /** A variant of {@link #countAccounts(String, QName, Object)}. Attribute name is assumed to be in the `ri:` namespace. */
     <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
@@ -1145,6 +1190,16 @@ public interface MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * Checks if the value `attributeValue` of `attributeName` in given shadow is unique on given resource.
+     *
+     * A search on resource is invoked, and any occurrences (except the one in `shadowType`) are reported as violations.
+     *
+     * Notes:
+     *
+     * 1. `shadowType` should have an OID;
+     * 2. when constructing the query, the default `account` definition is used to provide attribute definitions.
+     */
     <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName,
             T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;

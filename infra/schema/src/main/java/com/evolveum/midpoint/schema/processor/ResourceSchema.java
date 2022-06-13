@@ -7,55 +7,49 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * A schema covering the whole resource.
  *
- * It contains both "raw" object class definition and "refined" object type definitions.
+ * It contains both "raw" object class definition and "refined" object type and class definitions.
  *
  * - Raw (class) definitions are represented by {@link ResourceObjectClassDefinition} objects
  * and are obtained directly from the connector.
- * - Refined (type) definitions (represented by {@link ResourceObjectTypeDefinition}) are derived from the raw ones
- * by merging them with information in `schemaHandling` part of the resource definition.
+ * - Refined (type or class) definitions (represented by {@link ResourceObjectTypeDefinition} and
+ * {@link ResourceObjectClassDefinition}) are derived from the raw ones by merging them with information
+ * in `schemaHandling` part of the resource definition.
  *
  * This interface contains a lot of methods that try to find object type/class definition matching
- * criteria. Similar methods (but more comprehensive) are in {@link ResourceObjectDefinitionResolver} class.
- *
- * NOTE: Some of the names will probably change soon.
+ * criteria.
  *
  * NOTE: There can be schemas that contain no refined definitions. Either the resource definition
  * contains no `schemaHandling`, or we work at lower layers (e.g. when fetching and parsing the schema
  * in ConnId connector).
  *
- * Naming convention: To clearly indicate which methods are really _never_ mentioned to be public,
- * we use `Internal` suffix in their name. This interface is really complex, and we don't want to increase
- * this complexity any further.
+ * NOTE: Resolution of definitions is a complex process. So it's delegated to {@link ResourceObjectDefinitionResolver}.
  *
  * @author semancik
  */
@@ -63,6 +57,7 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     Trace LOGGER = TraceManager.getTrace(ResourceSchema.class);
 
+    //region Simple type/class definitions retrieval
     /** Returns definitions for all the object classes and types (currently that should be all definitions). */
     default @NotNull Collection<ResourceObjectDefinition> getResourceObjectDefinitions() {
         return getDefinitions(ResourceObjectDefinition.class);
@@ -85,69 +80,98 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
                 .collect(Collectors.toList());
     }
 
-    //region Convenience variants of the base methods
+    /** Returns definition of the given type. No hacks/guesses here. */
+    default @Nullable ResourceObjectTypeDefinition getObjectTypeDefinition(
+            @NotNull ShadowKindType kind, @NotNull String intent) {
+        List<ResourceObjectTypeDefinition> matching = getObjectTypeDefinitions().stream()
+                .filter(def -> def.matches(kind, intent))
+                .collect(Collectors.toList());
+        return MiscUtil.extractSingleton(
+                matching,
+                () -> new IllegalStateException("Multiple type definitions for " + kind + "/" + intent + ": " + matching));
+    }
+
+    /** Returns definition of the given type. No hacks/guesses here. */
+    default @Nullable ResourceObjectTypeDefinition getObjectTypeDefinition(
+            @NotNull ResourceObjectTypeIdentification identification) {
+        return getObjectTypeDefinition(identification.getKind(), identification.getIntent());
+    }
+    //endregion
+
+    //region More complex definitions lookup methods
     /**
-     * Like {@link #findObjectDefinition(ShadowKindType, String, QName)} but without object class name.
+     * Returns the "default for kind" type definition for given kind.
+     *
+     * Applies `account/default` hack if nothing relevant can be found.
      */
-    default @Nullable ResourceObjectDefinition findObjectDefinition(
-            @NotNull ShadowKindType kind, @Nullable String intent) {
-        return findObjectDefinition(kind, intent, null);
+    default @Nullable ResourceObjectDefinition findDefaultDefinitionForKind(@NotNull ShadowKindType kind) {
+        return ResourceObjectDefinitionResolver.findObjectDefinition(
+                this, kind, null, null);
     }
 
     /**
-     * As {@link #findObjectDefinition(ShadowKindType, String)} but throws {@link NullPointerException} if a definition
-     * cannot be found (in a normal way). All other exceptions from that method apply.
+     * As {@link #findDefaultDefinitionForKind(ShadowKindType)} but the definition must exist.
+     */
+    default @NotNull ResourceObjectDefinition findDefaultDefinitionForKindRequired(@NotNull ShadowKindType kind) {
+        return stateNonNull(
+                findDefaultDefinitionForKind(kind),
+                () -> "No default definition for " + kind + " could be found in " + this);
+    }
+
+    /**
+     * Returns the definition for known kind and intent.
+     *
+     * Applies `account/default` hack if nothing relevant can be found.
+     */
+    default @Nullable ResourceObjectDefinition findObjectDefinition(@NotNull ShadowKindType kind, @NotNull String intent) {
+        return ResourceObjectDefinitionResolver.findObjectDefinition(
+                this, kind, intent, null);
+    }
+
+    /**
+     * As {@link #findObjectDefinition(ShadowKindType, String)} but the definition must exist.
      */
     default @NotNull ResourceObjectDefinition findObjectDefinitionRequired(
-            @NotNull ShadowKindType kind, @Nullable String intent) {
-        return Objects.requireNonNull(
-                findObjectDefinition(kind, intent),
-                () -> "No object type definition for " + kind + "/" + intent + " in " + this);
-    }
-
-    /**
-     * Returns object _type_ definition for given kind and intent.
-     *
-     * Not to be used in standard cases. Consider {@link #findObjectDefinitionRequired(ShadowKindType, String)} instead.
-     */
-    @VisibleForTesting
-    default @NotNull ResourceObjectTypeDefinition findObjectTypeDefinitionRequired(
-            @NotNull ShadowKindType kind, @Nullable String intent) {
-        ResourceObjectDefinition definition = findObjectDefinition(kind, intent);
-        stateCheck(definition != null,
-                "No definition for %s/%s could be found", kind, intent);
-        stateCheck(definition instanceof ResourceObjectTypeDefinition,
-                "No type definition for %s/%s could be found; only %s", kind, intent, definition);
-        return (ResourceObjectTypeDefinition) definition;
-    }
-
-    /**
-     * Sometimes we need _type_ definition (not object class definition).
-     */
-    default @Nullable ResourceObjectTypeDefinition findObjectTypeDefinition(
             @NotNull ShadowKindType kind, @NotNull String intent) {
-        ResourceObjectDefinition definition = findObjectDefinition(kind, intent);
-        if (definition instanceof ResourceObjectTypeDefinition) {
-            return (ResourceObjectTypeDefinition) definition;
-        } else {
-            return null;
-        }
+        return stateNonNull(
+                findObjectDefinition(kind, intent),
+                () -> "No object type/class definition for " + kind + "/" + intent + " in " + this);
     }
 
-    default @Nullable ResourceObjectTypeDefinition findObjectTypeDefinition(
-            @NotNull ResourceObjectTypeIdentification identification) {
-        return findObjectTypeDefinition(identification.getKind(), identification.getIntent());
+    /**
+     * Returns a type or class definition for a given object class:
+     *
+     * - if there's a "default for class" type defined, it is returned (this is a kind of pre-4.5 behavior)
+     * - otherwise, the object class definition is returned (if there's any)
+     */
+    default @Nullable ResourceObjectDefinition findDefinitionForObjectClass(@NotNull QName name) {
+        ResourceObjectTypeDefinition defaultTypeDef =
+                ResourceObjectDefinitionResolver.findDefaultObjectTypeDefinitionForObjectClass(this, name);
+        if (defaultTypeDef != null) {
+            return defaultTypeDef;
+        } else {
+            return findObjectClassDefinition(name);
+        }
     }
 
     /**
      * As {@link #findDefinitionForObjectClass(QName)} but throws an exception if there's no suitable definition.
-     *
-     * Currently it's {@link NullPointerException}. TODO reconsider what kind of exception should we throw
      */
     default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) {
-        return java.util.Objects.requireNonNull(
+        return stateNonNull(
                 findDefinitionForObjectClass(name),
                 () -> "No definition for object class " + name + " in " + this);
+    }
+
+    /**
+     * Returns {@link ResourceObjectClassDefinition} (raw or refined) for a given object class name.
+     */
+    default @Nullable ResourceObjectClassDefinition findObjectClassDefinition(@NotNull QName name) {
+        return MiscUtil.extractSingleton(
+                getObjectClassDefinitions().stream()
+                        .filter(def -> QNameUtil.match(def.getTypeName(), name))
+                        .collect(Collectors.toList()),
+                () -> new IllegalStateException("More than one definition of object class " + name + " in " + this));
     }
 
     /**
@@ -159,234 +183,78 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
                 findObjectClassDefinition(name),
                 () -> "Object class " + name + " not found in " + this);
     }
-    //endregion
 
-    //region Main "findObjectDefinition" method and its implementation via internal methods
     /**
-     * Returns object definition (type or class) matching given kind and intent, and object class.
-     *
-     * The object class parameter is used to:
-     *
-     * 1. verify that object type that matches given kind and intent is compatible with (currently: equal to) the object class;
-     * 2. provide a complementary means to select a type when intent is not specified.
-     *
-     * There is a special treatment for:
-     *
-     * - intent being null: see {@link #findObjectDefinitionForKindInternal(ShadowKindType, QName)};
-     * - (a hack) for ACCOUNT/default: see {@link #findDefaultAccountObjectClassInternal()} [this may be removed later]
-     *
-     * The "unknown" values for kind/intent are not supported. The client must know if these
-     * are even applicable, or (if they are) how they should be interpreted.
-     *
-     * @throws IllegalStateException if there are more matching definitions for known kind/intent
-     * (we should have checked this when parsing)
-     * @throws IllegalArgumentException if "unknown" values are present; or if only the kind is specified, and
-     * there's more than one applicable definition for the kind (TODO or should be that {@link ConfigurationException}?)
+     * As {@link #findObjectDefinition(ShadowKindType, String)} but checks the object class compatibility (if object class
+     * name is provided).
      */
     default @Nullable ResourceObjectDefinition findObjectDefinition(
             @NotNull ShadowKindType kind,
-            @Nullable String intent,
+            @NotNull String intent,
             @Nullable QName objectClassName) {
-
-        argCheck(kind != ShadowKindType.UNKNOWN,
-                "Unknown kind is not supported here: %s/%s in %s", kind, intent, this);
-        argCheck(!SchemaConstants.INTENT_UNKNOWN.equals(intent),
-                "Unknown intent is not supported here: %s/%s in %s", kind, intent, this);
-
-        var found = findObjectDefinitionInternal(kind, intent, objectClassName);
-        if (found != null) {
-            return found;
-        }
-
-        // BRUTAL HACK to allow finding ACCOUNT/default or ACCOUNT/null definitions, see e.g. TestAssignmentErrors
-        if (kind == ShadowKindType.ACCOUNT
-                && (SchemaConstants.INTENT_DEFAULT.equals(intent) || intent == null)) {
-            return findDefaultAccountObjectClassInternal();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * The whole logic of finding the definition for kind/intent (+OC), except for ACCOUNT/default hack.
-     */
-    private @Nullable ResourceObjectDefinition findObjectDefinitionInternal(
-            @NotNull ShadowKindType kind, @Nullable String intent, @Nullable QName objectClassName) {
-        if (intent == null) {
-            return findObjectDefinitionForKindInternal(kind, objectClassName);
-        } else {
-            return findObjectDefinitionForKindAndIntentInternal(kind, intent, objectClassName);
-        }
-    }
-
-    /**
-     * Most direct lookup - by kind and intent (must be at most one), then checking object class, if it's present.
-     */
-    private @Nullable ResourceObjectTypeDefinition findObjectDefinitionForKindAndIntentInternal(
-            @NotNull ShadowKindType kind, @NotNull String intent, @Nullable QName objectClassName) {
-        var matching = MiscUtil.extractSingleton(
-                getObjectTypeDefinitions().stream()
-                        .filter(def -> def.matches(kind, intent))
-                        .collect(Collectors.toList()),
-                () -> new IllegalStateException(
-                        "More than one non-default definition for " + kind + "/" + intent + " in " + this));
-        if (matching != null) {
-            ResourceObjectDefinitionResolver.checkObjectClassCompatibility(kind, null, objectClassName, matching);
-            return matching;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Determines object definition (type or class level) when only kind is specified (i.e. intent is null).
-     * Optional filtering using object class name is available.
-     *
-     * See the code for the algorithm description.
-     *
-     * @throws IllegalArgumentException If the default definition for given kind cannot be determined.
-     * This is not a {@link ConfigurationException} because the configuration itself may be legal.
-     * (Or should we throw that one?)
-     */
-    private @Nullable ResourceObjectDefinition findObjectDefinitionForKindInternal(
-            @NotNull ShadowKindType kind, @Nullable QName objectClassName) {
-
-        // #1: Is there a type definition that is declared as default for its kind?
-        ResourceObjectTypeDefinition markedAsDefault = findDefaultObjectTypeDefinitionInternal(kind, objectClassName);
-        if (markedAsDefault != null) {
-            return markedAsDefault;
-        }
-
-        // #2: Is there a type definition with the intent="default"? We are intentionally not using
-        // the object class name in the call, to avoid exceptions if there is a default but with non-matching OC name.
-        ResourceObjectDefinition intentDefault = findObjectDefinitionForKindAndIntentInternal(
-                kind, SchemaConstants.INTENT_DEFAULT, null);
-        if (intentDefault != null) {
-            // TODO But should not we at least check the OC compatibility?
-            return intentDefault;
-        }
-
-        // #3: Is there a single definition with given kind + OC (if specified)?
-        List<? extends ResourceObjectTypeDefinition> matchingKindAndObjectClass =
-                getObjectTypeDefinitions(kind).stream()
-                        .filter(def -> def.matchesObjectClassName(objectClassName))
-                        .collect(Collectors.toList());
-
-        if (matchingKindAndObjectClass.size() == 1) {
-            return matchingKindAndObjectClass.get(0);
-        } else if (matchingKindAndObjectClass.size() > 1 && objectClassName == null) {
-            // Out of luck. We have nothing more to try. There are certainly some definitions,
-            // but we just have no chance to decide among them.
-            throw new IllegalArgumentException("Couldn't determine the default definition for kind " + kind
-                    + ", because there are " + matchingKindAndObjectClass.size() + " candidates");
-        }
-
-        // #4: Fallback: if an object class is known, let us look up its raw definition.
-        if (objectClassName != null) {
-            return findObjectClassDefinition(objectClassName);
-        }
-
-        // #5: Sorry.
-        return null;
-    }
-
-    /**
-     * Returns the default object class definition for accounts, if defined.
-     */
-    private @Nullable ResourceObjectClassDefinition findDefaultAccountObjectClassInternal() {
-        List<ResourceObjectClassDefinition> defaultDefinitions = getObjectClassDefinitions().stream()
-                .filter(ResourceObjectClassDefinition::isDefaultAccountDefinition)
-                .collect(Collectors.toList());
-        return MiscUtil.extractSingleton(
-                defaultDefinitions,
-                () -> new IllegalStateException("More than one definition marked as 'default account definition': "
-                        + defaultDefinitions + " in " + this));
-    }
-
-    /**
-     * Returns the default definition for given kind. The `defaultForKind` flag must be explicitly set.
-     * Object class must match, if it's specified.
-     */
-    private @Nullable ResourceObjectTypeDefinition findDefaultObjectTypeDefinitionInternal(
-            @NotNull ShadowKindType kind, @Nullable QName objectClassName) {
-        return MiscUtil.extractSingleton(
-                getObjectTypeDefinitions().stream()
-                        .filter(def ->
-                                def.matchesKind(kind)
-                                        && def.matchesObjectClassName(objectClassName)
-                                        && def.isDefaultForKind())
-                        .collect(Collectors.toList()),
-                () -> new IllegalStateException("Multiple default definitions for " + kind + " in " + this));
+        return ResourceObjectDefinitionResolver.findObjectDefinition(this, kind, intent, objectClassName);
     }
     //endregion
 
-    //region Finding object _class_ definitions (much simpler)
+    //region Definition lookup in specific contexts (construction bean, shadow, ...)
     /**
-     * Returns object class definition for a given object class name.
+     * Finds a definition for {@link ConstructionType}. The method is different from the ones looking for
+     * kind/intent because here is a special handling of the default values.
      */
-    default @Nullable ResourceObjectClassDefinition findObjectClassDefinition(@NotNull QName name) {
-        return MiscUtil.extractSingleton(
-                getObjectClassDefinitions().stream()
-                        .filter(def -> QNameUtil.match(def.getTypeName(), name))
-                        .collect(Collectors.toList()),
-                () -> new IllegalStateException("More than one definition of object class " + name + " in " + this));
+    default ResourceObjectDefinition findDefinitionForConstruction(@NotNull ConstructionType construction) {
+        return ResourceObjectDefinitionResolver.findForConstruction(this, construction);
+    }
+
+    /**
+     * As {@link #findDefinitionForConstruction(ConstructionType)} but throws an exception if the definition is not there.
+     */
+    default @NotNull ResourceObjectDefinition findDefinitionForConstructionRequired(
+            @NotNull ConstructionType constructionBean,
+            @NotNull Supplier<String> contextSupplier) throws SchemaException {
+
+        ResourceObjectDefinition definition = findDefinitionForConstruction(constructionBean);
+        if (definition != null) {
+            return definition;
+        }
+
+        ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
+        String intent = constructionBean.getIntent(); // Null value is interpreted as default-for-kind here.
+        if (intent != null) {
+            throw new SchemaException("No " + kind + " type with intent '" + intent + "' found in " + contextSupplier.get());
+        } else {
+            throw new SchemaException("No default " + kind + " type found in " + contextSupplier.get());
+        }
+    }
+
+    /**
+     * Returns appropriate {@link ResourceObjectDefinition} for given shadow. We are not too strict here.
+     * Unknown kind/intent values are ignored (treated like null). Intent without kind is ignored.
+     *
+     * Takes auxiliary object classes defined in the shadow into account.
+     *
+     * Note: we could be even more relaxed (in the future):
+     *
+     * 1. Currently the consistency between kind, intent, and OC is checked. We could avoid this.
+     * 2. The {@link ResourceObjectDefinitionResolver#findObjectDefinition(ResourceSchema, ShadowKindType, String, QName)} method used throws an exception
+     * when it cannot decide among various definitions for given kind (when intent and OC is null). We could be more
+     * permissive and return any of them.
+     */
+    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) {
+        return ResourceObjectDefinitionResolver.findDefinitionForShadow(this, shadow);
     }
     //endregion
 
-    //region Strange methods
     /**
-     * Returns the definition for given kind. If default one is present, it is returned.
-     * Otherwise, any definition is returned.
+     * Determines the object definition based on kind and object class.
      *
-     * This is similar to pre-4.5 behavior observed when looking for "refined definitions".
-     * (Although not exactly the same: now we require type definition, whereas in 4.4 and before
-     * we could return a definition even if no schemaHandling was present.)
+     * TODO specify the behavior
      *
-     * This method is quite obscure, mainly because of its non-determinism, and shouldn't be used much.
-     * It seems to be quite heavily used in tests (where it's no problem), but also on a couple of places
-     * in production code. These should be reviewed.
+     * Legacy. Should not be used for new code.
      */
-    default @Nullable ResourceObjectTypeDefinition findDefaultOrAnyObjectTypeDefinition(@NotNull ShadowKindType kind) {
-        ResourceObjectTypeDefinition defaultDefinition = findDefaultObjectTypeDefinitionInternal(kind, null);
-        if (defaultDefinition != null) {
-            return defaultDefinition;
-        } else {
-            return getObjectTypeDefinitions().stream()
-                    .filter(def -> def.matchesKind(kind))
-                    .findFirst()
-                    .orElse(null);
-        }
-    }
-
-    /**
-     * Returns a definition for a given object class:
-     *
-     * - if there's a "default for class" type defined, it is returned (this is a kind of pre-4.5 behavior)
-     * - otherwise, the object class definition is returned (if there's any)
-     */
-    default @Nullable ResourceObjectDefinition findDefinitionForObjectClass(@NotNull QName name) {
-        ResourceObjectTypeDefinition defaultTypeDef = findDefaultObjectTypeDefinitionForObjectClassInternal(name);
-        if (defaultTypeDef != null) {
-            return defaultTypeDef;
-        } else {
-            return findObjectClassDefinition(name);
-        }
-    }
-
-    /**
-     * Returns default object type definition for given object class name (if there's any).
-     *
-     * We intentionally do not return object type definition that is not marked as default-for-object-class,
-     * even if it's the only one defined. (We assume that a user may wish to _not_ provide a default type definition
-     * in some situations.)
-     */
-    private @Nullable ResourceObjectTypeDefinition findDefaultObjectTypeDefinitionForObjectClassInternal(@NotNull QName name) {
-        return MiscUtil.extractSingleton(
-                getObjectTypeDefinitions().stream()
-                        .filter(def ->
-                                QNameUtil.match(def.getObjectClassName(), name) && def.isDefaultForObjectClass())
-                        .collect(Collectors.toList()),
-                () -> new IllegalStateException("More than one default type definition of object class " + name + " in " + this));
+    default @Nullable ResourceObjectDefinition findObjectDefinitionForKindAndObjectClass(
+            @NotNull ShadowKindType kind,
+            @Nullable QName objectClassName) {
+        return ResourceObjectDefinitionResolver.findObjectDefinition(this, kind, null, objectClassName);
     }
     //endregion
 

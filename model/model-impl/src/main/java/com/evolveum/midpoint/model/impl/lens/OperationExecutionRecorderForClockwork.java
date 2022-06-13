@@ -223,7 +223,7 @@ class OperationExecutionRecorderForClockwork {
             odo = new ObjectDeltaOperationType();
             OperationResult r = new OperationResult(Clockwork.class.getName() + ".createObjectDeltaOperation");
             r.recordFatalError("Couldn't create operation information: " + e.getMessage(), e);
-            odo.setExecutionResult(r.createOperationResultType());
+            odo.setExecutionResult(r.createBeanReduced());
         }
         return odo;
     }

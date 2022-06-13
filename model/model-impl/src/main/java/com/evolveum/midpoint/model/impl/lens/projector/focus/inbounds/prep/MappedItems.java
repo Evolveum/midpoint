@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,7 +79,7 @@ class MappedItems<F extends FocusType> {
      *
      * This excludes special mappings. They are _evaluated_ later. (This is planned to be changed!)
      */
-    void createMappedItems() {
+    void createMappedItems() throws SchemaException, ConfigurationException {
         for (QName attributeName : source.resourceObjectDefinition.getNamesOfAttributesWithInboundExpressions()) {
             createAttributeMappingCreationRequest(attributeName);
         }
@@ -108,7 +109,7 @@ class MappedItems<F extends FocusType> {
      * @see #createAssociationMappingCreationRequest(QName)
      * @see #createAuxObjClassesMappingCreationRequest()
      */
-    private <T> void createAttributeMappingCreationRequest(QName attributeName) {
+    private <T> void createAttributeMappingCreationRequest(QName attributeName) throws SchemaException, ConfigurationException {
 
         // 1. Definitions and mapping beans
 
@@ -173,7 +174,7 @@ class MappedItems<F extends FocusType> {
      * @see #createAttributeMappingCreationRequest(QName)
      * @see #createAuxObjClassesMappingCreationRequest()
      */
-    private void createAssociationMappingCreationRequest(QName associationName) {
+    private void createAssociationMappingCreationRequest(QName associationName) throws SchemaException, ConfigurationException {
 
         // 1. Definitions
 
@@ -235,7 +236,7 @@ class MappedItems<F extends FocusType> {
      * @see #createAttributeMappingCreationRequest(QName)
      * @see #createAttributeMappingCreationRequest(QName)
      */
-    private void createAuxObjClassesMappingCreationRequest() {
+    private void createAuxObjClassesMappingCreationRequest() throws SchemaException, ConfigurationException {
 
         // 1. Definitions
 

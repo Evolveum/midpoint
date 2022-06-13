@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
+import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -34,7 +34,7 @@ public final class AsyncUpdateActivityRun
                 AbstractActivityWorkStateType> {
 
     /** What we want to process. Currently we use only resourceRef from here. */
-    private ResourceObjectClass resourceObjectClass;
+    private ProcessingScope processingScope;
 
     AsyncUpdateActivityRun(
             @NotNull ActivityRunInstantiationContext<AsyncUpdateWorkDefinition, AsyncUpdateActivityHandler> context) {
@@ -56,13 +56,13 @@ public final class AsyncUpdateActivityRun
         RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
-        resourceObjectClass = getModelBeans().syncTaskHelper
-                .getResourceObjectClassCheckingMaintenance(resourceObjectSet, runningTask, result);
+        processingScope = getModelBeans().syncTaskHelper
+                .getProcessingScopeCheckingMaintenance(resourceObjectSet, runningTask, result);
     }
 
     @Override
     protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
-        return resourceObjectClass.getResourceRef();
+        return processingScope.getResourceRef();
     }
 
     @Override
@@ -79,7 +79,7 @@ public final class AsyncUpdateActivityRun
         RunningTask runningTask = getRunningTask();
         ModelImplUtils.clearRequestee(runningTask);
         getModelBeans().provisioningService
-                .processAsynchronousUpdates(resourceObjectClass.getCoords(), handler, runningTask, opResult);
+                .processAsynchronousUpdates(processingScope.getCoords(), handler, runningTask, opResult);
     }
 
     @Override

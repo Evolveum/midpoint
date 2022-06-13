@@ -10,12 +10,12 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.ResourceObjectClass;
+import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.NullSynchronizationObjectFilterImpl;
+import com.evolveum.midpoint.model.impl.sync.tasks.NullPostSearchFilterImpl;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -57,11 +57,10 @@ public class ImportFromResourceLauncher {
             ShadowType shadow = provisioningService
                     .getObject(ShadowType.class, shadowOid, createReadOnlyCollection(), task, result)
                     .asObjectable();
-            ResourceObjectClass spec = syncTaskHelper.createObjectClassForShadow(shadow, task, result);
+            ProcessingScope spec = syncTaskHelper.createProcessingScopeForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(
                     spec.getResource(),
-                    spec.getResourceObjectDefinitionRequired(),
-                    new NullSynchronizationObjectFilterImpl(),
+                    new NullPostSearchFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
                     false,

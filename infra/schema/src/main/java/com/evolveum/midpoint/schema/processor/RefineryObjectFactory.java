@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.impl.delta.ObjectDeltaFactoryImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
@@ -28,7 +28,7 @@ public class RefineryObjectFactory {
     public static <O extends Objectable, X> ShadowCoordinatesQualifiedObjectDelta<O> createShadowDiscriminatorModificationReplaceProperty(Class<O> type,
             String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
         ShadowCoordinatesQualifiedObjectDelta<O> objectDelta = new ShadowCoordinatesQualifiedObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
-        objectDelta.setCoordinates(new ResourceShadowDiscriminator(resourceOid, kind, intent, null, false));
+        objectDelta.setCoordinates(new ResourceShadowCoordinates(resourceOid, kind, intent, null));
         ObjectDeltaFactoryImpl.fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
         return objectDelta;
     }

@@ -36,16 +36,15 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationActionExecutor.class);
 
-    @NotNull private final SynchronizationContext<F> syncCtx;
+    @NotNull private final SynchronizationContext.Complete<F> syncCtx;
     @NotNull private final SynchronizationPolicy policy;
     @NotNull private final ResourceObjectShadowChangeDescription change;
 
     public SynchronizationActionExecutor(
-            @NotNull SynchronizationContext<F> syncCtx,
-            @NotNull ResourceObjectShadowChangeDescription change) {
+            @NotNull SynchronizationContext.Complete<F> syncCtx) {
         this.syncCtx = syncCtx;
         this.policy = syncCtx.getSynchronizationPolicyRequired();
-        this.change = change;
+        this.change = syncCtx.getChange();
     }
 
     public void react(OperationResult result)
@@ -63,7 +62,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         }
     }
 
-    public SynchronizationReactionDefinition getReaction(OperationResult result)
+    private SynchronizationReactionDefinition getReaction(OperationResult result)
             throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
 

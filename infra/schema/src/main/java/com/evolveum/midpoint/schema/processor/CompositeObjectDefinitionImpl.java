@@ -690,4 +690,19 @@ public class CompositeObjectDefinitionImpl
     public @NotNull ResourceObjectDefinition getStructuralDefinition() {
         return structuralDefinition;
     }
+
+    @Override
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return structuralDefinition.getTypeIdentification();
+    }
+
+    @Override
+    public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
+        return structuralDefinition.getTypeDefinition();
+    }
+
+    @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        return structuralDefinition.isDefaultFor(kind);
+    }
 }

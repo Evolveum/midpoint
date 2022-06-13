@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -33,13 +32,14 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
      */
     EvaluatedAssignedResourceObjectConstructionImpl(
             @NotNull AssignedResourceObjectConstruction<AH> construction,
-            @NotNull ResourceShadowDiscriminator rsd) {
-        super(construction, rsd);
+            @NotNull ConstructionTargetKey key) {
+        super(construction, key);
     }
 
     protected void initializeProjectionContext() {
         // projection context may not exist yet (existence might not be yet decided)
-        setProjectionContext(construction.getLensContext().findProjectionContext(rsd));
+        setProjectionContext(
+                construction.getLensContext().findFirstProjectionContext(targetKey));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             ResourceAttributeDefinition<?> refinedAttributeDefinition = construction.findAttributeDefinition(attrName);
             if (refinedAttributeDefinition == null) {
                 throw new SchemaException("Attribute " + attrName + " not found in schema for resource object type "
-                        + getIntent() + ", " + construction.getResolvedResource().resource
+                        + getKind() + "/" + getIntent() + ", " + construction.getResolvedResource().resource
                         + " as defined in " + construction.getSource(), attrName);
             }
 
@@ -95,7 +95,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             ResourceAssociationDefinition resourceAssociationDefinition = construction.findAssociationDefinition(assocName);
             if (resourceAssociationDefinition == null) {
                 throw new SchemaException("Association " + assocName + " not found in schema for resource object type "
-                        + getIntent() + ", " + construction.getResolvedResource().resource
+                        + getKind() + "/" + getIntent() + ", " + construction.getResolvedResource().resource
                         + " as defined in " + construction.getSource(), assocName);
             }
             associationsToEvaluate.add(new AssociationEvaluation<>(constructionEvaluation, resourceAssociationDefinition,

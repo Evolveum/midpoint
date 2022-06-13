@@ -76,7 +76,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     private final ResourceObjectDefinition initialResourceObjectDefinition;
 
     /**
-     * Refined object class definition as determined from (possibly updated) provisioning context.
+     * Resource object definition as determined from (possibly updated) provisioning context.
      * May be null in exceptional cases (wildcard LS with delete event with object class not provided).
      */
     protected ResourceObjectDefinition resourceObjectDefinition;
@@ -245,7 +245,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     private void updateProvisioningContext(@NotNull Task task) throws SchemaException, ConfigurationException {
 
         schemaCheck(initialResourceObjectDefinition != null || isDelete() && context.isWildcard(),
-                "No object class definition in change %s", this);
+                "No object type or class definition in change %s", this);
 
         ProvisioningContext contextBefore = context;
 
@@ -344,7 +344,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     }
 
     /**
-     * @return The most precise object class definition known at this moment. (May be null.)
+     * @return The most precise object definition known at this moment. (May be null.)
      */
     public ResourceObjectDefinition getCurrentResourceObjectDefinition() {
         if (resourceObjectDefinition != null) {
@@ -354,7 +354,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
     }
 
-    private boolean hasObjectClassDefinition() {
+    private boolean hasDefinition() {
         return getCurrentResourceObjectDefinition() != null;
     }
 
@@ -386,11 +386,11 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
         stateCheck(primaryIdentifierRealValue != null, "No primary identifier value");
 
-        boolean hasObjectClassDefinition = hasObjectClassDefinition();
-        stateCheck(isDelete() || hasObjectClassDefinition, "No object class definition for non-delete change");
+        boolean hasDefinition = hasDefinition();
+        stateCheck(isDelete() || hasDefinition, "No resource object definition for non-delete change");
 
         checkCollectionImmutable(identifiers);
-        if (hasObjectClassDefinition) {
+        if (hasDefinition) {
             schemaCheck(!identifiers.isEmpty(), "No identifiers in the container but primary id value is known");
         }
 

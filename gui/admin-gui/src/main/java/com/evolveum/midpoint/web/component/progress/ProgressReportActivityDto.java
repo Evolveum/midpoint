@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -19,14 +19,11 @@ import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 
-/**
-* @author Pavol
-*/
 public class ProgressReportActivityDto implements Serializable {
 
     private ProgressInformation.ActivityType activityType;
-    private ResourceShadowDiscriminator resourceShadowDiscriminator;        // if applicable w.r.t. activityType
-    private String resourceName;                                            // pre-resolved resource name, if applicable
+    private ProjectionContextKey projectionContextKey; // if applicable w.r.t. activityType
+    private String resourceName; // pre-resolved resource name, if applicable
     private OperationResultStatusType status;
     private OperationResult operationResult;
     // additional information on resource-related operation
@@ -41,12 +38,12 @@ public class ProgressReportActivityDto implements Serializable {
         this.activityType = activityType;
     }
 
-    public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
-        return resourceShadowDiscriminator;
+    public ProjectionContextKey getProjectionContextKey() {
+        return projectionContextKey;
     }
 
-    public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
-        this.resourceShadowDiscriminator = resourceShadowDiscriminator;
+    public void setProjectionContextKey(ProjectionContextKey projectionContextKey) {
+        this.projectionContextKey = projectionContextKey;
     }
 
     public void setResourceName(String resourceName) {
@@ -97,11 +94,11 @@ public class ProgressReportActivityDto implements Serializable {
             return false;
         }
         if (activityType == RESOURCE_OBJECT_OPERATION) {
-            if (resourceShadowDiscriminator != null &&
-                    !resourceShadowDiscriminator.equals(newStatus.getResourceShadowDiscriminator())) {
+            if (projectionContextKey != null &&
+                    !projectionContextKey.equals(newStatus.getProjectionContextKey())) {
                 return false;
             }
-            if (resourceShadowDiscriminator == null && newStatus.getResourceShadowDiscriminator() != null) {
+            if (projectionContextKey == null && newStatus.getProjectionContextKey() != null) {
                 // actually, we consider all resource-related records with null RSD to be equal (even if they deal with different resources)
                 return false;
             }

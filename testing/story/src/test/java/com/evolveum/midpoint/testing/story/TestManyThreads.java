@@ -131,7 +131,7 @@ public class TestManyThreads extends AbstractStoryTest {
         assertNotNull("No <code>", code);
         assertTrue("Wrong <code>", code.contains("name"));
 
-        LensUtil.refineProjectionIntent(ShadowKindType.ACCOUNT, "default", resource);
+//        LensUtil.refineProjectionIntent(ShadowKindType.ACCOUNT, "default", resource);
 
 //        System.out.println(Thread.currentThread().getName() + ": resource from provisioning is OK");
 

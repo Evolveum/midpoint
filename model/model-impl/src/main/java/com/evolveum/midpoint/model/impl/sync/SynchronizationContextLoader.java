@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,18 +20,17 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Responsible for creating ("loading") the synchronization context.
@@ -56,21 +56,9 @@ class SynchronizationContextLoader {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        PrismObject<ResourceType> resource =
-                MiscUtil.requireNonNull(
-                        change.getResource(),
-                        () -> new IllegalStateException("No resource in change description: " + change));
+        // TODO consider inlining this method
+        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change, task, result);
 
-        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(
-                change.getShadowedResourceObject().asObjectable(),
-                change.getObjectDelta(),
-                resource.asObjectable(),
-                change.getSourceChannel(),
-                change.getItemProcessingIdentifier(),
-                null,
-                SynchronizationContext.isSkipMaintenanceCheck(),
-                task,
-                result);
         if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
             syncCtx.setShadowExistsInRepo(false);
             // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
@@ -80,35 +68,29 @@ class SynchronizationContextLoader {
     }
 
     private <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
-            @NotNull ShadowType shadow,
-            ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull ResourceType originalResource,
-            String sourceChanel,
-            String itemProcessingIdentifier,
-            SystemConfigurationType explicitSystemConfiguration,
-            boolean skipMaintenanceCheck,
+            @NotNull ResourceObjectShadowChangeDescription change,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
+        ShadowType shadow = change.getShadowedResourceObject().asObjectable();
+
         ResourceType updatedResource;
-        if (skipMaintenanceCheck) {
-            updatedResource = originalResource;
+        if (SynchronizationContext.isSkipMaintenanceCheck()) {
+            updatedResource = change.getResource().asObjectable();
         } else {
-            updatedResource = checkNotInMaintenance(originalResource, task, result);
+            updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
         }
 
-        SystemConfigurationType systemConfiguration = explicitSystemConfiguration != null ?
-                explicitSystemConfiguration :
-                systemObjectCache.getSystemConfigurationBean(result);
+        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
 
         @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(updatedResource);
 
         ResourceObjectProcessingContextImpl processingContext =
                 aResourceObjectProcessingContext(shadow, updatedResource, task, beans)
-                        .withResourceObjectDelta(resourceObjectDelta)
-                        .withExplicitChannel(sourceChanel)
+                        .withResourceObjectDelta(change.getObjectDelta())
+                        .withExplicitChannel(change.getSourceChannel())
                         .withSystemConfiguration(systemConfiguration)
                         .build();
 
@@ -119,25 +101,39 @@ class SynchronizationContextLoader {
                         task,
                         result);
 
-        ResourceObjectTypeDefinition definition = determineTypeDefinition(processingContext, schema, sorterResult, result);
+        TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, schema, sorterResult, result);
 
-        String tag = getOrGenerateTag(processingContext, definition, result);
+        String tag = getOrGenerateTag(processingContext, typeAndDefinition.definition, result);
 
         @Nullable SynchronizationPolicy policy =
-                definition != null ?
+                typeAndDefinition.typeIdentification != null ?
                         SynchronizationPolicyFactory.forKindAndIntent(
-                                definition.getKind(),
-                                definition.getIntent(),
+                                typeAndDefinition.typeIdentification.getKind(),
+                                typeAndDefinition.typeIdentification.getIntent(),
                                 updatedResource) :
                         null;
 
-        return new SynchronizationContext<>(
-                processingContext,
-                definition,
-                policy,
-                sorterResult,
-                tag,
-                itemProcessingIdentifier);
+        // i.e. type identification == null => policy == null
+
+        if (policy != null && typeAndDefinition.definition != null) {
+            return new SynchronizationContext.Complete<>(
+                    change,
+                    processingContext,
+                    typeAndDefinition.typeIdentification,
+                    typeAndDefinition.definition,
+                    policy,
+                    sorterResult,
+                    tag);
+
+        } else {
+            return new SynchronizationContext.Incomplete<>(
+                    change,
+                    processingContext,
+                    typeAndDefinition.typeIdentification,
+                    typeAndDefinition.definition,
+                    sorterResult,
+                    tag);
+        }
     }
 
     /**
@@ -156,32 +152,50 @@ class SynchronizationContextLoader {
         return resource;
     }
 
-    private @Nullable ResourceObjectTypeDefinition determineTypeDefinition(
+    private @NotNull TypeAndDefinition determineObjectTypeAndDefinition(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
             @Nullable ResourceSchema schema,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ShadowType shadow = processingContext.getShadowedResourceObject();
-        ShadowKindType kind = shadow.getKind();
-        String intent = shadow.getIntent();
-        if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
-            return beans.provisioningService
+        if (ShadowUtil.isClassified(shadow)) {
+            if (isClassificationInSorterResult(sorterResult)) {
+                // Sorter result overrides any classification information stored in the shadow
+                // (and it is also applied to the shadow by SynchronizationContext#forceClassificationUpdate)
+                return TypeAndDefinition.of(schema, sorterResult.getKind(), sorterResult.getIntent());
+            } else {
+                return TypeAndDefinition.of(schema, shadow.getKind(), shadow.getIntent());
+            }
+        } else {
+            LOGGER.debug("Attempting to classify {} (most probably needless, as the shadow should have been "
+                    + "tried-to-be-classified before getting here)", shadow);
+            // The sorter result is used here (if it contains the classification)
+            ResourceObjectClassification classification = beans.provisioningService
                     .classifyResourceObject(
-                            processingContext.getShadowedResourceObject(),
+                            shadow,
                             processingContext.getResource(),
                             sorterResult,
                             processingContext.getTask(),
-                            result)
-                    .getDefinition();
-        } else {
-            return schema != null ? schema.findObjectTypeDefinition(kind, intent) : null;
+                            result);
+            ResourceObjectTypeDefinition typeDefinition = classification.getDefinition();
+            if (typeDefinition != null) {
+                return TypeAndDefinition.of(typeDefinition);
+            } else {
+                return TypeAndDefinition.of(schema, shadow.getObjectClass());
+            }
         }
+    }
+
+    private boolean isClassificationInSorterResult(@Nullable ObjectSynchronizationDiscriminatorType sorterResult) {
+        return sorterResult != null
+                && ShadowUtil.isKnown(sorterResult.getKind())
+                && ShadowUtil.isKnown(sorterResult.getIntent());
     }
 
     private @Nullable String getOrGenerateTag(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
-            @Nullable ResourceObjectTypeDefinition definition,
+            @Nullable ResourceObjectDefinition definition,
             @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -199,6 +213,47 @@ class SynchronizationContextLoader {
             }
         } else {
             return shadow.getTag();
+        }
+    }
+
+    /**
+     * Why do we need both type and definition? The object may be classified but only {@link ResourceObjectClassDefinition}
+     * may be available - in the case of `account/default` hack. The reverse is also possible: the object may be unclassified,
+     * but default type definition may apply.
+     */
+    private static class TypeAndDefinition {
+        @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+        @Nullable private final ResourceObjectDefinition definition;
+
+        private TypeAndDefinition(
+                @Nullable ResourceObjectTypeIdentification typeIdentification,
+                @Nullable ResourceObjectDefinition definition) {
+            this.typeIdentification = typeIdentification;
+            this.definition = definition;
+        }
+
+        public static @NotNull TypeAndDefinition of(@NotNull ResourceObjectTypeDefinition typeDefinition) {
+            return new TypeAndDefinition(typeDefinition.getTypeIdentification(), typeDefinition);
+        }
+
+        public static @NotNull TypeAndDefinition of(ResourceSchema schema, ShadowKindType knownKind, String knownIntent) {
+            return new TypeAndDefinition(
+                    ResourceObjectTypeIdentification.of(knownKind, knownIntent),
+                    schema != null ? schema.findObjectDefinition(knownKind, knownIntent) : null);
+        }
+
+        public static @NotNull TypeAndDefinition of(ResourceSchema schema, QName objectClassName) {
+            if (schema != null && objectClassName != null) {
+                ResourceObjectDefinition definition = schema.findDefinitionForObjectClass(objectClassName);
+                if (definition != null && definition.getObjectClassDefinition().isDefaultAccountDefinition()) {
+                    // A kind of "emergency classification" - we hope it will not cause any problems.
+                    return new TypeAndDefinition(ResourceObjectTypeIdentification.defaultAccount(), definition);
+                } else {
+                    return new TypeAndDefinition(null, definition);
+                }
+            } else {
+                return new TypeAndDefinition(null, null);
+            }
         }
     }
 }

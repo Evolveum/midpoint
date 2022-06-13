@@ -45,7 +45,7 @@ final class OperationCompletionActivityRun
     @Override
     public ObjectQuery customizeQuery(ObjectQuery configuredQuery, OperationResult result) {
         return getBeans().prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(resourceObjectClass.getResourceOid())
+                .item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
                 .and()
                 .exists(ShadowType.F_PENDING_OPERATION)
                 .build();

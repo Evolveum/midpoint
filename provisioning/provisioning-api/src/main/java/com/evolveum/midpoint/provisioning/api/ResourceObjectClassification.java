@@ -7,22 +7,27 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * Result of the object classification.
+ *
+ * Currently it is bound to {@link ResourceObjectTypeDefinition}. We never classify an object to specific `kind` and `intent`
+ * without having the corresponding explicit type definition - i.e. no `account/default` hacks; at least not for now.
+ *
+ * The clockwork will be able to process default accounts without their regular classification by applying so-called
+ * emergency classification - one that is not stored in repository (shadow kind/intent), only in memory i.e. during processing.
  */
 public class ResourceObjectClassification {
 
-    @Nullable
-    private final ResourceObjectTypeDefinition definition;
+    @Nullable private final ResourceObjectTypeDefinition definition;
 
     private ResourceObjectClassification(@Nullable ResourceObjectTypeDefinition definition) {
         this.definition = definition;
