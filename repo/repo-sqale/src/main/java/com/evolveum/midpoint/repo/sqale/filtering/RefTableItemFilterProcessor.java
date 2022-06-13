@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -47,7 +47,7 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
         SQLQuery<?> subquery = refContext.sqlQuery();
         Q ref = refContext.path();
         subquery = subquery.where(referenceMapping.correlationPredicate().apply(context.path(), ref));
-        if (!(filter instanceof RefFilterWithRepoPath) && filter.hasNoValue()) {
+        if (!(filter instanceof RefFilterWithRepoPath) && filter.hasNoValue() && filter.getFilter() == null) {
             // If values == null, we search for all items without reference
             return subquery.notExists();
         }
