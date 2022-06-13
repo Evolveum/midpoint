@@ -30,6 +30,18 @@ public class ListGroupMenuItem implements Serializable {
 
     private List<ListGroupMenuItem> items;
 
+    public ListGroupMenuItem() {
+    }
+
+    public ListGroupMenuItem(String label) {
+        this(null, label);
+    }
+
+    public ListGroupMenuItem(String iconCss, String label) {
+        this.iconCss = iconCss;
+        this.label = label;
+    }
+
     public String getIconCss() {
         return iconCss;
     }
