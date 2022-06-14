@@ -460,7 +460,6 @@ public class SearchFactory {
         if (itemDef instanceof PrismReferenceDefinition) {
             itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
             itemWrapper.setVisible(isFixedItem);
-            itemWrapper.setCanConfigure(!isFixedItem);
             itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
             return itemWrapper;
         }
@@ -488,7 +487,6 @@ public class SearchFactory {
             itemWrapper = new TextSearchItemWrapper(path);
         }
         itemWrapper.setVisible(isFixedItem);
-        itemWrapper.setCanConfigure(!isFixedItem);
         itemWrapper.setValueTypeName(itemDef.getTypeName());
         itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
         String help = WebPrismUtil.getHelpText(itemDef);
