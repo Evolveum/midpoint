@@ -26,8 +26,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.test.*;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,25 +49,17 @@ import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResu
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -173,6 +167,20 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     private static final TestResource<TaskType> TASK_DELETE_DUMMY_ACCOUNTS = new TestResource<>(
             TEST_DIR, "task-delete-dummy-accounts.xml", "ab28a334-2aca-11e5-afe7-001e8c717e5b");
 
+    private static final String ATTR_EMPLOYEE_NUMBER = "employeeNumber";
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_EMPLOYEE = new TestResource<>(
+            TEST_DIR, "archetype-employee.xml", "e3a9a6b9-17f6-4239-b935-6f88a655b9d7");
+    private static final DummyTestResource RESOURCE_DUMMY_ARCHETYPED = new DummyTestResource(
+            TEST_DIR, "resource-dummy-archetyped.xml", "e0789d4f-8748-41e0-9911-6d0938287588", "archetyped",
+            controller -> controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                    ATTR_EMPLOYEE_NUMBER, String.class, false, false));
+    private static final DummyTestResource RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED = new DummyTestResource(
+            TEST_DIR, "resource-dummy-archetyped-filter-based.xml", "ac51f575-bdf7-49ec-bb3f-5ffe9fcbb3bb",
+            "archetyped-filter-based",
+            controller -> controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                    ATTR_EMPLOYEE_NUMBER, String.class, false, false));
+
     private static final String GROUP_CORPSES_NAME = "corpses";
 
     private static final String ACCOUNT_CAPSIZE_PASSWORD = "is0mud01d";
@@ -231,6 +239,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
         dummyResourceCtlLime.addAccount(ACCOUNT_RUM_NAME, "Rum Rogers");
         dummyResourceCtlLime.addAccount(ACCOUNT_MURRAY_NAME, "Murray");
+
+        addObject(ARCHETYPE_EMPLOYEE, initTask, initResult);
+        RESOURCE_DUMMY_ARCHETYPED.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.initAndTest(this, initTask, initResult);
 
         // Groups
         dummyResourceCtlAzure.addGroup(GROUP_CORPSES_NAME);
@@ -405,6 +417,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(task.getResult());
 
         dumpStatistics(task);
+        // @formatter:off
         assertTask(task, "task after")
                 .display()
                 .rootSynchronizationInformation()
@@ -421,6 +434,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTotalCounts(7, 0)
                     .end()
                 .assertProgress(7);
+        // @formatter:on
 
         // Two additional fetch operations are because of the need to classify elaine's blue and red accounts.
         // (They are initially created without kind/intent.) See also PERFORMANCE_ADVISOR log entries.
@@ -485,6 +499,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertSuccess(task.getResult());
 
         dumpStatistics(task);
+        // @formatter:off
         assertTask(task, "task after")
                 .display()
                 .rootSynchronizationInformation()
@@ -498,6 +513,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTotalCounts(7, 0)
                     .end()
                 .assertProgress(7);
+        // @formatter:on
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
 
@@ -569,6 +585,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(task.getResult());
 
         dumpStatistics(task);
+        // @formatter:off
         assertTask(task, "task after")
                 .display()
                 .rootSynchronizationInformation()
@@ -582,6 +599,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .assertTotalCounts(3, 0)
                     .end()
                 .assertProgress(3);
+        // @formatter:on
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
@@ -640,6 +658,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task importTask = taskManager.getTaskPlain(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY.oid, result);
 
         dumpStatistics(importTask);
+        // @formatter:off
         assertTask(importTask, "task after")
                 .display()
                 .rootActivityState()
@@ -653,6 +672,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .assertProgress(1);
+        // @formatter:on
     }
 
     /**
@@ -683,6 +703,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task importTask = taskManager.getTaskPlain(TASK_IMPORT_DUMMY_LIME_LIMITED.oid, result);
 
         dumpStatistics(importTask);
+        // @formatter:off
         assertTask(importTask, "task after")
                 .display()
                 .rootActivityState()
@@ -696,6 +717,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end()
                 .assertProgress(1);
+        // @formatter:on
     }
 
     /**
@@ -1201,6 +1223,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         then();
 
         dumpStatistics(taskAfter);
+        // @formatter:off
         assertTask(taskAfter, "task after")
                 .display()
                 .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
@@ -1219,6 +1242,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .end()
                 ;
                 //.assertProgress(7); // TODO - specify meaning of progress for reconciliation tasks
+        // @formatter:on
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource account)", users);
@@ -1801,7 +1825,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 stringPassword, passwordPolicy.asObjectable(),
                 createUserOriginResolver(userRapp), getTestNameShort(), task, result);
         boolean isPasswordValid = result.isAcceptable();
-                assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);
+        assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);
 
         // These are protected accounts, they should not be imported
         assertNoImportedUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -2550,6 +2574,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     /**
      * Imports a default account (augustus), it should be linked
      */
+    @SuppressWarnings("CommentedOutCode")
     @Test
     public void test502ImportAugustusFromResourceDummy() throws Exception {
         // GIVEN
@@ -2739,12 +2764,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, false, 40000);
         dumpStatistics(taskAfter);
+        // @formatter:off
         assertTask(taskAfter, "after")
                 .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                     .synchronizationStatistics()
                         .assertTransition(LINKED, LINKED, LINKED, null, 12, 0, 0)
                         .assertTransition(null, null, null, PROTECTED, 0, 0, 2)
                         .assertTransitions(2);
+        // @formatter:on
     }
 
     @Test
@@ -2755,8 +2782,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                RI_ACCOUNT_OBJECT_CLASS, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
 
         // WHEN
         when();
@@ -2781,7 +2807,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         ObjectQuery query =
                 ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS)
                         .and().item(
-                                ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+                                SchemaConstants.ICFS_NAME_PATH,
                                 ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING))
                         .contains("s")
                         .build();
@@ -2801,6 +2827,118 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
+     * Imports new (unmatched) user from "archetyped" resource.
+     */
+    @Test
+    public void test650ImportNewArchetypedUser() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("there is a new account");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount("test650");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "650");
+
+        when("the account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
+                .withNameValue("test650")
+                .execute(result);
+
+        then("user is created with archetype");
+        assertUserAfterByUsername("test650")
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE.oid);
+    }
+
+    /**
+     * Imports an account to be linked to existing user: Tests whether the specified archetype
+     * is correctly searched-for during correlation (using items correlator).
+     */
+    @Test
+    public void test660LinkArchetypedUser() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("there is a new account");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount("test660");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "660");
+
+        and("there is a user with corresponding empno, but without the archetype");
+        addObject(
+                new UserType()
+                        .name("test660-wrong")
+                        .employeeNumber("660")
+                        .asPrismObject(),
+                task,
+                result);
+
+        and("there is a user with corresponding empno, and with the archetype");
+        addObject(
+                new UserType()
+                        .name("test660-ok")
+                        .employeeNumber("660")
+                        .assignment(new AssignmentType()
+                                .targetRef(ARCHETYPE_EMPLOYEE.oid, ArchetypeType.COMPLEX_TYPE))
+                        .asPrismObject(),
+                task,
+                result);
+
+        when("the account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
+                .withNameValue("test660")
+                .execute(result);
+
+        assertUserAfterByUsername("test660") // name is updated by inbound mapping
+                .assertLiveLinks(1); // and the account is linked
+        assertUserAfterByUsername("test660-wrong") // the other, non-matching user (test660-wrong) is ignored
+                .assertLiveLinks(0);
+    }
+
+    /**
+     * The same as {@link #test660LinkArchetypedUser()} but using traditional filter-based correlator.
+     */
+    @Test
+    public void test670LinkArchetypedUserViaFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("there is a new account");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.controller.addAccount("test670");
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "670");
+
+        and("there is a user with corresponding empno, but without the archetype");
+        addObject(
+                new UserType()
+                        .name("test670-wrong")
+                        .employeeNumber("670")
+                        .asPrismObject(),
+                task,
+                result);
+
+        and("there is a user with corresponding empno, and with the archetype");
+        addObject(
+                new UserType()
+                        .name("test670-ok")
+                        .employeeNumber("670")
+                        .assignment(new AssignmentType()
+                                .targetRef(ARCHETYPE_EMPLOYEE.oid, ArchetypeType.COMPLEX_TYPE))
+                        .asPrismObject(),
+                task,
+                result);
+
+        when("the account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.oid)
+                .withNameValue("test670")
+                .execute(result);
+
+        assertUserAfterByUsername("test670") // name is updated by inbound mapping
+                .assertLiveLinks(1); // and the account is linked
+        assertUserAfterByUsername("test670-wrong") // the other, non-matching user (test670-wrong) is ignored
+                .assertLiveLinks(0);
+    }
+
+    /**
      * Deleting dummy shadows in raw mode: searching in repo, and deleting from the repo.
      */
     @Test
@@ -2810,7 +2948,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(getNumberOfUsers() + 12);
+        assertUsers(getNumberOfUsers() + 17);
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -2852,7 +2990,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .as("hidden operation results")
                 .isEqualTo(8);
 
-        assertUsers(getNumberOfUsers() + 12);
+        assertUsers(getNumberOfUsers() + 17);
 
         assertDummyAccountShadows(0, true, task, result);
         assertDummyAccountShadows(17, false, task, result);
@@ -2868,7 +3006,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(getNumberOfUsers() + 12);
+        assertUsers(getNumberOfUsers() + 17);
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -2897,15 +3035,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Operation result structure is currently not as neat as when pure repo access is used.
         // So let's skip these tests for now.
 
-        assertUsers(getNumberOfUsers() + 12);
+        assertUsers(getNumberOfUsers() + 17);
 
         assertDummyAccountShadows(2, true, task, result); // two protected accounts
         assertDummyAccountShadows(2, false, task, result);
     }
 
     private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws CommonException {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
-                RI_ACCOUNT_OBJECT_CLASS, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = (shadow, parentResult) -> {

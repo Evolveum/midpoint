@@ -563,21 +563,22 @@
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        FIXME
-
-                        Default value for both defaultForKind and defaultForObjectClass.
+                        Default value for both defaultForKind and defaultForObjectClass properties.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="defaultForKind" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        FIXME
+                        Specifies whether this resource object type is the default one for given kind of objects, i.e.
+                        for accounts, entitlements or "generic objects". This means that if e.g. a resource object construction
+                        is specified with kind=account (without providing an intent), then the intent of the default account type
+                        is selected. In a similar way, if a synchronization activity (like import or reconciliation)
+                        is specified with kind=account (without providing an intent), then the intent of the default account type
+                        is selected to specify the objects to be processed by the activity.
 
-                        Specifies whether this type is the default type for the resource.
-                        Only one type for each class can be default. Setting this flag to true for more than one type is
-                        an error. If the flag is not set, the value is inherited from resource schema. If the resource
-                        schema does not have this flag set, the default value is false.
+                        Only one type can be the default one for given kind. Setting this flag to true for more than one type
+                        is an error.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.5</a:since>
@@ -587,12 +588,19 @@
             <xsd:element name="defaultForObjectClass" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        FIXME
+                        Specifies whether this resource object type is the default one for the given object class
+                        - e.g. for ri:AccountObjectClass or ri:inetOrgPerson. This means that if e.g. synchronization task
+                        is started for object class of ri:inetOrgPerson (without providing kind/intent), the definition
+                        to be used when issuing the query - e.g. attributes to return, object scope, and so on - is the one
+                        with the "defaultForObjectClass = true". (Note that midPoint still attempts to synchronize all members
+                        of the said object class, if such a request is issued.)
 
-                        Specifies whether this type is the default type for the resource.
-                        Only one type for each class can be default. Setting this flag to true for more than one type is
-                        an error. If the flag is not set, the value is inherited from resource schema. If the resource
-                        schema does not have this flag set, the default value is false.
+                        Note that since 4.6, the preferred way is to use so-called refined object class definitions,
+                        i.e. to provide schemaHandling/objectClass refinement for ri:inetOrgPerson. Therefore, it's no longer
+                        necessary to specify default object type for object class.
+
+                        Only one type can be the default one for given object class. Setting this flag to true for more
+                        than one type is an error.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.5</a:since>
@@ -602,15 +610,14 @@
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        XSD type from the resource schema (Object Class) that should be used for accounts
-                        on this resource.
+                        Object class (like ri:inetOrgPerson) for this resource object type. Must be specified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The reference to additional type definitions for this object. The reference should
+                        The reference to additional object classes for this object. The reference should
                         point to object class definition (complex type definition in resource schema) and
                         this definition should be marked as auxiliary.
                     </xsd:documentation>
@@ -700,11 +707,32 @@
             <xsd:element name="focusType" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the focus that would be applied to this type.
+                        Type of the focus that corresponds to this resource object type.
                         If not specified (neither here nor in synchronization configuration), the User (c:UserType) is assumed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus archetype corresponding to this resource object type. If specified, the value is used during
+                        correlation (i.e. we look for focus objects having specified archetype), as well as during creation
+                        of new focuses.
+
+                        Notes:
+
+                        1. Archetypes of existing users are not changed in relation to this setting.
+
+                        2. In the future, we may consider allowing multiple archetypes here.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                        <xsd:appinfo>
+                            <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                        </xsd:appinfo>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import java.util.*;
@@ -16,10 +15,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaAnyReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,25 +45,29 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
 
     // Definition of the item being queried.
-    @NotNull private final JpaLinkDefinition<JpaReferenceDefinition> linkDefinition;
+    @NotNull private final JpaLinkDefinition<JpaReferenceDefinition<?>> linkDefinition;
 
     public ReferenceRestriction(InterpretationContext context, RefFilter filter, JpaEntityDefinition baseEntityDefinition,
-            Restriction parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
+            Restriction<?> parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition<?>> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         this.linkDefinition = linkDefinition;
     }
 
     @Override
     public Condition interpretInternal() throws QueryException {
-
         String hqlPath = hqlDataInstance.getHqlPath();
         LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
 
         HibernateQuery hibernateQuery = context.getHibernateQuery();
 
+        ObjectFilter targetFilter = filter.getFilter();
         List<PrismReferenceValue> values = filter.getValues();
         if (CollectionUtils.isEmpty(values)) {
-            return hibernateQuery.createIsNull(hqlDataInstance.getHqlPath());
+            if (targetFilter == null) {
+                return hibernateQuery.createIsNull(hqlDataInstance.getHqlPath());
+            } else {
+                // TODO here or lower after some join?
+            }
         }
         Set<String> oids = new HashSet<>();
         Set<QName> relations = new HashSet<>();

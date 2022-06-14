@@ -27,7 +27,7 @@ public abstract class BaseAction<F extends FocusType> implements Synchronization
 
     protected static final Trace LOGGER = TraceManager.getTrace(BaseAction.class);
 
-    @NotNull protected final SynchronizationContext<F> syncCtx;
+    @NotNull protected final SynchronizationContext.Complete<F> syncCtx;
     @NotNull protected final ResourceObjectShadowChangeDescription change;
     @NotNull protected final SynchronizationReactionDefinition reactionDefinition; // TODO consider removal
     @NotNull protected final SynchronizationActionDefinition actionDefinition;

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
@@ -13,8 +12,6 @@ import java.util.Objects;
 import javax.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -43,11 +40,10 @@ public class REmbeddedReference implements ObjectReference {
     public String getRelation() {
         return relation;
     }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false,
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
-//    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     public RObject getTarget() {
         return null;
@@ -78,7 +74,7 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     // only for ORM/JPA
-    public void setTarget(RObject target) {
+    public void setTarget(@SuppressWarnings("unused") RObject target) {
     }
 
     @Override
@@ -110,7 +106,8 @@ public class REmbeddedReference implements ObjectReference {
                 + '}';
     }
 
-    public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb,
+            @SuppressWarnings("unused") PrismContext prismContext) {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getTargetType()));

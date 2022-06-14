@@ -197,7 +197,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
-        PrismProperty<String> icfUidAttr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
+        PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_UID_PATH);
         icfUidAttr.setRealValue(icfUid);
     }
 
@@ -206,12 +206,12 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected String getIcfUid(PrismObject<ShadowType> shadow) {
-        PrismProperty<String> icfUidAttr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
+        PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_UID_PATH);
         return icfUidAttr.getRealValue();
     }
 
     protected String getIcfName(PrismObject<ShadowType> shadow) {
-        PrismProperty<String> icfUidAttr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME));
+        PrismProperty<String> icfUidAttr = shadow.findProperty(SchemaConstants.ICFS_NAME_PATH);
         return icfUidAttr.getRealValue();
     }
 

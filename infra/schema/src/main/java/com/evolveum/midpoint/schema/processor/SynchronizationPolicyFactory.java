@@ -106,6 +106,7 @@ public class SynchronizationPolicyFactory {
         return new SynchronizationPolicy(
                 kind,
                 focusTypeName,
+                null,
                 objectClassName,
                 correlationDefinitionBean,
                 synchronizationEnabled,
@@ -199,6 +200,7 @@ public class SynchronizationPolicyFactory {
         return new SynchronizationPolicy(
                 typeDef.getKind(),
                 typeDef.getFocusTypeName(),
+                typeDef.getArchetypeRef(),
                 typeDef.getObjectClassName(),
                 java.util.Objects.requireNonNullElseGet(
                         typeDef.getCorrelationDefinitionBean(),

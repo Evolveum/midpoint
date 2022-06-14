@@ -9,8 +9,6 @@ package com.evolveum.midpoint.model.impl.correlator.matching;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFS_UID;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -209,7 +207,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
     }
 
     private Integer getUid(PotentialMatch potentialMatch) {
-        PrismProperty<?> attribute = potentialMatch.getAttributes().asPrismContainerValue().findProperty(ICFS_UID);
+        PrismProperty<?> attribute = potentialMatch.getAttributes().asPrismContainerValue().findProperty(SchemaConstants.ICFS_UID);
         return attribute != null ?
                 Integer.valueOf(attribute.getRealValue(String.class)) :
                 null;
@@ -294,7 +292,7 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
 
         // Changing icfs:uid to make it look like a different record
         updatedShadow.asPrismObject()
-                .findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID))
+                .findProperty(SchemaConstants.ICFS_UID_PATH)
                 .setRealValue("999999");
 
         MatchingResult reMatchingResult = service.executeMatch(

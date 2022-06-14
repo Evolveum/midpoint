@@ -44,7 +44,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -690,10 +690,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
-                GROUP_DUMMY_FOOLS_NAME.toLowerCase());
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID),
-                GROUP_DUMMY_FOOLS_NAME.toLowerCase());
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, GROUP_DUMMY_FOOLS_NAME.toLowerCase());
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, GROUP_DUMMY_FOOLS_NAME.toLowerCase());
         assertShadowKindIntent(groupFoolsRepoShadow, ShadowKindType.ENTITLEMENT, INTENT_DUMMY_GROUP);
 
         assertShadows(6);

@@ -2,10 +2,7 @@ package com.evolveum.midpoint.schema.processor.deleg;
 
 import com.evolveum.midpoint.schema.processor.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +74,11 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     @Override
     default @Nullable QName getFocusTypeName() {
         return delegate().getFocusTypeName();
+    }
+
+    @Override
+    default @Nullable ObjectReferenceType getArchetypeRef() {
+        return delegate().getArchetypeRef();
     }
 
     @Override

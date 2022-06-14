@@ -48,7 +48,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -3393,7 +3392,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-                ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH_PARTS, ACCOUNT_CPTMORGAN_NAME);
+                ACCOUNT_MORGAN_OID, SchemaConstants.ICFS_NAME_PATH, ACCOUNT_CPTMORGAN_NAME);
         provisioningService.applyDefinition(delta, task, result);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
@@ -3424,7 +3423,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         if (!isIcfNameUidSame()) {
             shadowUuid = (String) identifier.getRealValue();
         }
-        PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH_PARTS, shadowUuid);
+        PrismAsserts.assertPropertyValue(repoShadow, SchemaConstants.ICFS_UID_PATH, shadowUuid);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 

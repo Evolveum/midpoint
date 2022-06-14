@@ -307,7 +307,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
     private List<PrismObject<ShadowType>> getJacksShadows(OperationResult result) throws SchemaException {
         ObjectQuery shadowQuery = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-                .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+                .and().item(SchemaConstants.ICFS_NAME_PATH,
                         getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
                 .build();
         return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);

@@ -32,12 +32,10 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -989,9 +987,9 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);
 
-        Item oldItem = account.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaTestConstants.ICFS_NAME));
+        Item oldItem = account.findItem(ICFS_NAME_PATH);
         ItemDelta delta = prismContext.deltaFactory().property().createModificationAddProperty(
-                SchemaTestConstants.ICFS_NAME_PATH_PARTS,
+                ICFS_NAME_PATH,
                 (PrismPropertyDefinition) oldItem.getDefinition(),
                 ((PrismPropertyValue) oldItem.getAnyValue()).getValue());
 

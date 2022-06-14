@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -321,7 +320,7 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals(getDummyResourceType().getOid(), resourceRef.getOid());
 
         PrismContainer<?> attributes = newAccount.findContainer(ShadowType.F_ATTRIBUTES);
-        assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
+        assertEquals("jack", attributes.findProperty(SchemaConstants.ICFS_NAME).getRealValue());
         getDummyResourceType();
         assertEquals("Jack Sparrow", attributes.findProperty(new ItemName(MidPointConstants.NS_RI, "fullname")).getRealValue());
     }

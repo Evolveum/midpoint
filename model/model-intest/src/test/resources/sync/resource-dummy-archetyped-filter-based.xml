@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<resource oid="ac51f575-bdf7-49ec-bb3f-5ffe9fcbb3bb"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <name>Dummy Resource Archetyped Filter Based</name>
+    <super>
+        <resourceRef oid="e0789d4f-8748-41e0-9911-6d0938287588"/>
+    </super>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>archetyped-filter-based</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <!-- omitted kind/intent: checking if default values are applied successfully -->
+            <correlation>
+                <correlators>
+                    <items>
+                        <enabled>false</enabled>
+                        <name>itemCorrelator</name>
+                        <!-- This is poor man's way how to replace the definition of correlators.
+                             Wish there could be a better way... -->
+                    </items>
+                    <filter>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>employeeNumber</q:path>
+                                <expression>
+                                    <path>$projection/attributes/employeeNumber</path>
+                                </expression>
+                            </q:equal>
+                        </ownerFilter>
+                    </filter>
+                </correlators>
+            </correlation>
+        </objectType>
+    </schemaHandling>
+</resource>

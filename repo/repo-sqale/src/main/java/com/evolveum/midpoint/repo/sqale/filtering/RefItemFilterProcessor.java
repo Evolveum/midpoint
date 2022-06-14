@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.repo.sqale.filtering;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.ExpressionUtils;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Filter processor for reference item paths embedded in table as three columns.
- * OID is represented by UUID column, type by ID (see {@link MObjectType} and relation
+ * OID is represented by UUID column, type by ID (see {@link MObjectType}) and relation
  * by Integer (foreign key) to {@link QUri}.
  */
 public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> {
@@ -81,38 +81,46 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
             return processRepoFilter((RefFilterWithRepoPath) filter);
         }
 
-
-        List<PrismReferenceValue> values = filter.getValues();
-        if (values == null || values.isEmpty()) {
-            return filter.isOidNullAsAny() ? null : oidPath.isNull();
-        }
-        Predicate predicate = null;
+        QName targetTypeName = Objects.requireNonNull(filter.getDefinition()).getTargetTypeName();
         ObjectFilter targetFilter = filter.getFilter();
+        if (filter.hasNoValue()) {
+            if (targetFilter == null) {
+                return filter.isOidNullAsAny() ? null : oidPath.isNull();
+            } else {
+                return targetFilterPredicate(targetTypeName, targetFilter);
+            }
+        }
+
+        // We definitely have one or more values from here on.
+        List<PrismReferenceValue> values = Objects.requireNonNull(filter.getValues());
         if (values.size() == 1) {
             var value = values.get(0);
-            predicate = processSingleValue(filter, value);
+            Predicate predicate = processSingleValue(filter, value);
             if (targetFilter != null) {
-                var targetType = Optional.ofNullable(value.getTargetType()).orElse(filter.getDefinition().getTargetTypeName());
-                predicate = ExpressionUtils.and(predicate, targetFilterPredicate(targetType,targetFilter));
+                var targetType = Optional.ofNullable(value.getTargetType())
+                        .orElse(targetTypeName);
+                predicate = ExpressionUtils.and(predicate, targetFilterPredicate(targetType, targetFilter));
             }
             return predicate;
-        } else {
-            for (PrismReferenceValue ref : values) {
-                predicate = ExpressionUtils.or(predicate, processSingleValue(filter, ref));
-            }
         }
 
+        // Here it's multi-value, optionally with a target filter.
+        Predicate predicate = null;
+        for (PrismReferenceValue ref : values) {
+            predicate = ExpressionUtils.or(predicate, processSingleValue(filter, ref));
+        }
 
         if (targetFilter != null) {
-            predicate = ExpressionUtils.and(predicate, targetFilterPredicate(filter.getDefinition().getTargetTypeName(),targetFilter));
+            predicate = ExpressionUtils.and(predicate, targetFilterPredicate(targetTypeName, targetFilter));
         }
 
         return predicate;
     }
 
-    private Predicate targetFilterPredicate(@Nullable QName targetType, ObjectFilter targetFilter) throws RepositoryException {
+    private Predicate targetFilterPredicate(@Nullable QName targetType, ObjectFilter targetFilter)
+            throws RepositoryException {
         targetType = targetType != null ? targetType : ObjectType.COMPLEX_TYPE;
-        var targetClass = targetType != null ? context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType) : ObjectType.class;
+        var targetClass = context.prismContext().getSchemaRegistry().getCompileTimeClassForObjectType(targetType);
         var subquery = context.subquery(context.repositoryContext().getMappingBySchemaType(targetClass));
         var targetPath = subquery.path(QObject.class);
         subquery.sqlQuery().where(oidPath.eq(targetPath.oid));
@@ -122,7 +130,6 @@ public class RefItemFilterProcessor extends ItemValueFilterProcessor<RefFilter> 
 
     /**
      * Process reference filter used in {@link ReferencedByFilterProcessor}.
-     *
      */
     private Predicate processRepoFilter(RefFilterWithRepoPath filter) {
         return relationPredicate(oidPath.eq(filter.getOidPath()), filter.getRelation());

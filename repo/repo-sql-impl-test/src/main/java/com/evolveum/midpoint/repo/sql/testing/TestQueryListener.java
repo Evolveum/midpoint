@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -60,8 +60,9 @@ public class TestQueryListener implements QueryExecutionListener {
         return entries == null || entries.isEmpty();
     }
 
-    public void clear() {
+    public TestQueryListener clear() {
         entries.remove();
+        return this;
     }
 
     public void dumpAndStop() {

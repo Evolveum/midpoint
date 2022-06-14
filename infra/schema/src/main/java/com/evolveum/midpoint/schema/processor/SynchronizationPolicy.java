@@ -18,9 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -41,6 +39,11 @@ public class SynchronizationPolicy {
      * of this type.)
      */
     @NotNull private final QName focusTypeName;
+
+    /**
+     * Archetype bound to this policy. It is used when correlating and when creating new objects.
+     */
+    @Nullable private final String archetypeOid;
 
     /** TODO */
     @NotNull private final QName objectClassName;
@@ -85,6 +88,7 @@ public class SynchronizationPolicy {
     SynchronizationPolicy(
             @NotNull ShadowKindType kind,
             @Nullable QName focusTypeName,
+            @Nullable ObjectReferenceType archetypeRef,
             @NotNull QName objectClassName,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             boolean synchronizationEnabled,
@@ -96,6 +100,7 @@ public class SynchronizationPolicy {
             boolean hasLegacyConfiguration) {
         this.kind = kind;
         this.focusTypeName = Objects.requireNonNullElse(focusTypeName, UserType.COMPLEX_TYPE);
+        this.archetypeOid = getArchetypeOid(archetypeRef);
         this.objectClassName = objectClassName;
         this.correlationDefinitionBean = correlationDefinitionBean;
         this.synchronizationEnabled = synchronizationEnabled;
@@ -106,6 +111,17 @@ public class SynchronizationPolicy {
         this.reactions.sort(Comparator.naturalOrder());
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.hasLegacyConfiguration = hasLegacyConfiguration;
+    }
+
+    public static String getArchetypeOid(@Nullable ObjectReferenceType archetypeRef) {
+        if (archetypeRef == null) {
+            return null;
+        }
+        String oid = archetypeRef.getOid();
+        if (oid != null) {
+            return oid;
+        }
+        throw new UnsupportedOperationException("Dynamic references are not supported for archetypeRef");
     }
 
     public @NotNull ShadowKindType getKind() {
@@ -141,34 +157,6 @@ public class SynchronizationPolicy {
 
     public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
-    }
-
-    /**
-     * Returns true if the policy is applicable to given synchronization discriminator (sorter result):
-     * compares its kind and intent.
-     */
-    public boolean isApplicableToSynchronizationDiscriminator(@NotNull ObjectSynchronizationDiscriminatorType discriminator) {
-        ShadowKindType kind = discriminator.getKind();
-        String intent = discriminator.getIntent();
-        if (kind == null || intent == null) {
-            throw new IllegalArgumentException(
-                    "Object synchronization discriminator must have both kind and intent specified. "
-                            + "Current values are: kind=" + kind + ", intent=" + intent);
-        }
-        return isApplicableTo(null, kind, intent, false);
-    }
-
-    /**
-     * Compares the policy to given shadow - it may or may not be classified (i.e. having kind/intent specified).
-     */
-    public boolean isApplicableToShadow(@NotNull ShadowType shadow) throws SchemaException {
-        return isApplicableTo(
-                MiscUtil.requireNonNull(
-                        shadow.getObjectClass(),
-                        () -> "No object class in " + shadow),
-                shadow.getKind(), // nullable if shadow is not classified yet
-                shadow.getIntent(), // nullable if shadow is not classified yet
-                false);
     }
 
     /**
@@ -234,20 +222,19 @@ public class SynchronizationPolicy {
         }
     }
 
-    /** Returns the focus type this synchronization policy points to. */
-    public @NotNull QName getFocusTypeName() {
-        return focusTypeName;
-    }
-
     /** Returns the focus class this synchronization policy points to. */
     public @NotNull Class<? extends FocusType> getFocusClass() {
         return PrismContext.get().getSchemaRegistry()
                 .determineClassForTypeRequired(focusTypeName);
     }
 
+    public @Nullable String getArchetypeOid() {
+        return archetypeOid;
+    }
+
     @Override
     public String toString() { // TODO
-        return "SynchronizationPolicy{" +
+        return getClass().getSimpleName() + "{" +
                 "kind=" + kind +
                 ", resourceObjectDefinition=" + resourceObjectDefinition +
                 '}';

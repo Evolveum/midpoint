@@ -47,7 +47,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
@@ -375,7 +374,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceAttributeContainerDefinition attrDef = (ResourceAttributeContainerDefinition) attributes.getDefinition();
         assertAttributeDefs(attrDef, null, LayerType.MODEL);
 
-        PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
+        PrismAsserts.assertPropertyValue(attributes, SchemaConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
         PrismAsserts.assertPropertyValue(attributes, QNAME_CN, "Jack Sparrow");
         PrismAsserts.assertPropertyValue(attributes, QNAME_GIVEN_NAME, "Jack");
         PrismAsserts.assertPropertyValue(attributes, QNAME_SN, "Sparrow");
@@ -391,7 +390,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ShadowAttributesType attributesType = accObjectType.getAttributes();
         assertNotNull("null ResourceObjectShadowAttributesType (JAXB)", attributesType);
         List<Object> attributeElements = attributesType.getAny();
-        TestUtil.assertElement(attributeElements, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
+        TestUtil.assertElement(attributeElements, SchemaConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
         TestUtil.assertElement(attributeElements, QNAME_CN, "Jack Sparrow");
         TestUtil.assertElement(attributeElements, QNAME_GIVEN_NAME, "Jack");
         TestUtil.assertElement(attributeElements, QNAME_SN, "Sparrow");
@@ -474,12 +473,12 @@ public class TestRefinedSchema extends AbstractUnitTest {
         Collection<? extends ResourceAttributeDefinition<?>> attrs = rAccount.getAttributeDefinitions();
         assertFalse(attrs.isEmpty());
 
-        assertAttributeDef(attrs, SchemaTestConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
+        assertAttributeDef(attrs, SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
                 true, false,
                 true, true, validationLayer == LayerType.SCHEMA, // Access: create, read, update
                 sourceLayer, validationLayer);
 
-        assertAttributeDef(attrs, SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", 100,
+        assertAttributeDef(attrs, SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", 100,
                 false, false,
                 false, true, false, // Access: create, read, update
                 sourceLayer, validationLayer);
@@ -542,7 +541,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rAccount);
         ResourceAttribute<String> confusingAttr1 = createStringAttribute(new QName("http://whatever.com", "confuseMe"), "HowMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChudkWood");
         attributesContainer.add(confusingAttr1);
-        ResourceAttribute<String> nameAttr = createStringAttribute(SchemaTestConstants.ICFS_NAME, identifierValue);
+        ResourceAttribute<String> nameAttr = createStringAttribute(SchemaConstants.ICFS_NAME, identifierValue);
         attributesContainer.add(nameAttr);
         ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com", "confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
         attributesContainer.add(confusingAttr2);

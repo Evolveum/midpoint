@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
+import com.evolveum.midpoint.model.test.util.ImportSingleAccountRequest.ImportSingleAccountRequestBuilder;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang3.StringUtils;
@@ -152,7 +153,8 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest implements ResourceTester {
+public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest
+        implements ResourceTester, DummyTestResourceInitializer {
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
@@ -300,7 +302,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return resource.controller;
     }
 
-    protected void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
+    public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(
                 resource.name, resource.file, resource.oid, resource.controllerInitLambda, task, result);
@@ -317,13 +319,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyResourceContoller initDummyResourcePirate(
             String name, File resourceFile, String resourceOid, Task task, OperationResult result)
             throws Exception {
-        return initDummyResource(name, resourceFile, resourceOid, controller -> controller.extendSchemaPirate(), task, result);
+        return initDummyResource(name, resourceFile, resourceOid, DummyResourceContoller::extendSchemaPirate, task, result);
     }
 
     protected DummyResourceContoller initDummyResourceAd(
             String name, File resourceFile, String resourceOid, Task task, OperationResult result)
             throws Exception {
-        return initDummyResource(name, resourceFile, resourceOid, controller -> controller.extendSchemaAd(), task, result);
+        return initDummyResource(name, resourceFile, resourceOid, DummyResourceContoller::extendSchemaAd, task, result);
     }
 
     protected DummyResourceContoller getDummyResourceController(String name) {
@@ -2948,7 +2950,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ItemPath getIcfsNameAttributePath() {
         return ItemPath.create(
                 ShadowType.F_ATTRIBUTES,
-                SchemaTestConstants.ICFS_NAME);
+                ICFS_NAME);
     }
 
     /**
@@ -3907,7 +3909,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return oid;
     }
 
-    protected <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    public <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         return addObject(object, null, task, result);
     }
 
@@ -6821,5 +6823,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         return modelService.testResource(oid, task, result);
+    }
+
+    /**
+     * Imports a single account (or other kind of object) by creating a specialized task.
+     */
+    public ImportSingleAccountRequestBuilder importSingleAccountRequest() {
+        return new ImportSingleAccountRequestBuilder(this);
     }
 }

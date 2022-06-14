@@ -33,10 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -1011,5 +1008,13 @@ public class ShadowUtil {
             // TODO reconsider logging level here
             LOGGER.warn("{} is partially classified: kind = {}, intent = {}", shadow, shadow.getKind(), shadow.getIntent());
         }
+    }
+
+    public static @NotNull ShadowKindType resolveDefault(ShadowKindType kind) {
+        return Objects.requireNonNullElse(kind, ShadowKindType.ACCOUNT);
+    }
+
+    public static @NotNull String resolveDefault(String intent) {
+        return Objects.requireNonNullElse(intent, SchemaConstants.INTENT_DEFAULT);
     }
 }

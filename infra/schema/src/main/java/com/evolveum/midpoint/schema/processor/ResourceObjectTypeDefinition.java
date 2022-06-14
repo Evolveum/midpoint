@@ -100,6 +100,9 @@ public interface ResourceObjectTypeDefinition
     /** Returns the focus type name, if present here. (It may be standalone.) */
     @Nullable QName getFocusTypeName();
 
+    /** Archetype reference - not present in standalone definitions. */
+    @Nullable ObjectReferenceType getArchetypeRef();
+
     /** Returns true if there is "synchronization reactions" definition section here (even if it's empty). */
     boolean hasSynchronizationReactionsDefinition();
 

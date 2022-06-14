@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for convenience, so the
@@ -24,11 +22,6 @@ public class SchemaTestConstants {
 
     public static final ItemName ICFC_CONFIGURATION_PROPERTIES = new ItemName(NS_ICFC, "configurationProperties");
     public static final ItemName ICFC_CONFIGURATION_PROPERTIES_TYPE = new ItemName(NS_ICFC, "ConfigurationPropertiesType");
-
-    public static final ItemName ICFS_UID = new ItemName(NS_ICFS, "uid");
-    public static final ItemPath ICFS_UID_PATH_PARTS = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_UID);
-    public static final ItemName ICFS_NAME = new ItemName(NS_ICFS, "name");
-    public static final ItemPath ICFS_NAME_PATH_PARTS = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
 
     // Extension schema loaded at runtime from the schema/src/test/resource/schema dir
     public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";

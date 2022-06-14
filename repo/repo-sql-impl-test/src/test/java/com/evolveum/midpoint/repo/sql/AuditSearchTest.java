@@ -170,7 +170,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     private PrismObject<UserType> createUser(String userName)
             throws ObjectAlreadyExistsException, SchemaException {
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name(userName)
                 .asPrismObject();
         repositoryService.addObject(user, null, createOperationResult());
@@ -1452,7 +1452,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
         String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
                 queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        System.out.println("queryType = " + serializedQuery);
+        display("QUERY: " + serializedQuery);
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
