@@ -34,7 +34,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/self/credentials")
+                @Url(mountUrl = "/self/credentialsOld")
         },
         action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

@@ -10,7 +10,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -172,7 +172,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 changePasswordPerformed(target);
             }
         };
-        changePasswordButton.add(new EnableBehaviour(() -> !savedPassword));
+        changePasswordButton.add(new VisibleBehaviour(() -> !savedPassword));
         changePasswordButton.setOutputMarkupId(true);
         add(changePasswordButton);
 
