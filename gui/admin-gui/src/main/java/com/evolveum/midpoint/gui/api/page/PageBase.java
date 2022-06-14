@@ -416,7 +416,7 @@ public abstract class PageBase extends PageAdminLTE {
         Label cartCount = new Label(ID_CART_COUNT, () -> {
             List list = getSessionStorage().getRequestAccess().getShoppingCartAssignments();
             return list.isEmpty() ? null : list.size();
-        } );
+        });
         cartLink.add(cartCount);
     }
 
@@ -510,6 +510,11 @@ public abstract class PageBase extends PageAdminLTE {
                         popupable.getWidthUnit(),
                         "" + (popupable.getHeight() > 0 ? popupable.getHeight() : ""), popupable.getHeightUnit())));
         dialog.setContent(popupable.getComponent());
+        Component footer = popupable.getFooter();
+        if (footer != null) {
+            dialog.setFooter(footer);
+        }
+
         dialog.setTitle(popupable.getTitle());
         dialog.open(target);
     }
@@ -520,8 +525,8 @@ public abstract class PageBase extends PageAdminLTE {
 
     private VisibleBehaviour getShoppingCartVisibleBehavior() {
         return new VisibleBehaviour(() -> !isErrorPage() && isSideMenuVisible() &&
-                        (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
-                                && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0));
+                (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
+                        && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0));
     }
 
     private VisibleBehaviour createUserStatusBehaviour() {
