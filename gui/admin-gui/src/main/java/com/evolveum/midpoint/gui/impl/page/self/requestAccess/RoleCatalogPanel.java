@@ -341,7 +341,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
         PageBase page = getPageBase();
-        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(page.getMainPopupBodyId(), Model.of(object));
+        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(Model.of(object)) {
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
+                addItemsPerformed(target, List.of(model.getObject()));
+
+                page.getMainPopup().close(target);
+            }
+
+            @Override
+            protected void closePerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
+                page.getMainPopup().close(target);
+            }
+        };
 
         page.showMainPopup(panel, target);
     }

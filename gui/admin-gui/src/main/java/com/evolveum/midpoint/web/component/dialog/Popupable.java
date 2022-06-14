@@ -11,6 +11,10 @@ import org.apache.wicket.model.IModel;
 
 public interface Popupable {
 
+    String ID_CONTENT = "content";
+
+    String ID_FOOTER = "footer";
+
     int getWidth();
     int getHeight();
     String getWidthUnit();

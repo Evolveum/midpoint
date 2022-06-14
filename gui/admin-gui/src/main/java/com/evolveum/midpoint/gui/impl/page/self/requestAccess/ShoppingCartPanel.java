@@ -12,6 +12,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -148,7 +152,35 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         return columns;
     }
 
-    protected void clearCartPerformed(AjaxRequestTarget target) {
+    private void clearCartPerformed(AjaxRequestTarget target) {
+        ConfirmationPanel content = new ConfirmationPanel(Popupable.ID_CONTENT) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                clearCartConfirmedPerformed(target);
+            }
+
+            @Override
+            public void noPerformed(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+            }
+
+            @Override
+            protected IModel<String> createYesLabel() {
+                return createStringResource("ShoppingCartPanel.clearCart");
+            }
+
+            @Override
+            protected IModel<String> createNoLabel() {
+                return createStringResource("Button.cancel");
+            }
+        };
+        getPageBase().showMainPopup(content, target);
+    }
+
+    private void clearCartConfirmedPerformed(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
+
         getModelObject().getShoppingCartAssignments().clear();
 
         getPageBase().reloadShoppingCartIcon(target);

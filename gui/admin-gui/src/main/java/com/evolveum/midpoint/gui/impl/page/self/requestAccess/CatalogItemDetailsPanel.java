@@ -14,29 +14,51 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Popupable {
 
-    private static final String ID_BUTTONS = "buttons";
+    private static final long serialVersionUID = 1L;
 
-    public CatalogItemDetailsPanel(String id, IModel<ObjectType> model) {
-        super(id, model);
+    private static final String ID_BUTTONS = "buttons";
+    private static final String ID_ADD = "add";
+    private static final String ID_CLOSE = "close";
+
+    private Fragment footer;
+
+    public CatalogItemDetailsPanel(IModel<ObjectType> model) {
+        super(Popupable.ID_CONTENT, model);
 
         initLayout();
     }
 
     private void initLayout() {
+        footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
+        footer.add(new AjaxLink<>(ID_ADD) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addPerformed(target, CatalogItemDetailsPanel.this.getModel());
+            }
+        });
+        footer.add(new AjaxLink<>(ID_CLOSE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                closePerformed(target, CatalogItemDetailsPanel.this.getModel());
+            }
+        });
     }
 
     @Override
     public Component getFooter() {
-        return new Fragment("footer", ID_BUTTONS, this);
+        return footer;
     }
 
     @Override
@@ -67,5 +89,13 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
     @Override
     public Component getContent() {
         return this;
+    }
+
+    protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
+
+    }
+
+    protected void closePerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
+
     }
 }
