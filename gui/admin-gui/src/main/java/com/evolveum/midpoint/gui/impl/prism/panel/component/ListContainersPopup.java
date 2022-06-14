@@ -195,7 +195,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

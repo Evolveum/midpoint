@@ -222,7 +222,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

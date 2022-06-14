@@ -517,7 +517,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return "%";
     }
 
-    public Component getComponent(){
+    public Component getContent(){
         return this;
     }
 

@@ -84,7 +84,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                             }
                         };
                     }
-                    
+
                     @Override
                     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){
                             if (rowModel != null && rowModel.getObject() != null) {
@@ -250,7 +250,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

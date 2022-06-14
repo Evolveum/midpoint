@@ -145,7 +145,7 @@ public class ConfirmationPanel extends Panel implements Popupable {
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

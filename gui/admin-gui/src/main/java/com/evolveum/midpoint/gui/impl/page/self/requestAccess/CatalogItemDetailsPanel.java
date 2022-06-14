@@ -65,7 +65,7 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 }

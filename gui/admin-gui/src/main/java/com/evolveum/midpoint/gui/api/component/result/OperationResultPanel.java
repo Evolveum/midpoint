@@ -477,7 +477,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

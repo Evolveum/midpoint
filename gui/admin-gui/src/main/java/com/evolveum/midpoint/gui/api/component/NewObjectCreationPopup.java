@@ -89,7 +89,7 @@ public abstract class NewObjectCreationPopup extends BasePanel<List<CompositedIc
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return NewObjectCreationPopup.this;
     }
 

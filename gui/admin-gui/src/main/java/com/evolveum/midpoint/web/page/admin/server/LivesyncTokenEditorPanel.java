@@ -164,7 +164,7 @@ public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskT
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

@@ -463,7 +463,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         return "px";
     }
 
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

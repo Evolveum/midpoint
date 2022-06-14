@@ -118,7 +118,7 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

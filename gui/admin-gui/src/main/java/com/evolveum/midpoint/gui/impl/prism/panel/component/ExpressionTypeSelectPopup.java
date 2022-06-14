@@ -130,7 +130,7 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 
