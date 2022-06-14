@@ -122,7 +122,7 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         target.add(getWizard().getPanel());
     }
 
-    private void onBackPerformed(AjaxRequestTarget target) {
+    protected void onBackPerformed(AjaxRequestTarget target) {
         int index = getWizard().getActiveStepIndex();
         if (index > 0) {
             getWizard().previous();

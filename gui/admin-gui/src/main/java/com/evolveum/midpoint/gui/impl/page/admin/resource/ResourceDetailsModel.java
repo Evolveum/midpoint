@@ -129,7 +129,8 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     }
 
     @Override
-    protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<ResourceType> resource) {
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
+        PrismObject<ResourceType> resource = getPrismObject();
         PrismReference connector = resource.findReference(ResourceType.F_CONNECTOR_REF);
         String connectorOid = connector != null ? connector.getOid() : null;
         return getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);

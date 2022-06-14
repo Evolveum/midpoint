@@ -9,7 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -18,7 +22,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -32,28 +44,29 @@ import javax.xml.namespace.QName;
 /**
  * @author lskublik
  */
-public class DiscoveryStepPanel extends BasicWizardPanel {
+@PanelType(name = "discoverWizard")
+@PanelInstance(identifier = "discoverWizard",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.ADD,
+        defaultPanel = true,
+        display = @PanelDisplay(label = "PageResource.wizard.step.discovery", icon = "fa fa-list-check"),
+        containerPath = "connectorConfiguration/configurationProperties",
+        expanded = true)
+public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
 
-    private static final String ID_FORM = "form";
-
-    private static final Trace LOGGER = TraceManager.getTrace(DiscoveryStepPanel.class);
-
-    private final ResourceDetailsModel resourceModel;
+    private static final String PANEL_TYPE = "discoverWizard";
 
     public DiscoveryStepPanel(ResourceDetailsModel model) {
-        super();
-        this.resourceModel = model;
+        super(model);
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        iniLayout();
-    }
-
-    @Override
-    public String appendCssToWizard() {
-        return "mt-5 mx-auto col-8";
+    protected String getIcon() {
+        return "fa fa-list-check";
     }
 
     @Override
@@ -71,48 +84,10 @@ public class DiscoveryStepPanel extends BasicWizardPanel {
         return createStringResource("PageResource.wizard.discovery.subText");
     }
 
-    private void iniLayout() {
-        VerticalFormPanel form = new VerticalFormPanel(ID_FORM, () -> getConfigurationValue()) {
-            @Override
-            protected String getIcon() {
-                return "fa fa-list-check";
-            }
-
-            @Override
-            protected IModel<?> getTitleModel() {
-                return getTitle();
-            }
-
-            @Override
-            protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
-                if(itemWrapper.isMandatory()) {
-                    return ItemVisibility.HIDDEN;
-                }
-                return ItemVisibility.AUTO;
-            }
-        };
-        form.add(AttributeAppender.append("class", "col-8"));
-        add(form);
-    }
-
-    private PrismContainerValueWrapper<Containerable> getConfigurationValue() {
-        try {
-            return resourceModel.getConfigurationModelObject().findContainerValue(
-                    ItemPath.create(new QName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME)));
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't find value of resource configuration container", e);
-            return null;
+    protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
+        if(itemWrapper.isMandatory()) {
+            return ItemVisibility.HIDDEN;
         }
-    }
-
-    @Override
-    protected void updateFeedbackPanels(AjaxRequestTarget target) {
-        getVerticalForm().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
-            ((VerticalFormPrismPropertyValuePanel)component).updateFeedbackPanel(target);
-        });
-    }
-
-    private MarkupContainer getVerticalForm() {
-        return (MarkupContainer) get(ID_FORM);
+        return ItemVisibility.AUTO;
     }
 }

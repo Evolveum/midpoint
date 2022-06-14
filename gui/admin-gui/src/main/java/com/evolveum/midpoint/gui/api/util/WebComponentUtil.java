@@ -5509,6 +5509,15 @@ public final class WebComponentUtil {
         }
     }
 
+    public static ContainerPanelConfigurationType getContainerConfiguration(GuiObjectDetailsPageType pageConfig, String panelType) {
+        Optional<ContainerPanelConfigurationType> config = pageConfig
+                .getPanel()
+                .stream()
+                .filter(containerConfig -> panelType.equals(containerConfig.getPanelType()))
+                .findFirst();
+        return config.isEmpty() ? null : config.get();
+    }
+
     /**
      * only for 'old' object details pages. Should be removed after only new design will be present.
      */

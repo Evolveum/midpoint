@@ -41,6 +41,8 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     private ExpressionValidator<T> expressionValidator;
     private FeedbackAlerts feedback;
 
+    private FormPanelType formType = FormPanelType.getDefault();
+
     public ItemPanelContext(IModel<IW> itemWrapper) {
         this.itemWrapper = itemWrapper;
     }
@@ -159,4 +161,11 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         this.form = form;
     }
 
+    public FormPanelType getFormType() {
+        return formType;
+    }
+
+    public void setFormType(FormPanelType formType) {
+        this.formType = formType;
+    }
 }

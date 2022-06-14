@@ -292,10 +292,10 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public <O extends ObjectType> GuiResourceDetailsPageType findResourceDetailsConfiguration(String connectorOid){
         if (objectDetails == null) {
-            return null;
+            return new GuiResourceDetailsPageType();
         }
 
-        GuiResourceDetailsPageType applicableForAll = null;
+        GuiResourceDetailsPageType applicableForAll = new GuiResourceDetailsPageType();
 
         for (GuiResourceDetailsPageType resourceDetailsPageType : objectDetails.getResourceDetailsPage()) {
             if (resourceDetailsPageType.getConnectorRef() == null) {
