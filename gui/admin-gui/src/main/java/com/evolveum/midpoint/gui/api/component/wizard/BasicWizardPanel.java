@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -18,7 +19,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lskublik
@@ -29,7 +29,6 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
-    private static final String ID_CONTENT = "content";
     private static final String ID_BACK = "back";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
@@ -57,8 +56,6 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
 
-        add(createContentPanel(ID_CONTENT));
-
         AjaxLink back = new AjaxLink<>(ID_BACK) {
 
             @Override
@@ -72,11 +69,16 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
         add(back);
 
-        AjaxLink next = new AjaxLink<>(ID_NEXT) {
+        AjaxSubmitButton next = new AjaxSubmitButton(ID_NEXT) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public void onSubmit(AjaxRequestTarget target) {
                 onNextPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                updateFeedbackPanels(target);
             }
         };
         next.add(getNextBehaviour());
@@ -92,7 +94,10 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         next.add(nextLabel);
     }
 
-    protected Component createContentPanel(String id) {
+    protected void updateFeedbackPanels(AjaxRequestTarget target) {
+    }
+
+    protected WebMarkupContainer createContentPanel(String id) {
         return new WebMarkupContainer(id);
     }
 
@@ -124,7 +129,10 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
             target.add(getWizard().getPanel());
             return;
         }
+        onBackAfterWizardPerformed(target);
+    }
 
+    protected void onBackAfterWizardPerformed(AjaxRequestTarget target) {
         getPageBase().redirectBack();
     }
 

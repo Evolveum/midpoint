@@ -81,7 +81,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         createMetadataPanel(form);
     }
 
-    private WebMarkupContainer createHeaderPanel() {
+    protected WebMarkupContainer createHeaderPanel() {
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
@@ -120,7 +120,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    private void createValuePanel(MidpointForm form) {
+    protected void createValuePanel(MidpointForm form) {
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
@@ -137,7 +137,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         form.add(valueContainer);
 
         // feedback
-        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+        FeedbackAlerts feedback = createFeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
 
         if (factory == null) {
@@ -175,6 +175,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         }
     }
 
+    protected FeedbackAlerts createFeedbackPanel(String idFeedback) {
+        return new FeedbackAlerts(idFeedback);
+    }
+
     protected void createMetadataPanel(MidpointForm form) {
         PrismValueMetadataPanel metadataPanel = new PrismValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"));
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().isShowMetadata()));
@@ -182,7 +186,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         form.add(metadataPanel);
     }
 
-    private AjaxEventBehavior createEventBehavior() {
+    protected AjaxEventBehavior createEventBehavior() {
         return new AjaxFormComponentUpdatingBehavior("change") {
 
             private static final long serialVersionUID = 1L;

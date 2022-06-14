@@ -36,6 +36,9 @@ public class DefaultContainerablePanelFactory<C extends Containerable>
 
     @Override
     public org.apache.wicket.Component createPanel(PrismContainerPanelContext<C> panelCtx) {
+        if (FormPanelType.VERTICAL.equals(panelCtx.getFormType())) {
+
+        }
         return new DefaultContainerablePanel<>(panelCtx.getComponentId(), panelCtx.getValueWrapper(), panelCtx.getSettings());
     }
 

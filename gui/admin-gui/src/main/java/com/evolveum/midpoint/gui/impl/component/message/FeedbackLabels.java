@@ -5,34 +5,43 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.component.message;
+package com.evolveum.midpoint.gui.impl.component.message;
 
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.message.FeedbackListView;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.feedback.IFeedbackMessageFilter;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class FeedbackAlerts extends Panel implements IFeedback {
+public class FeedbackLabels extends FeedbackAlerts {
 
     private static final String ID_LIST = "list";
+    private static final String ID_MESSAGE = "message";
 
-    public FeedbackAlerts(String id) {
+    public FeedbackLabels(String id) {
         super(id);
-        setOutputMarkupId(true);
-
-        initLayout();
     }
 
     protected void initLayout() {
-        FeedbackListView list = new FeedbackListView(ID_LIST, this);
+        ListView<FeedbackMessage> list = new ListView<>(ID_LIST, new FeedbackMessagesModel(this)) {
+            @Override
+            protected void populateItem(ListItem<FeedbackMessage> item) {
+                item.add(
+                        new Label(ID_MESSAGE, new PropertyModel<>(item.getModel(), "message")));
+            }
+        };
         list.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -43,27 +52,8 @@ public class FeedbackAlerts extends Panel implements IFeedback {
         add(list);
     }
 
-    public boolean hasMessages() {
-        return hasMessages(FeedbackMessage.UNDEFINED);
-    }
-
     protected ListView<FeedbackMessage> getFeedbackListView() {
         return (ListView<FeedbackMessage>) get(ID_LIST);
     }
 
-    public final boolean hasMessages(int level) {
-        List<FeedbackMessage> messages = getFeedbackListView().getModelObject();
-        for (FeedbackMessage msg : messages) {
-            if (msg.isLevel(level)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public final void setFilter(IFeedbackMessageFilter filter) {
-        FeedbackMessagesModel model = (FeedbackMessagesModel) getFeedbackListView().getDefaultModel();
-        model.setFilter(filter);
-    }
 }

@@ -29,8 +29,8 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
     }
 
     @Override
-    protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<AH> assignmentHolder) {
-        GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration(assignmentHolder);
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
+        GuiObjectDetailsPageType defaultPageConfig = super.loadDetailsPageConfiguration();
 
         return applyArchetypePolicy(defaultPageConfig);
     }

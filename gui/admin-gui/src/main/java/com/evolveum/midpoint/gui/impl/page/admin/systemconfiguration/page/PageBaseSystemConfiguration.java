@@ -113,7 +113,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
         return new AssignmentHolderDetailsModel<>(createPrismObjectModel(object), this) {
 
             @Override
-            protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<SystemConfigurationType> assignmentHolder) {
+            protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
                 CompiledGuiProfile profile = getModelServiceLocator().getCompiledGuiProfile();
                 try {
                     GuiObjectDetailsPageType defaultPageConfig = null;

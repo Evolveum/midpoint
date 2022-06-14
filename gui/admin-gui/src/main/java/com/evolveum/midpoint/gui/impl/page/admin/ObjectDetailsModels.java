@@ -90,7 +90,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         detailsPageConfigurationModel = new LoadableModel<>(false) {
             @Override
             protected GuiObjectDetailsPageType load() {
-                return loadDetailsPageConfiguration(null).clone();
+                return loadDetailsPageConfiguration().clone();
             }
         };
 
@@ -151,7 +151,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return (PageBase) getModelServiceLocator();
     }
 
-    protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<O> prismObject) {
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
         return modelServiceLocator.getCompiledGuiProfile().findObjectDetailsConfiguration(getPrismObject().getDefinition().getTypeName());
     }
 
