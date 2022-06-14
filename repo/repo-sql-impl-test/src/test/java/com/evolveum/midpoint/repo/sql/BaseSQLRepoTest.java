@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -68,7 +68,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestReportUtil;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -202,24 +201,10 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         return HibernateToSqlTranslator.toSql(factory, hql);
     }
 
-    protected void assertSuccess(OperationResult result) {
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-        TestUtil.assertSuccess(result);
-    }
-
-    protected void assertSuccess(String message, OperationResult result) {
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-        TestUtil.assertSuccess(message, result);
-    }
-
     protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("getObject");
         PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
         return object;
     }
 
