@@ -11,11 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.security.api.SecurityUtil;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,25 +23,30 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.tile.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -53,6 +54,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
+
+    private static final ViewToggle DEFAULT_VIEW = ViewToggle.TILE;
 
     private static final String ID_VIEW_TOGGLE = "viewToggle";
     private static final String ID_MENU = "menu";
@@ -114,81 +120,74 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             }
         };
 
-//        List<CatalogTile> list = new ArrayList<>();
-//        for (int i = 0; i < 5; i++) {
-//            CatalogTile t = new CatalogTile("fas fa-building", "Canteen");
-//            t.setLogo("fas fa-utensils fa-2x");
-//            t.setDescription("Grants you access to canteen services, coffee bar and vending machines");
-//            list.add(t);
-//        }
-
         ObjectDataProvider provider = new ObjectDataProvider(this, searchModel);
 
         List<IColumn> columns = createColumns();
-        TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable = new TileTablePanel<>(ID_TILES, provider, columns) {
-
-            @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
-                Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
-                fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
+        TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
+                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel()) {
 
                     @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        List<ObjectType> selected = provider.getSelectedData();
-                        addItemsPerformed(target, selected);
-                    }
-                });
+                    protected WebMarkupContainer createTableButtonToolbar(String id) {
+                        Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
+                        fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
 
-                fragment.add(new AjaxLink<>(ID_ADD_ALL) {
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                List<ObjectType> selected = provider.getSelectedData();
+                                addItemsPerformed(target, selected);
+                            }
+                        });
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        addAllItemsPerformed(target);
-                    }
-                });
+                        fragment.add(new AjaxLink<>(ID_ADD_ALL) {
 
-                return fragment;
-            }
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                addAllItemsPerformed(target);
+                            }
+                        });
 
-            @Override
-            protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
-                // todo improve
-                CatalogTile t = new CatalogTile("fas fa-building", WebComponentUtil.getName(object.getValue()));
-                t.setLogo("fas fa-utensils fa-2x");
-                t.setDescription(object.getValue().getDescription());
-                t.setValue(object);
-
-                return t;
-            }
-
-            @Override
-            protected Component createTile(String id, IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
-                return new CatalogTilePanel(id, model) {
-
-                    @Override
-                    protected void onAdd(AjaxRequestTarget target) {
-                        SelectableBean<ObjectType> bean = model.getObject().getValue();
-                        addItemsPerformed(target, Arrays.asList(bean.getValue()));
+                        return fragment;
                     }
 
                     @Override
-                    protected void onDetails(AjaxRequestTarget target) {
-                        SelectableBean<ObjectType> bean = model.getObject().getValue();
-                        itemDetailsPerformed(target, bean.getValue());
+                    protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
+                        // todo improve
+                        CatalogTile t = new CatalogTile("fas fa-building", WebComponentUtil.getName(object.getValue()));
+                        t.setLogo("fas fa-utensils fa-2x");
+                        t.setDescription(object.getValue().getDescription());
+                        t.setValue(object);
+
+                        return t;
                     }
 
                     @Override
-                    protected void onClick(AjaxRequestTarget target) {
-                        // no selection to be done
+                    protected Component createTile(String id, IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                        return new CatalogTilePanel(id, model) {
+
+                            @Override
+                            protected void onAdd(AjaxRequestTarget target) {
+                                SelectableBean<ObjectType> bean = model.getObject().getValue();
+                                addItemsPerformed(target, Arrays.asList(bean.getValue()));
+                            }
+
+                            @Override
+                            protected void onDetails(AjaxRequestTarget target) {
+                                SelectableBean<ObjectType> bean = model.getObject().getValue();
+                                itemDetailsPerformed(target, bean.getValue());
+                            }
+
+                            @Override
+                            protected void onClick(AjaxRequestTarget target) {
+                                // no selection to be done
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected IModel<Search> createSearchModel() {
+                        return searchModel;
                     }
                 };
-            }
-
-            @Override
-            protected IModel<Search> createSearchModel() {
-                return searchModel;
-            }
-        };
         add(tilesTable);
 
         ViewTogglePanel viewToggle = new ViewTogglePanel(ID_VIEW_TOGGLE, tilesTable.getViewToggleModel()) {
@@ -200,8 +199,95 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             }
         };
         add(viewToggle);
-        DetailsMenuPanel menu = new DetailsMenuPanel(ID_MENU);
+
+        IModel<List<ListGroupMenuItem>> model = new LoadableModel<>(false) {
+            @Override
+            protected List<ListGroupMenuItem> load() {
+                return loadRoleCatalogMenu();
+            }
+        };
+        ListGroupMenuPanel menu = new ListGroupMenuPanel(ID_MENU, model);
         add(menu);
+    }
+
+    private IModel<ViewToggle> createViewToggleModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected ViewToggle load() {
+                RoleCatalogType config = getRoleCatalogConfiguration();
+                if (config == null) {
+                    return DEFAULT_VIEW;
+                }
+
+                RoleCatalogViewType view = config.getDefaultView();
+                if (view == null) {
+                    return DEFAULT_VIEW;
+                }
+
+                switch (view) {
+                    case TABLE:
+                        return ViewToggle.TABLE;
+                    case TILE:
+                    default:
+                        return ViewToggle.TILE;
+                }
+            }
+        };
+    }
+
+    private RoleCatalogType getRoleCatalogConfiguration() {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        if (profile == null) {
+            return null;
+        }
+
+        AccessRequestType accessRequest = profile.getAccessRequest();
+        if (accessRequest == null) {
+            return null;
+        }
+
+        return accessRequest.getRoleCatalog();
+    }
+
+    private List<ListGroupMenuItem> loadRoleCatalogMenu() {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        AccessRequestType accessRequest = profile.getAccessRequest();
+        RoleCatalogType roleCatalog = accessRequest.getRoleCatalog();
+        ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
+
+        return loadMenuItems(ref);
+    }
+
+    private List<ListGroupMenuItem> loadMenuItems(ObjectReferenceType ref) {
+        if (ref == null) {
+            return new ArrayList<>();
+        }
+
+        QName type = ref.getType() != null ? ref.getType() : OrgType.COMPLEX_TYPE;
+        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
+
+        ObjectQuery query = getPrismContext()
+                .queryFor(ot.getClassDefinition())
+                .isInScopeOf(ref.getOid(), OrgFilter.Scope.ONE_LEVEL)
+                .asc(ObjectType.F_NAME)
+                .build();
+
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ROLE_CATALOG_MENU);
+        OperationResult result = task.getResult();
+
+        List<ListGroupMenuItem> list = new ArrayList<>();
+        try {
+            List<PrismObject<ObjectType>> objects = WebModelServiceUtils.searchObjects(ot.getClassDefinition(), query, result, getPageBase());
+            for (PrismObject o : objects) {
+                ListGroupMenuItem menu = new ListGroupMenuItem(WebComponentUtil.getName(o));
+                list.add(menu);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return list;
     }
 
     private List<IColumn> createColumns() {

@@ -11,31 +11,26 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -46,6 +41,8 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
 
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
+
+    private static final String DEFAULT_RELATION_ICON = "fa-solid fa-user";
 
     private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST = "list";
@@ -69,7 +66,7 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
 
                 List<QName> list = getAvailableRelationsList();
                 for (QName name : list) {
-                    Tile<QName> tile = new Tile("fas fa-users", name.getLocalPart());
+                    Tile<QName> tile = createTileForRelation(name);
                     tile.setValue(name);
 
                     tiles.add(tile);
@@ -121,6 +118,39 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
             }
         };
         listContainer.add(list);
+    }
+
+    private Tile<QName> createTileForRelation(QName name) {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        RelationSelectionType relationSelection = profile.getAccessRequest().getRelationSelection();
+        RelationsDefinitionType relations = relationSelection.getRelations();
+        String icon = DEFAULT_RELATION_ICON;
+        String label = name.getLocalPart();
+
+        for (RelationDefinitionType rel : relations.getRelation()) {
+            if (!name.equals(rel.getRef())) {
+                continue;
+            }
+
+            DisplayType display = rel.getDisplay();
+            if (display == null) {
+                break;
+            }
+
+            IconType it = display.getIcon();
+            if (it != null && it.getCssClass() != null) {
+                icon = it.getCssClass();
+            }
+
+            label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
+
+            break;
+        }
+
+        Tile tile = new Tile(icon, label);
+        tile.setValue(name);
+
+        return tile;
     }
 
     private List<QName> getAvailableRelationsList() {
