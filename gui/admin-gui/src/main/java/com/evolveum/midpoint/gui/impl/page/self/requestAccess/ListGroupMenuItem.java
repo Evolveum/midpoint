@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +32,7 @@ public class ListGroupMenuItem implements Serializable {
 
     private boolean disabled;
 
-    private List<ListGroupMenuItem> items;
+    private IModel<List<ListGroupMenuItem>> items = Model.ofList(new ArrayList<>());
 
     public ListGroupMenuItem() {
     }
@@ -91,13 +95,18 @@ public class ListGroupMenuItem implements Serializable {
     }
 
     public List<ListGroupMenuItem> getItems() {
-        if (items == null) {
-            items = new ArrayList<>();
-        }
-        return items;
+        return items.getObject();
     }
 
     public void setItems(List<ListGroupMenuItem> items) {
+        this.items.setObject(items);
+    }
+
+    public IModel<List<ListGroupMenuItem>> getItemsModel() {
+        return this.items;
+    }
+
+    public void setItemsModel(@NotNull IModel<List<ListGroupMenuItem>> items) {
         this.items = items;
     }
 }

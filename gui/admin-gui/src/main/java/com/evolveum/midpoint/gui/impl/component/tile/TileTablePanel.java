@@ -7,14 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ViewToggle;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,9 +18,15 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -42,12 +42,21 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
 
     private static final String ID_TILES_PAGING = "tilesPaging";
 
-    private IModel<ViewToggle> viewToggleModel = Model.of(ViewToggle.TILE);
+    private IModel<ViewToggle> viewToggleModel;
 
     private IModel<Search> searchModel;
 
     public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn> columns) {
+        this(id, provider, columns, null);
+    }
+
+    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn> columns, IModel<ViewToggle> viewToggle) {
         super(id);
+
+        if (viewToggle == null) {
+            viewToggle = Model.of(ViewToggle.TILE);
+        }
+        this.viewToggleModel = viewToggle;
 
         initModels();
         initLayout(provider, columns);

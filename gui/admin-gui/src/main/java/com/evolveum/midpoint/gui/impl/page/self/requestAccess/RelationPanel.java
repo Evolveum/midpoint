@@ -142,7 +142,7 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
                 icon = it.getCssClass();
             }
 
-            label = WebComponentUtil.getOrigStringFromPoly(display.getLabel());
+            label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
 
             break;
         }
