@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -54,6 +58,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogPanel.class);
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
@@ -210,6 +216,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         add(menu);
     }
 
+    // todo use configuration getAllowedViews from RoleCatalogType
+
     private IModel<ViewToggle> createViewToggleModel() {
         return new LoadableModel<>(false) {
 
@@ -251,10 +259,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private List<ListGroupMenuItem> loadRoleCatalogMenu() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        AccessRequestType accessRequest = profile.getAccessRequest();
-        RoleCatalogType roleCatalog = accessRequest.getRoleCatalog();
+        RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
+        if (roleCatalog == null) {
+            return new ArrayList<>();
+        }
+
         ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
+        if (ref != null) {
+            return loadMenuItems(ref);
+        }
+
+        // todo custom menu tree definition, not via org. tree hierarchy
 
         return loadMenuItems(ref);
     }
@@ -280,11 +295,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         try {
             List<PrismObject<ObjectType>> objects = WebModelServiceUtils.searchObjects(ot.getClassDefinition(), query, result, getPageBase());
             for (PrismObject o : objects) {
-                ListGroupMenuItem menu = new ListGroupMenuItem(WebComponentUtil.getName(o));
+                String name = WebComponentUtil.getDisplayNameOrName(o, true);
+                ListGroupMenuItem menu = new ListGroupMenuItem(name);
                 list.add(menu);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.debug("Couldn't load menu using role catalog reference to org. structure, reason: " + ex.getMessage(), ex);
         }
 
         return list;

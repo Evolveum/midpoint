@@ -9,10 +9,17 @@
  * Contains all styles for all kinds of tile panels
  */
 
-@mixin selectable-tile {
+@mixin tile {
   border: 2px solid $white;
   border-radius: $border-radius;
   background-color: $white;
+
+  &.selectable {
+    @include selectable-tile();
+  }
+}
+
+@mixin selectable-tile {
   cursor: pointer;
 
   &:hover,
@@ -22,11 +29,17 @@
   }
 }
 
-@mixin selectable-tile-dark-mode {
+@mixin tile-dark-mode {
   border-color: $secondary-alt;
   background-color: lighten($dark, 7.5%) !important;
   color: $white !important;
 
+  &.selectable {
+    @include selectable-tile-dark-mode();
+  }
+}
+
+@mixin selectable-tile-dark-mode {
   &:hover,
   &.active {
     border-color: $primary-alt;
@@ -37,19 +50,20 @@
   width: 250px;
   height: 250px;
 
-  @include selectable-tile();
+  @include tile();
 }
 
-@include dark-mode () {
+@include dark-mode() {
   .tile-panel {
-    @include selectable-tile-dark-mode();
+    @include tile-dark-mode();
   }
 }
 
 .catalog-tile-panel {
   width: 317px;
   height: 376px;
-  @include selectable-tile();
+
+  @include tile();
 
   & > .logo {
     min-width: 84px;
@@ -61,8 +75,8 @@
   }
 }
 
-@include dark-mode () {
-  .catalog-tile-panel {
-    @include selectable-tile-dark-mode();
+@include dark-mode() {
+  .catalog-tile-panel.selectable {
+    @include tile-dark-mode();
   }
 }
