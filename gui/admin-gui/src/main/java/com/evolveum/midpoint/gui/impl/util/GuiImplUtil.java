@@ -46,18 +46,18 @@ public class GuiImplUtil {
             PrismContainerValueWrapper<C> containerValue = (PrismContainerValueWrapper<C>) object;
             if (containerValue.getParent() instanceof ShadowWrapper) {
                 if (((ShadowWrapper) containerValue.getParent()).getProjectionStatus().equals(UserDtoStatus.DELETE)) {
-                    return "danger";
+                    return "table-danger";
                 }
                 if (((ShadowWrapper) containerValue.getParent()).getProjectionStatus().equals(UserDtoStatus.UNLINK)) {
-                    return "warning";
+                    return "table-warning";
                 }
             }
 
             switch (containerValue.getStatus()) {
                 case ADDED:
-                    return "success";
+                    return "table-success";
                 case DELETED:
-                    return "danger";
+                    return "table-danger";
                 case NOT_CHANGED:
                 default:
                     return null;
@@ -69,18 +69,18 @@ public class GuiImplUtil {
 
             if (container.getParent() instanceof ShadowWrapper) {
                 if (((ShadowWrapper) container.getParent()).getProjectionStatus().equals(UserDtoStatus.DELETE)) {
-                    return "danger";
+                    return "table-danger";
                 }
                 if (((ShadowWrapper) container.getParent()).getProjectionStatus().equals(UserDtoStatus.UNLINK)) {
-                    return "warning";
+                    return "table-warning";
                 }
             }
 
             switch (container.getStatus()) {
                 case ADDED:
-                    return "success";
+                    return "table-success";
                 case DELETED:
-                    return "danger";
+                    return "table-danger";
                 case NOT_CHANGED:
                 default:
                     return null;
