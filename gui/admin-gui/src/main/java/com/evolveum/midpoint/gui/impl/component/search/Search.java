@@ -13,8 +13,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,10 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -39,10 +38,6 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.DateSearchItem;
-import com.evolveum.midpoint.web.component.search.ObjectCollectionSearchItem;
-import com.evolveum.midpoint.web.component.search.PropertySearchItem;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class Search<C extends Containerable> implements Serializable, DebugDumpable {
@@ -287,22 +282,37 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private ObjectQuery getArchetypeQuery(PageBase pageBase) {
         CompiledObjectCollectionView view = null;
+        OperationResult result = new OperationResult("evaluate filter");
+        Task task = pageBase.createSimpleTask("evaluate filter");
+        ObjectFilter collectionFilter = null;
         if (findObjectCollectionSearchItemWrapper() != null && findObjectCollectionSearchItemWrapper().getObjectCollectionView() != null) {
             view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
-            if (view.getFilter() == null) {
+            if (view == null || view.getFilter() == null) {
                 return null;
             }
+            collectionFilter = view.getFilter();
         } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionViewName())) {
             view = pageBase.getCompiledGuiProfile()
                     .findObjectCollectionView(WebComponentUtil.containerClassToQName(pageBase.getPrismContext(), getTypeClass()),
                             searchConfigurationWrapper.getCollectionViewName());
-        }
-        if (view == null) {
-            return null;
+            if (view == null || view.getFilter() == null) {
+                return null;
+            }
+            collectionFilter = view.getFilter();
+        } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionRefOid())) {
+            try {
+                PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
+                        searchConfigurationWrapper.getCollectionRefOid(), pageBase, task, result);
+                if (collection != null && collection.asObjectable().getFilter() != null) {
+                    collectionFilter = PrismContext.get().getQueryConverter().parseFilter(collection.asObjectable().getFilter(), getTypeClass());
+                }
+            } catch (SchemaException e) {
+                LOGGER.error("Failed to parse filter from object collection, oid {}, {}", searchConfigurationWrapper.getCollectionRefOid(), e.getStackTrace());
+                pageBase.error("Failed to parse filter from object collection, oid " + searchConfigurationWrapper.getCollectionRefOid());
+            }
         }
         ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-        OperationResult result = new OperationResult("evaluate filter");
-        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, pageBase));
+        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(collectionFilter, result, pageBase));
         return query;
 
     }
