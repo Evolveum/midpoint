@@ -216,6 +216,9 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.isUseNewDesign() != null) {
             composite.setUseNewDesign(adminGuiConfiguration.isUseNewDesign());
         }
+        if (adminGuiConfiguration.isUseRepositoryAssignmentSearch() != null) {
+            composite.setUseRepositoryAssignmentSearch(adminGuiConfiguration.isUseRepositoryAssignmentSearch());
+        }
         if (adminGuiConfiguration.getDefaultExportSettings() != null) {
             composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
         }
@@ -308,6 +311,21 @@ public class GuiProfileCompiler {
                         adminGuiConfiguration.getApprovals().isExpandRolesOnPreview());
             }
         }
+
+        if (adminGuiConfiguration.getAccessRequest() != null) {
+            mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
+        }
+    }
+
+    private void mergeAccessRequestConfiguration(CompiledGuiProfile composite, AccessRequestType accessRequest) {
+        if (composite.getAccessRequest() == null) {
+            composite.setAccessRequest(accessRequest.clone());
+            return;
+        }
+
+        accessRequest.getTargetSelection();
+        accessRequest.getRoleCatalog();
+        accessRequest.getCheckout();
     }
 
     private void applyConfigurableDashboard(CompiledGuiProfile composit, ConfigurableUserDashboardType configurableUserDashboard, Task task, OperationResult result) {

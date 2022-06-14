@@ -137,9 +137,11 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         /** Returns `null` if we cannot use the definitions here. */
         private @Nullable List<ObjectQuery> createQueries(CorrelationItems correlationItems)
-                throws SchemaException, ConfigurationException {
+                throws SchemaException {
             if (areItemsApplicable(correlationItems)) {
-                List<ObjectQuery> queries = correlationItems.createQueries(correlationContext.getFocusType());
+                List<ObjectQuery> queries = correlationItems.createQueries(
+                        correlationContext.getFocusType(),
+                        correlationContext.getArchetypeOid());
                 LOGGER.debug("Correlation items specification resulted in {} queries", queries.size());
                 return queries;
             } else {

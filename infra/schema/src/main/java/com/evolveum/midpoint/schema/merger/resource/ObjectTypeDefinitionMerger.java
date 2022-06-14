@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.merger.resource;
 
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SuperObjectTypeReferenceType;
+
+import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
 
 /**
  * A merger specific to resource definitions: creates inheritance relations between the same definitions
@@ -80,7 +81,7 @@ public class ObjectTypeDefinitionMerger extends BaseCustomItemMerger<PrismContai
             this.container = container;
         }
 
-        public void addAsIs(@NotNull ResourceObjectTypeDefinitionType definition) {
+        void addAsIs(@NotNull ResourceObjectTypeDefinitionType definition) {
             try {
                 //noinspection unchecked
                 container.add(
@@ -125,11 +126,11 @@ public class ObjectTypeDefinitionMerger extends BaseCustomItemMerger<PrismContai
         }
 
         /**
-         * TODO We intentionally ignore defaults for kind and intent here. Is that OK? (Maybe not!)
+         * We take defaults for kind and intent into account here.
          */
         private boolean matchesKindIntent(ResourceObjectTypeDefinitionType def, ShadowKindType kind, String intent) {
-            return def.getKind() == kind
-                    && Objects.equals(def.getIntent(), intent);
+            return resolveDefault(def.getKind()) == resolveDefault(kind)
+                    && resolveDefault(def.getIntent()).equals(resolveDefault(intent));
         }
     }
 }

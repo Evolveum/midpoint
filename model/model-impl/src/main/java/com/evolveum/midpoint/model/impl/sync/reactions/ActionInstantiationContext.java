@@ -22,13 +22,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ActionInstantiationContext<F extends FocusType> {
 
-    @NotNull public final SynchronizationContext<F> syncCtx;
+    @NotNull public final SynchronizationContext.Complete<F> syncCtx;
     @NotNull public final ResourceObjectShadowChangeDescription change;
     @NotNull public final SynchronizationReactionDefinition reactionDefinition;
     @NotNull public final SynchronizationActionDefinition actionDefinition;
 
     public ActionInstantiationContext(
-            @NotNull SynchronizationContext<F> syncCtx,
+            @NotNull SynchronizationContext.Complete<F> syncCtx,
             @NotNull ResourceObjectShadowChangeDescription change,
             @NotNull SynchronizationReactionDefinition reactionDefinition,
             @NotNull SynchronizationActionDefinition actionDefinition) {

@@ -47,6 +47,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private String preferredDataLanguage;
     private Boolean enableExperimentalFeatures;
     private Boolean useNewDesign = true; //default
+    private boolean useRepositoryAssignmentSearch = false;
     private List<RichHyperlinkType> additionalMenuLink = new ArrayList<>();
     private List<RichHyperlinkType> userDashboardLink = new ArrayList<>();
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
@@ -58,7 +59,9 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private ObjectFormsType objectForms;
     private GuiObjectDetailsSetType objectDetails;
     private FeedbackMessagesHookType feedbackMessagesHook;
+    @Deprecated
     private AdminGuiConfigurationRoleManagementType roleManagement;
+    private AccessRequestType accessRequest;
     private AdminGuiApprovalsConfigurationType approvals;
     private List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
@@ -96,6 +99,17 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     public Boolean isUseNewDesign() {
         return useNewDesign;
     }
+
+    public boolean isUseRepositoryAssignmentSearch() {
+        return useRepositoryAssignmentSearch;
+    }
+
+    public void setUseRepositoryAssignmentSearch(Boolean useRepositoryAssignmentSearch) {
+        if (useRepositoryAssignmentSearch != null) {
+            this.useRepositoryAssignmentSearch = useRepositoryAssignmentSearch;
+        }
+    }
+
 
     @NotNull
     public List<RichHyperlinkType> getAdditionalMenuLink() {
@@ -482,6 +496,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     }
 
     // TODO: later: information about menu structure
+
+    public AccessRequestType getAccessRequest() {
+        return accessRequest;
+    }
+
+    public void setAccessRequest(AccessRequestType accessRequest) {
+        this.accessRequest = accessRequest;
+    }
 
     @Override
     public String debugDump(int indent) {

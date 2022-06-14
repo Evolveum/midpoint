@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Collection of correlation items (for given correlation or correlation-like operation.)
@@ -88,8 +92,10 @@ class CorrelationItems {
      *
      * Each query is either a simple conjunction, or an "exists" blocks - if the targets are contained e.g. in an assignment.
      */
-    public List<ObjectQuery> createQueries(Class<? extends ObjectType> focusType)
-            throws SchemaException, ConfigurationException {
+    List<ObjectQuery> createQueries(
+            @NotNull Class<? extends ObjectType> focusType,
+            @Nullable String archetypeOid)
+            throws SchemaException {
 
         List<ObjectQuery> queries = new ArrayList<>();
 
@@ -106,16 +112,23 @@ class CorrelationItems {
             }
 
             S_FilterEntry start = PrismContext.get().queryFor(focusType);
-            S_FilterEntry blockStart = createBlockStart(start, targetQualifier);
-            S_AtomicFilterExit primaryEnd =
-                    addTargetClauses(blockStart, targetQualifier)
-                            .endBlock();
-            queries.add(primaryEnd.build());
+            // First, we create either simple .block() or .exist(segment-path).block()
+            S_FilterEntry blockStart = openTheBlock(start, targetQualifier);
+            // Then we add clauses corresponding to the items, and close the block
+            S_AtomicFilterExit beforeArchetypeClause =
+                    addItemClausesAndCloseTheBlock(blockStart, targetQualifier);
+            // Finally, we add a condition for archetype (if needed)
+            S_AtomicFilterExit end =
+                    archetypeOid != null ?
+                            addArchetypeClause(beforeArchetypeClause, archetypeOid) :
+                            beforeArchetypeClause;
+
+            queries.add(end.build());
         }
         return queries;
     }
 
-    private S_FilterEntry createBlockStart(S_FilterEntry start, @NotNull String targetQualifier) {
+    private S_FilterEntry openTheBlock(S_FilterEntry start, @NotNull String targetQualifier) {
         ItemRoute placeRoute = correlatorContext.getTargetPlaceRoute(targetQualifier);
         if (placeRoute.isEmpty()) {
             return start.block();
@@ -128,7 +141,11 @@ class CorrelationItems {
         }
     }
 
-    private @NotNull S_AtomicFilterExit addTargetClauses(S_FilterEntry nextStart, @NotNull String targetQualifier)
+    private S_AtomicFilterExit addArchetypeClause(S_AtomicFilterExit before, String archetypeOid) {
+        return before.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid);
+    }
+
+    private @NotNull S_AtomicFilterExit addItemClausesAndCloseTheBlock(S_FilterEntry nextStart, @NotNull String targetQualifier)
             throws SchemaException {
         S_AtomicFilterExit currentEnd = null;
         for (int i = 0; i < items.size(); i++) {
@@ -141,6 +158,6 @@ class CorrelationItems {
                 // (The builder API does not mention it, but the state of the objects are modified on each operation.)
             }
         }
-        return Objects.requireNonNull(currentEnd);
+        return Objects.requireNonNull(currentEnd).endBlock();
     }
 }

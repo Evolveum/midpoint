@@ -49,6 +49,10 @@ public abstract class CorrelatorConfiguration {
         return configurationBean.getOrder();
     }
 
+    public boolean isEnabled() {
+        return !Boolean.FALSE.equals(configurationBean.isEnabled());
+    }
+
     private @NotNull String getDebugName() {
         return configurationBean.getName() != null ?
                 configurationBean.getName() : getDefaultDebugName();
@@ -58,13 +62,20 @@ public abstract class CorrelatorConfiguration {
 
     @Override
     public String toString() {
-        return String.format("%s (order %d; %s)", getDebugName(), getOrder(), getAuthority());
+        return String.format("%s (order %d; %s%s)", getDebugName(), getOrder(), getAuthority(), getDisabledFlag());
+    }
+
+    private String getDisabledFlag() {
+        return isEnabled() ? "" : " DISABLED";
     }
 
     /**
      * Extracts {@link CorrelatorConfiguration} objects from given "correlators" structure (both typed and untyped).
+     *
+     * Disabled configurations are skipped here. (This may change in the future if we will need to work with them somehow.)
      */
-    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(@NotNull CompositeCorrelatorType correlatorsBean) {
+    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(
+            @NotNull CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations =
                 Stream.of(
                                 correlatorsBean.getNone().stream(),
@@ -93,7 +104,9 @@ public abstract class CorrelatorConfiguration {
                 }
             }
         }
-        return configurations;
+        return configurations.stream()
+                .filter(CorrelatorConfiguration::isEnabled)
+                .collect(Collectors.toList());
     }
 
     public static List<CorrelatorConfiguration> getConfigurationsSorted(@NotNull CompositeCorrelatorType correlatorsBean) {

@@ -1563,7 +1563,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
         String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
                 queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        System.out.println("queryType = " + serializedQuery);
+        display("QUERY: " + serializedQuery);
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();

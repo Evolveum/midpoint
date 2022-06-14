@@ -40,12 +40,11 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
     @Override
     public Condition interpret() throws QueryException {
-
         ItemPath path = getItemPath();
         if (ItemPath.isEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }
-        HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, itemDefinition, getBaseHqlEntity(), false);
+        HqlDataInstance<?> dataInstance = getItemPathResolver().resolveItemPath(path, itemDefinition, getBaseHqlEntity(), false);
         setHqlDataInstance(dataInstance);
 
         return interpretInternal();
@@ -53,18 +52,18 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
     public abstract Condition interpretInternal() throws QueryException;
 
-    Condition createPropertyVsConstantCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
+    <V> Condition createPropertyVsConstantCondition(
+            String hqlPropertyPath, V value, ValueFilter<?, ?> filter) throws QueryException {
         ItemRestrictionOperation operation = findOperationForFilter(filter);
 
         InterpretationContext context = getContext();
         QueryInterpreter interpreter = context.getInterpreter();
-        Matcher matcher = interpreter.findMatcher(value);
+        Matcher<V> matcher = interpreter.findMatcher(value);
         String matchingRule = filter.getMatchingRule() != null ? filter.getMatchingRule().getLocalPart() : null;
 
         // TODO treat null for multivalued properties (at least throw an exception!)
-        //noinspection unchecked
-        return matcher.
-                match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
+        return matcher.match(
+                context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
     }
 
     ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {

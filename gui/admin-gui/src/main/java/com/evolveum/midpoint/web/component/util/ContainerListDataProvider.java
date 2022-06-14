@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,7 +67,10 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
     public Iterator<? extends PrismContainerValueWrapper<C>> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
+        return doRepositoryIteration(first, count);
+    }
 
+    protected Iterator<? extends PrismContainerValueWrapper<C>> doRepositoryIteration(long first, long count) {
         Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_CONTAINERS);
         OperationResult result = task.getResult();
         try {
@@ -89,9 +93,10 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
             }
 
             for (C object : list) {
-                WrapperContext context = new WrapperContext(task, result);
-                PrismContainerWrapperFactory<C> factory = getPageBase().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
-                getAvailableData().add(factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
+                PrismContainerValueWrapper<C> wrapper = createWrapper(object, task, result);
+                if (wrapper != null) {
+                    getAvailableData().add(wrapper);
+                }
             }
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
@@ -108,6 +113,14 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
     }
+
+    @SuppressWarnings("unchecked")
+    protected PrismContainerValueWrapper<C> createWrapper(C object, Task task, OperationResult result) throws SchemaException {
+        WrapperContext context = new WrapperContext(task, result);
+        PrismContainerWrapperFactory<C> factory = getPageBase().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
+        return (PrismContainerValueWrapper<C>) factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context);
+    }
+
 
     @Override
     protected int internalSize() {

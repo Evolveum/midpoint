@@ -18,6 +18,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationTyp
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
@@ -308,7 +310,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         UserType user3 = new UserType().name("user-3")
                 .costCenter("50")
-                .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
+                .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE, relation2)
                 .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
                 .policySituation("situationA")
                 .assignment(new AssignmentType()
@@ -480,7 +482,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test110SearchUserByName() throws Exception {
         searchUsersTest("with name matching provided value",
-                f -> f.item(UserType.F_NAME).eq(PolyString.fromOrig("user-1")),
+                f -> f.item(F_NAME).eq(PolyString.fromOrig("user-1")),
                 user1Oid);
     }
 
@@ -494,7 +496,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test111SearchUserByNameNormalized() throws Exception {
         searchUsersTest("with normalized name matching provided value",
-                f -> f.item(UserType.F_NAME).eq("UseR--2").matchingNorm(),
+                f -> f.item(F_NAME).eq("UseR--2").matchingNorm(),
                 user2Oid);
     }
 
@@ -505,7 +507,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test115SearchUserByAnyOfName() throws Exception {
         searchUsersTest("with name matching any of provided values (multi-value EQ filter)",
-                f -> f.item(UserType.F_NAME).eq(
+                f -> f.item(F_NAME).eq(
                         PolyString.fromOrig("user-1"),
                         PolyString.fromOrig("user-2"),
                         PolyString.fromOrig("user-wrong")), // bad value is of no consequence
@@ -1109,7 +1111,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test350ExistsWithEmbeddedContainer() throws SchemaException {
         searchUsersTest("matching the exists filter for metadata (embedded mapping)",
                 f -> f.exists(UserType.F_METADATA)
-                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, UserType.F_NAME))
+                        .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, F_NAME))
                         .eqPoly("creator"),
                 user1Oid);
     }
@@ -1120,7 +1122,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test400SearchObjectHavingSpecifiedRef() throws SchemaException {
         searchUsersTest("having parent org ref (one of multi-value)",
-                f -> f.item(UserType.F_PARENT_ORG_REF)
+                f -> f.item(ObjectType.F_PARENT_ORG_REF)
                         .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
                 user2Oid);
     }
@@ -1129,7 +1131,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test401SearchObjectNotHavingSpecifiedRef() throws SchemaException {
         searchUsersTest("not having specified value of parent org ref",
                 f -> f.not()
-                        .item(UserType.F_PARENT_ORG_REF)
+                        .item(ObjectType.F_PARENT_ORG_REF)
                         .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
                 creatorOid, modifierOid, user1Oid, user3Oid, user4Oid);
     }
@@ -1137,7 +1139,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test405SearchObjectHavingAnyOfValuesInMultiValueRef() throws SchemaException {
         searchUsersTest("having parent org ref matching any of the provided values",
-                f -> f.item(UserType.F_PARENT_ORG_REF)
+                f -> f.item(ObjectType.F_PARENT_ORG_REF)
                         .ref(ref(org11Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY),
                                 ref(org21Oid, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY)),
                 user2Oid, user3Oid);
@@ -1147,7 +1149,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test410SearchObjectByParentOrgName() throws SchemaException {
         // this is multi-value ref in separate table
         searchUsersTest("having parent org with specified name",
-                f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_NAME)
+                f -> f.item(ObjectType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("org-X")),
                 user2Oid, user3Oid);
     }
@@ -1156,7 +1158,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test411SearchObjectByParentOrgDisplayOrder() throws SchemaException {
         // this tests that implicit target type specific items can be queried without Type filter
         searchUsersTest("having parent org by OrgType specific item",
-                f -> f.item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_DISPLAY_ORDER)
+                f -> f.item(ObjectType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, OrgType.F_DISPLAY_ORDER)
                         .eq(30),
                 user2Oid, user3Oid);
     }
@@ -1165,7 +1167,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test415SearchObjectByAssignmentApproverName() throws SchemaException {
         searchUsersTest("having assignment approved by user with specified name",
                 f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA,
-                                MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, UserType.F_NAME)
+                                MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("user-1")),
                 user3Oid);
     }
@@ -1174,7 +1176,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test420SearchObjectBySingleValueRefTargetItem() throws SchemaException {
         searchUsersTest("with object creator name",
                 f -> f.item(UserType.F_METADATA, MetadataType.F_CREATOR_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("creator")),
                 user1Oid);
     }
@@ -1183,7 +1185,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test421SearchObjectByMultiValueRefTargetUsingItem() throws SchemaException {
         searchUsersTest("with object create approver name (using item filter, exists in SQL is implicit)",
                 f -> f.item(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("user-1")),
                 user2Oid);
     }
@@ -1193,7 +1195,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // EXISTS with multi value ref target inside embedded single-value container
         searchUsersTest("with object create approver name using EXISTS",
                 f -> f.exists(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE)
-                        .item(UserType.F_NAME).eq(new PolyString("user-1")),
+                        .item(F_NAME).eq(new PolyString("user-1")),
                 user2Oid);
     }
 
@@ -1215,7 +1217,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test432SearchUsersWithMultiValueRefNull() throws SchemaException {
         // This should generate NOT EXISTS query only with correlation condition: u.oid = refpo.ownerOid
         searchUsersTest("having no parent org ref",
-                f -> f.item(UserType.F_PARENT_ORG_REF).isNull(),
+                f -> f.item(ObjectType.F_PARENT_ORG_REF).isNull(),
                 user1Oid, creatorOid, modifierOid);
     }
 
@@ -1224,15 +1226,107 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // Should generate (NOT NOT) EXISTS query only with correlation condition: u.oid = refpo.ownerOid
         // Two NOTs are optimized away on the Querydsl level before even being serialized to SQL.
         searchUsersTest("having any parent org ref (one or more)",
-                f -> f.not().item(UserType.F_PARENT_ORG_REF).isNull(),
+                f -> f.not().item(ObjectType.F_PARENT_ORG_REF).isNull(),
                 user2Oid, user3Oid, user4Oid);
+    }
+
+    /**
+     * "Blocky" ref refers to {@link S_FilterEntryOrEmpty#ref(ItemPath, QName, QName, String...)} method
+     * and its shortcuts, because it allows to provide target filter and allows using block/endBlock construct.
+     */
+    @Test
+    public void test440SearchByRefFilterUsingBlockyRefWithOneValue() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref with specified value (using blocky ref)",
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF, OrgType.COMPLEX_TYPE, PrismConstants.Q_ANY, org11Oid)
+                                .block().endBlock(),
+                        user2Oid));
+    }
+
+    @Test
+    public void test441SearchByRefFilterWithTargetFilterOnly() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref matching specified target criteria (blocky ref with target filter only)",
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF)
+                                .item(OrgType.F_DISPLAY_ORDER).eq(30),
+                        user2Oid, user3Oid));
+    }
+
+    @Test
+    public void test442SearchByRefFilterWithValueAndTargetFilter() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref matching specified target criteria and target oid",
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF, null, PrismConstants.Q_ANY, orgXOid)
+                                .item(OrgType.F_DISPLAY_ORDER).eq(30),
+                        user2Oid, user3Oid));
+    }
+
+    @Test
+    public void test443SearchByRefFilterWithValueAndTargetFilterDefaultRelationOnly() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref matching specified target criteria and target oid, default rel",
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF, null, null, orgXOid) // null => default relation
+                                .item(OrgType.F_DISPLAY_ORDER).eq(30),
+                        user2Oid));
+    }
+
+    @Test
+    public void test444SearchByRefFilterWithTargetFilterAndMultipleOidsSomeWrong() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref matching filter + multiple OIDs (any of semantics)",
+                        // Additional OID that does not match does not matter, each value is in separate OR.
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF, null, PrismConstants.Q_ANY, orgXOid, org112Oid)
+                                .item(OrgType.F_DISPLAY_ORDER).eq(30),
+                        user2Oid, user3Oid));
+    }
+
+    @Test
+    public void test445SearchByRefFilterWithTargetFilterAndWrongValue() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref matching filter and wrong target",
+                        // Both value and target filter must match, so this will not return anything.
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF, null, PrismConstants.Q_ANY, org112Oid)
+                                .item(OrgType.F_DISPLAY_ORDER).eq(30)));
+    }
+
+    @Test
+    public void test446SearchByRefWithComplexTargetFilter() {
+        withQueryRecorded(() ->
+                searchUsersTest("having parent org ref matching the complex filter",
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF)
+                                .block()
+                                // matches org11Oid and org12Oid, org11Oid is parent org for user2
+                                .item(OrgType.F_PARENT_ORG_REF).ref(org1Oid)
+                                .or()
+                                .item(F_NAME).eq("org-2-1") // parent org for user3
+                                .endBlock(),
+                        user2Oid, user3Oid));
+    }
+
+    @Test
+    public void test448SearchUserByAssignmentTargetRef() throws SchemaException {
+        searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
+                f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                                RoleType.COMPLEX_TYPE, relation2)
+                        .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
+                user3Oid);
+    }
+
+    @Test
+    public void test449SearchWithBlockyRefWithIsNullSemantics() {
+        withQueryRecorded(() ->
+                searchUsersTest("having no parent org ref",
+                        // Nulls with no value are OK, this works like .item(F_PARENT_ORG_REF).isNull()
+                        f -> f.ref(ObjectType.F_PARENT_ORG_REF)
+                                .block().endBlock(),
+                        user1Oid, creatorOid, modifierOid));
     }
 
     @Test
     public void test450SearchObjectOrderedByName() throws SchemaException {
         SearchResultList<UserType> result =
                 searchUsersTest("ordered by name descending",
-                        f -> f.desc(UserType.F_NAME),
+                        f -> f.desc(F_NAME),
                         user1Oid, user2Oid, user3Oid, user4Oid, creatorOid, modifierOid);
         assertThat(result)
                 .extracting(u -> u.getOid())
@@ -1919,11 +2013,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test601SearchContainerByParentName() throws SchemaException {
         ItemDefinition<?> itemDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByType(AssignmentHolderType.COMPLEX_TYPE)
-                .findItemDefinition(ObjectType.F_NAME);
+                .findItemDefinition(F_NAME);
 
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "by parent's name", AssignmentType.class,
-                f -> f.itemWithDef(itemDef, T_PARENT, ObjectType.F_NAME)
+                f -> f.itemWithDef(itemDef, T_PARENT, F_NAME)
                         .eq("user-1").matchingOrig());
         assertThat(result)
                 .extracting(a -> a.getLifecycleState())
@@ -2013,7 +2107,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "by approver name", AssignmentType.class,
                 f -> f.item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("user-1")));
         assertThat(result)
                 .singleElement()
@@ -2035,10 +2129,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThatThrownBy(() -> searchContainerTest(
                 "having any approver (with order)", AssignmentType.class,
                 f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, F_NAME)
                         .isNull()
                         .asc(AssignmentType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME)))
+                                T_OBJECT_REFERENCE, F_NAME)))
                 .isInstanceOf(SystemException.class)
                 .hasCauseInstanceOf(QueryException.class)
                 .hasMessageFindingMatch("Item path .* cannot be used for ordering because subquery is used to resolve it");
@@ -2049,10 +2143,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "having creator ref name and order by it", AssignmentType.class,
                 f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME)
+                                T_OBJECT_REFERENCE, F_NAME)
                         .isNull()
                         .asc(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
-                                T_OBJECT_REFERENCE, UserType.F_NAME));
+                                T_OBJECT_REFERENCE, F_NAME));
         assertThat(result)
                 .extracting(a -> a.getLifecycleState())
                 .containsExactly("ls-user3-ass2", "ls-user3-ass1");
@@ -2095,7 +2189,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR,
                                 OperationResultStatusType.PARTIAL_ERROR, OperationResultStatusType.WARNING)
                         // order traversing to container owner
-                        .desc(PrismConstants.T_PARENT, ObjectType.F_NAME));
+                        .desc(PrismConstants.T_PARENT, F_NAME));
 
         assertThat(result).extracting(opex -> ObjectTypeUtil.getParentObject(opex).getName().getOrig())
                 .containsExactly("user-3", "user-2", "user-2");
@@ -2487,16 +2581,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test980FindOrgByUser() throws SchemaException {
-        searchObjectTest("Org by User", OrgType.class,
-                f -> f.referencedBy(UserType.class, UserType.F_PARENT_ORG_REF)
+    public void test980SearchOrgByUser() throws SchemaException {
+        searchObjectTest("referenced by user with specified OID", OrgType.class,
+                f -> f.referencedBy(UserType.class, ObjectType.F_PARENT_ORG_REF)
                         .id(user4Oid),
                 org111Oid);
     }
 
     @Test
-    public void test981FindRoleByUser() throws SchemaException {
-        searchObjectTest("Org by User", RoleType.class,
+    public void test981SearchRoleReferencedByUserAssignment() throws SchemaException {
+        searchObjectTest("referenced by an assignment of the user with specified OID", RoleType.class,
                 f -> f.referencedBy(UserType.class,
                                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                         .id(user3Oid),
@@ -2504,21 +2598,37 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test982FindRoleByAssignmentOfUser() throws SchemaException {
+    public void test982SearchRoleReferencedByUserAssignmentWithComplexFilter() throws SchemaException {
+        searchObjectTest("referenced by an assignment of the user specified by complex filter", RoleType.class,
+                f -> f.referencedBy(UserType.class,
+                                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                        .block()
+                        .not().item(UserType.F_COST_CENTER).isNull()
+                        .and()
+                        .not().item(UserType.F_POLICY_SITUATION).isNull()
+                        .endBlock(),
+                roleAvIOid);
+    }
+
+    @Test
+    public void test982SearchRoleReferencedByUserAssignmentWithComplexFilterNoMatch() throws SchemaException {
+        searchObjectTest("referenced by an assignment of the user specified by complex filter (no match)", RoleType.class,
+                f -> f.referencedBy(UserType.class,
+                                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                        .block()
+                        .not().item(UserType.F_COST_CENTER).isNull()
+                        .and()
+                        .item(UserType.F_POLICY_SITUATION).isNull() // breaks the match
+                        .endBlock());
+    }
+
+    @Test
+    public void test985SearchRoleReferencedByUserAssignment() throws SchemaException {
         searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
                 f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
                         .ownedBy(UserType.class)
                         .id(user3Oid),
                 roleAvIOid);
-    }
-
-    @Test
-    public void test983FindUserByAssignmentTarget() throws SchemaException {
-        searchObjectTest("User by Assignment targetRef with ref and target subfilter", UserType.class,
-                f -> f.ref(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
-                                RoleType.COMPLEX_TYPE, relation2)
-                        .item(RoleType.F_NAME).eq("role-ass-vs-ind"),
-                user3Oid);
     }
     // endregion
 }

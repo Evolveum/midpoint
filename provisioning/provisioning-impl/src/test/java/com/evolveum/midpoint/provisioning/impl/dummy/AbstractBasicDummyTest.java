@@ -1682,7 +1682,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     protected ObjectChecker<ShadowType> createShadowChecker(final boolean fullShadow) {
         return (shadow) -> {
             String icfName = ShadowUtil.getSingleStringAttributeValue(shadow,
-                    SchemaTestConstants.ICFS_NAME);
+                    SchemaConstants.ICFS_NAME);
             assertNotNull("No ICF NAME", icfName);
             assertEquals("Wrong shadow name (" + shadow.getName() + ")", StringUtils.lowerCase(icfName), StringUtils.lowerCase(shadow.getName().getOrig()));
             assertNotNull("No kind in " + shadow, shadow.getKind());

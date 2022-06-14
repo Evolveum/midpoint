@@ -44,11 +44,12 @@ public class ListGroupMenuPanel extends BasePanel<List<ListGroupMenuItem>> {
     private void initLayout() {
         add(AttributeAppender.append("class", "list-group-menu"));
 
-        ListView items = new ListView(ID_ITEMS, getModel()) {
+        ListView<ListGroupMenuItem> items = new ListView<>(ID_ITEMS, getModel()) {
 
             @Override
-            protected void populateItem(ListItem item) {
-
+            protected void populateItem(ListItem<ListGroupMenuItem> item) {
+                ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel());
+                item.add(menu);
             }
         };
         add(items);

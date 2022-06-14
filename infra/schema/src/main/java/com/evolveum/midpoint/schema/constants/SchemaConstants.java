@@ -464,7 +464,9 @@ public abstract class SchemaConstants {
     public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
     public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
     public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
+    public static final ItemPath ICFS_NAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
     public static final ItemName ICFS_UID = new ItemName(NS_ICF_SCHEMA, "uid");
+    public static final ItemPath ICFS_UID_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_UID);
     public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
     public static final ItemName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new ItemName(NS_ICF_CONFIGURATION,
             CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -21,12 +23,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lazyman
  */
-public class PasswordAccountDto extends Selectable<PasswordAccountDto>
-        implements Comparable<PasswordAccountDto> {
+public class PasswordAccountDto implements SelectableRow<PasswordAccountDto>, Comparable<PasswordAccountDto> {
 
     public static final String F_DISPLAY_NAME = "displayName";
-    public static final String F_RESOURCE_NAME = "resourceName";
-    public static final String F_ENABLED = "enabled";
 
     private PrismObject<? extends ObjectType> object;
     private final String displayName;
@@ -42,6 +41,8 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
      * true if this DTO represents default midpoint account;
      */
     private final boolean midpoint;
+
+    private boolean selected = true;
 
     /**
      * contain resourceOid when it is shadow account
@@ -165,5 +166,13 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
         }
 
         return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isSelected() {
+        return selected;
     }
 }

@@ -51,6 +51,7 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         super(id, model, config);
     }
 
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -93,8 +94,8 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         itemDetailsPerformed(target, Collections.singletonList(newAssignmentWrapper));
     }
 
-    @Override
-    protected ObjectQuery getCustomizeQuery() {
+
+    protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_POLICY_RULE).build();
     }
@@ -129,5 +130,22 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
         return defs;
     }
 
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        // CustomizeQuery is not repo indexed
+        if (isRepositorySearchEnabled()) {
+            return null;
+        }
+        return createCustomizeQuery();
+    }
 
+    @Override
+    protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(
+            List<PrismContainerValueWrapper<AssignmentType>> list) {
+        // customizeQuery is not repository supported, so we need to prefilter list using in-memory search
+        if (isRepositorySearchEnabled()) {
+            return prefilterUsingQuery(list, createCustomizeQuery());
+        }
+        return super.customPostSearch(list);
+    }
 }

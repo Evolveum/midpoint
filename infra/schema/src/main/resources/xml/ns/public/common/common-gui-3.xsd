@@ -312,6 +312,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useRepositoryAssignmentSearch" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If the assignment search should use repository implementation. Enabling this allows use of dereferencing
+                            in search in assignment panels. New (unsaved) assignments are not filtered in this mode, because they
+                            do not have repository representation.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>AdminGuiConfigurationType.useRepositoryAssignmentSearch</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -339,7 +354,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="group" type="tns:GroupSelectionType" minOccurs="0" maxOccurs="unbounded">
-
+                <!-- todo add missing configuration elements -->
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -352,6 +367,7 @@
             <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0">
 
             </xsd:element>
+            <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -427,7 +443,17 @@
     </xsd:complexType>
 
     <xsd:complexType name="AccessRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A configuration request access UI
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="targetSelection" type="tns:TargetSelectionType" minOccurs="0">
 
             </xsd:element>
@@ -441,6 +467,7 @@
 
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="RichHyperlinkType">

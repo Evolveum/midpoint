@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.resolution;
 
 import java.lang.reflect.InvocationTargetException;
@@ -22,12 +21,12 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
-import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -51,16 +50,15 @@ public class ItemPathResolver {
      * @param itemDefinition Definition for the (final) item pointed to. Optional - necessary only for extension items.
      * @param reuseMultivaluedJoins Creation of new joins for multivalued properties is forbidden.
      */
-    public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
+    public HqlDataInstance<?> resolveItemPath(ItemPath relativePath, ItemDefinition<?> itemDefinition,
             String currentHqlPath, JpaEntityDefinition baseEntityDefinition,
             boolean reuseMultivaluedJoins) throws QueryException {
         HqlDataInstance<?> baseDataInstance = new HqlDataInstance<>(currentHqlPath, baseEntityDefinition, null);
         return resolveItemPath(relativePath, itemDefinition, baseDataInstance, reuseMultivaluedJoins);
     }
 
-    public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
-            HqlDataInstance baseDataInstance,
-            boolean singletonOnly) throws QueryException {
+    public HqlDataInstance<?> resolveItemPath(ItemPath relativePath, ItemDefinition<?> itemDefinition,
+            HqlDataInstance<?> baseDataInstance, boolean singletonOnly) throws QueryException {
 
         ItemPathResolutionState currentState = new ItemPathResolutionState(relativePath, baseDataInstance, this);
 
@@ -219,7 +217,7 @@ public class ItemPathResolver {
      */
     public <T extends JpaDataNodeDefinition<T>>
     ProperDataSearchResult<T> findProperDataDefinition(JpaEntityDefinition baseEntityDefinition,
-            ItemPath path, ItemDefinition itemDefinition,
+            ItemPath path, ItemDefinition<?> itemDefinition,
             Class<T> clazz, PrismContext prismContext) throws QueryException {
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         ProperDataSearchResult<T> candidateResult = null;

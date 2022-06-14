@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -175,6 +176,7 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
         return constructionDetailsPanel;
     }
 
+    @Override
     protected List<ObjectTypes> getObjectTypesList() {
         return Collections.singletonList(ObjectTypes.RESOURCE);
     }

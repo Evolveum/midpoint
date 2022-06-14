@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -247,8 +247,8 @@ public class TestResourceSchema extends AbstractSchemaTest {
         Element identifierAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_IDENTIFIER);
         assertPrefix("ra", identifierAnnotationElement);
         QName identifier = DOMUtil.getQNameValue(identifierAnnotationElement);
-        assertEquals("Wrong <a:identifier> value namespace", SchemaTestConstants.ICFS_UID.getNamespaceURI(), identifier.getNamespaceURI());
-        assertEquals("Wrong <a:identifier> value localname", SchemaTestConstants.ICFS_UID.getLocalPart(), identifier.getLocalPart());
+        assertEquals("Wrong <a:identifier> value namespace", SchemaConstants.ICFS_UID.getNamespaceURI(), identifier.getNamespaceURI());
+        assertEquals("Wrong <a:identifier> value localname", SchemaConstants.ICFS_UID.getLocalPart(), identifier.getLocalPart());
         assertEquals("Wrong <a:identifier> value prefix", "icfs", identifier.getPrefix());
         Element dnaAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE);
         assertPrefix("ra", dnaAnnotationElement);
@@ -271,7 +271,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
         // ... in it ordinary attribute - an identifier
         ResourceAttributeDefinition<?> icfUidDef =
                 containerDefinition.createAttributeDefinition(
-                        SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, def -> {});
+                        SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, def -> {});
         containerDefinition.addPrimaryIdentifierName(icfUidDef.getItemName());
 
         ResourceAttributeDefinition<?> xLoginDef =

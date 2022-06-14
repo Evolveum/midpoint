@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -916,7 +915,7 @@ public class TestProjector extends AbstractLensTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaConstants.ICFS_NAME_PATH);
 
         // Activation is created in user policy. Therefore assert the origin of that as special case
         // and remove it from the delta so the next assert passes
@@ -1101,7 +1100,7 @@ public class TestProjector extends AbstractLensTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaConstants.ICFS_NAME_PATH);
         // Full name is not changed, it has normal mapping strength
         // Location is changed back, it has strong mapping
         PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH);

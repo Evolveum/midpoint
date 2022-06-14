@@ -122,6 +122,9 @@ public class CorrelationItemDefinitionUtil {
                         .append(configBean.getOrder())
                         .append(", ");
             }
+            if (Boolean.FALSE.equals(configBean.isEnabled())) {
+                sb.append("disabled, ");
+            }
             if (configBean.getAuthority() != null) {
                 sb.append("authority: ")
                         .append(configBean.getAuthority())
