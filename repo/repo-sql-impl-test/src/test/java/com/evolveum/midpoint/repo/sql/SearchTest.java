@@ -1399,11 +1399,54 @@ public class SearchTest extends BaseSQLRepoTest {
                 .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
     }
 
-    @Test(enabled = false) // TODO implement inner filter in ReferenceRestriction
-    public void test950AssignmentsWithSpecifiedTargetUsingRef() throws SchemaException {
+    @Test(enabled = false, description = "Broken where condition using a wrong joined table")
+    public void test942MultiValueRefFilterWithItem() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, F_NAME).eq("F0085")
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        // WHERE name condition is constructed on m_acc_cert_campaign table (error in HQL->SQL)
+        queryListener.dumpAndStop();
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        // two refs match, no DISTINCT use, so it's doubled result
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123", "elaine123");
+    }
+
+    @Test
+    public void test943MultiValueRefTargetWithTargetTypeSpecificCondition() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                // Example with multi-value linkRef from Query API docs, this works as expected:
+                .item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF).ref("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2")
+                // While the shadow resource ref condition targets the m_shadow, the name condition would break again.
+                //.item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_NAME).eq("7754e27c-a7cb-4c23-850d-a9a15f71199a")
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("atestuserX00003");
+    }
+
+    @Test
+    public void test950AssignmentsWithSpecifiedTargetUsingRefWithTargetFilter() throws SchemaException {
         given("query for assignments with target object using new ref() construct");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
-                .ref(AssignmentType.F_TARGET_REF, null, null)
+                .ref(AssignmentType.F_TARGET_REF)
                 .item(F_NAME).eq("F0085")
                 .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
                 .build();
@@ -1414,8 +1457,7 @@ public class SearchTest extends BaseSQLRepoTest {
         queryListener.clear().start();
         SearchResultList<AssignmentType> assignments =
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
-        queryListener.dumpAndStop();
-        result.recomputeStatus();
+        queryListener.dumpAndStop(); // order and target filter should share the same join
 
         then("only assignments with specified target object name are returned");
         assertThatOperationResult(result).isSuccess();
@@ -1423,28 +1465,139 @@ public class SearchTest extends BaseSQLRepoTest {
                 .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
     }
 
-     /*
-    select
-  a...
-from
-  RAssignment a
-    left join a.targetRef.target t
-where
-  a.targetRef is null
-    // TODO missing condition on t
-order by t.name.orig asc
-     */
+    @Test
+    public void test951AssignmentsWithSpecifiedTargetUsingRefWithWrongTargetFilter() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ref(AssignmentType.F_TARGET_REF)
+                .item(F_NAME).eq("F0086") // bad name
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
 
-    // TODO new .ref() filter with inner filter
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
 
-    /* TODO optionally referencedBy, if necessary
-                searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
-                    f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-                            .ownedBy(UserType.class)
-                            .id(user3Oid),
-                    roleOid);
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).isEmpty();
+    }
 
-     */
+    @Test
+    public void test952AssignmentsWithTargetRefWithValueAndTargetFilter() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ref(AssignmentType.F_TARGET_REF, null, SchemaConstants.ORG_DEFAULT, "00000000-8888-6666-0000-100000000085")
+                .item(F_NAME).eq("F0085")
+                .build();
+
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop(); // value and filter should be combined using AND
+
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+    @Test
+    public void test953AssignmentsWithTargetRefWithMultipleValuesAndTargetFilter() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ref(AssignmentType.F_TARGET_REF, null, SchemaConstants.ORG_DEFAULT,
+                        "00000000-8888-6666-0000-100000000085",
+                        "additional-oid-no-problem") // yeah, old repo doesn't care about OID format
+                .item(F_NAME).eq("F0085")
+                .build();
+
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop(); // value and filter should be combined using AND
+
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+    @Test
+    public void test954AssignmentsWithTargetRefWrongRelationAndTargetFilter() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ref(AssignmentType.F_TARGET_REF, null, SchemaConstants.ORG_DEPUTY)
+                .item(F_NAME).eq("F0085")
+                .build();
+
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).isEmpty(); // no depute ref matches, even though the name is OK
+    }
+
+    @Test
+    public void test955AssignmentsWithTargetRefWithGoodValueAndWrongTargetFilter() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ref(AssignmentType.F_TARGET_REF, null, SchemaConstants.ORG_DEFAULT, "00000000-8888-6666-0000-100000000085")
+                .item(F_NAME).eq("F0086") // bad name, nothing will be found, even with good OID above
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
+
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).isEmpty();
+    }
+
+    @Test(enabled = false, description = "Broken where condition using a wrong joined table")
+    public void test960MultiValueRefFilterWithTargetFilter() throws SchemaException {
+        given("query for users with parent org with specified name (target filter)");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .ref(UserType.F_PARENT_ORG_REF)
+                .item(F_NAME).eq("F0085")
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        // WHERE name condition is constructed on m_acc_cert_campaign table (error in HQL->SQL)
+        queryListener.dumpAndStop();
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        // two refs match, no DISTINCT use, so it's doubled result
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123", "elaine123");
+    }
+
+    @Test(enabled = false, description = "Broken where condition using a wrong joined table")
+    public void test961RefFilterWithValueConditionsAndTargetFilterWrongName() throws SchemaException {
+        given("query for users with parent org with specified relation (ref condition) and name (target filter)");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .ref(UserType.F_PARENT_ORG_REF, null, SchemaConstants.ORG_MANAGER)
+                .item(F_NAME).eq("F0086")
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        then("no target matches the wrong name");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users).isEmpty();
+    }
 
     /**
      * See MID-5474 (just a quick attempt to replicate)
