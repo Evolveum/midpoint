@@ -1,12 +1,44 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.*;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_OUTPUT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -27,33 +59,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_OUTPUT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static org.testng.AssertJUnit.*;
-
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTest extends BaseSQLRepoTest {
 
@@ -169,13 +176,13 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test240AddCases() throws Exception {
         OperationResult result = new OperationResult("test240AddDeleteCases");
 
-        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
+        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType();
         caseNoId.setObjectRef(createObjectRef("123", ObjectTypes.USER));
         caseNoId.setTargetRef(createObjectRef("456", ObjectTypes.ROLE));
         caseNoId.setStageNumber(1);
 
         // explicit ID is dangerous (possibility of conflict!)
-        AccessCertificationCaseType case100 = new AccessCertificationCaseType(prismContext);
+        AccessCertificationCaseType case100 = new AccessCertificationCaseType();
         case100.setId(NEW_CASE_ID);
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
         case100.setTargetRef(createObjectRef("100456", ObjectTypes.ROLE));
@@ -232,7 +239,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test260AddWorkItem() throws Exception {
         OperationResult result = new OperationResult("test260AddWorkItem");
 
-        AccessCertificationWorkItemType workItem = new AccessCertificationWorkItemType(prismContext)
+        AccessCertificationWorkItemType workItem = new AccessCertificationWorkItemType()
                 .beginOriginalAssigneeRef().oid("orig1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
                 .beginAssigneeRef().oid("rev1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
                 .beginAssigneeRef().oid("rev2").type(UserType.COMPLEX_TYPE).end();
@@ -316,13 +323,13 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test300AddDeleteModifyCase() throws Exception {
         OperationResult result = new OperationResult("test300AddDeleteModifyCase");
 
-        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
+        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType();
         caseNoId.setObjectRef(createObjectRef("x123", ObjectTypes.USER));
         caseNoId.setTargetRef(createObjectRef("x456", ObjectTypes.ROLE));
         caseNoId.setStageNumber(1);
 
         // explicit ID is dangerous
-        AccessCertificationCaseType case110 = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType case110 = new AccessCertificationCaseType()
                 .id(SECOND_NEW_CASE_ID)
                 .objectRef(createObjectRef("x100123", ObjectTypes.USER))
                 .targetRef(createObjectRef("x100456", ObjectTypes.ROLE))
@@ -354,11 +361,11 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test320AddDeleteModifyResponse() throws Exception {
         OperationResult result = new OperationResult("test320AddDeleteModifyResponse");
 
-        AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType();
         wiNoId.assigneeRef(createObjectRef("888", ObjectTypes.USER));
         wiNoId.setStageNumber(1);
 
-        AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType();
         wi200.setId(200L);         // this is dangerous
         wi200.setStageNumber(1);
         wi200.assigneeRef(createObjectRef("200888", ObjectTypes.USER));
@@ -386,7 +393,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test330ReplaceWorkItemsExistingId() throws Exception {
         OperationResult result = new OperationResult("test330ReplaceWorkItemsExistingId");
 
-        AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType();
         wi200.setId(200L);             //dangerous
         wi200.setStageNumber(44);
         wi200.assigneeRef(createObjectRef("999999", ObjectTypes.USER));
@@ -409,12 +416,12 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test340ReplaceWorkItemsNewId() throws Exception {
         OperationResult result = new OperationResult("test340ReplaceWorkItemsNewId");
 
-        AccessCertificationWorkItemType wi250 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi250 = new AccessCertificationWorkItemType();
         wi250.setId(250L);         //dangerous
         wi250.setStageNumber(440);
         wi250.assigneeRef(createObjectRef("250-999999", ObjectTypes.USER));
 
-        AccessCertificationWorkItemType wi251 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi251 = new AccessCertificationWorkItemType();
         wi251.setId(251L);
         wi251.setStageNumber(1);
 
@@ -438,16 +445,16 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test350ReplaceCase");
 
         // explicit ID is dangerous
-        AccessCertificationWorkItemType wi777 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi777 = new AccessCertificationWorkItemType();
         wi777.setId(777L);
         wi777.setStageNumber(888);
         wi777.assigneeRef(createObjectRef("999", ObjectTypes.USER));
 
-        AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType();
         wiNoId.setStageNumber(889);
         wiNoId.assigneeRef(createObjectRef("9999", ObjectTypes.USER));
 
-        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType caseNoId = new AccessCertificationCaseType()
                 .objectRef(createObjectRef("aaa", ObjectTypes.USER))
                 .targetRef(createObjectRef("bbb", ObjectTypes.ROLE))
                 .beginWorkItem()
@@ -637,7 +644,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         PrismContainer caseContainer = (PrismContainer) aCase.asPrismContainerValue().getParent();
         assertNotNull("campaign is not fetched (case parent is null)", caseContainer);
         PrismContainerValue campaignValue = caseContainer.getParent();
-        assertNotNull("campaign is not fetched (case container parent is null)", caseContainer);
+        assertNotNull("campaign is not fetched (case container parent is null)", campaignValue);
         PrismObject<AccessCertificationCampaignType> campaign = (PrismObject) campaignValue.getParent();
         assertNotNull("campaign is not fetched (campaign PCV parent is null)", campaign);
         return campaign;
@@ -651,7 +658,8 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
-    protected void executeAndCheckModification(List<ItemDelta<?, ?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(List<ItemDelta<?, ?>> modifications, OperationResult result, int versionDelta)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         RepoModifyOptions modifyOptions = getModifyOptions();
         if (RepoModifyOptions.isForceReindex(modifyOptions) && versionDelta == 0) {
             versionDelta = 1;
@@ -666,7 +674,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         checkCampaign(campaign1Oid, result, before, savedModifications, expectedVersion);
     }
 
-    private void checkCampaign(String campaignOid, OperationResult result, PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications, Integer expectedVersion) throws SchemaException, ObjectNotFoundException, IOException {
+    private void checkCampaign(String campaignOid, OperationResult result,
+            PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications, Integer expectedVersion)
+            throws SchemaException, ObjectNotFoundException {
         expectedObject.setOid(campaignOid);
         if (modifications != null) {
             ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
@@ -711,7 +721,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String oid) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("getFullCampaign");
         PrismObject<AccessCertificationCampaignType> object = getFullCampaign(oid, result);
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
         return object;
     }
 
@@ -723,5 +733,4 @@ public class CertificationTest extends BaseSQLRepoTest {
         checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
         checkWorkItemsTotal(10, result);
     }
-
 }
