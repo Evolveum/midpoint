@@ -72,6 +72,8 @@ podTemplate(
                     ])
                 }
             }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE'
         } finally {
             if (verbose > '0') {
                 echo "Build: ${currentBuild}"
