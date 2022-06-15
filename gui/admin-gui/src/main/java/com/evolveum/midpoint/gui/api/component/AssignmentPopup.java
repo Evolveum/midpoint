@@ -604,7 +604,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         return createStringResource("TypedAssignablePanel.selectObjects");
     }
 
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 }

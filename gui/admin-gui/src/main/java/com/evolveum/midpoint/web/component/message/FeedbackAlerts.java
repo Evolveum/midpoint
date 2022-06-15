@@ -12,6 +12,7 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.feedback.IFeedbackMessageFilter;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class FeedbackAlerts extends Panel implements IFeedback {
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         FeedbackListView list = new FeedbackListView(ID_LIST, this);
         list.add(new VisibleEnableBehaviour() {
 
@@ -46,8 +47,8 @@ public class FeedbackAlerts extends Panel implements IFeedback {
         return hasMessages(FeedbackMessage.UNDEFINED);
     }
 
-    private FeedbackListView getFeedbackListView() {
-        return (FeedbackListView) get(ID_LIST);
+    protected ListView<FeedbackMessage> getFeedbackListView() {
+        return (ListView<FeedbackMessage>) get(ID_LIST);
     }
 
     public final boolean hasMessages(int level) {

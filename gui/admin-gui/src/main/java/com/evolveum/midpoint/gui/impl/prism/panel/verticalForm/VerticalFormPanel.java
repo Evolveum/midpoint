@@ -10,98 +10,81 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
-import org.apache.wicket.behavior.AttributeAppender;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 
-import java.util.Collections;
-import java.util.List;
+import javax.xml.namespace.QName;
 
 /**
  * @author lskublik
  */
-public abstract class VerticalFormPanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<C>> {
+public abstract class VerticalFormPanel<C extends Containerable> extends BasePanel<PrismContainerWrapper<C>> {
 
-    private static final String ID_ICON = "icon";
-    private static final String ID_TITLE = "title";
-    private static final String ID_PROPERTIES_CONTAINER = "propertiesContainer";
-    private static final String ID_PROPERTIES = "properties";
-    private static final String ID_PROPERTY = "property";
+    private static final String ID_SINGLE_CONTAINER = "singleContainer";
+    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
 
+    private final ItemPanelSettings settings;
+    private final ContainerPanelConfigurationType config;
 
-    private LoadableDetachableModel<List<ItemWrapper<?, ?>>> propertiesModel;
-
-    public VerticalFormPanel(String id, IModel<PrismContainerValueWrapper<C>> model) {
+    public VerticalFormPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings, ContainerPanelConfigurationType config) {
         super(id, model);
+        this.settings = settings;
+        this.config = config;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initPropertiesModel();
         initLayout();
-    }
-
-    private void initPropertiesModel() {
-        if (propertiesModel == null){
-            propertiesModel = new LoadableDetachableModel<>() {
-                @Override
-                protected List<ItemWrapper<?, ?>> load() {
-                    PrismContainerValueWrapper<C> wrapper = getModelObject();
-                    if (wrapper != null) {
-                        return getModelObject().getNonContainers();
-                    }
-                    return Collections.emptyList();
-                }
-            };
-        }
     }
 
     private void initLayout() {
 
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", () -> getIcon()));
-        add(icon);
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        add(feedbackContainer);
 
-        add(new Label(ID_TITLE, getTitleModel()));
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
 
-
-        WebMarkupContainer propertiesContainer = new WebMarkupContainer(ID_PROPERTIES_CONTAINER);
-        propertiesContainer.setOutputMarkupId(true);
-        add(propertiesContainer);
-
-        ListView<ItemWrapper<?, ?>> properties = new ListView<>(ID_PROPERTIES, propertiesModel) {
+        SingleContainerPanel<C> singleContainer = new SingleContainerPanel<C>(ID_SINGLE_CONTAINER, getModel(), config){
             @Override
-            protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
-                ItemPanel propertyPanel;
-                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                        .visibilityHandler(w -> checkVisibility(item.getModelObject()))
-                        .build();
-                if (item.getModelObject() instanceof PrismPropertyWrapper) {
-                    propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
-                } else {
-                    propertyPanel = new PrismReferencePanel(ID_PROPERTY, item.getModel(), settings);
-                }
+            protected Panel createPanel(String id, QName typeName, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) throws SchemaException {
+                return createVirtualPanel(id, model, builder);
+            }
 
-                propertyPanel.setOutputMarkupId(true);
-                propertyPanel.add(
-                        new VisibleBehaviour(() -> item.getModelObject().isVisible(
-                                VerticalFormPanel.this.getModelObject(),
-                                w -> checkVisibility(item.getModelObject()))));
-                item.add(propertyPanel);
+            @Override
+            protected Panel createVirtualPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) {
+                builder.visibilityHandler(settings.getVisibilityHandler())
+                        .mandatoryHandler(settings.getMandatoryHandler());
+                return new VerticalFormPrismContainerPanel<C>(id, model, builder.build()) {
+                    @Override
+                    protected IModel<String> getTitleModel() {
+                        return VerticalFormPanel.this.getTitleModel();
+                    }
+
+                    @Override
+                    protected String getIcon() {
+                        return VerticalFormPanel.this.getIcon();
+                    }
+                };
             }
         };
-        propertiesContainer.add(properties);
+        singleContainer.setOutputMarkupId(true);
+        add(singleContainer);
     }
 
-    protected IModel<?> getTitleModel() {
+    protected IModel<String> getTitleModel() {
         return getPageBase().createStringResource(getModelObject().getDisplayName());
     }
 
@@ -109,7 +92,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         return "";
     }
 
-    protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
-        return ItemVisibility.AUTO;
+    public WebMarkupContainer getFeedbackPanel() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 }

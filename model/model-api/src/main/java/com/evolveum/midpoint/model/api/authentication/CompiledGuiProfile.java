@@ -304,6 +304,26 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return result != null ? result : new GuiObjectDetailsPageType().type(typeQName);
     }
 
+    public <O extends ObjectType> GuiResourceDetailsPageType findResourceDetailsConfiguration(String connectorOid){
+        if (objectDetails == null) {
+            return new GuiResourceDetailsPageType();
+        }
+
+        GuiResourceDetailsPageType applicableForAll = new GuiResourceDetailsPageType();
+
+        for (GuiResourceDetailsPageType resourceDetailsPageType : objectDetails.getResourceDetailsPage()) {
+            if (resourceDetailsPageType.getConnectorRef() == null) {
+                applicableForAll = resourceDetailsPageType;
+                continue;
+            }
+            if (resourceDetailsPageType.getConnectorRef().getOid().equals(connectorOid)) {
+                return resourceDetailsPageType;
+            }
+        }
+
+        return applicableForAll;
+    }
+
     public <O extends ObjectType> GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowCoordinates coordinates) {
         if (objectDetails == null) {
             return null;

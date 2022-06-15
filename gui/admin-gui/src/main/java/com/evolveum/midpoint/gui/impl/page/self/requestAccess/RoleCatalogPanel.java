@@ -13,9 +13,12 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -23,11 +26,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -41,7 +46,10 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -54,6 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogPanel.class);
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
@@ -122,9 +132,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
         ObjectDataProvider provider = new ObjectDataProvider(this, searchModel);
 
-        List<IColumn> columns = createColumns();
+        List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
-                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel()) {
+                new TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>(ID_TILES, provider, columns, createViewToggleModel()) {
 
                     @Override
                     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -210,6 +220,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         add(menu);
     }
 
+    // todo use configuration getAllowedViews from RoleCatalogType
+
     private IModel<ViewToggle> createViewToggleModel() {
         return new LoadableModel<>(false) {
 
@@ -251,10 +263,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private List<ListGroupMenuItem> loadRoleCatalogMenu() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        AccessRequestType accessRequest = profile.getAccessRequest();
-        RoleCatalogType roleCatalog = accessRequest.getRoleCatalog();
+        RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
+        if (roleCatalog == null) {
+            return new ArrayList<>();
+        }
+
         ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
+        if (ref != null) {
+            return loadMenuItems(ref);
+        }
+
+        // todo custom menu tree definition, not via org. tree hierarchy
 
         return loadMenuItems(ref);
     }
@@ -280,18 +299,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         try {
             List<PrismObject<ObjectType>> objects = WebModelServiceUtils.searchObjects(ot.getClassDefinition(), query, result, getPageBase());
             for (PrismObject o : objects) {
-                ListGroupMenuItem menu = new ListGroupMenuItem(WebComponentUtil.getName(o));
+                String name = WebComponentUtil.getDisplayNameOrName(o, true);
+                ListGroupMenuItem menu = new ListGroupMenuItem(name);
                 list.add(menu);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.debug("Couldn't load menu using role catalog reference to org. structure, reason: " + ex.getMessage(), ex);
         }
 
         return list;
     }
 
-    private List<IColumn> createColumns() {
-        List<IColumn> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
+        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
+
         columns.add(new CheckBoxHeaderColumn());
         columns.add(new IconColumn(null) {
             @Override
@@ -302,15 +323,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
         columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
 
-        columns.add(new AbstractColumn(null) {
+        columns.add(new AbstractColumn<>(null) {
 
             @Override
-            public void populateItem(Item item, String id, IModel rowModel) {
-                item.add(new AjaxLink<>(id, createStringResource("RoleCatalogPanel.details")) {
+            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> model) {
+                item.add(new AjaxLinkPanel(id, createStringResource("RoleCatalogPanel.details")) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        itemDetailsPerformed(target, );
+                        itemDetailsPerformed(target, model.getObject().getValue());
                     }
                 });
             }
@@ -320,7 +341,23 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
+        PageBase page = getPageBase();
+        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(Model.of(object)) {
 
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
+                addItemsPerformed(target, List.of(model.getObject()));
+
+                page.getMainPopup().close(target);
+            }
+
+            @Override
+            protected void closePerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
+                page.getMainPopup().close(target);
+            }
+        };
+
+        page.showMainPopup(panel, target);
     }
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {

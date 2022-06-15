@@ -46,11 +46,11 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
 
     private IModel<Search> searchModel;
 
-    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn> columns) {
+    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn<O, String>> columns) {
         this(id, provider, columns, null);
     }
 
-    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn> columns, IModel<ViewToggle> viewToggle) {
+    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn<O, String>> columns, IModel<ViewToggle> viewToggle) {
         super(id);
 
         if (viewToggle == null) {
@@ -70,7 +70,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         return viewToggleModel;
     }
 
-    private void initLayout(ISortableDataProvider provider, List<IColumn> columns) {
+    private void initLayout(ISortableDataProvider<O, String> provider, List<IColumn<O, String>> columns) {
         setOutputMarkupId(true);
 
         add(createTilesHeader(ID_TILES_HEADER));
@@ -79,7 +79,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
         add(tilesContainer);
 
-        PageableListView<T, O> tiles = new PageableListView<T, O>(ID_TILES, provider) {
+        PageableListView<T, O> tiles = new PageableListView<>(ID_TILES, provider) {
 
             @Override
             protected void populateItem(ListItem<T> item) {

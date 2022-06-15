@@ -271,7 +271,7 @@ public class RunReportPopupPanel extends BasePanel<ReportType> implements Popupa
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

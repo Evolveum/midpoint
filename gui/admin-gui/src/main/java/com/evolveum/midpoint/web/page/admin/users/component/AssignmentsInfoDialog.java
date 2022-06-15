@@ -213,7 +213,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

@@ -7,15 +7,22 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.IModel;
 
 public interface Popupable {
+
+    String ID_CONTENT = "content";
+
+    String ID_FOOTER = "footer";
 
     int getWidth();
     int getHeight();
     String getWidthUnit();
     String getHeightUnit();
-    StringResourceModel getTitle();
-    Component getComponent();
+    IModel<String> getTitle();
+    Component getContent();
 
+    default Component getFooter() {
+        return null;
+    }
 }

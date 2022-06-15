@@ -8,31 +8,51 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPrismPropertyValuePanel;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
  */
-public class BasicSettingStepPanel extends BasicWizardPanel {
+@PanelType(name = "basicSettingsWizard")
+@PanelInstance(identifier = "basicSettingsWizard",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.ADD,
+        display = @PanelDisplay(label = "PageResource.wizard.step.basicSettings", icon = "fa fa-wrench"),
+        containerPath = "empty")
+public class BasicSettingStepPanel extends AbstractResourceWizardStepPanel {
 
-    private final ResourceDetailsModel resourceModel;
+    private static final String PANEL_TYPE = "basicSettingsWizard";
 
     public BasicSettingStepPanel(ResourceDetailsModel model) {
-        this.resourceModel = model;
+        super(model);
+    }
+
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 
     @Override
-    public String appendCssToWizard() {
-        return "mt-5 mx-auto col-8";
+    protected String getIcon() {
+        return "fa fa-wrench";
     }
 
     @Override
@@ -50,29 +70,18 @@ public class BasicSettingStepPanel extends BasicWizardPanel {
         return createStringResource("PageResource.wizard.basicSettings.subText");
     }
 
-    @Override
-    protected Component createContentPanel(String id) {
-        VerticalFormPanel form = new VerticalFormPanel(id, () -> this.resourceModel.getObjectWrapper().getValue()) {
-            @Override
-            protected String getIcon() {
-                return "fa fa-wrench";
-            }
+    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        if(itemWrapper.getItemName().equals(ResourceType.F_NAME)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
+    }
 
-            @Override
-            protected IModel<?> getTitleModel() {
-                return getPageBase().createStringResource("PageResource.wizard.step.basicSettings");
-            }
-
-            @Override
-            protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
-                if(itemWrapper.getItemName().equals(ResourceType.F_NAME)
-                        || itemWrapper.getItemName().equals(ResourceType.F_DESCRIPTION)) {
-                    return ItemVisibility.AUTO;
-                }
-                return ItemVisibility.HIDDEN;
-            }
-        };
-        form.add(AttributeAppender.append("class", "col-8"));
-        return form;
+    protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
+        if (itemWrapper.getItemName().equals(ResourceType.F_NAME)
+                || itemWrapper.getItemName().equals(ResourceType.F_DESCRIPTION)) {
+            return ItemVisibility.AUTO;
+        }
+        return ItemVisibility.HIDDEN;
     }
 }

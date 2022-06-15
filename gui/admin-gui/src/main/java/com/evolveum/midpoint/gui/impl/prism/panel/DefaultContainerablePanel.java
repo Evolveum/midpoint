@@ -116,7 +116,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         });
     }
 
-    private void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
+    protected void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
         item.setOutputMarkupId(true);
         ItemWrapper<?, ?> itemWrapper = item.getModelObject();
         try {
@@ -176,7 +176,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         target.add(DefaultContainerablePanel.this);
     }
 
-    private ItemPanelSettings getSettings() {
+    protected ItemPanelSettings getSettings() {
         return settings;
     }
 

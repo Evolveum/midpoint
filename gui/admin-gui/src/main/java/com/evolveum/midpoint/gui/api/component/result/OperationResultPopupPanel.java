@@ -100,7 +100,7 @@ public class OperationResultPopupPanel extends BasePanel<OperationResult> implem
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

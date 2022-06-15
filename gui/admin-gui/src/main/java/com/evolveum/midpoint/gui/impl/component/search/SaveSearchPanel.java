@@ -377,7 +377,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

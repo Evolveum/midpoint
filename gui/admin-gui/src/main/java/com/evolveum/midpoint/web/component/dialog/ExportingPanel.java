@@ -260,7 +260,7 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

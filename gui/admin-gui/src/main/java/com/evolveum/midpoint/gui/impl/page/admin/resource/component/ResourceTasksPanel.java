@@ -351,7 +351,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

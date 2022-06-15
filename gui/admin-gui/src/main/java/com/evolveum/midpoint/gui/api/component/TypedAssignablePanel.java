@@ -493,7 +493,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

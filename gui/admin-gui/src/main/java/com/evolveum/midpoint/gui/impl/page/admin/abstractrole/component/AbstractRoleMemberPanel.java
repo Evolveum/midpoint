@@ -1225,7 +1225,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
                 Task task = MemberOperationsHelper.createRecomputeMembersTask(
-                        getModelObject(),
+                        AbstractRoleMemberPanel.this.getModelObject(),
                         getQueryScope(),
                         getActionQuery(rowModel, getQueryScope(), getRelationsForRecomputeTask()),
                         target, getPageBase());
@@ -1246,7 +1246,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 MemberOperationsHelper.createAndSubmitRecomputeMembersTask(
-                        getModelObject(),
+                        AbstractRoleMemberPanel.this.getModelObject(),
                         getQueryScope(),
                         getActionQuery(rowModel, getQueryScope(), getRelationsForRecomputeTask()),
                         target, getPageBase());

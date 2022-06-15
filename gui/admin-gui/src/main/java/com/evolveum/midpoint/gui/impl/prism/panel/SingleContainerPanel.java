@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
@@ -67,7 +66,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
                     .editabilityHandler(getEditabilityHandler())
                     .mandatoryHandler(getMandatoryHandler());
             if (config == null) {
-                Panel panel = getPageBase().initItemPanel(ID_CONTAINER, getTypeName(), getModel(), builder.build());
+                Panel panel = createPanel(ID_CONTAINER, getTypeName(), getModel(), builder);
                 add(panel);
             } else {
                 RepeatingView view = new RepeatingView(ID_CONTAINER);
@@ -81,17 +80,15 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
                     if (virtualContainerModel == null) {
                         continue;
                     }
-                    ItemPanelSettings settings = builder.build();
-                    Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, settings);
+                    Panel virtualPanel = createVirtualPanel(view.newChildId(), virtualContainerModel, builder);
                     view.add(virtualPanel);
                 }
 
                 QName typeName = getTypeName();
                 if (typeName != null) {
-                    Panel panel = getPageBase().initItemPanel(view.newChildId(), typeName, getModel(), builder.build());
+                    Panel panel = createPanel(view.newChildId(), typeName, getModel(), builder);
                     view.add(panel);
                 }
-
 
                 add(view);
             }
@@ -100,6 +97,14 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
             LOGGER.error("Cannot create panel for {}, {}", getTypeName(), e.getMessage(), e);
             getSession().error("Cannot create panel for " + getTypeName()); // TODO opertion result? localization?
         }
+    }
+
+    protected Panel createVirtualPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) {
+        return new PrismContainerPanel<>(id, model, builder.build());
+    }
+
+    protected Panel createPanel(String id, QName typeName, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) throws SchemaException {
+        return getPageBase().initItemPanel(id, typeName, model, builder.build());
     }
 
     //just temporary protected.

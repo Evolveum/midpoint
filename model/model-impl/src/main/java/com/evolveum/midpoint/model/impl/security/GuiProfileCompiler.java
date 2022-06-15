@@ -249,6 +249,10 @@ public class GuiProfileCompiler {
             for (GuiShadowDetailsPageType shadowDetails : adminGuiConfiguration.getObjectDetails().getShadowDetailsPage()) {
                 joinShadowDetails(composite.getObjectDetails(), shadowDetails);
             }
+
+            for (GuiResourceDetailsPageType resourceDetails : adminGuiConfiguration.getObjectDetails().getResourceDetailsPage()) {
+                joinResourceDetails(composite.getObjectDetails(), resourceDetails);
+            }
         }
         if (adminGuiConfiguration.getUserDashboard() != null) {
             if (composite.getUserDashboard() == null) {
@@ -453,6 +457,11 @@ public class GuiProfileCompiler {
         objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.clone());
     }
 
+    private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails) {
+        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnectorType(currentDetails, newObjectDetails));
+        objectDetailsSet.getResourceDetailsPage().add(newObjectDetails.clone());
+    }
+
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
         AtomicBoolean merged = new AtomicBoolean(false);
         objectDetailsSet.getObjectDetailsPage().forEach(currentDetails -> {
@@ -484,6 +493,14 @@ public class GuiProfileCompiler {
                 new ResourceShadowCoordinates(
                         newConf.getResourceRef().getOid(), newConf.getKind(), newConf.getIntent());
         return oldCoords.equals(newCoords);
+    }
+
+    private boolean isTheSameConnectorType(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf) {
+        if (oldConf.getConnectorRef() == null || newConf.getConnectorRef() == null) {
+            LOGGER.warn("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
+            return false;
+        }
+        return oldConf.getConnectorRef().getOid().equals(newConf.getConnectorRef().getOid());
     }
 
     private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){

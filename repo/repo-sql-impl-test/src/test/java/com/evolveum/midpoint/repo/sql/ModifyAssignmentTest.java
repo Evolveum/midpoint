@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -56,7 +56,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         String oid = repositoryService.addObject(role, null, result);
 
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
         assertEquals(ROLE_OID, oid);
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -67,7 +67,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     @Test
     public void test010AddAssignment() throws Exception {
         given();
-        AssignmentType assignment1 = new AssignmentType(prismContext)
+        AssignmentType assignment1 = new AssignmentType()
                 .id(4L)
                 .targetRef(ORIGINAL_ASSIGNMENT_4_TARGET_OID, RoleType.COMPLEX_TYPE);
 
@@ -81,7 +81,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         //check role and its assignments and inducements
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -107,7 +107,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     @Test
     public void test011AddInducement() throws Exception {
         given();
-        AssignmentType inducement1 = new AssignmentType(prismContext)
+        AssignmentType inducement1 = new AssignmentType()
                 .id(5L)
                 .beginConstruction()
                 .resourceRef(ORIGINAL_INDUCEMENT_5_TARGET_OID, ResourceType.COMPLEX_TYPE)
@@ -123,7 +123,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         //check role and its assignments and inducements
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
@@ -157,7 +157,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
@@ -192,7 +192,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
@@ -220,7 +220,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test030DeleteAssignment() throws Exception {
         given();
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
-                .item(RoleType.F_ASSIGNMENT).delete(new AssignmentType(prismContext).id(4L))
+                .item(RoleType.F_ASSIGNMENT).delete(new AssignmentType().id(4L))
                 .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("delete assignment");
@@ -229,7 +229,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
@@ -259,7 +259,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     @Test
     public void test031DeleteInducement() throws Exception {
         given();
-        AssignmentType i = new AssignmentType(prismContext)
+        AssignmentType i = new AssignmentType()
                 .id(3L)
                 .targetRef(ORIGINAL_INDUCEMENT_5_TARGET_OID, OrgType.COMPLEX_TYPE);
 
@@ -273,7 +273,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
@@ -297,7 +297,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     @Test
     public void test040RenameAssignmentToInducement() throws Exception {
         given();
-        AssignmentType a = new AssignmentType(prismContext)
+        AssignmentType a = new AssignmentType()
                 .id(1L)
                 .beginConstruction()
                 .resourceRef(MOVED_ASSIGNMENT_TARGET_OID, ResourceType.COMPLEX_TYPE)
@@ -317,7 +317,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
@@ -348,7 +348,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, ROLE_OID, deltas, result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
         displayValue("Role after", roleAfter);
@@ -391,7 +391,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(RoleType.class, ROLE_OID, deltas, result);
 
         then();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
 
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
         displayValue("Role after", roleAfter);

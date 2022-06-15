@@ -145,6 +145,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         compileDefaultDetailsPages(compiledGuiProfile);
         mergeCollectionViewsWithDefault(compiledGuiProfile);
         processShadowPanels(compiledGuiProfile);
+        processResourcePanels(compiledGuiProfile);
     }
 
     private void compileDefaultDetailsPages(CompiledGuiProfile compiledGuiProfile) {
@@ -273,6 +274,41 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         }
     }
 
+    private void processResourcePanels(CompiledGuiProfile compiledGuiProfile) {
+        List<ContainerPanelConfigurationType> resourcePanels = new ArrayList<>();
+        for (Class<?> clazz : getPanelInstanceClasses()) {
+            for (PanelInstance instance : getPanelInstancesAnnotations(clazz)) {
+                if (instance == null) {
+                    continue;
+                }
+                if (!instance.applicableForType().equals(ResourceType.class)) {
+                    continue;
+                }
+
+                if (compiledGuiProfile.getObjectDetails() == null) {
+                    compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
+                }
+                ContainerPanelConfigurationType resourcePanel = compileContainerPanelConfiguration(clazz, ResourceType.class, instance);
+                resourcePanels.add(resourcePanel);
+            }
+        }
+
+        if (compiledGuiProfile.getObjectDetails() == null) {
+            compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
+        }
+
+        if (compiledGuiProfile.getObjectDetails().getResourceDetailsPage().isEmpty()) {
+            compiledGuiProfile.getObjectDetails().getResourceDetailsPage().add(new GuiResourceDetailsPageType());
+        }
+
+        for (GuiResourceDetailsPageType resourceDetailsPage : compiledGuiProfile.getObjectDetails().getResourceDetailsPage()) {
+            List<ContainerPanelConfigurationType> mergedPanels =
+                    adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(resourcePanels, resourceDetailsPage.getPanel());
+            resourceDetailsPage.getPanel().clear();
+            resourceDetailsPage.getPanel().addAll(mergedPanels);
+        }
+    }
+
     private synchronized void fillInPanelsMap() {
         if (!PANELS_MAP.isEmpty()) {
             return;
@@ -367,7 +403,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             return;
         }
 
-        if (QNameUtil.match(details.getType(), ShadowType.COMPLEX_TYPE)) {
+        if (QNameUtil.match(details.getType(), ShadowType.COMPLEX_TYPE)
+                || QNameUtil.match(details.getType(), ResourceType.COMPLEX_TYPE)) {
             return;
         }
 

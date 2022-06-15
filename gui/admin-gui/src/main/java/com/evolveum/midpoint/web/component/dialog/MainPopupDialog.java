@@ -13,9 +13,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalDialog;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -26,9 +28,24 @@ public class MainPopupDialog extends ModalDialog {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TITLE = "title";
+    private static final String ID_FOOTER = "footer";
+
+    private IModel<String> title;
 
     public MainPopupDialog(String id) {
         super(id);
+
+        initLayout();
+    }
+
+    private void initLayout() {
+        Label titleLabel = new Label(ID_TITLE, () -> title != null ? title.getObject() : null);
+        titleLabel.add(new VisibleBehaviour(() -> title != null && StringUtils.isNotEmpty(title.getObject())));
+        getDialogComponent().add(titleLabel);
+
+        WebMarkupContainer footer = new WebMarkupContainer(ID_FOOTER);
+        footer.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        getDialogComponent().add(footer);
     }
 
     @Override
@@ -76,9 +93,15 @@ public class MainPopupDialog extends ModalDialog {
         return sb.toString();
     }
 
-    public void setTitle(StringResourceModel title) {
-        Label titleLabel = new Label(ID_TITLE, title);
-        titleLabel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(title.getString())));
-        getDialogComponent().addOrReplace(titleLabel);
+    public void setTitle(IModel<String> title) {
+        this.title = title;
+    }
+
+    public void setFooter(@NotNull Component footer) {
+        if (!ID_FOOTER.equals(footer.getId())) {
+            throw new IllegalArgumentException("Footer component id has to be " + ID_FOOTER + ", but real value is " + footer.getId());
+        }
+
+        getDialogComponent().addOrReplace(footer);
     }
 }

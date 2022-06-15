@@ -284,7 +284,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 

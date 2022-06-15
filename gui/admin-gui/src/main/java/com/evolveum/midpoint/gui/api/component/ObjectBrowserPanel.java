@@ -301,7 +301,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     }
 
     @Override
-    public Component getComponent() {
+    public Component getContent() {
         return this;
     }
 
