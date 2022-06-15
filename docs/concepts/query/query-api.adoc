@@ -7,20 +7,27 @@
 :page-wiki-metadata-modify-date: 2020-03-30T11:27:33.062+02:00
 :page-display-order: 500
 :page-toc: top
+:toclevels: 3
 
 [NOTE]
 This document is up-to-date for midPoint 4.4 LTS version.
 
-== Objects, Queries and Filters
+== Introduction
 
-=== Prism and Resource objects
+MidPoint works with *objects* of various types, which can be part of the running process (in memory),
+stored persistently in xref:/midpoint/reference/repository/[midPoint Repository], or can represent
+objects on the xref:/midpoint/reference/resources/[Resources].
+
+MidPoint *query* allows us to select only the objects that match specified criteria.
+These criteria are formulated as a *filter* and are part of the *query*.
+Both query and filter are part of the midPoint Query API described in this document.
+
+=== Prism and Resource objects refresher
 
 MidPoint works with data structures called xref:/midpoint/devel/prism/data-structures/[Prism objects].
 These are used for midPoint internal data, but they can also represent remote objects stored on the xref:/midpoint/reference/resources/[Resources], e.g. accounts and groups.
 Prism objects are stored in the xref:/midpoint/reference/repository/[Repository] to preserve long-term midPoint state.
-Collections of Prism objects are worked with frequently too.
-Often we need to extract only objects matching some specfic criteria, either from a runtime collection or from the repository.
-For that we use filters and the Query API described in this document.
+Collections of Prism objects in memory are worked with frequently too.
 
 Each Prism object is conceptually a tree.
 Tree nodes are called prism items: containers, references and properties.
@@ -42,18 +49,19 @@ Query language is defined in Prism project in link:https://github.com/Evolveum/p
 
 ==== Object and Container value query
 
-A query can be:
+We have two types of queries based on the returning type:
 
 * An *object query*, targeted at one or more object classes, for example:
 
 ** "give me all users with a given name",
-** "give me all the objects with a given name",
+** "give me all the objects with a given name" (not just users),
 ** "give me all focal objects with a given assignment", etc.
 
 * A *container value query*, often called just "container query".
 +
 Such queries are targeted at container values.
-These are being introduced in the context of special objects, like certification campaigns and lookup tables, or even in cases when no parent object exists, like audit events.
+These are being introduced in the context of special objects, like certification campaigns
+and lookup tables, or even in cases when no parent object exists, like audit events.
 Examples of queries:
 
 ** "give me all certification cases related to this reviewer, irrespective to in which campaign they are contained",
@@ -92,7 +100,10 @@ These are typically delivered together with the query, but are not part of it:
 * Additional options fine-tuning the search and retrieval process.
 Options can specify what optional pieces to fetch and also wheter `DISTINCT` should be applied to the results.
 
-This additional information is either implied or can be provided close to the query as needed.
+This additional information is either implied or can be provided close to the query as needed,
+for instance as additional parameters to the repository call, etc.
+
+// TODO ==== Query representation
 
 == Query playground
 
@@ -109,6 +120,9 @@ Alternatively use an existing example from the selection box below.
 
 You can either execute the query or just simulate it.
 In both cases you will see the translated SQL query (or HQL for the old Generic repository) and the parameter values.
+
+[NOTE]
+Container value queries are not yet supported by the Query playground.
 
 [IMPORTANT]
 ====
@@ -451,7 +465,7 @@ See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 
 == Differences in filter interpretation
 
-There are actually four "query engines" that interpret filters and queries:
+These are the "query engines" that interpret filters and queries:
 
 [%autowidth]
 |===
@@ -1130,6 +1144,7 @@ The use of `@` to traverse to reference target ("dereference") is safe and well-
 Using `..` and `#` is *experimental*, was introduced for internal reasons and the support is limited.
 
 // TODO, start with @
+// TODO mention limitations for multi-value ref with @ in generic repo
 
 An example: *Find all active certification cases for a given reviewer.*
 
