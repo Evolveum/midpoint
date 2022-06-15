@@ -63,6 +63,9 @@ podTemplate(
                         fi
                     """
 
+                    // if we get here it's success, TODO: check that Publisher changes the state if necessary
+                    currentBuild.result = 'SUCCESS'
+
                     step([$class: 'Publisher',
                         reportFilenamePattern: '**/testng-results.xml',
                         // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
