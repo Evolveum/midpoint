@@ -16,6 +16,8 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -76,6 +78,11 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     @Override
     public String appendCssToWizard() {
         return "w-100";
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 
     private void initLayout() {
@@ -153,7 +160,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void clearCartPerformed(AjaxRequestTarget target) {
-        ConfirmationPanel content = new ConfirmationPanel(Popupable.ID_CONTENT) {
+        ConfirmationPanel content = new ConfirmationPanel(Popupable.ID_CONTENT,  createStringResource("ShoppingCartPanel.clearCartConfirmMessage")) {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -167,7 +174,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
             @Override
             protected IModel<String> createYesLabel() {
-                return createStringResource("ShoppingCartPanel.clearCart");
+                return createStringResource("ShoppingCartPanel.confirmClear");
             }
 
             @Override

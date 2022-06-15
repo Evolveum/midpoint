@@ -7,10 +7,14 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.CatalogItemDetailsPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -25,10 +29,13 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
     private static final long serialVersionUID = 1L;
-    private static final String ID_PANEL = "panel";
     private static final String ID_CONFIRM_TEXT = "confirmText";
+
+    private static final String ID_BUTTONS = "buttons";
     private static final String ID_YES = "yes";
     private static final String ID_NO = "no";
+
+    private Fragment footer;
 
     public ConfirmationPanel(String id) {
         this(id, null);
@@ -41,12 +48,17 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
     }
 
     private void initLayout() {
-        WebMarkupContainer panel = new WebMarkupContainer(ID_PANEL);
-
         Label label = new Label(ID_CONFIRM_TEXT, getModel());
         label.setEscapeModelStrings(true);
-        panel.add(label);
+        add(label);
 
+        footer = initFooter();
+
+        customInitLayout(footer);
+    }
+
+    private Fragment initFooter() {
+        footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
         AjaxButton yesButton = new AjaxButton(ID_YES, createYesLabel()) {
 
             private static final long serialVersionUID = 1L;
@@ -58,7 +70,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
                 yesPerformed(target);
             }
         };
-        panel.add(yesButton);
+        footer.add(yesButton);
 
         AjaxButton noButton = new AjaxButton(ID_NO, createNoLabel()) {
             private static final long serialVersionUID = 1L;
@@ -68,11 +80,22 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
                 noPerformed(target);
             }
         };
-        panel.add(noButton);
-        customInitLayout(panel);
-        add(panel);
+        footer.add(noButton);
+
+        return footer;
     }
 
+    @Override
+    public Component getFooter() {
+        return footer;
+    }
+
+    /**
+     * this is not good way to extend confirmation panel.
+     * whole html of parent panel has to be copied and maintained (it should be "internal" thing).
+     * @param panel
+     */
+    @Deprecated
     protected void customInitLayout(WebMarkupContainer panel) {
 
     }
@@ -122,5 +145,4 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
     protected IModel<String> createNoLabel() {
         return createStringResource("confirmationDialog.no");
     }
-
 }
