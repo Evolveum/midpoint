@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReindex;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -23,7 +24,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -81,8 +85,7 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         }
 
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
     }
 
     @Test
@@ -99,9 +102,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
 
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
-        result.recomputeStatus();
-
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
     }
 
     @Test
@@ -116,9 +117,7 @@ public class SearchTest extends BaseSQLRepoTest {
         };
 
         repositoryService.searchObjectsIterative(UserType.class, null, handler, null, false, result);
-        result.recomputeStatus();
-
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals(4, objects.size());
     }
 
@@ -157,11 +156,10 @@ public class SearchTest extends BaseSQLRepoTest {
         ObjectQuery query = prismContext.queryFactory().createQuery();
         query.setPaging(prismContext.queryFactory().createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
-        result.recomputeStatus();
+        assertThatOperationResult(result).isSuccess();
 
         config.setIterativeSearchByPagingBatchSize(oldBatchSize);
 
-        assertTrue(result.isSuccess());
         assertEquals(size, objects.size());
     }
 
@@ -177,8 +175,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
 
         query = prismContext.queryFor(UserType.class)
@@ -186,8 +183,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
 
         users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Found user (shouldn't) because case insensitive search was used", 0, users.size());
     }
 
@@ -200,8 +196,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
@@ -210,8 +205,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123)
                 .build();
         users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find two users", 2, users.size());
 
         PrismReferenceValue r123approver = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
@@ -220,8 +214,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123approver)
                 .build();
         users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find no users", 0, users.size());
     }
 
@@ -234,8 +227,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
@@ -244,8 +236,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .item(UserType.F_DELEGATED_REF).ref(r123)
                 .build();
         users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find no users", 0, users.size());
     }
 
@@ -257,8 +248,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
@@ -267,9 +257,74 @@ public class SearchTest extends BaseSQLRepoTest {
                 .item(UserType.F_PERSONA_REF).ref(r789)
                 .build();
         users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find no users", 0, users.size());
+    }
+
+    @Test
+    public void test230SearchUsersWithSingleValueRefNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_TENANT_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        // Mapping of REmbeddedReference duplicates tenantRef_targetOid is null, but it's not a serious problem.
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("before-config", "atestuserX00002", "atestuserX00003");
+    }
+
+    @Test
+    public void test231SearchUsersWithSingleValueRefNotNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .not().item(UserType.F_TENANT_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123");
+    }
+
+    @Test
+    public void test232SearchUsersWithMultiValueRefNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_PARENT_ORG_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("before-config", "atestuserX00002", "atestuserX00003");
+    }
+
+    @Test
+    public void test233SearchUsersWithMultiValueRefNotNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .not().item(UserType.F_PARENT_ORG_REF).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+        assertThatOperationResult(result).isSuccess();
+
+        // The result is not treated with DISTINCT and there are two refs, so this is OK.
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123", "elaine123");
     }
 
     @Test
@@ -281,8 +336,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
@@ -292,8 +346,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
 
         users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find zero users", 0, users.size());
     }
 
@@ -306,8 +359,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one role", 1, roles.size());
         assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
 
@@ -316,8 +368,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref(resourceRef2)
                 .build();
         roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find zero roles", 0, roles.size());
     }
 
@@ -329,8 +380,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
@@ -344,8 +394,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
@@ -359,8 +408,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
     }
@@ -372,8 +420,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
         System.out.println("Found user:\n" + users.get(0).debugDump());
@@ -389,8 +436,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
@@ -403,8 +449,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find two roles", 2, roles.size());
 
         int judge = roles.get(0).getName().getOrig().startsWith("J") ? 0 : 1;
@@ -419,8 +464,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one role", 1, roles.size());
         assertEquals("Wrong role name", "Pirate", roles.get(0).getName().getOrig());
 
@@ -433,8 +477,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find two roles", 2, roles.size());
 
         int judge = roles.get(0).getName().getOrig().startsWith("J") ? 0 : 1;
@@ -449,8 +492,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one role", 1, roles.size());
         assertEquals("Wrong role name", "Pirate", roles.get(0).getName().getOrig());
 
@@ -540,8 +582,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one resource", 1, resources.size());
     }
 
@@ -552,8 +593,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, resources.size());
     }
 
@@ -564,8 +604,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, resources.size());
     }
 
@@ -576,8 +615,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, resources.size());
     }
 
@@ -588,8 +626,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, resources.size());
     }
 
@@ -602,8 +639,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, roles.size());
     }
 
@@ -805,8 +841,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, shadows.size());
     }
 
@@ -821,8 +856,7 @@ public class SearchTest extends BaseSQLRepoTest {
             Collection<SelectorOptions<GetOperationOptions>> options, int expectedCount) throws Exception {
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, options, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of results found: " + query, expectedCount, users.size());
         return users;
     }
@@ -831,8 +865,7 @@ public class SearchTest extends BaseSQLRepoTest {
             int expectedCount) throws Exception {
         OperationResult result = new OperationResult("count");
         int count = repositoryService.countObjects(UserType.class, query, options, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of results found: " + query, expectedCount, count);
     }
 
@@ -843,8 +876,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, cases.size());
     }
 
@@ -859,8 +891,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, cases.size());
     }
 
@@ -875,8 +906,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find no object", 0, cases.size());
     }
 
@@ -888,8 +918,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find 1 object", 1, cases.size());
     }
 
@@ -901,8 +930,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find no object", 0, cases.size());
     }
 
@@ -914,8 +942,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find no object", 0, cases.size());
     }
 
@@ -927,8 +954,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find 1 object", 1, cases.size());
     }
 
@@ -939,8 +965,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find 1 object", 1, collections.size());
     }
 
@@ -948,8 +973,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void test815AllObjectCollections() throws SchemaException {
         OperationResult result = new OperationResult("search");
         List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, null, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find 1 object", 1, collections.size());
     }
 
@@ -960,8 +984,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<FunctionLibraryType>> collections = repositoryService.searchObjects(FunctionLibraryType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find 1 object", 1, collections.size());
     }
 
@@ -972,8 +995,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<ArchetypeType>> collections = repositoryService.searchObjects(ArchetypeType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find 1 object", 1, collections.size());
     }
 
@@ -984,8 +1006,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<AssignmentHolderType>> objects = repositoryService.searchObjects(AssignmentHolderType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         System.out.println("Objects found: " + objects);
         assertEquals("Should find 3 objects", 3, objects.size());
     }
@@ -997,8 +1018,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<ObjectType>> objects = repositoryService.searchObjects(ObjectType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         System.out.println("Objects found: " + objects);
         assertEquals("Should find 3 objects", 3, objects.size());
     }
@@ -1010,8 +1030,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         System.out.println("Users found: " + objects);
         assertEquals("Should find 2 objects", 2, objects.size());
     }
@@ -1023,8 +1042,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<TaskType>> objects = repositoryService.searchObjects(TaskType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         System.out.println("Tasks found: " + objects);
         assertEquals("Should find 1 object", 1, objects.size());
     }
@@ -1033,8 +1051,8 @@ public class SearchTest extends BaseSQLRepoTest {
     public void test880SearchFocus() throws SchemaException {
         OperationResult result = new OperationResult("search");
         List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, null, null, result);
-        result.recomputeStatus();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
+
         System.out.println("Objects found: " + objects);
         for (PrismObject<?> object : objects) {
             assertTrue("returned object is not a FocusType: " + object, object.asObjectable() instanceof FocusType);
@@ -1045,8 +1063,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void test890SearchAssignmentHolder() throws SchemaException {
         OperationResult result = new OperationResult("search");
         List<PrismObject<AssignmentHolderType>> objects = repositoryService.searchObjects(AssignmentHolderType.class, null, null, result);
-        result.recomputeStatus();
-        assertSuccess(result);
+        assertThatOperationResult(result).isSuccess();
         System.out.println("Objects found: " + objects);
         for (PrismObject<?> object : objects) {
             assertTrue("returned object is not a AssignmentHolderType: " + object, object.asObjectable() instanceof AssignmentHolderType);
@@ -1060,8 +1077,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, cases.size());
     }
 
@@ -1072,8 +1088,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, cases.size());
     }
 
@@ -1085,8 +1100,7 @@ public class SearchTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query,
                 schemaService.getOperationOptionsBuilder().distinct().build(), result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one object", 1, cases.size());
     }
 
@@ -1097,8 +1111,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         SearchResultList<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of work items found", 2, workItems.size());
     }
 
@@ -1109,8 +1122,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         SearchResultList<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of work items found", 1, workItems.size());
     }
 
@@ -1121,8 +1133,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 .build();
         OperationResult result = new OperationResult("search");
         SearchResultList<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of work items found", 1, workItems.size());
         assertNotNull("Null createTimestamp", workItems.get(0).getCreateTimestamp());
     }
@@ -1139,10 +1150,9 @@ public class SearchTest extends BaseSQLRepoTest {
         when("executing container search");
         SearchResultList<AssignmentType> assignments =
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
-        result.recomputeStatus();
 
         then("all assignments of that owner are returned");
-        assertThat(result.isSuccess()).isTrue();
+        assertThatOperationResult(result).isSuccess();
         assertThat(assignments).hasSize(3);
     }
 
@@ -1158,11 +1168,10 @@ public class SearchTest extends BaseSQLRepoTest {
         when("executing container search");
         SearchResultList<AssignmentType> assignments =
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
-        result.recomputeStatus();
 
         then("only assignment with target ref type equal to Role"
                 + " (with default relation which is implied) is returned");
-        assertThat(result.isSuccess()).isTrue();
+        assertThatOperationResult(result).isSuccess();
         assertThat(assignments).hasSize(1);
         assertThat(assignments.get(0).getTargetRef().getType()).isEqualTo(RoleType.COMPLEX_TYPE);
     }
@@ -1173,30 +1182,117 @@ public class SearchTest extends BaseSQLRepoTest {
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .item(AssignmentType.F_TARGET_REF).ref(null, OrgType.COMPLEX_TYPE)
                 .and()
-                .item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .item(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
                 .eq("F0085")
-                // skipping owner this time, although this is fishy as it is not currently in the returned values
-                .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                // Skipping owner this time, although this is fishy as it is not currently in the returned values,
+                // which means we will get assignments but we will not know which object is their owner.
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
                 .build();
         OperationResult result = new OperationResult("search");
 
         when("executing container search");
         SearchResultList<AssignmentType> assignments =
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
-        result.recomputeStatus();
 
         then("only assignment to the specified organization is returned");
-        assertThat(result.isSuccess()).isTrue();
+        assertThatOperationResult(result).isSuccess();
         assertThat(assignments).hasSize(1);
         // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
         assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
+    }
+
+    // TODO NEEDS FIX
+    @Test(enabled = false, description = "Needs to be fixed, works in 4.6: java.lang.IllegalArgumentException:"
+            + " Item path of 'targetRef/{http://prism.evolveum.com/xml/ns/public/types-3}objectReference' in class"
+            + " com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType does not point to a valid PrismContainerDefinition")
+    public void test940AssignmentsWithSpecifiedTargetUsingExists() throws SchemaException {
+        given("query for assignments with target object with specified name (using exists)");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .exists(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
+                .item(F_NAME).eq("F0085")
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+    @Test
+    public void test941AssignmentsWithSpecifiedTargetUsingItem() throws SchemaException {
+        given("query for assignments with target object with specified name (using item)");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME).eq("F0085")
+                .asc(AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).singleElement()
+                .matches(a -> a.getTargetRef().getOid().equals("00000000-8888-6666-0000-100000000085"));
+    }
+
+    @Test(enabled = false, description = "Broken where condition using a wrong joined table")
+    public void test942MultiValueRefFilterWithItem() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_PARENT_ORG_REF, T_OBJECT_REFERENCE, F_NAME).eq("F0085")
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        // WHERE name condition is constructed on m_acc_cert_campaign table (error in HQL->SQL)
+        queryListener.dumpAndStop();
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        // two refs match, no DISTINCT use, so it's doubled result
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("elaine123", "elaine123");
+    }
+
+    @Test
+    public void test943MultiValueRefTargetWithTargetTypeSpecificCondition() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                // Example with multi-value linkRef from Query API docs, this works as expected:
+                .item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_RESOURCE_REF).ref("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2")
+                // While the shadow resource ref condition targets the m_shadow, the name condition would break again.
+                //.item(UserType.F_LINK_REF, T_OBJECT_REFERENCE, ShadowType.F_NAME).eq("7754e27c-a7cb-4c23-850d-a9a15f71199a")
+                .build();
+        OperationResult result = new OperationResult("search");
+        display("QUERY: " + query);
+
+        when("executing container search");
+        queryListener.clear().start();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        then("only assignments with specified target object name are returned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users).extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("atestuserX00003");
     }
 
     /**
      * See MID-5474 (just a quick attempt to replicate)
      */
     @Test
-    public void test930IterateAndModify() throws Exception {
+    public void test970IterateAndModify() throws Exception {
         OperationResult result = new OperationResult("iterateAndModify");
 
         AtomicInteger count = new AtomicInteger(0);
@@ -1219,38 +1315,35 @@ public class SearchTest extends BaseSQLRepoTest {
                 .item(UserType.F_NAME).eqPoly("atestuserX00002").matchingOrig()
                 .build();
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
-        result.recomputeStatus();
 
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals(1, count.get());
     }
 
     // MID-5515
     @Test
-    public void test935SearchNameNull() throws Exception {
+    public void test971SearchNameNull() throws Exception {
         OperationResult result = new OperationResult("testSearchNameNull");
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(F_NAME).isNull()
                 .build();
 
         SearchResultList<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
 
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of objects found", 0, objects.size());
     }
 
     // MID-5515
     @Test
-    public void test932SearchNameNotNull() throws Exception {
+    public void test972SearchNameNotNull() throws Exception {
         OperationResult result = new OperationResult("testSearchNameNotNull");
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .not().item(F_NAME).isNull()
                 .build();
 
         SearchResultList<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
 
         int users = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects found", users, objects.size());
@@ -1258,15 +1351,14 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-4575
     @Test
-    public void test950SearchPasswordCreateTimestamp() throws Exception {
+    public void test980SearchPasswordCreateTimestamp() throws Exception {
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
                         PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                 .lt(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar())).build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
-        result.recomputeStatus();
-        assertTrue(result.isSuccess());
+        assertThatOperationResult(result).isSuccess();
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
     }
