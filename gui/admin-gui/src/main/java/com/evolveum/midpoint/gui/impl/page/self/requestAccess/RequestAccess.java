@@ -46,6 +46,16 @@ public class RequestAccess implements Serializable {
     private QName relation;
     private List<AssignmentType> shoppingCartAssignments;
 
+    private String comment;
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
     public List<ObjectReferenceType> getPersonOfInterest() {
         if (personOfInterest == null) {
             personOfInterest = new ArrayList<>();
