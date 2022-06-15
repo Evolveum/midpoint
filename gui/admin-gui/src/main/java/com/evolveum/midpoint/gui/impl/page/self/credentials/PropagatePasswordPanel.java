@@ -476,10 +476,6 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         return accountDto;
     }
 
-    @Override
-    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
-        super.updateNewPasswordValuePerformed(target);
-    }
 
     private boolean getPasswordOutbound(ResourceType resource, ResourceObjectDefinition rOCDef) {
         for (MappingType mapping : rOCDef.getPasswordOutbound()) {
