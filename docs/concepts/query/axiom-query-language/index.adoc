@@ -3,7 +3,7 @@
 :page-toc: top
 
 //TODO: User-friendly documentation of a user-friendly language.
-//This should NOT be a language specification, rather an user-oriented reference documentation with a dash of tutorial on top.
+//This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.
 
 Axiom Query Language is a language used to query objects in midPoint repository.
 It is a universal language used to search for objects in the repository, filter objects, set up object references and so on.
@@ -60,7 +60,7 @@ Following tables summarizes common property filters:
 | Name | Alias | Description
 
 | `equal` | `=` | Matches if any item is equal to value
-| `not equal` | != | Matches if item is different than value
+| `not equal` | != | Matches if item is different from value
 | `less` | `<` | Matches if item is smaller than value
 | `lessOrEqual` | `&lt;=` | Matches if item is smaller or equal to the value
 | `greater` | `>` | Matches if item is greater than value
@@ -168,7 +168,7 @@ It is important to consider if we want to match a container where one container 
 If these multiple criteria must be met by one container value you must use `matches`.
 
 The filter `assignment/validFrom > "2022-01-01" and assignment/validTo <"2023-01-01"` is different from `assignment matches (validFrom > "2022-01-01" and validTo <"2023-01-01")`.
-First will matches user who has one assignment starting after 2022 and possible other assignment ending by 2023.
+First will match user who has one assignment starting after 2022 and possible other assignment ending by 2023.
 The second filter with match user who has an assignment which starts in 2022 and expires before 2023.
 ====
 
@@ -178,7 +178,7 @@ Reference filters allows to match on references themselves using
 <<Reference matches filter, matches>> or on properties of referenced objects using <<Dereferencing, dereferencing>>
 
 You can also perform inverse search using <<referencedBy filter, referencedBy>> to search
-for object by properties of it's referencer (eg. search roles by properties of its members).
+for object by properties of it's referencer (e.g. search roles by properties of its members).
 
 ==== Reference matches filter
 
@@ -211,8 +211,8 @@ Dereferencing is done using `@` special character in item path after reference, 
 This allows you to continue path with properties of referenced objects such as
 `assignment/targetRef/@/name` - which means `name` of assigned object.
 
-For example this enables us to search for users with assigned role by role name instead of oid (but it is executed bit slower, since we need to dereference objects).
-`assignment/targetRef/@/name = "Superuser"` - matches any user who is directly assigned role of super user.
+For example this enables us to search for users with assigned role by role name instead of oid (but it is executed a bit slower, since we need to dereference objects).
+`assignment/targetRef/@/name = "Superuser"` - matches any user who is directly assigned role of superuser.
 
 NOTE: To match also users, who are indirectly assigned role, you should use `roleMembershipRef` instead of `assignment/targetRef`.
 
@@ -252,7 +252,7 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
 reference it. Since object as whole is referenced the item path
 
 In order to use `referencedBy` filter you must also specify `type` of objects, which references it,
-and `path` of object reference, which is used for reference (e.g `assignment/targetRef` or `inducement/targetRef`)
+and `path` of object reference, which is used for reference (e.g. `assignment/targetRef` or `inducement/targetRef`)
 
 The short Axiom syntax is:
 
@@ -275,7 +275,7 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
 
 ownedBy filter allows for matching indexed containers based on properties of their parent (owning object or container).
 
-The syntax is similar to referencedBy. ownedBy filter can only be applied on self path (.). The properties of ownedBy filter are:
+The syntax is similar to referencedBy. ownedBy filter can only be applied on self path (`.`). The properties of ownedBy filter are:
 
 type:: (Required) Type of parent / owner
 
@@ -291,7 +291,7 @@ filter:: (Optional) filter, to which parent needs to conform, filter is explicit
 === Organization Filters
 
 Organization filters are used to filter objects based on their organization membership.
-These filters operates on object as a whole, so item path must be `.`
+These filters operate on object as a whole, so item path must be `.`
 
 |===
 | Name | Value | Description
@@ -323,7 +323,7 @@ These filters operates on object as a whole, so item path must be `.`
 
 Axiom Query is still experimental feature, so it needs to be explicitly enabled in GUI.
 
-. In Admin GUI navigate to Configuration -> System -> Admin GUI
+. In Admin GUI, navigate to Configuration -> System -> Admin GUI
 . Click Show Empty fields in Admin GUI Configuration section
 . Select True in Enable experimental features
 . Save configuration changes, logout and login in order to changes
