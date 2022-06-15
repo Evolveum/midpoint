@@ -907,6 +907,7 @@ With new configuration there are several options how to cutomize assignemnts vie
               <panelType>roleAssignments</panelType>
               <listView>
                   <identifier>role-assignmnets-view</identifier>
+                  <type>c:AssignmentType</type>
                   <collection>
                       <collectionRef oid="e97b857f-3228-4df5-a920-67157b77d736" relation="org:default" type="c:ObjectCollectionType">
                           <!-- Custom collection definigion (mainly filtering) -->
