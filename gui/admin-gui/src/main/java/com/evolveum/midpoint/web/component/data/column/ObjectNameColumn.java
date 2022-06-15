@@ -123,8 +123,8 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
                     return getName(value, selectableBean);
                 }
 
-                Object itemPathPropertyValue = new PropertyModel<>(rowModel, "value." + itemPath).getObject();
-                return itemPathPropertyValue != null ? itemPathPropertyValue.toString() : "";
+                com.evolveum.midpoint.prism.Item item = value.asPrismObject().findItem(itemPath);
+                return item != null ? cellItem.getDefaultModelObjectAsString(item.getRealValue()) : "";
 
             }
         };
