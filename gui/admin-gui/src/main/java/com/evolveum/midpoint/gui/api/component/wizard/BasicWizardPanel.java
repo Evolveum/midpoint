@@ -132,6 +132,8 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         onBackAfterWizardPerformed(target);
     }
 
+    // todo why is this needed? please remove and use onBackPerformed(AjaxRequestTarget)
+    @Deprecated
     protected void onBackAfterWizardPerformed(AjaxRequestTarget target) {
         getPageBase().redirectBack();
     }

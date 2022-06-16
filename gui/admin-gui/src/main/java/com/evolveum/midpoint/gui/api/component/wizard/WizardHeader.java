@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -75,8 +77,9 @@ public class WizardHeader extends BasePanel {
         next.setOutputMarkupPlaceholderTag(true);
         next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
 
+        next.add(new BehaviourDelegator(() -> getNextVisibilityBehaviour()));
+
         next.add(new Label(ID_NEXT_LABEL, nextPanelTitle));
-        next.add(getNextVisibilityBehaviour());
         return next;
     }
 
@@ -97,7 +100,14 @@ public class WizardHeader extends BasePanel {
         back.setOutputMarkupPlaceholderTag(true);
         back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
 
+        back.add(new BehaviourDelegator(() -> getBackVisibilityBehaviour()));
+
         return back;
+    }
+
+    @NotNull
+    protected VisibleEnableBehaviour getBackVisibilityBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {
@@ -106,5 +116,22 @@ public class WizardHeader extends BasePanel {
 
     protected void onNextPerformed(AjaxRequestTarget target) {
 
+    }
+
+    private static class BehaviourDelegator extends Behavior {
+
+        private SerializableSupplier<VisibleEnableBehaviour> behaviour;
+
+        public BehaviourDelegator(@NotNull SerializableSupplier<VisibleEnableBehaviour> behaviour) {
+            this.behaviour = behaviour;
+        }
+
+        @Override
+        public void onConfigure(Component component) {
+            VisibleEnableBehaviour real = behaviour.get();
+            if (real != null) {
+                real.onConfigure(component);
+            }
+        }
     }
 }
