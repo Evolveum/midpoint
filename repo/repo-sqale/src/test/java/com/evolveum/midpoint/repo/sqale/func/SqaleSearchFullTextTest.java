@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
@@ -21,6 +22,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -64,6 +66,8 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
         roleOid = repositoryService.addObject(
                 new RoleType().name("Test Role")
                         .description("role which should be found when search for swashbuckling")
+                        .assignment(new AssignmentType()
+                                .lifecycleState("for-ownedBy-test"))
                         .asPrismObject(),
                 null, result);
 
@@ -108,10 +112,10 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
                 .description("Slovenský opis ľahkovážnej osoby číslo TŘI")
                 .costCenter("50")
                 .policySituation("situationA")
+                .metadata(new MetadataType()
+                        .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass1")
-                        .metadata(new MetadataType()
-                                .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
                                 .validFrom("2021-01-01T00:00:00Z"))
                         .subtype("ass-subtype-1")
@@ -174,7 +178,7 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test122SearchAnythingContaining() throws Exception {
+    public void test122SearchAnythingContainingMultipleWords() throws Exception {
         searchObjectTest("with full-text containing two strings in any order",
                 ObjectType.class,
                 f -> f.fullText("task user"),
@@ -208,11 +212,32 @@ public class SqaleSearchFullTextTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test220SearchInReference() throws Exception {
-        searchObjectTest("with empty full-text query", UserType.class,
+    public void test220SearchInReferenceTargetObject() throws Exception {
+        searchUsersTest("having assignment to a role matching the fulltext condition",
                 f -> f.exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
                         .fullText("swashbuckling"),
                 user1Oid);
+    }
+
+    @Test
+    public void test230SearchInReferencingObject() throws Exception {
+        searchUsersTest("referenced by another object matching the fulltext condition",
+                f -> f.referencedBy(UserType.class,
+                                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF))
+                        .fullText("TŘI číslo"), // will be normalized
+                user1Oid);
+    }
+
+    @Test
+    public void test240SearchInOwnerObject() throws Exception {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "with owner using fulltext", AssignmentType.class,
+                f -> f.ownedBy(AbstractRoleType.class)
+                        .fullText("swashbuckling"));
+
+        assertThat(result).singleElement()
+                .extracting(a -> a.getLifecycleState())
+                .isEqualTo("for-ownedBy-test");
     }
 
     @Test
