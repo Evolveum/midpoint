@@ -13,14 +13,7 @@ public class EnableBehaviour extends VisibleEnableBehaviour {
 
     private static final long serialVersionUID = 1L;
 
-    @NotNull private final SerializableSupplier<Boolean> producer;
-
-    public EnableBehaviour(@NotNull SerializableSupplier<Boolean> producer) {
-        this.producer = producer;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return producer.get();
+    public EnableBehaviour(@NotNull SerializableSupplier<Boolean> enabled) {
+        super(() -> true, enabled);
     }
 }
