@@ -17,6 +17,9 @@ import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReinde
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.DatatypeFactory;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -720,17 +724,12 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test700FullTextSearch() throws Exception {
-
-        OperationResult result = new OperationResult("fullTextSearch");
-
-        Collection<SelectorOptions<GetOperationOptions>> distinct = distinct();
-
         assertUsersFound(prismContext.queryFor(UserType.class)
                         .fullText("atestuserX00003")
                         .build(),
                 false, 1);
 
-        List<PrismObject<UserType>> users = assertUsersFound(prismContext.queryFor(UserType.class)
+        assertUsersFound(prismContext.queryFor(UserType.class)
                         .fullText("Pellentesque")
                         .build(),
                 true, 1);
@@ -744,6 +743,69 @@ public class SearchTest extends BaseSQLRepoTest {
                         .fullText("sollicitudin")
                         .build(),
                 true, 0);
+    }
+
+    @Test
+    public void test710FulltextSearchNestedInOwnedBy() throws Exception {
+        // TODO remove this debug output when tests are finished
+        try (JdbcSession session = createJdbcSession()) {
+            Connection conn = session.connection();
+            try (PreparedStatement stmt = conn.prepareStatement("select owner_oid, text from m_object_text_info")) {
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    System.out.println(rs.getString("owner_oid") + ": " + rs.getString("text"));
+                }
+            }
+        }
+
+        given("query for assignments owned by role matching given fulltext search");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ownedBy(AbstractRoleType.class)
+                .fullText("Judge")
+                .build();
+
+        when("executing container search");
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        then("only assignments/inducements from the Judge role are returned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(assignments).hasSize(2)
+                .allMatch(a -> a.getConstruction() != null && a.getConstruction().getResourceRef() != null)
+                .extracting(a -> a.getConstruction().getResourceRef().getOid())
+                .containsExactlyInAnyOrder("10000000-0000-0000-0000-000000000004", "10000000-0000-0000-0000-000000000005");
+    }
+
+    /* TODO rewrite to old repo
+        @Test
+    public void test220SearchInReferenceTargetObject() throws Exception {
+        searchUsersTest("having assignment to a role matching the fulltext condition",
+                f -> f.exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
+                        .fullText("swashbuckling"),
+                user1Oid);
+    }
+
+    @Test
+    public void test230SearchInReferencingObject() throws Exception {
+        searchUsersTest("referenced by another object matching the fulltext condition",
+                f -> f.referencedBy(UserType.class,
+                                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF))
+                        .fullText("TŘI číslo"), // will be normalized
+                user1Oid);
+    }
+     */
+
+    @Test
+    public void test720FullTextSearchModify() throws Exception {
+        OperationResult result = new OperationResult("fullTextSearch");
+        Collection<SelectorOptions<GetOperationOptions>> distinct = distinct();
+
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class,
+                prismContext.queryFor(UserType.class).fullText("Pellentesque").build(),
+                distinct(), result);
 
         String newDescription = "\n"
                 + "\t\t\tUt pellentesque massa elit, in varius justo pellentesque ac. Vivamus gravida lectus non odio tempus iaculis sed quis\n"
@@ -791,7 +853,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertUsersFound(prismContext.queryFor(UserType.class)
                         .fullText("viverra")
                         .build(),
-                true, 1);       // MID-4590
+                true, 1); // MID-4590
 
         assertUsersFoundBySearch(prismContext.queryFor(UserType.class)
                         .fullText("sollicitudin")
@@ -802,8 +864,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test // MID-4932
-    public void test710FullTextSearchModify() throws Exception {
-
+    public void test722FullTextSearchModifyName() throws Exception {
         OperationResult result = new OperationResult("fullTextSearchModify");
         repositoryService.modifyObject(TaskType.class, "777",
                 prismContext.deltaFor(UserType.class)
@@ -819,7 +880,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test720Reindex() throws Exception {
+    public void test725Reindex() throws Exception {
 
         OperationResult result = new OperationResult("reindex");
 
@@ -1579,7 +1640,8 @@ public class SearchTest extends BaseSQLRepoTest {
                 .containsExactlyInAnyOrder("elaine123", "elaine123");
     }
 
-    @Test(enabled = false, description = "Broken where condition using a wrong joined table")
+    @Test(enabled = false, description = "Broken where condition using a wrong joined table."
+            + " This actually returns the right result, but for the wrong reasons. If both this and 960 work THEN its OK.")
     public void test961RefFilterWithValueConditionsAndTargetFilterWrongName() throws SchemaException {
         given("query for users with parent org with specified relation (ref condition) and name (target filter)");
         ObjectQuery query = prismContext.queryFor(UserType.class)
