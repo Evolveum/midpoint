@@ -324,6 +324,11 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
             protected Component createHeader(String headerId) {
                 return new Fragment(headerId, ID_TABLE_HEADER_FRAGMENT, ShoppingCartPanel.this);
             }
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
         };
         add(table);
 
@@ -506,6 +511,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
             }
         });
         columns.add(new AbstractColumn<>(() -> "") {
+
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 Fragment fragment = new Fragment(id, ID_TABLE_BUTTON_COLUMN, ShoppingCartPanel.this);
@@ -513,17 +519,18 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editItemPerformed(target, model.getObject());
+                        editItemPerformed(target, model);
                     }
                 });
                 fragment.add(new AjaxLink<>(ID_REMOVE) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        removeItemPerformed(target, model.getObject());
+                        removeItemPerformed(target, model);
                     }
                 });
 
+                item.add(AttributeAppender.append("style", "width: 100px;"));
                 item.add(fragment);
             }
         });
@@ -531,12 +538,33 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         return columns;
     }
 
-    private void editItemPerformed(AjaxRequestTarget target, ShoppingCartItem item) {
+    private void editItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+        PageBase page = getPageBase();
 
+        ShoppingCartEditPanel panel = new ShoppingCartEditPanel(model) {
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+                // todo implement
+            }
+
+            @Override
+            protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+                // todo implement
+            }
+        };
+
+        page.showMainPopup(panel, target);
     }
 
-    private void removeItemPerformed(AjaxRequestTarget target, ShoppingCartItem item) {
+    private void removeItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+        ShoppingCartItem item = model.getObject();
 
+        RequestAccess requestAccess = getModelObject();
+        requestAccess.removeAssignments(List.of(item.getAssignment()));
+
+        getPageBase().reloadShoppingCartIcon(target);
+        target.add(getWizard().getPanel());
     }
 
     private void clearCartPerformed(AjaxRequestTarget target) {
@@ -571,6 +599,6 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         getModelObject().clearCart();
 
         getPageBase().reloadShoppingCartIcon(target);
-        target.add(get(ID_TABLE));
+        target.add(getWizard().getPanel());
     }
 }

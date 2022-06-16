@@ -402,7 +402,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                 .title(getString("RoleCatalogPanel.itemAdded"))
                 .icon("fas fa-cart-shopping")
                 .autohide(true)
-                .delay(10_000)
+                .delay(5_000)
                 .body(msg).show(target);
     }
 

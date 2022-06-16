@@ -28,6 +28,8 @@ public class RequestAccess implements Serializable {
 
     private String comment;
 
+    private boolean conflictsDirty;
+
     private int warningCount;
 
     private int errorCount;
@@ -58,6 +60,8 @@ public class RequestAccess implements Serializable {
         Set<ObjectReferenceType> existing = requestItems.keySet();
         Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
+        boolean changed = false;
+
         // add new persons if they're not in set yet
         for (ObjectReferenceType ref : refs) {
             if (existingOids.contains(ref.getOid())) {
@@ -66,6 +70,8 @@ public class RequestAccess implements Serializable {
 
             List<AssignmentType> assignments = this.assignments.stream().map(a -> a.clone()).collect(Collectors.toList());
             requestItems.put(ref, assignments);
+
+            changed = true;
         }
 
         // remove persons that were not selected (or were unselected)
@@ -75,16 +81,43 @@ public class RequestAccess implements Serializable {
             }
 
             requestItems.remove(ref);
+
+            changed = true;
+        }
+
+        if (changed) {
+            markConflictsDirty();
         }
     }
 
     public void addAssignments(List<AssignmentType> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+        }
         //todo remove naive implementation
         assignments.forEach(a -> this.assignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             assignments.forEach(a -> list.add(a.clone()));
         }
+
+        markConflictsDirty();
+    }
+
+    public void removeAssignments(List<AssignmentType> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+
+        }
+        for (AssignmentType a : assignments) {
+            this.assignments.remove(a);
+
+            for (List<AssignmentType> list : requestItems.values()) {
+                list.remove(a);
+            }
+        }
+
+        markConflictsDirty();
     }
 
     public List<AssignmentType> getShoppingCartAssignments() {
@@ -133,7 +166,17 @@ public class RequestAccess implements Serializable {
     }
 
     public void setRelation(QName relation) {
+        if (relation == null) {
+            // todo set default relation
+        }
         this.relation = relation;
+
+        assignments.forEach(a -> a.getTargetRef().setRelation(relation));
+        for (List<AssignmentType> list : requestItems.values()) {
+            list.forEach(a -> a.getTargetRef().setRelation(relation));
+        }
+
+        markConflictsDirty();
     }
 
     public int getWarningCount() {
@@ -161,9 +204,19 @@ public class RequestAccess implements Serializable {
 
         warningCount = 0;
         errorCount = 0;
+
+        conflictsDirty = false;
     }
 
     public boolean canSubmit() {
         return errorCount == 0 && !requestItems.isEmpty();
+    }
+
+    public boolean shouldRecomputeConflicts() {
+        return conflictsDirty;
+    }
+
+    private void markConflictsDirty() {
+        conflictsDirty = true;
     }
 }
