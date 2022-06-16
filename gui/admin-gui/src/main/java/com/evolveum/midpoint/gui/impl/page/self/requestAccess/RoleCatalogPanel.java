@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
@@ -364,13 +365,24 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     }
 
+    private AssignmentType createNewAssignment(ObjectType object, QName relation) {
+        AssignmentType a = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType()
+                .targetName(object.getName())
+                .type(ObjectTypes.getObjectType(object.getClass()).getTypeQName())
+                .oid(object.getOid())
+                .relation(relation);
+        a.targetRef(targetRef);
+
+        return a;
+    }
+
     private void addItemsPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
         RequestAccess requestAccess = getModelObject();
-        for (ObjectType object : selected) {
-            AssignmentType a = new AssignmentType()
-                    .targetRef(object.getOid(), ObjectTypes.getObjectType(object.getClass()).getTypeQName());
-            requestAccess.getShoppingCartAssignments().add(a);
-        }
+        QName relation = requestAccess.getRelation();
+
+        List<AssignmentType> newAssignments = selected.stream().map(o -> createNewAssignment(o, relation)).collect(Collectors.toList());
+        requestAccess.addAssignments(newAssignments);
 
         getPageBase().reloadShoppingCartIcon(target);
         target.add(get(ID_TILES));
@@ -385,7 +397,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         }
 
         new Toast()
-                .cssClass("bg-success m-3")
+                .success()
                 .title(getString("RoleCatalogPanel.itemAdded"))
                 .icon("fas fa-cart-shopping")
                 .autohide(true)

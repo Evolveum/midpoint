@@ -7,36 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.util.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
-import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
-import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.SessionStorage;
+import java.util.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -48,25 +29,40 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.PropertyModel;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -104,6 +100,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     private static final String ID_REMOVE = "remove";
     private static final String ID_COMMENT = "comment";
     private static final String ID_VALIDITY = "validity";
+    private static final String ID_OPEN_CONFLICT = "openConflict";
+    private static final String ID_SUBMIT = "submit";
 
     public ShoppingCartPanel(IModel<RequestAccess> model) {
         super(model);
@@ -112,7 +110,9 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     }
 
     @Override
-    protected void onBeforeRender() {
+    protected void onConfigure() {
+        super.onConfigure();
+
         DropDownChoice validity = (DropDownChoice) get(ID_VALIDITY);
         validity.setRequired(isValidityRequired());
 
@@ -120,8 +120,6 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         comment.setRequired(isCommentRequired());
 
         computeConflicts();
-
-        super.onBeforeRender();
     }
 
     private void computeConflicts() {
@@ -141,18 +139,19 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
             ObjectDelta<UserType> delta = user.createModifyDelta();
 
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+
             handleAssignmentDeltas(delta, requestAccess.getShoppingCartAssignments(), def);
 
-            PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
-            partialProcessing.setInbound(SKIP);
-            partialProcessing.setProjection(SKIP);
+            PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
+            processing.setInbound(SKIP);
+            processing.setProjection(SKIP);
 
-            ModelExecuteOptions recomputeOptions = ModelExecuteOptions.create().partialProcessing(partialProcessing);
+            ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
 
-            ModelContext<UserType> modelContext = mp.getModelInteractionService()
-                    .previewChanges(MiscUtil.createCollection(delta), recomputeOptions, task, result);
+            ModelContext<UserType> ctx = mp.getModelInteractionService()
+                    .previewChanges(MiscUtil.createCollection(delta), options, task, result);
 
-            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ctx.getEvaluatedAssignmentTriple();
 
             if (evaluatedAssignmentTriple != null) {
                 Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
@@ -300,9 +299,9 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void initLayout() {
-        List<IColumn> columns = createColumns();
+        List<IColumn<ShoppingCartItem, String>> columns = createColumns();
 
-        ISortableDataProvider provider = new ListDataProvider(this, () -> getSession().getSessionStorage().getRequestAccess().getShoppingCartAssignments());
+        ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, () -> getModelObject().getShoppingCartItems());
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
 
             @Override
@@ -351,6 +350,30 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         TextArea comment = new TextArea(ID_COMMENT, new PropertyModel(getModel(), "comment"));
         comment.add(new VisibleBehaviour(() -> isCommentVisible()));
         add(comment);
+
+        AjaxLink openConflict = new AjaxLink<>(ID_OPEN_CONFLICT) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                openConflictPeformed(target);
+            }
+        };
+        add(openConflict);
+
+        AjaxLink submit = new AjaxLink<>(ID_SUBMIT) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                submitPerformed(target);
+            }
+        };
+        add(submit);
+    }
+
+    private void openConflictPeformed(AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    private void submitPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 
     //todo use configuration to populate this
@@ -449,24 +472,32 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         return comment.getVisibility() == null || WebComponentUtil.getElementVisibility(comment.getVisibility());
     }
 
-    private List<IColumn> createColumns() {
-        List<IColumn> columns = new ArrayList<>();
+    private List<IColumn<ShoppingCartItem, String>> createColumns() {
+        List<IColumn<ShoppingCartItem, String>> columns = new ArrayList<>();
 //        columns.add(new IconColumn() {
 //            @Override
 //            protected DisplayType getIconDisplayType(IModel rowModel) {
 //                return null;
 //            }
 //        });
-        columns.add(new AbstractColumn(createStringResource("ShoppingCartPanel.accessName")) {
+        columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
+
             @Override
-            public void populateItem(Item item, String id, IModel iModel) {
-                item.add(new Label(id, "asdf"));
+            public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
+                item.add(new Label(id, () -> model.getObject().getName()));
             }
         });
-        columns.add(new AbstractColumn(createStringResource("ShoppingCartPanel.selectedUsers")) {
+        columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.selectedUsers")) {
             @Override
-            public void populateItem(Item item, String id, IModel model) {
-                item.add(new Label(id, "zxcv"));
+            public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
+                Label label = new Label(id, () -> {
+                    int count = model.getObject().getCount();
+                    String key = count == 0 || count > 1 ? "ShoppingCartPanel.countBadgeUsers" : "ShoppingCartPanel.countBadgeUser";
+
+                    return getString(key, count);
+                });
+                label.add(AttributeAppender.append("class", "badge badge-info"));
+                item.add(label);
             }
         });
         columns.add(new AbstractColumn(() -> "") {
@@ -524,7 +555,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     private void clearCartConfirmedPerformed(AjaxRequestTarget target) {
         getPageBase().hideMainPopup(target);
 
-        getModelObject().getShoppingCartAssignments().clear();
+        getModelObject().clearCart();
 
         getPageBase().reloadShoppingCartIcon(target);
         target.add(get(ID_TABLE));
