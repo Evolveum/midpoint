@@ -51,9 +51,6 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
    public SearchConfigurationWrapper(Class<C> typeClass, SearchBoxConfigurationType searchBoxConfig) {
         this.typeClass = typeClass;
-//        (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(),
-//                searchBoxConfig.getObjectTypeConfiguration() != null ? searchBoxConfig.getObjectTypeConfiguration().getDefaultValue() :
-//                        searchBoxConfig.getDefaultObjectType());
         if (searchBoxConfig.getObjectTypeConfiguration() != null) {
             searchBoxConfig.getObjectTypeConfiguration().getSupportedTypes()
                     .forEach(type -> {
@@ -169,20 +166,6 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         this.defaultRelation = defaultRelation;
     }
 
-    public Boolean getIndirect() {
-        //todo fix
-        return false;
-//        return config.getIndirectConfiguration() != null ? config.getIndirectConfiguration().isIndirect() : null;
-    }
-
-    public void setIndirect(boolean indirect) {
-        //todo fix
-//        if (config.getIndirectConfiguration() == null) {
-//            config.setIndirectConfiguration(new IndirectSearchItemConfigurationType());
-//        }
-//        config.getIndirectConfiguration().setIndirect(indirect);
-        this.indirect = indirect;
-    }
 
     public boolean isAllowToConfigureSearchItems() {
         return allowToConfigureSearchItems;
