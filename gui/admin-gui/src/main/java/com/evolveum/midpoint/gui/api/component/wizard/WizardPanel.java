@@ -151,4 +151,8 @@ public class WizardPanel extends BasePanel {
     public WizardStep getCurrentPanel() {
         return wizardModel.getActiveStep();
     }
+
+    public Component getHeader() {
+        return get(ID_CONTENT_HEADER);
+    }
 }

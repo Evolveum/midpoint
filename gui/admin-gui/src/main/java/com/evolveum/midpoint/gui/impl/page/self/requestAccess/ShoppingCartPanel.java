@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -357,6 +359,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
                 openConflictPeformed(target);
             }
         };
+        openConflict.add(new VisibleBehaviour(() -> getModelObject().getWarningCount() > 0 || getModelObject().getErrorCount() > 0));
         add(openConflict);
 
         AjaxLink submit = new AjaxLink<>(ID_SUBMIT) {
@@ -365,6 +368,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
                 submitPerformed(target);
             }
         };
+        submit.add(new EnableBehaviour(() -> getModelObject().canSubmit()));
+        submit.add(AttributeAppender.append("class", () -> !submit.isEnabledInHierarchy() ? "disabled" : null));
         add(submit);
     }
 
@@ -500,22 +505,22 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
                 item.add(label);
             }
         });
-        columns.add(new AbstractColumn(() -> "") {
+        columns.add(new AbstractColumn<>(() -> "") {
             @Override
-            public void populateItem(Item item, String id, IModel model) {
+            public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 Fragment fragment = new Fragment(id, ID_TABLE_BUTTON_COLUMN, ShoppingCartPanel.this);
                 fragment.add(new AjaxLink<>(ID_EDIT) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-
+                        editItemPerformed(target, model.getObject());
                     }
                 });
                 fragment.add(new AjaxLink<>(ID_REMOVE) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-
+                        removeItemPerformed(target, model.getObject());
                     }
                 });
 
@@ -524,6 +529,14 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         });
 
         return columns;
+    }
+
+    private void editItemPerformed(AjaxRequestTarget target, ShoppingCartItem item) {
+
+    }
+
+    private void removeItemPerformed(AjaxRequestTarget target, ShoppingCartItem item) {
+
     }
 
     private void clearCartPerformed(AjaxRequestTarget target) {

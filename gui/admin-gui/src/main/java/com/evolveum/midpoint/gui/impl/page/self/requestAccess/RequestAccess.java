@@ -162,4 +162,8 @@ public class RequestAccess implements Serializable {
         warningCount = 0;
         errorCount = 0;
     }
+
+    public boolean canSubmit() {
+        return errorCount == 0 && !requestItems.isEmpty();
+    }
 }

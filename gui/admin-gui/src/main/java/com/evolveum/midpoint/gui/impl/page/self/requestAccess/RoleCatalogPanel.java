@@ -385,6 +385,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         requestAccess.addAssignments(newAssignments);
 
         getPageBase().reloadShoppingCartIcon(target);
+        target.add(getWizard().getHeader());
         target.add(get(ID_TILES));
 
         String msg;

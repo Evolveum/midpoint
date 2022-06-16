@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.api.component.wizard;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.util.io.IClusterable;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,8 +34,12 @@ public class WizardModel implements IClusterable {
         steps.forEach(s -> s.init(this));
     }
 
-    public WizardPanel getPanel() {
+    public Component getPanel() {
         return panel;
+    }
+
+    public Component getHeader() {
+        return panel.getHeader();
     }
 
     public void setPanel(WizardPanel panel) {
