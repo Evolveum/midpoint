@@ -14,8 +14,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -30,6 +28,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -38,7 +37,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.tile.*;
+import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
+import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -201,11 +203,34 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                 };
         add(tilesTable);
 
-        ViewTogglePanel viewToggle = new ViewTogglePanel(ID_VIEW_TOGGLE, tilesTable.getViewToggleModel()) {
+        IModel<List<Toggle<ViewToggle>>> items = new LoadableModel<>(false) {
 
             @Override
-            protected void onTogglePerformed(AjaxRequestTarget target, ViewToggle newState) {
-                super.onTogglePerformed(target, newState);
+            protected List<Toggle<ViewToggle>> load() {
+                ViewToggle toggle = tilesTable.getViewToggleModel().getObject();
+                List<Toggle<ViewToggle>> list = new ArrayList<>();
+
+                Toggle asList = new Toggle("fa-solid fa-table-list", null);
+                asList.setActive(ViewToggle.TABLE == toggle);
+                asList.setValue(ViewToggle.TABLE);
+                list.add(asList);
+
+                Toggle asTile = new Toggle("fa-solid fa-table-cells", null);
+                asTile.setActive(ViewToggle.TILE == toggle);
+                asTile.setValue(ViewToggle.TILE);
+                list.add(asTile);
+
+                return list;
+            }
+        };
+
+        TogglePanel<ViewToggle> viewToggle = new TogglePanel<>(ID_VIEW_TOGGLE, items) {
+
+            @Override
+            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+                super.itemSelected(target, item);
+
+                tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
                 target.add(RoleCatalogPanel.this);
             }
         };

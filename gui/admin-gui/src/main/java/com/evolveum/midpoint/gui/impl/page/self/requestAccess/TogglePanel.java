@@ -40,10 +40,8 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
     private static final String ID_LABEL = "label";
     private static final String ID_BADGE = "badge";
 
-    private boolean multipleActive;
-
-    public TogglePanel(String id, IModel<List<Toggle<O>>> model) {
-        super(id, model);
+    public TogglePanel(String id, IModel<List<Toggle<O>>> items) {
+        super(id, items);
 
         initLayout();
     }
@@ -92,23 +90,13 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
         return defaultButtonContent;
     }
 
-    public boolean isMultipleActive() {
-        return multipleActive;
-    }
-
-    public void setMultipleActive(boolean multipleActive) {
-        this.multipleActive = multipleActive;
-    }
-
     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<O>> item) {
         Toggle<O> toggle = item.getObject();
 
         boolean wasActiveBefore = toggle.isActive();
 
-        if (!multipleActive) {
-            List<Toggle<O>> list = getModelObject();
-            list.forEach(t -> t.setActive(false));
-        }
+        List<Toggle<O>> list = getModelObject();
+        list.forEach(t -> t.setActive(false));
 
         toggle.setActive(!wasActiveBefore);
 

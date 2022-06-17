@@ -188,7 +188,6 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     protected void submitPerformed(AjaxRequestTarget target) {
     }
 
-    //todo use configuration to populate this
     private IModel<List> createValidityOptions() {
         return new LoadableModel<>(false) {
 
@@ -227,7 +226,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
 
         CheckoutValidityConfigurationType validityConfig = config.getValidityConfiguration();
         List<ValidityPredefinedValueType> values = validityConfig.getPredefinedValue();
-        return values != null ? values : DEFAULT_VALIDITY_PERIODS;
+        return values != null && !values.isEmpty() ? values : DEFAULT_VALIDITY_PERIODS;
     }
 
     private CheckoutType getCheckoutConfiguration() {

@@ -52,7 +52,7 @@ public interface WizardStep extends Serializable {
     }
 
     default VisibleEnableBehaviour getStepsBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     default VisibleEnableBehaviour getHeaderBehaviour() {

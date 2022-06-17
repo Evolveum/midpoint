@@ -47,7 +47,7 @@ public class ConflictSolverPanel extends BasePanel {
                 List<Toggle<ConflictState>> list = new ArrayList<>();
 
                 for (ConflictState cs : ConflictState.values()) {
-                    Toggle<ConflictState> t = new Toggle<>(null, cs.name());
+                    Toggle<ConflictState> t = new Toggle<>(null, getString(cs));
                     if (cs == ConflictState.UNRESOLVED) {
                         t.setActive(true);
                         t.setBadge("2");

@@ -209,6 +209,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         return delta;
     }
 
+    // todo this doesn't work properly first time loading conflict numbers - model is evaluated before computeConflicts...
     @Override
     public IModel<List<Badge>> getTitleBadges() {
         return () -> {
