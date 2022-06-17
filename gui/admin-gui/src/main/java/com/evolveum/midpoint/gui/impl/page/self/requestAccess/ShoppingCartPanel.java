@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.util.*;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -59,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -93,6 +92,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     private static final String VALIDITY_CUSTOM_FOR_EACH = "validityCustomForEach";
 
     public static final String STEP_ID = "shoppingCart";
+
+    private static final String ID_CONFLICT_SOLVER = "conflictSolver";
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
@@ -301,6 +302,9 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void initLayout() {
+        ConflictSolverPanel conflictSolver = new ConflictSolverPanel(ID_CONFLICT_SOLVER);
+        add(conflictSolver);
+
         List<IColumn<ShoppingCartItem, String>> columns = createColumns();
 
         ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, () -> getModelObject().getShoppingCartItems());
