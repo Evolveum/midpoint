@@ -7,21 +7,17 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -116,22 +112,5 @@ public class WizardHeader extends BasePanel {
 
     protected void onNextPerformed(AjaxRequestTarget target) {
 
-    }
-
-    private static class BehaviourDelegator extends Behavior {
-
-        private SerializableSupplier<VisibleEnableBehaviour> behaviour;
-
-        public BehaviourDelegator(@NotNull SerializableSupplier<VisibleEnableBehaviour> behaviour) {
-            this.behaviour = behaviour;
-        }
-
-        @Override
-        public void onConfigure(Component component) {
-            VisibleEnableBehaviour real = behaviour.get();
-            if (real != null) {
-                real.onConfigure(component);
-            }
-        }
     }
 }

@@ -270,18 +270,19 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     @Override
-    protected void onBackPerformed(AjaxRequestTarget target) {
+    public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
-            super.onBackPerformed(target);
-            return;
+            return super.onBackPerformed(target);
         }
 
         selectionState.setObject(SelectionState.TILES);
         target.add(this);
+
+        return false;
     }
 
     @Override
-    protected void onNextPerformed(AjaxRequestTarget target) {
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
         if (myself.isSelected()) {
             try {
@@ -301,5 +302,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
         getWizard().next();
         target.add(getWizard().getPanel());
+
+        return false;
     }
 }

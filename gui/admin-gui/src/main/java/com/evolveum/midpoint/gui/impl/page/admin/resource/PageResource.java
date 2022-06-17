@@ -105,13 +105,24 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     private List<WizardStep> createSteps() {
-        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(getObjectDetailsModels()){
+        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(getObjectDetailsModels()) {
+
             @Override
-            protected void onBackAfterWizardPerformed(AjaxRequestTarget target) {
+            public boolean onBackPerformed(AjaxRequestTarget target) {
+                super.onBackPerformed(target);
+
+                // index is already lowered
+                int index = getWizard().getActiveStepIndex();
+                if (index == 0) {
+                    return false;
+                }
+
                 Fragment fragment = createTemplateFragment();
                 fragment.setOutputMarkupId(true);
                 PageResource.this.replace(fragment);
                 target.add(fragment);
+
+                return false;
             }
         };
 
