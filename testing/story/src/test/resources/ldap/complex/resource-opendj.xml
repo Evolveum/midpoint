@@ -64,9 +64,8 @@
             <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
-            <objectClass>ri:inetOrgPerson</objectClass>
-
-            <objectsSetDelineation>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
                 <!-- We need to explicitly define base context here.
                      Default base context is dc=example,dc=com. Searching in that
                      with scope=one will produce nothing. -->
@@ -81,7 +80,7 @@
                 </baseContext>
                 <!-- MID-5485 -->
                 <searchHierarchyScope>one</searchHierarchyScope>
-            </objectsSetDelineation>
+            </delineation>
 
             <attribute>
                 <ref>ri:dn</ref>

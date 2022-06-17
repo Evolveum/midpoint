@@ -142,8 +142,8 @@
             <intent>ldapGroup</intent>
             <default>true</default> <!-- one must be default -->
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:groupOfUniqueNames</objectClass>
-            <objectsSetDelineation>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
@@ -153,7 +153,7 @@
                         </q:equal>
                     </filter>
                 </baseContext>
-            </objectsSetDelineation>
+            </delineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -175,8 +175,8 @@
             <kind>entitlement</kind>
             <intent>specialGroup</intent>
             <displayName>Special LDAP Group</displayName>
-            <objectClass>ri:groupOfUniqueNames</objectClass>
-            <objectsSetDelineation>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
@@ -186,7 +186,7 @@
                         </q:equal>
                     </filter>
                 </baseContext>
-            </objectsSetDelineation>
+            </delineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -228,8 +228,8 @@
             <kind>generic</kind>
             <intent>ou-people</intent>
             <displayName>Organizational Unit</displayName>
-            <objectClass>ri:organizationalUnit</objectClass>
-            <objectsSetDelineation>
+            <delineation>
+                <objectClass>ri:organizationalUnit</objectClass>
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
@@ -239,7 +239,7 @@
                         </q:equal>
                     </filter>
                 </baseContext>
-            </objectsSetDelineation>
+            </delineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>

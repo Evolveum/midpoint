@@ -104,8 +104,8 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     private static void checkDefinitionSanity(@NotNull ResourceObjectTypeDefinitionType bean) throws ConfigurationException {
-        QName name = bean.getObjectClass();
-        configCheck(bean.getObjectClass() != null,
+        QName name = getObjectClassName(bean);
+        configCheck(name != null,
                 "Object class name must be specified in object class refinement: %s", bean);
         configCheck(bean.getKind() == null,
                 "Kind must not be specified for object class refinement: %s", name);
@@ -121,6 +121,16 @@ public class ResourceObjectClassDefinitionImpl
                 "'defaultForObjectClass' flag must not be specified for object class refinement: %s", name);
         configCheck(bean.isAbstract() == null,
                 "'abstract' flag must not be specified for object class refinement: %s", name);
+    }
+
+    private static QName getObjectClassName(@NotNull ResourceObjectTypeDefinitionType bean) {
+        QName main = bean.getObjectClass();
+        if (main != null) {
+            return main;
+        }
+        // We accept the value from delineation, but ... it should not be used that way.
+        ResourceObjectTypeDelineationType delineation = bean.getDelineation();
+        return delineation != null ? delineation.getObjectClass() : null;
     }
 
     @Override

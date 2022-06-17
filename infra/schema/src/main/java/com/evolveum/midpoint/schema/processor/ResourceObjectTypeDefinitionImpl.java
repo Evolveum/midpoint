@@ -313,7 +313,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public ExpressionType getClassificationCondition() {
-        ResourceObjectTypeDelineationType delineation = definitionBean.getObjectsSetDelineation();
+        ResourceObjectTypeDelineationType delineation = definitionBean.getDelineation();
         return delineation != null ? delineation.getClassificationCondition() : null;
     }
 

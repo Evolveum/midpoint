@@ -610,7 +610,9 @@
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object class (like ri:inetOrgPerson) for this resource object type. Must be specified.
+                        Object class (like ri:inetOrgPerson) for this resource object type.
+                        MOVED TO delineation FOR OBJECT TYPES.
+                        But for refined object class definitions, it should be used here!
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -620,7 +622,12 @@
                         The reference to additional object classes for this object. The reference should
                         point to object class definition (complex type definition in resource schema) and
                         this definition should be marked as auxiliary.
+                        MOVED TO delineation.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="auxiliaryObjectClassMappings" type="tns:ResourceBidirectionalMappingAndDefinitionType" minOccurs="0">
@@ -660,7 +667,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectsSetDelineation" type="tns:ResourceObjectTypeDelineationType" minOccurs="0">
+            <xsd:element name="delineation" type="tns:ResourceObjectTypeDelineationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Delineates (defines) the set of objects corresponding to this object type, e.g. by
@@ -680,7 +687,7 @@
                         E.g. this is used to specify LDAP organizationalUnit that contains users or groups
                         of particular type.
 
-                        DEPRECATED: set the value in objectSetDelineation instead
+                        DEPRECATED: set the value in "delineation" instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -4605,6 +4612,22 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object class (like ri:inetOrgPerson) for this resource object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The reference to additional object classes for this object. The reference should
+                        point to object class definition (complex type definition in resource schema) and
+                        this definition should be marked as auxiliary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

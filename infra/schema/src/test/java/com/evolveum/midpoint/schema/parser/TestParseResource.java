@@ -45,6 +45,7 @@ import java.util.List;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_BASENAME;
 import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_SIMPLE_BASENAME;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
 import static org.testng.AssertJUnit.*;
 
@@ -560,7 +561,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
             for(ResourceObjectTypeDefinitionType accountType: schemaHandling.getObjectType()) {
                 String name = accountType.getIntent();
                 assertNotNull("Account type without a name", name);
-                assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
+                assertNotNull("Account type "+name+" does not have an objectClass", getObjectClassName(accountType));
                 boolean foundDescription = false;
                 boolean foundDepartmentNumber = false;
                 for (ResourceAttributeDefinitionType attributeDefinitionType : accountType.getAttribute()) {
