@@ -779,24 +779,27 @@ public class SearchTest extends BaseSQLRepoTest {
                 .containsExactlyInAnyOrder("10000000-0000-0000-0000-000000000004", "10000000-0000-0000-0000-000000000005");
     }
 
-    /* TODO rewrite to old repo
-        @Test
-    public void test220SearchInReferenceTargetObject() throws Exception {
-        searchUsersTest("having assignment to a role matching the fulltext condition",
-                f -> f.exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
-                        .fullText("swashbuckling"),
-                user1Oid);
-    }
-
     @Test
-    public void test230SearchInReferencingObject() throws Exception {
-        searchUsersTest("referenced by another object matching the fulltext condition",
-                f -> f.referencedBy(UserType.class,
-                                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF))
-                        .fullText("TŘI číslo"), // will be normalized
-                user1Oid);
+    public void test711FulltextSearchNestedInExists() throws Exception {
+        given("query for users having assignment to an org matching the fulltext condition");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .exists(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF, T_OBJECT_REFERENCE)
+                .fullText("F0085")
+                .build();
+
+        when("executing the search");
+        OperationResult result = new OperationResult("search");
+        queryListener.clear().start();
+        SearchResultList<PrismObject<UserType>> users =
+                repositoryService.searchObjects(UserType.class, query, null, result);
+        queryListener.dumpAndStop();
+
+        then("only users assigned F0085 org are returned");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(users)
+                .extracting(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("atestuserX00002");
     }
-     */
 
     @Test
     public void test720FullTextSearchModify() throws Exception {
@@ -910,20 +913,18 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one object", 1, shadows.size());
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
+    private void assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
         Collection<SelectorOptions<GetOperationOptions>> options = distinct ? distinct() : null;
         assertObjectsFoundByCount(query, options, expectedCount);
-        return assertUsersFoundBySearch(query, options, expectedCount);
+        assertUsersFoundBySearch(query, options, expectedCount);
     }
 
-    private List<PrismObject<UserType>> assertUsersFoundBySearch(ObjectQuery query,
+    private void assertUsersFoundBySearch(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, int expectedCount) throws Exception {
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, options, result);
         assertThatOperationResult(result).isSuccess();
         assertEquals("Wrong # of results found: " + query, expectedCount, users.size());
-        return users;
     }
 
     private void assertObjectsFoundByCount(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
