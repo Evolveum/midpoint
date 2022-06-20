@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContex
 
 import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InactivateShadowSynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InactivateResourceObjectSynchronizationActionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,11 +34,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ActionUris({
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow",
-        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount" })
-@ActionDefinitionClass(InactivateShadowSynchronizationActionType.class)
-public class InactivateShadowAction<F extends FocusType> extends BaseClockworkAction<F> {
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateResourceObject" // not officially supported
+})
+@ActionDefinitionClass(InactivateResourceObjectSynchronizationActionType.class)
+public class InactivateResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public InactivateShadowAction(@NotNull ActionInstantiationContext<F> ctx) {
+    public InactivateResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

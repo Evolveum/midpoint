@@ -4865,8 +4865,8 @@
             <xsd:element name="addFocus" type="tns:AddFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="deleteFocus" type="tns:DeleteFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="inactivateFocus" type="tns:InactivateFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="deleteShadow" type="tns:DeleteShadowSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="inactivateShadow" type="tns:InactivateShadowSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="deleteResourceObject" type="tns:DeleteResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="inactivateResourceObject" type="tns:InactivateResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="createCorrelationCase" type="tns:CreateCorrelationCaseSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -5058,7 +5058,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="DeleteShadowSynchronizationActionType">
+    <xsd:complexType name="DeleteResourceObjectSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Deletes the resource object.
@@ -5073,7 +5073,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="InactivateShadowSynchronizationActionType">
+    <xsd:complexType name="InactivateResourceObjectSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Inactivates the resource object.
