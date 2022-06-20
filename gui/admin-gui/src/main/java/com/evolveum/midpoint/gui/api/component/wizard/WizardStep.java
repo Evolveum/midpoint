@@ -11,8 +11,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
@@ -39,7 +39,7 @@ public interface WizardStep extends Serializable {
     }
 
     default Component createHeaderContent(String id) {
-        return new BadgePanel(id, getTitleBadges());
+        return new BadgeListPanel(id, getTitleBadges());
     }
 
     default IModel<String> getTitle() {

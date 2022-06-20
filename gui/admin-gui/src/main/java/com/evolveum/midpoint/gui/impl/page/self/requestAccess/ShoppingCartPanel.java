@@ -7,17 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.wizard.Badge;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).

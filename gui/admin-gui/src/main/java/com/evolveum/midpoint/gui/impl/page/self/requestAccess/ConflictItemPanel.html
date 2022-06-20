@@ -11,7 +11,7 @@
         <div class="card-body">
             <div class="d-flex gap-2 border-bottom border-gray align-items-center pb-3 mb-3">
                 <h5 class="mb-0">#1 Permission duplication conflict</h5>
-                <span class="badge badge-danger">Fatal conflict</span>
+                <span wicket:id="badge"/>
             </div>
 
             There is an conflict with <a class="mx-1" href="#"><i class="fa fa-puzzle-piece"></i> Office 365: Microsoft Word</a> and <a class="mx-1" href="#"><i class="fa fa-puzzle-piece"></i> Office 365 Package</a>
@@ -43,7 +43,9 @@
 
             <div class="main-button-bar mt-4">
                 <a class="btn btn-primary">Fix conflict</a>
-                <a class="btn btn-link">Let midPoint try to fix it</a>
+                <wicket:remove>
+                    <a class="btn btn-link">Let midPoint try to fix it</a>
+                </wicket:remove>
             </div>
         </div>
     </div>

@@ -210,11 +210,11 @@ public class RequestAccess implements Serializable {
     }
 
     public long getWarningCount() {
-        return conflicts.stream().filter(c -> c.isWarning()).count();
+        return getConflicts().stream().filter(c -> c.isWarning()).count();
     }
 
     public long getErrorCount() {
-        return conflicts.stream().filter(c -> !c.isWarning()).count();
+        return getConflicts().stream().filter(c -> !c.isWarning()).count();
     }
 
     public void clearCart() {
