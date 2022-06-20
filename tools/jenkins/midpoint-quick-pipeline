@@ -45,6 +45,20 @@ podTemplate(
                 git branch: params.BRANCH ?: 'master',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
+            stage("compile") {
+                container('maven') {
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            id
+                            env | sort
+                            mvn --version
+                        fi
+
+                        mvn -B -ntp -U clean package -DskipTests -P -dist
+                    """
+                }
+            }
             stage("build") {
                 container('maven') {
                     sh """#!/bin/bash -ex
@@ -55,7 +69,7 @@ podTemplate(
                             mvn --version
                         fi
 
-                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+                        mvn -B -ntp -U -Dmaven.test.failure.ignore verify -P -dist -DintegrationTestSuite=fast
 
                         if [ "${verbose}" -ge 1 ]
                         then
@@ -74,6 +88,7 @@ podTemplate(
                 }
             }
         } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
             error "Marking build as FAILURE because of: ${e}"
         } finally {
             if (verbose > '0') {
