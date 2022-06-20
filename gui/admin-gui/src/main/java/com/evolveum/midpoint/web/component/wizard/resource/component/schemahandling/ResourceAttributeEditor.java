@@ -56,6 +56,9 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getAuxiliaryObjectClassNames;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
+
 /**
  * @author shood
  */
@@ -398,8 +401,8 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         }
 
         for (ResourceObjectClassDefinition def : schema.getObjectClassDefinitions()) {
-            if (objectType.getObjectClass().equals(def.getTypeName()) ||
-                    objectType.getAuxiliaryObjectClass().contains(def.getTypeName())) {
+            if (def.getTypeName().equals(getObjectClassName(objectType)) ||
+                    getAuxiliaryObjectClassNames(objectType).contains(def.getTypeName())) {
                 for (ResourceAttributeDefinition<?> attributeDefinition : def.getAttributeDefinitions()) {
                     ItemPath itemPath = attributeDefinition.getItemName();
                     ItemPathType itemPathType = new ItemPathType(itemPath);

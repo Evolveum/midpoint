@@ -12,7 +12,10 @@
             <div wicket:id="viewToggle"/>
             <ul wicket:id="menu"/>
         </div>
-        <div class="flex-grow-1" wicket:id="tilesTable"/>
+        <wicket:remove>
+            <!-- todo mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout -->
+        </wicket:remove>
+        <div class="flex-grow-1 mt-2" wicket:id="tilesTable"/>
     </div>
 </wicket:panel>
 

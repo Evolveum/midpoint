@@ -2117,7 +2117,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test616SearchInducements() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
-                "search inducements", AssignmentType.class,
+                "- sorry, inducements, really", AssignmentType.class,
                 f -> f.ownedBy(AbstractRoleType.class, AbstractRoleType.F_INDUCEMENT).block().endBlock());
         assertThat(result)
                 .singleElement()

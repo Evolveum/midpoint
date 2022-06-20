@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +56,7 @@ public class SchemaHandlingDto implements Serializable {
         if (objectType == null) {
             objectClassName = null;
         } else {
-            QName oc = objectType.getObjectType().getObjectClass();
+            QName oc = ResourceObjectTypeDefinitionTypeUtil.getObjectClassName(objectType.getObjectType());
             objectClassName = oc != null ? oc.getLocalPart() : null;
         }
     }
@@ -74,6 +75,7 @@ public class SchemaHandlingDto implements Serializable {
     public void setObjectClassName(String objectClassName) {
         this.objectClassName = objectClassName;
         if (selectedObjectTypeDto != null) {
+            // TODO move to delineation!
             selectedObjectTypeDto.getObjectType().setObjectClass(findObjectClassQName(objectClassName));    // update object class in selected objectType container
         }
     }

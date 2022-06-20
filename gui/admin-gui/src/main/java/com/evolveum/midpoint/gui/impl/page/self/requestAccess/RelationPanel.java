@@ -179,12 +179,14 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     @Override
-    protected void onNextPerformed(AjaxRequestTarget target) {
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
 
         getModelObject().setRelation(selected.getValue());
 
         getWizard().next();
         target.add(getWizard().getPanel());
+
+        return false;
     }
 }

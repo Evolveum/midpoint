@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 
 import java.util.ArrayList;
@@ -273,7 +274,8 @@ public class SchemaHandlingStep extends WizardStep {
                 sb.append(object.getDisplayName() != null ? object.getDisplayName() + " " : "");
                 addKindAndIntent(sb, object.getKind(), object.getIntent());
                 sb.append(" -> ");
-                sb.append(object.getObjectClass() != null ? object.getObjectClass().getLocalPart() : "");
+                QName objectClassName = getObjectClassName(object);
+                sb.append(objectClassName != null ? objectClassName.getLocalPart() : "");
             }
             return sb.toString();
         };
@@ -787,10 +789,12 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void editAttributePerformed(AjaxRequestTarget target, final ResourceAttributeDefinitionType object) {
         resetSelections(target);
-        if (schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null && schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType().getObjectClass() != null) {
+        ResourceObjectTypeDefinitionTypeDto selectedObjectTypeDto = schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto();
+        QName objectClassName = selectedObjectTypeDto != null ? getObjectClassName(selectedObjectTypeDto.getObjectType()) : null;
+        if (selectedObjectTypeDto != null && objectClassName != null) {
             schemaHandlingDtoModel.getObject().setSelectedAttribute(object);
             WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject(), this, parentPage.getReadOnlyModel());
+                    selectedObjectTypeDto.getObjectType(), resourceModel.getObject(), this, parentPage.getReadOnlyModel());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR));
@@ -803,10 +807,12 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void editAssociationPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object) {
         resetSelections(target);
-        if (schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null && schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType().getObjectClass() != null) {
+        ResourceObjectTypeDefinitionTypeDto selectedObjectTypeDto = schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto();
+        QName objectClassName = selectedObjectTypeDto != null ? getObjectClassName(selectedObjectTypeDto.getObjectType()) : null;
+        if (selectedObjectTypeDto != null && objectClassName != null) {
             schemaHandlingDtoModel.getObject().setSelectedAssociation(object);
             WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject(), this, parentPage.getReadOnlyModel());
+                    selectedObjectTypeDto.getObjectType(), resourceModel.getObject(), this, parentPage.getReadOnlyModel());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());

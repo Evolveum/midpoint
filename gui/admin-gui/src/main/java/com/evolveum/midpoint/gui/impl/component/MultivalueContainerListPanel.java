@@ -13,13 +13,16 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.*;
 
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -79,6 +82,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
 //        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, null, getPageBase());
         SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<C>(type);
+        CompiledObjectCollectionView collectionView = getObjectCollectionView();
+        if (collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null
+                && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE)) {
+            searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
+        }
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
         List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>) initSearchableItemWrappers(containerDefinition);
         if (items != null) {

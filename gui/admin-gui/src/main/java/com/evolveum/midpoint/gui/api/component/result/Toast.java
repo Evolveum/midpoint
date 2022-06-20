@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
+package com.evolveum.midpoint.gui.api.component.result;
 
 import java.io.Serializable;
 
@@ -115,6 +115,22 @@ public class Toast implements Serializable {
     public Toast delay(Integer delay) {
         this.delay = delay;
         return this;
+    }
+
+    public Toast info() {
+        return cssClass("m-3 bg-info");
+    }
+
+    public Toast success() {
+        return cssClass("m-3 bg-success");
+    }
+
+    public Toast error() {
+        return cssClass("m-3 bg-danger");
+    }
+
+    public Toast warning() {
+        return cssClass("m-3 bg-warning");
     }
 
     public void show(@NotNull AjaxRequestTarget target) {

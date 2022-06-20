@@ -31,6 +31,10 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
+
 @PanelType(name = "schemaHandlingDetails")
 public class ResourceObjectTypeDetailsPanel extends MultivalueContainerDetailsPanel<ResourceObjectTypeDefinitionType> {
 
@@ -102,8 +106,9 @@ public class ResourceObjectTypeDetailsPanel extends MultivalueContainerDetailsPa
         if (resourceObjectTypeDefinitionType.getIntent() != null) {
             description.add(getString("ResourceSchemaHandlingPanel.description.intent", resourceObjectTypeDefinitionType.getIntent()));
         }
-        if (resourceObjectTypeDefinitionType.getObjectClass() != null) {
-            description.add(getString("ResourceSchemaHandlingPanel.description.objectClass", resourceObjectTypeDefinitionType.getObjectClass().getLocalPart()));
+        QName objectClassName = getObjectClassName(resourceObjectTypeDefinitionType);
+        if (objectClassName != null) {
+            description.add(getString("ResourceSchemaHandlingPanel.description.objectClass", objectClassName.getLocalPart()));
         }
         return description;
     }

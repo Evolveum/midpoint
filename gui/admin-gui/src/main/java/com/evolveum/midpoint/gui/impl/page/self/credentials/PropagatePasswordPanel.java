@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.Toast;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -58,6 +58,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisitor;
 
@@ -108,7 +109,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 && propagatePasswordCheckbox.getCheckboxModel().getObject() || showResultInTable));
         add(individualSystemsContainer);
 
-        provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowModel());
+        provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowListModel());
         BoxedTablePanel<PasswordAccountDto> provisioningTable = new BoxedTablePanel<>(ID_INDIVIDUAL_SYSTEMS_TABLE,
                 provider, initColumns()) {
             private static final long serialVersionUID = 1L;
@@ -121,36 +122,39 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         individualSystemsContainer.add(provisioningTable);
     }
 
-    private IModel<List<PasswordAccountDto>> getShadowModel() {
-        return () -> {
-            List<PasswordAccountDto> accountDtoList = new ArrayList<>();
-            accountDtoList.add(createDefaultPasswordAccountDto());
-            PrismReference linkReferences = getModelObject().asPrismObject().findReference(FocusType.F_LINK_REF);
-            if (linkReferences == null) {
+    private IModel<List<PasswordAccountDto>> getShadowListModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected List<PasswordAccountDto> load() {
+                List<PasswordAccountDto> accountDtoList = new ArrayList<>();
+                accountDtoList.add(createDefaultPasswordAccountDto());
+                PrismReference linkReferences = getModelObject().asPrismObject().findReference(FocusType.F_LINK_REF);
+                if (linkReferences == null) {
+                    return accountDtoList;
+                }
+                final Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                        .item(ShadowType.F_RESOURCE_REF).resolve()
+                        .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,
+                                ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()
+                        .build();
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
+                OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+                for (PrismReferenceValue value : linkReferences.getValues()) {
+                    try {
+                        String accountOid = value.getOid();
+                        PrismObject<ShadowType> account = getPageBase().getModelService().getObject(ShadowType.class,
+                                accountOid, options, task, result);
+
+                        accountDtoList.add(createPasswordAccountDto(account, task, result));
+                        result.recordSuccessIfUnknown();
+                    } catch (Exception ex) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
+                        result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccount.fatalError"), ex);
+                    }
+                }
+
                 return accountDtoList;
             }
-            final Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
-                    .item(ShadowType.F_RESOURCE_REF).resolve()
-                    .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,
-                            ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()
-                    .build();
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
-            OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
-            for (PrismReferenceValue value : linkReferences.getValues()) {
-                try {
-                    String accountOid = value.getOid();
-                    PrismObject<ShadowType> account = getPageBase().getModelService().getObject(ShadowType.class,
-                            accountOid, options, task, result);
-
-                    accountDtoList.add(createPasswordAccountDto(account, task, result));
-                    result.recordSuccessIfUnknown();
-                } catch (Exception ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
-                    result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccount.fatalError"), ex);
-                }
-            }
-
-            return accountDtoList;
         };
     }
 
@@ -472,10 +476,6 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         return accountDto;
     }
 
-    @Override
-    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
-        super.updateNewPasswordValuePerformed(target);
-    }
 
     private boolean getPasswordOutbound(ResourceType resource, ResourceObjectDefinition rOCDef) {
         for (MappingType mapping : rOCDef.getPasswordOutbound()) {

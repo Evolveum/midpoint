@@ -18,10 +18,13 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
@@ -30,7 +33,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/self/credentialsNew")
+                @Url(mountUrl = "/self/credentials")
         },
         action = {
                 @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
@@ -45,8 +48,6 @@ public class PageSelfCredentials extends PageBase {
 
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
-    private static final String ID_CHANGE_PASSWORD_BUTTON = "changePassword";
-    private static final String ID_BACK_BUTTON = "back";
 
     public PageSelfCredentials() {
 
@@ -80,15 +81,14 @@ public class PageSelfCredentials extends PageBase {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new PropagatePasswordPanel(panelId, Model.of(getPrincipalFocus())) {
+                return new PropagatePasswordPanel(panelId, new LoadableDetachableModel<FocusType>() {
                     private static final long serialVersionUID = 1L;
 
-//                    @Override
-//                    protected boolean isCheckOldPassword() {
-//                        return true;//PageAbstractSelfCredentials.this.isCheckOldPassword();
-//                    }
-//
-                };
+                    @Override
+                    protected FocusType load() {
+                        return getPrincipalFocus();
+                    }
+                });
             }
         });
         return tabs;

@@ -610,7 +610,9 @@
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object class (like ri:inetOrgPerson) for this resource object type. Must be specified.
+                        Object class (like ri:inetOrgPerson) for this resource object type.
+                        MOVED TO delineation FOR OBJECT TYPES.
+                        But for refined object class definitions, it should be used here!
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -620,7 +622,12 @@
                         The reference to additional object classes for this object. The reference should
                         point to object class definition (complex type definition in resource schema) and
                         this definition should be marked as auxiliary.
+                        MOVED TO delineation.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="auxiliaryObjectClassMappings" type="tns:ResourceBidirectionalMappingAndDefinitionType" minOccurs="0">
@@ -660,7 +667,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectsSetDelineation" type="tns:ResourceObjectTypeDelineationType" minOccurs="0">
+            <xsd:element name="delineation" type="tns:ResourceObjectTypeDelineationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Delineates (defines) the set of objects corresponding to this object type, e.g. by
@@ -680,7 +687,7 @@
                         E.g. this is used to specify LDAP organizationalUnit that contains users or groups
                         of particular type.
 
-                        DEPRECATED: set the value in objectSetDelineation instead
+                        DEPRECATED: set the value in "delineation" instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -704,35 +711,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="focusType" type="xsd:QName" minOccurs="0">
+            <xsd:element name="focus" type="tns:ResourceObjectFocusSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the focus that corresponds to this resource object type.
-                        If not specified (neither here nor in synchronization configuration), the User (c:UserType) is assumed.
+                        Type and archetype (optional) of the focus objects that correspond to this resource object type.
+                        If not specified (neither here nor in synchronization configuration), the UserType is assumed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Focus archetype corresponding to this resource object type. If specified, the value is used during
-                        correlation (i.e. we look for focus objects having specified archetype), as well as during creation
-                        of new focuses.
-
-                        Notes:
-
-                        1. Archetypes of existing users are not changed in relation to this setting.
-
-                        2. In the future, we may consider allowing multiple archetypes here.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.6</a:since>
-                        <xsd:appinfo>
-                            <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
-                        </xsd:appinfo>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -748,8 +734,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded"
-                    type="tns:ResourceAttributeDefinitionType">
+            <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded" type="tns:ResourceAttributeDefinitionType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specification of handling of an account attribute.
@@ -922,6 +907,52 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResourceObjectFocusSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of focus objects corresponding to given resource object type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0" default="c:UserType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the focus objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus archetype corresponding to this resource object type. If specified, the value is used during
+                        correlation (i.e. we look for focus objects having specified archetype), as well as during creation
+                        of new focuses.
+
+                        Notes:
+
+                        1. Archetypes of existing users are checked against this value: If an existing user has no archetype,
+                        it is assigned this one. If it has a different one, an error is reported. This behavior may change in the
+                        future.
+
+                        2. In the future, we may consider allowing multiple archetypes here.
+
+                        TODO: implement Note 1.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <xsd:appinfo>
+                            <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                        </xsd:appinfo>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -4605,6 +4636,22 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object class (like ri:inetOrgPerson) for this resource object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The reference to additional object classes for this object. The reference should
+                        point to object class definition (complex type definition in resource schema) and
+                        this definition should be marked as auxiliary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4818,8 +4865,8 @@
             <xsd:element name="addFocus" type="tns:AddFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="deleteFocus" type="tns:DeleteFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="inactivateFocus" type="tns:InactivateFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="deleteShadow" type="tns:DeleteShadowSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="inactivateShadow" type="tns:InactivateShadowSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="deleteResourceObject" type="tns:DeleteResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="inactivateResourceObject" type="tns:InactivateResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="createCorrelationCase" type="tns:CreateCorrelationCaseSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -5011,7 +5058,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="DeleteShadowSynchronizationActionType">
+    <xsd:complexType name="DeleteResourceObjectSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Deletes the resource object.
@@ -5026,7 +5073,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="InactivateShadowSynchronizationActionType">
+    <xsd:complexType name="InactivateResourceObjectSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Inactivates the resource object.

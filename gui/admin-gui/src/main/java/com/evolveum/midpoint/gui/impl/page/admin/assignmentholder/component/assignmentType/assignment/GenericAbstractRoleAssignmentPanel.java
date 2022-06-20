@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
+
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -28,8 +27,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
 
 @PanelType(name = "dataProtectionAssignments", experimental = true)
 @PanelInstance(identifier = "dataProtectionAssignments",
@@ -48,23 +45,21 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
     protected ObjectQuery getCustomizeQuery() {
         // This should do customPostSearch on repository level.
         return QueryBuilder.queryFor(AssignmentType.class, getPrismContext())
-            .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
-            .item(ObjectType.F_SUBTYPE).contains("access")
-            .build();
+                .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
+                .item(ObjectType.F_SUBTYPE).contains("access")
+                .build();
     }
 
     @Override
-    protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(List<PrismContainerValueWrapper<AssignmentType>> assignments) {
-
-        if(assignments == null) {
+    protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(
+            List<PrismContainerValueWrapper<AssignmentType>> assignments) {
+        if (assignments == null) {
             return null;
         }
 
         List<PrismContainerValueWrapper<AssignmentType>> resultList = new ArrayList<>();
         Task task = getPageBase().createSimpleTask("load assignment targets");
-        Iterator<PrismContainerValueWrapper<AssignmentType>> assignmentIterator = assignments.iterator();
-        while (assignmentIterator.hasNext()) {
-            PrismContainerValueWrapper<AssignmentType> ass = assignmentIterator.next();
+        for (PrismContainerValueWrapper<AssignmentType> ass : assignments) {
             AssignmentType assignment = ass.getRealValue();
             if (assignment == null || assignment.getTargetRef() == null) {
                 continue;
@@ -81,7 +76,7 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
     }
 
     @Override
-    protected ObjectFilter getSubtypeFilter(){
+    protected ObjectFilter getSubtypeFilter() {
         return getPageBase().getPrismContext().queryFor(OrgType.class)
                 .block()
                 .item(OrgType.F_SUBTYPE)
@@ -94,5 +89,4 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
     protected QName getAssignmentType() {
         return OrgType.COMPLEX_TYPE;
     }
-
 }

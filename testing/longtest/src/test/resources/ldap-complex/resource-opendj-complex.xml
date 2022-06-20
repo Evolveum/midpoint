@@ -208,9 +208,11 @@
         <objectType>
             <intent>security</intent>
             <displayName>Security Account</displayName>
-            <objectClass>ri:inetOrgPerson</objectClass>
-            <!-- MID-4483 -->
-            <auxiliaryObjectClass>ri:userSecurityInformation</auxiliaryObjectClass>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
+                <!-- MID-4483 -->
+                <auxiliaryObjectClass>ri:userSecurityInformation</auxiliaryObjectClass>
+            </delineation>
             <attribute>
                 <ref>ri:dn</ref>
                 <outbound>

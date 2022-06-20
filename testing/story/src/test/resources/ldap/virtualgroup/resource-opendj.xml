@@ -164,8 +164,10 @@
             <kind>entitlement</kind>
             <intent>virtualstatic</intent>
             <description>virtual-static-group</description>
-            <objectClass>ri:groupOfUniqueNames</objectClass>
-            <auxiliaryObjectClass>ri:ds-virtual-static-group</auxiliaryObjectClass>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <auxiliaryObjectClass>ri:ds-virtual-static-group</auxiliaryObjectClass>
+            </delineation>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <limitations>

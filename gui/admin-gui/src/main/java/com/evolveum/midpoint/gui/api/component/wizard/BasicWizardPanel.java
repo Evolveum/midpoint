@@ -117,23 +117,21 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         return Model.of();
     }
 
-    protected void onNextPerformed(AjaxRequestTarget target) {
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         getWizard().next();
         target.add(getWizard().getPanel());
+
+        return false;
     }
 
-    protected void onBackPerformed(AjaxRequestTarget target) {
+    public boolean onBackPerformed(AjaxRequestTarget target) {
         int index = getWizard().getActiveStepIndex();
         if (index > 0) {
             getWizard().previous();
             target.add(getWizard().getPanel());
-            return;
         }
-        onBackAfterWizardPerformed(target);
-    }
 
-    protected void onBackAfterWizardPerformed(AjaxRequestTarget target) {
-        getPageBase().redirectBack();
+        return false;
     }
 
     @Override

@@ -15,6 +15,13 @@ import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,6 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(PersonOfInterest.class);
 
     private enum PersonOfInterest {
 
@@ -261,31 +270,39 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     @Override
-    protected void onBackPerformed(AjaxRequestTarget target) {
+    public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
-            super.onBackPerformed(target);
-            return;
+            return super.onBackPerformed(target);
         }
 
         selectionState.setObject(SelectionState.TILES);
         target.add(this);
+
+        return false;
     }
 
     @Override
-    protected void onNextPerformed(AjaxRequestTarget target) {
-        getModelObject().getPersonOfInterest().clear();
-
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
         if (myself.isSelected()) {
-            ObjectReferenceType ref = new ObjectReferenceType()
-                    .oid(SecurityUtil.getPrincipalOidIfAuthenticated())
-                    .type(UserType.COMPLEX_TYPE);
-            getModelObject().getPersonOfInterest().add(ref);
+            try {
+                MidPointPrincipal principal = SecurityUtil.getPrincipal();
+
+                ObjectReferenceType ref = new ObjectReferenceType()
+                        .oid(principal.getOid())
+                        .type(UserType.COMPLEX_TYPE)
+                        .targetName(principal.getName());
+                getModelObject().addPersonOfInterest(ref);
+            } catch (SecurityViolationException ex) {
+                LOGGER.debug("Couldn't get principal, shouldn't happen", ex);
+            }
         } else {
-            getModelObject().getPersonOfInterest().addAll(selectedGroupOfUsers.getObject());
+            getModelObject().addPersonOfInterest(selectedGroupOfUsers.getObject());
         }
 
         getWizard().next();
         target.add(getWizard().getPanel());
+
+        return false;
     }
 }

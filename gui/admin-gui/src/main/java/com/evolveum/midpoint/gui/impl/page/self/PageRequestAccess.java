@@ -6,15 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.*;
-
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -22,13 +20,11 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -99,29 +95,29 @@ public class PageRequestAccess extends PageSelf {
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
 
-        List<ListGroupMenuItem> list = new ArrayList<>();
-        ListGroupMenuItem allRoles = new ListGroupMenuItem("fa fa-fw fa-border-all", "All roles");
-        allRoles.setActive(true);
-        list.add(allRoles);
-
-        ListGroupMenuItem rolesOfTeamMate = new ListGroupMenuItem("fa fa-fw fa-users", "Roles of team mate");
-        rolesOfTeamMate.setBadge("12");
-        list.add(rolesOfTeamMate);
-
-        ListGroupMenuItem menu2 = new ListGroupMenuItem("fa fa-fw fa-users", "Roles of team mate");
-        list.add(menu2);
-
-        ListGroupMenuItem o1 = new ListGroupMenuItem(null, "Option 1");
-        menu2.getItems().add(o1);
-        ListGroupMenuItem o2 = new ListGroupMenuItem(null, "Option 2");
-        menu2.getItems().add(o2);
-        ListGroupMenuItem o3 = new ListGroupMenuItem(null, "Option 3");
-        menu2.getItems().add(o3);
-        ListGroupMenuItem o31 = new ListGroupMenuItem(null, "Option 31");
-        o3.getItems().add(o31);
-
-        ListGroupMenuPanel sample = new ListGroupMenuPanel("sample", Model.ofList(list));
-        add(sample);
+//        List<ListGroupMenuItem> list = new ArrayList<>();
+//        ListGroupMenuItem allRoles = new ListGroupMenuItem("fa fa-fw fa-border-all", "All roles");
+//        allRoles.setActive(true);
+//        list.add(allRoles);
+//
+//        ListGroupMenuItem rolesOfTeamMate = new ListGroupMenuItem("fa fa-fw fa-users", "Roles of team mate");
+//        rolesOfTeamMate.setBadge("12");
+//        list.add(rolesOfTeamMate);
+//
+//        ListGroupMenuItem menu2 = new ListGroupMenuItem("fa fa-fw fa-users", "Roles of team mate");
+//        list.add(menu2);
+//
+//        ListGroupMenuItem o1 = new ListGroupMenuItem(null, "Option 1");
+//        menu2.getItems().add(o1);
+//        ListGroupMenuItem o2 = new ListGroupMenuItem(null, "Option 2");
+//        menu2.getItems().add(o2);
+//        ListGroupMenuItem o3 = new ListGroupMenuItem(null, "Option 3");
+//        menu2.getItems().add(o3);
+//        ListGroupMenuItem o31 = new ListGroupMenuItem(null, "Option 31");
+//        o3.getItems().add(o31);
+//
+//        ListGroupMenuPanel sample = new ListGroupMenuPanel("sample", Model.ofList(list));
+//        add(sample);
     }
 
     private List<WizardStep> createSteps() {

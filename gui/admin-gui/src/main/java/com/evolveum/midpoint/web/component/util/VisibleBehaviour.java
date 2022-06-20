@@ -9,21 +9,11 @@ package com.evolveum.midpoint.web.component.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * EXPERIMENTAL
- */
 public class VisibleBehaviour extends VisibleEnableBehaviour {
 
     private static final long serialVersionUID = 1L;
 
-    @NotNull private final SerializableSupplier<Boolean> visibility;
-
     public VisibleBehaviour(@NotNull SerializableSupplier<Boolean> visibility) {
-        this.visibility = visibility;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return visibility.get();
+        super(visibility);
     }
 }

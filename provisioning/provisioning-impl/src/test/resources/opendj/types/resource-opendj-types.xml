@@ -81,8 +81,8 @@
         <objectType>
             <kind>account</kind>
             <intent>employee</intent>
-            <objectClass>ri:inetOrgPerson</objectClass>
-            <objectsSetDelineation>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
@@ -92,7 +92,7 @@
                         </q:equal>
                     </filter>
                 </baseContext>
-            </objectsSetDelineation>
+            </delineation>
         </objectType>
 
         <objectType>
@@ -100,8 +100,8 @@
             <intent>special</intent>
             <documentation>Any account in "special" OU</documentation>
             <abstract>true</abstract>
-            <objectClass>ri:inetOrgPerson</objectClass>
-            <objectsSetDelineation>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
                 <baseContext>
                     <objectClass>ri:organizationalUnit</objectClass>
                     <filter>
@@ -111,7 +111,7 @@
                         </q:equal>
                     </filter>
                 </baseContext>
-            </objectsSetDelineation>
+            </delineation>
         </objectType>
 
         <objectType>
@@ -122,7 +122,7 @@
                 <kind>account</kind>
                 <intent>special</intent>
             </super>
-            <objectsSetDelineation>
+            <delineation>
                 <!-- baseContext is inherited -->
                 <filter>
                     <q:equal>
@@ -130,7 +130,7 @@
                         <q:value>admin</q:value>
                     </q:equal>
                 </filter>
-            </objectsSetDelineation>
+            </delineation>
         </objectType>
 
         <objectType>
@@ -141,7 +141,7 @@
                 <kind>account</kind>
                 <intent>special</intent>
             </super>
-            <objectsSetDelineation>
+            <delineation>
                 <!-- baseContext is inherited, filter is overwritten -->
                 <filter>
                     <q:equal>
@@ -149,7 +149,7 @@
                         <q:value>tester</q:value>
                     </q:equal>
                 </filter>
-            </objectsSetDelineation>
+            </delineation>
         </objectType>
 
     </schemaHandling>

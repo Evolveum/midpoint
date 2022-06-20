@@ -31,6 +31,8 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private boolean indirect;
 
     private String collectionViewName;
+
+    private String collectionRefOid;
     private boolean allowAllTypeSearch;
 
     private boolean allowToConfigureSearchItems;
@@ -125,6 +127,14 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
 
     public void setCollectionViewName(String collectionViewName) {
         this.collectionViewName = collectionViewName;
+    }
+
+    public String getCollectionRefOid() {
+        return collectionRefOid;
+    }
+
+    public void setCollectionRefOid(String collectionRefOid) {
+        this.collectionRefOid = collectionRefOid;
     }
 
     public Class<C> getTypeClass() {

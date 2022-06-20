@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
+
 import static java.util.Objects.requireNonNullElse;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
@@ -292,7 +294,7 @@ public class SynchronizationPolicyFactory {
                 schema.findObjectDefinition(
                         Objects.requireNonNullElse(typeDefBean.getKind(), ACCOUNT),
                         Objects.requireNonNullElse(typeDefBean.getIntent(), SchemaConstants.INTENT_DEFAULT),
-                        typeDefBean.getObjectClass());
+                        getObjectClassName(typeDefBean));
         if (objectDefinition instanceof ResourceObjectTypeDefinition) {
             ResourceObjectTypeDefinition typeDef = (ResourceObjectTypeDefinition) objectDefinition;
             return forKindAndIntent(typeDef.getKind(), typeDef.getIntent(), resource);

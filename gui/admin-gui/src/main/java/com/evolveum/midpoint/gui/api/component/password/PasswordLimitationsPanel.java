@@ -25,7 +25,6 @@ import java.util.List;
 public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationResult>> {
 
     private static final String ID_VALIDATION_CONTAINER = "validationContainer";
-    private static final String ID_VALIDATION_PARENT_ITEMS = "validationParentItems";
     private static final String ID_VALIDATION_ITEMS = "validationItems";
     private static final String ID_VALIDATION_ITEM = "validationItem";
 
@@ -40,7 +39,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
     }
 
     private void initLayout() {
-        final WebMarkupContainer validationContainer = new WebMarkupContainer(ID_VALIDATION_CONTAINER) {
+        WebMarkupContainer validationContainer = new WebMarkupContainer(ID_VALIDATION_CONTAINER) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -49,18 +48,8 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
             }
         };
         validationContainer.setOutputMarkupId(true);
+        validationContainer.setOutputMarkupPlaceholderTag(true);
         add(validationContainer);
-
-        final WebMarkupContainer validationParentContainer = new WebMarkupContainer(ID_VALIDATION_PARENT_ITEMS) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !getModelObject().isEmpty();
-            }
-        };
-        validationParentContainer.setOutputMarkupId(true);
-        validationContainer.add(validationParentContainer);
 
         ListView<StringLimitationResult> validationItems = new ListView<>(ID_VALIDATION_ITEMS, getModel()) {
 
@@ -75,10 +64,10 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
             }
         };
         validationItems.setOutputMarkupId(true);
-        validationParentContainer.add(validationItems);
+        validationContainer.add(validationItems);
     }
 
     public void refreshItems(AjaxRequestTarget target){
-        target.add(get(createComponentPath(ID_VALIDATION_CONTAINER, ID_VALIDATION_PARENT_ITEMS)));
+        target.add(PasswordLimitationsPanel.this.get(ID_VALIDATION_CONTAINER));
     }
 }

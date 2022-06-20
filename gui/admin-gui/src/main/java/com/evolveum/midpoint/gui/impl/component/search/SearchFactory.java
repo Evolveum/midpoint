@@ -571,6 +571,12 @@ public class SearchFactory {
             config.getAllowedModeList().clear();
             config.getAllowedModeList().addAll(customConfig.getAllowedModeList());
         }
+        if (StringUtils.isNotEmpty(customConfig.getCollectionRefOid())) {
+            config.setCollectionRefOid(customConfig.getCollectionRefOid());
+        }
+        if (StringUtils.isNotEmpty(customConfig.getCollectionViewName())) {
+            config.setCollectionViewName(customConfig.getCollectionViewName());
+        }
         if (customConfig.getDefaultSearchBoxMode() != null  && config.getAllowedModeList().contains(customConfig.getDefaultScope())) {
             config.setDefaultSearchBoxMode(customConfig.getDefaultSearchBoxMode());
         }

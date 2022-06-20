@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -16,10 +14,10 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -41,8 +39,8 @@ public class WizardHeader extends BasePanel {
     }
 
     @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
+    protected void onConfigure() {
+        super.onConfigure();
 
         addOrReplace(createHeaderContent(ID_CONTENT));
     }
@@ -56,7 +54,6 @@ public class WizardHeader extends BasePanel {
         add(next);
 
         add(new Label(ID_TITLE, currentPanelTitle));
-
     }
 
     protected Component createHeaderContent(String id) {
@@ -75,8 +72,9 @@ public class WizardHeader extends BasePanel {
         next.setOutputMarkupPlaceholderTag(true);
         next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
 
+        next.add(new BehaviourDelegator(() -> getNextVisibilityBehaviour()));
+
         next.add(new Label(ID_NEXT_LABEL, nextPanelTitle));
-        next.add(getNextVisibilityBehaviour());
         return next;
     }
 
@@ -97,7 +95,14 @@ public class WizardHeader extends BasePanel {
         back.setOutputMarkupPlaceholderTag(true);
         back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
 
+        back.add(new BehaviourDelegator(() -> getBackVisibilityBehaviour()));
+
         return back;
+    }
+
+    @NotNull
+    protected VisibleEnableBehaviour getBackVisibilityBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {

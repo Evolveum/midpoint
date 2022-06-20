@@ -11,12 +11,16 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SuperObjectTypeReferenceType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
@@ -41,6 +45,29 @@ public class ResourceObjectTypeDefinitionTypeUtil {
         return getKind(bean) == kind && getIntent(bean).equals(intent);
     }
 
+    public static @Nullable QName getObjectClassName(@NotNull ResourceObjectTypeDefinitionType bean) {
+        ResourceObjectTypeDelineationType delineation = bean.getDelineation();
+        if (delineation != null) {
+            QName objectClassName = delineation.getObjectClass();
+            if (objectClassName != null) {
+                return objectClassName;
+            }
+        }
+        return bean.getObjectClass();
+    }
+
+    public static @NotNull List<QName> getAuxiliaryObjectClassNames(@NotNull ResourceObjectTypeDefinitionType bean) {
+        ResourceObjectTypeDelineationType delineation = bean.getDelineation();
+        if (delineation != null) {
+            List<QName> auxiliaryObjectClasses = delineation.getAuxiliaryObjectClass();
+            if (!auxiliaryObjectClasses.isEmpty()) {
+                return auxiliaryObjectClasses;
+            }
+        }
+        return bean.getAuxiliaryObjectClass();
+    }
+
+    /** Reference to a super-type of an object type. */
     public static abstract class SuperReference {
 
         static class ByName extends SuperReference {

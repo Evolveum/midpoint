@@ -48,8 +48,11 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 
 @PanelType(name = "schemaHandling")
 @PanelInstance(identifier = "schemaHandling", applicableForType = ResourceType.class,
@@ -235,8 +238,9 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
         if (resourceObjectTypeDefinitionType.getIntent() != null) {
             description.add(getString("ResourceSchemaHandlingPanel.description.intent", resourceObjectTypeDefinitionType.getIntent()));
         }
-        if (resourceObjectTypeDefinitionType.getObjectClass() != null) {
-            description.add(getString("ResourceSchemaHandlingPanel.description.objectClass", resourceObjectTypeDefinitionType.getObjectClass().getLocalPart()));
+        QName objectClassName = getObjectClassName(resourceObjectTypeDefinitionType);
+        if (objectClassName != null) {
+            description.add(getString("ResourceSchemaHandlingPanel.description.objectClass", objectClassName.getLocalPart()));
         }
         return description;
     }

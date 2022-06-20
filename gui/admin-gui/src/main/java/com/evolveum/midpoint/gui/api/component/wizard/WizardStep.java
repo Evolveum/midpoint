@@ -11,8 +11,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -47,6 +51,10 @@ public interface WizardStep extends Serializable {
         return Model.ofList(new ArrayList<>());
     }
 
+    default VisibleEnableBehaviour getStepsBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+    }
+
     default VisibleEnableBehaviour getHeaderBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
@@ -57,5 +65,23 @@ public interface WizardStep extends Serializable {
 
     default VisibleEnableBehaviour getNextBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+    }
+
+    /**
+     * @return flag whether default "back" button action should be executed.
+     * If true, default behaviour of back button will be executed as well
+     * If false, only code in this method will be executed
+     */
+    default boolean onBackPerformed(AjaxRequestTarget target) {
+        return true;
+    }
+
+    /**
+     * @return flag whether default "next" button action should be executed.
+     * If true, default behaviour of back button will be executed as well
+     * If false, only code in this method will be executed
+     */
+    default boolean onNextPerformed(AjaxRequestTarget target) {
+        return true;
     }
 }

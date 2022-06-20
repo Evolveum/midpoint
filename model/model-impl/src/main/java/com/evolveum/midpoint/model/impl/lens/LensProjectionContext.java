@@ -26,7 +26,7 @@ import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResou
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.sync.action.DeleteShadowAction;
+import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -189,7 +189,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Although there are more values, currently it seems that we use only UNLINK and DELETE ones.
      *
-     * Set by the client (see {@link UnlinkAction} and {@link DeleteShadowAction}) or automatically
+     * Set by the client (see {@link UnlinkAction} and {@link DeleteResourceObjectAction}) or automatically
      * determined from linkRef delete delta by {@link ContextLoader}.
      *
      * See also {@link ModelProjectionContext#getSynchronizationIntent()}.

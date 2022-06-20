@@ -48,6 +48,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
+
 @PanelType(name = "resourceTasks")
 @PanelInstance(identifier = "resourceTasks", applicableForType = ResourceType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageResource.tab.content.tasks", icon = GuiStyleConstants.CLASS_OBJECT_TASK_ICON, order = 40))
@@ -287,7 +289,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
             ResourceObjectTypeDefinitionType def = objectTypes.get(0);
             set.setKind(def.getKind());
             set.setIntent(def.getIntent());
-            set.setObjectclass(def.getObjectClass());
+            set.setObjectclass(getObjectClassName(def));
         }
 
         return set;

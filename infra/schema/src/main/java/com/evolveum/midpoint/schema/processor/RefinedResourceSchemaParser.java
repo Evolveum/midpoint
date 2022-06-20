@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.SuperReference;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.*;
@@ -103,7 +103,7 @@ public class RefinedResourceSchemaParser {
         for (ResourceObjectTypeDefinitionType definitionBean : definitionBeans) {
             QName objectClassName =
                     MiscUtil.requireNonNull(
-                            definitionBean.getObjectClass(),
+                            getObjectClassName(definitionBean),
                             () -> new ConfigurationException(
                                     "Object class name must not be null in " + contextDescription));
 
@@ -181,7 +181,7 @@ public class RefinedResourceSchemaParser {
         ResourceObjectTypeDefinitionType expandedBean = expand(definitionBean);
 
         QName objectClassName = MiscUtil.configNonNull(
-                expandedBean.getObjectClass(),
+                getObjectClassName(expandedBean),
                 () -> "Definition of " + identification + " does not have objectclass, in " + contextDescription);
 
         ResourceObjectClassDefinition objectClassDefinition =
@@ -344,7 +344,7 @@ public class RefinedResourceSchemaParser {
         }
 
         void resolveAuxiliaryObjectClassNames() throws SchemaException {
-            for (QName auxObjectClassName : definitionBean.getAuxiliaryObjectClass()) {
+            for (QName auxObjectClassName : getAuxiliaryObjectClassNames(definitionBean)) {
                 LOGGER.trace("Resolving auxiliary object class name: {} for {}", auxObjectClassName, definition);
                 definition.addAuxiliaryObjectClassDefinition(
                         MiscUtil.requireNonNull(
@@ -367,9 +367,7 @@ public class RefinedResourceSchemaParser {
          * Returns object type definition matching given kind and one of the intents, specified in the association definition.
          *
          * (If no intents are provided, default type for given kind is returned.
-         * We are not very eager here - by default we mean just the flag "default for kind" being set.
-         * This is in contrast with e.g. {@link ResourceSchema#findObjectDefinitionForKindInternal(ShadowKindType, QName)}
-         * that makes crazy attempts to find a suitable definition. But here we won't go into such levels.)
+         * We are not very eager here - by default we mean just the flag "default for kind" being set.)
          *
          * The matching types must share at least the object class name. This is checked by this method.
          * However, in practice they must share much more, as described in the description for
@@ -572,7 +570,7 @@ public class RefinedResourceSchemaParser {
         }
 
         private void parseDelineation() throws ConfigurationException {
-            ResourceObjectTypeDelineationType delineationBean = definitionBean.getObjectsSetDelineation();
+            ResourceObjectTypeDelineationType delineationBean = definitionBean.getDelineation();
             if (delineationBean != null) {
                 configCheck(definitionBean.getBaseContext() == null,
                         "Base context cannot be set when delineation is configured. In %s", definition);

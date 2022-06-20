@@ -7,8 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import org.apache.wicket.model.IModel;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ConflictItemPanel {
+public class ConflictItemPanel extends BasePanel<Conflict> {
+
+    private static final long serialVersionUID = 1L;
+
+    public ConflictItemPanel(String id, IModel<Conflict> model) {
+        super(id, model);
+    }
 }
