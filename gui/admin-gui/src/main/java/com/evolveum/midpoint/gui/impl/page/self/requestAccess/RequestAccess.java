@@ -285,6 +285,7 @@ public class RequestAccess implements Serializable {
             }
 
             this.conflicts = new ArrayList<>(conflicts.values());
+            conflictsDirty = false;
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
             page.error("Couldn't get assignments conflicts. Reason: " + e);
@@ -303,6 +304,7 @@ public class RequestAccess implements Serializable {
 
         ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
         ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+
         Conflict conflict = new Conflict(added, exclusion, warning);
 
         if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {

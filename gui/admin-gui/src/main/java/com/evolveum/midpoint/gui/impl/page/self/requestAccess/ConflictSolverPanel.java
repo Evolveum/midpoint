@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -26,15 +31,11 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String BADGE_COLOR_UNRESOLVED = "badge badge-danger";
-    private static final String BADGE_COLOR_RESOLVED = "badge badge-success";
-    private static final String BADGE_COLOR_SKIPPED = "badge badge-info";
-
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
-    private IModel<ConflictState> selected = Model.of((ConflictState) null);
+    private IModel<ConflictState> selected = Model.of(ConflictState.UNRESOLVED);
 
     public ConflictSolverPanel(String id, IModel<RequestAccess> model) {
         super(id, model);
@@ -43,6 +44,7 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
         IModel<List<Toggle<ConflictState>>> toggleModel = new LoadableModel<>(false) {
             @Override
             protected List<Toggle<ConflictState>> load() {
@@ -50,11 +52,12 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
 
                 for (ConflictState cs : ConflictState.values()) {
                     Toggle<ConflictState> t = new Toggle<>(null, getString(cs));
+                    t.setActive(selected.getObject() == cs);
 
                     if (cs == ConflictState.UNRESOLVED) {
                         long count = getModelObject().getConflicts().stream().filter(c -> ConflictState.UNRESOLVED.equals(c.getState())).count();
                         if (count > 0) {
-                            t.setBadgeCss("badge badge-danger");
+                            t.setBadgeCss(Badge.State.DANGER.getCss());
                             t.setBadge(Long.toString(count));
                         }
                     }
@@ -67,10 +70,30 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
             }
         };
 
-        TogglePanel toggle = new TogglePanel(ID_TOGGLE, toggleModel);
+        TogglePanel<ConflictState> toggle = new TogglePanel<>(ID_TOGGLE, toggleModel) {
+
+            @Override
+            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ConflictState>> item) {
+                super.itemSelected(target, item);
+
+                selected.setObject(item.getObject().getValue());
+                target.add(ConflictSolverPanel.this);
+            }
+        };
         add(toggle);
 
-        ListView<Conflict> items = new ListView<>(ID_ITEMS, () -> getModelObject().getConflicts()) {
+        IModel<List<Conflict>> listModel = () -> {
+            ConflictState state = selected.getObject();
+
+            List<Conflict> all = getModelObject().getConflicts();
+            if (state == null) {
+                return all;
+            }
+
+            return all.stream().filter(c -> state == c.getState()).collect(Collectors.toList());
+        };
+
+        ListView<Conflict> items = new ListView<>(ID_ITEMS, listModel) {
 
             @Override
             protected void populateItem(ListItem<Conflict> item) {

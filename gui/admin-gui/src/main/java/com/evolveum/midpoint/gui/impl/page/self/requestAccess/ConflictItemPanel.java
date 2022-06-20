@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
@@ -21,6 +22,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_BADGE = "badge";
+    private static final String ID_MESSAGE = "message";
 
     public ConflictItemPanel(String id, IModel<Conflict> model) {
         super(id, model);
@@ -40,5 +42,8 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
             return b;
         });
         add(badge);
+
+        Label message = new Label(ID_MESSAGE, () -> getModelObject().getAdded());
+        add(message);
     }
 }
