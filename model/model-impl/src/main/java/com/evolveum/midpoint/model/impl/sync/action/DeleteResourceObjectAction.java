@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.impl.sync.reactions.ActionInstantiationContex
 
 import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeleteShadowSynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeleteResourceObjectSynchronizationActionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,11 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  */
 @ActionUris({
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow",
-        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteAccount" })
-@ActionDefinitionClass(DeleteShadowSynchronizationActionType.class)
-public class DeleteShadowAction<F extends FocusType> extends BaseClockworkAction<F> {
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteAccount",
+        "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteResourceObject" // not officially supported
+})
+@ActionDefinitionClass(DeleteResourceObjectSynchronizationActionType.class)
+public class DeleteResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public DeleteShadowAction(@NotNull ActionInstantiationContext<F> ctx) {
+    public DeleteResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

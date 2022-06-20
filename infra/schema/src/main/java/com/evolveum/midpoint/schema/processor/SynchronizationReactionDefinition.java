@@ -112,8 +112,8 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
         all.addAll(actions.getAddFocus());
         all.addAll(actions.getDeleteFocus());
         all.addAll(actions.getInactivateFocus());
-        all.addAll(actions.getDeleteShadow());
-        all.addAll(actions.getInactivateShadow());
+        all.addAll(actions.getDeleteResourceObject());
+        all.addAll(actions.getInactivateResourceObject());
         all.addAll(actions.getCreateCorrelationCase());
         // TODO support extensions
         return all;

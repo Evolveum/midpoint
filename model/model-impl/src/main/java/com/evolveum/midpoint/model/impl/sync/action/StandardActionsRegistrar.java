@@ -26,10 +26,10 @@ public class StandardActionsRegistrar {
     public void register() {
         synchronizationActionFactory.register(AddFocusAction.class);
         synchronizationActionFactory.register(DeleteFocusAction.class);
-        synchronizationActionFactory.register(DeleteShadowAction.class);
+        synchronizationActionFactory.register(DeleteResourceObjectAction.class);
         synchronizationActionFactory.register(SynchronizeAction.class);
         synchronizationActionFactory.register(InactivateFocusAction.class);
-        synchronizationActionFactory.register(InactivateShadowAction.class);
+        synchronizationActionFactory.register(InactivateResourceObjectAction.class);
         synchronizationActionFactory.register(LinkAction.class);
         synchronizationActionFactory.register(UnlinkAction.class);
         synchronizationActionFactory.register(CreateCorrelationCaseAction.class);
