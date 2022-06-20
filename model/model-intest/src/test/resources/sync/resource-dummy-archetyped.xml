@@ -37,9 +37,13 @@
             <kind>account</kind>
             <intent>default</intent>
             <displayName>Default Account</displayName>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <focusType>UserType</focusType>
-            <archetypeRef oid="e3a9a6b9-17f6-4239-b935-6f88a655b9d7" />
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="e3a9a6b9-17f6-4239-b935-6f88a655b9d7" />
+            </focus>
             <attribute>
                 <ref>icfs:name</ref>
                 <inbound>
