@@ -14,8 +14,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -71,7 +82,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * Created by honchar
@@ -80,6 +90,8 @@ public class AuditLogViewerPanel extends BasePanel {
     private static final long serialVersionUID = 1L;
 
     static final Trace LOGGER = TraceManager.getTrace(AuditLogViewerPanel.class);
+    private static final String DOT_CLASS = AuditLogViewerPanel.class.getSimpleName();
+    private static final String OPERATION_LOAD_TARGET_REFERENCE_OBJECT = DOT_CLASS + "loadTargetReferenceObject";
 
     private static final String ID_AUDIT_LOG_VIEWER_TABLE = "auditLogViewerTable";
 
@@ -320,17 +332,56 @@ public class AuditLogViewerPanel extends BasePanel {
         }
 
         IColumn<SelectableBean<AuditEventRecordType>, String> eventTypeColumn =
-                new PropertyColumn<>(createStringResource("PageAuditLogViewer.eventTypeLabel"), AuditEventRecordType.F_EVENT_TYPE.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_EVENT_TYPE.getLocalPart()) {
+                new CompositedIconWithLabelColumn<>(createStringResource("PageAuditLogViewer.eventTypeLabel")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                    protected CompositedIcon getCompositedIcon(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         AuditEventRecordType record = unwrapModel(rowModel);
+                        AuditEventType eventType = AuditEventType.fromSchemaValue(record.getEventType());
                         if (record == null) {
-                            return Model.of();
+                            return null;
                         }
-                        return WebComponentUtil.createLocalizedModelForEnum(record.getEventType(), AuditLogViewerPanel.this);
+                        ObjectReferenceType targetRef = record.getTargetRef();
+                        String defaultIcon = null;
+                        String rightBottomIcon = null;
+                        String iconColor = null;
+                        if (targetRef != null && targetRef.getType() != null) {
+                            defaultIcon = WebComponentUtil.createDefaultBlackIcon(targetRef.getType());
+                        }
+                        if (eventType != null && eventType.getDisplay() != null && eventType.getDisplay().getIcon() != null) {
+                            if (defaultIcon == null) {
+                                defaultIcon = eventType.getDisplay().getIcon().getCssClass();
+                            } else {
+                                rightBottomIcon = eventType.getDisplay().getIcon().getCssClass();
+                            }
+                            iconColor = eventType.getDisplay().getIcon().getColor();
+                        }
+                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+                        if (defaultIcon != null) {
+                            iconBuilder.setBasicIcon(defaultIcon, IconCssStyle.IN_ROW_STYLE);
+                            if (rightBottomIcon != null) {
+                                iconBuilder.appendLayerIcon(new IconType().cssClass(rightBottomIcon).color(iconColor), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                            }
+                            if (iconColor != null) {
+                                iconBuilder.appendColorHtmlValue(iconColor);
+                            }
+                        }
+                        return iconBuilder.build();
+                    }
+
+                    @Override
+                    public IModel<DisplayType> getLabelDisplayModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                        AuditEventRecordType record = unwrapModel(rowModel);
+                        AuditEventType eventType = AuditEventType.fromSchemaValue(record.getEventType());
+                        if (record == null) {
+                            return Model.of(new DisplayType());
+                        }
+                        String label =
+                                WebComponentUtil.createLocalizedModelForEnum(record.getEventType(), AuditLogViewerPanel.this).getObject();
+                        String color = eventType != null && eventType.getDisplay() != null && eventType.getDisplay().getIcon() != null ?
+                                eventType.getDisplay().getIcon().getColor() : null;
+                        return Model.of(new DisplayType().label(label).color(color));
                     }
                 };
         columns.add(eventTypeColumn);
