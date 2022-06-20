@@ -39,8 +39,8 @@ public class WizardHeader extends BasePanel {
     }
 
     @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
+    protected void onConfigure() {
+        super.onConfigure();
 
         addOrReplace(createHeaderContent(ID_CONTENT));
     }
@@ -54,7 +54,6 @@ public class WizardHeader extends BasePanel {
         add(next);
 
         add(new Label(ID_TITLE, currentPanelTitle));
-
     }
 
     protected Component createHeaderContent(String id) {

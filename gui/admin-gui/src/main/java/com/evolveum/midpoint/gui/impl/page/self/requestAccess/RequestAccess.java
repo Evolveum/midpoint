@@ -12,13 +12,40 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class RequestAccess implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
@@ -33,6 +60,8 @@ public class RequestAccess implements Serializable {
     private int warningCount;
 
     private int errorCount;
+
+    private List<Conflict> conflicts = new ArrayList<>();
 
     public String getComment() {
         return comment;
@@ -183,16 +212,8 @@ public class RequestAccess implements Serializable {
         return warningCount;
     }
 
-    public void setWarningCount(int warningCount) {
-        this.warningCount = warningCount;
-    }
-
     public int getErrorCount() {
         return errorCount;
-    }
-
-    public void setErrorCount(int errorCount) {
-        this.errorCount = errorCount;
     }
 
     public void clearCart() {
@@ -212,11 +233,162 @@ public class RequestAccess implements Serializable {
         return errorCount == 0 && !requestItems.isEmpty();
     }
 
-    public boolean shouldRecomputeConflicts() {
-        return conflictsDirty;
-    }
-
     private void markConflictsDirty() {
         conflictsDirty = true;
+    }
+
+    public void computeConflicts(PageBase page) {
+        if (!conflictsDirty) {
+            return;
+        }
+
+        MidPointApplication mp = MidPointApplication.get();
+
+        Task task = page.createSimpleTask("computeConflicts");
+        OperationResult result = task.getResult();
+
+        int warnings = 0;
+        int errors = 0;
+        try {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
+            ObjectDelta<UserType> delta = user.createModifyDelta();
+
+            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+
+            createAssignmentDelta(delta, getShoppingCartAssignments(), def);
+
+            PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
+            processing.setInbound(SKIP);
+            processing.setProjection(SKIP);
+
+            ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
+
+            ModelContext<UserType> ctx = mp.getModelInteractionService()
+                    .previewChanges(MiscUtil.createCollection(delta), options, task, result);
+
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ctx.getEvaluatedAssignmentTriple();
+
+            Map<String, Conflict> conflicts = new HashMap<>();
+            if (evaluatedAssignmentTriple != null) {
+                Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
+                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                        if (!policyRule.containsEnabledAction()) {
+                            continue;
+                        }
+                        // everything other than 'enforce' is a warning
+                        boolean isWarning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+                        if (isWarning) {
+                            warnings++;
+                        } else {
+                            errors++;
+                        }
+
+                        createConflicts(conflicts, evaluatedAssignment, policyRule.getAllTriggers());
+                    }
+                }
+            } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
+                String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
+                page.warn(msg);
+            }
+
+            warningCount = warnings;
+            errorCount = errors;
+            this.conflicts = new ArrayList<>(conflicts.values());
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
+            page.error("Couldn't get assignments conflicts. Reason: " + e);
+        }
+    }
+
+    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment, EvaluatedExclusionTrigger trigger) {
+
+    }
+
+    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                createConflicts(conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger);
+            } else if (trigger instanceof EvaluatedCompositeTrigger) {
+                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                createConflicts(conflicts, evaluatedAssignment, innerTriggers);
+            }
+        }
+    }
+
+    private <F extends FocusType> void fillInFromEvaluatedExclusionTrigger(EvaluatedAssignment<UserType> evaluatedAssignment,
+            EvaluatedExclusionTrigger exclusionTrigger, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
+
+        EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
+        PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>) evaluatedAssignment.getTarget();
+        PrismObject<F> exclusionTargetObj = (PrismObject<F>) conflictingAssignment.getTarget();
+
+        AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
+                conflictingAssignment.getAssignment(true) != null);
+        AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
+                evaluatedAssignment.getAssignment(true) != null);
+        ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
+        String oid1 = exclusionTargetObj.getOid();
+        String oid2 = addedAssignmentTargetObj.getOid();
+        if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
+            conflictsMap.put(oid1 + oid2, conflict);
+        } else if (!isWarning) {
+            // error is stronger than warning, so we replace (potential) warnings with this error
+            // TODO Kate please review this
+            if (conflictsMap.containsKey(oid1 + oid2)) {
+                conflictsMap.replace(oid1 + oid2, conflict);
+            }
+            if (conflictsMap.containsKey(oid2 + oid1)) {
+                conflictsMap.replace(oid2 + oid1, conflict);
+            }
+        }
+    }
+
+    private void fillInConflictedObjects(EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
+            boolean isWarning, Map<String, ConflictDto> conflictsMap) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                fillInFromEvaluatedExclusionTrigger(evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, isWarning, conflictsMap);
+            } else if (trigger instanceof EvaluatedCompositeTrigger) {
+                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
+            }
+        }
+    }
+
+    private String getSubresultWarningMessages(OperationResult result) {
+        if (result == null || result.getSubresults() == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        result.getSubresults().forEach(subresult -> {
+            if (subresult.isWarning()) {
+                sb.append(subresult.getMessage());
+                sb.append("\n");
+            }
+        });
+        return sb.toString();
+    }
+
+    private ContainerDelta createAssignmentDelta(ObjectDelta<UserType> focusDelta,
+            List<AssignmentType> assignments, PrismContainerDefinition def) throws SchemaException {
+
+        PrismContext ctx = def.getPrismContext();
+        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);  //todo use this probably def.createEmptyDelta(ItemPath.EMPTY_PATH)
+
+        for (AssignmentType a : assignments) {
+            PrismContainerValue newValue = a.asPrismContainerValue();
+
+            newValue.applyDefinition(def, false);
+            delta.addValueToAdd(newValue.clone());
+        }
+
+        if (!delta.isEmpty()) {
+            delta = focusDelta.addModification(delta);
+        }
+
+        return delta;
     }
 }

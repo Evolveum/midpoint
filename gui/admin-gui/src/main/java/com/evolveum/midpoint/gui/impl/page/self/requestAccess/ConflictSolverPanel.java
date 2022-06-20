@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,10 +24,6 @@ import java.util.List;
 public class ConflictSolverPanel extends BasePanel {
 
     private static final long serialVersionUID = 1L;
-
-    public enum ConflictState {
-        UNRESOLVED, SOLVED, SKIPPED
-    }
 
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_ITEMS = "items";
