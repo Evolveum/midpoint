@@ -14,7 +14,6 @@
     <artifactId>midpoint</artifactId>
     <version>4.0.5-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <description>Utility module to compile all of the maven based midPoint projects.</description>
     <organization>
         <name>evolveum</name>
         <url>http://www.evolveum.com</url>
