@@ -7,35 +7,37 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
+import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ConflictSolverPanel extends BasePanel {
+public class ConflictSolverPanel extends BasePanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
-    public enum ConflictState {
-        UNRESOLVED, SOLVED, SKIPPED
-    }
+    private static final String BADGE_COLOR_UNRESOLVED = "badge badge-danger";
+    private static final String BADGE_COLOR_RESOLVED = "badge badge-success";
+    private static final String BADGE_COLOR_SKIPPED = "badge badge-info";
 
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
-    public ConflictSolverPanel(String id) {
-        super(id);
+    private IModel<ConflictState> selected = Model.of((ConflictState) null);
+
+    public ConflictSolverPanel(String id, IModel<RequestAccess> model) {
+        super(id, model);
 
         initLayout();
     }
@@ -48,10 +50,13 @@ public class ConflictSolverPanel extends BasePanel {
 
                 for (ConflictState cs : ConflictState.values()) {
                     Toggle<ConflictState> t = new Toggle<>(null, getString(cs));
+
                     if (cs == ConflictState.UNRESOLVED) {
-                        t.setActive(true);
-                        t.setBadge("2");
-                        t.setBadgeCss("badge badge-danger");
+                        long count = getModelObject().getConflicts().stream().filter(c -> ConflictState.UNRESOLVED.equals(c.getState())).count();
+                        if (count > 0) {
+                            t.setBadgeCss("badge badge-danger");
+                            t.setBadge(Long.toString(count));
+                        }
                     }
                     t.setValue(cs);
 
@@ -65,11 +70,11 @@ public class ConflictSolverPanel extends BasePanel {
         TogglePanel toggle = new TogglePanel(ID_TOGGLE, toggleModel);
         add(toggle);
 
-        ListView items = new ListView<>(ID_ITEMS) {
+        ListView<Conflict> items = new ListView<>(ID_ITEMS, () -> getModelObject().getConflicts()) {
 
             @Override
-            protected void populateItem(ListItem item) {
-                item.add(new Label(ID_ITEM, () -> "asdf"));
+            protected void populateItem(ListItem<Conflict> item) {
+                item.add(new ConflictItemPanel(ID_ITEM, item.getModel()));
             }
         };
         add(items);

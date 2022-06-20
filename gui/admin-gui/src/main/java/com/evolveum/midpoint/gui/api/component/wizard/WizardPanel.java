@@ -63,8 +63,8 @@ public class WizardPanel extends BasePanel {
     }
 
     @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
+    protected void onConfigure() {
+        super.onConfigure();
 
         addOrReplace((Component) getCurrentPanel());
     }

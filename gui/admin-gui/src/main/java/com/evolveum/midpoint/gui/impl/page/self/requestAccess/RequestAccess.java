@@ -7,18 +7,43 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class RequestAccess implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
@@ -30,9 +55,14 @@ public class RequestAccess implements Serializable {
 
     private boolean conflictsDirty;
 
-    private int warningCount;
+    private List<Conflict> conflicts;
 
-    private int errorCount;
+    public List<Conflict> getConflicts() {
+        if (conflicts == null) {
+            conflicts = new ArrayList<>();
+        }
+        return conflicts;
+    }
 
     public String getComment() {
         return comment;
@@ -179,20 +209,12 @@ public class RequestAccess implements Serializable {
         markConflictsDirty();
     }
 
-    public int getWarningCount() {
-        return warningCount;
+    public long getWarningCount() {
+        return getConflicts().stream().filter(c -> c.isWarning()).count();
     }
 
-    public void setWarningCount(int warningCount) {
-        this.warningCount = warningCount;
-    }
-
-    public int getErrorCount() {
-        return errorCount;
-    }
-
-    public void setErrorCount(int errorCount) {
-        this.errorCount = errorCount;
+    public long getErrorCount() {
+        return getConflicts().stream().filter(c -> !c.isWarning()).count();
     }
 
     public void clearCart() {
@@ -202,21 +224,144 @@ public class RequestAccess implements Serializable {
 
         comment = null;
 
-        warningCount = 0;
-        errorCount = 0;
-
         conflictsDirty = false;
     }
 
     public boolean canSubmit() {
-        return errorCount == 0 && !requestItems.isEmpty();
-    }
-
-    public boolean shouldRecomputeConflicts() {
-        return conflictsDirty;
+        return getErrorCount() == 0 && !requestItems.isEmpty();
     }
 
     private void markConflictsDirty() {
         conflictsDirty = true;
+    }
+
+    public void computeConflicts(PageBase page) {
+        if (!conflictsDirty) {
+            return;
+        }
+
+        MidPointApplication mp = MidPointApplication.get();
+
+        Task task = page.createSimpleTask("computeConflicts");
+        OperationResult result = task.getResult();
+
+        try {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
+            ObjectDelta<UserType> delta = user.createModifyDelta();
+
+            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+
+            createAssignmentDelta(delta, getShoppingCartAssignments(), def);
+
+            PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
+            processing.setInbound(SKIP);
+            processing.setProjection(SKIP);
+
+            ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
+
+            ModelContext<UserType> ctx = mp.getModelInteractionService()
+                    .previewChanges(MiscUtil.createCollection(delta), options, task, result);
+
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ctx.getEvaluatedAssignmentTriple();
+
+            Map<String, Conflict> conflicts = new HashMap<>();
+            if (evaluatedAssignmentTriple != null) {
+                Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
+                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                        if (!policyRule.containsEnabledAction()) {
+                            continue;
+                        }
+
+                        // everything other than 'enforce' is a warning
+                        boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+
+                        createConflicts(conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
+                    }
+                }
+            } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
+                String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
+                page.warn(msg);
+            }
+
+            this.conflicts = new ArrayList<>(conflicts.values());
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
+            page.error("Couldn't get assignments conflicts. Reason: " + e);
+        }
+    }
+
+    private <F extends FocusType> void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+            EvaluatedExclusionTrigger trigger, boolean warning) {
+
+        EvaluatedAssignment<F> conflictingAssignment = trigger.getConflictingAssignment();
+        PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>) evaluatedAssignment.getTarget();
+        PrismObject<F> exclusionTargetObj = (PrismObject<F>) conflictingAssignment.getTarget();
+
+        final String key = StringUtils.join(addedAssignmentTargetObj.getOid(), "/", exclusionTargetObj.getOid());
+        final String alternateKey = StringUtils.join(exclusionTargetObj.getOid(), "/", addedAssignmentTargetObj.getOid());
+
+        ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
+        ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+        Conflict conflict = new Conflict(added, exclusion, warning);
+
+        if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
+            conflicts.put(key, conflict);
+        } else if (!warning) {
+            if (conflicts.containsKey(key)) {
+                conflicts.replace(key, conflict);
+            }
+            if (conflicts.containsKey(alternateKey)) {
+                conflicts.replace(alternateKey, conflict);
+            }
+        }
+    }
+
+    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
+
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                createConflicts(conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
+            } else if (trigger instanceof EvaluatedCompositeTrigger) {
+                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                createConflicts(conflicts, evaluatedAssignment, innerTriggers, warning);
+            }
+        }
+    }
+
+    private String getSubresultWarningMessages(OperationResult result) {
+        if (result == null || result.getSubresults() == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        result.getSubresults().forEach(subresult -> {
+            if (subresult.isWarning()) {
+                sb.append(subresult.getMessage());
+                sb.append("\n");
+            }
+        });
+        return sb.toString();
+    }
+
+    private ContainerDelta createAssignmentDelta(ObjectDelta<UserType> focusDelta,
+            List<AssignmentType> assignments, PrismContainerDefinition def) throws SchemaException {
+
+        PrismContext ctx = def.getPrismContext();
+        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);  //todo use this probably def.createEmptyDelta(ItemPath.EMPTY_PATH)
+
+        for (AssignmentType a : assignments) {
+            PrismContainerValue newValue = a.asPrismContainerValue();
+
+            newValue.applyDefinition(def, false);
+            delta.addValueToAdd(newValue.clone());
+        }
+
+        if (!delta.isEmpty()) {
+            delta = focusDelta.addModification(delta);
+        }
+
+        return delta;
     }
 }

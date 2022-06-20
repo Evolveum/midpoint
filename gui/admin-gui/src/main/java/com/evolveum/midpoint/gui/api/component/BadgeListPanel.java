@@ -5,8 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.api.component.wizard;
+package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -24,16 +26,14 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class BadgePanel extends BasePanel<List<Badge>> {
+public class BadgeListPanel extends BasePanel<List<Badge>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_BADGES = "badges";
     private static final String ID_BADGE = "badge";
-    private static final String ID_ICON = "icon";
-    private static final String ID_TEXT = "text";
 
-    public BadgePanel(String id, IModel<List<Badge>> model) {
+    public BadgeListPanel(String id, IModel<List<Badge>> model) {
         super(id, model);
 
         initLayout();
@@ -46,20 +46,7 @@ public class BadgePanel extends BasePanel<List<Badge>> {
 
             @Override
             protected void populateItem(ListItem<Badge> item) {
-                WebMarkupContainer badge = new WebMarkupContainer(ID_BADGE);
-                badge.add(AttributeAppender.append("class", () -> item.getModelObject().getCssClass()));
-                badge.add(new VisibleBehaviour(() ->
-                        StringUtils.isNotEmpty(item.getModelObject().getText()) || StringUtils.isNotEmpty(item.getModelObject().getIconCssClass())));
-
-                WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-                icon.add(AttributeAppender.append("class", () -> item.getModelObject().getIconCssClass()));
-                icon.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(item.getModelObject().getIconCssClass())));
-                badge.add(icon);
-
-                Label text = new Label(ID_TEXT, () -> item.getModelObject().getText());
-                badge.add(text);
-
-                item.add(badge);
+                item.add(new BadgePanel(ID_BADGE, item.getModel()));
             }
         };
         add(badges);
