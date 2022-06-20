@@ -7,13 +7,7 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-    <div style="position: relative;" wicket:id="layeredIcon">
-        <i wicket:id="basicIcon"/>
-        <div wicket:id="layerIcons">
-            <i wicket:id="layerIcon"/>
-        </div>
-    </div>
-    <wicket:child />
-</wicket:panel>
+<wicket:extend>
+    <div style="position: relative;" wicket:id="label" />
+</wicket:extend>
 </html>
