@@ -7,10 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -31,14 +35,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
-import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -57,11 +55,14 @@ public class RequestAccess implements Serializable {
 
     private boolean conflictsDirty;
 
-    private int warningCount;
+    private List<Conflict> conflicts;
 
-    private int errorCount;
-
-    private List<Conflict> conflicts = new ArrayList<>();
+    public List<Conflict> getConflicts() {
+        if (conflicts == null) {
+            conflicts = new ArrayList<>();
+        }
+        return conflicts;
+    }
 
     public String getComment() {
         return comment;
@@ -208,12 +209,12 @@ public class RequestAccess implements Serializable {
         markConflictsDirty();
     }
 
-    public int getWarningCount() {
-        return warningCount;
+    public long getWarningCount() {
+        return conflicts.stream().filter(c -> c.isWarning()).count();
     }
 
-    public int getErrorCount() {
-        return errorCount;
+    public long getErrorCount() {
+        return conflicts.stream().filter(c -> !c.isWarning()).count();
     }
 
     public void clearCart() {
@@ -223,14 +224,11 @@ public class RequestAccess implements Serializable {
 
         comment = null;
 
-        warningCount = 0;
-        errorCount = 0;
-
         conflictsDirty = false;
     }
 
     public boolean canSubmit() {
-        return errorCount == 0 && !requestItems.isEmpty();
+        return getErrorCount() == 0 && !requestItems.isEmpty();
     }
 
     private void markConflictsDirty() {
@@ -247,8 +245,6 @@ public class RequestAccess implements Serializable {
         Task task = page.createSimpleTask("computeConflicts");
         OperationResult result = task.getResult();
 
-        int warnings = 0;
-        int errors = 0;
         try {
             PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
             ObjectDelta<UserType> delta = user.createModifyDelta();
@@ -276,15 +272,11 @@ public class RequestAccess implements Serializable {
                         if (!policyRule.containsEnabledAction()) {
                             continue;
                         }
-                        // everything other than 'enforce' is a warning
-                        boolean isWarning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-                        if (isWarning) {
-                            warnings++;
-                        } else {
-                            errors++;
-                        }
 
-                        createConflicts(conflicts, evaluatedAssignment, policyRule.getAllTriggers());
+                        // everything other than 'enforce' is a warning
+                        boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+
+                        createConflicts(conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
                     }
                 }
             } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
@@ -292,8 +284,6 @@ public class RequestAccess implements Serializable {
                 page.warn(msg);
             }
 
-            warningCount = warnings;
-            errorCount = errors;
             this.conflicts = new ArrayList<>(conflicts.values());
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
@@ -301,59 +291,42 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment, EvaluatedExclusionTrigger trigger) {
+    private <F extends FocusType> void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+            EvaluatedExclusionTrigger trigger, boolean warning) {
 
-    }
-
-    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-            if (trigger instanceof EvaluatedExclusionTrigger) {
-                createConflicts(conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger);
-            } else if (trigger instanceof EvaluatedCompositeTrigger) {
-                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
-                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
-                createConflicts(conflicts, evaluatedAssignment, innerTriggers);
-            }
-        }
-    }
-
-    private <F extends FocusType> void fillInFromEvaluatedExclusionTrigger(EvaluatedAssignment<UserType> evaluatedAssignment,
-            EvaluatedExclusionTrigger exclusionTrigger, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
-
-        EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
+        EvaluatedAssignment<F> conflictingAssignment = trigger.getConflictingAssignment();
         PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>) evaluatedAssignment.getTarget();
         PrismObject<F> exclusionTargetObj = (PrismObject<F>) conflictingAssignment.getTarget();
 
-        AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
-                conflictingAssignment.getAssignment(true) != null);
-        AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
-                evaluatedAssignment.getAssignment(true) != null);
-        ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
-        String oid1 = exclusionTargetObj.getOid();
-        String oid2 = addedAssignmentTargetObj.getOid();
-        if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
-            conflictsMap.put(oid1 + oid2, conflict);
-        } else if (!isWarning) {
-            // error is stronger than warning, so we replace (potential) warnings with this error
-            // TODO Kate please review this
-            if (conflictsMap.containsKey(oid1 + oid2)) {
-                conflictsMap.replace(oid1 + oid2, conflict);
+        final String key = StringUtils.join(addedAssignmentTargetObj.getOid(), "/", exclusionTargetObj.getOid());
+        final String alternateKey = StringUtils.join(exclusionTargetObj.getOid(), "/", addedAssignmentTargetObj.getOid());
+
+        ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
+        ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+        Conflict conflict = new Conflict(added, exclusion, warning);
+
+        if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
+            conflicts.put(key, conflict);
+        } else if (!warning) {
+            if (conflicts.containsKey(key)) {
+                conflicts.replace(key, conflict);
             }
-            if (conflictsMap.containsKey(oid2 + oid1)) {
-                conflictsMap.replace(oid2 + oid1, conflict);
+            if (conflicts.containsKey(alternateKey)) {
+                conflicts.replace(alternateKey, conflict);
             }
         }
     }
 
-    private void fillInConflictedObjects(EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
-            boolean isWarning, Map<String, ConflictDto> conflictsMap) {
+    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
+
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger) {
-                fillInFromEvaluatedExclusionTrigger(evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, isWarning, conflictsMap);
+                createConflicts(conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
             } else if (trigger instanceof EvaluatedCompositeTrigger) {
                 EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
                 Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
-                fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
+                createConflicts(conflicts, evaluatedAssignment, innerTriggers, warning);
             }
         }
     }

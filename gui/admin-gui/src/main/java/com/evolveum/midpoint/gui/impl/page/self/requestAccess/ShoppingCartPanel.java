@@ -60,13 +60,13 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         return () -> {
             List<Badge> badges = new ArrayList<>();
 
-            int warnings = getModelObject().getWarningCount();
+            long warnings = getModelObject().getWarningCount();
             if (warnings > 0) {
                 String key = warnings == 1 ? "ShoppingCartPanel.badge.oneWarning" : "ShoppingCartPanel.badge.multipleWarnings";
                 badges.add(new Badge("badge badge-warning", getString(key, warnings)));
             }
 
-            int errors = getModelObject().getErrorCount();
+            long errors = getModelObject().getErrorCount();
             if (errors > 0) {
                 String key = errors == 1 ? "ShoppingCartPanel.badge.oneConflict" : "ShoppingCartPanel.badge.multipleConflicts";
                 badges.add(new Badge("badge badge-danger", "fa fa-exclamation-triangle", getString(key, errors)));
@@ -112,7 +112,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         cartSummary.add(new VisibleBehaviour(() -> state.getObject() == State.SUMMARY));
         add(cartSummary);
 
-        ConflictSolverPanel conflictSolver = new ConflictSolverPanel(ID_CONFLICT_SOLVER);
+        ConflictSolverPanel conflictSolver = new ConflictSolverPanel(ID_CONFLICT_SOLVER, getModel());
         conflictSolver.add(new VisibleBehaviour(() -> state.getObject() == State.CONFLICTS));
         add(conflictSolver);
     }

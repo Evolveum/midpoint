@@ -14,13 +14,37 @@ import java.io.Serializable;
  */
 public class Conflict implements Serializable {
 
-    private ConflictItem item1;
+    private ConflictItem added;
 
-    private ConflictItem item2;
+    private ConflictItem exclusion;
 
-    private ConflictState state;
+    private ConflictState state = ConflictState.UNRESOLVED;
 
     private boolean warning;
 
+    public Conflict(ConflictItem added, ConflictItem exclusion, boolean warning) {
+        this.added = added;
+        this.exclusion = exclusion;
+        this.warning = warning;
+    }
 
+    public ConflictItem getAdded() {
+        return added;
+    }
+
+    public ConflictItem getExclusion() {
+        return exclusion;
+    }
+
+    public ConflictState getState() {
+        return state;
+    }
+
+    public void setState(ConflictState state) {
+        this.state = state;
+    }
+
+    public boolean isWarning() {
+        return warning;
+    }
 }
