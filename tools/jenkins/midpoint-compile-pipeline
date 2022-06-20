@@ -56,6 +56,7 @@ podTemplate(
                     """
                 }
             }
+            currentBuild.result = 'SUCCESS'
         } catch (Exception e) {
             currentBuild.result = 'FAILURE' // error below will not set result for mailer!
             error "Marking build as FAILURE because of: ${e}"
