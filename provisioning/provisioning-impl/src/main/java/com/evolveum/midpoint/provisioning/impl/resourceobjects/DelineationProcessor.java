@@ -103,7 +103,7 @@ class DelineationProcessor {
     private ObjectQuery createEffectiveQuery(ProvisioningContext ctx, ObjectQuery clientQuery) throws SchemaException {
         ResourceObjectDefinition definition = getEffectiveDefinition(ctx);
         LOGGER.trace("Computing effective query for {}", definition);
-        List<SearchFilterType> filterClauses = definition.getDelineation().getAllFilterClauses();
+        List<SearchFilterType> filterClauses = definition.getDelineation().getFilterClauses();
         LOGGER.trace(" -> found {} filter clause(s)", filterClauses.size());
         ObjectQuery effectiveQuery = ObjectQueryUtil.addConjunctions(
                 clientQuery,

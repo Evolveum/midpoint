@@ -4675,18 +4675,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A filter that defines the object set. Overrides any filter(s) defined in the parent type definitions.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="filterClause" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Filter clauses that define (as a conjunction) the object set. Adds to any filter clauses or to a filter
-                        defined in the parent type definitions.
+                        A filter that defines the object set. Appended to any filter(s) defined in the supertype(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
