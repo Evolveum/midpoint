@@ -19,6 +19,8 @@ public class RepoQueryDto implements Serializable {
     public static final String F_QUERY_RESULT_TEXT = "queryResultText";
     public static final String F_QUERY_RESULT_OBJECT = "queryResultObject";
     public static final String F_DISTINCT = "distinct";
+    public static final String F_SCRIPT_ENABLED = "scriptEnabled";
+    public static final String F_MIDPOINT_QUERY_SCRIPT = "midPointQueryScript";
 
     private static final String EMPTY_RESULT = null;
 
@@ -29,6 +31,9 @@ public class RepoQueryDto implements Serializable {
     private String queryResultText = EMPTY_RESULT;
     private Object queryResultObject = null;
     private boolean distinct;
+    private boolean scriptEnabled;
+
+    private String midPointQueryScript;
 
     public QName getObjectType() {
         return objectType;
@@ -88,5 +93,21 @@ public class RepoQueryDto implements Serializable {
 
     public void setDistinct(boolean distinct) {
         this.distinct = distinct;
+    }
+
+    public String getMidPointQueryScript() {
+        return midPointQueryScript;
+    }
+
+    public void setMidPointQueryScript(String midPointQueryScript) {
+        this.midPointQueryScript = midPointQueryScript;
+    }
+
+    public boolean isScriptEnabled() {
+        return scriptEnabled;
+    }
+
+    public void setScriptEnabled(boolean scriptEnabled) {
+        this.scriptEnabled = scriptEnabled;
     }
 }

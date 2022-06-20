@@ -22,6 +22,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,7 +45,6 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -107,6 +110,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
     private static final String ID_USE_IN_OBJECT_LIST = "useInObjectList";
     private static final String ID_EDITOR_MIDPOINT = "editorMidPoint";
+    private static final String ID_EDITOR_MIDPOINT_SCRIPT = "editorMidPointScript";
     private static final String ID_QUERY_EDITOR = "queryEditor";
     private static final String ID_QUERY_LABEL = "queryLabel";
     private static final String ID_PARAMETERS = "parameters";
@@ -117,6 +121,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_DISTINCT = "distinct";
     private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
+    private static final String ID_SCRIPT_ENABLED = "scriptEnabled";
 
     private static final String SAMPLES_DIR = "query-samples";
     private static final List<String> SAMPLES = Arrays.asList(
@@ -210,6 +215,27 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         editorMidPoint.setHeight(400);
         editorMidPoint.setResizeToMaxHeight(false);
         mainForm.add(editorMidPoint);
+
+        CheckFormGroup scriptCheck = new CheckFormGroup(
+                ID_SCRIPT_ENABLED, new PropertyModel<>(model, RepoQueryDto.F_SCRIPT_ENABLED),
+                createStringResource("PageRepositoryQuery.checkBox.script"), "col-xs-3", "col-xs-1");
+        scriptCheck.getCheck().add(new OnChangeAjaxBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+//                model.getObject().setScriptEnabled(!model.getObject().isScriptEnabled());
+                ajaxRequestTarget.add(PageRepositoryQuery.this);
+            }
+        });
+        scriptCheck.setOutputMarkupId(true);
+        mainForm.add(scriptCheck);
+
+        AceEditor editorMidPointScript = new AceEditor(ID_EDITOR_MIDPOINT_SCRIPT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT));
+        editorMidPointScript.setHeight(200);
+        editorMidPointScript.setResizeToMaxHeight(false);
+        editorMidPointScript.setOutputMarkupId(true);
+//        editorMidPointScript.setOutputMarkupPlaceholderTag(true);
+        editorMidPointScript.add(new VisibleBehaviour(() -> model.getObject().isScriptEnabled()));
+        mainForm.add(editorMidPointScript);
 
         Label queryLabel = new Label(ID_QUERY_LABEL, createQueryLabelModel());
         mainForm.add(queryLabel);
@@ -412,7 +438,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         Task task = createSimpleTask(OPERATION_CHECK_QUERY);
         OperationResult result = task.getResult();
         try {
-            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), task, result); // just to parse the query
+            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), dto.getMidPointQueryScript(), task, result); // just to parse the query
 
             ObjectFilter parsedFilter = request.getQuery().getFilter();
             String filterAsString;
@@ -475,9 +501,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                     request.setTranslateOnly(true);
                     // Falls through to the next section, we want this.
                 case EXECUTE_MIDPOINT:
-                    queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery());
+                    queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery()) || StringUtils.isNotBlank(dto.getMidPointQueryScript());
                     if (queryPresent) {
-                        updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), task, result);
+                        updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), dto.getMidPointQueryScript(), task, result);
                     }
                     break;
                 default:
@@ -542,8 +568,11 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         target.add(getFeedbackPanel());
     }
 
-    private void updateRequestWithMidpointQuery(RepositoryQueryDiagRequest request, QName objectType, String queryText,
-            boolean distinct, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void updateRequestWithMidpointQuery(RepositoryQueryDiagRequest request,
+            QName objectType, String queryText,
+            boolean distinct,
+            String midPointQueryScript,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismContext prismContext = getPrismContext();
         if (objectType == null) {
             objectType = ObjectType.COMPLEX_TYPE;
@@ -553,11 +582,27 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         if (clazz == null) {
             throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
         }
-        QueryType queryType = prismContext.parserFor(queryText).language(dataLanguage).parseRealValue(QueryType.class);
+
+        ObjectQuery queryWithExprEvaluated = null;
+        if (midPointQueryScript != null) {
+            ExpressionType expressionType = prismContext.parserFor(midPointQueryScript).language(dataLanguage).parseRealValue(ExpressionType.class);
+            PrismPropertyValue<ObjectQuery> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, expressionType,
+                    MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), "", task, task.getResult());
+            queryWithExprEvaluated = filterValue.getRealValue();
+
+            QueryType q = prismContext.getQueryConverter().createQueryType(queryWithExprEvaluated);
+            queryText = prismContext.serializerFor(dataLanguage).serializeRealValue(q);
+            model.getObject().setMidPointQuery(queryText);
+        }
+
+        if (queryWithExprEvaluated == null) {
+            QueryType queryType = prismContext.parserFor(queryText).language(dataLanguage).parseRealValue(QueryType.class);
+            ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
+            queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new VariablesMap(),
+                    MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
+        }
+
         request.setType(clazz);
-        ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-        ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new VariablesMap(),
-                MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
         request.setQuery(queryWithExprEvaluated);
 
         Collection<SelectorOptions<GetOperationOptions>> options = distinct ? createCollection(createDistinct()) : null;
