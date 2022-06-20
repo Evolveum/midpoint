@@ -230,7 +230,7 @@ class DelineationMatcher {
     }
 
     private boolean filterMatches() throws SchemaException {
-        List<SearchFilterType> clauses = delineation.getAllFilterClauses();
+        List<SearchFilterType> clauses = delineation.getFilterClauses();
         List<ObjectFilter> filterList = QueryConversionUtil.parseFilters(clauses, resourceObjectDefinition);
         PrismContainerValue<?> shadowValue = context.getShadowedResourceObject().asPrismContainerValue();
         for (ObjectFilter objectFilter : filterList) {

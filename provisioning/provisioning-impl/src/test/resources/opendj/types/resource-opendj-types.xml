@@ -81,6 +81,9 @@
         <objectType>
             <kind>account</kind>
             <intent>employee</intent>
+            <documentation>
+                Standard employee account. Resides in `employees` OU. Representative: `alice-employee.ldif`.
+            </documentation>
             <delineation>
                 <objectClass>ri:inetOrgPerson</objectClass>
                 <baseContext>
@@ -98,7 +101,10 @@
         <objectType>
             <kind>account</kind>
             <intent>special</intent>
-            <documentation>Any account in "special" OU</documentation>
+            <documentation>
+                An account devoted to special duties. It resides in `special` OU.
+                This type is abstract, and has two subtypes: `admin` and `tester`.
+            </documentation>
             <abstract>true</abstract>
             <delineation>
                 <objectClass>ri:inetOrgPerson</objectClass>
@@ -117,7 +123,10 @@
         <objectType>
             <kind>account</kind>
             <intent>admin</intent>
-            <documentation>Admin account in "special" OU</documentation>
+            <documentation>
+                Account used for administration. Resides in `special` OU (defined in the supertype).
+                Additional filtering condition: `businessCategory` is `admin`. Representative: `jim-admin.ldif`.
+            </documentation>
             <super>
                 <kind>account</kind>
                 <intent>special</intent>
@@ -136,13 +145,16 @@
         <objectType>
             <kind>account</kind>
             <intent>tester</intent>
-            <documentation>Tester account in "special" OU</documentation>
+            <documentation>
+                Account used for testing. Resides in `special` OU (defined in the supertype).
+                Additional filtering condition: `businessCategory` is `tester`. Representative: `ann-tester.ldif`.
+            </documentation>
             <super>
                 <kind>account</kind>
                 <intent>special</intent>
             </super>
             <delineation>
-                <!-- baseContext is inherited, filter is overwritten -->
+                <!-- baseContext is inherited -->
                 <filter>
                     <q:equal>
                         <q:path>attributes/businessCategory</q:path>

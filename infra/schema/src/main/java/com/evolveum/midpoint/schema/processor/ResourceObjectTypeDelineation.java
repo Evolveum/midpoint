@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,26 +29,23 @@ public class ResourceObjectTypeDelineation implements Serializable {
 
     @Nullable private final ResourceObjectReferenceType baseContext;
     @Nullable private final SearchHierarchyScope searchHierarchyScope;
-    @Nullable private final SearchFilterType filter;
     @NotNull private final List<SearchFilterType> filterClauses;
     @Nullable private final ExpressionType classificationCondition;
 
     private ResourceObjectTypeDelineation(
             @Nullable ResourceObjectReferenceType baseContext,
             @Nullable SearchHierarchyScope searchHierarchyScope,
-            @Nullable SearchFilterType filter,
             @NotNull List<SearchFilterType> filterClauses,
             @Nullable ExpressionType classificationCondition) {
         this.baseContext = baseContext;
         this.searchHierarchyScope = searchHierarchyScope;
-        this.filter = filter;
         this.filterClauses = filterClauses;
         this.classificationCondition = classificationCondition;
     }
 
     public static ResourceObjectTypeDelineation none() {
         return new ResourceObjectTypeDelineation(
-                null, null, null, List.of(), null);
+                null, null, List.of(), null);
     }
 
     public static ResourceObjectTypeDelineation of(
@@ -58,7 +54,6 @@ public class ResourceObjectTypeDelineation implements Serializable {
                 bean.getBaseContext(),
                 SearchHierarchyScope.fromBeanValue(bean.getSearchHierarchyScope()),
                 bean.getFilter(),
-                bean.getFilterClause(),
                 bean.getClassificationCondition());
     }
 
@@ -68,7 +63,6 @@ public class ResourceObjectTypeDelineation implements Serializable {
         return new ResourceObjectTypeDelineation(
                 baseContext,
                 SearchHierarchyScope.fromBeanValue(searchHierarchyScope),
-                null,
                 List.of(),
                 null);
     }
@@ -81,13 +75,8 @@ public class ResourceObjectTypeDelineation implements Serializable {
         return searchHierarchyScope;
     }
 
-    public @NotNull List<SearchFilterType> getAllFilterClauses() {
-        List<SearchFilterType> all = new ArrayList<>();
-        if (filter != null) {
-            all.add(filter);
-        }
-        all.addAll(filterClauses);
-        return all;
+    public @NotNull List<SearchFilterType> getFilterClauses() {
+        return filterClauses;
     }
 
     public @Nullable ExpressionType getClassificationCondition() {
@@ -96,6 +85,6 @@ public class ResourceObjectTypeDelineation implements Serializable {
 
     @NotNull ResourceObjectTypeDelineation classificationCondition(ExpressionType condition) {
         return new ResourceObjectTypeDelineation(
-                baseContext, searchHierarchyScope, filter, filterClauses, condition);
+                baseContext, searchHierarchyScope, filterClauses, condition);
     }
 }
