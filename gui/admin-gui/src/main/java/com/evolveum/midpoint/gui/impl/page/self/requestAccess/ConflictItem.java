@@ -21,10 +21,10 @@ public class ConflictItem implements Serializable {
 
     private ObjectReferenceType ref;
 
-    boolean oldAssignment = false;
+    private boolean existingAssignment;
 
-    public ConflictItem(PrismObject obj, boolean oldAssignment) {
-        this.oldAssignment = oldAssignment;
+    public ConflictItem(PrismObject obj, boolean existingAssignment) {
+        this.existingAssignment = existingAssignment;
 
         if (obj == null) {
             return;
@@ -38,11 +38,15 @@ public class ConflictItem implements Serializable {
         this.ref = ref;
     }
 
-    public ConflictItem(ObjectReferenceType ref) {
-        this.ref = ref;
-    }
-
     public String getName() {
         return WebComponentUtil.getName(ref);
+    }
+
+    public ObjectReferenceType getRef() {
+        return ref;
+    }
+
+    public boolean isExistingAssignment() {
+        return existingAssignment;
     }
 }

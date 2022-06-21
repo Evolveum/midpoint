@@ -7,16 +7,21 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Radio;
+import org.apache.wicket.markup.html.form.RadioGroup;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -29,6 +34,14 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final String ID_LINK1 = "link1";
     private static final String ID_LINK2 = "link2";
     private static final String ID_MESSAGE = "message";
+    private static final String ID_FIX_CONFLICT = "fixConflict";
+    private static final String ID_OPTIONS = "options";
+    private static final String ID_OPTION = "option";
+    private static final String ID_LABEL = "label";
+    private static final String ID_RADIO = "radio";
+    private static final String ID_STATE = "state";
+    private static final String ID_OPTION1 = "option1";
+    private static final String ID_OPTION2 = "option2";
 
     public ConflictItemPanel(String id, IModel<Conflict> model) {
         super(id, model);
@@ -65,7 +78,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         AjaxButton link1 = new AjaxButton(ID_LINK1, () -> getModelObject().getAdded().getName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                navigateToObject(ConflictItemPanel.this.getModelObject().getAdded().getRef());
             }
         };
         add(link1);
@@ -73,12 +86,55 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         AjaxButton link2 = new AjaxButton(ID_LINK2, () -> getModelObject().getExclusion().getName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                navigateToObject(ConflictItemPanel.this.getModelObject().getExclusion().getRef());
             }
         };
         add(link2);
 
         Label message = new Label(ID_MESSAGE, () -> getModelObject().getMessage());
         add(message);
+
+        RadioGroup options = new RadioGroup(ID_OPTIONS);
+        add(options);
+
+        Fragment option1 = createOption(ID_OPTION1, () -> getModelObject().getAdded());
+        options.add(option1);
+
+        Fragment option2 = createOption(ID_OPTION2, () -> getModelObject().getExclusion());
+        options.add(option2);
+
+        AjaxLink fixConflict = new AjaxLink<>(ID_FIX_CONFLICT) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                fixConflictPerformed(target);
+            }
+        };
+        add(fixConflict);
+    }
+
+    private Fragment createOption(String id, IModel<ConflictItem> item) {
+        Fragment option = new Fragment(id, ID_OPTION, this);
+        option.add(AttributeAppender.append("class", "form-check"));
+
+        Radio radio = new Radio(ID_RADIO);
+        option.add(radio);
+
+        Label label = new Label(ID_LABEL, () -> item.getObject().getName());
+        option.add(label);
+
+        Label state = new Label(ID_STATE, () -> item.getObject().isExistingAssignment() ?
+                getString("ConflictItemPanel.existingAssignment") : getString("ConflictItemPanel.newAssignment"));
+        option.add(state);
+
+        return option;
+    }
+
+    private void navigateToObject(ObjectReferenceType ref) {
+        WebComponentUtil.dispatchToObjectDetailsPage(ref, this, true);
+    }
+
+    private void fixConflictPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 }
