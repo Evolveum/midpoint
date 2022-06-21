@@ -7,15 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
-
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -37,6 +28,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
+
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -305,7 +305,13 @@ public class RequestAccess implements Serializable {
         ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
         ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
 
-        Conflict conflict = new Conflict(added, exclusion, warning);
+        String message = null;
+        if (trigger.getMessage() != null) {
+            MidPointApplication mp = MidPointApplication.get();
+            message = mp.getLocalizationService().translate(trigger.getMessage());
+        }
+
+        Conflict conflict = new Conflict(added, exclusion, message, warning);
 
         if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
             conflicts.put(key, conflict);

@@ -1736,3 +1736,11 @@ th.debug-list-buttons {
     max-width: 20%;
   }
 }
+
+.conflict-item {
+  @each $name, $color in $theme-colors {
+    &.conflict-item-#{$name} {
+      border-left: 5px solid $color;
+    }
+  }
+}

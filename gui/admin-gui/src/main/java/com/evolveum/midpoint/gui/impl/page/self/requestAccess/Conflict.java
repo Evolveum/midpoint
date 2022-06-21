@@ -18,14 +18,17 @@ public class Conflict implements Serializable {
 
     private ConflictItem exclusion;
 
+    private String message;
+
     private ConflictState state = ConflictState.UNRESOLVED;
 
     private boolean warning;
 
-    public Conflict(ConflictItem added, ConflictItem exclusion, boolean warning) {
+    public Conflict(ConflictItem added, ConflictItem exclusion, String message, boolean warning) {
         this.added = added;
         this.exclusion = exclusion;
         this.warning = warning;
+        this.message = message;
     }
 
     public ConflictItem getAdded() {
@@ -46,5 +49,9 @@ public class Conflict implements Serializable {
 
     public boolean isWarning() {
         return warning;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
