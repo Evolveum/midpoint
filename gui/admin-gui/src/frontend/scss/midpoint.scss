@@ -1696,44 +1696,25 @@ th.debug-list-buttons {
 //  }
 //}
 
-.col-5i,
-.col-sm-5i,
-.col-md-5i,
-.col-lg-5i,
-.col-xl-5i {
-  position: relative;
-  width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-}
+@each $breakpoint in map-keys($grid-breakpoints) {
+  %grid-column {
+    position: relative;
+    width: 100%;
+    padding-right: $grid-gutter-width;
+    padding-left: $grid-gutter-width;
+  }
 
-.col-5i {
-  flex: 0 0 20%;
-  max-width: 20%;
-}
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
 
-@media (min-width: 576px){
-  .col-sm-5i {
-    flex: 0 0 20%;
-    max-width: 20%;
+  .col#{$infix}-5i {
+    @extend %grid-column;
   }
-}
-@media (min-width: 768px){
-  .col-md-5i {
-    flex: 0 0 20%;
-    max-width: 20%;
-  }
-}
-@media (min-width: 992px){
-  .col-lg-5i {
-    flex: 0 0 20%;
-    max-width: 20%;
-  }
-}
-@media (min-width: 1200px){
-  .col-xl-5i {
-    flex: 0 0 20%;
-    max-width: 20%;
+
+  @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+    .col#{$infix}-5i {
+      flex: 0 0 20%;
+      max-width: 20%;
+    }
   }
 }
 
