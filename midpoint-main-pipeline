@@ -49,6 +49,7 @@ podTemplate(
                             env | sort
                             mvn --version
                             df -h
+                            free
                         fi
 
                         mvn -B -ntp -Dmaven.test.failure.ignore clean deploy -DdeployAtEnd=true
@@ -67,6 +68,7 @@ podTemplate(
 
                         if [ "${verbose}" -ge 1 ]; then
                             df -h
+                            free
                         fi
                     """
 
