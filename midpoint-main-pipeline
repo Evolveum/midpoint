@@ -28,8 +28,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '12Gi',
-                        resourceLimitMemory: '12Gi') // see also -Xmx flag lower
+                        resourceRequestMemory: '16Gi',
+                        resourceLimitMemory: '16Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
@@ -48,8 +48,8 @@ podTemplate(
                         if [ "${verbose}" -ge 1 ]; then
                             env | sort
                             mvn --version
+                            java -version
                             df -h
-                            free
                         fi
 
                         mvn -B -ntp -Dmaven.test.failure.ignore clean deploy -DdeployAtEnd=true
@@ -62,13 +62,12 @@ podTemplate(
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx10g should fit into 12GB of RAM, 6g was not enough for some tests
+                    // -Xmx10g was not enough for story tests
                     sh """#!/bin/bash -ex
-                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xms2g -Xmx10g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xmx13g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
                         if [ "${verbose}" -ge 1 ]; then
                             df -h
-                            free
                         fi
                     """
 
