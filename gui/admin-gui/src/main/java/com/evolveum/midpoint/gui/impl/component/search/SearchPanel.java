@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 
@@ -669,7 +670,37 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
             add(items);
 
-            Popover popover = initPopover();
+//            Popover popover = initPopover();
+            SelectableItemListPopoverPanel<AbstractSearchItemWrapper> popoverPanel =
+                    new SelectableItemListPopoverPanel<AbstractSearchItemWrapper>(ID_POPOVER, morePopupModel) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected void addItemsPerformed(List<AbstractSearchItemWrapper> item, AjaxRequestTarget target) {
+
+                        }
+
+                        @Override
+                        protected Component getPopoverReferenceComponent() {
+                            return BasicSearchFragment.this.getMoreButtonComponent();
+                        }
+
+                        @Override
+                        protected String getItemName(AbstractSearchItemWrapper item) {
+                            return item.getName();
+                        }
+
+                        @Override
+                        protected String getItemHelp(AbstractSearchItemWrapper item) {
+                            return item.getHelp();
+                        }
+
+                        @Override
+                        protected IModel<String> getPopoverTitleModel() {
+                            return createStringResource("SearchPanel.properties");
+                        }
+                    };
+            add(popoverPanel);
 
             AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
                 private static final long serialVersionUID = 1L;
@@ -677,15 +708,19 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 @Override
                 public void onClick(AjaxRequestTarget target) {
 //                    resetMoreDialogModel();
-                    popover.toggle(target);
+                    popoverPanel.togglePopover(target);
                 }
             };
-            popover.setReference(more);
+//            popover.setReference(more);
             more.add(new VisibleBehaviour(() -> {
                 return CollectionUtils.isNotEmpty(morePopupModel.getObject());
             }));
             more.setOutputMarkupId(true);
             add(more);
+        }
+
+        private Component getMoreButtonComponent() {
+            return BasicSearchFragment.this.get(ID_MORE);
         }
 
         private VisibleBehaviour createMoreGroupVisibleBehaviour() {
