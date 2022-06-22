@@ -111,6 +111,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         add(form);
 
         RadioGroup options = new RadioGroup(ID_OPTIONS, selectedOption);
+        options.add(new EnableBehaviour(() -> getModelObject().getState() != ConflictState.SOLVED));
         options.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
             private static final long serialVersionUID = 1L;
@@ -137,7 +138,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
                 fixConflictPerformed(target, selectedOption);
             }
         };
-        fixConflict.add(new EnableBehaviour(() -> selectedOption.getObject() != null));
+        fixConflict.add(new EnableBehaviour(() -> getModelObject().getState() != ConflictState.SOLVED && selectedOption.getObject() != null));
         fixConflict.setOutputMarkupId(true);
         WebComponentUtil.addDisabledClassBehavior(fixConflict);
         add(fixConflict);

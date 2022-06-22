@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -104,7 +105,7 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
 
                     @Override
                     protected void fixConflictPerformed(AjaxRequestTarget target, IModel<ConflictItem> itemToKeep) {
-                        ConflictSolverPanel.this.fixConflictPerformed(target, item.getModel(), itemToKeep);
+                        ConflictSolverPanel.this.solveConflictPerformed(target, item.getModel(), itemToKeep);
                     }
                 });
             }
@@ -112,10 +113,18 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
         add(items);
     }
 
-    private void fixConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflict, IModel<ConflictItem> itemToKeep) {
-        //todo implement conflict fix
+    private void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
+        Conflict conflict = conflictModel.getObject();
+        ConflictItem itemToKeep = itemToKeepModel.getObject();
 
-        conflict.getObject().setState(ConflictState.SOLVED);
+        ConflictItem toRemove;
+        if (Objects.equals(conflict.getAdded(), itemToKeep)) {
+            toRemove = conflict.getExclusion();
+        } else {
+            toRemove = conflict.getAdded();
+        }
+
+        getModelObject().solveConflict(conflict, toRemove);
 
         // switch to "SOLVED" items if there are no more "UNRESOLVED" items
         long count = getModelObject().getConflicts().stream().filter(c -> ConflictState.UNRESOLVED.equals(c.getState())).count();

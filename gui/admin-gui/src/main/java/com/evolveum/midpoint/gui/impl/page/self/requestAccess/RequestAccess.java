@@ -7,6 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -19,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -28,15 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -158,6 +159,15 @@ public class RequestAccess implements Serializable {
         return List.copyOf(assignments);
     }
 
+    public List<AssignmentType> getShoppingCartAssignments(ObjectReferenceType personOfInterestRef) {
+        if (personOfInterestRef == null) {
+            return new ArrayList<>();
+        }
+
+        List<AssignmentType> assignments = requestItems.get(personOfInterestRef);
+        return assignments != null ? assignments : new ArrayList<>();
+    }
+
     public List<RequestAccessItem> getRequestAccessItems() {
         return requestItems.entrySet().stream()
                 .map(e -> new RequestAccessItem(e.getKey(), e.getValue()))
@@ -251,7 +261,9 @@ public class RequestAccess implements Serializable {
 
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
-            createAssignmentDelta(delta, getShoppingCartAssignments(), def);
+            ObjectReferenceType userRef = createRef(user);
+            List<AssignmentType> assignments = getShoppingCartAssignments(userRef);
+            createAssignmentDelta(delta, assignments, def);
 
             PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
             processing.setInbound(SKIP);
@@ -276,7 +288,7 @@ public class RequestAccess implements Serializable {
                         // everything other than 'enforce' is a warning
                         boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
 
-                        createConflicts(conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
+                        createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
                     }
                 }
             } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
@@ -292,7 +304,24 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    private <F extends FocusType> void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+    private ObjectReferenceType createRef(PrismObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = (ObjectType) object.asObjectable();
+
+        return new ObjectReferenceType()
+                .oid(object.getOid())
+                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
+                .targetName(obj.getName());
+    }
+
+    public void computeConflictsForOnePerson() {
+        // todo implement
+    }
+
+    private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
             EvaluatedExclusionTrigger trigger, boolean warning) {
 
         EvaluatedAssignment<F> conflictingAssignment = trigger.getConflictingAssignment();
@@ -311,7 +340,7 @@ public class RequestAccess implements Serializable {
             message = mp.getLocalizationService().translate(trigger.getMessage());
         }
 
-        Conflict conflict = new Conflict(added, exclusion, message, warning);
+        Conflict conflict = new Conflict(userRef, added, exclusion, message, warning);
 
         if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
             conflicts.put(key, conflict);
@@ -325,16 +354,16 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger) {
-                createConflicts(conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
+                createConflicts(userRef, conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
             } else if (trigger instanceof EvaluatedCompositeTrigger) {
                 EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
                 Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
-                createConflicts(conflicts, evaluatedAssignment, innerTriggers, warning);
+                createConflicts(userRef, conflicts, evaluatedAssignment, innerTriggers, warning);
             }
         }
     }
@@ -371,5 +400,20 @@ public class RequestAccess implements Serializable {
         }
 
         return delta;
+    }
+
+    public void solveConflict(Conflict conflict, ConflictItem toRemove) {
+        //todo implement conflict fix
+        if (toRemove.isExistingAssignment()) {
+            // todo we have to create delete delta
+        } else {
+            List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
+            AssignmentType aToRemove = assignments.stream().filter(a -> a.getTargetRef().equals(toRemove.getRef())).findFirst().orElse(null);
+            assignments.remove(aToRemove);
+        }
+
+        conflict.setState(ConflictState.SOLVED);
+
+        markConflictsDirty();
     }
 }

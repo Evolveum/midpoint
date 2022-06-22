@@ -49,4 +49,25 @@ public class ConflictItem implements Serializable {
     public boolean isExistingAssignment() {
         return existingAssignment;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        ConflictItem that = (ConflictItem) o;
+
+        if (existingAssignment != that.existingAssignment)
+            return false;
+        return ref != null ? ref.equals(that.ref) : that.ref == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ref != null ? ref.hashCode() : 0;
+        result = 31 * result + (existingAssignment ? 1 : 0);
+        return result;
+    }
 }
