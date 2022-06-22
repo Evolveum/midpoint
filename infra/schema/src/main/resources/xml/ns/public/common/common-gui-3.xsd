@@ -1523,6 +1523,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="dataProvider" type="tns:GuiListDataProviderType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Paging for query.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.6</a:since>
+                                <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: number of results per page (MID-1931) -->
                     <!-- TODO: later: export settings (GuiExportSettingsType) -->
                 </xsd:sequence>
@@ -1610,6 +1622,48 @@
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GuiListDataProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Base data Provider configuration
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="InMemoryAssignmentDataProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                In Memory Assignment Data Provider
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RepositoryAssignmentDataProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Repository Assignment Data Provider
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 

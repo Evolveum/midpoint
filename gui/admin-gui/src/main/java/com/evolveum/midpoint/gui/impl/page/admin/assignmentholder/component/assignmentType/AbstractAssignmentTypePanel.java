@@ -58,6 +58,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -116,7 +117,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected boolean isRepositorySearchEnabled() {
-        return getPageBase().getCompiledGuiProfile().isUseRepositoryAssignmentSearch();
+        return providerFactory().isRepositorySearchEnabled();
     }
 
     @Override
@@ -547,57 +548,34 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         super.deleteItemPerformed(target, toDeleteList);
     }
 
+    protected ContainerValueDataProviderFactory<AssignmentType, ?> providerFactory() {
+        return getPageBase().getDataProviderRegistry().forContainerValue(AssignmentType.class, this.getPanelConfiguration().getListView(), InMemoryAssignmentDataProviderType.class);
+    }
+
     @Override
     protected ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> createProvider() {
         var searchModel = getSearchModel();
         var assignments = loadValuesModel();
-        return isRepositorySearchEnabled() ? createRepositoryProvider(searchModel, assignments) : createInMemoryProvider(searchModel, assignments);
-    }
-
-    protected AssignmentListProvider createInMemoryProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
-        var provider = new AssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments) {
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return AbstractAssignmentTypePanel.this.getPageStorage();
-            }
-
-            @Override
-            protected List<PrismContainerValueWrapper<AssignmentType>> postFilter(List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
-                return customPostSearch(assignmentList);
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return AbstractAssignmentTypePanel.this.getCustomizeQuery();
-            }
-        };
-        provider.setCompiledObjectCollectionView(getObjectCollectionView());
-        return provider;
-    }
-
-    protected RepoAssignmentListProvider createRepositoryProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
-
         var itemPath = model.getObject().getPath();
-        var assignmentListProvider = new RepoAssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid, itemPath) {
+        return providerFactory().create(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid, itemPath, getObjectCollectionView(), new ContainerValueDataProviderFactory.Customization<AssignmentType>() {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected PageStorage getPageStorage() {
+            public PageStorage getPageStorage() {
                 return AbstractAssignmentTypePanel.this.getPageStorage();
             }
 
             @Override
-            protected List<PrismContainerValueWrapper<AssignmentType>> postFilter(List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
+            public List<PrismContainerValueWrapper<AssignmentType>> postFilter(List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
                 return customPostSearch(assignmentList);
             }
 
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
+            public ObjectQuery getCustomizeContentQuery() {
                 return AbstractAssignmentTypePanel.this.getCustomizeQuery();
             }
-        };
-        assignmentListProvider.setCompiledObjectCollectionView(getObjectCollectionView());
-        return assignmentListProvider;
+        });
     }
 
     protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
