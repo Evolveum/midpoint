@@ -795,7 +795,7 @@ The configuration is done by setting `xsi:type` of `panel -> listView -> dataPro
 
 
 .Enabling repository search for Users -> Assignments -> All
-[code, xml]
+[source, xml]
 ----
 <systemConfiguration>
    ...
