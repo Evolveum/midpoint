@@ -11,5 +11,5 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
  * Created by Viliam Repan (lazyman).
  */
 public enum ConflictState {
-    UNRESOLVED, SOLVED, SKIPPED
+    UNRESOLVED, SOLVED;//, SKIPPED
 }

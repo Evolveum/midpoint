@@ -7,7 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -22,6 +30,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -42,6 +52,9 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final String ID_STATE = "state";
     private static final String ID_OPTION1 = "option1";
     private static final String ID_OPTION2 = "option2";
+    private static final String ID_FORM = "form";
+
+    private IModel<ConflictItem> selectedOption = Model.of((ConflictItem) null);
 
     public ConflictItemPanel(String id, IModel<Conflict> model) {
         super(id, model);
@@ -54,8 +67,8 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         add(AttributeAppender.append("class", () -> {
             Conflict c = getModelObject();
             switch (c.getState()) {
-                case SKIPPED:
-                    return "conflict-item-secondary";
+//                case SKIPPED:
+//                    return "conflict-item-secondary";
                 case SOLVED:
                     return "conflict-item-success";
             }
@@ -94,8 +107,20 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         Label message = new Label(ID_MESSAGE, () -> getModelObject().getMessage());
         add(message);
 
-        RadioGroup options = new RadioGroup(ID_OPTIONS);
-        add(options);
+        MidpointForm form = new MidpointForm(ID_FORM);
+        add(form);
+
+        RadioGroup options = new RadioGroup(ID_OPTIONS, selectedOption);
+        options.add(new AjaxFormChoiceComponentUpdatingBehavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(getFixConflictButton());
+            }
+        });
+        form.add(options);
 
         Fragment option1 = createOption(ID_OPTION1, () -> getModelObject().getAdded());
         options.add(option1);
@@ -103,21 +128,30 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         Fragment option2 = createOption(ID_OPTION2, () -> getModelObject().getExclusion());
         options.add(option2);
 
-        AjaxLink fixConflict = new AjaxLink<>(ID_FIX_CONFLICT) {
+        AjaxSubmitButton fixConflict = new AjaxSubmitButton(ID_FIX_CONFLICT) {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                fixConflictPerformed(target);
+            protected void onSubmit(AjaxRequestTarget target) {
+                fixConflictPerformed(target, selectedOption);
             }
         };
+        fixConflict.add(new EnableBehaviour(() -> selectedOption.getObject() != null));
+        fixConflict.setOutputMarkupId(true);
+        WebComponentUtil.addDisabledClassBehavior(fixConflict);
         add(fixConflict);
+    }
+
+    private Component getFixConflictButton() {
+        return get(ID_FIX_CONFLICT);
     }
 
     private Fragment createOption(String id, IModel<ConflictItem> item) {
         Fragment option = new Fragment(id, ID_OPTION, this);
         option.add(AttributeAppender.append("class", "form-check"));
 
-        Radio radio = new Radio(ID_RADIO);
+        Radio radio = new Radio(ID_RADIO, item);
         option.add(radio);
 
         Label label = new Label(ID_LABEL, () -> item.getObject().getName());
@@ -134,7 +168,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         WebComponentUtil.dispatchToObjectDetailsPage(ref, this, true);
     }
 
-    private void fixConflictPerformed(AjaxRequestTarget target) {
-        //todo implement
+    protected void fixConflictPerformed(AjaxRequestTarget target, IModel<ConflictItem> assignmentToKeep) {
+
     }
 }
