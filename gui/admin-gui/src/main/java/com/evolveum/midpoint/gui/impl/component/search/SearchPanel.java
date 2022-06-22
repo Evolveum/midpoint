@@ -30,12 +30,10 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,7 +44,6 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -81,7 +78,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 public abstract class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
@@ -106,16 +102,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
     private static final String ID_MORE = "more";
-    private static final String ID_POPOVER = "popover";
-    private static final String ID_ADD_TEXT = "addText";
-    private static final String ID_ADD = "add";
-    private static final String ID_CLOSE = "close";
-    private static final String ID_PROPERTIES = "properties";
-    private static final String ID_CHECK = "check";
-    private static final String ID_HELP = "help";
-    private static final String ID_PROP_NAME = "propName";
-    private static final String ID_PROP_LINK = "propLink";
-    private static final String ID_PROP_LIST = "propList";
+    private static final String ID_MORE_PROPERTIES_POPOVER = "morePropertiesPopover";
+    private static final String ID_SAVED_FILTERS_POPOVER = "savedFiltersPopover";
     private static final String ID_DEBUG = "debug";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
@@ -280,40 +268,90 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         saveSearchButton.setOutputMarkupId(true);
         saveSearchContainer.add(saveSearchButton);
 
-        LoadableModel<List<InlineMenuItem>> savedSearchListModel = new LoadableModel<List<InlineMenuItem>>() {
+        LoadableModel<List<AvailableFilterType>> savedSearchListModel = new LoadableModel<List<AvailableFilterType>>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<InlineMenuItem> load() {
-                return getSavedSearchList();
+            protected List<AvailableFilterType> load() {
+                return getSavedFilterList();
             }
         };
 
-        WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
+        SelectableItemListPopoverPanel<AvailableFilterType> savedFiltersPopover =
+                new SelectableItemListPopoverPanel<AvailableFilterType>(ID_SAVED_FILTERS_POPOVER, savedSearchListModel) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void addItemsPerformed(List<AvailableFilterType> itemList, AjaxRequestTarget target) {
+//                        addItemPerformed(itemList, target);
+                    }
+
+                    @Override
+                    protected Component getPopoverReferenceComponent() {
+                        return SearchPanel.this.getSavedSearchMenuButton();
+                    }
+
+                    @Override
+                    protected String getItemName(AvailableFilterType item) {
+                        PolyStringType filterLabel = item.getDisplay() != null ? item.getDisplay().getLabel() : null;
+                        return filterLabel == null ? "" : WebComponentUtil.getTranslatedPolyString(filterLabel);
+                    }
+
+                    @Override
+                    protected String getItemHelp(AvailableFilterType item) {
+                        return "";
+                    }
+
+                    @Override
+                    protected IModel<String> getPopoverTitleModel() {
+                        return createStringResource("SearchPanel.availableFilters");
+                    }
+                };
+        saveSearchContainer.add(savedFiltersPopover);
+
+        AjaxLink<Void> savedSearchMenu = new AjaxLink<Void>(ID_SAVED_SEARCH_MENU) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                savedFiltersPopover.togglePopover(target);
+            }
+        };
         savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchListModel.getObject())));
+        savedSearchMenu.setOutputMarkupId(true);
         savedSearchMenu.add(AttributeAppender.append("title",
                 getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
         saveSearchContainer.add(savedSearchMenu);
+//
+//        WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
+//        savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchListModel.getObject())));
+//        savedSearchMenu.add(AttributeAppender.append("title",
+//                getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
+//        saveSearchContainer.add(savedSearchMenu);
 
-        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchListModel) {
+//        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchListModel) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void populateItem(ListItem<InlineMenuItem> item) {
+//                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SAVED_SEARCH_ITEM, item.getModel());
+//                menuItemBody.setRenderBodyOnly(true);
+//                item.add(menuItemBody);
+//                menuItemBody.add(new VisibleEnableBehaviour() {
+//                    @Override
+//                    public boolean isVisible() {
+//                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
+//                    }
+//                });
+//            }
+//        };
+//        saveSearchContainer.add(savedSearchItems);
 
-            private static final long serialVersionUID = 1L;
+    }
 
-            @Override
-            protected void populateItem(ListItem<InlineMenuItem> item) {
-                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SAVED_SEARCH_ITEM, item.getModel());
-                menuItemBody.setRenderBodyOnly(true);
-                item.add(menuItemBody);
-                menuItemBody.add(new VisibleEnableBehaviour() {
-                    @Override
-                    public boolean isVisible() {
-                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
-                    }
-                });
-            }
-        };
-        saveSearchContainer.add(savedSearchItems);
-
+    private Component getSavedSearchMenuButton() {
+        return get(ID_FORM).get(ID_SEARCH_CONTAINER).get(ID_SAVED_SEARCH_MENU);
     }
 
     private boolean isCollectionInstancePage() {
@@ -500,7 +538,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         return getModelObject().getSearchConfigurationWrapper();
     }
 
-    private List<InlineMenuItem> getSavedSearchList() {
+    private List<AvailableFilterType> getSavedFilterList() {
         ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
         List<InlineMenuItem> savedSearchItems = new ArrayList<>();
         List<AvailableFilterType> availableFilterList = null;
@@ -512,43 +550,44 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false);
             availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         }
-        if (availableFilterList != null) {
-            availableFilterList
-                    .forEach(filter -> {
-                        if (!getModelObject().getSearchMode().equals(filter.getSearchMode())) {
-                            return;
-                        }
-                        PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
-                        InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public InlineMenuItemAction initAction() {
-                                return new InlineMenuItemAction() {
-
-                                    private static final long serialVersionUID = 1L;
-
-                                    @Override
-                                    public void onClick(AjaxRequestTarget target) {
-                                        if (filter == null) {
-                                            return;
-                                        }
-                                        if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
-                                            applyFilterToBasicMode(filter.getSearchItem());
-                                        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
-                                            applyFilterToAxiomMode(filter.getSearchItem());
-                                        } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
-                                            applyFilterToFulltextMode(filter.getSearchItem());
-                                        }
-                                        searchPerformed(target);
-                                    }
-                                };
-                            }
-                        };
-                        savedSearchItems.add(searchItem);
-                    });
-        }
-        return savedSearchItems;
+        return availableFilterList;
+//        if (availableFilterList != null) {
+//            availableFilterList
+//                    .forEach(filter -> {
+//                        if (!getModelObject().getSearchMode().equals(filter.getSearchMode())) {
+//                            return;
+//                        }
+//                        PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
+//                        InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            public InlineMenuItemAction initAction() {
+//                                return new InlineMenuItemAction() {
+//
+//                                    private static final long serialVersionUID = 1L;
+//
+//                                    @Override
+//                                    public void onClick(AjaxRequestTarget target) {
+//                                        if (filter == null) {
+//                                            return;
+//                                        }
+//                                        if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
+//                                            applyFilterToBasicMode(filter.getSearchItem());
+//                                        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
+//                                            applyFilterToAxiomMode(filter.getSearchItem());
+//                                        } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
+//                                            applyFilterToFulltextMode(filter.getSearchItem());
+//                                        }
+//                                        searchPerformed(target);
+//                                    }
+//                                };
+//                            }
+//                        };
+//                        savedSearchItems.add(searchItem);
+//                    });
+//        }
+//        return savedSearchItems;
     }
 
     private void applyFilterToBasicMode(List<SearchItemType> items) {
@@ -669,7 +708,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             add(items);
 
             SelectableItemListPopoverPanel<AbstractSearchItemWrapper> popoverPanel =
-                    new SelectableItemListPopoverPanel<AbstractSearchItemWrapper>(ID_POPOVER, morePopupModel) {
+                    new SelectableItemListPopoverPanel<AbstractSearchItemWrapper>(ID_MORE_PROPERTIES_POPOVER, morePopupModel) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -719,7 +758,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
 
         private void closeMorePopoverPerformed(AjaxRequestTarget target) {
-            String popoverId = get(ID_POPOVER).getMarkupId();
+            String popoverId = get(ID_MORE_PROPERTIES_POPOVER).getMarkupId();
             target.appendJavaScript("$('#" + popoverId + "').toggle();");
         }
     }

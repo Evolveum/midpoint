@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * Popupable panel with listed items which can be searched and selected
  * The component can be used as More button popup or saved searches popup on search panel
  */
-public abstract class SelectableItemListPopoverPanel<T extends SelectableRow> extends BasePanel<List<T>> {
+public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T>> {
 
     private static final String ID_POPOVER = "popover";
     private static final String ID_SEARCH_TEXT = "searchText";
@@ -110,6 +110,7 @@ public abstract class SelectableItemListPopoverPanel<T extends SelectableRow> ex
                         //nothing, just update model.
                     }
                 });
+                check.add(new VisibleBehaviour(() -> (item.getModelObject() instanceof SelectableRow)));
                 item.add(check);
 
                 AjaxLink<Void> propLink = new AjaxLink<Void>(ID_ITEM_LINK) {
@@ -118,13 +119,15 @@ public abstract class SelectableItemListPopoverPanel<T extends SelectableRow> ex
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        item.getModelObject().setSelected(true);
+                        if (item.getModelObject() instanceof SelectableRow) {
+                            ((SelectableRow) item.getModelObject()).setSelected(true);
+                        }
                         addItemsPerformed(Arrays.asList(item.getModelObject()), target);
                     }
                 };
                 item.add(propLink);
 
-                Label name = new Label(ID_ITEM_NAME, new PropertyModel<>(item.getModel(), AbstractSearchItemWrapper.F_NAME));
+                Label name = new Label(ID_ITEM_NAME, getItemName(item.getModelObject()));
                 name.setRenderBodyOnly(true);
                 propLink.add(name);
 
@@ -190,7 +193,8 @@ public abstract class SelectableItemListPopoverPanel<T extends SelectableRow> ex
     }
 
     private List<T> getSelectedItemList() {
-        return getModelObject().stream().filter(SelectableRow::isSelected).collect(Collectors.toList());
+        return getModelObject().stream().filter(item -> (item  instanceof SelectableRow))
+                .filter(item -> ((SelectableRow)item).isSelected()).collect(Collectors.toList());
     }
 
     protected IModel<String> getPopoverTitleModel() {
