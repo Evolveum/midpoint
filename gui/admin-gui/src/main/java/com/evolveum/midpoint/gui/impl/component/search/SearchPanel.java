@@ -427,13 +427,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         refreshSearchForm(target);
     }
 
-    private void addOneItemPerformed(AbstractSearchItemWrapper searchItem, AjaxRequestTarget target) {
-        searchItem.setVisible(true);
-        refreshSearchForm(target);
-    }
-
-    private void addItemPerformed(AjaxRequestTarget target) {
-        getModelObject().getItems().forEach(item -> {
+    private void addItemPerformed(List<AbstractSearchItemWrapper> itemList, AjaxRequestTarget target) {
+        if (itemList == null) {
+            itemList = morePopupModel.getObject();
+        }
+        itemList.forEach(item -> {
             if (item.isSelected()) {
                 item.setVisible(true);
                 item.setSelected(false);
@@ -670,14 +668,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
             add(items);
 
-//            Popover popover = initPopover();
             SelectableItemListPopoverPanel<AbstractSearchItemWrapper> popoverPanel =
                     new SelectableItemListPopoverPanel<AbstractSearchItemWrapper>(ID_POPOVER, morePopupModel) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected void addItemsPerformed(List<AbstractSearchItemWrapper> item, AjaxRequestTarget target) {
-
+                        protected void addItemsPerformed(List<AbstractSearchItemWrapper> itemList, AjaxRequestTarget target) {
+                            addItemPerformed(itemList, target);
                         }
 
                         @Override
@@ -707,11 +704,9 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-//                    resetMoreDialogModel();
                     popoverPanel.togglePopover(target);
                 }
             };
-//            popover.setReference(more);
             more.add(new VisibleBehaviour(() -> {
                 return CollectionUtils.isNotEmpty(morePopupModel.getObject());
             }));
@@ -721,117 +716,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
         private Component getMoreButtonComponent() {
             return BasicSearchFragment.this.get(ID_MORE);
-        }
-
-        private VisibleBehaviour createMoreGroupVisibleBehaviour() {
-            return new VisibleBehaviour(() -> getSearchConfigurationWrapper().isAllowToConfigureSearchItems() &&
-                    SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode()));
-        }
-
-        private Popover initPopover() {
-            Popover popover = new Popover(ID_POPOVER);
-            add(popover);
-
-            final WebMarkupContainer propList = new WebMarkupContainer(ID_PROP_LIST);
-            propList.setOutputMarkupId(true);
-            popover.add(propList);
-
-            IModel<String> searchPropertyModel = Model.of("");
-            TextField<?> addText = new TextField<>(ID_ADD_TEXT, searchPropertyModel);
-            addText.add(WebComponentUtil.preventSubmitOnEnterKeyDownBehavior());
-
-            popover.add(addText);
-            addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    target.add(propList);
-                }
-            });
-            popover.add(addText);
-
-            ListView<AbstractSearchItemWrapper> properties = new ListView<>(ID_PROPERTIES, morePopupModel) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void populateItem(final ListItem<AbstractSearchItemWrapper> item) {
-                    CheckBox check = new CheckBox(ID_CHECK,
-                            new PropertyModel<>(item.getModel(), AbstractSearchItemWrapper.F_SELECTED));
-                    check.add(new AjaxFormComponentUpdatingBehavior("change") {
-
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected void onUpdate(AjaxRequestTarget target) {
-                            //nothing, just update model.
-                        }
-                    });
-                    item.add(check);
-
-                    AjaxLink<Void> propLink = new AjaxLink<Void>(ID_PROP_LINK) {
-
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            addOneItemPerformed(item.getModelObject(), target);
-                        }
-                    };
-                    item.add(propLink);
-
-                    Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), AbstractSearchItemWrapper.F_NAME));
-                    name.setRenderBodyOnly(true);
-                    propLink.add(name);
-
-                    Label help = new Label(ID_HELP);
-                    IModel<String> helpModel = new PropertyModel<>(item.getModel(), AbstractSearchItemWrapper.F_HELP);
-                    help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-                    help.add(new InfoTooltipBehavior() {
-                        @Override
-                        public String getDataPlacement() {
-                            return "left";
-                        }
-                    });
-                    help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
-                    item.add(help);
-
-                    item.add(new VisibleBehaviour(() -> isPropertyItemVisible(item.getModelObject(), searchPropertyModel.getObject())));
-                }
-
-                private boolean isPropertyItemVisible(AbstractSearchItemWrapper searchItem, String propertySearchText) {
-                    String searchItemName = searchItem.getName();
-                    String name = searchItemName != null ? createStringResource(searchItemName).getString() : "";
-                    return StringUtils.isEmpty(propertySearchText)
-                                    || name.toLowerCase().contains(propertySearchText.toLowerCase());
-                }
-            };
-            propList.add(properties);
-
-            AjaxButton add = new AjaxButton(ID_ADD, createStringResource("SearchPanel.add")) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    addItemPerformed(target);
-                }
-            };
-            popover.add(add);
-
-            AjaxButton close = new AjaxButton(ID_CLOSE, createStringResource("SearchPanel.close")) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    closeMorePopoverPerformed(target);
-                }
-            };
-            popover.add(close);
-
-            return popover;
         }
 
         private void closeMorePopoverPerformed(AjaxRequestTarget target) {

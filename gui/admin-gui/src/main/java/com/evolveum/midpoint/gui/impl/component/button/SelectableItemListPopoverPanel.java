@@ -118,6 +118,7 @@ public abstract class SelectableItemListPopoverPanel<T extends SelectableRow> ex
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        item.getModelObject().setSelected(true);
                         addItemsPerformed(Arrays.asList(item.getModelObject()), target);
                     }
                 };
