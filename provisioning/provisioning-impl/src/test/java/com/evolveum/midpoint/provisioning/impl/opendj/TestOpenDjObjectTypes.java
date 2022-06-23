@@ -32,7 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests handling of object types delineation, both forward (translating boundaries into resource queries),
  * and backwards (classification of resource objects).
  *
- * Kept separate from main {@link TestOpenDj} to keep the main test class of manageable size and complexity.
+ * It is separate from main {@link TestOpenDj} to keep the main test class of manageable size and complexity.
+ *
+ * See `resource-opendj-types.xml` for the description of individual types.
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

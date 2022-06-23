@@ -303,17 +303,19 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public QName getFocusTypeName() {
-        return definitionBean.getFocusType();
+        ResourceObjectFocusSpecificationType focusSpec = definitionBean.getFocus();
+        return focusSpec != null ? focusSpec.getType() : null;
     }
 
     @Override
     public @Nullable ObjectReferenceType getArchetypeRef() {
-        return definitionBean.getArchetypeRef();
+        ResourceObjectFocusSpecificationType focusSpec = definitionBean.getFocus();
+        return focusSpec != null ? focusSpec.getArchetypeRef() : null;
     }
 
     @Override
     public ExpressionType getClassificationCondition() {
-        ResourceObjectTypeDelineationType delineation = definitionBean.getObjectsSetDelineation();
+        ResourceObjectTypeDelineationType delineation = definitionBean.getDelineation();
         return delineation != null ? delineation.getClassificationCondition() : null;
     }
 

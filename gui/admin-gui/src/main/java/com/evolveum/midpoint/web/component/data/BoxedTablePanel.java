@@ -218,7 +218,17 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     protected WebMarkupContainer createFooter(String footerId) {
-        return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
+        return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this) {
+
+            @Override
+            protected String getPaginationCssClass() {
+                return BoxedTablePanel.this.getPaginationCssClass();
+            }
+        };
+    }
+
+    protected String getPaginationCssClass() {
+        return "pagination-sm";
     }
 
     public Component getFooterButtonToolbar() {
@@ -286,6 +296,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     }
                     return super.isCountingDisabled();
                 }
+
+                @Override
+                protected String getPaginationCssClass() {
+                    return PagingFooter.this.getPaginationCssClass();
+                }
             };
             footerContainer.add(nb2);
 
@@ -324,6 +339,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
         public Component getFooterPaging() {
             return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
+        }
+
+        protected String getPaginationCssClass() {
+            return "pagination-sm";
         }
     }
 }

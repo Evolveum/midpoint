@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
+
+import java.io.Serializable;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+/**
+ * Created by Viliam Repan (lazyman).
+ */
+public class ConflictItem implements Serializable {
+
+    private ObjectReferenceType ref;
+
+    private boolean existingAssignment;
+
+    public ConflictItem(PrismObject obj, boolean existingAssignment) {
+        this.existingAssignment = existingAssignment;
+
+        if (obj == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(obj.getOid());
+        ref.setType(ObjectTypes.getObjectType(obj.getCompileTimeClass()).getTypeQName());
+        ref.setTargetName(obj.asObjectable().getName());
+
+        this.ref = ref;
+    }
+
+    public String getName() {
+        return WebComponentUtil.getName(ref);
+    }
+
+    public ObjectReferenceType getRef() {
+        return ref;
+    }
+
+    public boolean isExistingAssignment() {
+        return existingAssignment;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        ConflictItem that = (ConflictItem) o;
+
+        if (existingAssignment != that.existingAssignment)
+            return false;
+        return ref != null ? ref.equals(that.ref) : that.ref == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ref != null ? ref.hashCode() : 0;
+        result = 31 * result + (existingAssignment ? 1 : 0);
+        return result;
+    }
+}

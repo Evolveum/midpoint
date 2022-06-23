@@ -311,7 +311,9 @@
             <intent>group</intent>
             <default>false</default>
             <objectClass>ri:GroupObjectClass</objectClass>
-            <focusType>c:RoleType</focusType>
+            <focus>
+                <type>RoleType</type>
+            </focus>
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Group name</displayName>

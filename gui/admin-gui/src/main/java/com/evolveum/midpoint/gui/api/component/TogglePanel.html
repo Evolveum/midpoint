@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:container wicket:id="buttons">
+        <button type="button" class="btn btn-default" data-toggle="button" wicket:id="button">
+            <wicket:container wicket:id="content"/>
+        </button>
+    </wicket:container>
+
+    <wicket:fragment wicket:id="defaultButtonContent">
+        <i wicket:id="icon"></i>
+        <span wicket:id="label"/>
+        <span wicket:id="badge"/>
+    </wicket:fragment>
+</wicket:panel>
+</html>

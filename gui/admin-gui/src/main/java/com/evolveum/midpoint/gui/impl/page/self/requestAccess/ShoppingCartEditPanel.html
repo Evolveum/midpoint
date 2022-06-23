@@ -8,33 +8,25 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="row">
-        <div class="col-12 col-md-6">
-            <div class="form-group mr-0 mr-md-4">
-                <label class="col-form-label font-weight-bold">Focus type <span class="text-gray font-weight-light">- Optional</span></label>
-                <select class="form-control">
-                    <option>Choose one</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12">
             <div class="form-group">
-                <label class="col-form-label">Administrative status <span class="text-gray font-weight-light">- Optional</span></label>
-                <select class="form-control">
-                    <option>Undefined</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12 col-md-6">
-            <div class="form-group mr-0 mr-md-4">
-                <label class="col-form-label font-weight-bold">Relation <span class="text-gray font-weight-light">- Optional</span></label>
+                <label class="col-form-label font-weight-bold">Relation
+                    <span class="text-gray font-weight-light">- Optional</span></label>
                 <select class="form-control">
                     <option>Member</option>
                 </select>
             </div>
         </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="col-form-label">Administrative status
+                    <span class="text-gray font-weight-light">- Optional</span></label>
+                <select class="form-control">
+                    <option>Undefined</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-12">
             <div class="form-group">
                 <label class="col-form-label">Validity</label>
                 <div class="input-group">
@@ -48,9 +40,22 @@
             </div>
         </div>
     </div>
-    <a class="btn btn-primary mt-2" href="#">
+    <!--<a class="btn btn-primary mt-2" href="#">
         <i class="fa-solid fa-user-gear mr-1"></i>
         Change user selection
-    </a>
+    </a>-->
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-success" wicket:id="save">
+                <i class="fa-solid fa-floppy-disk mr-1"></i>
+                <wicket:message key="ShoppingCartEditPanel.saveChanges"/>
+            </a>
+            <a class="btn btn-outline-primary" wicket:id="close">
+                <i class="fa-solid fa-xmark mr-1"></i>
+                <wicket:message key="Button.close"/>
+            </a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </html>

@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.web.component.prism.InputPanel;
+import javax.xml.datatype.Duration;
 
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 
-import javax.xml.datatype.Duration;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 public class DurationPanel extends InputPanel {
 
@@ -35,7 +35,7 @@ public class DurationPanel extends InputPanel {
                 try {
                     setConvertedInput(getPageBase().getConverter(Duration.class).convertToObject(durationStr, getPageBase().getLocale()));
                 } catch (Exception ex) {
-                    this.error(getPageBase().createStringResource("DurationPanel.incorrectValueError"));
+                    this.error(getPageBase().getString("DurationPanel.incorrectValueError", getLabel().getObject()));
                 }
             }
 
@@ -44,15 +44,15 @@ public class DurationPanel extends InputPanel {
                 return getPageBase().getConverter(Duration.class);
             }
 
-
         };
         text.setType(Duration.class);
         add(text);
 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public FormComponent<Duration> getBaseFormComponent() {
-        return (FormComponent) get(ID_INPUT);
+        return (FormComponent<Duration>) get(ID_INPUT);
     }
 }

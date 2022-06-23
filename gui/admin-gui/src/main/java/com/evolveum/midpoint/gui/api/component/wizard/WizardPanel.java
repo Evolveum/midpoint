@@ -63,8 +63,8 @@ public class WizardPanel extends BasePanel {
     }
 
     @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
+    protected void onConfigure() {
+        super.onConfigure();
 
         addOrReplace((Component) getCurrentPanel());
     }
@@ -74,6 +74,7 @@ public class WizardPanel extends BasePanel {
         add(AttributeAppender.append("class", () -> getCurrentPanel().appendCssToWizard()));
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
+        header.add(new BehaviourDelegator(() -> getCurrentPanel().getStepsBehaviour()));
         header.setOutputMarkupId(true);
         add(header);
 
@@ -107,6 +108,11 @@ public class WizardPanel extends BasePanel {
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
+                boolean executeDefaultBehaviour = wizardModel.getActiveStep().onBackPerformed(target);
+                if (!executeDefaultBehaviour) {
+                    return;
+                }
+
                 if (wizardModel.getActiveStepIndex() == 0) {
                     getPageBase().redirectBack();
                 } else {
@@ -118,6 +124,11 @@ public class WizardPanel extends BasePanel {
 
             @Override
             protected void onNextPerformed(AjaxRequestTarget target) {
+                boolean executeDefaultBehaviour = wizardModel.getActiveStep().onNextPerformed(target);
+                if (!executeDefaultBehaviour) {
+                    return;
+                }
+
                 wizardModel.next();
 
                 target.add(WizardPanel.this);
@@ -128,20 +139,7 @@ public class WizardPanel extends BasePanel {
                 return wizardModel.getActiveStep().getNextBehaviour();
             }
         };
-        contentHeader.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                VisibleEnableBehaviour b = getCurrentPanel().getHeaderBehaviour();
-                return b != null ? b.isVisible() : true;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                VisibleEnableBehaviour b = getCurrentPanel().getHeaderBehaviour();
-                return b != null ? b.isEnabled() : true;
-            }
-        });
+        contentHeader.add(new BehaviourDelegator(() -> getCurrentPanel().getHeaderBehaviour()));
         contentHeader.setOutputMarkupId(true);
         add(contentHeader);
 

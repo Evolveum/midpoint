@@ -7,17 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -31,6 +20,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -121,9 +121,9 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     private Tile<QName> createTileForRelation(QName name) {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        RelationSelectionType relationSelection = profile.getAccessRequest().getRelationSelection();
-        RelationsDefinitionType relations = relationSelection.getRelations();
+        RelationSelectionType config = getRelationConfiguration();
+        RelationsDefinitionType relations = config != null ? config.getRelations() : new RelationsDefinitionType();
+
         String icon = DEFAULT_RELATION_ICON;
         String label = name.getLocalPart();
 
@@ -179,12 +179,28 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     @Override
-    protected void onNextPerformed(AjaxRequestTarget target) {
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
 
         getModelObject().setRelation(selected.getValue());
 
         getWizard().next();
         target.add(getWizard().getPanel());
+
+        return false;
+    }
+
+    private RelationSelectionType getRelationConfiguration() {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        if (profile == null) {
+            return null;
+        }
+
+        AccessRequestType accessRequest = profile.getAccessRequest();
+        if (accessRequest == null) {
+            return null;
+        }
+
+        return accessRequest.getRelationSelection();
     }
 }

@@ -131,7 +131,7 @@
                 <reaction> <!-- should be added as a new value -->
                     <situation>unmatched</situation>
                     <actions>
-                        <deleteShadow/>
+                        <deleteResourceObject/>
                     </actions>
                 </reaction>
                 <reaction>
@@ -143,7 +143,7 @@
                             <name>add-focus</name> <!-- Should match the one in parent -->
                             <synchronize>true</synchronize> <!-- Overrides the value -->
                         </addFocus>
-                        <inactivateShadow/> <!-- Should be added as a new value -->
+                        <inactivateResourceObject/> <!-- Should be added as a new value -->
                     </actions>
                 </reaction>
             </synchronization>

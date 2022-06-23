@@ -7,45 +7,48 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="card" style="border-left: 5px solid red">
-        <div class="card-body">
-            <div class="d-flex gap-2 border-bottom border-gray align-items-center pb-3 mb-3">
-                <h5 class="mb-0">#1 Permission duplication conflict</h5>
-                <span class="badge badge-danger">Fatal conflict</span>
+    <div class="card-body">
+        <div class="d-flex gap-2 border-bottom border-gray align-items-center pb-3 mb-3">
+            <h5 class="mb-0"><wicket:message key="ConflictItemPanel.duplicationConflict"/></h5>
+            <span wicket:id="badge"/>
+        </div>
+
+        <wicket:message key="ConflictItemPanel.description">
+            <a href="#" wicket:id="link1"></a>
+            <a href="#" wicket:id="link2"></a>
+        </wicket:message>
+
+        <div class="mt-3">
+            <div class="font-weight-bold"><wicket:message key="ConflictItemPanel.reason"/></div>
+            <div wicket:id="message"/>
+        </div>
+
+        <div class="mt-3">
+            <div class="font-weight-bold"><wicket:message key="ConflictItemPanel.solution"/></div>
+            <div><wicket:message key="ConflictItemPanel.solveConflictViaRemove"/></div>
+        </div>
+
+        <form class="mt-3" wicket:id="form">
+            <div wicket:id="options">
+                <div wicket:id="option1"/>
+                <div wicket:id="option2"/>
             </div>
+        </form>
 
-            There is an conflict with <a class="mx-1" href="#"><i class="fa fa-puzzle-piece"></i> Office 365: Microsoft Word</a> and <a class="mx-1" href="#"><i class="fa fa-puzzle-piece"></i> Office 365 Package</a>
-
-            <div class="mt-3">
-                <div class="font-weight-bold">Reason</div>
-                <div>The conflict arose because one role is part of another. There therefore will be a duplication of competence.</div>
-            </div>
-
-            <div class="mt-3">
-                <div class="font-weight-bold">Solution</div>
-                <div>This conflict can be solved by removing one of role from your shopping cart</div>
-            </div>
-
-            <div class="mt-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
-                    <label class="form-check-label" for="exampleRadios1">
-                        I want to keep <span class="font-weight-bold"><i class="fa fa-puzzle-piece mx-1"></i>Office 365: Microsoft Word</span>
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
-                    <label class="form-check-label" for="exampleRadios1">
-                        I want to keep <span class="font-weight-bold"><i class="fa fa-puzzle-piece mx-1"></i> Office 365 Package</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="main-button-bar mt-4">
-                <a class="btn btn-primary">Fix conflict</a>
+        <div class="main-button-bar mt-4">
+            <a class="btn btn-primary" wicket:id="fixConflict"><wicket:message key="ConflictItemPanel.fixConflict"/></a>
+            <wicket:remove>
+                <!-- todo later -->
                 <a class="btn btn-link">Let midPoint try to fix it</a>
-            </div>
+            </wicket:remove>
         </div>
     </div>
+
+    <wicket:fragment wicket:id="option">
+        <input class="form-check-input" type="radio" wicket:id="radio">
+        <label class="form-check-label">
+            <wicket:message key="ConflictItemPanel.iWantToKeep"/> <span class="font-weight-bold" wicket:id="label"/> <span wicket:id="state"/>
+        </label>
+    </wicket:fragment>
 </wicket:panel>
 </html>

@@ -524,12 +524,24 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
-        return repositoryService.searchContainers(
-                type,
-                query,
-                selectorOptions != null && selectorOptions.length != 0
-                        ? List.of(selectorOptions) : null,
-                operationResult);
+
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositoryService.searchContainers(
+                    type,
+                    query,
+                    selectorOptions != null && selectorOptions.length != 0
+                            ? List.of(selectorOptions) : null,
+                    operationResult);
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.getQueryBuffer().toString());
+            }
+        }
     }
 
     /** Parses object from byte array form and returns its real value (not Prism structure). */

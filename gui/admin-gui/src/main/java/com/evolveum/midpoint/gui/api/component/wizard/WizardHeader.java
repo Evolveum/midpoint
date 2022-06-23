@@ -7,21 +7,19 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -43,8 +41,8 @@ public class WizardHeader extends BasePanel {
     }
 
     @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
+    protected void onConfigure() {
+        super.onConfigure();
 
         addOrReplace(createHeaderContent(ID_CONTENT));
     }
@@ -58,7 +56,6 @@ public class WizardHeader extends BasePanel {
         add(next);
 
         add(new Label(ID_TITLE, currentPanelTitle));
-
     }
 
     protected Component createHeaderContent(String id) {
@@ -75,7 +72,7 @@ public class WizardHeader extends BasePanel {
         };
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
-        next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(next);
 
         next.add(new BehaviourDelegator(() -> getNextVisibilityBehaviour()));
 
@@ -98,7 +95,7 @@ public class WizardHeader extends BasePanel {
         };
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
-        back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(back);
 
         back.add(new BehaviourDelegator(() -> getBackVisibilityBehaviour()));
 
@@ -116,22 +113,5 @@ public class WizardHeader extends BasePanel {
 
     protected void onNextPerformed(AjaxRequestTarget target) {
 
-    }
-
-    private static class BehaviourDelegator extends Behavior {
-
-        private SerializableSupplier<VisibleEnableBehaviour> behaviour;
-
-        public BehaviourDelegator(@NotNull SerializableSupplier<VisibleEnableBehaviour> behaviour) {
-            this.behaviour = behaviour;
-        }
-
-        @Override
-        public void onConfigure(Component component) {
-            VisibleEnableBehaviour real = behaviour.get();
-            if (real != null) {
-                real.onConfigure(component);
-            }
-        }
     }
 }

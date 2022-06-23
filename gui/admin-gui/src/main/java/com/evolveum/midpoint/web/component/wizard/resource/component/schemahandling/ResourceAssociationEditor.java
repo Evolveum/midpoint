@@ -49,6 +49,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
+
 /**
  *  @author shood
  * */
@@ -429,17 +431,15 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
             return references;
         }
 
-        for(ResourceObjectClassDefinition def: schema.getObjectClassDefinitions()){
-            if(restrictObjectClass){
-                if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
-
-                    for(ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
+        for (ResourceObjectClassDefinition def : schema.getObjectClassDefinitions()) {
+            if (restrictObjectClass) {
+                if (objectType != null && def.getTypeName().equals(getObjectClassName(objectType))) {
+                    for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
                         references.add(attributeDefinition.getItemName());
                     }
                 }
             } else {
-
-                for(ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
+                for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
                     references.add(attributeDefinition.getItemName());
                 }
             }

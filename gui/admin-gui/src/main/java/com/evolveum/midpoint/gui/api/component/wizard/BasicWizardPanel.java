@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -66,7 +67,7 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         back.add(getBackBehaviour());
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
-        back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(back);
         add(back);
 
         AjaxSubmitButton next = new AjaxSubmitButton(ID_NEXT) {
@@ -84,7 +85,7 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         next.add(getNextBehaviour());
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
-        next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(next);
         add(next);
 
         Label nextLabel = new Label(ID_NEXT_LABEL, () -> {
@@ -117,25 +118,21 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         return Model.of();
     }
 
-    protected void onNextPerformed(AjaxRequestTarget target) {
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         getWizard().next();
         target.add(getWizard().getPanel());
+
+        return false;
     }
 
-    protected void onBackPerformed(AjaxRequestTarget target) {
+    public boolean onBackPerformed(AjaxRequestTarget target) {
         int index = getWizard().getActiveStepIndex();
         if (index > 0) {
             getWizard().previous();
             target.add(getWizard().getPanel());
-            return;
         }
-        onBackAfterWizardPerformed(target);
-    }
 
-    // todo why is this needed? please remove and use onBackPerformed(AjaxRequestTarget)
-    @Deprecated
-    protected void onBackAfterWizardPerformed(AjaxRequestTarget target) {
-        getPageBase().redirectBack();
+        return false;
     }
 
     @Override

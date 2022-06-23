@@ -396,7 +396,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .hasSize(1);
         assertThat(unnamed.getActions().get(0).getNewDefinitionBeanClass())
                 .as("action in unnamed")
-                .isEqualTo(DeleteShadowSynchronizationActionType.class);
+                .isEqualTo(DeleteResourceObjectSynchronizationActionType.class);
         SynchronizationReactionDefinition reaction1 =
                 reactions.stream().filter(r -> "reaction1".equals(r.getName())).findFirst().orElseThrow();
         assertThat(reaction1.getSituations())
@@ -413,7 +413,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 actions.stream().filter(a -> a.getName() == null).findFirst().orElseThrow();
         assertThat(unnamedAction.getNewDefinitionBeanClass())
                 .as("definition bean class in unnamed action")
-                .isEqualTo(InactivateShadowSynchronizationActionType.class);
+                .isEqualTo(InactivateResourceObjectSynchronizationActionType.class);
         AddFocusSynchronizationActionType addFocusAction =
                 (AddFocusSynchronizationActionType) actions.stream()
                         .filter(a -> "add-focus".equals(a.getName()))

@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getAuxiliaryObjectClassNames;
+import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
@@ -143,8 +145,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
         checkDuplicateItems(ctx, path, objectType);
         checkObjectClass(ctx, path, objectType);
         ResourceObjectDefinition ocdef = null;
-        if (ctx.resourceSchema != null && objectType.getObjectClass() != null) {
-            ocdef = ctx.resourceSchema.findDefinitionForObjectClass(objectType.getObjectClass());
+        QName objectClassName = getObjectClassName(objectType);
+        if (ctx.resourceSchema != null && objectClassName != null) {
+            ocdef = ctx.resourceSchema.findDefinitionForObjectClass(objectClassName);
             checkObjectClassDefinition(ctx, path, objectType, ocdef);
         }
         int i = 1;
@@ -231,13 +234,13 @@ public class ResourceValidatorImpl implements ResourceValidator {
         if (ocdef == null) {
             ctx.validationResult.add(Issue.Severity.WARNING,
                     CAT_SCHEMA_HANDLING, C_UNKNOWN_OBJECT_CLASS,
-                    getString(CLASS_DOT + C_UNKNOWN_OBJECT_CLASS, getName(objectType), objectType.getObjectClass()),
+                    getString(CLASS_DOT + C_UNKNOWN_OBJECT_CLASS, getName(objectType), getObjectClassName(objectType)),
                     ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS));
         }
     }
 
     private void checkObjectClass(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType) {
-        if (objectType.getObjectClass() == null) {
+        if (getObjectClassName(objectType) == null) {
             ctx.validationResult.add(Issue.Severity.ERROR,
                     CAT_SCHEMA_HANDLING, C_MISSING_OBJECT_CLASS,
                     getString(CLASS_DOT + C_MISSING_OBJECT_CLASS, getName(objectType)),
@@ -287,7 +290,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
                 rad = ocdef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
             }
             if (rad == null) {
-                for (QName auxOcName : objectType.getAuxiliaryObjectClass()) {
+                for (QName auxOcName : getAuxiliaryObjectClassNames(objectType)) {
                     ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findDefinitionForObjectClass(auxOcName);
                     if (auxOcDef != null) {
                         rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
@@ -300,7 +303,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             if (rad == null) {
                 ctx.validationResult.add(Issue.Severity.ERROR,
                         CAT_SCHEMA_HANDLING, C_UNKNOWN_ATTRIBUTE_NAME,
-                        getString(CLASS_DOT + C_UNKNOWN_ATTRIBUTE_NAME, getName(objectType), ref, objectType.getObjectClass()),
+                        getString(CLASS_DOT + C_UNKNOWN_ATTRIBUTE_NAME, getName(objectType), ref, getObjectClassName(objectType)),
                         ctx.resourceRef, path.append(ResourceItemDefinitionType.F_REF));
             }
         }

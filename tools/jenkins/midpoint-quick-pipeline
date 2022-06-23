@@ -63,17 +63,19 @@ podTemplate(
                         fi
                     """
 
-                    // if we get here it's success, TODO: check that Publisher changes the state if necessary
+                    // If we get here it's success, test results can change it to UNSTABLE.
                     currentBuild.result = 'SUCCESS'
 
                     step([$class: 'Publisher',
                         reportFilenamePattern: '**/testng-results.xml',
-                        // failureOnFailedTestConfig: true // TODO we don't want failure, but how can we make it unstable?
+                        // failureOnFailedTestConfig: true // unusable, we don't want FAILURE
+                        // FAILURE result can't be switched to lower-level UNSTABLE later!
                     ])
                 }
             }
         } catch (Exception e) {
-            currentBuild.result = 'FAILURE'
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
         } finally {
             if (verbose > '0') {
                 echo "Build: ${currentBuild}"
@@ -81,7 +83,7 @@ podTemplate(
             }
 
             try {
-                /*
+                /* Is this different plugin or just different style declaration? Any benefits?
                 mail (
                     to: env.DEFAULT_MAIL_RECIPIENT,
                     subject: 'test',
@@ -89,6 +91,7 @@ podTemplate(
                 )
                 */
 
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
                 step([$class: 'Mailer',
                     notifyEveryUnstableBuild: true,
                     recipients: env.DEFAULT_MAIL_RECIPIENT,

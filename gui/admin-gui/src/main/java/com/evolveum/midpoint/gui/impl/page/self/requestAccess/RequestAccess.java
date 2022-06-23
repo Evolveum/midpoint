@@ -7,18 +7,44 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class RequestAccess implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
@@ -28,9 +54,16 @@ public class RequestAccess implements Serializable {
 
     private String comment;
 
-    private int warningCount;
+    private boolean conflictsDirty;
 
-    private int errorCount;
+    private List<Conflict> conflicts;
+
+    public List<Conflict> getConflicts() {
+        if (conflicts == null) {
+            conflicts = new ArrayList<>();
+        }
+        return conflicts;
+    }
 
     public String getComment() {
         return comment;
@@ -58,6 +91,8 @@ public class RequestAccess implements Serializable {
         Set<ObjectReferenceType> existing = requestItems.keySet();
         Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
+        boolean changed = false;
+
         // add new persons if they're not in set yet
         for (ObjectReferenceType ref : refs) {
             if (existingOids.contains(ref.getOid())) {
@@ -66,6 +101,8 @@ public class RequestAccess implements Serializable {
 
             List<AssignmentType> assignments = this.assignments.stream().map(a -> a.clone()).collect(Collectors.toList());
             requestItems.put(ref, assignments);
+
+            changed = true;
         }
 
         // remove persons that were not selected (or were unselected)
@@ -75,16 +112,43 @@ public class RequestAccess implements Serializable {
             }
 
             requestItems.remove(ref);
+
+            changed = true;
+        }
+
+        if (changed) {
+            markConflictsDirty();
         }
     }
 
     public void addAssignments(List<AssignmentType> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+        }
         //todo remove naive implementation
         assignments.forEach(a -> this.assignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             assignments.forEach(a -> list.add(a.clone()));
         }
+
+        markConflictsDirty();
+    }
+
+    public void removeAssignments(List<AssignmentType> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+
+        }
+        for (AssignmentType a : assignments) {
+            this.assignments.remove(a);
+
+            for (List<AssignmentType> list : requestItems.values()) {
+                list.remove(a);
+            }
+        }
+
+        markConflictsDirty();
     }
 
     public List<AssignmentType> getShoppingCartAssignments() {
@@ -93,6 +157,15 @@ public class RequestAccess implements Serializable {
         requestItems.values().stream().forEach(list -> assignments.addAll(list));
 
         return List.copyOf(assignments);
+    }
+
+    public List<AssignmentType> getShoppingCartAssignments(ObjectReferenceType personOfInterestRef) {
+        if (personOfInterestRef == null) {
+            return new ArrayList<>();
+        }
+
+        List<AssignmentType> assignments = requestItems.get(personOfInterestRef);
+        return assignments != null ? assignments : new ArrayList<>();
     }
 
     public List<RequestAccessItem> getRequestAccessItems() {
@@ -133,23 +206,25 @@ public class RequestAccess implements Serializable {
     }
 
     public void setRelation(QName relation) {
+        if (relation == null) {
+            // todo set default relation
+        }
         this.relation = relation;
+
+        assignments.forEach(a -> a.getTargetRef().setRelation(relation));
+        for (List<AssignmentType> list : requestItems.values()) {
+            list.forEach(a -> a.getTargetRef().setRelation(relation));
+        }
+
+        markConflictsDirty();
     }
 
-    public int getWarningCount() {
-        return warningCount;
+    public long getWarningCount() {
+        return getConflicts().stream().filter(c -> c.isWarning()).count();
     }
 
-    public void setWarningCount(int warningCount) {
-        this.warningCount = warningCount;
-    }
-
-    public int getErrorCount() {
-        return errorCount;
-    }
-
-    public void setErrorCount(int errorCount) {
-        this.errorCount = errorCount;
+    public long getErrorCount() {
+        return getConflicts().stream().filter(c -> !c.isWarning()).count();
     }
 
     public void clearCart() {
@@ -159,11 +234,186 @@ public class RequestAccess implements Serializable {
 
         comment = null;
 
-        warningCount = 0;
-        errorCount = 0;
+        conflictsDirty = false;
     }
 
     public boolean canSubmit() {
-        return errorCount == 0 && !requestItems.isEmpty();
+        return getErrorCount() == 0 && !requestItems.isEmpty();
+    }
+
+    private void markConflictsDirty() {
+        conflictsDirty = true;
+    }
+
+    public void computeConflicts(PageBase page) {
+        if (!conflictsDirty) {
+            return;
+        }
+
+        MidPointApplication mp = MidPointApplication.get();
+
+        Task task = page.createSimpleTask("computeConflicts");
+        OperationResult result = task.getResult();
+
+        try {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
+            ObjectDelta<UserType> delta = user.createModifyDelta();
+
+            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+
+            ObjectReferenceType userRef = createRef(user);
+            List<AssignmentType> assignments = getShoppingCartAssignments(userRef);
+            createAssignmentDelta(delta, assignments, def);
+
+            PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
+            processing.setInbound(SKIP);
+            processing.setProjection(SKIP);
+
+            ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
+
+            ModelContext<UserType> ctx = mp.getModelInteractionService()
+                    .previewChanges(MiscUtil.createCollection(delta), options, task, result);
+
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ctx.getEvaluatedAssignmentTriple();
+
+            Map<String, Conflict> conflicts = new HashMap<>();
+            if (evaluatedAssignmentTriple != null) {
+                Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
+                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                        if (!policyRule.containsEnabledAction()) {
+                            continue;
+                        }
+
+                        // everything other than 'enforce' is a warning
+                        boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+
+                        createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
+                    }
+                }
+            } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
+                String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
+                page.warn(msg);
+            }
+
+            this.conflicts = new ArrayList<>(conflicts.values());
+            conflictsDirty = false;
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
+            page.error("Couldn't get assignments conflicts. Reason: " + e);
+        }
+    }
+
+    private ObjectReferenceType createRef(PrismObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = (ObjectType) object.asObjectable();
+
+        return new ObjectReferenceType()
+                .oid(object.getOid())
+                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
+                .targetName(obj.getName());
+    }
+
+    public void computeConflictsForOnePerson() {
+        // todo implement
+    }
+
+    private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+            EvaluatedExclusionTrigger trigger, boolean warning) {
+
+        EvaluatedAssignment<F> conflictingAssignment = trigger.getConflictingAssignment();
+        PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>) evaluatedAssignment.getTarget();
+        PrismObject<F> exclusionTargetObj = (PrismObject<F>) conflictingAssignment.getTarget();
+
+        final String key = StringUtils.join(addedAssignmentTargetObj.getOid(), "/", exclusionTargetObj.getOid());
+        final String alternateKey = StringUtils.join(exclusionTargetObj.getOid(), "/", addedAssignmentTargetObj.getOid());
+
+        ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
+        ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+
+        String message = null;
+        if (trigger.getMessage() != null) {
+            MidPointApplication mp = MidPointApplication.get();
+            message = mp.getLocalizationService().translate(trigger.getMessage());
+        }
+
+        Conflict conflict = new Conflict(userRef, added, exclusion, message, warning);
+
+        if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
+            conflicts.put(key, conflict);
+        } else if (!warning) {
+            if (conflicts.containsKey(key)) {
+                conflicts.replace(key, conflict);
+            }
+            if (conflicts.containsKey(alternateKey)) {
+                conflicts.replace(alternateKey, conflict);
+            }
+        }
+    }
+
+    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
+
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                createConflicts(userRef, conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
+            } else if (trigger instanceof EvaluatedCompositeTrigger) {
+                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                createConflicts(userRef, conflicts, evaluatedAssignment, innerTriggers, warning);
+            }
+        }
+    }
+
+    private String getSubresultWarningMessages(OperationResult result) {
+        if (result == null || result.getSubresults() == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        result.getSubresults().forEach(subresult -> {
+            if (subresult.isWarning()) {
+                sb.append(subresult.getMessage());
+                sb.append("\n");
+            }
+        });
+        return sb.toString();
+    }
+
+    private ContainerDelta createAssignmentDelta(ObjectDelta<UserType> focusDelta,
+            List<AssignmentType> assignments, PrismContainerDefinition def) throws SchemaException {
+
+        PrismContext ctx = def.getPrismContext();
+        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);  //todo use this probably def.createEmptyDelta(ItemPath.EMPTY_PATH)
+
+        for (AssignmentType a : assignments) {
+            PrismContainerValue newValue = a.asPrismContainerValue();
+
+            newValue.applyDefinition(def, false);
+            delta.addValueToAdd(newValue.clone());
+        }
+
+        if (!delta.isEmpty()) {
+            delta = focusDelta.addModification(delta);
+        }
+
+        return delta;
+    }
+
+    public void solveConflict(Conflict conflict, ConflictItem toRemove) {
+        //todo implement conflict fix
+        if (toRemove.isExistingAssignment()) {
+            // todo we have to create delete delta
+        } else {
+            List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
+            AssignmentType aToRemove = assignments.stream().filter(a -> a.getTargetRef().equals(toRemove.getRef())).findFirst().orElse(null);
+            assignments.remove(aToRemove);
+        }
+
+        conflict.setState(ConflictState.SOLVED);
+
+        markConflictsDirty();
     }
 }
