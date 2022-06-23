@@ -57,7 +57,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;

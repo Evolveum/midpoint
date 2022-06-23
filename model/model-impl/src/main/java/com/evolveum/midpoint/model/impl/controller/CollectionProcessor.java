@@ -27,7 +27,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
@@ -44,7 +44,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;

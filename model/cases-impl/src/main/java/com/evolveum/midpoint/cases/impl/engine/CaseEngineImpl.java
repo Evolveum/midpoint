@@ -31,7 +31,7 @@ import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseExpressionEvaluationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;

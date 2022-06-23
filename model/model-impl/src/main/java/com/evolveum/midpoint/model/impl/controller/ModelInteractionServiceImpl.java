@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -55,7 +57,7 @@ import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
@@ -1749,7 +1751,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result)
             throws SchemaException, ConfigurationException {
-        return archetypeManager.mergeArchetypePolicies(archetype, result);
+        return archetypeManager.getPolicyForArchetype(asObjectable(archetype), result);
     }
 
     @Override
