@@ -328,8 +328,7 @@
         <xsd:sequence>
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
-            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0"/>
-            <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0"/>
+            <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -346,6 +345,14 @@
         <xsd:sequence>
             <xsd:element name="defaultSelection" type="xsd:string" minOccurs="0">
 
+            </xsd:element>
+            <xsd:element name="allowRequestForMyself" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is simple override if currently authenticated user has authorization to request for him/herself assign other relations,
+                        but we don't want them to do it via shopping cart.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="allowRequestForOthers" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>

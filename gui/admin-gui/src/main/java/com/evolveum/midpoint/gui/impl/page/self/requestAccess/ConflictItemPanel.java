@@ -7,13 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -23,15 +16,18 @@ import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -53,6 +49,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final String ID_OPTION1 = "option1";
     private static final String ID_OPTION2 = "option2";
     private static final String ID_FORM = "form";
+    private static final String ID_TITLE = "title";
 
     private IModel<ConflictItem> selectedOption = Model.of((ConflictItem) null);
 
@@ -75,6 +72,10 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
 
             return c.isWarning() ? "conflict-item-warning" : "conflict-item-danger";
         }));
+
+        Label title = new Label(ID_TITLE, () -> getString("ConflictItemPanel.duplicationConflict",
+                WebComponentUtil.getName(getModelObject().getPersonOfInterest())));
+        add(title);
 
         BadgePanel badge = new BadgePanel(ID_BADGE, () -> {
             Conflict c = getModelObject();

@@ -52,7 +52,7 @@ public class RequestAccess implements Serializable {
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
 
-    private Set<AssignmentType> assignments = new HashSet<>();
+    private Set<AssignmentType> selectedAssignments = new HashSet<>();
 
     private QName relation;
 
@@ -103,7 +103,7 @@ public class RequestAccess implements Serializable {
                 continue;
             }
 
-            List<AssignmentType> assignments = this.assignments.stream().map(a -> a.clone()).collect(Collectors.toList());
+            List<AssignmentType> assignments = this.selectedAssignments.stream().map(a -> a.clone()).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
             changed = true;
@@ -130,7 +130,7 @@ public class RequestAccess implements Serializable {
             return;
         }
         //todo remove naive implementation
-        assignments.forEach(a -> this.assignments.add(a.clone()));
+        assignments.forEach(a -> this.selectedAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             assignments.forEach(a -> list.add(a.clone()));
@@ -145,7 +145,7 @@ public class RequestAccess implements Serializable {
 
         }
         for (AssignmentType a : assignments) {
-            this.assignments.remove(a);
+            this.selectedAssignments.remove(a);
 
             for (List<AssignmentType> list : requestItems.values()) {
                 list.remove(a);
@@ -215,7 +215,7 @@ public class RequestAccess implements Serializable {
         }
         this.relation = relation;
 
-        assignments.forEach(a -> a.getTargetRef().setRelation(relation));
+        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(relation));
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> a.getTargetRef().setRelation(relation));
         }
@@ -224,21 +224,24 @@ public class RequestAccess implements Serializable {
     }
 
     public long getWarningCount() {
-        return getConflicts().stream().filter(c -> c.isWarning()).count();
+        return getConflicts().stream().filter(c -> c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
     public long getErrorCount() {
-        return getConflicts().stream().filter(c -> !c.isWarning()).count();
+        return getConflicts().stream().filter(c -> !c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
     public void clearCart() {
         requestItems.clear();
-        assignments.clear();
+        requestItemsExistingToRemove.clear();
+
+        selectedAssignments.clear();
         relation = null;
 
         comment = null;
 
         conflictsDirty = false;
+        conflicts.clear();
     }
 
     public boolean canSubmit() {
