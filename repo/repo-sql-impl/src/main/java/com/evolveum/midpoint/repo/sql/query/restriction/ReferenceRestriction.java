@@ -17,13 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaAnyReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
@@ -181,17 +179,12 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     }
 
     private Condition targetFilterCondition() throws QueryException {
-        ObjectFilter targetFilter = Objects.requireNonNull(filter.getFilter());
+        ObjectFilter existsFilter = context.getPrismContext().queryFor(context.getType())
+                .exists(filter.getFullPath().append(T_OBJECT_REFERENCE))
+                .filter(Objects.requireNonNull(filter.getFilter()))
+                .buildFilter();
 
-        //noinspection deprecation
-        ExistsFilter existsFilter = context.getPrismContext().queryFactory().createExists(
-                filter.getFullPath().append(T_OBJECT_REFERENCE),
-                context.getType(), // source type (start of the path), not the target type
-                context.getPrismContext(),
-                targetFilter);
-
-        QueryInterpreter interpreter = context.getInterpreter();
-        return interpreter.interpretFilter(context, existsFilter, this);
+        return context.getInterpreter().interpretFilter(context, existsFilter, this);
     }
 
     private Condition refCondition(Condition condition) throws QueryException {
