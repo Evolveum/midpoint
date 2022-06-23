@@ -42,7 +42,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
 
     private static final long serialVersionUID = 1L;
 
-    private static final String TARGET_NAME_STRING = "targetRef.targetName.orig";
+    public static final String TARGET_NAME_STRING = "targetRef.targetName.orig";
     private static final ItemPath TARGET_NAME_PATH = ItemPath.create(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
 
 

@@ -75,16 +75,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected Search createSearch(Class<C> type) {
         return SearchFactory.createSearch(createSearchConfigWrapper(type), getPageBase());
-//        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), getTypeDefinitionForSearch(),
-//                getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
     }
 
     private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
-//        SearchBoxConfigurationType searchBoxConfig = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, null, getPageBase());
         SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<C>(type);
         CompiledObjectCollectionView collectionView = getObjectCollectionView();
-        if (collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null
-                && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE)) {
+        if (objectCollectionRefExists(collectionView)) {
             searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
         }
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
@@ -93,6 +89,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             searchConfigWrapper.getItemsList().addAll(items);
         }
         return searchConfigWrapper;
+    }
+
+    private boolean objectCollectionRefExists (CompiledObjectCollectionView collectionView) {
+        return collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null
+                && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE);
     }
 
 
