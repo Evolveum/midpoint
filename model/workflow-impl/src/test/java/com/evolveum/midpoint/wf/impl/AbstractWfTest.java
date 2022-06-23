@@ -33,7 +33,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -306,7 +306,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, CommunicationException {
-        S_AtomicFilterExit q = QueryUtils
+        S_FilterExit q = QueryUtils
                 .filterForAssignees(prismContext.queryFor(CaseWorkItemType.class), SecurityUtil.getPrincipal(),
                         OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
         q = q.and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull();

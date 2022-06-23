@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -167,7 +167,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
         // TODO ensure that the identifiers are normalized here
         // Note that if the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
         Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-        S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
+        S_FilterEntry q = prismContext.queryFor(ShadowType.class);
         q = q.block();
         if (secondaryIdentifiers.isEmpty()) {
             for (ResourceAttribute<?> primaryIdentifier: ShadowUtil.getPrimaryIdentifiers(shadow)) {

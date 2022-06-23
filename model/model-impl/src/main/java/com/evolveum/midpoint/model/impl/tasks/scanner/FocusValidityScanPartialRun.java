@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
@@ -113,7 +113,7 @@ public final class FocusValidityScanPartialRun
     }
 
     private ObjectFilter createStandardFilter() {
-        S_AtomicFilterExit i = PrismContext.get().queryFor(FocusType.class).none();
+        S_FilterExit i = PrismContext.get().queryFor(FocusType.class).none();
         if (lastScanTimestamp == null) {
             if (checkFocusValidity()) {
                 i = i.or().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)

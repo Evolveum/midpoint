@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
@@ -44,7 +44,7 @@ class FailedObjectsFilterCreator {
 
     public ObjectFilter createFilter() {
 
-        S_AtomicFilterExit builder = prismContext.queryFor(ObjectType.class)
+        S_FilterExit builder = prismContext.queryFor(ObjectType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION).block()
                     .item(OperationExecutionType.F_TASK_REF).ref(getTaskOids());
 
@@ -63,7 +63,7 @@ class FailedObjectsFilterCreator {
         return builder.endBlock().buildFilter();
     }
 
-    private S_AtomicFilterExit addStatusClause(S_AtomicFilterExit builder, List<OperationResultStatusType> statusList) {
+    private S_FilterExit addStatusClause(S_FilterExit builder, List<OperationResultStatusType> statusList) {
         assert !statusList.isEmpty();
         if (statusList.size() <= 1) {
             return builder.and().item(OperationExecutionType.F_STATUS).eq(statusList.get(0));
