@@ -11,12 +11,12 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
@@ -88,18 +88,18 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         });
         add(badge);
 
-        AjaxButton link1 = new AjaxButton(ID_LINK1, () -> getModelObject().getAdded().getName()) {
+        AjaxButton link1 = new AjaxButton(ID_LINK1, () -> getModelObject().getAdded().getDisplayName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                navigateToObject(ConflictItemPanel.this.getModelObject().getAdded().getRef());
+                navigateToObject(ConflictItemPanel.this.getModelObject().getAdded().getAssignment());
             }
         };
         add(link1);
 
-        AjaxButton link2 = new AjaxButton(ID_LINK2, () -> getModelObject().getExclusion().getName()) {
+        AjaxButton link2 = new AjaxButton(ID_LINK2, () -> getModelObject().getExclusion().getDisplayName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                navigateToObject(ConflictItemPanel.this.getModelObject().getExclusion().getRef());
+                navigateToObject(ConflictItemPanel.this.getModelObject().getExclusion().getAssignment());
             }
         };
         add(link2);
@@ -155,17 +155,23 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         Radio radio = new Radio(ID_RADIO, item);
         option.add(radio);
 
-        Label label = new Label(ID_LABEL, () -> item.getObject().getName());
+        Label label = new Label(ID_LABEL, () -> item.getObject().getDisplayName());
         option.add(label);
 
-        Label state = new Label(ID_STATE, () -> item.getObject().isExistingAssignment() ?
+        Label state = new Label(ID_STATE, () -> item.getObject().isExisting() ?
                 getString("ConflictItemPanel.existingAssignment") : getString("ConflictItemPanel.newAssignment"));
         option.add(state);
 
         return option;
     }
 
-    private void navigateToObject(ObjectReferenceType ref) {
+    private void navigateToObject(AssignmentType assignment) {
+        if (assignment == null || assignment.getTargetRef() == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = assignment.getTargetRef();
+
         WebComponentUtil.dispatchToObjectDetailsPage(ref, this, true);
     }
 

@@ -132,6 +132,11 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                     return list;
                 }
 
+                List<GroupSelectionType> selections = targetSelection.getGroup();
+                for (GroupSelectionType selection : selections) {
+                    // todo create tile for group selection
+                }
+
                 return list;
             }
         };

@@ -14,6 +14,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -47,6 +49,8 @@ public class RequestAccess implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
+
+    private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
 
     private Set<AssignmentType> assignments = new HashSet<>();
 
@@ -331,8 +335,10 @@ public class RequestAccess implements Serializable {
         final String key = StringUtils.join(addedAssignmentTargetObj.getOid(), "/", exclusionTargetObj.getOid());
         final String alternateKey = StringUtils.join(exclusionTargetObj.getOid(), "/", addedAssignmentTargetObj.getOid());
 
-        ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
-        ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+        ConflictItem added = new ConflictItem(evaluatedAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(addedAssignmentTargetObj),
+                evaluatedAssignment.getAssignment(true) != null);
+        ConflictItem exclusion = new ConflictItem(conflictingAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(exclusionTargetObj),
+                conflictingAssignment.getAssignment(true) != null);
 
         String message = null;
         if (trigger.getMessage() != null) {
@@ -402,14 +408,22 @@ public class RequestAccess implements Serializable {
         return delta;
     }
 
+    private void addExistingToBeRemoved(ObjectReferenceType ref, AssignmentType assignment) {
+        List<AssignmentType> list = requestItemsExistingToRemove.get(ref);
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        requestItemsExistingToRemove.put(ref, list);
+
+        list.add(assignment);
+    }
+
     public void solveConflict(Conflict conflict, ConflictItem toRemove) {
-        //todo implement conflict fix
-        if (toRemove.isExistingAssignment()) {
-            // todo we have to create delete delta
+        if (toRemove.isExisting()) {
+            addExistingToBeRemoved(conflict.getPersonOfInterest(), toRemove.getAssignment());
         } else {
             List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
-            AssignmentType aToRemove = assignments.stream().filter(a -> a.getTargetRef().equals(toRemove.getRef())).findFirst().orElse(null);
-            assignments.remove(aToRemove);
+            assignments.remove(toRemove.getAssignment());
         }
 
         conflict.setState(ConflictState.SOLVED);
