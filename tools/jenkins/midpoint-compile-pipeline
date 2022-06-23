@@ -8,12 +8,9 @@
 def verbose = params.VERBOSE ?: '0'
 
 podTemplate(
-        activeDeadlineSeconds: 7200,
+        activeDeadlineSeconds: 900,
         idleMinutes: 1,
-        // No need for secret volume, no mvn deploy done here.
-        volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
-        //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
-        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "midpoint-quick-pipeline-workspace"),
+        workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
@@ -29,8 +26,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '6Gi',
-                        resourceLimitMemory: '6Gi') // by default -Xmx4g is set in main POM
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi')
         ]
 ) {
     node(POD_LABEL) {
@@ -45,7 +42,7 @@ podTemplate(
                 git branch: params.BRANCH ?: 'master',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
-            stage("build") {
+            stage("compile") {
                 container('maven') {
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
@@ -55,42 +52,16 @@ podTemplate(
                             mvn --version
                         fi
 
-                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
-
-                        if [ "${verbose}" -ge 1 ]
-                        then
-                            df -h
-                        fi
+                        mvn -B -ntp -U clean package -DskipTests -P -dist
                     """
-
-                    // If we get here it's success, test results can change it to UNSTABLE.
-                    currentBuild.result = 'SUCCESS'
-
-                    step([$class: 'Publisher',
-                        reportFilenamePattern: '**/testng-results.xml',
-                        // failureOnFailedTestConfig: true // unusable, we don't want FAILURE
-                        // FAILURE result can't be switched to lower-level UNSTABLE later!
-                    ])
                 }
             }
+            currentBuild.result = 'SUCCESS'
         } catch (Exception e) {
             currentBuild.result = 'FAILURE' // error below will not set result for mailer!
             error "Marking build as FAILURE because of: ${e}"
         } finally {
-            if (verbose > '0') {
-                echo "Build: ${currentBuild}"
-                echo "Result: ${currentBuild.currentResult}"
-            }
-
             try {
-                /* Is this different plugin or just different style declaration? Any benefits?
-                mail (
-                    to: env.DEFAULT_MAIL_RECIPIENT,
-                    subject: 'test',
-                    body: 'more test'
-                )
-                */
-
                 // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
                 step([$class: 'Mailer',
                     notifyEveryUnstableBuild: true,

@@ -10,8 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -19,30 +18,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  */
 public class ConflictItem implements Serializable {
 
-    private ObjectReferenceType ref;
+    private AssignmentType assignment;
 
-    boolean oldAssignment = false;
+    private String displayName;
 
-    public ConflictItem(PrismObject obj, boolean oldAssignment) {
-        this.oldAssignment = oldAssignment;
+    private boolean existing;
 
-        if (obj == null) {
-            return;
+    public ConflictItem(AssignmentType assignment, String displayName, boolean existing) {
+        this.assignment = assignment;
+        this.displayName = displayName;
+        this.existing = existing;
+    }
+
+    public String getDisplayName() {
+        if (displayName != null) {
+            return displayName;
         }
 
-        ObjectReferenceType ref = new ObjectReferenceType();
-        ref.setOid(obj.getOid());
-        ref.setType(ObjectTypes.getObjectType(obj.getCompileTimeClass()).getTypeQName());
-        ref.setTargetName(obj.asObjectable().getName());
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef == null) {
+            return null;
+        }
 
-        this.ref = ref;
+        return WebComponentUtil.getName(targetRef);
     }
 
-    public ConflictItem(ObjectReferenceType ref) {
-        this.ref = ref;
+    public AssignmentType getAssignment() {
+        return assignment;
     }
 
-    public String getName() {
-        return WebComponentUtil.getName(ref);
+    public boolean isExisting() {
+        return existing;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
+
+        ConflictItem that = (ConflictItem) o;
+
+        if (existing != that.existing) {return false;}
+        return assignment != null ? assignment.equals(that.assignment) : that.assignment == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = assignment != null ? assignment.hashCode() : 0;
+        result = 31 * result + (existing ? 1 : 0);
+        return result;
     }
 }

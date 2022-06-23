@@ -312,35 +312,37 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useRepositoryAssignmentSearch" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            If the assignment search should use repository implementation. Enabling this allows use of dereferencing
-                            in search in assignment panels. New (unsaved) assignments are not filtered in this mode, because they
-                            do not have repository representation.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.useRepositoryAssignmentSearch</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GroupSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TargetSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultSelection" type="xsd:string" minOccurs="0">
 
@@ -357,9 +359,18 @@
                 <!-- todo add missing configuration elements -->
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="RelationSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultRelation" type="xsd:anyURI" minOccurs="0">
 
@@ -369,6 +380,7 @@
             </xsd:element>
             <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="RoleCatalogViewType">
@@ -397,6 +409,14 @@
     </xsd:simpleType>
 
     <xsd:complexType name="RoleCatalogType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultView" type="tns:RoleCatalogViewType" minOccurs="0">
 
@@ -406,32 +426,68 @@
 
             <!-- todo collection -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutCommentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ValidityPredefinedValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="duration" type="xsd:duration"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutValidityConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
             <xsd:element name="allowOnlyGlobalSettings" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="predefinedValue" type="tns:ValidityPredefinedValueType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="comment" type="tns:CheckoutCommentType" minOccurs="0">
 
@@ -440,6 +496,7 @@
 
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AccessRequestType">
@@ -1712,6 +1769,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="dataProvider" type="tns:GuiListDataProviderType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Paging for query.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.6</a:since>
+                                <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: number of results per page (MID-1931) -->
                     <!-- TODO: later: export settings (GuiExportSettingsType) -->
                 </xsd:sequence>
@@ -1719,7 +1788,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="GuiObjectListViewType">
+<xsd:complexType name="GuiObjectListViewType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies the page used to list specific object type or object collection.
@@ -1799,6 +1868,48 @@
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GuiListDataProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Base data Provider configuration
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="InMemoryAssignmentDataProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                In Memory Assignment Data Provider
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RepositoryAssignmentDataProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Repository Assignment Data Provider
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+          <xsd:extension base="tns:GuiListDataProviderType"></xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 

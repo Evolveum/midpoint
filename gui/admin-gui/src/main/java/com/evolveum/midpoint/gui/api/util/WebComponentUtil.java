@@ -29,8 +29,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -46,6 +44,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
@@ -87,6 +86,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
@@ -3612,6 +3612,7 @@ public final class WebComponentUtil {
 
     /**
      * uses the one without "comp" parameter
+     *
      * @param durationMillis
      * @param suppressLeadingZeroElements
      * @param suppressTrailingZeroElements
@@ -4761,7 +4762,8 @@ public final class WebComponentUtil {
             caseService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
-                ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
+                ExpressionEvaluationException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
         }
         if (mainResult.isUnknown()) {
@@ -5299,7 +5301,7 @@ public final class WebComponentUtil {
 
     public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
         PageParameters parameters = pageBase.getPageParameters();
-        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+        return parameters == null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
     public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageBase pageBase,
@@ -5530,4 +5532,11 @@ public final class WebComponentUtil {
         return guiObjectDetailsType.getSummaryPanel();
     }
 
+    public static void addDisabledClassBehavior(Component comp) {
+        if (comp == null) {
+            return;
+        }
+
+        comp.add(AttributeAppender.append("class", () -> !comp.isEnabledInHierarchy() ? "disabled" : null));
+    }
 }

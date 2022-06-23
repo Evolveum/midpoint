@@ -7,21 +7,12 @@
 
 package com.evolveum.midpoint.gui.api.component;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.BadgePanel;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -70,7 +72,7 @@ public class WizardHeader extends BasePanel {
         };
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
-        next.add(AttributeAppender.append("class", () -> !next.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(next);
 
         next.add(new BehaviourDelegator(() -> getNextVisibilityBehaviour()));
 
@@ -93,7 +95,7 @@ public class WizardHeader extends BasePanel {
         };
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
-        back.add(AttributeAppender.append("class", () -> !back.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(back);
 
         back.add(new BehaviourDelegator(() -> getBackVisibilityBehaviour()));
 

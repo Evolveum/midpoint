@@ -597,7 +597,6 @@ public class SearchFactory {
             config.getSupportedRelations().clear();
             config.getSupportedRelations().addAll(customConfig.getSupportedRelations());
         }
-        config.setIndirect(customConfig.isIndirect());
 
         if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
             if (replaceSearchItems) {
