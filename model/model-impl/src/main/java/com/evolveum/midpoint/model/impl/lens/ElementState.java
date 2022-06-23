@@ -219,7 +219,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         if (aClass.isAssignableFrom(objectTypeClass)) {
             return true;
         }
-        PrismObject<O> object = getAnyObject();
+        PrismObject<O> object = getNewOrCurrentOrOld();
         return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
     }
 
@@ -293,21 +293,23 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         return adjustedCurrentObject;
     }
 
-    @Nullable PrismObject<O> getAnyObject() {
-        if (getNewObject() != null) {
-            return getNewObject();
-        }
-        if (currentObject != null) {
+    @Nullable PrismObject<O> getNewOrCurrentOrOld() {
+        PrismObject<O> newObject = getNewObject();
+        if (newObject != null) {
+            return newObject;
+        } else if (currentObject != null) {
             return currentObject;
+        } else {
+            return oldObject;
         }
-        return oldObject;
     }
 
     @Nullable PrismObject<O> getCurrentOrNewObject() {
         if (currentObject != null) {
             return currentObject;
+        } else {
+            return getNewObject();
         }
-        return getNewObject();
     }
 
     @NotNull PrismObject<O> getNewOrCurrentObjectRequired() {

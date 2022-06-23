@@ -88,7 +88,7 @@ public class SynchronizationPolicy {
     SynchronizationPolicy(
             @NotNull ShadowKindType kind,
             @Nullable QName focusTypeName,
-            @Nullable ObjectReferenceType archetypeRef,
+            @Nullable String archetypeOid,
             @NotNull QName objectClassName,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             boolean synchronizationEnabled,
@@ -100,7 +100,7 @@ public class SynchronizationPolicy {
             boolean hasLegacyConfiguration) {
         this.kind = kind;
         this.focusTypeName = Objects.requireNonNullElse(focusTypeName, UserType.COMPLEX_TYPE);
-        this.archetypeOid = getArchetypeOid(archetypeRef);
+        this.archetypeOid = archetypeOid;
         this.objectClassName = objectClassName;
         this.correlationDefinitionBean = correlationDefinitionBean;
         this.synchronizationEnabled = synchronizationEnabled;
@@ -111,17 +111,6 @@ public class SynchronizationPolicy {
         this.reactions.sort(Comparator.naturalOrder());
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.hasLegacyConfiguration = hasLegacyConfiguration;
-    }
-
-    public static String getArchetypeOid(@Nullable ObjectReferenceType archetypeRef) {
-        if (archetypeRef == null) {
-            return null;
-        }
-        String oid = archetypeRef.getOid();
-        if (oid != null) {
-            return oid;
-        }
-        throw new UnsupportedOperationException("Dynamic references are not supported for archetypeRef");
     }
 
     public @NotNull ShadowKindType getKind() {

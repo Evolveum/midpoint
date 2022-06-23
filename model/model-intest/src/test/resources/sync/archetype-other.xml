@@ -4,7 +4,7 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="e3a9a6b9-17f6-4239-b935-6f88a655b9d7"
+<archetype oid="0e887a44-4862-4e27-af06-0215f04ef36f"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>employee</name>
+    <name>other</name>
 </archetype>

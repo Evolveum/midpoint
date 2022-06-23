@@ -103,6 +103,19 @@ public interface ResourceObjectTypeDefinition
     /** Archetype reference - not present in standalone definitions. */
     @Nullable ObjectReferenceType getArchetypeRef();
 
+    /** Archetype OID - a convenience method. */
+    default @Nullable String getArchetypeOid() {
+        ObjectReferenceType archetypeRef = getArchetypeRef();
+        if (archetypeRef == null) {
+            return null;
+        }
+        String oid = archetypeRef.getOid();
+        if (oid != null) {
+            return oid;
+        }
+        throw new UnsupportedOperationException("Dynamic references are not supported for archetypeRef; in " + this);
+    }
+
     /** Returns true if there is "synchronization reactions" definition section here (even if it's empty). */
     boolean hasSynchronizationReactionsDefinition();
 

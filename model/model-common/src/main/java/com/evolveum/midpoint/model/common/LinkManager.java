@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.common;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -21,8 +22,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 /**
  * Manages link definitions.

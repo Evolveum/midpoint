@@ -7,27 +7,30 @@
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getOid;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.lens.executor.FocusChangeExecution;
-import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.executor.FocusChangeExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -130,91 +133,208 @@ public class ContextLoader implements ProjectorProcessor {
                 .update(result);
     }
 
-    <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, OperationResult result)
-            throws SchemaException, ConfigurationException {
-        if (!canProcessArchetype(context)) {
-            return null;
+    /**
+     * Updates the following in the focus context:
+     *
+     * - list of archetypes,
+     * - (merged) archetype policy (stemming from archetypes),
+     * - focus template (stemming from archetype policy).
+     *
+     * @param overwrite If true, we overwrite the information (archetype policy) previously set.
+     * This flag is set e.g. after inbounds. [Does not apply to externally set focus template. That one is never changed.]
+     */
+    public <F extends ObjectType> void updateArchetypePolicyAndRelatives(
+            @NotNull LensFocusContext<F> focusContext, boolean overwrite, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, PolicyViolationException {
+        updateArchetypesAndArchetypePolicy(focusContext, overwrite, result);
+        updateFocusTemplate(focusContext, overwrite, result);
+    }
+
+    private void updateArchetypesAndArchetypePolicy(
+            @NotNull LensFocusContext<?> focusContext, boolean overwrite, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, PolicyViolationException {
+        if (focusContext.getArchetypePolicy() != null && !overwrite) {
+            LOGGER.trace("Archetype policy is already set, not updating it as `overwrite` flag is not set");
+        } else {
+            ObjectType before = asObjectable(focusContext.getObjectCurrentOrOld());
+            ObjectType after = asObjectable(focusContext.getObjectNew());
+            ObjectType mostRecent = MiscUtil.getFirstNonNull(after, before);
+
+            // These collections are modified by archetype enforcement method below.
+            Set<String> archetypeOids =
+                    new HashSet<>(
+                            archetypeManager.determineArchetypeOids(before, after));
+            List<ArchetypeType> archetypes =
+                    new ArrayList<>(
+                            archetypeManager.resolveArchetypeOids(archetypeOids, mostRecent, result));
+
+            enforceArchetypesFromProjections(focusContext, archetypeOids, archetypes, result);
+
+            ArchetypePolicyType newArchetypePolicy =
+                    archetypeManager.determineArchetypePolicy(archetypes, mostRecent, result);
+            logArchetypePolicyUpdate(focusContext, newArchetypePolicy);
+
+            focusContext.setArchetypePolicy(newArchetypePolicy);
+            focusContext.setArchetypes(
+                    Collections.unmodifiableList(archetypes));
         }
-        PrismObject<F> object = context.getFocusContext().getObjectAny();
-        ObjectDelta<F> delta = context.getFocusContext().getPrimaryDelta();
-        return archetypeManager.determineArchetypePolicy(object, delta, result);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private <O extends ObjectType> boolean canProcessArchetype(LensContext<O> context) {
-        return context.getSystemConfiguration() != null && context.getFocusContext() != null;
+    /**
+     * Enforces archetypes defined in projections. May modify archetypeOids/archetypes!
+     *
+     * Note that this code is temporary. It is expected to change in the future, e.g. we may make the handling of these
+     * archetypes configurable.
+     */
+    private void enforceArchetypesFromProjections(
+            @NotNull LensFocusContext<?> focusContext,
+            @NotNull Set<String> archetypeOids,
+            @NotNull List<ArchetypeType> archetypes,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, PolicyViolationException {
+        for (LensProjectionContext projectionContext : focusContext.getLensContext().getProjectionContexts()) {
+            String enforcedArchetypeOid = projectionContext.getConfiguredFocusArchetypeOid();
+            if (enforcedArchetypeOid != null) {
+                enforceArchetypeFromProjection(
+                        focusContext, projectionContext, enforcedArchetypeOid, archetypeOids, archetypes, result);
+            }
+        }
     }
 
-    public <F extends AssignmentHolderType> void updateArchetype(LensContext<F> context, OperationResult result)
-            throws SchemaException {
-        if (!canProcessArchetype(context)) {
+    private void enforceArchetypeFromProjection(
+            @NotNull LensFocusContext<?> focusContext,
+            @NotNull LensProjectionContext projectionContext, // just for informational purposes
+            @NotNull String enforcedArchetypeOid,
+            @NotNull Set<String> archetypeOids,
+            @NotNull List<ArchetypeType> archetypes,
+            @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException, PolicyViolationException {
+        if (archetypeOids.contains(enforcedArchetypeOid)) {
+            LOGGER.trace("Enforcing archetype OID {} from {}: already present (nothing to do here)",
+                    enforcedArchetypeOid, projectionContext);
             return;
         }
 
-        PrismObject<F> object = context.getFocusContext().getObjectAny();
+        ArchetypeType enforcedArchetype = archetypeManager.getArchetype(enforcedArchetypeOid, result);
+        // Note that unlike during resolution of archetypes in the focus object, here we intentionally
+        // fail when the archetype does not exist.
 
-        List<PrismObject<ArchetypeType>> archetypes = archetypeManager.determineArchetypes(object, result);
-        context.getFocusContext().setArchetypes(PrismObject.asObjectableList(archetypes));
+        stateCheck(ArchetypeTypeUtil.isStructural(enforcedArchetype),
+                "Archetype %s enforced by %s is not a structural one", enforcedArchetype, projectionContext);
+
+        LOGGER.trace("Going to enforce {} (by {})", enforcedArchetype, projectionContext);
+        checkForArchetypeEnforcementConflicts(focusContext, projectionContext, enforcedArchetype, archetypes);
+
+        archetypeOids.add(enforcedArchetypeOid);
+        archetypes.add(enforcedArchetype);
+
+        // We create an assignment delta, but not archetypeRef one. The reason is that we hope that the assignment evaluator
+        // will be run after this code. (It should be usually so.)
+        focusContext.swallowToSecondaryDelta(
+                PrismContext.get().deltaFor(AssignmentHolderType.class)
+                        .item(AssignmentHolderType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(enforcedArchetypeOid, ArchetypeType.COMPLEX_TYPE))
+                        .asItemDelta());
     }
 
-    public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, OperationResult result)
-            throws SchemaException, ConfigurationException {
-        if (context.getFocusContext() == null) {
-            return;
-        }
-        ArchetypePolicyType newArchetypePolicy = determineArchetypePolicy(context, result);
-        if (newArchetypePolicy != context.getFocusContext().getArchetypePolicy()) {
-            LOGGER.trace("Updated archetype policy configuration:\n{}", debugDumpLazily(newArchetypePolicy, 1));
-            context.getFocusContext().setArchetypePolicy(newArchetypePolicy);
+    private void checkForArchetypeEnforcementConflicts(
+            @NotNull LensFocusContext<?> focusContext,
+            @NotNull LensProjectionContext projectionContext,
+            @NotNull ArchetypeType enforcedArchetype,
+            @NotNull List<ArchetypeType> archetypes) throws SchemaException, PolicyViolationException {
+        ArchetypeType existingStructural = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
+        if (existingStructural != null) {
+            assert !enforcedArchetype.getOid().equals(existingStructural.getOid());
+            throw new PolicyViolationException(
+                    String.format("Trying to enforce %s on %s (because of %s); but the object has already"
+                                    + " a different structural archetype: %s",
+                            enforcedArchetype, focusContext.getObjectAny(), projectionContext.getHumanReadableName(),
+                            existingStructural));
+        } else if (!archetypes.isEmpty()) {
+            // This should have been checked elsewhere. But let's double-check here. It is dangerous to set a structural
+            // archetype when there are (any) auxiliary ones.
+            throw new PolicyViolationException(
+                    String.format("Trying to enforce %s on %s (because of %s); but the object has already"
+                                    + " some auxiliary archetypes: %s",
+                            enforcedArchetype, focusContext.getObjectAny(), projectionContext.getHumanReadableName(), archetypes));
         }
     }
 
-    // expects that object policy configuration is already set in focusContext
-    public <F extends ObjectType> void updateFocusTemplate(LensContext<F> context, OperationResult result)
+    private <F extends ObjectType> void logArchetypePolicyUpdate(
+            LensFocusContext<F> focusContext, ArchetypePolicyType newPolicy) {
+        if (LOGGER.isTraceEnabled()) {
+            if (Objects.equals(newPolicy, focusContext.getArchetypePolicy())) {
+                LOGGER.trace("Archetype policy has not changed");
+            } else {
+                LOGGER.trace("Updated archetype policy configuration:\n{}", debugDumpLazily(newPolicy, 1));
+            }
+        }
+    }
+
+    /**
+     * Updates {@link LensFocusContext#focusTemplate} property according to {@link LensFocusContext#archetypePolicy}.
+     */
+    private <F extends ObjectType> void updateFocusTemplate(
+            @NotNull LensFocusContext<F> focusContext,
+            boolean overwrite,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        // 1. When this method is called after inbound processing, we might want to change the existing template
-        //    (because e.g. subtype or archetype was determined and we want to move from generic to more specific template).
-        // 2. On the other hand, if focus template is set up explicitly from the outside (e.g. in synchronization section)
-        //    we probably do not want to change it here.
-        if (context.getFocusTemplate() != null && context.isFocusTemplateExternallySet()) {
-            return;
-        }
-
-        String currentOid = context.getFocusTemplate() != null ? context.getFocusTemplate().getOid() : null;
-        String newOid;
-
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            newOid = null;
-        } else {
-            ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicy();
-            if (archetypePolicy == null) {
-                LOGGER.trace("No default object template (no policy)");
-                newOid = null;
-            } else {
-                ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
-                if (templateRef == null) {
-                    LOGGER.trace("No default object template (no templateRef)");
-                    newOid = null;
-                } else {
-                    newOid = templateRef.getOid();
-                }
+        ObjectTemplateType current = focusContext.getFocusTemplate();
+        if (current != null) {
+            if (focusContext.isFocusTemplateSetExplicitly()) {
+                LOGGER.trace("Focus template {} was set explicitly, not updating it", current);
+                return;
+            }
+            if (!overwrite) {
+                LOGGER.trace("Focus template is already set, not updating it as `overwrite` flag is not set: {}", current);
+                return;
             }
         }
+
+        String currentOid = getOid(current);
+        String newOid = determineNewTemplateOid(focusContext);
 
         LOGGER.trace("current focus template OID = {}, new = {}", currentOid, newOid);
-        if (!java.util.Objects.equals(currentOid, newOid)) {
-            ObjectTemplateType template;
-            if (newOid != null) {
-                template = cacheRepositoryService
-                        .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
-                        .asObjectable();
-            } else {
-                template = null;
-            }
-            context.setFocusTemplate(template);
+        if (!Objects.equals(currentOid, newOid)) {
+            resolveAndSetTemplate(focusContext, newOid, result);
         }
+    }
+
+    @Nullable
+    private String determineNewTemplateOid(@NotNull LensFocusContext<?> focusContext) {
+        String explicitFocusTemplateOid = focusContext.getLensContext().getExplicitFocusTemplateOid();
+        if (explicitFocusTemplateOid != null) {
+            return explicitFocusTemplateOid;
+        }
+
+        ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicy();
+        if (archetypePolicy == null) {
+            LOGGER.trace("No default object template (no archetype policy)");
+            return null;
+        } else {
+            ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
+            if (templateRef == null) {
+                LOGGER.trace("No default object template (no templateRef in archetype policy)");
+                return null;
+            } else {
+                return templateRef.getOid();
+            }
+        }
+    }
+
+    private <F extends ObjectType> void resolveAndSetTemplate(
+            @NotNull LensFocusContext<F> focusContext, String newOid, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        ObjectTemplateType template;
+        if (newOid != null) {
+            template = cacheRepositoryService
+                    .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
+                    .asObjectable();
+        } else {
+            template = null;
+        }
+        focusContext.setFocusTemplate(template);
     }
 
     /**
@@ -247,9 +367,9 @@ public class ContextLoader implements ProjectorProcessor {
         }
     }
 
-    <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
-            Task task, OperationResult result) throws ExpressionEvaluationException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    void loadSecurityPolicy(LensContext<?> context, Task task, OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
         loadSecurityPolicy(context, false, task, result);
     }
 
@@ -265,8 +385,8 @@ public class ContextLoader implements ProjectorProcessor {
         LensFocusContext<FocusType> focusContext = (LensFocusContext<FocusType>) genericFocusContext;
         PrismObject<FocusType> focus = focusContext.getObjectAny();
         SecurityPolicyType globalSecurityPolicy = determineAndSetGlobalSecurityPolicy(context, focus, task, result);
-        SecurityPolicyType focusSecurityPolicy = determineAndSetFocusSecurityPolicy(focusContext, focus, globalSecurityPolicy,
-                forceReload, task, result);
+        SecurityPolicyType focusSecurityPolicy =
+                determineAndSetFocusSecurityPolicy(focusContext, focus, globalSecurityPolicy, forceReload, task, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Security policies:\n  Global:\n{}\n  Focus:\n{}",
@@ -316,5 +436,4 @@ public class ContextLoader implements ProjectorProcessor {
             return resultingPolicy;
         }
     }
-
 }

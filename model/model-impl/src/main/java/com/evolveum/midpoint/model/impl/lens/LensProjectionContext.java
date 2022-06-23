@@ -1817,4 +1817,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return false;
         }
     }
+
+    /**
+     * Returns configured focus archetype OID corresponding to resource object type of this projection (if there is one).
+     */
+    public @Nullable String getConfiguredFocusArchetypeOid() throws SchemaException, ConfigurationException {
+        ResourceObjectDefinition objectDefinition = getStructuralObjectDefinition();
+        if (objectDefinition == null) {
+            return null;
+        }
+        ResourceObjectTypeDefinition typeDefinition = objectDefinition.getTypeDefinition();
+        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
+    }
 }

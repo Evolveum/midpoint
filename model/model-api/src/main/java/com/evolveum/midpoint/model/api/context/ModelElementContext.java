@@ -65,11 +65,17 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     PrismObject<O> getObjectNew();
 
     /**
-     * @return "Any" value of the object in this order: new, current, old; taking the first non-null one.
-     * It is used when we are not interested in the details but we want just "any" value, e.g. for reporting
-     * purposes.
+     * @return "Any" value of the object (new, current, old). It is used when we are not interested in the details
+     * but we want just "any" value, e.g. for reporting purposes.
      */
-    PrismObject<O> getObjectAny();
+    default PrismObject<O> getObjectAny() {
+        return getObjectNewOrCurrentOrOld();
+    }
+
+    /**
+     * @return The first non-null object of these: new, current, old. (Or null of all of them all null.)
+     */
+    PrismObject<O> getObjectNewOrCurrentOrOld();
 
     /**
      * @return OID of the object. If not determined yet, it is obtained from available sources, like
@@ -141,15 +147,19 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     /**
      * @return List of all executed deltas (in fact, {@link ObjectDeltaOperation} objects).
      */
-    List<? extends ObjectDeltaOperation> getExecutedDeltas();
+    List<? extends ObjectDeltaOperation<?>> getExecutedDeltas();
 
     /**
+     * TODO is this method ever used?
+     *
      * @return Determined archetype of the object. Currently not supported for projections.
      * Since 4.4 structural archetype is returned
      */
     ArchetypeType getArchetype();
 
     /**
+     * TODO is this method ever used?
+     *
      * @return All archetypes (structural and auxiliary)
      */
     List<ArchetypeType> getArchetypes();

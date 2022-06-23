@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1094,23 +1093,53 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // "By default, null values sort as if larger than any non-null value; that is,
                 // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
             } else {
-                // see MID-7860
+                /*
+                IMPL NOTE: Compare this code with SqaleAuditService.iterativeSearchCondition, there are couple of differences.
+                This one seems bloated, but each branch is simple; on the other hand it's not obvious what is different in each.
+                Also, audit version does not require polystring treatment.
+                Finally, this works for a single provided ordering, but not for multiple (unsupported commented code lower).
+                 */
                 boolean isPolyString = QNameUtil.match(
                         PolyStringType.COMPLEX_TYPE, item.getDefinition().getTypeName());
-
                 Object realValue = item.getRealValue();
-                S_AtomicFilterExit subfilter = asc
-                        ? (isPolyString ? filter.gt(realValue).matchingOrig() : filter.gt(realValue))
-                        : (isPolyString ? filter.lt(realValue).matchingOrig() : filter.lt(realValue));
-                S_ConditionEntry subfilter2 = subfilter.or()
-                        .block()
-                        .item(orderByPath);
-                filter = (isPolyString ? subfilter2.eq(realValue).matchingOrig() : subfilter2.eq(realValue))
-                        .and()
-                        .item(OID_PATH);
-                return (asc ? filter.gt(lastProcessedOid) : filter.lt(lastProcessedOid))
-                        .endBlock()
-                        .buildFilter();
+                if (isPolyString) {
+                    // We need to use matchingOrig for polystring, see MID-7860
+                    if (asc) {
+                        return filter.gt(realValue).matchingOrig().or()
+                                .block()
+                                .item(orderByPath).eq(realValue).matchingOrig()
+                                .and()
+                                .item(OID_PATH).gt(lastProcessedOid)
+                                .endBlock()
+                                .buildFilter();
+                    } else {
+                        return filter.lt(realValue).matchingOrig().or()
+                                .block()
+                                .item(orderByPath).eq(realValue).matchingOrig()
+                                .and()
+                                .item(OID_PATH).lt(lastProcessedOid)
+                                .endBlock()
+                                .buildFilter();
+                    }
+                } else {
+                    if (asc) {
+                        return filter.gt(realValue).or()
+                                .block()
+                                .item(orderByPath).eq(realValue)
+                                .and()
+                                .item(OID_PATH).gt(lastProcessedOid)
+                                .endBlock()
+                                .buildFilter();
+                    } else {
+                        return filter.lt(realValue).or()
+                                .block()
+                                .item(orderByPath).eq(realValue)
+                                .and()
+                                .item(OID_PATH).lt(lastProcessedOid)
+                                .endBlock()
+                                .buildFilter();
+                    }
+                }
             }
         }
 

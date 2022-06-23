@@ -31,9 +31,8 @@ import com.evolveum.midpoint.cases.impl.helpers.AuthorizationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseExpressionEvaluationHelper;
 import com.evolveum.midpoint.cases.impl.helpers.CaseMiscHelper;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -164,16 +163,19 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
 
     private CaseEngineOperationImpl createOperation(String caseOid, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        PrismObject<CaseType> caseObject = repositoryService.getObject(CaseType.class, caseOid, null, result);
+        CaseType aCase =
+                repositoryService
+                        .getObject(CaseType.class, caseOid, null, result)
+                        .asObjectable();
         return new CaseEngineOperationImpl(
-                caseObject.asObjectable(),
-                determineEngineExtension(caseObject, result),
+                aCase,
+                determineEngineExtension(aCase, result),
                 task,
                 beans,
                 SecurityUtil.getPrincipalRequired());
     }
 
-    private @NotNull EngineExtension determineEngineExtension(@NotNull PrismObject<CaseType> aCase, OperationResult result)
+    private @NotNull EngineExtension determineEngineExtension(@NotNull CaseType aCase, OperationResult result)
             throws SchemaException {
         String archetypeOid = getCaseArchetypeOid(aCase, result);
         LOGGER.trace("Going to determine engine extension for {}, archetype: {}", aCase, archetypeOid);
@@ -193,8 +195,8 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
                 .findFirst();
     }
 
-    private String getCaseArchetypeOid(@NotNull PrismObject<CaseType> aCase, OperationResult result) throws SchemaException {
-        PrismObject<ArchetypeType> structuralArchetype = archetypeManager.determineStructuralArchetype(aCase, result);
+    private String getCaseArchetypeOid(@NotNull CaseType aCase, OperationResult result) throws SchemaException {
+        ArchetypeType structuralArchetype = archetypeManager.determineStructuralArchetype(aCase, result);
         if (structuralArchetype != null) {
             LOGGER.trace("Structural archetype found: {}", structuralArchetype);
             return structuralArchetype.getOid();
@@ -202,7 +204,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
 
         // If there's exactly single archetypeRef value, but the archetype object does not exist
         // (e.g. in some tests), let's try that.
-        List<ObjectReferenceType> archetypeRef = aCase.asObjectable().getArchetypeRef();
+        List<ObjectReferenceType> archetypeRef = aCase.getArchetypeRef();
         if (archetypeRef.size() == 1) {
             String fromRef = archetypeRef.get(0).getOid();
             LOGGER.trace("Using an OID from (single) archetypeRef: {}", fromRef);

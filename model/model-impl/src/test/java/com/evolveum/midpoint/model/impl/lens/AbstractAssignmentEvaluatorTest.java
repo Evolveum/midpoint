@@ -825,7 +825,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         String pastTime = XmlTypeConverter.fromNow(createDuration("-P3D")).toString();
         String futureTime = XmlTypeConverter.fromNow(createDuration("P3D")).toString();
-        UserType fred = new UserType(prismContext)
+        UserType fred = new UserType()
                 .name("fred")
                 .description(futureTime)
                 .subtype(DYNAMIC_ORG_ASSIGNMENT_SUBTYPE);
