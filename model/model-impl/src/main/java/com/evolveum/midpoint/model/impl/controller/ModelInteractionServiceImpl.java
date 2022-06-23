@@ -1741,12 +1741,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return archetypeManager.determineArchetypePolicy(assignmentHolder, result);
     }
 
-    private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return archetypeManager.determineStructuralArchetype(assignmentHolder, result);
+    private ArchetypeType determineArchetype(PrismObject<? extends AssignmentHolderType> assignmentHolder, OperationResult result)
+            throws SchemaException {
+        return archetypeManager.determineStructuralArchetype(assignmentHolder.asObjectable(), result);
     }
 
     @Override
-    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
+    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result)
+            throws SchemaException, ConfigurationException {
         return archetypeManager.mergeArchetypePolicies(archetype, result);
     }
 
@@ -1813,15 +1815,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         // apply assignmentRelation to "archetyped" objects
-        PrismObject<ArchetypeType> targetArchetype = determineArchetype(assignmentTarget, result);
+        ArchetypeType targetArchetype = determineArchetype(assignmentTarget, result);
         if (targetArchetype == null) {
             return null;
         }
 
         // TODO: empty list vs null: default setting
-        ArchetypeType targetArchetypeType = targetArchetype.asObjectable();
-        return determineArchetypeAssignmentCandidateSpecification(targetArchetypeType.getInducement(), targetArchetypeType.getArchetypePolicy());
-
+        // TODO what about super-archetypes?
+        return determineArchetypeAssignmentCandidateSpecification(
+                targetArchetype.getInducement(), targetArchetype.getArchetypePolicy());
     }
 
     private AssignmentCandidatesSpecification determineArchetypeAssignmentCandidateSpecification(List<AssignmentType> archetypeAssigmentsOrInducements, ArchetypePolicyType archetypePolicy) {

@@ -46,6 +46,12 @@
             </focus>
             <attribute>
                 <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -55,6 +61,12 @@
             </attribute>
             <attribute>
                 <ref>ri:employeeNumber</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>employeeNumber</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <strength>strong</strength>
                     <target>

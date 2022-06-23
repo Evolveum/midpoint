@@ -14,8 +14,16 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import org.apache.commons.collections4.CollectionUtils;
+
+import com.evolveum.midpoint.schema.RelationRegistry;
+
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +32,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -44,10 +49,22 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Component that can efficiently determine archetypes for objects.
  * It is backed by caches, therefore this is supposed to be a low-overhead service that can be
  * used in many places.
+ *
+ * [NOTE]
+ * ====
+ * When resolving archetype references (i.e. obtaining archetype objects from references in object assignments and
+ * `archetypeRef` values, as well as when resolving super-archetypes), we currently handle dangling references
+ * (non-existing objects) by ignoring them. We just log the exception, and keep the {@link OperationResultStatus#FATAL_ERROR}
+ * in the result tree - where the lower-level code put it. (It may or may not be available to the ultimate caller; depending
+ * on the overall operation result processing.)
+ * ====
  *
  * @author Radovan Semancik
  */
@@ -67,7 +84,7 @@ public class ArchetypeManager implements Cache {
     );
 
     @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
@@ -83,185 +100,265 @@ public class ArchetypeManager implements Cache {
         cacheRegistry.unregisterCache(this);
     }
 
-    public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        // TODO: make this efficient (use cache)
-        return systemObjectCache.getArchetype(oid, result);
+    /**
+     * Gets an archetype. Assumes that caching of {@link ArchetypeType} objects is enabled by global repository cache.
+     * (By default, it is - see `default-caching-profile.xml` in `infra/schema` resources.)
+     */
+    public @NotNull ArchetypeType getArchetype(String oid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        return systemObjectCache
+                .getArchetype(oid, result)
+                .asObjectable();
     }
 
-    public <O extends AssignmentHolderType> @Nullable ObjectReferenceType determineArchetypeRef(PrismObject<O> assignmentHolder)
-            throws SchemaException {
-        if (assignmentHolder == null) {
-            return null;
+    /**
+     * Determines all archetype OIDs (structural + auxiliary) for a given object.
+     *
+     * This is a simplified version of {@link #determineArchetypeOids(ObjectType, ObjectType)} method.
+     */
+    public @NotNull Set<String> determineArchetypeOids(@Nullable ObjectType object) {
+        Set<String> oids;
+        if (object instanceof AssignmentHolderType) {
+            AssignmentHolderType assignmentHolder = (AssignmentHolderType) object;
+            // To be safe, we look also at archetypeRef values. This may change in the future.
+            oids = Sets.union(
+                    getArchetypeOidsFromAssignments(assignmentHolder),
+                    determineArchetypeOidsFromArchetypeRef(assignmentHolder));
+        } else {
+            oids = Set.of();
         }
-        if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
-            return null;
-        }
-
-        List<ObjectReferenceType> archetypeAssignmentsRef = determineArchetypesFromAssignments(assignmentHolder.asObjectable());
-
-        if (CollectionUtils.isNotEmpty(archetypeAssignmentsRef)) {
-            if (archetypeAssignmentsRef.size() > 1) {
-                throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
-            }
-        }
-
-        List<ObjectReferenceType> archetypeRefs = assignmentHolder.asObjectable().getArchetypeRef();
-        if (CollectionUtils.isEmpty(archetypeRefs)) {
-            if (CollectionUtils.isEmpty(archetypeAssignmentsRef)) {
-                return null;
-            }
-            return archetypeAssignmentsRef.get(0);
-        }
-        if (archetypeRefs.size() > 1) {
-            throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
-        }
-
-        //check also assignments
-
-        return archetypeRefs.get(0);
+        LOGGER.trace("Archetype OIDs determined (no-change case): {}", oids);
+        return oids;
     }
 
-    public <O extends AssignmentHolderType> @NotNull List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder) {
-        return determineArchetypeRefs(assignmentHolder, null);
+    /**
+     * Determines all archetype OIDs in the "dynamic" case where the object is changed during clockwork processing.
+     *
+     * See the code of this method and of {@link #determineArchetypeOids(AssignmentHolderType, AssignmentHolderType)}
+     * for detailed explanation how the result is computed.
+     *
+     * @see #determineArchetypeOids(ObjectType)
+     */
+    public <O extends ObjectType> @NotNull Set<String> determineArchetypeOids(O before, O after) {
+
+        // First, let us sort out static cases, where there is no change in the object internals.
+
+        if (after == null) {
+            // Object is being deleted. Let us simply take the OIDs from last known version (if there's any).
+            return determineArchetypeOids(before);
+        }
+
+        if (before == null) {
+            // Object is being added, and we have no "before" version. Reduces to the static case just as above.
+            return determineArchetypeOids(after);
+        }
+
+        // Here we know we have (some) change. Let's sort things out.
+
+        if (!(after instanceof AssignmentHolderType)) {
+            assert !(before instanceof AssignmentHolderType); // We know the clockwork does not change the type of objects.
+            return Set.of();
+        }
+
+        return determineArchetypeOids(
+                (AssignmentHolderType) before,
+                (AssignmentHolderType) after);
     }
 
-    private <O extends AssignmentHolderType> @NotNull List<ObjectReferenceType> determineArchetypeRefs(PrismObject<O> assignmentHolder, ObjectDelta<O> delta) {
-        if (assignmentHolder == null) {
-            return List.of();
-        }
-        if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
-            return List.of();
-        }
+    private @NotNull Set<String> determineArchetypeOids(
+            @NotNull AssignmentHolderType before, @NotNull AssignmentHolderType after) {
 
-        List<ObjectReferenceType> archetypeAssignmentsRefs = determineArchetypesFromAssignments(assignmentHolder.asObjectable());
+        // Values assigned "at the end" (i.e. in `after` version). This is usually the authoritative information.
+        Set<String> assignedOidsAfter = getArchetypeOidsFromAssignments(after);
 
-        List<ObjectReferenceType> archetypeRefs = new ArrayList<>(assignmentHolder.asObjectable().getArchetypeRef());
+        // We look at archetypeRef because there may be rare (theoretical?) cases when we have archetypeRefs
+        // without corresponding assignments. But we have to be careful to select only relevant OIDs!
+        Set<String> relevantOidsFromRef = getRelevantArchetypeOidsFromArchetypeRef(before, after, assignedOidsAfter);
 
-        for (ObjectReferenceType archetypeAssignmentRef : archetypeAssignmentsRefs) {
-            if (isNotApplicableArchetypeRef(archetypeAssignmentRef, archetypeRefs, delta)) {
-                continue;
-            }
-            archetypeRefs.add(archetypeAssignmentRef);
-        }
-        return archetypeRefs;
+        // Finally, we take a union of these sets. Note that they usually overlap.
+        var oids = Sets.union(
+                assignedOidsAfter,
+                relevantOidsFromRef);
+
+        LOGGER.trace("Archetype OIDs determined (dynamic case): {}", oids);
+        return oids;
     }
 
-    private <O extends AssignmentHolderType> boolean isNotApplicableArchetypeRef(ObjectReferenceType archetypeAssignmentRef, List<ObjectReferenceType> archetypeRefs, ObjectDelta<O> delta) {
-        if (archetypeRefs.contains(archetypeAssignmentRef)) {
-            return true;
-        }
-        if (archetypeRefs.stream().anyMatch(archetypeRef -> archetypeRef.getOid().equals(archetypeAssignmentRef.getOid()))) {
-            return true;
-        }
-
-        if (delta != null) {
-            ContainerDelta<AssignmentType> assignmentTypeContainerDelta = delta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT);
-            if (assignmentTypeContainerDelta == null) {
-                return false;
-            }
-            Collection<AssignmentType> assignmentsToDelete = (Collection<AssignmentType>) assignmentTypeContainerDelta.getRealValuesToDelete();
-            if (assignmentsToDelete == null) {
-                return false;
-            }
-            for (AssignmentType assignmentToDelete : assignmentsToDelete) {
-                if (assignmentToDelete.getTargetRef() == null || !QNameUtil.match(assignmentToDelete.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
-                    continue;
-                }
-                if (archetypeRefs.stream().anyMatch(archetypeRef -> archetypeRef.getOid().equals(assignmentToDelete.getTargetRef().getOid()))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypesFromAssignments(O assignmentHolder) {
-        List<AssignmentType> assignments = assignmentHolder.getAssignment();
-        return assignments.stream()
-                .filter(a -> {
-                    ObjectReferenceType target = a.getTargetRef();
-                    return target != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, target.getType());
-                })
+    private @NotNull Set<String> getArchetypeOidsFromAssignments(AssignmentHolderType assignmentHolder) {
+        var oids = assignmentHolder.getAssignment().stream()
                 .map(AssignmentType::getTargetRef)
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .filter(ref -> QNameUtil.match(ArchetypeType.COMPLEX_TYPE, ref.getType()))
+                .filter(ref -> relationRegistry.isMember(ref.getRelation()))
+                .map(AbstractReferencable::getOid)
+                .collect(Collectors.toSet());
+        stateCheck(!oids.contains(null),
+                "OID-less (e.g. dynamic filter based) archetype assignments are not supported; in %s", assignmentHolder);
+        LOGGER.trace("Assigned archetype OIDs: {}", oids);
+        return oids;
     }
 
-    public <O extends AssignmentHolderType> @NotNull List<PrismObject<ArchetypeType>> determineArchetypes(
-            PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return determineArchetypes(assignmentHolder, null, result);
+    /**
+     * Selects relevant archetype OIDs from `archetypeRef`. We must take care here because this information may be out of date
+     * in situations where we try to determine archetypes _before_ the assignment evaluator updates `archetypeRef` values.
+     * (Even the values in `after` version of the object are not up-to-date in that case.)
+     *
+     * The best we can do is to eliminate any `archetypeRef` OIDs that were assigned "before" but are not assigned "after":
+     * meaning they are unassigned by some (primary/secondary) delta.
+     */
+    private Set<String> getRelevantArchetypeOidsFromArchetypeRef(
+            AssignmentHolderType before, AssignmentHolderType after, Set<String> assignedOidsAfter) {
+
+        Set<String> assignedOidsBefore = getArchetypeOidsFromAssignments(before);
+
+        // These are OIDs that were assigned at the beginning, but are no longer assigned. These are forbidden to use.
+        Set<String> unassignedOids = Sets.difference(assignedOidsBefore, assignedOidsAfter);
+
+        // These are the relevant OIDs: they are in (presumed ~ "after") archetypeRef and were not unassigned.
+        var relevant = Sets.difference(
+                determineArchetypeOidsFromArchetypeRef(after),
+                unassignedOids);
+
+        LOGGER.trace("Relevant archetype OIDs from archetypeRef: {}", relevant);
+        return relevant;
     }
 
-    public <AH extends AssignmentHolderType> @NotNull List<PrismObject<ArchetypeType>> determineArchetypes(
-            PrismObject<AH> assignmentHolder, ObjectDelta<AH> delta, OperationResult result) throws SchemaException {
-        List<PrismObject<ArchetypeType>> archetypes = new ArrayList<>();
-        List<ObjectReferenceType> archetypeRefs = determineArchetypeRefs(assignmentHolder, delta);
-        for (ObjectReferenceType archetypeRef : archetypeRefs) {
+    private @NotNull Set<String> determineArchetypeOidsFromArchetypeRef(AssignmentHolderType assignmentHolder) {
+        var oids = assignmentHolder.getArchetypeRef().stream()
+                .filter(ref -> relationRegistry.isMember(ref.getRelation())) // should be always the case
+                .map(AbstractReferencable::getOid)
+                .filter(Objects::nonNull) // should be always the case
+                .collect(Collectors.toSet());
+        LOGGER.trace("'Effective' archetype OIDs (from archetypeRef): {}", oids);
+        return oids;
+    }
+
+    /**
+     * Determines all archetypes for "static" case (no change in the object).
+     *
+     * See the class-level note about resolving dangling references.
+     */
+    public @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
+            throws SchemaException {
+        return resolveArchetypeOids(
+                determineArchetypeOids(object),
+                object,
+                result);
+    }
+
+    /**
+     * Resolves archetype OIDs to full objects.
+     *
+     * See the class-level note about resolving dangling references.
+     */
+    public List<ArchetypeType> resolveArchetypeOids(Collection<String> oids, Object context, OperationResult result)
+            throws SchemaException {
+        List<ArchetypeType> archetypes = new ArrayList<>();
+        for (String oid : oids) {
             try {
-                PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
-                archetypes.add(archetype);
+                archetypes.add(
+                        systemObjectCache.getArchetype(oid, result)
+                                .asObjectable());
             } catch (ObjectNotFoundException e) {
-                LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+                LOGGER.warn("Archetype {} for {} cannot be found", oid, context);
             }
         }
         return archetypes;
     }
 
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineStructuralArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        List<PrismObject<ArchetypeType>> archetypes = determineArchetypes(assignmentHolder, result);
-        return ArchetypeTypeUtil.getStructuralArchetype(archetypes);
+    /**
+     * Determines the structural archetype for an object.
+     *
+     * (See the class-level note about resolving dangling references.)
+     */
+    public ArchetypeType determineStructuralArchetype(@Nullable AssignmentHolderType assignmentHolder, OperationResult result)
+            throws SchemaException {
+        return ArchetypeTypeUtil.getStructuralArchetype(
+                determineArchetypes(assignmentHolder, result));
     }
 
-    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result)
+    /**
+     * Determines the archetype policy for an object. The policy is determined in the complex way, taking
+     * auxiliary archetypes, super archetypes, and even legacy (subtype) configuration into account.
+     *
+     * (See the class-level note about resolving dangling archetype references.)
+     */
+    public ArchetypePolicyType determineArchetypePolicy(@Nullable ObjectType object, OperationResult result)
             throws SchemaException, ConfigurationException {
-        return determineArchetypePolicy(object, null, result);
+        Set<String> archetypeOids = determineArchetypeOids(object);
+        List<ArchetypeType> archetypes = resolveArchetypeOids(archetypeOids, object, result);
+        return determineArchetypePolicy(archetypes, object, result);
     }
 
-    public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, ObjectDelta<O> delta, OperationResult result)
+    /**
+     * A convenience variant of {@link #determineArchetypePolicy(ObjectType, OperationResult)}.
+     */
+    public ArchetypePolicyType determineArchetypePolicy(
+            @Nullable PrismObject<? extends ObjectType> object, OperationResult result)
             throws SchemaException, ConfigurationException {
-        if (object == null || object.getCompileTimeClass() == null) {
-            return null;
-        }
-
-        if (!AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            return null;
-        }
-
-        ArchetypePolicyType archetypePolicy = computeArchetypePolicy((PrismObject) object,(ObjectDelta<? extends AssignmentHolderType>) delta, result);
-        // Try to find appropriate system configuration section for this object.
-        ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
-
-        return merge(archetypePolicy, objectPolicy);
+        return determineArchetypePolicy(asObjectable(object), result);
     }
 
-    private <O extends AssignmentHolderType> ArchetypePolicyType computeArchetypePolicy(PrismObject<O> object, ObjectDelta<O> delta, OperationResult result) throws SchemaException {
-        List<PrismObject<ArchetypeType>> archetypes = determineArchetypes(object, delta, result);
-        if (archetypes.isEmpty()) {
+    /**
+     * Determines "complex" archetype policy; takes auxiliary archetypes, super archetypes,
+     * and even legacy (subtype) configuration into account.
+     */
+    public ArchetypePolicyType determineArchetypePolicy(
+            Collection<ArchetypeType> allArchetypes,
+            ObjectType object,
+            OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return merge(
+                determinePureArchetypePolicy(allArchetypes, result),
+                determineObjectPolicyConfiguration(object, result));
+    }
+
+    /**
+     * Determines "pure" archetype policy - just from archetypes, ignoring subtype configuration.
+     */
+    private ArchetypePolicyType determinePureArchetypePolicy(
+            Collection<ArchetypeType> allArchetypes, OperationResult result)
+            throws SchemaException, ConfigurationException {
+
+        if (allArchetypes.isEmpty()) {
             return null;
         }
 
-        PrismObject<ArchetypeType> structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
-
-        List<PrismObject<ArchetypeType>> auxiliaryArchetypes = archetypes.stream()
-                .filter(a -> a.asObjectable().getArchetypeType() != null
-                        && a.asObjectable().getArchetypeType() == ArchetypeTypeType.AUXILIARY)
+        ArchetypeType structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(allArchetypes);
+        List<ArchetypeType> auxiliaryArchetypes = allArchetypes.stream()
+                .filter(ArchetypeTypeUtil::isAuxiliary)
                 .collect(Collectors.toList());
         if (structuralArchetype == null && !auxiliaryArchetypes.isEmpty()) {
             throw new SchemaException("Auxiliary archetype cannot be assigned without structural archetype");
         }
 
-        ArchetypePolicyType mergedAuxiliaryArchetypePolicy = new ArchetypePolicyType(PrismContext.get());
-        for (PrismObject<ArchetypeType> auxiliaryArchetype : auxiliaryArchetypes) {
-            ArchetypePolicyType determinedAuxiliaryArchetypePolicy = mergeArchetypePolicies(auxiliaryArchetype, result);
-            //TODO colision detection
-            mergedAuxiliaryArchetypePolicy = mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, determinedAuxiliaryArchetypePolicy);
+        // TODO collision detection
+        // TODO why are we using getMergedPolicyForArchetype (i.e. without caching) instead of mergeArchetypePolicies
+        //  (that does the caching)?
+
+        ArchetypePolicyType mergedPolicy = new ArchetypePolicyType();
+
+        for (ArchetypeType auxiliaryArchetype : auxiliaryArchetypes) {
+            mergedPolicy = mergeArchetypePolicies(
+                    mergedPolicy,
+                    getMergedPolicyForArchetype(auxiliaryArchetype, result));
         }
 
-        ArchetypePolicyType structuralArchetypePolicy = mergeArchetypePolicies(structuralArchetype, result);
+        assert structuralArchetype != null;
+        mergedPolicy = mergeArchetypePolicies(
+                mergedPolicy,
+                getMergedPolicyForArchetype(structuralArchetype, result));
 
-        return mergeArchetypePolicies(mergedAuxiliaryArchetypePolicy, structuralArchetypePolicy);
+        return mergedPolicy;
     }
 
-    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
+    /**
+     * Returns policy collected from this archetype and its super-archetypes. Uses the policy cache.
+     *
+     * TODO consider renaming to `getMergedPolicyForArchetype`
+     */
+    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result)
+            throws SchemaException, ConfigurationException {
         if (archetype == null || archetype.getOid() == null) {
             return null;
         }
@@ -269,31 +366,47 @@ public class ArchetypeManager implements Cache {
         if (cachedArchetypePolicy != null) {
             return cachedArchetypePolicy;
         }
-        ArchetypePolicyType mergedArchetypePolicy = mergeArchetypePolicies(archetype.asObjectable(), result);
+        ArchetypePolicyType mergedArchetypePolicy = getMergedPolicyForArchetype(archetype.asObjectable(), result);
         if (mergedArchetypePolicy != null) {
             archetypePolicyCache.put(archetype.getOid(), mergedArchetypePolicy);
         }
         return mergedArchetypePolicy;
     }
 
-    private ArchetypePolicyType mergeArchetypePolicies(ArchetypeType archetypeType, OperationResult result) throws SchemaException {
-        ObjectReferenceType superArchetypeRef = archetypeType.getSuperArchetypeRef();
-        if (superArchetypeRef == null || superArchetypeRef.getOid() == null) {
-            return archetypeType.getArchetypePolicy();
+    /**
+     * Computes policy merged from this archetype and its super-archetypes.
+     *
+     * TODO consider renaming to `computeMergedPolicyForArchetype`
+     */
+    private ArchetypePolicyType getMergedPolicyForArchetype(ArchetypeType archetype, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        ArchetypePolicyType currentPolicy = archetype.getArchetypePolicy();
+        ArchetypeType superArchetype = getSuperArchetype(archetype, result);
+        if (superArchetype == null) {
+            return currentPolicy;
+        } else {
+            ArchetypePolicyType superPolicy = getMergedPolicyForArchetype(superArchetype, result);
+            return mergeArchetypePolicies(superPolicy, currentPolicy);
         }
+    }
 
-        PrismObject<ArchetypeType> superArchetype;
+    private @Nullable ArchetypeType getSuperArchetype(ArchetypeType archetype, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        ObjectReferenceType superArchetypeRef = archetype.getSuperArchetypeRef();
+        if (superArchetypeRef == null) {
+            return null;
+        }
+        String oid = MiscUtil.configNonNull(
+                superArchetypeRef.getOid(),
+                () -> "Dynamic (non-OID) super-archetype references are not supported; in " + archetype);
         try {
-            superArchetype = systemObjectCache.getArchetype(superArchetypeRef.getOid(), result);
+            return systemObjectCache
+                    .getArchetype(oid, result)
+                    .asObjectable();
         } catch (ObjectNotFoundException e) {
-            LOGGER.warn("Archetype {} cannot be found.", superArchetypeRef);
-            return archetypeType.getArchetypePolicy();
+            LOGGER.warn("Super archetype {} (of {}) couldn't be found", oid, archetype);
+            return null;
         }
-
-        ArchetypePolicyType superPolicy = mergeArchetypePolicies(superArchetype.asObjectable(), result);
-        ArchetypePolicyType currentPolicy = archetypeType.getArchetypePolicy();
-
-        return mergeArchetypePolicies(superPolicy, currentPolicy);
     }
 
     private ArchetypePolicyType mergeArchetypePolicies(ArchetypePolicyType superPolicy, ArchetypePolicyType currentPolicy) {
@@ -368,7 +481,7 @@ public class ArchetypeManager implements Cache {
             return currentAdminGuiConfig;
         }
 
-        ArchetypeAdminGuiConfigurationType mergedAdminGuiConfig = new ArchetypeAdminGuiConfigurationType(prismContext);
+        ArchetypeAdminGuiConfigurationType mergedAdminGuiConfig = new ArchetypeAdminGuiConfigurationType();
         GuiObjectDetailsPageType mergedObjectDetails = mergeObjectDetails(currentAdminGuiConfig, superAdminGuiConfig);
         mergedAdminGuiConfig.setObjectDetails(mergedObjectDetails);
 
@@ -484,7 +597,7 @@ public class ArchetypeManager implements Cache {
             return currentLifecycleStateModel.clone();
         }
 
-        LifecycleStateModelType mergedLifecycleModel = new LifecycleStateModelType(prismContext);
+        LifecycleStateModelType mergedLifecycleModel = new LifecycleStateModelType();
         List<LifecycleStateType> mergedLifecycleState = mergeLifecycleState(currentLifecycleStateModel.getState(), superLifecycleStateModel.getState());
         mergedLifecycleModel.getState().addAll(mergedLifecycleState);
 
@@ -502,7 +615,7 @@ public class ArchetypeManager implements Cache {
     }
 
     private LifecycleStateType mergeLifecycleState(LifecycleStateType currentLifecycleState, LifecycleStateType superLifecycleState) {
-        LifecycleStateType mergedLifecycleState = new LifecycleStateType(prismContext);
+        LifecycleStateType mergedLifecycleState = new LifecycleStateType();
         if (currentLifecycleState.getName() == null) {
             mergedLifecycleState.setName(superLifecycleState.getName());
         }
@@ -665,16 +778,17 @@ public class ArchetypeManager implements Cache {
         return resultPolicy;
     }
 
-    private <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object,
-            OperationResult result) throws SchemaException, ConfigurationException {
+    private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+            ObjectType object, OperationResult result)
+            throws SchemaException, ConfigurationException {
         if (object == null) {
             return null;
         }
-        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
         if (systemConfiguration == null) {
             return null;
         }
-        return determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
+        return determineObjectPolicyConfiguration(object, systemConfiguration);
     }
 
     public <O extends ObjectType> ExpressionProfile determineExpressionProfile(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
@@ -686,13 +800,10 @@ public class ArchetypeManager implements Cache {
         return systemObjectCache.getExpressionProfile(expressionProfileId, result);
     }
 
-    /**
-     * This has to remain static due to use from LensContext. Hopefully it will get refactored later.
-     */
-    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object,
-            SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+    private static ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+            ObjectType object, SystemConfigurationType systemConfiguration) throws ConfigurationException {
         List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
-        return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
+        return determineObjectPolicyConfiguration(object.getClass(), subTypes, systemConfiguration);
     }
 
     public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(Class<O> objectClass, List<String> objectSubtypes, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
@@ -729,7 +840,8 @@ public class ArchetypeManager implements Cache {
     }
 
     public static <O extends ObjectType> LifecycleStateModelType determineLifecycleModel(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
-        ObjectPolicyConfigurationType objectPolicyConfiguration = determineObjectPolicyConfiguration(object, systemConfigurationType);
+        ObjectPolicyConfigurationType objectPolicyConfiguration =
+                determineObjectPolicyConfiguration(asObjectable(object), systemConfigurationType);
         if (objectPolicyConfiguration == null) {
             return null;
         }
@@ -738,6 +850,8 @@ public class ArchetypeManager implements Cache {
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        // This seems to be harsh (and probably is), but a policy can really depend on a mix of objects. So we have to play
+        // it safely and invalidate eagerly. Hopefully objects of these types do not change often.
         if (type == null || INVALIDATION_RELATED_CLASSES.contains(type)) {
             archetypePolicyCache.clear();
         }
@@ -745,7 +859,7 @@ public class ArchetypeManager implements Cache {
 
     @Override
     public @NotNull Collection<SingleCacheStateInformationType> getStateInformation() {
-        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+        return Collections.singleton(new SingleCacheStateInformationType()
                 .name(ArchetypeManager.class.getName())
                 .size(archetypePolicyCache.size()));
     }

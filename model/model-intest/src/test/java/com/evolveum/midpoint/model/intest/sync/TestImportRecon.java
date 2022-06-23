@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -171,6 +172,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final TestResource<ArchetypeType> ARCHETYPE_EMPLOYEE = new TestResource<>(
             TEST_DIR, "archetype-employee.xml", "e3a9a6b9-17f6-4239-b935-6f88a655b9d7");
+    private static final TestResource<ArchetypeType> ARCHETYPE_OTHER = new TestResource<>(
+            TEST_DIR, "archetype-other.xml", "0e887a44-4862-4e27-af06-0215f04ef36f");
     private static final DummyTestResource RESOURCE_DUMMY_ARCHETYPED = new DummyTestResource(
             TEST_DIR, "resource-dummy-archetyped.xml", "e0789d4f-8748-41e0-9911-6d0938287588", "archetyped",
             controller -> controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
@@ -241,6 +244,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlLime.addAccount(ACCOUNT_MURRAY_NAME, "Murray");
 
         addObject(ARCHETYPE_EMPLOYEE, initTask, initResult);
+        addObject(ARCHETYPE_OTHER, initTask, initResult);
         RESOURCE_DUMMY_ARCHETYPED.initAndTest(this, initTask, initResult);
         RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.initAndTest(this, initTask, initResult);
 
@@ -2833,19 +2837,21 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     public void test650ImportNewArchetypedUser() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        String empNo = "650";
+        String name = "test650";
 
         given("there is a new account");
-        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount("test650");
-        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "650");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount(name);
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         when("the account is imported");
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
-                .withNameValue("test650")
+                .withNameValue(name)
                 .execute(result);
 
         then("user is created with archetype");
-        assertUserAfterByUsername("test650")
+        assertUserAfterByUsername(name)
                 .assertArchetypeRef(ARCHETYPE_EMPLOYEE.oid);
     }
 
@@ -2857,16 +2863,20 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     public void test660LinkArchetypedUser() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        String empNo = "660";
+        String name = "test660";
+        String unrelatedName = "test660-wrong";
+        String relatedName = "test660-ok";
 
         given("there is a new account");
-        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount("test660");
-        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "660");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount(name);
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         and("there is a user with corresponding empno, but without the archetype");
         addObject(
                 new UserType()
-                        .name("test660-wrong")
-                        .employeeNumber("660")
+                        .name(unrelatedName)
+                        .employeeNumber(empNo)
                         .asPrismObject(),
                 task,
                 result);
@@ -2874,8 +2884,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         and("there is a user with corresponding empno, and with the archetype");
         addObject(
                 new UserType()
-                        .name("test660-ok")
-                        .employeeNumber("660")
+                        .name(relatedName)
+                        .employeeNumber(empNo)
                         .assignment(new AssignmentType()
                                 .targetRef(ARCHETYPE_EMPLOYEE.oid, ArchetypeType.COMPLEX_TYPE))
                         .asPrismObject(),
@@ -2885,12 +2895,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         when("the account is imported");
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
-                .withNameValue("test660")
+                .withNameValue(name)
                 .execute(result);
 
-        assertUserAfterByUsername("test660") // name is updated by inbound mapping
+        then("archetyped user is linked");
+        assertUserAfterByUsername(name) // name is updated by inbound mapping
                 .assertLiveLinks(1); // and the account is linked
-        assertUserAfterByUsername("test660-wrong") // the other, non-matching user (test660-wrong) is ignored
+
+        and("non-archetyped user (test660-wrong) is ignored");
+        assertUserAfterByUsername(unrelatedName)
                 .assertLiveLinks(0);
     }
 
@@ -2901,16 +2914,20 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     public void test670LinkArchetypedUserViaFilter() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        String empNo = "670";
+        String name = "test670";
+        String relatedName = "test670-ok";
+        String unrelatedName = "test670-wrong";
 
         given("there is a new account");
-        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.controller.addAccount("test670");
-        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, "670");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.controller.addAccount(name);
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         and("there is a user with corresponding empno, but without the archetype");
         addObject(
                 new UserType()
-                        .name("test670-wrong")
-                        .employeeNumber("670")
+                        .name(unrelatedName)
+                        .employeeNumber(empNo)
                         .asPrismObject(),
                 task,
                 result);
@@ -2918,8 +2935,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         and("there is a user with corresponding empno, and with the archetype");
         addObject(
                 new UserType()
-                        .name("test670-ok")
-                        .employeeNumber("670")
+                        .name(relatedName)
+                        .employeeNumber(empNo)
                         .assignment(new AssignmentType()
                                 .targetRef(ARCHETYPE_EMPLOYEE.oid, ArchetypeType.COMPLEX_TYPE))
                         .asPrismObject(),
@@ -2929,13 +2946,168 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         when("the account is imported");
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.oid)
-                .withNameValue("test670")
+                .withNameValue(name)
                 .execute(result);
 
-        assertUserAfterByUsername("test670") // name is updated by inbound mapping
+        then("archetyped user is linked");
+        assertUserAfterByUsername(name) // name is updated by inbound mapping
                 .assertLiveLinks(1); // and the account is linked
-        assertUserAfterByUsername("test670-wrong") // the other, non-matching user (test670-wrong) is ignored
+
+        and("non-archetyped user (test670-wrong) is ignored");
+        assertUserAfterByUsername(unrelatedName)
                 .assertLiveLinks(0);
+    }
+
+    /**
+     * Having resource object type with declared focus archetype, we run the synchronization against a user that
+     * has no archetype.
+     */
+    @Test
+    public void test680SynchronizeUserWithoutArchetype() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String empNo = "680";
+        String name = "test680";
+
+        given("there is a new account, without corresponding user");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount(name);
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
+
+        and("the account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
+                .withNameValue(name)
+                .execute(result);
+        var userOid = assertUserByUsername(name, "after initial creation")
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE.oid)
+                .getOid();
+
+        and("the archetype is removed from the owner (in raw mode)");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT).replace()
+                        .item(UserType.F_ARCHETYPE_REF).replace()
+                        .asObjectDelta(userOid),
+                ModelExecuteOptions.create().raw(),
+                task,
+                result);
+        assertUser(userOid, "after archetype removal")
+                .assertNoArchetypeRef();
+
+        when("the account is imported again");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
+                .withNameValue(name)
+                .execute(result);
+
+        then("user has archetype");
+        assertUserAfter(userOid)
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE.oid);
+    }
+
+    /**
+     * Having resource object type with declared focus archetype, we run the synchronization against a user that
+     * has a conflicting archetype.
+     */
+    @Test
+    public void test690SynchronizeUserWithConflictingArchetype() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String empNo = "690";
+        String name = "test690";
+
+        given("there is a new account, without corresponding user");
+        DummyAccount account = RESOURCE_DUMMY_ARCHETYPED.controller.addAccount(name);
+        account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
+
+        and("the account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
+                .withNameValue(name)
+                .execute(result);
+        var userOid = assertUserByUsername(name, "after initial creation")
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE.oid)
+                .getOid();
+
+        and("the archetype of the new owner is changed");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .replace(
+                                new AssignmentType()
+                                        .targetRef(ARCHETYPE_OTHER.oid, ArchetypeType.COMPLEX_TYPE))
+                        .item(UserType.F_ARCHETYPE_REF)
+                        .replace(
+                                new ObjectReferenceType()
+                                        .oid(ARCHETYPE_OTHER.oid)
+                                        .type(ArchetypeType.COMPLEX_TYPE))
+                        .asObjectDelta(userOid),
+                ModelExecuteOptions.create().raw(),
+                task,
+                result);
+        assertUser(userOid, "after archetype change")
+                .assertArchetypeRef(ARCHETYPE_OTHER.oid);
+
+        when("the account is imported again");
+        var taskOid = importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
+                .withNameValue(name)
+                .withAssertSuccess(false)
+                .execute(result);
+
+        then("the task has failed");
+        var taskAfter = assertTask(taskOid, "after")
+                .display()
+                .assertPartialError()
+                .getObjectable();
+    }
+
+    /**
+     * We check that creating "archetyped" projection leads to the propagation of the archetype to the user.
+     *
+     * Also, we check that the archetype cannot be changed by explicit delta.
+     */
+    @Test
+    public void test700SetArchetypeFromProjection() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String name = "test700";
+
+        given("assignment policy is RELATIVE");
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        when("a user with archetyped account is created");
+        UserType user = new UserType()
+                .name(name)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_ARCHETYPED.oid, ResourceType.COMPLEX_TYPE)));
+        String oid = addObject(user.asPrismObject(), task, result);
+
+        then("user gets the archetype");
+        assertUserAfter(oid)
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE.oid)
+                .assertLiveLinks(1); // just to be sure the account was created
+
+        and("an attempt to change the archetype fails");
+        try {
+            executeChanges(
+                    deltaFor(UserType.class)
+                            .item(UserType.F_ASSIGNMENT)
+                            .replace(
+                                    new AssignmentType()
+                                            .targetRef(ARCHETYPE_OTHER.oid, ArchetypeType.COMPLEX_TYPE))
+                            .asObjectDelta(oid),
+                    null,
+                    task,
+                    result);
+        } catch (PolicyViolationException e) {
+            displayExpectedException(e);
+            assertThat(e.getMessage()).
+                    as("exception message")
+                    .contains("Trying to enforce archetype:")
+                    .contains("but the object has already a different structural archetype");
+        }
     }
 
     /**
@@ -2948,7 +3120,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(getNumberOfUsers() + 17);
+        assertUsers(getNumberOfUsers() + 20);
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -2990,7 +3162,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .as("hidden operation results")
                 .isEqualTo(8);
 
-        assertUsers(getNumberOfUsers() + 17);
+        assertUsers(getNumberOfUsers() + 20);
 
         assertDummyAccountShadows(0, true, task, result);
         assertDummyAccountShadows(17, false, task, result);
@@ -3006,7 +3178,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(getNumberOfUsers() + 17);
+        assertUsers(getNumberOfUsers() + 20);
         dummyAuditService.clear();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -3035,7 +3207,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Operation result structure is currently not as neat as when pure repo access is used.
         // So let's skip these tests for now.
 
-        assertUsers(getNumberOfUsers() + 17);
+        assertUsers(getNumberOfUsers() + 20);
 
         assertDummyAccountShadows(2, true, task, result); // two protected accounts
         assertDummyAccountShadows(2, false, task, result);

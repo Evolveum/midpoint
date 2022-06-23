@@ -59,7 +59,8 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
             handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
         } else {
             try {
-                PrismObject<ArchetypeType> archetype = archetypeManager.determineStructuralArchetype(task.asPrismObject(), ctx.getResult());
+                ArchetypeType archetype = archetypeManager.determineStructuralArchetype(task, ctx.getResult());
+                // TODO what if there's no archetype?
                 handlers = getTaskManager().getHandlerUrisForArchetype(archetype.getOid(), true);
             } catch (SchemaException e) {
                 throw new UnsupportedOperationException("More than 1 structural archetype, this is not supported", e);

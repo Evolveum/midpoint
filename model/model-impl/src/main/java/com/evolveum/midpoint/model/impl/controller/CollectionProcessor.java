@@ -306,8 +306,8 @@ public class CollectionProcessor {
         }
 
         try {
-            PrismObject<ArchetypeType> archetype = archetypeManager.getArchetype(collectionRefOid, result);
-            ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
+            ArchetypeType archetype = archetypeManager.getArchetype(collectionRefOid, result);
+            ArchetypePolicyType archetypePolicy = archetype.getArchetypePolicy();
             if (archetypePolicy != null) {
                 DisplayType archetypeDisplay = archetypePolicy.getDisplay();
                 if (archetypeDisplay != null) {
@@ -324,8 +324,6 @@ public class CollectionProcessor {
             // We do not want to stop all logins because of missing archetype.
             LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRefOid, existingView.getViewIdentifier());
         }
-
-        return;
     }
 
     private Class<? extends Containerable> getContainerTypeClass(QName targetTypeQName, ObjectCollectionType objectCollectionType) throws SchemaException {

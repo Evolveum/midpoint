@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-
 /**
  * Manages link definitions.
  *

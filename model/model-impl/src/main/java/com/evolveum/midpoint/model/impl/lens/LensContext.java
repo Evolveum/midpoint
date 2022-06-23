@@ -107,6 +107,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     private transient PrismObject<UserType> cachedOwner;
 
+    /** Focus template explicitly set from the outside, typically from the synchronization policy. */
+    private String explicitFocusTemplateOid;
+
     private transient SecurityPolicyType globalSecurityPolicy;
 
     /**
@@ -152,8 +155,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     @NotNull private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
-    private transient ObjectTemplateType focusTemplate;
-    private boolean focusTemplateExternallySet; // todo serialize this
     private transient ProjectionPolicyType accountSynchronizationSettings;
 
     /**
@@ -498,21 +499,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 .orElse(null);
     }
 
+    public String getExplicitFocusTemplateOid() {
+        return explicitFocusTemplateOid;
+    }
+
+    public void setExplicitFocusTemplateOid(String explicitFocusTemplateOid) {
+        this.explicitFocusTemplateOid = explicitFocusTemplateOid;
+    }
+
     @Override
     public ObjectTemplateType getFocusTemplate() {
-        return focusTemplate;
-    }
-
-    public void setFocusTemplate(ObjectTemplateType focusTemplate) {
-        this.focusTemplate = focusTemplate;
-    }
-
-    public boolean isFocusTemplateExternallySet() {
-        return focusTemplateExternallySet;
-    }
-
-    public void setFocusTemplateExternallySet(boolean focusTemplateExternallySet) {
-        this.focusTemplateExternallySet = focusTemplateExternallySet;
+        return focusContext != null ? focusContext.getFocusTemplate() : null;
     }
 
     public PrismObject<SystemConfigurationType> getSystemConfiguration() {
@@ -1083,8 +1080,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         clone.isRequestAuthorized = this.isRequestAuthorized;
         clone.resourceCache = resourceCache != null ?
                 new HashMap<>(resourceCache) : null;
-        // User template is de-facto immutable, OK to just pass reference here.
-        clone.focusTemplate = this.focusTemplate;
+        clone.explicitFocusTemplateOid = this.explicitFocusTemplateOid;
         clone.projectionWave = this.projectionWave;
         if (options != null) {
             clone.options = this.options.clone();
@@ -1151,10 +1147,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         sb.append(requestMetadata != null ? ", req. metadata present" : ", req. metadata missing");
         sb.append("\n");
 
-        DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
-        sb.append(" ").append(channel).append("\n");
-        DebugUtil.debugDumpLabel(sb, "Options", indent + 1);
-        sb.append(" ").append(options).append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Channel", channel, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Options", String.valueOf(options), indent + 1);
         DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
         sb.append(" ");
         if (accountSynchronizationSettings != null) {
@@ -1164,12 +1158,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append("null");
         }
         sb.append("\n");
-        DebugUtil.debugDumpLabel(sb, "Focus template", indent + 1);
-        sb.append(" ").append(focusTemplate).append("\n");
-
-        DebugUtil.debugDumpWithLabel(sb, "FOCUS", focusContext, indent + 1);
-
-        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Explicit focus template OID", explicitFocusTemplateOid, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "FOCUS", focusContext, indent + 1);
         if (DebugUtil.isDetailedDebugDump()) {
             DebugUtil.debugDumpWithLabel(sb, "EvaluatedAssignments", evaluatedAssignmentTriple, indent + 3);
         } else {
