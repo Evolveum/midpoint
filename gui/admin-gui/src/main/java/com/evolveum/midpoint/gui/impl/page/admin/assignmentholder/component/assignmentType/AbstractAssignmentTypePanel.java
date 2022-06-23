@@ -154,7 +154,9 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-        return new AjaxLinkColumn<>(displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel) {
+        displayModel = displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel;
+
+        return new AjaxLinkColumn<>(displayModel, RepoAssignmentListProvider.TARGET_NAME_STRING, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
