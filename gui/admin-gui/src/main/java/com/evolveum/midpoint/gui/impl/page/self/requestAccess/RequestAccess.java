@@ -14,11 +14,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
@@ -47,6 +46,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class RequestAccess implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
+
+    private static final String DOT_CLASS = RequestAccess.class.getName() + ".";
+    private static final String OPERATION_COMPUTE_ALL_CONFLICTS = DOT_CLASS + "computeAllConflicts";
+    private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
@@ -257,13 +260,41 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        MidPointApplication mp = MidPointApplication.get();
-
         Task task = page.createSimpleTask("computeConflicts");
         OperationResult result = task.getResult();
 
+        List<Conflict> allConflicts = new ArrayList<>();
+        for (ObjectReferenceType ref : getPersonOfInterest()) {
+            List<Conflict> conflicts = computeConflictsForOnePerson(ref, task, page);
+            allConflicts.addAll(conflicts);
+        }
+
+        result.computeStatusIfUnknown();
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            page.error(result);
+        }
+
+        this.conflicts = allConflicts;
+        conflictsDirty = false;
+    }
+
+    private ObjectReferenceType createRef(PrismObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = (ObjectType) object.asObjectable();
+
+        return new ObjectReferenceType()
+                .oid(object.getOid())
+                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
+                .targetName(obj.getName());
+    }
+
+    public List<Conflict> computeConflictsForOnePerson(ObjectReferenceType ref, Task task, PageBase page) {
+        OperationResult result = task.getResult().createSubresult(OPERATION_COMPUTE_CONFLICT);
         try {
-            PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(ref, page);
             ObjectDelta<UserType> delta = user.createModifyDelta();
 
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -278,6 +309,7 @@ public class RequestAccess implements Serializable {
 
             ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
 
+            MidPointApplication mp = MidPointApplication.get();
             ModelContext<UserType> ctx = mp.getModelInteractionService()
                     .previewChanges(MiscUtil.createCollection(delta), options, task, result);
 
@@ -302,30 +334,16 @@ public class RequestAccess implements Serializable {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
                 page.warn(msg);
             }
+            return new ArrayList(conflicts.values());
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", ex);
 
-            this.conflicts = new ArrayList<>(conflicts.values());
-            conflictsDirty = false;
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
-            page.error("Couldn't get assignments conflicts. Reason: " + e);
-        }
-    }
-
-    private ObjectReferenceType createRef(PrismObject object) {
-        if (object == null) {
-            return null;
+            result.recordFatalError("Couldn't get assignments conflicts", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        ObjectType obj = (ObjectType) object.asObjectable();
-
-        return new ObjectReferenceType()
-                .oid(object.getOid())
-                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
-                .targetName(obj.getName());
-    }
-
-    public void computeConflictsForOnePerson() {
-        // todo implement
+        return new ArrayList<>();
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
