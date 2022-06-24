@@ -20,14 +20,12 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class Popover extends Border {
+public abstract class Popover extends Border {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_POPOVER = "popover";
     private static final String ID_TITLE = "title";
-
-    private Component reference;
 
     private IModel<String> title;
 
@@ -43,9 +41,7 @@ public class Popover extends Border {
         initLayout();
     }
 
-    public void setReference(Component reference) {
-        this.reference = reference;
-    }
+    public abstract Component getPopoverReferenceComponent();
 
     private void initLayout() {
         setOutputMarkupId(true);
@@ -58,6 +54,7 @@ public class Popover extends Border {
     }
 
     public void toggle(AjaxRequestTarget target) {
-        target.appendJavaScript("$(function() { MidPointTheme.togglePopover('#" + reference.getMarkupId() + "', '#" + getMarkupId() + "'); });");
+        target.appendJavaScript("$(function() { MidPointTheme.togglePopover('#" +
+                getPopoverReferenceComponent().getMarkupId() + "', '#" + getMarkupId() + "'); });");
     }
 }

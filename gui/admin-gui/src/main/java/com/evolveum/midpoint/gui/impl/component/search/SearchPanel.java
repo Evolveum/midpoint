@@ -278,12 +278,12 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
 
         SelectableItemListPopoverPanel<AvailableFilterType> savedFiltersPopover =
-                new SelectableItemListPopoverPanel<AvailableFilterType>(ID_SAVED_FILTERS_POPOVER, savedSearchListModel) {
+                new SelectableItemListPopoverPanel<>(ID_SAVED_FILTERS_POPOVER, savedSearchListModel) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void addItemsPerformed(List<AvailableFilterType> itemList, AjaxRequestTarget target) {
-//                        addItemPerformed(itemList, target);
+                        selectSavedFilterPerformed(itemList, target);
                     }
 
                     @Override
@@ -322,36 +322,28 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         savedSearchMenu.add(AttributeAppender.append("title",
                 getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
         saveSearchContainer.add(savedSearchMenu);
-//
-//        WebMarkupContainer savedSearchMenu = new WebMarkupContainer(ID_SAVED_SEARCH_MENU);
-//        savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchListModel.getObject())));
-//        savedSearchMenu.add(AttributeAppender.append("title",
-//                getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
-//        saveSearchContainer.add(savedSearchMenu);
+    }
 
-//        ListView<InlineMenuItem> savedSearchItems = new ListView<InlineMenuItem>(ID_SAVED_SEARCH_ITEMS, savedSearchListModel) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void populateItem(ListItem<InlineMenuItem> item) {
-//                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SAVED_SEARCH_ITEM, item.getModel());
-//                menuItemBody.setRenderBodyOnly(true);
-//                item.add(menuItemBody);
-//                menuItemBody.add(new VisibleEnableBehaviour() {
-//                    @Override
-//                    public boolean isVisible() {
-//                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
-//                    }
-//                });
-//            }
-//        };
-//        saveSearchContainer.add(savedSearchItems);
-
+    private void selectSavedFilterPerformed(List<AvailableFilterType> filterList, AjaxRequestTarget target) {
+        if (CollectionUtils.isEmpty(filterList)) {
+            return;
+        }
+        AvailableFilterType filter = filterList.get(0);
+        if (filter == null) {
+            return;
+        }
+        if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
+            applyFilterToBasicMode(filter.getSearchItem());
+        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
+            applyFilterToAxiomMode(filter.getSearchItem());
+        } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
+            applyFilterToFulltextMode(filter.getSearchItem());
+        }
+        searchPerformed(target);
     }
 
     private Component getSavedSearchMenuButton() {
-        return get(ID_FORM).get(ID_SEARCH_CONTAINER).get(ID_SAVED_SEARCH_MENU);
+        return get(ID_FORM).get(ID_SAVE_SEARCH_CONTAINER).get(ID_SAVED_SEARCH_MENU);
     }
 
     private boolean isCollectionInstancePage() {
@@ -540,7 +532,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private List<AvailableFilterType> getSavedFilterList() {
         ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
-        List<InlineMenuItem> savedSearchItems = new ArrayList<>();
         List<AvailableFilterType> availableFilterList = null;
         if (listPanel != null) {
             CompiledObjectCollectionView view = listPanel.getObjectCollectionView();
@@ -551,43 +542,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
         }
         return availableFilterList;
-//        if (availableFilterList != null) {
-//            availableFilterList
-//                    .forEach(filter -> {
-//                        if (!getModelObject().getSearchMode().equals(filter.getSearchMode())) {
-//                            return;
-//                        }
-//                        PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
-//                        InlineMenuItem searchItem = new InlineMenuItem(Model.of(WebComponentUtil.getTranslatedPolyString(filterLabel))) {
-//                            private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            public InlineMenuItemAction initAction() {
-//                                return new InlineMenuItemAction() {
-//
-//                                    private static final long serialVersionUID = 1L;
-//
-//                                    @Override
-//                                    public void onClick(AjaxRequestTarget target) {
-//                                        if (filter == null) {
-//                                            return;
-//                                        }
-//                                        if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
-//                                            applyFilterToBasicMode(filter.getSearchItem());
-//                                        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
-//                                            applyFilterToAxiomMode(filter.getSearchItem());
-//                                        } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
-//                                            applyFilterToFulltextMode(filter.getSearchItem());
-//                                        }
-//                                        searchPerformed(target);
-//                                    }
-//                                };
-//                            }
-//                        };
-//                        savedSearchItems.add(searchItem);
-//                    });
-//        }
-//        return savedSearchItems;
     }
 
     private void applyFilterToBasicMode(List<SearchItemType> items) {
