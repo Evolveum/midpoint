@@ -41,8 +41,8 @@ public class WizardHeader extends BasePanel {
     }
 
     @Override
-    protected void onConfigure() {
-        super.onConfigure();
+    protected void onBeforeRender() {
+        super.onBeforeRender();
 
         addOrReplace(createHeaderContent(ID_CONTENT));
     }

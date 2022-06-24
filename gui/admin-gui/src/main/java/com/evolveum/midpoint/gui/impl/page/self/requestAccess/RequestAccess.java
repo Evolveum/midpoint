@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
@@ -46,9 +47,15 @@ public class RequestAccess implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
+    private static final String DOT_CLASS = RequestAccess.class.getName() + ".";
+    private static final String OPERATION_COMPUTE_ALL_CONFLICTS = DOT_CLASS + "computeAllConflicts";
+    private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
+
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
-    private Set<AssignmentType> assignments = new HashSet<>();
+    private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
+
+    private Set<AssignmentType> selectedAssignments = new HashSet<>();
 
     private QName relation;
 
@@ -99,7 +106,7 @@ public class RequestAccess implements Serializable {
                 continue;
             }
 
-            List<AssignmentType> assignments = this.assignments.stream().map(a -> a.clone()).collect(Collectors.toList());
+            List<AssignmentType> assignments = this.selectedAssignments.stream().map(a -> a.clone()).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
             changed = true;
@@ -126,7 +133,7 @@ public class RequestAccess implements Serializable {
             return;
         }
         //todo remove naive implementation
-        assignments.forEach(a -> this.assignments.add(a.clone()));
+        assignments.forEach(a -> this.selectedAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             assignments.forEach(a -> list.add(a.clone()));
@@ -141,7 +148,7 @@ public class RequestAccess implements Serializable {
 
         }
         for (AssignmentType a : assignments) {
-            this.assignments.remove(a);
+            this.selectedAssignments.remove(a);
 
             for (List<AssignmentType> list : requestItems.values()) {
                 list.remove(a);
@@ -211,7 +218,7 @@ public class RequestAccess implements Serializable {
         }
         this.relation = relation;
 
-        assignments.forEach(a -> a.getTargetRef().setRelation(relation));
+        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(relation));
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> a.getTargetRef().setRelation(relation));
         }
@@ -220,21 +227,24 @@ public class RequestAccess implements Serializable {
     }
 
     public long getWarningCount() {
-        return getConflicts().stream().filter(c -> c.isWarning()).count();
+        return getConflicts().stream().filter(c -> c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
     public long getErrorCount() {
-        return getConflicts().stream().filter(c -> !c.isWarning()).count();
+        return getConflicts().stream().filter(c -> !c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
     public void clearCart() {
         requestItems.clear();
-        assignments.clear();
+        requestItemsExistingToRemove.clear();
+
+        selectedAssignments.clear();
         relation = null;
 
         comment = null;
 
         conflictsDirty = false;
+        conflicts.clear();
     }
 
     public boolean canSubmit() {
@@ -250,13 +260,41 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        MidPointApplication mp = MidPointApplication.get();
-
         Task task = page.createSimpleTask("computeConflicts");
         OperationResult result = task.getResult();
 
+        List<Conflict> allConflicts = new ArrayList<>();
+        for (ObjectReferenceType ref : getPersonOfInterest()) {
+            List<Conflict> conflicts = computeConflictsForOnePerson(ref, task, page);
+            allConflicts.addAll(conflicts);
+        }
+
+        result.computeStatusIfUnknown();
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            page.error(result);
+        }
+
+        this.conflicts = allConflicts;
+        conflictsDirty = false;
+    }
+
+    private ObjectReferenceType createRef(PrismObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = (ObjectType) object.asObjectable();
+
+        return new ObjectReferenceType()
+                .oid(object.getOid())
+                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
+                .targetName(obj.getName());
+    }
+
+    public List<Conflict> computeConflictsForOnePerson(ObjectReferenceType ref, Task task, PageBase page) {
+        OperationResult result = task.getResult().createSubresult(OPERATION_COMPUTE_CONFLICT);
         try {
-            PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(ref, page);
             ObjectDelta<UserType> delta = user.createModifyDelta();
 
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -271,6 +309,7 @@ public class RequestAccess implements Serializable {
 
             ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
 
+            MidPointApplication mp = MidPointApplication.get();
             ModelContext<UserType> ctx = mp.getModelInteractionService()
                     .previewChanges(MiscUtil.createCollection(delta), options, task, result);
 
@@ -295,30 +334,16 @@ public class RequestAccess implements Serializable {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
                 page.warn(msg);
             }
+            return new ArrayList(conflicts.values());
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", ex);
 
-            this.conflicts = new ArrayList<>(conflicts.values());
-            conflictsDirty = false;
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
-            page.error("Couldn't get assignments conflicts. Reason: " + e);
-        }
-    }
-
-    private ObjectReferenceType createRef(PrismObject object) {
-        if (object == null) {
-            return null;
+            result.recordFatalError("Couldn't get assignments conflicts", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        ObjectType obj = (ObjectType) object.asObjectable();
-
-        return new ObjectReferenceType()
-                .oid(object.getOid())
-                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
-                .targetName(obj.getName());
-    }
-
-    public void computeConflictsForOnePerson() {
-        // todo implement
+        return new ArrayList<>();
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
@@ -331,8 +356,10 @@ public class RequestAccess implements Serializable {
         final String key = StringUtils.join(addedAssignmentTargetObj.getOid(), "/", exclusionTargetObj.getOid());
         final String alternateKey = StringUtils.join(exclusionTargetObj.getOid(), "/", addedAssignmentTargetObj.getOid());
 
-        ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
-        ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+        ConflictItem added = new ConflictItem(evaluatedAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(addedAssignmentTargetObj),
+                evaluatedAssignment.getAssignment(true) != null);
+        ConflictItem exclusion = new ConflictItem(conflictingAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(exclusionTargetObj),
+                conflictingAssignment.getAssignment(true) != null);
 
         String message = null;
         if (trigger.getMessage() != null) {
@@ -402,14 +429,22 @@ public class RequestAccess implements Serializable {
         return delta;
     }
 
+    private void addExistingToBeRemoved(ObjectReferenceType ref, AssignmentType assignment) {
+        List<AssignmentType> list = requestItemsExistingToRemove.get(ref);
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        requestItemsExistingToRemove.put(ref, list);
+
+        list.add(assignment);
+    }
+
     public void solveConflict(Conflict conflict, ConflictItem toRemove) {
-        //todo implement conflict fix
-        if (toRemove.isExistingAssignment()) {
-            // todo we have to create delete delta
+        if (toRemove.isExisting()) {
+            addExistingToBeRemoved(conflict.getPersonOfInterest(), toRemove.getAssignment());
         } else {
             List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
-            AssignmentType aToRemove = assignments.stream().filter(a -> a.getTargetRef().equals(toRemove.getRef())).findFirst().orElse(null);
-            assignments.remove(aToRemove);
+            assignments.remove(toRemove.getAssignment());
         }
 
         conflict.setState(ConflictState.SOLVED);

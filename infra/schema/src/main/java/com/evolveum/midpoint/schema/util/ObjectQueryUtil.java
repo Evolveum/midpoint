@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -121,7 +121,7 @@ public class ObjectQueryUtil {
                 createObjectClassFilter(objectClass));
     }
 
-    public static S_AtomicFilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass) throws SchemaException {
+    public static S_FilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass) throws SchemaException {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");
         return PrismContext.get().queryFor(ShadowType.class)

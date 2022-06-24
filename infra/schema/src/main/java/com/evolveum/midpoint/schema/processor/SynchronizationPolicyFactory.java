@@ -202,7 +202,7 @@ public class SynchronizationPolicyFactory {
         return new SynchronizationPolicy(
                 typeDef.getKind(),
                 typeDef.getFocusTypeName(),
-                typeDef.getArchetypeRef(),
+                typeDef.getArchetypeOid(),
                 typeDef.getObjectClassName(),
                 java.util.Objects.requireNonNullElseGet(
                         typeDef.getCorrelationDefinitionBean(),

@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -57,7 +58,7 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
 
         OperationResult result = parentResult.subresult(OP_HANDLE).build();
         try {
-            LensContext<F> lensContext = createLensContext(parentResult);
+            LensContext<F> lensContext = createLensContext();
             lensContext.setDoReconciliationForAllProjections(BooleanUtils.isTrue(actionDefinition.isReconcileAll()));
             LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"
                     + "{}\n------------------------------------------", lensContext.debugDumpLazily());
@@ -84,7 +85,7 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
     }
 
     @NotNull
-    private LensContext<F> createLensContext(OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private LensContext<F> createLensContext() throws SchemaException, ConfigurationException {
 
         ModelExecuteOptions options = createOptions();
 
@@ -102,9 +103,15 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
         context.rememberResource(resource);
 
         createProjectionContext(options, context);
-        createFocusContext(context);
+        createFocusContextIfKnown(context);
 
-        setObjectTemplate(context, result);
+        ObjectReferenceType objectTemplateRef = actionDefinition.getObjectTemplateRef();
+        if (objectTemplateRef != null) {
+            context.setExplicitFocusTemplateOid(
+                    MiscUtil.configNonNull(
+                            objectTemplateRef.getOid(),
+                            () -> "Dynamic (non-OID) object template references are not supported in synchronization actions"));
+        }
 
         return context;
     }
@@ -189,23 +196,12 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
         projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
     }
 
-    private void createFocusContext(LensContext<F> context) {
+    private void createFocusContextIfKnown(LensContext<F> context) {
         if (syncCtx.getLinkedOwner() != null) {
             F owner = syncCtx.getLinkedOwner();
             LensFocusContext<F> focusContext = context.createFocusContext();
             //noinspection unchecked
             focusContext.setInitialObject((PrismObject<F>) owner.asPrismObject());
-        }
-    }
-
-    private void setObjectTemplate(LensContext<F> context, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        ObjectReferenceType objectTemplateRef = actionDefinition.getObjectTemplateRef();
-        if (objectTemplateRef != null) {
-            ObjectTemplateType objectTemplate = beans.cacheRepositoryService
-                    .getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), parentResult)
-                    .asObjectable();
-            context.setFocusTemplate(objectTemplate);
-            context.setFocusTemplateExternallySet(true); // we do not want to override this template e.g. when subtype changes
         }
     }
 

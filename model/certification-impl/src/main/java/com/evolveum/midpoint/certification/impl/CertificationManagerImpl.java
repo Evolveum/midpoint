@@ -531,7 +531,7 @@ public class CertificationManagerImpl implements CertificationManager {
             outcomeItem = AccessCertificationCaseType.F_OUTCOME;
             entry = prismContext.queryFor(AccessCertificationCaseType.class);
         }
-        S_AtomicFilterExit exit;
+        S_FilterExit exit;
         if (response == AccessCertificationResponseType.NO_RESPONSE) {
             exit = entry.item(outcomeItem).isNull().or().item(outcomeItem).eq(responseUri);
         } else {

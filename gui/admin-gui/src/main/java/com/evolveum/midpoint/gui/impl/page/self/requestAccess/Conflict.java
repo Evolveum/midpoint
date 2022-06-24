@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import java.io.Serializable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by Viliam Repan (lazyman).

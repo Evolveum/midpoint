@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -436,7 +436,7 @@ public class TaskRetriever {
 
     @SuppressWarnings("SameParameterValue")
     public List<? extends Task> listWaitingTasks(TaskWaitingReasonType reason, OperationResult result) throws SchemaException {
-        S_AtomicFilterEntry q = prismContext.queryFor(TaskType.class);
+        S_FilterEntry q = prismContext.queryFor(TaskType.class);
         q = q.item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.WAITING).and();
         if (reason != null) {
             q = q.item(TaskType.F_WAITING_REASON).eq(reason).and();

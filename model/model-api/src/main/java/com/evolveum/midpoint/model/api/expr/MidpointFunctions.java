@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -1328,16 +1327,23 @@ public interface MidpointFunctions {
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
     @Deprecated
-    <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException;
-    @NotNull <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException;
+    <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException;
+
+    @NotNull <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException;
 
     /**
      * Assumes single archetype. May throw error if used on object that has more than one archetype.
      */
     @Deprecated
-    <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
+    <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException;
 
-    @NotNull <O extends ObjectType> List<String> getArchetypeOids(O object);
+    /**
+     * Returns a list of archetype OIDs for given object.
+     *
+     * Currently, those OIDs are taken from archetype assignments and `archetypeRef` values.
+     * (Note that under normal conditions, these should be in sync!)
+     */
+    @NotNull List<String> getArchetypeOids(ObjectType object);
 
     default <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {

@@ -317,18 +317,42 @@
     </xsd:complexType>
 
     <xsd:complexType name="GroupSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
-            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0"/>
-            <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0"/>
+            <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="TargetSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultSelection" type="xsd:string" minOccurs="0">
 
+            </xsd:element>
+            <xsd:element name="allowRequestForMyself" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is simple override if currently authenticated user has authorization to request for him/herself assign other relations,
+                        but we don't want them to do it via shopping cart.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="allowRequestForOthers" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
@@ -342,9 +366,18 @@
                 <!-- todo add missing configuration elements -->
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="RelationSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultRelation" type="xsd:anyURI" minOccurs="0">
 
@@ -354,6 +387,7 @@
             </xsd:element>
             <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="RoleCatalogViewType">
@@ -382,6 +416,14 @@
     </xsd:simpleType>
 
     <xsd:complexType name="RoleCatalogType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultView" type="tns:RoleCatalogViewType" minOccurs="0">
 
@@ -391,32 +433,68 @@
 
             <!-- todo collection -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutCommentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ValidityPredefinedValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="duration" type="xsd:duration"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutValidityConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
             <xsd:element name="allowOnlyGlobalSettings" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="predefinedValue" type="tns:ValidityPredefinedValueType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CheckoutType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="comment" type="tns:CheckoutCommentType" minOccurs="0">
 
@@ -425,6 +503,7 @@
 
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AccessRequestType">

@@ -7,31 +7,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -53,6 +49,7 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final String ID_OPTION1 = "option1";
     private static final String ID_OPTION2 = "option2";
     private static final String ID_FORM = "form";
+    private static final String ID_TITLE = "title";
 
     private IModel<ConflictItem> selectedOption = Model.of((ConflictItem) null);
 
@@ -76,6 +73,10 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
             return c.isWarning() ? "conflict-item-warning" : "conflict-item-danger";
         }));
 
+        Label title = new Label(ID_TITLE, () -> getString("ConflictItemPanel.duplicationConflict",
+                WebComponentUtil.getName(getModelObject().getPersonOfInterest())));
+        add(title);
+
         BadgePanel badge = new BadgePanel(ID_BADGE, () -> {
             Conflict c = getModelObject();
             Badge b = new Badge();
@@ -88,18 +89,18 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         });
         add(badge);
 
-        AjaxButton link1 = new AjaxButton(ID_LINK1, () -> getModelObject().getAdded().getName()) {
+        AjaxButton link1 = new AjaxButton(ID_LINK1, () -> getModelObject().getAdded().getDisplayName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                navigateToObject(ConflictItemPanel.this.getModelObject().getAdded().getRef());
+                navigateToObject(ConflictItemPanel.this.getModelObject().getAdded().getAssignment());
             }
         };
         add(link1);
 
-        AjaxButton link2 = new AjaxButton(ID_LINK2, () -> getModelObject().getExclusion().getName()) {
+        AjaxButton link2 = new AjaxButton(ID_LINK2, () -> getModelObject().getExclusion().getDisplayName()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                navigateToObject(ConflictItemPanel.this.getModelObject().getExclusion().getRef());
+                navigateToObject(ConflictItemPanel.this.getModelObject().getExclusion().getAssignment());
             }
         };
         add(link2);
@@ -155,17 +156,23 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         Radio radio = new Radio(ID_RADIO, item);
         option.add(radio);
 
-        Label label = new Label(ID_LABEL, () -> item.getObject().getName());
+        Label label = new Label(ID_LABEL, () -> item.getObject().getDisplayName());
         option.add(label);
 
-        Label state = new Label(ID_STATE, () -> item.getObject().isExistingAssignment() ?
+        Label state = new Label(ID_STATE, () -> item.getObject().isExisting() ?
                 getString("ConflictItemPanel.existingAssignment") : getString("ConflictItemPanel.newAssignment"));
         option.add(state);
 
         return option;
     }
 
-    private void navigateToObject(ObjectReferenceType ref) {
+    private void navigateToObject(AssignmentType assignment) {
+        if (assignment == null || assignment.getTargetRef() == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = assignment.getTargetRef();
+
         WebComponentUtil.dispatchToObjectDetailsPage(ref, this, true);
     }
 

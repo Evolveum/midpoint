@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.schema.route.ItemRouteSegment;
@@ -115,10 +115,10 @@ class CorrelationItems {
             // First, we create either simple .block() or .exist(segment-path).block()
             S_FilterEntry blockStart = openTheBlock(start, targetQualifier);
             // Then we add clauses corresponding to the items, and close the block
-            S_AtomicFilterExit beforeArchetypeClause =
+            S_FilterExit beforeArchetypeClause =
                     addItemClausesAndCloseTheBlock(blockStart, targetQualifier);
             // Finally, we add a condition for archetype (if needed)
-            S_AtomicFilterExit end =
+            S_FilterExit end =
                     archetypeOid != null ?
                             addArchetypeClause(beforeArchetypeClause, archetypeOid) :
                             beforeArchetypeClause;
@@ -141,13 +141,13 @@ class CorrelationItems {
         }
     }
 
-    private S_AtomicFilterExit addArchetypeClause(S_AtomicFilterExit before, String archetypeOid) {
+    private S_FilterExit addArchetypeClause(S_FilterExit before, String archetypeOid) {
         return before.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid);
     }
 
-    private @NotNull S_AtomicFilterExit addItemClausesAndCloseTheBlock(S_FilterEntry nextStart, @NotNull String targetQualifier)
+    private @NotNull S_FilterExit addItemClausesAndCloseTheBlock(S_FilterEntry nextStart, @NotNull String targetQualifier)
             throws SchemaException {
-        S_AtomicFilterExit currentEnd = null;
+        S_FilterExit currentEnd = null;
         for (int i = 0; i < items.size(); i++) {
             CorrelationItem correlationItem = items.get(i);
             currentEnd = correlationItem.addClauseToQueryBuilder(nextStart, targetQualifier);

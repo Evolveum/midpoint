@@ -17,9 +17,6 @@ import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReinde
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.DatatypeFactory;
@@ -39,7 +36,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -747,17 +743,6 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test710FulltextSearchNestedInOwnedBy() throws Exception {
-        // TODO remove this debug output when tests are finished
-        try (JdbcSession session = createJdbcSession()) {
-            Connection conn = session.connection();
-            try (PreparedStatement stmt = conn.prepareStatement("select owner_oid, text from m_object_text_info")) {
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    System.out.println(rs.getString("owner_oid") + ": " + rs.getString("text"));
-                }
-            }
-        }
-
         given("query for assignments owned by role matching given fulltext search");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownedBy(AbstractRoleType.class)

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -55,7 +57,7 @@ import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
@@ -1741,13 +1743,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return archetypeManager.determineArchetypePolicy(assignmentHolder, result);
     }
 
-    private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
-        return archetypeManager.determineStructuralArchetype(assignmentHolder, result);
+    private ArchetypeType determineArchetype(PrismObject<? extends AssignmentHolderType> assignmentHolder, OperationResult result)
+            throws SchemaException {
+        return archetypeManager.determineStructuralArchetype(assignmentHolder.asObjectable(), result);
     }
 
     @Override
-    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
-        return archetypeManager.mergeArchetypePolicies(archetype, result);
+    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return archetypeManager.getPolicyForArchetype(asObjectable(archetype), result);
     }
 
     @Override
@@ -1813,15 +1817,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         // apply assignmentRelation to "archetyped" objects
-        PrismObject<ArchetypeType> targetArchetype = determineArchetype(assignmentTarget, result);
+        ArchetypeType targetArchetype = determineArchetype(assignmentTarget, result);
         if (targetArchetype == null) {
             return null;
         }
 
         // TODO: empty list vs null: default setting
-        ArchetypeType targetArchetypeType = targetArchetype.asObjectable();
-        return determineArchetypeAssignmentCandidateSpecification(targetArchetypeType.getInducement(), targetArchetypeType.getArchetypePolicy());
-
+        // TODO what about super-archetypes?
+        return determineArchetypeAssignmentCandidateSpecification(
+                targetArchetype.getInducement(), targetArchetype.getArchetypePolicy());
     }
 
     private AssignmentCandidatesSpecification determineArchetypeAssignmentCandidateSpecification(List<AssignmentType> archetypeAssigmentsOrInducements, ArchetypePolicyType archetypePolicy) {

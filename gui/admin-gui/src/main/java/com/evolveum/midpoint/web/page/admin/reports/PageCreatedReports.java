@@ -50,8 +50,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -559,9 +559,9 @@ public class PageCreatedReports extends PageAdmin {
 
     private ObjectQuery appendTypeFilter() {
         String typeRef = reportType == null ? reportTypeMal.get(getReportType()) : reportType.getObject();
-        S_AtomicFilterEntry q = getPrismContext().queryFor(ReportDataType.class);
+        S_FilterEntry q = getPrismContext().queryFor(ReportDataType.class);
 
-        S_AtomicFilterExit refF;
+        S_FilterExit refF;
         if (StringUtils.isNotBlank(typeRef)) {
             Entry<String, String> typeRefFilter = reportTypeMal.entrySet().stream().filter(e -> e.getValue().equals(typeRef)).findFirst().get();
             if (typeRefFilter != null) {
