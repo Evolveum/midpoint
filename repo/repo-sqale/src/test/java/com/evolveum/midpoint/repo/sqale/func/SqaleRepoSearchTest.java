@@ -2624,11 +2624,20 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test985SearchRoleReferencedByUserAssignment() throws SchemaException {
-        searchObjectTest("Org by Assignment ownedBy user", RoleType.class,
+        searchObjectTest("by Assignment ownedBy user", RoleType.class,
                 f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
                         .ownedBy(UserType.class)
                         .id(user3Oid),
                 roleAvIOid);
+    }
+
+    @Test(description = "MID-7746")
+    public void test990SearchResourceByAdministrativeOperationalStateAdministrativeAvailabilityStatus() throws SchemaException {
+        searchObjectTest("by administrativeOperationalState/administrativeAvailabilityStatus", ResourceType.class,
+                f -> f.item(ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE,
+                                AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS)
+                        .eq(AdministrativeAvailabilityStatusType.MAINTENANCE));
+        // nothing found, but the query is OK :-)
     }
     // endregion
 }

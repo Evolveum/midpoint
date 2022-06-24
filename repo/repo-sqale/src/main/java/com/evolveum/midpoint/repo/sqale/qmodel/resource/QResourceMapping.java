@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -54,6 +55,9 @@ public class QResourceMapping
                         QObjectReferenceMapping.initForResourceBusinessConfigurationApprover(
                                 repositoryContext));
 
+        addNestedMapping(F_ADMINISTRATIVE_OPERATIONAL_STATE, AdministrativeOperationalStateType.class)
+                .addItemMapping(AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS,
+                        enumMapper(q -> q.administrativeOperationalStateAdministrativeAvailabilityStatus));
         addNestedMapping(F_OPERATIONAL_STATE, OperationalStateType.class)
                 .addItemMapping(OperationalStateType.F_LAST_AVAILABILITY_STATUS,
                         enumMapper(q -> q.operationalStateLastAvailabilityStatus));
@@ -85,6 +89,11 @@ public class QResourceMapping
             row.businessAdministrativeState = business.getAdministrativeState();
         }
 
+        var administrativeOperationalState = schemaObject.getAdministrativeOperationalState();
+        if (administrativeOperationalState != null) {
+            row.administrativeOperationalStateAdministrativeAvailabilityStatus =
+                    administrativeOperationalState.getAdministrativeAvailabilityStatus();
+        }
         OperationalStateType operationalState = schemaObject.getOperationalState();
         if (operationalState != null) {
             row.operationalStateLastAvailabilityStatus =
