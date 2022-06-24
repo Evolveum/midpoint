@@ -51,7 +51,7 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
         setOutputMarkupId(true);
 
         WebMarkupContainer doneCard = new WebMarkupContainer(ID_DONE_CARD);
-        doneCard.add(new VisibleBehaviour(() -> true)); // todo fix
+        doneCard.add(new VisibleBehaviour(() -> getModelObject().isAllConflictsSolved()));
         add(doneCard);
 
         AjaxLink backToSummary = new AjaxLink<>(ID_BACK_TO_SUMMARY) {
@@ -147,16 +147,10 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
 
         getModelObject().solveConflict(conflict, toRemove);
 
-        // switch to "SOLVED" items if there are no more "UNRESOLVED" items
-        long count = getModelObject().getConflicts().stream().filter(c -> ConflictState.UNRESOLVED.equals(c.getState())).count();
-        if (count == 0) {
-            this.selected.setObject(ConflictState.SOLVED);
-        }
-
         target.add(this);
     }
 
-    private void backToSummaryPerformed(AjaxRequestTarget target) {
-        // todo implement
+    protected void backToSummaryPerformed(AjaxRequestTarget target) {
+
     }
 }

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -58,6 +59,8 @@ public class RequestAccess implements Serializable {
     private Set<AssignmentType> selectedAssignments = new HashSet<>();
 
     private QName relation;
+
+    private QName defaultRelation = SchemaConstants.ORG_DEFAULT;
 
     private String comment;
 
@@ -132,8 +135,10 @@ public class RequestAccess implements Serializable {
         if (assignments == null || assignments.isEmpty()) {
             return;
         }
-        //todo remove naive implementation
-        assignments.forEach(a -> this.selectedAssignments.add(a.clone()));
+
+        assignments.stream()
+                .filter(a -> !selectedAssignments.contains(a))
+                .forEach(a -> selectedAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             assignments.forEach(a -> list.add(a.clone()));
@@ -214,16 +219,27 @@ public class RequestAccess implements Serializable {
 
     public void setRelation(QName relation) {
         if (relation == null) {
-            // todo set default relation
+            relation = defaultRelation;
         }
         this.relation = relation;
 
-        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(relation));
+        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
         for (List<AssignmentType> list : requestItems.values()) {
-            list.forEach(a -> a.getTargetRef().setRelation(relation));
+            list.forEach(a -> a.getTargetRef().setRelation(this.relation));
         }
 
         markConflictsDirty();
+    }
+
+    public QName getDefaultRelation() {
+        return defaultRelation;
+    }
+
+    public void setDefaultRelation(QName defaultRelation) {
+        if (defaultRelation == null) {
+            defaultRelation = SchemaConstants.ORG_DEFAULT;
+        }
+        this.defaultRelation = defaultRelation;
     }
 
     public long getWarningCount() {
@@ -450,5 +466,9 @@ public class RequestAccess implements Serializable {
         conflict.setState(ConflictState.SOLVED);
 
         markConflictsDirty();
+    }
+
+    public boolean isAllConflictsSolved() {
+        return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
     }
 }
