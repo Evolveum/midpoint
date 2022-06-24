@@ -1063,7 +1063,7 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(final Class<T> type) {
-        return (IModel<List<T>>) () -> {
+        return () -> {
             List<T> list = new ArrayList<>();
             Collections.addAll(list, type.getEnumConstants());
 

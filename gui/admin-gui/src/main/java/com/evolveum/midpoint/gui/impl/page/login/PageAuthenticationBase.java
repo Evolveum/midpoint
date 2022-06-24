@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -226,7 +226,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             throw new RestartResponseException(getClass());
         }
 
-        S_AtomicFilterExit filter = QueryBuilder.queryFor(UserType.class, PrismContext.get()).all();
+        S_FilterExit filter = QueryBuilder.queryFor(UserType.class, PrismContext.get()).all();
         for (ItemPath path : filledItems) {
             PrismProperty<?> property = user.findProperty(path);
             filter = filter.and().item(path).eq(property.getAnyValue().clone());

@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -242,7 +242,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         if (target.getOid() == null) {
             return 0;
         }
-        S_AtomicFilterExit q = prismContext.queryFor(FocusType.class)
+        S_FilterExit q = prismContext.queryFor(FocusType.class)
                 .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(
                         prismContext.itemFactory().createReferenceValue(target.getOid()).relation(relation));
         if (selfOid != null) {

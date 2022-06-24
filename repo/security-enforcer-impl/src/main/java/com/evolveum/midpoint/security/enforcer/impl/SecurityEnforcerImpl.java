@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -1594,7 +1594,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                             for (ObjectReferenceType subjectParentOrgRef : principal.getFocus().getParentOrgRef()) {
                                 if (prismContext.relationMatches(subjectRelation, subjectParentOrgRef.getRelation())) {
                                     S_FilterEntryOrEmpty q = prismContext.queryFor(ObjectType.class);
-                                    S_AtomicFilterExit q2;
+                                    S_FilterExit q2;
                                     if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {
                                         q2 = q.isChildOf(subjectParentOrgRef.getOid());
                                     } else if (specOrgRelation.getScope() == OrgScopeType.DIRECT_DESCENDANTS) {
@@ -2011,7 +2011,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     private <T extends ObjectType> ObjectFilter applyOwnerFilterOwnerRef(ItemPath ownerRefPath,
             ObjectFilter objSpecSecurityFilter, MidPointPrincipal principal, PrismObjectDefinition<T> objectDefinition) {
         PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
-        S_AtomicFilterExit builder = prismContext.queryFor(AbstractRoleType.class)
+        S_FilterExit builder = prismContext.queryFor(AbstractRoleType.class)
                 .item(ownerRefPath, ownerRefDef).ref(principal.getFocus().getOid());
         // TODO don't understand this code
         for (ObjectReferenceType subjectParentOrgRef : principal.getFocus().getParentOrgRef()) {

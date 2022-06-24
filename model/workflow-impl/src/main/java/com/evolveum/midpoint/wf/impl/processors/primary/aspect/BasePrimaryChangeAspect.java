@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -184,7 +184,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             if (object == null || object.getOid() == null || relations.isEmpty()) {
                 return Collections.emptyList();
             }
-            S_AtomicFilterExit q = prismContext.queryFor(FocusType.class).none();
+            S_FilterExit q = prismContext.queryFor(FocusType.class).none();
             for (QName approverRelation : relations) {
                 PrismReferenceValue approverReference = prismContext.itemFactory().createReferenceValue(object.getOid());
                 approverReference.setRelation(relationRegistry.normalizeRelation(approverRelation));

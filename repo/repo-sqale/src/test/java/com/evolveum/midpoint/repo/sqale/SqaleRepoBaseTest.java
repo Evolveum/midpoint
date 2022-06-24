@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -446,14 +446,14 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected SearchResultList<UserType> searchUsersTest(String description,
-            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
             throws SchemaException {
         return searchObjectTest(description, UserType.class, filter, expectedOids);
     }
 
     protected <T extends ObjectType> SearchResultList<T> searchObjectTest(
             String description, Class<T> type,
-            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
         when("searching for " + typeName + "(s) " + description);
@@ -492,7 +492,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected <T extends Containerable> SearchResultList<T> searchContainerTest(
-            String description, Class<T> type, Function<S_FilterEntryOrEmpty, S_FilterExit> filter)
+            String description, Class<T> type, Function<S_FilterEntryOrEmpty, S_QueryExit> filter)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
         when("searching for " + typeName + "(s) " + description);

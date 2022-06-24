@@ -30,7 +30,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -267,7 +267,7 @@ public class MemberOperationsHelper {
 
         // Use exists filter to build a query like this:
         // $a/targetRef = oid1 and $a/tenantRef = oid2 and $a/orgRef = oid3
-        S_AtomicFilterExit q = q0.exists(AssignmentHolderType.F_ASSIGNMENT)
+        S_FilterExit q = q0.exists(AssignmentHolderType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(createReferenceValuesList(targetObject, relations));
