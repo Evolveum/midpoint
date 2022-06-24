@@ -8,8 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.provisioning.api.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -195,21 +199,18 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 return configs;
             }
 
-            List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
-
             try {
-                for (ResourceObjectTypeDefinitionType objectTypeDefBean : objectTypes) {
+                // TODO adapt this code
+                Collection<ResourceObjectTypeDefinition> typeDefinitions =
+                        Resource.of(resource).getObjectTypeDefinitions();
+
+                for (ResourceObjectTypeDefinition typeDefinition : typeDefinitions) {
                     SynchronizationPolicy syncPolicy =
-                            SynchronizationPolicyFactory.forDefinitionBean(objectTypeDefBean, resource);
-                    List<TaskType> syncTasks;
-                    if (syncPolicy != null) {
-                        syncTasks = getTasksFor(tasks, syncPolicy, resource.asPrismObject());
-                    } else {
-                        syncTasks = new ArrayList<>();
-                    }
+                            SynchronizationPolicyFactory.forTypeDefinition(typeDefinition, resource);
+                    List<TaskType> syncTasks = getTasksFor(tasks, syncPolicy);
 
                     ResourceConfigurationDto resourceConfig =
-                            new ResourceConfigurationDto(objectTypeDefBean, syncPolicy != null, syncTasks);
+                            new ResourceConfigurationDto(typeDefinition.getDefinitionBean(), true, syncTasks);
                     configs.add(resourceConfig);
                 }
             } catch (SchemaException | ConfigurationException ex) {
@@ -392,56 +393,37 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
         };
     }
 
+    // TODO what exactly should this method do?
     private List<TaskType> getTasksFor(
             List<PrismObject<TaskType>> tasks,
-            SynchronizationPolicy synchronizationPolicy,
-            PrismObject<ResourceType> resource)
+            SynchronizationPolicy synchronizationPolicy)
             throws SchemaException, ConfigurationException {
-        List<TaskType> syncTasks = new ArrayList<>();
-        for (PrismObject<TaskType> task : tasks) {
-            ShadowKindType taskKindValue = null;
-            String taskIntentValue = null;
-            QName taskObjectClassValue = null;
+        return tasks.stream()
+                .filter(task -> doesTaskMatchPolicy(task, synchronizationPolicy))
+                .map(task -> task.asObjectable())
+                .collect(Collectors.toList());
+    }
 
-            @Nullable ResourceObjectSetType resourceSet = ResourceObjectSetUtil.fromTask(task.asObjectable());
-            if (!java.util.Objects.isNull(resourceSet)) {
-                taskKindValue = resourceSet.getKind();
-                taskIntentValue = resourceSet.getIntent();
-                taskObjectClassValue = resourceSet.getObjectclass();
-            }
-
-            // TODO: unify with determineObjectClass in Utils (model-impl, which
-            //  is not accessible in admin-gui)
-            if (taskObjectClassValue == null) {
-                ResourceObjectDefinition taskObjectClassDef = null;
-                ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-                if (schema == null) {
-                    throw new SchemaException(
-                            "No schema defined in resource. Possible configuration problem?");
-                }
-                if (taskKindValue == null && taskIntentValue == null) {
-                    taskObjectClassDef = schema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT); // TODO ok?
-                }
-
-                if (taskKindValue != null) {
-                    if (StringUtils.isEmpty(taskIntentValue)) {
-                        taskObjectClassDef = schema.findDefaultDefinitionForKind(taskKindValue); // TODO ok?
-                    } else {
-                        taskObjectClassDef = schema.findObjectDefinition(taskKindValue, taskIntentValue);
-                    }
-
-                }
-                if (taskObjectClassDef != null) {
-                    taskObjectClassValue = taskObjectClassDef.getTypeName();
-                }
-            }
-
-            if (synchronizationPolicy.isApplicableTo(taskObjectClassValue, taskKindValue, taskIntentValue, true)) {
-                syncTasks.add(task.asObjectable());
-            }
+    private boolean doesTaskMatchPolicy(PrismObject<TaskType> task, SynchronizationPolicy synchronizationPolicy) {
+        @Nullable ResourceObjectSetType resourceObjectSet = ResourceObjectSetUtil.fromTask(task.asObjectable());
+        if (resourceObjectSet == null) {
+            // We cannot match this task to (the) specific synchronization policy.
+            return false;
         }
 
-        return syncTasks;
+        ShadowKindType taskKindValue = resourceObjectSet.getKind();
+        if (taskKindValue != synchronizationPolicy.getKind()) {
+            // Note that kind must be specified in the task; so it's safe to check it this way.
+            return false;
+        }
+
+        String taskIntentValue = resourceObjectSet.getIntent();
+        if (taskIntentValue != null) {
+            return taskIntentValue.equals(synchronizationPolicy.getIntent());
+        } else {
+            // Null means "default"
+            return synchronizationPolicy.getObjectTypeDefinition().isDefaultForKind();
+        }
     }
 
     // TODO: ####### start of move to ResourceTypeUtil ###########

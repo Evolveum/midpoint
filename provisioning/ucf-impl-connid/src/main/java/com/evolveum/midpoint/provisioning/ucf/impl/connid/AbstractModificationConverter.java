@@ -332,7 +332,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         List<Object> connIdVals = new ArrayList<>(pvals.size());
         for (PrismPropertyValue<QName> pval : pvals) {
             QName auxQName = pval.getValue();
-            ResourceObjectDefinition auxDef = resourceSchema.findDefinitionForObjectClass(auxQName);
+            ResourceObjectDefinition auxDef = resourceSchema.findObjectClassDefinition(auxQName);
             if (auxDef == null) {
                 throw new SchemaException("Auxiliary object class " + auxQName + " not found in the schema");
             }

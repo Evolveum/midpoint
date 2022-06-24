@@ -35,11 +35,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
- * Creates type definitions in {@link ResourceSchemaImpl} objects.
+ * Creates refined class and object type definitions in {@link ResourceSchemaImpl} objects.
  *
  * These definitions are derived from:
  *
- * 1. object class definitions ({@link ResourceObjectClassDefinition}) (obtained dynamically or statically),
+ * 1. raw object class definitions ({@link ResourceObjectClassDefinition}) (obtained dynamically or statically),
  * 2. configured {@link SchemaHandlingType} beans in resource definition.
  *
  * This class is instantiated for each parsing operation.
@@ -348,7 +348,7 @@ public class RefinedResourceSchemaParser {
                 LOGGER.trace("Resolving auxiliary object class name: {} for {}", auxObjectClassName, definition);
                 definition.addAuxiliaryObjectClassDefinition(
                         MiscUtil.requireNonNull(
-                                completeSchema.findDefinitionForObjectClass(auxObjectClassName),
+                                completeSchema.findObjectClassDefinition(auxObjectClassName),
                                 () -> "Auxiliary object class " + auxObjectClassName + " specified in " +
                                         definition + " does not exist"));
             }
@@ -570,19 +570,26 @@ public class RefinedResourceSchemaParser {
         }
 
         private void parseDelineation() throws ConfigurationException {
+            QName objectClassName = definition.getObjectClassName();
+            List<QName> auxiliaryObjectClassNames = getAuxiliaryObjectClassNames(definitionBean);
             ResourceObjectTypeDelineationType delineationBean = definitionBean.getDelineation();
             if (delineationBean != null) {
                 configCheck(definitionBean.getBaseContext() == null,
-                        "Base context cannot be set when delineation is configured. In %s", definition);
+                        "Legacy base context cannot be set when delineation is configured. In %s", definition);
                 configCheck(definitionBean.getSearchHierarchyScope() == null,
-                        "Search hierarchy scope cannot be set when delineation is configured. In %s", definition);
+                        "Legacy search hierarchy scope cannot be set when delineation is configured. In %s", definition);
                 definition.setDelineation(
-                        ResourceObjectTypeDelineation.of(delineationBean));
+                        ResourceObjectTypeDelineation.of(
+                                delineationBean,
+                                objectClassName,
+                                auxiliaryObjectClassNames));
             } else {
                 definition.setDelineation(
                         ResourceObjectTypeDelineation.of(
                                 definitionBean.getBaseContext(),
-                                definitionBean.getSearchHierarchyScope()));
+                                definitionBean.getSearchHierarchyScope(),
+                                objectClassName,
+                                auxiliaryObjectClassNames));
             }
         }
     }

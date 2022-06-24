@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Helps with {@link ResourceObjectTypeDefinitionType} objects.
@@ -47,24 +50,32 @@ public class ResourceObjectTypeDefinitionTypeUtil {
 
     public static @Nullable QName getObjectClassName(@NotNull ResourceObjectTypeDefinitionType bean) {
         ResourceObjectTypeDelineationType delineation = bean.getDelineation();
-        if (delineation != null) {
-            QName objectClassName = delineation.getObjectClass();
-            if (objectClassName != null) {
-                return objectClassName;
-            }
-        }
-        return bean.getObjectClass();
+        QName newName = delineation != null ? delineation.getObjectClass() : null;
+        QName legacyName = bean.getObjectClass();
+        checkNoContradiction(newName, legacyName, bean);
+        return MiscUtil.getFirstNonNull(newName, legacyName);
+    }
+
+    private static void checkNoContradiction(QName newName, QName legacyName, ResourceObjectTypeDefinitionType bean) {
+        // This should be a configuration exception; but let's not bother all the callers with handling it.
+        stateCheck(newName == null || legacyName == null || QNameUtil.match(newName, legacyName),
+                "Contradicting legacy (%s) vs delineation-based (%s) object class names in %s",
+                legacyName, newName, bean);
     }
 
     public static @NotNull List<QName> getAuxiliaryObjectClassNames(@NotNull ResourceObjectTypeDefinitionType bean) {
         ResourceObjectTypeDelineationType delineation = bean.getDelineation();
-        if (delineation != null) {
-            List<QName> auxiliaryObjectClasses = delineation.getAuxiliaryObjectClass();
-            if (!auxiliaryObjectClasses.isEmpty()) {
-                return auxiliaryObjectClasses;
-            }
+        List<QName> newValues = delineation != null ? delineation.getAuxiliaryObjectClass() : List.of();
+        List<QName> legacyValues = bean.getAuxiliaryObjectClass();
+        // This should be a configuration exception; but let's not bother all the callers with handling it.
+        // And we do not want to compare the lists (etc) - we simply disallow specifying at both places.
+        stateCheck(newValues.isEmpty() || legacyValues.isEmpty(),
+                "Auxiliary object classes must not be specified in both new and legacy ways in %s", bean);
+        if (newValues.isEmpty()) {
+            return newValues;
+        } else {
+            return legacyValues;
         }
-        return bean.getAuxiliaryObjectClass();
     }
 
     /** Reference to a super-type of an object type. */

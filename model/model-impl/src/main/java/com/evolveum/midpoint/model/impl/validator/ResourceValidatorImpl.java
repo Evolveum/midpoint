@@ -147,7 +147,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         ResourceObjectDefinition ocdef = null;
         QName objectClassName = getObjectClassName(objectType);
         if (ctx.resourceSchema != null && objectClassName != null) {
-            ocdef = ctx.resourceSchema.findDefinitionForObjectClass(objectClassName);
+            ocdef = ctx.resourceSchema.findObjectClassDefinition(objectClassName);
             checkObjectClassDefinition(ctx, path, objectType, ocdef);
         }
         int i = 1;
@@ -291,7 +291,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             }
             if (rad == null) {
                 for (QName auxOcName : getAuxiliaryObjectClassNames(objectType)) {
-                    ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findDefinitionForObjectClass(auxOcName);
+                    ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findObjectClassDefinition(auxOcName);
                     if (auxOcDef != null) {
                         rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
                         if (rad != null) {

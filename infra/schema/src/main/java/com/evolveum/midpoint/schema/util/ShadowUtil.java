@@ -913,8 +913,11 @@ public class ShadowUtil {
     }
 
     public static boolean isClassified(ShadowType shadow) {
-        // We want to be explicit here: no defaults (like kind=account, intent=default) are accepted!
-        return isKnown(shadow.getKind()) && isKnown(shadow.getIntent());
+        return isClassified(shadow.getKind(), shadow.getIntent());
+    }
+
+    public static boolean isClassified(ShadowKindType kind, String intent) {
+        return isKnown(kind) && isKnown(intent);
     }
 
     @Contract("null -> null")

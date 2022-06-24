@@ -270,6 +270,7 @@ class ResourceObjectDefinitionResolver {
         if (kind != null) {
             if (intent == null) {
                 // TODO should this be really a warning or a lower-level message suffices?
+                // FIXME no partial classification should be allowed!
                 LOGGER.warn("Partially-classified {}. Looking for default type of {}, if present", shadow, kind);
             }
             structuralDefinition = findObjectDefinition(schema, kind, intent, objectClassName);

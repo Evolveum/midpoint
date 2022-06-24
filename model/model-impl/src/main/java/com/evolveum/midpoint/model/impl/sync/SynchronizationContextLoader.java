@@ -101,6 +101,7 @@ class SynchronizationContextLoader {
                         task,
                         result);
 
+        // Note this may update shadow kind/intent.
         TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, schema, sorterResult, result);
 
         String tag = getOrGenerateTag(processingContext, typeAndDefinition.definition, result);
@@ -168,9 +169,12 @@ class SynchronizationContextLoader {
                 return TypeAndDefinition.of(schema, shadow.getKind(), shadow.getIntent());
             }
         } else {
-            LOGGER.debug("Attempting to classify {} (most probably needless, as the shadow should have been "
-                    + "tried-to-be-classified before getting here)", shadow);
-            // The sorter result is used here (if it contains the classification)
+            LOGGER.debug("Attempting to classify {}", shadow);
+            // Most probably the classification attempt has been already done for the shadow: If it came through
+            // get or search or live sync operation, the classification attempt is there. But what if there are more
+            // exotic channels, like "external changes"? Let us try the classification once more.
+            //
+            // Note that the sorter result is used here (if it contains the classification)
             ResourceObjectClassification classification = beans.provisioningService
                     .classifyResourceObject(
                             shadow,

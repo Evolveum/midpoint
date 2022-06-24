@@ -273,7 +273,7 @@ public class ProvisioningContext {
             throws SchemaException, ConfigurationException {
         Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxObjectClassQNames.size());
         for (QName auxObjectClassQName : auxObjectClassQNames) {
-            ResourceObjectDefinition auxObjectClassDef = getResourceSchema().findDefinitionForObjectClass(auxObjectClassQName);
+            ResourceObjectDefinition auxObjectClassDef = getResourceSchema().findObjectClassDefinition(auxObjectClassQName);
             if (auxObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class " + auxObjectClassQName + " specified in " + this + " does not exist");
             }

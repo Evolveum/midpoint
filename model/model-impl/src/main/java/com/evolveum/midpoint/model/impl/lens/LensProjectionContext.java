@@ -954,7 +954,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
             ResourceObjectDefinition auxiliaryObjectClassDef =
-                    schema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
+                    schema.findObjectClassDefinition(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
             }

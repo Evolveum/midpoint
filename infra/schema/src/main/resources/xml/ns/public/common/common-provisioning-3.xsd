@@ -4677,9 +4677,6 @@
                         into the object hierarchy. It is only applicable to resources that support hierarchical
                         organization of objects (e.g. LDAP resources).
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.0</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
@@ -4698,9 +4695,70 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="classificationOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In what order should this delineation specification be used for classification? No value means
+                        it should be used at the end. (Like a default value to be used when no other value matches.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextClassificationUse" type="tns:BaseContextClassificationUseType" minOccurs="0"
+                    default="ifApplicable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should be the base context used for the classification?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="BaseContextClassificationUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should be the base context in the delineation used for the classification?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="required">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The base context must be used (if it's present in the delineation). If it cannot be applied,
+                        the delineation is considered as non-matching.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUIRED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifApplicable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the base context is not applicable, it is used. Otherwise, it is ignored.
+                        This is the default setting.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_APPLICABLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ignored">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The base context is not used for classification.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="SynchronizationReactionsType">
         <xsd:annotation>
