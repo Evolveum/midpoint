@@ -471,4 +471,10 @@ public class RequestAccess implements Serializable {
     public boolean isAllConflictsSolved() {
         return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
     }
+
+    public void submitRequest() {
+        // todo submit stuff
+
+        clearCart();
+    }
 }

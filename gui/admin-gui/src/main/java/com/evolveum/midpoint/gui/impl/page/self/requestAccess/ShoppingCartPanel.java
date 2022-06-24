@@ -139,6 +139,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
     protected void submitPerformed(AjaxRequestTarget target) {
         // todo implement
+        getModelObject().submitRequest();
+
     }
 
     @Override
