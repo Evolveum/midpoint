@@ -9,11 +9,11 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
@@ -45,7 +45,7 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
             QueryInterpreter interpreter = context.getInterpreter();
             return interpreter.interpretFilter(context, filter.getFilter(), this);
         } else if (jpaDefinition instanceof JpaPropertyDefinition && (((JpaPropertyDefinition) jpaDefinition).isCount())) {
-            RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+            HibernateQuery hibernateQuery = context.getHibernateQuery();
             return hibernateQuery.createSimpleComparisonCondition(dataInstance.getHqlPath(), 0, ">");
         } else {
             // TODO support exists also for other properties (single valued or multi valued)

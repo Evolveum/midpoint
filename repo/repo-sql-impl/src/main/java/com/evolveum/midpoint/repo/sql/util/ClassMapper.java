@@ -26,7 +26,7 @@ public final class ClassMapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassMapper.class);
 
-    private static final Map<ObjectTypes, RObjectType> TYPES = new HashMap<>();
+    private static final Map<ObjectTypes, RObjectType> TYPES = new LinkedHashMap<>();
     private static final MultiValuedMap<ObjectTypes, RObjectType> DESCENDANTS = new HashSetValuedHashMap<>();
 
     private ClassMapper() {
@@ -37,6 +37,8 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
         TYPES.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);
         TYPES.put(ObjectTypes.OBJECT, RObjectType.OBJECT);
+        // Also matches RObject, but we want it later to avoid unexpected definitions Ent:RObject (jaxb=AssignmentHolderType).
+        TYPES.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
         TYPES.put(ObjectTypes.PASSWORD_POLICY, RObjectType.VALUE_POLICY);
         TYPES.put(ObjectTypes.RESOURCE, RObjectType.RESOURCE);
         TYPES.put(ObjectTypes.SHADOW, RObjectType.SHADOW);
@@ -51,7 +53,6 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.ORG, RObjectType.ORG);
         TYPES.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
         TYPES.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
-        TYPES.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
         TYPES.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
         TYPES.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
         TYPES.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);

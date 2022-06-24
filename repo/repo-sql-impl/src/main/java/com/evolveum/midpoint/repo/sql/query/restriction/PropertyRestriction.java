@@ -19,11 +19,11 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.ConstantCondition;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
@@ -79,7 +79,7 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         HqlDataInstance rightItem = getItemPathResolver().resolveItemPath(filter.getRightHandSidePath(),
                 filter.getRightHandSideDefinition(), getBaseHqlEntityForChildren(), true);
         String rightHqlPath = rightItem.getHqlPath();
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
 
         // TODO take data types into account, e.g.
         //  PolyString vs PolyString

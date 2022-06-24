@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 public class PropertyPropertyComparisonCondition extends PropertyCondition {
 
@@ -18,8 +17,8 @@ public class PropertyPropertyComparisonCondition extends PropertyCondition {
     private final String operator;
     private final boolean ignoreCase;
 
-    public PropertyPropertyComparisonCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, String rightSidePath, String operator, boolean ignoreCase) {
-        super(rootHibernateQuery, propertyPath);
+    public PropertyPropertyComparisonCondition(HibernateQuery hibernateQuery, String propertyPath, String rightSidePath, String operator, boolean ignoreCase) {
+        super(hibernateQuery, propertyPath);
         Objects.requireNonNull(rightSidePath, "rightSidePath");
         Objects.requireNonNull(operator, "operator");
 

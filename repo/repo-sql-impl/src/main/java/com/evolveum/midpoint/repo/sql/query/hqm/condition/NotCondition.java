@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 /**
  * @author mederly
@@ -19,8 +18,8 @@ public class NotCondition extends Condition {
 
     protected Condition child;
 
-    public NotCondition(RootHibernateQuery rootHibernateQuery, Condition child) {
-        super(rootHibernateQuery);
+    public NotCondition(HibernateQuery hibernateQuery, Condition child) {
+        super(hibernateQuery);
         Objects.requireNonNull(child, "child");
         this.child = child;
     }

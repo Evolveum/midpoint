@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
 public abstract class PropertyCondition extends Condition {
 
     protected String propertyPath;
 
-    public PropertyCondition(RootHibernateQuery rootHibernateQuery, String propertyPath) {
-        super(rootHibernateQuery);
+    public PropertyCondition(HibernateQuery hibernateQuery, String propertyPath) {
+        super(hibernateQuery);
         Objects.requireNonNull(propertyPath, "propertyPath");
         this.propertyPath = propertyPath;
     }

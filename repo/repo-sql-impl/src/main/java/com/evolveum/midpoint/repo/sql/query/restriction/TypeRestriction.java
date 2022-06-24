@@ -10,11 +10,11 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 
@@ -33,7 +33,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
     @Override
     public Condition interpret() throws QueryException {
         InterpretationContext context = getContext();
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
 
         String property = getBaseHqlEntity().getHqlPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
 

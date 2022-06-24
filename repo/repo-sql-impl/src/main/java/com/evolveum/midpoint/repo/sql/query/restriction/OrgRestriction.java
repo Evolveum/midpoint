@@ -10,10 +10,10 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -30,7 +30,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        RootHibernateQuery hibernateQuery = getContext().getHibernateQuery();
+        HibernateQuery hibernateQuery = getContext().getHibernateQuery();
         if (filter.isRoot()) {
             // oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)
             return hibernateQuery.createIn(getBaseHqlEntity().getHqlPath() + ".oid",

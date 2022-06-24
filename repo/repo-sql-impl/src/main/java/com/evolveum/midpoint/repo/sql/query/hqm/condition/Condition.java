@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
 /**
  * Condition in HQL.
@@ -19,11 +19,11 @@ import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
  */
 public abstract class Condition {
 
-    protected final RootHibernateQuery rootHibernateQuery;
+    protected final HibernateQuery hibernateQuery;
 
-    public Condition(RootHibernateQuery rootHibernateQuery) {
-        Objects.requireNonNull(rootHibernateQuery, "rootHibernateQuery");
-        this.rootHibernateQuery = rootHibernateQuery;
+    public Condition(HibernateQuery hibernateQuery) {
+        Objects.requireNonNull(hibernateQuery, "hibernateQuery");
+        this.hibernateQuery = hibernateQuery;
     }
 
     public abstract void dumpToHql(StringBuilder sb, int indent);

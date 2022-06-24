@@ -4,31 +4,26 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
-
-import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
+
 public abstract class JunctionCondition extends Condition {
 
     protected List<Condition> components = new ArrayList<>();
 
-    public JunctionCondition(RootHibernateQuery rootHibernateQuery, Condition... conditions) {
-        super(rootHibernateQuery);
+    public JunctionCondition(HibernateQuery hibernateQuery, Condition... conditions) {
+        super(hibernateQuery);
         Collections.addAll(components, conditions);
     }
 
-    public JunctionCondition(RootHibernateQuery rootHibernateQuery, Collection<Condition> conditions) {
-        super(rootHibernateQuery);
+    public JunctionCondition(HibernateQuery hibernateQuery, Collection<Condition> conditions) {
+        super(hibernateQuery);
         components.addAll(conditions);
     }
 
@@ -62,8 +57,8 @@ public abstract class JunctionCondition extends Condition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
 
         JunctionCondition that = (JunctionCondition) o;
 

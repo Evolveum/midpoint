@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.hqm.CountProjectionElement;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query.matcher.Matcher;
@@ -97,7 +97,7 @@ public class QueryInterpreter {
         this.extItemDictionary = extItemDictionary;
     }
 
-    public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
+    public HibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
             @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull Session session) throws QueryException {
         boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
@@ -112,7 +112,7 @@ public class QueryInterpreter {
 
         if (countingObjects) {
             interpretPagingAndSorting(context, query, true);
-            RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+            HibernateQuery hibernateQuery = context.getHibernateQuery();
             boolean distinct = distinctRequested && !hibernateQuery.isDistinctNotNecessary();
             hibernateQuery.addProjectionElement(new CountProjectionElement(resultStyle.getCountString(rootAlias), distinct));
             return hibernateQuery;
@@ -128,7 +128,7 @@ public class QueryInterpreter {
              u.oid in (select distinct u.oid from RUser u where ...)
          */
         boolean distinctBlobCapable = !repoConfiguration.isUsingOracle() && !repoConfiguration.isUsingSQLServer();
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
         boolean distinct = distinctRequested && !hibernateQuery.isDistinctNotNecessary();
         hibernateQuery.setDistinct(distinct);
         hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
@@ -147,7 +147,7 @@ public class QueryInterpreter {
                 interpretQueryFilter(wrapperContext, query);
                 interpretPagingAndSorting(wrapperContext, query, false);
             }
-            RootHibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
+            HibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
             if (repoConfiguration.isUsingSQLServer() && resultStyle.getIdentifiers("").size() > 1) {
                 // using 'where exists' clause
                 // FIXME refactor this ugly code
@@ -295,6 +295,8 @@ public class QueryInterpreter {
             } else {
                 return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getLinkDefinition());
             }
+        } else if (filter instanceof OwnedByFilter) {
+            return OwnedByRestriction.create(context, (OwnedByFilter) filter, baseEntityDefinition);
         } else if (filter instanceof NoneFilter || filter instanceof AllFilter || filter instanceof UndefinedFilter) {
             // these should be filtered out by the client
             throw new IllegalStateException("Trivial filters are not supported by QueryInterpreter: " + filter.debugDump());
@@ -304,7 +306,7 @@ public class QueryInterpreter {
     }
 
     private void interpretPagingAndSorting(InterpretationContext context, ObjectQuery query, boolean countingObjects) throws QueryException {
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
 
         //noinspection StringEquality
@@ -323,7 +325,7 @@ public class QueryInterpreter {
         }
     }
 
-    private void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPaging paging) {
+    private void updatePagingAndSortingByOid(HibernateQuery hibernateQuery, ObjectPaging paging) {
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
         if (paging.getPrimaryOrderingPath() != null || paging.getPrimaryOrderingDirection() != null || paging.getOffset() != null) {
             throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPaging with cookie");
@@ -342,7 +344,7 @@ public class QueryInterpreter {
         if (paging == null) {
             return;
         }
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
         if (paging.getOffset() != null) {
             hibernateQuery.setFirstResult(paging.getOffset());
         }
@@ -397,7 +399,7 @@ public class QueryInterpreter {
             hqlPropertyPath += ".orig";
         }
 
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
         if (ordering.getDirection() != null) {
             switch (ordering.getDirection()) {
                 case ASCENDING:
@@ -447,7 +449,7 @@ public class QueryInterpreter {
             hqlPropertyPath += ".orig";
         }
 
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
 
         hibernateQuery.addGrouping(hqlPropertyPath);
     }

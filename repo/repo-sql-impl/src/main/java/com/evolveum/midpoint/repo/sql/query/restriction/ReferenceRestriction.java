@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.restriction;
+
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,21 +17,22 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaAnyReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaReferenceDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -59,12 +61,17 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         String hqlPath = hqlDataInstance.getHqlPath();
         LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
 
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
 
         List<PrismReferenceValue> values = filter.getValues();
         if (CollectionUtils.isEmpty(values)) {
-            return hibernateQuery.createIsNull(hqlDataInstance.getHqlPath());
+            if (filter.getFilter() == null) { // "target filter"
+                return hibernateQuery.createIsNull(hqlDataInstance.getHqlPath());
+            } else {
+                return targetFilterCondition();
+            }
         }
+
         Set<String> oids = new HashSet<>();
         Set<QName> relations = new HashSet<>();
         Set<QName> targetTypes = new HashSet<>();
@@ -98,10 +105,11 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
             values.forEach(prv -> rootOr
                     .add(createRefCondition(hibernateQuery,
                             MiscUtil.singletonOrEmptySet(prv.getOid()), prv.getRelation(), prv.getTargetType())));
-            return rootOr;
+            return refCondition(rootOr);
         } else {
-            return createRefCondition(hibernateQuery, oids,
-                    MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes));
+            return refCondition(
+                    createRefCondition(hibernateQuery, oids,
+                            MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes)));
         }
     }
 
@@ -117,7 +125,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
     }
 
-    private Condition createRefCondition(RootHibernateQuery hibernateQuery,
+    private Condition createRefCondition(HibernateQuery hibernateQuery,
             Collection<String> oids, QName relation, QName targetType) {
         String hqlPath = hqlDataInstance.getHqlPath();
 
@@ -162,11 +170,26 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
     }
 
-    private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
+    private Condition handleEqInOrNull(HibernateQuery hibernateQuery, String propertyName, Object value) {
         if (value == null) {
             return hibernateQuery.createIsNull(propertyName);
         } else {
             return hibernateQuery.createEq(propertyName, value);
         }
+    }
+
+    private Condition targetFilterCondition() throws QueryException {
+        ObjectFilter existsFilter = context.getPrismContext().queryFor(context.getType())
+                .exists(filter.getFullPath().append(T_OBJECT_REFERENCE))
+                .filter(Objects.requireNonNull(filter.getFilter()))
+                .buildFilter();
+
+        return context.getInterpreter().interpretFilter(context, existsFilter, this);
+    }
+
+    private Condition refCondition(Condition condition) throws QueryException {
+        return filter.getFilter() != null
+                ? context.getHibernateQuery().createAnd(condition, targetFilterCondition())
+                : condition;
     }
 }

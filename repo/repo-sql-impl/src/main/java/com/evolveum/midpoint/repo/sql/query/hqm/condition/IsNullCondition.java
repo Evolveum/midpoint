@@ -8,14 +8,13 @@
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 /**
  * @author mederly
  */
 public class IsNullCondition extends PropertyCondition {
 
-    public IsNullCondition(RootHibernateQuery rootHibernateQuery, String propertyPath) {
+    public IsNullCondition(HibernateQuery rootHibernateQuery, String propertyPath) {
         super(rootHibernateQuery, propertyPath);
     }
 

@@ -22,10 +22,10 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -80,7 +80,7 @@ public class ItemPathResolver {
     }
 
     String reuseOrAddJoin(JpaLinkDefinition<?> joinedItemDefinition, String currentHqlPath, boolean reuseMultivaluedJoins) throws QueryException {
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
         String joinedItemJpaName = joinedItemDefinition.getJpaName();
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias;
@@ -122,7 +122,7 @@ public class ItemPathResolver {
         return joinedItemAlias;
     }
 
-    private String findExistingAlias(RootHibernateQuery hibernateQuery,
+    private String findExistingAlias(HibernateQuery hibernateQuery,
             JpaLinkDefinition<?> joinedItemDefinition, String joinedItemFullPath) throws QueryException {
         for (JoinSpecification existingJoin : hibernateQuery.getPrimaryEntity().getJoinsFor(joinedItemFullPath)) {
             // but let's check the condition as well
@@ -138,7 +138,7 @@ public class ItemPathResolver {
     }
 
     public String addTextInfoJoin(String currentHqlPath) {
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        HibernateQuery hibernateQuery = context.getHibernateQuery();
         String joinedItemJpaName = RObject.F_TEXT_INFO_ITEMS;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
@@ -146,7 +146,7 @@ public class ItemPathResolver {
         return joinedItemAlias;
     }
 
-    private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition<?> joinedItemDefinition, RootHibernateQuery hibernateQuery) throws QueryException {
+    private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition<?> joinedItemDefinition, HibernateQuery hibernateQuery) throws QueryException {
         Condition condition = null;
         if (joinedItemDefinition instanceof JpaAnyItemLinkDefinition) {
             JpaAnyItemLinkDefinition anyLinkDef = (JpaAnyItemLinkDefinition) joinedItemDefinition;

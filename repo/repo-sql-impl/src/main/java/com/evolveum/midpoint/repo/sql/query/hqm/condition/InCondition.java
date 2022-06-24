@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 /**
  * @author mederly
@@ -21,14 +20,14 @@ public class InCondition extends PropertyCondition {
     private Collection<?> values;
     private String innerQueryText;
 
-    public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, String innerQueryText) {
-        super(rootHibernateQuery, propertyPath);
+    public InCondition(HibernateQuery hibernateQuery, String propertyPath, String innerQueryText) {
+        super(hibernateQuery, propertyPath);
         Objects.requireNonNull(innerQueryText);
         this.innerQueryText = innerQueryText;
     }
 
-    public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, Collection<?> values) {
-        super(rootHibernateQuery, propertyPath);
+    public InCondition(HibernateQuery hibernateQuery, String propertyPath, Collection<?> values) {
+        super(hibernateQuery, propertyPath);
         Objects.requireNonNull(values);
         this.values = values;
     }
@@ -38,7 +37,7 @@ public class InCondition extends PropertyCondition {
         HibernateQuery.indent(sb, indent);
         if (values != null) {
             String parameterNamePrefix = createParameterName(propertyPath);
-            String parameterName = rootHibernateQuery.addParameter(parameterNamePrefix, values);        // TODO special treatment of collections?
+            String parameterName = hibernateQuery.addParameter(parameterNamePrefix, values);        // TODO special treatment of collections?
             // these parentheses are here because of hibernate bug, manifesting itself as MID-3390
             boolean useParentheses = values.size() != 1;        // just a (quite dubious) optimization
             sb.append(propertyPath).append(" in ")
