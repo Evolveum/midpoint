@@ -199,21 +199,32 @@ various ORG filter types.
 
 === How to add a new field/column?
 
-Example - let's add `operationalState` column for `m_node` table.
+Example - let's add `administrativeOperationalStateAdministrativeAvailabilityStatus` column for `m_resource` table.
 
-. Let's start in the SQL schema, locate the table `m_node` and add `operationalState` column to it.
+This is an extremely long column name, because it is inside a single value container,
+its path is actually `administrativeOperationalState/administrativeAvailabilityStatus`.
+But because this is single value container, the property is mapped directly in the object table
+(from the repository perspective, we call this an "embedded" container),
+unlike, for instance, assignments that have a dedicated `m_assignment` table.
+
+To follow this example, check https://github.com/Evolveum/midpoint/commit/da29673fae66925dd22777cc4f3e4760e8096162[this commit].
+I'm sorry about the superlong name, but this is the best example in a single commit.
+
+. Let's start in the SQL schema, locate the table `m_resource` and add `administrativeOperationalStateAdministrativeAvailabilityStatus` column to it.
 Consider logical order of the columns - even though it's not relevant for upgraded DB,
 it is relevant for future readability.
 Notice, how columns for items from subcontainers are grouped in existing tables.
+If the column requires a comment - like this one to clarify the actual path - add it before the column line.
++
 Also, we name the columns "Java style", although Postgres doesn't care aboute casing.
-The same name will be used in so called "M-class" (`MNode` in our example).
+The same name will be used in so called "M-class" (`MResource` in our example).
 Sometimes the name contains container name prefix, this is not used for metadata, activation
 and similar common containers - even these are still pure camel-case names.
 
 . What type is it?
 Simple things are easy (`TEXT`, `INTEGER`), some items require multiple columns (references,
 poly-strings), follow the patterns used previously for such cases.
-Our `operationalState` is enum type - great!
+Our `administrativeOperationalStateAdministrativeAvailabilityStatus` is enum type - great!
 Read the next bullet how to do that.
 Some multi-value types can be represented by arrays like `TEXT[]` or `JSONB` columns.
 If we're talking about whole new multi-value container, whoa-whoa... that's out of scope of this
@@ -224,33 +235,36 @@ First we need to add `CREATE TYPE` for it to the schema.
 Find the section with custom types, read its intro comment and add the enum specification.
 Very likely it will be "schema enum", not specialized repository internal enum - that's typical.
 Use the class name for the custom type to make things as obvious as possible,
-so it's `NodeOperationalStateType` for our case.
+so it's `AdministrativeAvailabilityStatusType` for our case.
 Copy/paste the values to avoid any mistake... other than copy/paste error, that is.
++
 Don't forget to mention this enum in the `SqaleRepoContext` constructor.
-Alphabetic order, please!
+Otherwise, you will later get an error saying `Can't infer the SQL type to use for an instance of ...AdministrativeAvailabilityStatusType`.
+Keep the types in alphabetic order, please, thank you.
 
-. Let's change the "M-class", `MNode` in our example.
-Simply add public field for the column, like `public NodeOperationalStateType operationalState`.
+. Let's change the "M-class", `MResource` in our example.
+Simply add public field for the column, like `public AdministrativeAvailabilityStatusType administrativeOperationalStateAdministrativeAvailabilityStatus`.
 Keep the order consistent with the table.
 BTW, "M" does *not* stand for "mapping", we will see mapping class later.
 
 . Now it's great time to update `SqaleRepoAddDeleteObjectTest`!
 Find the method testing mapping for this class and add value and assert for the new item.
-Feel free to add the method if this entity/object type is not yet tested - just like
-https://github.com/Evolveum/midpoint/commit/8165c46f5f5e775de8dd41a982f4caa86e208314[I did].
+Feel free to add the method if this entity/object type is not yet tested - just like I did
+https://github.com/Evolveum/midpoint/commit/8165c46f5f5e775de8dd41a982f4caa86e208314[in another example].
 Run the test, it should fail for the new attribute, which is a good sign.
 
 . We need to declare the new column in a "Q-class" which extends from Querydsl type hierarchy.
 Technically it's mapping for Querydsl, but it's still not "our" mapping for midPoint (soon, I promise!).
-For our example, it's `QNode` - and there are two sections:
+For our example, it's `QResource` - and there are two sections:
 
 .. First, static column metadata, find good example from other class if necessary.
 In our case, I'll add:
 +
 [source,java]
 ----
-public static final ColumnMetadata OPERATIONAL_STATE =
-  ColumnMetadata.named("operationalState").ofType(Types.OTHER);
+public static final ColumnMetadata ADMINISTRATIVE_OPERATIONAL_STATE_ADMINISTRATIVE_AVAILABILITY_STATUS =
+  ColumnMetadata.named("administrativeOperationalStateAdministrativeAvailabilityStatus")
+    .ofType(Types.OTHER);
 ----
 +
 For enum types we use `Types.OTHER`, again, see existing examples from other classes for your type.
@@ -259,8 +273,10 @@ For enum types we use `Types.OTHER`, again, see existing examples from other cla
 +
 [source,java]
 ----
-public final EnumPath<NodeOperationalStateType> operationalState =
-  createEnum("operationalState", NodeOperationalStateType.class, OPERATIONAL_STATE);
+public final EnumPath<AdministrativeAvailabilityStatusType> administrativeOperationalStateAdministrativeAvailabilityStatus =
+  createEnum("administrativeOperationalStateAdministrativeAvailabilityStatus",
+    AdministrativeAvailabilityStatusType.class,
+    ADMINISTRATIVE_OPERATIONAL_STATE_ADMINISTRATIVE_AVAILABILITY_STATUS);
 ----
 +
 The name of the column (the same as the name of the field in M-class) appears twice here,
@@ -273,13 +289,27 @@ Keep the order consistent with SQL and M-class in both sections.
 Good, now Querydsl knows what to do with our field in the M-class.
 
 . Now it's time to add the insert code.
-Finally, we're getting to the "mapping class" - `QNodeMapping` in our case.
-Locate `toRowObjectWithoutFullObject` and add the following line there:
+Finally, we're getting to the "mapping class" - `QResourceMapping` in our case.
+Locate `toRowObjectWithoutFullObject` and add something like this there:
 +
 [source,java]
 ----
-row.operationalState = node.getOperationalState();
+row.xxx = node.getXxx();
 ----
++
+Now a bit of explanation is needed, because other actual example is a bit more complicated:
++
+[source,java]
+----
+var administrativeOperationalState = schemaObject.getAdministrativeOperationalState();
+if (administrativeOperationalState != null) {
+  row.administrativeOperationalStateAdministrativeAvailabilityStatus =
+    administrativeOperationalState.getAdministrativeAvailabilityStatus();
+}
+----
++
+This is caused by the nesting of the property inside the container, as we meantioned at the beginning.
+Properties directly on the object are a single liner as indicated above.
 +
 As always, follow the order from SQL and M-class.
 The code for enum and many other types is as trivial as shown above, but there is great support
@@ -287,31 +317,63 @@ for refs, poly-strings and many more too - just find the examples in other Q-Map
 
 . *Nearly there!*
 We still need one more thing to support searching and modifications too.
-Go to the constructor of the mapping class (`QNodeMapping` for us) and add (respecting the right
-order again, of course!):
+Go to the constructor of the mapping class (`QResourceMapping` for us) and add (respecting the right
+order again, of course!) something like this:
 +
 [source,java]
 ----
-addItemMapping(F_OPERATIONAL_STATE, enumMapper(q -> q.operationalState));
+addItemMapping(F_XXX, enumMapper(q -> q.xxx));
+----
++
+Now, again, because our propety is nested inside another container, our example gets a bit more complicated,
+but we have plenty of support for this as well:
++
+[source,java]
+----
+addNestedMapping(F_ADMINISTRATIVE_OPERATIONAL_STATE, AdministrativeOperationalStateType.class)
+  .addItemMapping(AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS,
+    enumMapper(q -> q.administrativeOperationalStateAdministrativeAvailabilityStatus));
 ----
 +
 I mean, seriously, can it be more auto-magical than this?
-It is possible to write test to this as well, but honestly, we don't bother when adding a new
-mapping for well-working type.
-Just be sure to use the right item name (`F_OPERATIONAL_STATE` imported statically from `NodeType`),
-proper mapper method (`enumMapper`) and proper path (`q.operationalState`, which is that final
-non-static field we added on the Q-class).
++
+Just be sure to use:
+
+.. the right item names: `F_ADMINISTRATIVE_OPERATIONAL_STATE` imported statically from
+`ResourceType`, but also for the item from the nested container;
+.. proper mapper method depnding on the type: `enumMapper` in this case
+.. and proper path `q.administrativeOperationalStateAdministrativeAvailabilityStatus`, which is that
+final non-static field we added on the Q-class.
+
+. Write the search test.
++
+Often, when the mapping is for a well-working type, we don't bother adding a test for it - although
+in that case it would be nice to try it at least once from Query playground.
++
+But this time we did - look at `test990...` in `SqaleRepoSearchTest` for our example.
+Even the search that returns nothing is better than none, because it executes the query and checks the mapping.
+But it's easy to prepare new data at the start of the class and actually return some data as well.
 
 . And SQL alter script, of course!
 Finally, we need to prepare SQL command for upgrade script `postgres-new-upgrade.sql`.
 Prepare the right `ALTER` command and test it on an existing database without the change.
 Wrap the change inside `apply_change` call - use the examples already available in the file.
-Don't forget to bump the change identifier.
+Don't forget to bump the change identifier for each chagne.
 Revert the change and test it again by calling the `apply_change` procedure from the upgrade script.
 Check that the change was applied and also that subsequent call skips the change.
++
+[IMPORTANT]
+Each change block is commited automatically - *do not use explicit commit there*.
+If you need to create a new type (enumeration, just like in this example) do this in a separate
+change, because this change *must be committed* before it can be used.
+See the existing examples in the upgrade script - there definitely are some.
 
-To see the whole success story, check https://github.com/Evolveum/midpoint/commit/1a7c2e43c93d9b090b73c64a347b142c033c7d0a[this commit]
-(add-test was committed separately and linked previously).
+. Update the last indicated change in the main SQL scipt!
+This is the last line in `postgres-new.sql` saying `call apply_change...`.
+The number here should match the last used change identifier in the upgrade script.
+This is important to avoid applying any change more than once.
+
+To see the whole success story, check https://github.com/Evolveum/midpoint/commit/da29673fae66925dd22777cc4f3e4760e8096162[this commit].
 
 === How to add a new persisted type?
 
