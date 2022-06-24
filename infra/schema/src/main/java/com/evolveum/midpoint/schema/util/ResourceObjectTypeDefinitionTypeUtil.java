@@ -71,7 +71,7 @@ public class ResourceObjectTypeDefinitionTypeUtil {
         // And we do not want to compare the lists (etc) - we simply disallow specifying at both places.
         stateCheck(newValues.isEmpty() || legacyValues.isEmpty(),
                 "Auxiliary object classes must not be specified in both new and legacy ways in %s", bean);
-        if (newValues.isEmpty()) {
+        if (!newValues.isEmpty()) {
             return newValues;
         } else {
             return legacyValues;

@@ -124,8 +124,7 @@ class ShadowUpdater {
     private void recordAddResultNewShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
         // TODO: check for proposed Shadow. There may be a proposed shadow even if we do not have explicit proposed shadow OID
         //  (e.g. in case that the add operation failed). If proposed shadow is present do modify instead of add.
@@ -202,7 +201,7 @@ class ShadowUpdater {
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             XMLGregorianCalendar now,
             OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
 
         ObjectDelta<ShadowType> requestDelta = opState.getRepoShadow().createModifyDelta();
         requestDelta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(requestedModifications));
@@ -223,7 +222,7 @@ class ShadowUpdater {
         modifyShadowAttributes(ctx, oldRepoShadow, modifications, parentResult);
     }
 
-    private <T extends ObjectType> boolean shouldApplyModifyMetadata() {
+    private boolean shouldApplyModifyMetadata() {
         SystemConfigurationType config = provisioningService.getSystemConfiguration();
         InternalsConfigurationType internals = config != null ? config.getInternals() : null;
         return internals == null || internals.getShadowMetadataRecording() == null ||
@@ -231,7 +230,7 @@ class ShadowUpdater {
     }
 
     private void computeUpdateShadowAttributeChanges(ProvisioningContext ctx, Collection<ItemDelta<?, ?>> repoShadowChanges,
-            PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow) throws SchemaException, ConfigurationException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
         CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         for (ResourceAttributeDefinition<?> attrDef : objectDefinition.getAttributeDefinitions()) {
@@ -459,7 +458,7 @@ class ShadowUpdater {
     @SuppressWarnings("rawtypes")
     @NotNull
     private Collection<? extends ItemDelta<?, ?>> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException {
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
         CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
@@ -623,7 +622,7 @@ class ShadowUpdater {
             ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
             ObjectDelta<ShadowType> delta,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
         if (repoShadow == null) {
             // Shadow does not exist. As this operation immediately ends up with an error then
@@ -848,7 +847,7 @@ class ShadowUpdater {
             ObjectDelta<ShadowType> pendingDelta, @NotNull ProvisioningOperationState<A> opState, String readVersion,
             OperationResult result) throws SchemaException, ObjectNotFoundException, PreconditionViolationException {
 
-        PendingOperationType pendingOperation = new PendingOperationType(prismContext);
+        PendingOperationType pendingOperation = new PendingOperationType();
         pendingOperation.setDelta(DeltaConvertor.toObjectDeltaType(pendingDelta));
         pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
         pendingOperation.setExecutionStatus(opState.getExecutionStatus());
@@ -1019,7 +1018,7 @@ class ShadowUpdater {
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         PrismObject<ShadowType> currentRepoShadow =
                 repositoryService.getObject(ShadowType.class, origRepoShadow.getOid(), null, result);
-        ProvisioningContext shadowCtx = ctx.spawnForShadow(currentRepoShadow);
+        ProvisioningContext shadowCtx = ctx.spawnForShadow(currentRepoShadow.asObjectable());
         ResourceObjectDefinition oDef = shadowCtx.getObjectDefinitionRequired();
         PrismContainer<Containerable> attributesContainer = currentRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null) {

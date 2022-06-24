@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -154,10 +155,6 @@ public class ProvisioningContext {
         LOGGER.trace("Created/spawned {}", this);
     }
 
-    public Collection<SelectorOptions<GetOperationOptions>> getGetOperationOptions() {
-        return getOperationOptions;
-    }
-
     public void setGetOperationOptions(Collection<SelectorOptions<GetOperationOptions>> getOperationOptions) {
         this.getOperationOptions = getOperationOptions;
     }
@@ -174,7 +171,7 @@ public class ProvisioningContext {
         return resource;
     }
 
-    public ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
+    public @NotNull ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
         if (resourceSchema == null) {
             resourceSchema = ProvisioningUtil.getResourceSchema(resource);
         }
@@ -216,22 +213,16 @@ public class ProvisioningContext {
      * Returns the object type definition, or fails if there's none (because of being wildcard or being OC-based).
      */
     public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired() {
-        if (resourceObjectDefinition instanceof ResourceObjectTypeDefinition) {
-            return (ResourceObjectTypeDefinition) resourceObjectDefinition;
-        } else {
-            throw new IllegalStateException("No resource object type definition in " + this);
-        }
+        return MiscUtil.requireNonNull(
+                getObjectTypeDefinitionIfPresent(),
+                () -> new IllegalStateException("No resource object type definition in " + this));
     }
 
     /**
      * Returns the object type definition, if applicable. (Null otherwise.)
      */
-    public @Nullable ResourceObjectTypeDefinition getRefinedObjectClassDefinitionIfPresent() {
-        if (resourceObjectDefinition instanceof ResourceObjectTypeDefinition) {
-            return (ResourceObjectTypeDefinition) resourceObjectDefinition;
-        } else {
-            return null;
-        }
+    private @Nullable ResourceObjectTypeDefinition getObjectTypeDefinitionIfPresent() {
+        return resourceObjectDefinition != null ? resourceObjectDefinition.getTypeDefinition() : null;
     }
 
     /**
@@ -368,7 +359,7 @@ public class ProvisioningContext {
     /**
      * Creates a context for a different shadow on the same resource.
      */
-    public ProvisioningContext spawnForShadow(PrismObject<ShadowType> shadow)
+    public ProvisioningContext spawnForShadow(ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return contextFactory.spawnForShadow(this, shadow);
     }
@@ -425,7 +416,7 @@ public class ProvisioningContext {
      */
     public <T extends CapabilityType> T getCapability(@NotNull Class<T> capabilityClass) {
         return getResourceManager().getCapability(
-                resource, getRefinedObjectClassDefinitionIfPresent(), capabilityClass);
+                resource, getObjectTypeDefinitionIfPresent(), capabilityClass);
     }
 
     @Override
