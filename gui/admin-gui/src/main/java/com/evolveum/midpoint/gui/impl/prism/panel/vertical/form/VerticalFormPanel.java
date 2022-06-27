@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.prism.panel.verticalForm;
+package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -13,6 +13,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -65,8 +67,10 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
 
             @Override
             protected Panel createVirtualPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) {
-                builder.visibilityHandler(settings.getVisibilityHandler())
-                        .mandatoryHandler(settings.getMandatoryHandler());
+                if (settings.getVisibilityHandler() != null) {
+                    builder.visibilityHandler(getVisibilityHandler(settings.getVisibilityHandler()));
+                }
+                builder.mandatoryHandler(settings.getMandatoryHandler());
                 return new VerticalFormPrismContainerPanel<C>(id, model, builder.build()) {
                     @Override
                     protected IModel<String> getTitleModel() {
@@ -77,6 +81,16 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     protected String getIcon() {
                         return VerticalFormPanel.this.getIcon();
                     }
+                };
+            }
+
+            private ItemVisibilityHandler getVisibilityHandler(ItemVisibilityHandler handler) {
+                return wrapper -> {
+                    ItemVisibility visibility = handler.isVisible(wrapper);
+                    if (ItemVisibility.AUTO.equals(visibility)) {
+                        return getVisibility(wrapper);
+                    }
+                    return visibility;
                 };
             }
         };

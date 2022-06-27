@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,6 +39,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     private static final String OPERATION_CREATE_CONFIGURATION_WRAPPERS = DOT_CLASS + "loadConnectorWrapper";
 
     private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
+    private DiscoveredConfiguration connectorConfigurationSuggestions;
 
     public ResourceDetailsModel(LoadableDetachableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
@@ -134,5 +136,13 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         PrismReference connector = resource.findReference(ResourceType.F_CONNECTOR_REF);
         String connectorOid = connector != null ? connector.getOid() : null;
         return getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);
+    }
+
+    public void setConnectorConfigurationSuggestions(DiscoveredConfiguration connectorConfigurationSuggestions) {
+        this.connectorConfigurationSuggestions = connectorConfigurationSuggestions;
+    }
+
+    protected void customizationWrapperContext(WrapperContext ctx) {
+        ctx.setConnectorConfigurationSuggestions(this.connectorConfigurationSuggestions);
     }
 }

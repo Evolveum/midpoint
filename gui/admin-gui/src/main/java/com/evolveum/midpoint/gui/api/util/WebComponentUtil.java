@@ -3150,6 +3150,16 @@ public final class WebComponentUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
+    public static void partialConfigurationTest(@NotNull PrismObject<ResourceType> resource, PageBase pageBase, Task task, OperationResult result) {
+        try {
+            pageBase.getModelService().testResourcePartialConfiguration(resource, task, result);
+        } catch (ObjectNotFoundException | SchemaException | ConfigurationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error partial configuration of resource", e);
+            result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.partialConfigurationTest.fatalError").getString(), e);
+        }
+        result.computeStatus();
+    }
+
     public static List<QName> getCategoryRelationChoices(AreaCategoryType category, List<RelationDefinitionType> defList) {
         List<QName> relationsList = new ArrayList<>();
         defList.sort(new Comparator<RelationDefinitionType>() {

@@ -152,18 +152,19 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         return null;
     }
 
-    ConnectorInstance getConfiguredConnectorInstance(
+    ConnectorInstance getConfiguredAndInitializedConnectorInstance(
             @NotNull ConnectorSpec connectorSpec,
             boolean forceFresh,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-        return getConfiguredConnectorInstance(connectorSpec, forceFresh, true, result);
+        return getConfiguredAndInitializedConnectorInstance(connectorSpec, forceFresh, true, true, result);
     }
 
-    ConnectorInstance getConfiguredConnectorInstance(
+    private ConnectorInstance getConfiguredAndInitializedConnectorInstance(
             @NotNull ConnectorSpec connectorSpec,
             boolean forceFresh,
             boolean isCaching,
+            boolean needInitialize,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
@@ -172,14 +173,14 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         if (forceFresh && connectorCacheEntry.isConfigured()) {
             LOGGER.debug("FORCE in connector cache: reconfiguring cached connector {}", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, isCaching, result);
+            configureConnector(connectorInstance, connectorSpec, isCaching, needInitialize, result);
             // Connector is cached already. No need to put it into cache.
             return connectorInstance;
         }
 
         if (connectorCacheEntry.isConfigured() && !isFresh(connectorCacheEntry, connectorSpec)) {
             LOGGER.trace("Reconfiguring connector {} because the configuration is not fresh", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, isCaching, result);
+            configureConnector(connectorInstance, connectorSpec, isCaching, needInitialize, result);
             // Connector is cached already. No need to put it into cache. We just need to update the configuration.
             connectorCacheEntry.setConfiguration(connectorSpec.getConnectorConfiguration());
             return connectorInstance;
@@ -187,13 +188,21 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         if (!connectorCacheEntry.isConfigured()) {
             LOGGER.trace("Configuring new connector {}", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, isCaching, result);
+            configureConnector(connectorInstance, connectorSpec, isCaching, needInitialize, result);
             if (isCaching) {
                 cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
             }
         }
 
         return connectorInstance;
+    }
+
+    ConnectorInstance getConfiguredConnectorInstance(
+            @NotNull ConnectorSpec connectorSpec,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+
+        return getConfiguredAndInitializedConnectorInstance(connectorSpec, false, false, false, result);
     }
 
     /**
@@ -293,7 +302,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     }
 
-    private void configureConnector(ConnectorInstance connector, ConnectorSpec connectorSpec, boolean isCaching, OperationResult result)
+    private void configureConnector(ConnectorInstance connector, ConnectorSpec connectorSpec, boolean isCaching, boolean needInitialize, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException {
         PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration() != null ?
                 connectorSpec.getConnectorConfiguration().getValue() : null;
@@ -319,14 +328,16 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
                             .doNotCache(!isCaching),
                     result);
 
-            ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-            CapabilityCollectionType connectorCapabilities = connectorSpec.getNativeCapabilities();
+            if (needInitialize) {
+                ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+                CapabilityCollectionType connectorCapabilities = connectorSpec.getNativeCapabilities();
 
-            connector.initialize(
-                    resourceSchema,
-                    connectorCapabilities,
-                    ResourceTypeUtil.isCaseIgnoreAttributeNames(resource),
-                    result);
+                connector.initialize(
+                        resourceSchema,
+                        connectorCapabilities,
+                        ResourceTypeUtil.isCaseIgnoreAttributeNames(resource),
+                        result);
+            }
 
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception

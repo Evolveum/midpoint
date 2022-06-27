@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -74,7 +75,15 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         add(propertiesLabel);
         propertiesLabel.add(properties);
 
-        AjaxButton labelShowEmpty = new AjaxButton(ID_SHOW_EMPTY_BUTTON) {
+        AjaxButton labelShowEmpty = createShowEmptyButton(ID_SHOW_EMPTY_BUTTON);
+        labelShowEmpty.setOutputMarkupId(true);
+        labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
+        labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
+        propertiesLabel.add(labelShowEmpty);
+    }
+
+    protected AjaxButton createShowEmptyButton(String id) {
+        return new AjaxButton(id) {
             private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -86,10 +95,6 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
                 return getNameOfShowEmptyButton();
             }
         };
-        labelShowEmpty.setOutputMarkupId(true);
-        labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
-        labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
-        propertiesLabel.add(labelShowEmpty);
     }
 
     protected void createContainersPanel() {
@@ -167,7 +172,6 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
     private StringResourceModel getNameOfShowEmptyButton() {
         return getPageBase().createStringResource("ShowEmptyButton.showMore.${showEmpty}", getModel());
-
     }
 
     private void onShowEmptyClick(AjaxRequestTarget target) {

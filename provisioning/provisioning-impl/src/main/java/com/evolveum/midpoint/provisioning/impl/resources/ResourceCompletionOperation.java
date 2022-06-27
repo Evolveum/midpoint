@@ -302,7 +302,7 @@ class ResourceCompletionOperation {
             try {
                 InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
                 fetchedNativeCapabilities = beans.connectorManager
-                        .getConfiguredConnectorInstance(connectorSpec, false, result)
+                        .getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)
                         .fetchCapabilities(result);
             } catch (GenericFrameworkException e) {
                 throw new GenericConnectorException("Couldn't fetch capabilities because of a generic error in connector "

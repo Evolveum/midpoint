@@ -212,7 +212,7 @@ class ResourceExpansionOperation {
         public void execute(OperationResult result)
                 throws SchemaException, ConfigurationException, ObjectNotFoundException {
 
-            if (resource.getSuper() == null) {
+            if (notContainSuper(resource)) {
                 LOGGER.trace("Expansion done for {}, as there is no super-resource for it [pass: {}]", resource, pass);
             } else {
                 LOGGER.trace("Doing expansion for {} having a super-resource declaration [pass: {}]", resource, pass);
@@ -271,5 +271,18 @@ class ResourceExpansionOperation {
                         () -> new IllegalStateException("Resource " + oid + " is not in the resource cache. Huh?"));
             }
         }
+    }
+
+    private boolean notContainSuper(ResourceType resource) {
+        if (resource.getSuper() == null) {
+            return true;
+        }
+        if (resource.getSuper().getResourceRef() == null) {
+            return true;
+        }
+        if (resource.getSuper().getResourceRef().asReferenceValue().isEmpty()) {
+            return true;
+        }
+        return false;
     }
 }

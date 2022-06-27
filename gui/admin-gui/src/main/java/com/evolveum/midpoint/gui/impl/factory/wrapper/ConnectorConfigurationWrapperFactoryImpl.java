@@ -81,7 +81,7 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
             return null;
         }
 
-        if (childItem == null || childItem.isEmpty()) {
+        if (childItem == null || childItem.isEmpty() || childItem.getDefinition().getItemName().equals(ResourceType.F_CONNECTOR_CONFIGURATION)) {
 
             PrismReference connectorRef = parent.getNewValue().findReference(ResourceType.F_CONNECTOR_REF);
             if (connectorRef != null && connectorRef.getValue() != null && connectorRef.getValue().getRealValue() != null
@@ -104,7 +104,14 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
                         // Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
                         PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
                         definitionFixed.toMutable().setMaxOccurs(1);
-                        childItem = definitionFixed.instantiate();
+
+                        if (childItem == null) {
+                            childItem = parent.getNewValue().findOrCreateContainer(name);
+                        }
+
+//                        childItem = definitionFixed.instantiate();
+                        childItem.applyDefinition(definitionFixed, true);
+//                        parent.getNewValue().addReplaceExisting(childItem);
                     }
                 } catch (Exception e) {
                     LOGGER.error("Couldn't get connector from reference " + connectorRef, e);

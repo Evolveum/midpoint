@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -438,6 +439,34 @@ public interface ModelService {
      * @throws IllegalArgumentException wrong OID format
      */
     OperationResult testResource(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+
+
+    /**
+     * <p>
+     * Test partial resource connector configuration. Testing only basic connection.
+     * </p>
+     * <p>
+     * This operation will NOT throw exception in case the resource connection
+     * fails. It such case it will indicate the failure in the return message,
+     * but the operation itself succeeds. The operations fails only if the
+     * provided arguments are wrong, in case of system error, system
+     * misconfiguration, etc.
+     * </p>
+     * <p>
+     * This returns OperationResult instead of taking it as in/out argument.
+     * This is different from the other methods. The testResourcePartialConfiguration method is not
+     * using OperationResult to track its own execution but rather to track the
+     * execution of resource partial configuration test.
+     * </p>
+     *
+     * @param resource resource to test
+     * @return results of executed partial test
+     * @throws ObjectNotFoundException specified object does not exist
+     */
+    OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+
+    DiscoveredConfiguration discoverResourceConnectorConfiguration(PrismObject<ResourceType> resource, OperationResult result);
+
 
     /**
      * <p>
