@@ -163,7 +163,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
             OperationLogger.logGetObject(type, oid, options, object, operationResult);
         }
     }
@@ -248,7 +248,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -332,7 +332,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
             OperationLogger.logAdd(object, options, operationResult);
         }
     }
@@ -457,7 +457,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
             OperationLogger.logModify(type, oid, modifications, precondition, options, operationResult);
         }
     }
@@ -522,7 +522,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
             OperationLogger.logModifyDynamically(type, oid, rv, modifyOptions, operationResult);
         }
     }
@@ -770,7 +770,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -843,7 +843,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -894,7 +894,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -949,7 +949,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1197,7 +1197,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1247,7 +1247,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1360,7 +1360,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1384,7 +1384,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1475,7 +1475,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1620,7 +1620,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (Exception e) {
             recordFatalError(operationResult, e);
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1679,7 +1679,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } catch (Exception e) {
             recordFatalError(operationResult, e);
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1713,7 +1713,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1942,7 +1942,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -1974,7 +1974,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
