@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -21,7 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -80,7 +79,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
             // No filtering were done
             return null;
         }
-        var builder = QueryBuilder.queryFor(AssignmentType.class, getPrismContext());
+        var builder = getPrismContext().queryFor(AssignmentType.class);
         if (filtered.isEmpty()) {
             return builder.none().buildFilter();
         }
@@ -211,7 +210,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
             // We have user entered filter
             if (idFilter != null) {
                 // PostFilter filtered data, so we need to search only in these data
-                filter = QueryBuilder.queryFor(getType(), getPrismContext())
+                filter = getPrismContext().queryFor(getType())
                         .filter(orig.getFilter())
                         .and().filter(idFilter)
                         .buildFilter();
@@ -225,14 +224,14 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
         }
 
         if (filter != null) {
-            return QueryBuilder.queryFor(AssignmentType.class, getPrismContext())
+            return getPrismContext().queryFor(AssignmentType.class)
                 .filter(filter)
                 .and()
                     .ownedBy(objectType, path)
                     .id(oid)
                 .build();
         }
-        return QueryBuilder.queryFor(AssignmentType.class, getPrismContext())
+        return getPrismContext().queryFor(AssignmentType.class)
                 .ownedBy(objectType, path)
                     .id(oid)
                 .build();

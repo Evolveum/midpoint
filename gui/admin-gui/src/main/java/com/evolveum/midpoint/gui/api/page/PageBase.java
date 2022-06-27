@@ -69,6 +69,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.registry.DataProviderRegistry;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -290,6 +291,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private MidpointFunctions midpointFunctions;
 
     @SpringBean private GuiComponentRegistry registry;
+    @SpringBean private DataProviderRegistry dataProviderRegistry;
+
     @SpringBean private DefaultGuiConfigurationCompiler guiConfigurationRegistry;
 
     @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
@@ -398,6 +401,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return localizationService;
     }
 
+    @Override
     @Contract(pure = true)
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
@@ -423,6 +427,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getMidpointApplication().getRepositoryService();
     }
 
+    @Override
     public ExpressionFactory getExpressionFactory() {
         return getMidpointApplication().getExpressionFactory();
     }
@@ -501,14 +506,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return modelDiagnosticService;
     }
 
+    @Override
     public GuiComponentRegistry getRegistry() {
         return registry;
+    }
+
+    public DataProviderRegistry getDataProviderRegistry() {
+        return dataProviderRegistry;
     }
 
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
     }
 
+    @Override
     public AdminGuiConfigurationMergeManager getAdminGuiConfigurationMergeManager() {
         return adminGuiConfigurationMergeManager;
     }
@@ -582,6 +593,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
+    @Override
     public MidpointFormValidatorRegistry getFormValidatorRegistry() {
         return formValidatorRegistry;
     }
@@ -635,6 +647,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return task;
     }
 
+    @Override
     public Task createSimpleTask(String operation) {
         return createSimpleTask(operation, null);
     }
@@ -1802,6 +1815,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return registry.findContainerWrapperFactory(def);
     }
 
+    @Override
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
 
         PrismContainerValue<?> parentValue = null;
@@ -1824,6 +1838,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return factory.createWrapper(parent, def, ctx);
     }
 
+    @Override
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
 
         ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(item.getDefinition(), null);

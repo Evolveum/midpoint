@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -53,7 +52,7 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
             return null;
         }
         // This should do customPostSearch on repository level.
-        return QueryBuilder.queryFor(AssignmentType.class, getPrismContext())
+        return getPrismContext().queryFor(AssignmentType.class)
             .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
             .item(ObjectType.F_SUBTYPE).contains("access")
             .build();
