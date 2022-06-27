@@ -123,17 +123,6 @@
                         <artifactId>xalan</artifactId>
                         <version>${xalan.version}</version>
                     </dependency>
-                    <!-- Added after MID-7937, fix based on https://stackoverflow.com/a/71979169/658826 -->
-                    <dependency>
-                        <groupId>org.glassfish.jaxb</groupId>
-                        <artifactId>jaxb-runtime</artifactId>
-                        <version>${glassfish-jaxb.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.glassfish.jaxb</groupId>
-                        <artifactId>jaxb-xjc</artifactId>
-                        <version>${glassfish-jaxb.version}</version>
-                    </dependency>
                 </dependencies>
             </plugin>
         </plugins>
