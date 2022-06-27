@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Contract;
@@ -54,17 +56,100 @@ import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Nested Operation Result.
- * <p>
- * This class provides information for better error handling in complex
- * operations. It contains a status (success, failure, warning, ...) and an
- * error message. It also contains a set of sub-results - results on inner
- * operations.
- * <p>
- * This object can be used by GUI to display smart (and interactive) error
- * information. It can also be used by the client code to detect deeper problems
- * in the invocations, retry or otherwise compensate for the errors or decide
- * how severe the error was and it is possible to proceed.
+ * Provides rich information about an operation being executed; mainly for the sake of error reporting and functional/performance troubleshooting.
+ *
+ * == Information Collected
+ *
+ * There is a lot of information collected, but the following properties are the most important:
+ *
+ * - result *status* ({@link OperationResultStatus}): success, partial/fatal error, warning, ..., along with
+ * an optional *message* and *Java exception*,
+ * - operation invocation *parameters*, *return value(s)*, and sometimes information about the execution *context* (e.g. implementation
+ * class name),
+ * - *performance-related information*, like start/end timestamps, or duration (for performance diagnostics),
+ * - {@link TraceType} records (for troubleshooting),
+ * - *logfile lines* produced during the operation execution (for troubleshooting).
+ *
+ * The structure is hierarchical, i.e. an {@link OperationResult} instance contains a set of results of inner operations.
+ *
+ * == Typical Uses
+ *
+ * - This object can be used by GUI to display smart (and interactive) error information.
+ * - It can also be used by the client code (Java or REST) to detect deeper problems in the invocations, retry or otherwise
+ * compensate for the errors or decide how severe the error was and whether it is possible to proceed.
+ * - The performance information collected is recorded in tasks (see {@link OperationsPerformanceInformationType}) and shown in GUI.
+ * See also {@link OperationsPerformanceMonitorImpl} class.
+ * - The functional and performance data collected are used for (experimental)
+ * link:https://docs.evolveum.com/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/[troubleshooting
+ * with traces].
+ *
+ * == Developer's Guidelines
+ *
+ * In order to ensure that all necessary information is correctly captured, a developer of any method that writes into
+ * {@link OperationResult} instances has to follow a couple of basic principles:
+ *
+ * === Principle 1: Correct Closure
+ *
+ * Any operation result created has to be correctly _closed_. This means that its {@link #status} should be changed from
+ * the initial {@link OperationResultStatus#UNKNOWN} value to a more specific one. (Otherwise, a run-time exception is
+ * thrown in {@link #cleanupResult(Throwable)} method.) Also, to ensure correct fulfillment of the other duties,
+ * {@link #recordEnd()} method has be - directly or indirectly - called as well (see below).
+ *
+ * === Principle 2: Single Result Per Thread
+ *
+ * At any instant, in any thread, there should be at most one {@link OperationResult} "active", i.e. opened by
+ * {@link #createSubresult(String)} or its variants (e.g. {@link #createMinorSubresult(String)}, {@link #subresult(String)}, ...),
+ * and not yet closed nor "superseded" by creating its own child result. This is to ensure that logfile lines will be correctly
+ * captured, if tracing is enabled. It is also required for correct collection of performance data.
+ *
+ * === Principle 3: Opening-Closure Pairing
+ *
+ * Because the operation result is used also to troubleshoot performance issues, it should be clear where (in the code)
+ * the result is created and where it is closed.
+ *
+ * When is result closed, anyway? The result is automatically closed when the status is recorded: either _explicitly_
+ * (like in {@link #recordSuccess()}) or _implicitly_ (e.g. in {@link #computeStatus()}). All those methods invoke
+ * {@link #recordEnd()} that does all the magic related to performance information capturing, log records capturing,
+ * and (occasionally used) method call logging.
+ *
+ * To ensure easy, clear and unambiguous interpretation of the performance data, the developer should make sure that
+ * for each {@link OperationResult} created, it is obvious _where_ the result is closed. The best way how to ensure
+ * this is to create the result at the beginning (or near the beginning) of a related method, and close it - including writing
+ * the status - at the end (or near the end) of the same method. No recording of the status should be done between these points.
+ *
+ * If there's a need to set the value of {@link #status} somewhere during the operation execution (assuming that
+ * there's non-negligible processing after that point), {@link #setStatus(OperationResultStatus)} method or its variants
+ * (like {@link #setSuccess()}) can be used. These fill-in {@link #status} field without closing the whole operation result.
+ *
+ * === Suggested Use
+ *
+ * Stemming from the above, the following can be seen as a suggested way how to use the operation result:
+ *
+ * [source,java]
+ * ----
+ * private static final OP_SOME_METHOD = ThisClass.class.getName() + ".someMethod";
+ *
+ * void someMethod(String param1, Object param2, OperationResult parentResult) throws SomeException {
+ *     OperationResult result = parentResult.subresult(OP_SOME_METHOD)
+ *                     .addParam("param1", param1)
+ *                     .addArbitraryObjectAsParam("param2", param2)
+ *                     .build();
+ *     try {
+ *         // ... some meat here ...
+ *     } catch (SomeException | RuntimeException e) {
+ *         result.recordFatalError(e);
+ *         throw e;
+ *     } finally {
+ *         result.close();
+ *     }
+ * }
+ * ----
+ *
+ * Note that the {@link #close()} method (a newer form of legacy {@link #computeStatusIfUnknown()}) automatically computes
+ * the result based on subresults (assuming success if there's no indication of a failure). In theory we could put it inside
+ * the `try` block (because `recordFatalError` effectively closes the result as well), but using `finally` is perhaps more
+ * explicit. It may be also more future-proof if we would decide to add some extra functionality right into {@link #close()}
+ * method itself.
  *
  * @author lazyman
  * @author Radovan Semancik
