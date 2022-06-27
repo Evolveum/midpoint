@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.IModel;
@@ -24,7 +26,7 @@ public abstract class Popover extends Border {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_POPOVER = "popover";
+    private static final String ID_ARROW = "arrow";
     private static final String ID_TITLE = "title";
 
     private IModel<String> title;
@@ -51,10 +53,20 @@ public abstract class Popover extends Border {
         Label title = new Label(ID_TITLE, this.title);
         title.add(new VisibleBehaviour(() -> Popover.this.title.getObject() != null));
         addToBorder(title);
+
+        WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
+        if (StringUtils.isNotEmpty(getArrowCustomStyle())) {
+            arrow.add(AttributeAppender.append("style", getArrowCustomStyle()));
+        }
+        addToBorder(arrow);
     }
 
     public void toggle(AjaxRequestTarget target) {
         target.appendJavaScript("$(function() { MidPointTheme.togglePopover('#" +
                 getPopoverReferenceComponent().getMarkupId() + "', '#" + getMarkupId() + "'); });");
+    }
+
+    protected String getArrowCustomStyle() {
+        return null;
     }
 }

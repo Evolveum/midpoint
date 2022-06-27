@@ -75,6 +75,11 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
             public Component getPopoverReferenceComponent() {
                 return SelectableItemListPopoverPanel.this.getPopoverReferenceComponent();
             }
+
+            @Override
+            protected String getArrowCustomStyle() {
+                return getPopoverCustomArrowStyle();
+            }
         };
         add(popover);
 
@@ -216,5 +221,9 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
 
     public void togglePopover(AjaxRequestTarget target) {
         ((Popover) get(ID_POPOVER)).toggle(target);
+    }
+
+    protected String getPopoverCustomArrowStyle() {
+        return null;
     }
 }

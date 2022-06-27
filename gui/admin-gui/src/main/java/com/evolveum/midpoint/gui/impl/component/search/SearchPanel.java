@@ -93,8 +93,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_SAVE_SEARCH_CONTAINER = "saveSearchContainer";
     private static final String ID_SAVE_SEARCH_BUTTON = "saveSearchButton";
     private static final String ID_SAVED_SEARCH_MENU = "savedSearchMenu";
-    private static final String ID_SAVED_SEARCH_ITEMS = "savedSearchItems";
-    private static final String ID_SAVED_SEARCH_ITEM = "savedSearchItem";
     private static final String ID_BASIC_SEARCH_FRAGMENT = "basicSearchFragment";
     private static final String ID_ADVANCED_SEARCH_FRAGMENT = "advancedSearchFragment";
     private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
@@ -305,6 +303,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     @Override
                     protected IModel<String> getPopoverTitleModel() {
                         return createStringResource("SearchPanel.availableFilters");
+                    }
+
+                    @Override
+                    protected String getPopoverCustomArrowStyle() {
+                        return "padding-left: 40px;";
                     }
                 };
         saveSearchContainer.add(savedFiltersPopover);
