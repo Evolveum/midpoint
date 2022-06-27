@@ -46,11 +46,19 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      */
     protected boolean deleted;
 
-    private boolean primaryDeltaConsolidated;
+    /**
+     * Resolved {@link ArchetypeType} objects relevant for the focus object. Both structural and auxiliary ones.
+     *
+     * TODO do we (still) need to maintain this information? It looks like it is not used anywhere, except when
+     *  determining {@link #archetypePolicy}.
+     */
+    private transient List<ArchetypeType> archetypes;
 
+    /** Archetype policy driving the working with the focus object. */
     private transient ArchetypePolicyType archetypePolicy;
 
-    private transient List<ArchetypeType> archetypes;
+    /** Object template relevant for the focus object. */
+    private transient ObjectTemplateType focusTemplate;
 
     private boolean primaryDeltaExecuted;
 
@@ -109,16 +117,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public ArchetypeType getArchetype() {
-        List<PrismObject<ArchetypeType>> prismArchetypes = archetypes.stream()
-                .map(ArchetypeType::asPrismObject)
-                .collect(Collectors.toList());
         try {
-            return PrismObject.asObjectable(
-                    ArchetypeTypeUtil.getStructuralArchetype(prismArchetypes));
+            return ArchetypeTypeUtil.getStructuralArchetype(archetypes);
         } catch (SchemaException e) {
             LOGGER.error("Cannot get structural archetype, {}", e.getMessage(), e);
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -128,6 +132,18 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void setArchetypes(List<ArchetypeType> archetypes) {
         this.archetypes = archetypes;
+    }
+
+    public ObjectTemplateType getFocusTemplate() {
+        return focusTemplate;
+    }
+
+    public void setFocusTemplate(ObjectTemplateType focusTemplate) {
+        this.focusTemplate = focusTemplate;
+    }
+
+    public boolean isFocusTemplateSetExplicitly() {
+        return lensContext.getExplicitFocusTemplateOid() != null;
     }
 
     public LifecycleStateModelType getLifecycleModel() {
@@ -215,7 +231,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             if (objectNew == null) {
                 return false;
             }
-            Item<PrismValue,ItemDefinition> item = objectNew.findItem(itemPath);
+            Item<PrismValue,ItemDefinition<?>> item = objectNew.findItem(itemPath);
             return item != null && !item.getValues().isEmpty();
         } else if (isDelete()) {
             // We do not care any more
@@ -235,22 +251,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     private void copyValues(LensFocusContext<O> clone) {
         super.copyValues(clone);
         clone.deleted = deleted;
-        clone.primaryDeltaConsolidated = primaryDeltaConsolidated;
         clone.archetypePolicy = archetypePolicy;
         clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
         clone.primaryDeltaExecuted = primaryDeltaExecuted;
     }
 
-    public String dump(boolean showTriples) {
-        return debugDump(0, showTriples);
-    }
-
     @Override
     public String debugDump(int indent) {
-        return debugDump(indent, true);
-    }
-
-    public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(getDebugDumpTitle());
@@ -316,7 +323,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     LensFocusContextType toBean(LensContext.ExportType exportType) throws SchemaException {
-        LensFocusContextType rv = new LensFocusContextType(PrismContext.get());
+        LensFocusContextType rv = new LensFocusContextType();
         super.storeIntoBean(rv, exportType);
         if (exportType != LensContext.ExportType.MINIMAL) {
             rv.setSecondaryDeltas(state.getArchivedSecondaryDeltas().toObjectDeltaWavesBean());
@@ -325,8 +332,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     static <O extends ObjectType> LensFocusContext<O> fromLensFocusContextBean(
-            LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            LensFocusContextType focusContextType, LensContext<O> lensContext, Task task, OperationResult result)
+            throws SchemaException {
 
         String objectTypeClassString = focusContextType.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
@@ -335,7 +342,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         LensFocusContext<O> lensFocusContext;
         try {
             //noinspection unchecked
-            lensFocusContext = new LensFocusContext(Class.forName(objectTypeClassString), lensContext);
+            lensFocusContext = new LensFocusContext<>((Class<O>) Class.forName(objectTypeClassString), lensContext);
         } catch (ClassNotFoundException e) {
             throw new SystemException("Couldn't instantiate LensFocusContext because object type class couldn't be found", e);
         }
@@ -410,14 +417,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             OperationResult result) throws SchemaException, ConfigurationException {
         PrismObject<O> objectAny = getObjectAny();
         return objectAny != null ? linkManager.getTargetLinkTypeDefinition(linkTypeName, objectAny, result) : null;
-    }
-
-    public boolean isPrimaryDeltaConsolidated() {
-        return primaryDeltaConsolidated;
-    }
-
-    public void setPrimaryDeltaConsolidated(boolean primaryDeltaConsolidated) {
-        this.primaryDeltaConsolidated = primaryDeltaConsolidated;
     }
 
     /**

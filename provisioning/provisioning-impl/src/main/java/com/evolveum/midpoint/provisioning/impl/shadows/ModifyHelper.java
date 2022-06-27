@@ -107,7 +107,8 @@ class ModifyHelper {
             }
         }
 
-        ProvisioningContext ctx = ctxFactory.createForShadow(repoShadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
+        ProvisioningContext ctx =
+                ctxFactory.createForShadow(repoShadow.asObjectable(), additionalAuxiliaryObjectClassQNames, task, parentResult);
         ctx.assertDefinition();
 
         ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();

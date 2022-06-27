@@ -112,6 +112,8 @@ CREATE TYPE AccessCertificationCampaignStateType AS ENUM (
 
 CREATE TYPE ActivationStatusType AS ENUM ('ENABLED', 'DISABLED', 'ARCHIVED');
 
+CREATE TYPE AdministrativeAvailabilityStatusType AS ENUM ('MAINTENANCE', 'OPERATIONAL');
+
 CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
 CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
@@ -827,6 +829,9 @@ CREATE TABLE m_resource (
     objectType ObjectType GENERATED ALWAYS AS ('RESOURCE') STORED
         CHECK (objectType = 'RESOURCE'),
     businessAdministrativeState ResourceAdministrativeStateType,
+    -- administrativeOperationalState/administrativeAvailabilityStatus
+    administrativeOperationalStateAdministrativeAvailabilityStatus AdministrativeAvailabilityStatusType,
+    -- operationalState/lastAvailabilityStatus
     operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
@@ -1903,4 +1908,5 @@ END $$;
 -- endregion
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
-call apply_change(5, $$ SELECT 1 $$, true);
+-- This is important to avoid applying any change more than once.
+call apply_change(7, $$ SELECT 1 $$, true);

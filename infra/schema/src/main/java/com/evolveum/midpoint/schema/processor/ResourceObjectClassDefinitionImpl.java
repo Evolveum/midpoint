@@ -77,8 +77,10 @@ public class ResourceObjectClassDefinitionImpl
         this.objectClassName = objectClassName;
         this.rawObjectClassDefinition = rawObjectClassDefinition;
         if (rawObjectClassDefinition == null) {
+            // This definition itself is a raw one.
             // Looks like a hack - TODO resolve this
-            setNoDelineation();
+            setDelineation(
+                    ResourceObjectTypeDelineation.of(objectClassName));
         }
     }
 

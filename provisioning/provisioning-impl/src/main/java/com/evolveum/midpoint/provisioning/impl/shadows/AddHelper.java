@@ -98,10 +98,10 @@ class AddHelper {
                     getAdditionalOperationDesc(scripts, options), resourceObjectToAdd.debugDump(1));
         }
 
-        ResourceType resource = ctxFactory.getResource(resourceObjectToAdd, task, result);
+        ResourceType resource = ctxFactory.getResource(resourceObjectToAdd.asObjectable(), task, result);
         ProvisioningContext ctx;
         try {
-            ctx = ctxFactory.createForShadow(resourceObjectToAdd, resource, task);
+            ctx = ctxFactory.createForShadow(resourceObjectToAdd.asObjectable(), resource, task);
             ctx.assertDefinition();
         } catch (SchemaException e) {
             result.recordFatalErrorNotFinish(e);

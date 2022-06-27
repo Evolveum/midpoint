@@ -107,12 +107,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         // Note that the archetype OID can be specified only on the object type. It is not supported
         // for legacy synchronization definition. Therefore we may safely access it in the following way:
         ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
-        if (typeDefinition == null) {
-            return null;
-        } else {
-            return SynchronizationPolicy.getArchetypeOid(
-                    typeDefinition.getArchetypeRef());
-        }
+        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
     }
 
     public @NotNull ResourceType getResource() {

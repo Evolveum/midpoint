@@ -22,6 +22,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -173,21 +174,19 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     // consider moving back into ResourceEventDescription
-    private PrismObject<ShadowType> getAnyShadow(ExternalResourceEvent eventDescription) {
-        PrismObject<ShadowType> shadow;
+    private @NotNull PrismObject<ShadowType> getAnyShadow(ExternalResourceEvent eventDescription) {
         if (eventDescription.getResourceObject() != null) {
-            shadow = eventDescription.getResourceObject();
+            return eventDescription.getResourceObject();
         } else if (eventDescription.getOldRepoShadow() != null) {
-            shadow = eventDescription.getOldRepoShadow();
+            return eventDescription.getOldRepoShadow();
         } else if (eventDescription.getObjectDelta() != null && eventDescription.getObjectDelta().isAdd()) {
             if (eventDescription.getObjectDelta().getObjectToAdd() == null) {
                 throw new IllegalStateException("Found ADD delta, but no object to add was specified.");
             }
-            shadow = eventDescription.getObjectDelta().getObjectToAdd();
+            return eventDescription.getObjectDelta().getObjectToAdd();
         } else {
             throw new IllegalStateException("Resource event description does not contain neither old shadow, nor current shadow, nor shadow in delta");
         }
-        return shadow;
     }
 
     // consider moving into ResourceEventDescription

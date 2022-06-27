@@ -339,7 +339,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult iterationResult)
             throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectAlreadyExistsException {
+            CommunicationException, SecurityViolationException {
 
         ResourceType resource = projContext.getResource();
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -347,31 +347,14 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             LOGGER.trace("No resource schema for {} -> opportunistic sync not available", resource);
             return false;
         }
-        if (!ShadowUtil.isClassified(fullConflictingShadow)) {
-            // In the future the provisioning.getObject operation should do the classification itself.
-            // The following is more or less a workaround. See MID-7910.
-            LOGGER.trace("Conflicting shadow is not classified yet, let us try to classify it now.");
-            ResourceObjectClassification classification =
-                    provisioningService.classifyResourceObject(
-                            fullConflictingShadow, resource, null, task, iterationResult);
-            if (!classification.isKnown()) {
-                LOGGER.trace("No classification possible -> opportunistic sync not available");
-                return false;
-            }
-            LOGGER.debug("Classified {} as {}", fullConflictingShadow, classification);
-            fullConflictingShadow.setKind(classification.getKind());
-            fullConflictingShadow.setIntent(classification.getIntent());
-            repositoryService.modifyObject(
-                    ShadowType.class,
-                    fullConflictingShadow.getOid(),
-                    prismContext.deltaFor(ShadowType.class)
-                            .item(ShadowType.F_KIND).replace(classification.getKind())
-                            .item(ShadowType.F_INTENT).replace(classification.getIntent())
-                            .asItemDeltas(),
-                    iterationResult);
-        }
         ShadowKindType kind = fullConflictingShadow.getKind();
         String intent = fullConflictingShadow.getIntent();
+        if (!ShadowUtil.isClassified(kind, intent)) {
+            // Full conflicting shadow has been retrieved using ProvisioningService#getObject method, so the classification
+            // was already attempted for it. If it's not classified, then there is no more hope.
+            LOGGER.trace("Conflicting shadow is not classified -> opportunistic sync is not available");
+            return false;
+        }
         SynchronizationPolicy synchronizationPolicy = SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource);
         if (synchronizationPolicy == null) {
             LOGGER.trace("No sync policy for {}/{} on {} -> opportunistic sync not available", kind, intent, resource);

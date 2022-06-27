@@ -954,7 +954,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
         for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
             ResourceObjectDefinition auxiliaryObjectClassDef =
-                    schema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
+                    schema.findObjectClassDefinition(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
                 throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
             }
@@ -1816,5 +1816,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             LOGGER.debug("No definition: considering {} as not being default for {}", this, kind);
             return false;
         }
+    }
+
+    /**
+     * Returns configured focus archetype OID corresponding to resource object type of this projection (if there is one).
+     */
+    public @Nullable String getConfiguredFocusArchetypeOid() throws SchemaException, ConfigurationException {
+        ResourceObjectDefinition objectDefinition = getStructuralObjectDefinition();
+        if (objectDefinition == null) {
+            return null;
+        }
+        ResourceObjectTypeDefinition typeDefinition = objectDefinition.getTypeDefinition();
+        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
     }
 }

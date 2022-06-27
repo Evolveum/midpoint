@@ -7,30 +7,25 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
-
-import static java.util.Objects.requireNonNullElse;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -38,86 +33,158 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class SynchronizationPolicyFactory {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationPolicyFactory.class);
+
     /**
-     * Creates {@link SynchronizationPolicy} for a synchronization policy present in legacy "synchronization"
-     * section of the resource definition. We try to find appropriate object/class definition in the resource schema.
+     * Creates {@link SynchronizationPolicy} by looking for type definition and synchronization definition
+     * for given kind and intent in resource schema.
      *
-     * Returns null if no such definition can be found.
+     * NOTE: Since 4.6, we no longer support `synchronization` entry without corresponding `schemaHandling` entry.
+     * This would make the code unnecessarily complex just to support some corner cases regarding
+     * (now) legacy `synchronization` configuration data structure.
      */
-    private static @Nullable SynchronizationPolicy forStandalone(
-            @NotNull ObjectSynchronizationType synchronizationBean, @NotNull ResourceSchema schema)
-            throws ConfigurationException {
+    public static @Nullable SynchronizationPolicy forKindAndIntent(
+            @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ResourceType resource)
+            throws SchemaException, ConfigurationException {
 
-        ShadowKindType kind = requireNonNullElse(synchronizationBean.getKind(), ACCOUNT);
-        String intent = synchronizationBean.getIntent();
+        Preconditions.checkArgument(ShadowUtil.isKnown(kind), "kind is not known: %s", kind);
+        Preconditions.checkArgument(ShadowUtil.isKnown(intent), "intent is not known: %s", intent);
 
-        ResourceObjectDefinition objectDefinition;
-        if (StringUtils.isEmpty(intent)) { // Note: intent shouldn't be the empty string!
-            // We look for a default definition for this kind. That is consistent with the XSD documentation.
-            // After all, this data structure is legacy and shouldn't be used anymore. So we don't need to be super-exact here.
-            objectDefinition = schema.findObjectDefinitionForKindAndObjectClass(kind, synchronizationBean.getObjectClass());
+        ResourceObjectTypeDefinition typeDefinition =
+                ResourceSchemaFactory
+                        .getCompleteSchemaRequired(resource)
+                        .getObjectTypeDefinition(kind, intent);
+
+        if (typeDefinition != null) {
+            return forTypeDefinition(typeDefinition, resource);
         } else {
-            objectDefinition = schema.findObjectDefinition(kind, intent);
-        }
-
-        if (objectDefinition == null) {
+            LOGGER.trace("No type definition for {}/{} found", kind, intent);
             return null;
         }
+    }
 
-        ResourceObjectTypeDefinition typeDef =
-                objectDefinition instanceof ResourceObjectTypeDefinition ?
-                        (ResourceObjectTypeDefinition) objectDefinition : null;
+    /**
+     * Creates {@link SynchronizationPolicy} based on known {@link ResourceObjectTypeDefinition}.
+     */
+    public static @NotNull SynchronizationPolicy forTypeDefinition(
+            @NotNull ResourceObjectTypeDefinition typeDefinition, @NotNull ResourceType resource)
+            throws ConfigurationException {
+        @Nullable ObjectSynchronizationType legacySynchronizationBean = findLegacySynchronizationBean(typeDefinition, resource);
+        return create(legacySynchronizationBean, typeDefinition, resource);
+    }
+
+    private static @Nullable ObjectSynchronizationType findLegacySynchronizationBean(
+            ResourceObjectTypeDefinition typeDefinition, ResourceType resource) {
+        SynchronizationType synchronization = resource.getSynchronization();
+        if (synchronization == null) {
+            return null;
+        } else {
+            return synchronization.getObjectSynchronization().stream()
+                    .filter(objectSynchronization -> isRelatedTo(objectSynchronization, typeDefinition))
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+    private static boolean isRelatedTo(ObjectSynchronizationType objectSynchronization, ResourceObjectTypeDefinition typeDef) {
+        return fillDefault(objectSynchronization.getKind()) == typeDef.getKind()
+                && fillDefault(objectSynchronization.getIntent()).equals(typeDef.getIntent());
+    }
+
+    /**
+     * Combines legacy {@link ObjectSynchronizationType} (potentially empty if not present)
+     * and {@link ResourceObjectTypeDefinition} into a {@link SynchronizationPolicy}.
+     */
+    private static @NotNull SynchronizationPolicy create(
+            @Nullable ObjectSynchronizationType providedSynchronizationBean,
+            @NotNull ResourceObjectTypeDefinition typeDef,
+            @NotNull ResourceType resource)
+            throws ConfigurationException {
+
+        ObjectSynchronizationType synchronizationBean =
+                first(
+                        providedSynchronizationBean,
+                        ObjectSynchronizationType::new);
 
         QName focusTypeName =
-                typeDef != null && typeDef.getFocusTypeName() != null ?
-                        typeDef.getFocusTypeName() :
-                        synchronizationBean.getFocusType();
-
-        QName objectClassName = synchronizationBean.getObjectClass() != null ?
-                synchronizationBean.getObjectClass() :
-                objectDefinition.getObjectClassName();
+                first(
+                        typeDef.getFocusTypeName(),
+                        synchronizationBean::getFocusType,
+                        () -> UserType.COMPLEX_TYPE);
 
         CorrelationDefinitionType correlationDefinitionBean =
-                typeDef != null && typeDef.getCorrelationDefinitionBean() != null ?
-                        typeDef.getCorrelationDefinitionBean() :
-                        getCorrelationDefinitionBean(synchronizationBean);
+                first(
+                        typeDef.getCorrelationDefinitionBean(),
+                        () -> getCorrelationDefinitionBean(synchronizationBean));
 
-        Boolean enabledInType = typeDef != null ? typeDef.isSynchronizationEnabled() : null;
-        boolean synchronizationEnabled = enabledInType != null ?
-                enabledInType : !Boolean.FALSE.equals(synchronizationBean.isEnabled());
+        boolean synchronizationEnabled = isSynchronizationEnabled(providedSynchronizationBean, typeDef);
 
-        Boolean opportunisticInType = typeDef != null ? typeDef.isSynchronizationOpportunistic() : null;
-        boolean opportunistic = opportunisticInType != null ?
-                opportunisticInType : !Boolean.FALSE.equals(synchronizationBean.isOpportunistic());
+        boolean opportunistic =
+                first(
+                        typeDef.isSynchronizationOpportunistic(),
+                        () -> !Boolean.FALSE.equals(synchronizationBean.isOpportunistic()));
 
-        ResourceObjectTypeDelineation delineation =
-                typeDef != null ? typeDef.getDelineation() : ResourceObjectTypeDelineation.none();
-        if (synchronizationBean.getCondition() != null) {
-            if (delineation.getClassificationCondition() != null) {
-                throw new ConfigurationException("Both legacy and new classification conditions cannot be set in " + schema);
-            }
-            delineation = delineation.classificationCondition(
-                    synchronizationBean.getCondition());
-        }
+        ResourceObjectTypeDelineation delineation = getDelineation(synchronizationBean, typeDef, resource);
 
         Collection<SynchronizationReactionDefinition> reactions =
-                typeDef != null && typeDef.hasSynchronizationReactionsDefinition() ?
+                typeDef.hasSynchronizationReactionsDefinition() ?
                         typeDef.getSynchronizationReactions() :
                         getSynchronizationReactions(synchronizationBean);
 
         return new SynchronizationPolicy(
-                kind,
                 focusTypeName,
-                null,
-                objectClassName,
+                typeDef.getArchetypeOid(), // no representation in legacy bean
                 correlationDefinitionBean,
                 synchronizationEnabled,
                 opportunistic,
                 synchronizationBean.getName(),
                 delineation,
                 reactions,
-                objectDefinition,
-                true);
+                typeDef,
+                providedSynchronizationBean != null);
+    }
+
+    private static boolean isSynchronizationEnabled(
+            @Nullable ObjectSynchronizationType providedSynchronizationBean,
+            @NotNull ResourceObjectTypeDefinition typeDef) {
+        if (providedSynchronizationBean != null) {
+            return first(
+                    typeDef.isSynchronizationEnabled(),
+                    () -> !Boolean.FALSE.equals(providedSynchronizationBean.isEnabled()));
+        } else {
+            // If the synchronization bean is missing, we require the synchronization to be explicitly enabled
+            return Boolean.TRUE.equals(typeDef.isSynchronizationEnabled());
+        }
+    }
+
+    private static @NotNull ResourceObjectTypeDelineation getDelineation(
+            @NotNull ObjectSynchronizationType synchronizationBean,
+            @NotNull ResourceObjectTypeDefinition typeDef,
+            @NotNull ResourceType resource) throws ConfigurationException {
+        ResourceObjectTypeDelineation delineation = typeDef.getDelineation();
+        if (synchronizationBean.getCondition() != null) {
+            if (delineation.getClassificationCondition() != null) {
+                throw new ConfigurationException("Both legacy and new classification conditions cannot be set in " + resource);
+            }
+            return delineation.classificationCondition(
+                    synchronizationBean.getCondition());
+        } else {
+            return delineation;
+        }
+    }
+
+    @SafeVarargs
+    private static <T> @NotNull T first(T value, Supplier<T>... suppliers) {
+        if (value != null) {
+            return value;
+        }
+        for (Supplier<T> supplier : suppliers) {
+            T supplied = supplier.get();
+            if (supplied != null) {
+                return supplied;
+            }
+        }
+        throw new IllegalStateException("No value");
     }
 
     /**
@@ -190,117 +257,5 @@ public class SynchronizationPolicyFactory {
         filterCorrelator.getOwnerFilter().addAll(
                 CloneUtil.cloneCollectionMembers(correlationFilters));
         return filterCorrelator;
-    }
-
-    /**
-     * Creates {@link SynchronizationPolicy} for a policy embedded in a resource object type definition
-     * (i.e. in schema handling section).
-     *
-     * Assuming there is *no* explicit standalone synchronization definition!
-     */
-    private static @NotNull SynchronizationPolicy forEmbedded(@NotNull ResourceObjectTypeDefinition typeDef) {
-        return new SynchronizationPolicy(
-                typeDef.getKind(),
-                typeDef.getFocusTypeName(),
-                typeDef.getArchetypeRef(),
-                typeDef.getObjectClassName(),
-                java.util.Objects.requireNonNullElseGet(
-                        typeDef.getCorrelationDefinitionBean(),
-                        CorrelationDefinitionType::new),
-                Boolean.TRUE.equals(typeDef.isSynchronizationEnabled()),
-                !Boolean.FALSE.equals(typeDef.isSynchronizationOpportunistic()),
-                null,
-                typeDef.getDelineation(),
-                typeDef.getSynchronizationReactions(),
-                typeDef,
-                false);
-    }
-
-    /**
-     * Creates {@link SynchronizationPolicy} by looking for type definition and synchronization
-     * for given kind and intent in resource schema.
-     */
-    public static @Nullable SynchronizationPolicy forKindAndIntent(
-            @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ResourceType resource)
-            throws SchemaException, ConfigurationException {
-
-        Preconditions.checkArgument(ShadowUtil.isKnown(kind), "kind is not known: %s", kind);
-        Preconditions.checkArgument(ShadowUtil.isKnown(intent), "intent is not known: %s", intent);
-
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
-        SynchronizationPolicy standalonePolicy = getStandalonePolicyIfPresent(kind, intent, resource, schema);
-        if (standalonePolicy != null) {
-            return standalonePolicy;
-        } else {
-            return getEmbeddedPolicyIfPresent(kind, intent, schema);
-        }
-    }
-
-    /**
-     * Use this method if you are absolutely sure that given kind/intent definition must exist in the resource.
-     *
-     * @throws IllegalStateException if there's no type definition for given kind/intent
-     */
-    public static @NotNull SynchronizationPolicy forKindAndIntentStrictlyRequired(
-            @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ResourceType resource)
-            throws SchemaException, ConfigurationException {
-        return MiscUtil.requireNonNull(
-                forKindAndIntent(kind, intent, resource),
-                () -> new IllegalStateException("No " + kind + "/" + intent + " definition in " + resource));
-    }
-
-    private static @Nullable SynchronizationPolicy getEmbeddedPolicyIfPresent(
-            @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ResourceSchema schema) {
-        ResourceObjectDefinition definition = schema.findObjectDefinition(kind, intent);
-        if (definition instanceof ResourceObjectTypeDefinition) {
-            return forEmbedded((ResourceObjectTypeDefinition) definition);
-        } else {
-            return null;
-        }
-    }
-
-    private static @Nullable SynchronizationPolicy getStandalonePolicyIfPresent(
-            @NotNull ShadowKindType kind,
-            @NotNull String intent,
-            @NotNull ResourceType resource,
-            @NotNull ResourceSchema schema) throws ConfigurationException {
-        if (resource.getSynchronization() == null) {
-            return null;
-        }
-        // We don't directly compare bean.intent, because the binding of sync <-> schema handling may be implicit
-        // using object class name (todo - really? or just I think so?)
-        for (ObjectSynchronizationType synchronizationBean : resource.getSynchronization().getObjectSynchronization()) {
-            SynchronizationPolicy standalone = forStandalone(synchronizationBean, schema);
-            if (standalone != null
-                    && kind == standalone.getKind()
-                    && intent.equals(standalone.getIntent())) {
-                return standalone;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Looks up the policy corresponding to the object type definition *bean* retrieved from schema handling.
-     */
-    public static @Nullable SynchronizationPolicy forDefinitionBean(
-            @NotNull ResourceObjectTypeDefinitionType typeDefBean, @NotNull ResourceType resource)
-            throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (schema == null) {
-            return null;
-        }
-        ResourceObjectDefinition objectDefinition =
-                schema.findObjectDefinition(
-                        Objects.requireNonNullElse(typeDefBean.getKind(), ACCOUNT),
-                        Objects.requireNonNullElse(typeDefBean.getIntent(), SchemaConstants.INTENT_DEFAULT),
-                        getObjectClassName(typeDefBean));
-        if (objectDefinition instanceof ResourceObjectTypeDefinition) {
-            ResourceObjectTypeDefinition typeDef = (ResourceObjectTypeDefinition) objectDefinition;
-            return forKindAndIntent(typeDef.getKind(), typeDef.getIntent(), resource);
-        } else {
-            // shouldn't occur
-            return null;
-        }
     }
 }

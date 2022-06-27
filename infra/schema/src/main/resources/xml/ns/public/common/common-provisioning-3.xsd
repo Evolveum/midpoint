@@ -932,19 +932,26 @@
             <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Focus archetype corresponding to this resource object type. If specified, the value is used during
-                        correlation (i.e. we look for focus objects having specified archetype), as well as during creation
-                        of new focuses.
+                        Focus archetype corresponding to this resource object type. If specified, the value is enforced upon
+                        focus objects that have a projection of this object type linked. It is also used during correlation,
+                        i.e. when correlating a resource object of this type, midPoint looks for focus objects having
+                        specified archetype.
 
                         Notes:
 
-                        1. Archetypes of existing users are checked against this value: If an existing user has no archetype,
-                        it is assigned this one. If it has a different one, an error is reported. This behavior may change in the
-                        future.
+                        1. The archetype must be a structural one (currently). In the future, we may consider allowing
+                        multiple (i.e. structural and/or auxiliary) archetypes here.
 
-                        2. In the future, we may consider allowing multiple archetypes here.
+                        2. The enforcement means that if the focus has no archetype, the archetype is added to the focus.
+                        If it has a different archetype, a policy violation exception is raised. This behavior may change in the
+                        future, e.g. this behavior may become configurable.
 
-                        TODO: implement Note 1.
+                        3. The enforcement is done for _all_ projections, i.e. also the ones that are created by the clockwork.
+                        But beware of the timing: if a projection is added during the clockwork run, and that projection enforces
+                        an archetype, the effects of this enforcement may be limited during the current clockwork run.
+                        For example, if the archetype induces some projections, they might not be created because of the
+                        processing in waves. Generally speaking, it is safer to set the focus archetype explicitly (e.g. by
+                        primary delta or in the object template) in these cases.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <xsd:appinfo>
@@ -4670,9 +4677,6 @@
                         into the object hierarchy. It is only applicable to resources that support hierarchical
                         organization of objects (e.g. LDAP resources).
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.0</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
@@ -4691,9 +4695,70 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="classificationOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In what order should this delineation specification be used for classification? No value means
+                        it should be used at the end. (Like a default value to be used when no other value matches.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextClassificationUse" type="tns:BaseContextClassificationUseType" minOccurs="0"
+                    default="ifApplicable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should be the base context used for the classification?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="BaseContextClassificationUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should be the base context in the delineation used for the classification?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="required">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The base context must be used (if it's present in the delineation). If it cannot be applied,
+                        the delineation is considered as non-matching.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUIRED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifApplicable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the base context is not applicable, it is used. Otherwise, it is ignored.
+                        This is the default setting.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_APPLICABLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ignored">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The base context is not used for classification.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="SynchronizationReactionsType">
         <xsd:annotation>

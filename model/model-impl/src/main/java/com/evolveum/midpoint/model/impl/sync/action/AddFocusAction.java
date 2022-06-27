@@ -13,9 +13,6 @@ import com.evolveum.midpoint.model.impl.sync.reactions.ActionUris;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AddFocusSynchronizationActionType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -55,18 +52,7 @@ public class AddFocusAction<F extends FocusType> extends BaseClockworkAction<F> 
         PrismObjectDefinition<F> focusDefinition =
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
         PrismObject<F> emptyFocus = focusDefinition.instantiate();
-        setArchetypeIfConfigured(emptyFocus.asObjectable());
         ObjectDelta<F> delta = emptyFocus.createAddDelta();
-        delta.setObjectToAdd(emptyFocus);
         focusContext.setPrimaryDelta(delta);
-    }
-
-    private void setArchetypeIfConfigured(F focus) {
-        String archetypeOid = syncCtx.getSynchronizationPolicy().getArchetypeOid();
-        if (archetypeOid != null) {
-            LOGGER.trace("Setting archetype to {} as configured in object type definition", archetypeOid);
-            focus.assignment(new AssignmentType()
-                    .targetRef(archetypeOid, ArchetypeType.COMPLEX_TYPE));
-        }
     }
 }

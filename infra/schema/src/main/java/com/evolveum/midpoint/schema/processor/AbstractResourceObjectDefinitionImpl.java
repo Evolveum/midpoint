@@ -219,11 +219,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
         delineation.setAndFreeze(value);
     }
 
-    /** Used e.g. for raw definitions. */
-    void setNoDelineation() {
-        delineation.setAndFreeze(ResourceObjectTypeDelineation.none());
-    }
-
     @Override
     public @NotNull ResourceObjectTypeDelineation getDelineation() {
         return Objects.requireNonNull(

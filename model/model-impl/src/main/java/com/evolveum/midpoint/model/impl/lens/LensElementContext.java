@@ -204,8 +204,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getNewObject();
     }
 
-    public @Nullable PrismObject<O> getObjectAny() {
-        return state.getAnyObject();
+    public @Nullable PrismObject<O> getObjectNewOrCurrentOrOld() {
+        return state.getNewOrCurrentOrOld();
     }
 
     public @Nullable PrismObject<O> getObjectCurrentOrNew() {
@@ -216,7 +216,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getNewOrCurrentObjectRequired();
     }
 
-    PrismObject<O> getObjectCurrentOrOld() {
+    public @Nullable PrismObject<O> getObjectCurrentOrOld() {
         return state.getCurrentOrOldObject();
     }
 

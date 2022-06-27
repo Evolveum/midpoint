@@ -13,12 +13,14 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-public abstract class AbstractSearchItemWrapper<T extends Serializable> implements Serializable {
+public abstract class AbstractSearchItemWrapper<T extends Serializable> implements Serializable, SelectableRow {
 
     public static final String F_SELECTED = "selected";
     public static final String F_VALUE = "value.value";
@@ -103,10 +105,12 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
         this.applyFilter = applyFilter;
     }
 
+    @Override
     public boolean isSelected() {
         return selected;
     }
 
+    @Override
     public void setSelected(boolean selected) {
         this.selected = selected;
     }

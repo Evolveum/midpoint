@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
@@ -189,7 +189,7 @@ public class AssociationFromLinkExpressionEvaluator
             PrismContainer<ShadowAssociationType> output, String resourceOid, ShadowKindType kind,
             String intent, QName assocName, ExpressionEvaluationContext context, OperationResult result) {
 
-        S_AtomicFilterExit filter = prismContext.queryFor(ShadowType.class)
+        S_FilterExit filter = prismContext.queryFor(ShadowType.class)
                 .id(candidateShadowsOidList.toArray(new String[0]))
                 .and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
                 .and().item(ShadowType.F_KIND).eq(kind);

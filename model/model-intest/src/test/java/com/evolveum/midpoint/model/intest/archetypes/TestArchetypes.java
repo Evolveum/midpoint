@@ -195,6 +195,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertArchetypeRef(ARCHETYPE_BUSINESS_ROLE_OID)
             .getObject();
 
+        // @formatter:off
         assertAssignmentHolderSpecification(roleBusinessCaptainAfter)
             .assignmentObjectRelations()
                 .assertItems(2)
@@ -210,6 +211,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .find()
                     .assertObjectType(UserType.COMPLEX_TYPE)
                     .assertNoArchetype();
+        // @formatter:on
     }
 
     @Test
@@ -234,14 +236,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
      *
      * Note that the `costCenter` should be set appropriately in the first projector run.
      *
-     * Currently it is set in two steps:
-     *
-     * 1. the first run sets the archetype OID, because {@link MidpointFunctions#getArchetypeOids(ObjectType)} looks on
-     * both assignments and effective `archetypeRef` values;
-     *
-     * 2. only the second run sets `isEmployee` part correctly, because {@link MidpointFunctions#hasArchetype(ObjectType, String)}
-     * looks only at `archetypeRef` values.
-     *
      * There are no asserts to see this, yet.
      */
     @Test
@@ -256,6 +250,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then("archetype is assigned and costCenter is correctly set");
         assertSuccess(result);
 
+        // @formatter:off
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(1)
@@ -269,6 +264,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             // MID-5243
             .assertCostCenter(costCenterEmployee())
             .getObject();
+        // @formatter:on
 
         and("archetype policy is recognized for jack");
         assertArchetypePolicy(userAfter)
@@ -303,6 +299,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         display("Search results", searchResults);
         assertEquals("Wrong number of search results", 1, searchResults.size());
         PrismObject<UserType> foundUser = searchResults.get(0);
+        // @formatter:off
         assertUser(foundUser, "found user")
             .assertName(USER_JACK_USERNAME)
             .assertOid(USER_JACK_OID)
@@ -315,6 +312,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertRoleMemberhipRefs(1)
                 .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
                 .end();
+        // @formatter:on
     }
 
     @Test
@@ -333,6 +331,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         loginAdministrator();
 
+        // @formatter:off
         ObjectFilter allEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(0)
@@ -365,6 +364,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertName(VIEW_ALL_EMPLOYEES_NAME)
                     .assertFilter()
                     .getFilter();
+        // @formatter:on
 
         ObjectQuery viewQuery = prismContext.queryFactory().createQuery(allEmployeesViewFilter, null);
         SearchResultList<PrismObject<UserType>> searchResults =
@@ -394,6 +394,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(0)
@@ -404,6 +405,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .end()
             .assertCostCenter("Archetype null: null isEmployee: false")
             .getObject();
+        // @formatter:on
 
         // Archetype policy derived from system config (global)
         assertArchetypePolicy(userAfter)
@@ -431,6 +433,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(1)
@@ -468,6 +471,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertDescription("Only employees may be owners/approvers for business role.")
                     .assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
                     .assertObjectType(RoleType.COMPLEX_TYPE);
+        // @formatter:on
     }
 
     @Test
@@ -484,6 +488,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(0)
@@ -509,7 +514,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertDescription("Any user can have business role (can be a member).")
                     .assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
                     .assertObjectType(RoleType.COMPLEX_TYPE);
-        }
+        // @formatter:on
+    }
 
     @Test
     public void test120AssignJackArchetypeTest() throws Exception {
@@ -525,6 +531,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(1)
@@ -542,6 +549,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertIntent(INTENT_TEST)
                     .end()
                 .end();
+        // @formatter:on
     }
 
     /**
@@ -566,6 +574,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertFailure(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
                 .assignments()
                     .assertAssignments(1)
@@ -583,6 +592,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                         .assertIntent(INTENT_TEST)
                         .end()
                     .end();
+        // @formatter:on
     }
 
 
@@ -600,6 +610,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(0)
@@ -610,6 +621,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .end()
             .links()
                 .assertNoLiveLinks();
+        // @formatter:on
     }
 
     /**
@@ -629,6 +641,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(1)
@@ -640,6 +653,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                 .end()
             .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+        // @formatter:on
     }
 
     /**
@@ -659,6 +673,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
             .assignments()
                 .assertAssignments(1)
@@ -670,6 +685,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                 .end()
             .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+        // @formatter:on
     }
 
     @Test
@@ -688,6 +704,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         UserAsserter<Void> jackAsserter = assertUserAfter(USER_JACK_OID);
 
+        // @formatter:off
         jackAsserter
                 .assignments()
                 .assertAssignments(2)
@@ -715,6 +732,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                         .byIdentifier("main")
                         .visibility(UserInterfaceElementVisibilityType.HIDDEN)
                     .end();
+        // @formatter:on
     }
 
     @Test
@@ -728,13 +746,15 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
                 .assignments()
-                .assertAssignments(1)
+                    .assertAssignments(1)
                 .end()
                 .assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
                 .assertRoleMemberhipRefs(1)
                 .end();
+        // @formatter:on
     }
 
     /**
@@ -755,6 +775,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
         .assignments()
             .assertAssignments(0)
@@ -767,6 +788,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertNoLiveLinks()
             .end()
         .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+        // @formatter:on
     }
 
     /**
@@ -789,6 +811,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_JACK_OID)
         .assignments()
             .assertAssignments(0)
@@ -801,6 +824,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
             .assertNoLiveLinks()
             .end()
         .assertEmployeeNumber("Number ONE");
+        // @formatter:on
     }
 
     /**
@@ -821,6 +845,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_MEATHOOK_OID)
             .assignments()
                 .assertAssignments(1)
@@ -832,6 +857,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                 .end()
             .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+        // @formatter:on
     }
 
     /**
@@ -853,6 +879,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_WANNABE_OID)
                 .assertLifecycleState(SchemaConstants.LIFECYCLE_DRAFT)
                 .assignments()
@@ -865,6 +892,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                     .end()
                 .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+        // @formatter:on
     }
 
     /**
@@ -886,6 +914,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_SELF_MADE_MAN_OID)
                 .assignments()
                     .assertAssignments(1)
@@ -896,6 +925,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertRoleMemberhipRefs(1)
                     .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                     .end();
+        // @formatter:on
     }
 
     /**
@@ -949,7 +979,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         assertUserAfter(USER_BARBOSSA_OID)
             .assertArchetypeRef(ARCHETYPE_EMPLOYEE_OID);
-
     }
 
     @Test
@@ -968,6 +997,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         loginAdministrator();
 
+        // @formatter:off
         ObjectFilter activeEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .objectCollectionViews()
                 .assertViews(3)
@@ -977,6 +1007,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
                     .assertFilter()
                     .getFilter();
+        // @formatter:on
 
         ObjectQuery viewQuery = prismContext.queryFactory().createQuery(activeEmployeesViewFilter, null);
         SearchResultList<PrismObject<UserType>> searchResults = modelService.searchObjects(UserType.class, viewQuery, null, task, result);
@@ -1024,6 +1055,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         loginAdministrator();
 
+        // @formatter:off
         ObjectFilter activeEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .objectCollectionViews()
                 .assertViews(3)
@@ -1033,13 +1065,13 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
                     .assertFilter()
                     .getFilter();
+        // @formatter:on
 
         ObjectQuery viewQuery = prismContext.queryFactory().createQuery(activeEmployeesViewFilter, null);
         SearchResultList<PrismObject<UserType>> searchResults = modelService.searchObjects(UserType.class, viewQuery, null, task, result);
 
         display("Search results", searchResults);
         assertEquals("Wrong number of search results", 1, searchResults.size());
-
     }
 
     /**
@@ -1125,6 +1157,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .assertClosed()
                 .assertSuccess();
 
+        // @formatter:off
         assertUserAfterByUsername("mary")
                 .assignments()
                     .assertArchetype(ARCHETYPE_STUDENT.oid)
@@ -1135,6 +1168,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertRole(ROLE_LAB_ACCESS.oid)
                 .end()
                 .assertLinks(2, 0);
+        // @formatter:on
 
         assertDummyAccountByUsername(RESOURCE_LAB.name, "mary")
                 .display();

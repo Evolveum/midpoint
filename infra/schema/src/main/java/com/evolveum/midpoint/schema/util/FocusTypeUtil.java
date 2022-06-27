@@ -143,17 +143,12 @@ public class FocusTypeUtil {
         return passwd.getValue();
     }
 
-    @NotNull    // to eliminate the need for extensive NPE avoidance
-    public static <O extends ObjectType> List<String> determineSubTypes(O object) {
+    public static @NotNull List<String> determineSubTypes(ObjectType object) {
         return object != null ? determineSubTypes(object.asPrismObject()) : emptyList();
     }
 
-    @NotNull    // to eliminate the need for extensive NPE avoidance
-    public static <O extends ObjectType> List<String> determineSubTypes(PrismObject<O> object) {
-        if (object == null) {
-            return emptyList();
-        }
-        return object.asObjectable().getSubtype();
+    public static @NotNull List<String> determineSubTypes(PrismObject<? extends ObjectType> object) {
+        return object != null ? object.asObjectable().getSubtype() : emptyList();
     }
 
     public static <O extends ObjectType> boolean hasSubtype(PrismObject<O> object, String subtype) {

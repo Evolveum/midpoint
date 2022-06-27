@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.BooleanUtils;
@@ -57,7 +58,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
@@ -75,7 +76,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1821,6 +1821,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             @NotNull String intent) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
+        Preconditions.checkArgument(ShadowUtil.isKnown(kind), "kind is not known: %s", kind);
+        Preconditions.checkArgument(ShadowUtil.isKnown(intent), "intent is not known: %s", intent);
+
         Task task = getCurrentTaskRequired();
         OperationResult result = getCurrentResult(OP_FIND_CANDIDATE_OWNERS)
                 .createSubresult(OP_FIND_CANDIDATE_OWNERS);
@@ -1899,26 +1902,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
      */
     @Override
     @Deprecated
-    public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
-        List<PrismObject<ArchetypeType>> archetypes = archetypeManager.determineArchetypes((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
-        PrismObject<ArchetypeType> archetypeType = ArchetypeTypeUtil.getStructuralArchetype(archetypes);
-        if (archetypeType == null) {
-            return null;
-        }
-        return archetypeType.asObjectable();
+    public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException {
+        return ArchetypeTypeUtil.getStructuralArchetype(
+                archetypeManager.determineArchetypes(object, getCurrentResult()));
     }
 
-    @NotNull public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException, ConfigurationException {
-        if (!(object instanceof AssignmentHolderType)) {
-            return List.of();
-        }
-        //noinspection unchecked
-        List<PrismObject<ArchetypeType>> archetype =
-                archetypeManager.determineArchetypes(
-                        (PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
-        return archetype.stream()
-                .map(arch -> arch.asObjectable())
-                .collect(Collectors.toList());
+    @NotNull public <O extends ObjectType> List<ArchetypeType> getArchetypes(O object) throws SchemaException {
+        return archetypeManager.determineArchetypes(object, getCurrentResult());
     }
 
     // MID-5243
@@ -1927,28 +1917,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
      */
     @Override
     @Deprecated
-    public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
-        if (!(object instanceof AssignmentHolderType)) {
-            return null;
-        }
-        //noinspection unchecked
-        ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
-        if (archetypeRef == null) {
-            return null;
-        }
-        return archetypeRef.getOid();
+    public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException {
+        List<String> archetypeOids = getArchetypeOids(object);
+        return MiscUtil.extractSingleton(
+                archetypeOids,
+                () -> new SchemaException(
+                        "Only a single archetype for an object is expected here: " + archetypeOids + " in " + object));
     }
 
     @NotNull
-    public <O extends ObjectType> List<String> getArchetypeOids(O object) {
-        if (!(object instanceof AssignmentHolderType)) {
-            return List.of();
-        }
-        //noinspection unchecked
-        List<ObjectReferenceType> archetypeRef = archetypeManager.determineArchetypeRefs((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
-        return archetypeRef.stream()
-                .map(AbstractReferencable::getOid)
-                .collect(Collectors.toList());
+    public List<String> getArchetypeOids(ObjectType object) {
+        return new ArrayList<>(
+                archetypeManager.determineArchetypeOids(object));
     }
 
     // temporary

@@ -30,51 +30,22 @@
             <button type="button" class="btn btn-default" wicket:id="saveSearchButton">
                 <i class="fa fa-save"></i>
             </button>
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false" wicket:id="savedSearchMenu">
+            <button wicket:id="savedSearchMenu" class="btn btn-default dropdown-toggle">
                 <span class="caret"></span>
-                <span class="sr-only">Toggle Dropdown</span>
             </button>
-            <ul class="dropdown-menu pull-right" role="menu">
-                <li wicket:id="savedSearchItems">
-                    <div wicket:id="savedSearchItem"/>
-                </li>
-            </ul>
+            <div wicket:id="savedFiltersPopover"/>
         </div>
     </form>
     <wicket:fragment wicket:id="basicSearchFragment">
         <wicket:container wicket:id="items">
             <div wicket:id="item"/>
         </wicket:container>
-            <button wicket:id="more" class="btn btn-sm btn-default">
-                <wicket:message key="SearchPanel.more"/>
-                &nbsp;
-                <span class="fa fa-caret-down"></span>
-            </button>
-        <div wicket:id="popover">
-            <div class="search-popover">
-                <input wicket:id="addText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
-
-                <dl class="border-bottom mb-2" wicket:id="propList">
-                    <dt class="mb-1">
-                        <wicket:message key="SearchPanel.properties"/>
-                    </dt>
-                    <dd wicket:id="properties">
-                        <label>
-                            <input wicket:id="check" type="checkbox">&nbsp;
-                            <a wicket:id="propLink"><span wicket:id="propName"/></a>
-                            <i wicket:id="help"/>
-                        </label>
-                    </dd>
-                </dl>
-
-                <div class="mt-2 mb-1">
-                    <a wicket:id="add" class="btn btn-sm btn-success"/>
-                    <a wicket:id="close" class="btn btn-sm btn-default"/>
-                </div>
-            </div>
-        </div>
-        <!--        </div>-->
+        <button wicket:id="more" class="btn btn-sm btn-default">
+            <wicket:message key="SearchPanel.more"/>
+            &nbsp;
+            <span class="fa fa-caret-down"></span>
+        </button>
+        <div wicket:id="morePropertiesPopover"/>
     </wicket:fragment>
 
     <wicket:fragment wicket:id="advancedSearchFragment">

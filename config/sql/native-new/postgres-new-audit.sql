@@ -339,4 +339,5 @@ limit 50;
 */
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
+-- This is important to avoid applying any change more than once.
 call apply_audit_change(2, $$ SELECT 1 $$, true);

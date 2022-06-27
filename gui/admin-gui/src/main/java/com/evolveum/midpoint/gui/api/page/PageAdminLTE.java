@@ -71,6 +71,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.registry.DataProviderRegistry;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -231,6 +232,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private GuiComponentRegistry registry;
+
+    @SpringBean
+    private DataProviderRegistry dataProviderRegistry;
 
     @SpringBean
     private DefaultGuiConfigurationCompiler guiConfigurationRegistry;
@@ -540,6 +544,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return registry;
     }
 
+    public DataProviderRegistry getDataProviderRegistry() {
+        return dataProviderRegistry;
+    }
+
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
     }
@@ -583,6 +591,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return pageTask;
     }
 
+    @Override
     @Contract(pure = true)
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();

@@ -35,9 +35,9 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "service-accounts");
 
-    protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-    protected static final String RESOURCE_DUMMY_OID = "0069ac14-8377-11e8-b404-5b5a1a8af0db";
-    protected static final String RESOURCE_DUMMY_INTENT_SERVICE = "service";
+    private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    private static final String RESOURCE_DUMMY_OID = "0069ac14-8377-11e8-b404-5b5a1a8af0db";
+    private static final String RESOURCE_DUMMY_INTENT_SERVICE = "service";
 
     private static final String ACCOUNT_RUM_STORAGE_DUMMY_USERNAME = "rum-storage";
     private static final String ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME = "Rum Storage Application";

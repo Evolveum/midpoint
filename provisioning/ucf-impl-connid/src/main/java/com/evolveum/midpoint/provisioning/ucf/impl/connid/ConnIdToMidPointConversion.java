@@ -114,7 +114,7 @@ class ConnIdToMidPointConversion {
                     .objectClassToQname(new ObjectClass((String) connIdAuxiliaryObjectClass), legacySchema);
             auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
             ResourceObjectDefinition auxiliaryObjectClassDefinition = nameMapper.getResourceSchema()
-                    .findDefinitionForObjectClass(auxiliaryObjectClassQname);
+                    .findObjectClassDefinition(auxiliaryObjectClassQname);
             if (auxiliaryObjectClassDefinition == null) {
                 throw new SchemaException(
                         "Resource object " + connectorObject + " refers to auxiliary object class " + auxiliaryObjectClassQname

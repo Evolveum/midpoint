@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.cases.api.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -23,11 +25,10 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * TODO move to more appropriate place (common for both wf and certifications)
@@ -40,7 +41,7 @@ public class QueryUtils {
      *
      * Note that work item limitations are supported only in the current (crude) form: all or none.
      */
-    public static S_AtomicFilterExit filterForAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
+    public static S_FilterExit filterForAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
             QName limitationItemName, RelationRegistry relationRegistry) {
         if (principal == null) {
             return q.none();
@@ -49,7 +50,7 @@ public class QueryUtils {
         }
     }
 
-    public static S_AtomicFilterExit filterForNotClosedStateAndAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
+    public static S_FilterExit filterForNotClosedStateAndAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
             QName limitationItemName, RelationRegistry relationRegistry) {
         if (principal == null) {
             return q.none();
@@ -96,34 +97,32 @@ public class QueryUtils {
     private static List<PrismReferenceValue> getCandidatesForUser(String userOid, RepositoryService repositoryService,
             RelationRegistry relationRegistry, OperationResult result) throws SchemaException {
         List<PrismReferenceValue> rv = new ArrayList<>();
-        UserType userType;
+        UserType user;
         try {
-            userType = repositoryService.getObject(UserType.class, userOid, null, result).asObjectable();
+            user = repositoryService.getObject(UserType.class, userOid, null, result).asObjectable();
         } catch (ObjectNotFoundException e) {
             return rv;
         }
-        userType.getRoleMembershipRef().stream()
+        user.getRoleMembershipRef().stream()
                 .filter(ref -> relationRegistry.isMember(ref.getRelation()))
                 .forEach(ref -> rv.add(ref.clone().asReferenceValue()));
-        userType.getDelegatedRef().stream()
+        user.getDelegatedRef().stream()
                 .filter(ref -> relationRegistry.isMember(ref.getRelation()))
                 .filter(ref -> !QNameUtil.match(ref.getType(), UserType.COMPLEX_TYPE))   // we are not interested in deputies (but this should be treated above)
                 .forEach(ref -> rv.add(ref.clone().asReferenceValue()));
         return rv;
     }
 
-    public static S_AtomicFilterExit filterForMyRequests(S_FilterEntryOrEmpty q, String principalUserOid){
-        return q
-                .item(CaseType.F_REQUESTOR_REF)
+    public static S_FilterExit filterForMyRequests(S_FilterEntryOrEmpty q, String principalUserOid) {
+        return q.item(CaseType.F_REQUESTOR_REF)
                 .ref(principalUserOid)
                 .and()
                 .item(CaseType.F_ARCHETYPE_REF)
                 .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
     }
 
-    public static S_AtomicFilterExit filterForCasesOverObject(S_FilterEntryOrEmpty q, String objectOid){
-        return q
-                .item(CaseType.F_OBJECT_REF).ref(objectOid)
+    public static S_FilterExit filterForCasesOverObject(S_FilterEntryOrEmpty q, String objectOid) {
+        return q.item(CaseType.F_OBJECT_REF).ref(objectOid)
                 .and()
                 .item(CaseType.F_ARCHETYPE_REF)
                 .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())

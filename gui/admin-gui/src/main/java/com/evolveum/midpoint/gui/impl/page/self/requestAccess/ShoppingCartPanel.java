@@ -103,6 +103,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     private void initLayout() {
         CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, getWizard(), getModel()) {
 
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void openConflictPerformed(AjaxRequestTarget target) {
                 ShoppingCartPanel.this.openConflictPerformed(target);
@@ -116,7 +118,15 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
         cartSummary.add(new VisibleBehaviour(() -> state.getObject() == State.SUMMARY));
         add(cartSummary);
 
-        ConflictSolverPanel conflictSolver = new ConflictSolverPanel(ID_CONFLICT_SOLVER, getModel());
+        ConflictSolverPanel conflictSolver = new ConflictSolverPanel(ID_CONFLICT_SOLVER, getModel()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void backToSummaryPerformed(AjaxRequestTarget target) {
+                ShoppingCartPanel.this.onBackPerformed(target);
+            }
+        };
         conflictSolver.add(new VisibleBehaviour(() -> state.getObject() == State.CONFLICTS));
         add(conflictSolver);
     }
@@ -129,6 +139,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
     protected void submitPerformed(AjaxRequestTarget target) {
         // todo implement
+        getModelObject().submitRequest();
+
     }
 
     @Override

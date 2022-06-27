@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -21,7 +21,7 @@ public enum CertCampaignStateFilter {
     IN_REMEDIATION,
     CLOSED;
 
-    public S_AtomicFilterEntry appendFilter(S_AtomicFilterEntry q) {
+    public S_FilterEntry appendFilter(S_FilterEntry q) {
         switch (this) {
             case ALL:
                 return q;

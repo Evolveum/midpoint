@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -137,7 +137,7 @@ public class CorrelationItem {
     /**
      * Adds a EQ clause to the current query builder.
      */
-    S_AtomicFilterExit addClauseToQueryBuilder(S_FilterEntry builder, String targetQualifier) throws SchemaException {
+    S_FilterExit addClauseToQueryBuilder(S_FilterEntry builder, String targetQualifier) throws SchemaException {
         Object valueToFind = MiscUtil.requireNonNull(
                 source.getRealValue(),
                 () -> new UnsupportedOperationException("Correlation on null item values is not yet supported"));

@@ -7,32 +7,31 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.UNKNOWN;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
- * Information needed to carry out synchronization-related activities (categorization, correlation,
+ * Information needed to carry out synchronization-related activities (classification, correlation,
  * and execution of synchronization reactions). This class exists to unify the "legacy" way of specifying
  * this information (in `synchronization` section of resource definition) and "modern" one - right in `schemaHandling` part.
  */
 public class SynchronizationPolicy {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationPolicy.class);
-
-    @NotNull private final ShadowKindType kind;
+    /**
+     * Definition of the type corresponding to this synchronization policy.
+     */
+    @NotNull private final ResourceObjectTypeDefinition objectTypeDefinition;
 
     /**
      * Name of the type of focus objects referenced by this policy. (I.e. we correlate and synchronize to an object
@@ -45,9 +44,6 @@ public class SynchronizationPolicy {
      */
     @Nullable private final String archetypeOid;
 
-    /** TODO */
-    @NotNull private final QName objectClassName;
-
     /**
      * Correlation definition.
      *
@@ -56,14 +52,9 @@ public class SynchronizationPolicy {
     @NotNull private final CorrelationDefinitionType correlationDefinitionBean;
 
     /**
-     * This definition is usually {@link ResourceObjectTypeDefinition}, but in some exceptional cases
-     * it may be {@link ResourceObjectClassDefinition} instead. For example, if there's `synchronization` section
-     * with no `schemaHandling`.
-     */
-    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
-
-    /**
      * If `false`, no correlation and no synchronization reaction(s) execution is done.
+     *
+     * TODO what about classification?
      *
      * TODO better name
      */
@@ -86,22 +77,18 @@ public class SynchronizationPolicy {
     private final boolean hasLegacyConfiguration;
 
     SynchronizationPolicy(
-            @NotNull ShadowKindType kind,
-            @Nullable QName focusTypeName,
-            @Nullable ObjectReferenceType archetypeRef,
-            @NotNull QName objectClassName,
+            @NotNull QName focusTypeName,
+            @Nullable String archetypeOid,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             boolean synchronizationEnabled,
             boolean opportunistic,
             @Nullable String name,
             @NotNull ResourceObjectTypeDelineation delineation,
             @NotNull Collection<SynchronizationReactionDefinition> reactions,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
             boolean hasLegacyConfiguration) {
-        this.kind = kind;
-        this.focusTypeName = Objects.requireNonNullElse(focusTypeName, UserType.COMPLEX_TYPE);
-        this.archetypeOid = getArchetypeOid(archetypeRef);
-        this.objectClassName = objectClassName;
+        this.focusTypeName = focusTypeName;
+        this.archetypeOid = archetypeOid;
         this.correlationDefinitionBean = correlationDefinitionBean;
         this.synchronizationEnabled = synchronizationEnabled;
         this.opportunistic = opportunistic;
@@ -109,38 +96,16 @@ public class SynchronizationPolicy {
         this.delineation = delineation;
         this.reactions = new ArrayList<>(reactions);
         this.reactions.sort(Comparator.naturalOrder());
-        this.resourceObjectDefinition = resourceObjectDefinition;
+        this.objectTypeDefinition = objectTypeDefinition;
         this.hasLegacyConfiguration = hasLegacyConfiguration;
     }
 
-    public static String getArchetypeOid(@Nullable ObjectReferenceType archetypeRef) {
-        if (archetypeRef == null) {
-            return null;
-        }
-        String oid = archetypeRef.getOid();
-        if (oid != null) {
-            return oid;
-        }
-        throw new UnsupportedOperationException("Dynamic references are not supported for archetypeRef");
-    }
-
     public @NotNull ShadowKindType getKind() {
-        return kind;
+        return objectTypeDefinition.getKind();
     }
 
-    /**
-     * The returned intent is null only if:
-     *
-     * 1. standalone synchronization bean is used,
-     * 2. the intent is not specified in the bean,
-     * 3. no default object type can be found.
-     */
-    public @Nullable String getIntent() {
-        if (resourceObjectDefinition instanceof ResourceObjectTypeDefinition) {
-            return ((ResourceObjectTypeDefinition) resourceObjectDefinition).getIntent();
-        } else {
-            return null;
-        }
+    public @NotNull String getIntent() {
+        return objectTypeDefinition.getIntent();
     }
 
     public boolean isSynchronizationEnabled() {
@@ -155,71 +120,8 @@ public class SynchronizationPolicy {
         return name;
     }
 
-    public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
-        return resourceObjectDefinition;
-    }
-
-    /**
-     * Checks if the synchronization policy matches given "parameters" (object class, kind, intent).
-     */
-    public boolean isApplicableTo(QName objectClass, ShadowKindType kind, String intent, boolean strictIntent) {
-        if (!isObjectClassNameMatching(objectClass)) {
-            return false;
-        }
-
-        // kind
-        LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", getKind(), kind);
-        if (kind != null && kind != UNKNOWN && !getKind().equals(kind)) {
-            LOGGER.trace("Kinds don't match for {}", this);
-            return false;
-        }
-
-        // intent
-        LOGGER.trace("Comparing intents, policy intent: {}, current intent: {} (strict={})", getIntent(), intent, strictIntent);
-        if (!strictIntent) {
-            if (intent != null
-                    && !SchemaConstants.INTENT_UNKNOWN.equals(intent)
-                    && !MiscSchemaUtil.equalsIntent(intent, getIntent())) {
-                LOGGER.trace("Intents don't match for {}", this);
-                return false;
-            }
-        } else {
-            if (!MiscSchemaUtil.equalsIntent(intent, getIntent())) {
-                LOGGER.trace("Intents don't match for {}", this);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean isObjectClassNameMatching(QName objectClass) {
-        if (objectClassDefinedAndNotMatching(objectClass, this.objectClassName)) {
-            LOGGER.trace("Object class does not match the one defined in {}", this);
-            return false;
-        }
-
-        if (objectClassDefinedAndNotMatching(objectClass, resourceObjectDefinition.getTypeName())) {
-            LOGGER.trace("Object class does not match the one defined in type definition in {}", this);
-            return false;
-        }
-        return true;
-    }
-
-    private boolean objectClassDefinedAndNotMatching(@Nullable QName objectClass, @Nullable QName policyObjectClass) {
-        return objectClass != null &&
-                policyObjectClass != null &&
-                !QNameUtil.match(objectClass, policyObjectClass);
-    }
-
-
-    public ResourceObjectTypeDefinition getResourceTypeDefinitionRequired() {
-        if (resourceObjectDefinition instanceof ResourceObjectTypeDefinition) {
-            return (ResourceObjectTypeDefinition) resourceObjectDefinition;
-        } else {
-            throw new IllegalStateException("No resource object type definition present: " + resourceObjectDefinition);
-        }
+    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition() {
+        return objectTypeDefinition;
     }
 
     /** Returns the focus class this synchronization policy points to. */
@@ -235,8 +137,7 @@ public class SynchronizationPolicy {
     @Override
     public String toString() { // TODO
         return getClass().getSimpleName() + "{" +
-                "kind=" + kind +
-                ", resourceObjectDefinition=" + resourceObjectDefinition +
+                "typeDefinition=" + objectTypeDefinition +
                 '}';
     }
 
@@ -253,7 +154,7 @@ public class SynchronizationPolicy {
     }
 
     public @NotNull QName getObjectClassName() {
-        return objectClassName;
+        return objectTypeDefinition.getObjectClassName();
     }
 
     public @NotNull List<SynchronizationReactionDefinition> getReactions() {
@@ -262,5 +163,13 @@ public class SynchronizationPolicy {
 
     public boolean hasLegacyConfiguration() {
         return hasLegacyConfiguration;
+    }
+
+    public Integer getClassificationOrder() {
+        return delineation.getClassificationOrder();
+    }
+
+    public boolean isDefaultForClassification() {
+        return objectTypeDefinition.isDefaultForObjectClass();
     }
 }

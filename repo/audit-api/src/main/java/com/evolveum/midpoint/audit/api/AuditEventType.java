@@ -7,46 +7,48 @@
 package com.evolveum.midpoint.audit.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 public enum AuditEventType {
 
-    GET_OBJECT,
+    GET_OBJECT(),
 
-    ADD_OBJECT,
+    ADD_OBJECT(new DisplayType().icon(new IconType().cssClass("fa fa-plus").color("green")).color("green")),
 
-    MODIFY_OBJECT,
+    MODIFY_OBJECT(new DisplayType().icon(new IconType().cssClass("fa fa-edit").color("blue")).color("blue")),
 
-    DELETE_OBJECT,
+    DELETE_OBJECT(new DisplayType().icon(new IconType().cssClass("fa fa-minus").color("red")).color("red")),
 
-    EXECUTE_CHANGES_RAW,
+    EXECUTE_CHANGES_RAW(new DisplayType().icon(new IconType().cssClass("fa fa-edit").color("blue")).color("blue")),
 
-    SYNCHRONIZATION,
+    SYNCHRONIZATION(new DisplayType().icon(new IconType().cssClass("fa fa-refresh"))),
     //  ....
 
     /**
      * E.g. login
      */
-    CREATE_SESSION,
+    CREATE_SESSION(),
 
     /**
      * E.g. logout
      */
-    TERMINATE_SESSION,
+    TERMINATE_SESSION(),
 
     /**
      * Workflow actions
      */
-    WORK_ITEM,
+    WORK_ITEM(new DisplayType().icon(new IconType().cssClass("fa fa-inbox"))),
 
-    WORKFLOW_PROCESS_INSTANCE, // TODO change to CASE
+    WORKFLOW_PROCESS_INSTANCE(), // TODO change to CASE
 
-    RECONCILIATION,
+    RECONCILIATION(new DisplayType().icon(new IconType().cssClass("fa fa-exchange"))),
 
-    SUSPEND_TASK,
+    SUSPEND_TASK(new DisplayType().icon(new IconType().cssClass("fa fa-pause"))),
 
-    RESUME_TASK,
+    RESUME_TASK(new DisplayType().icon(new IconType().cssClass("fa fa-check-square"))),
 
-    RUN_TASK_IMMEDIATELY;
+    RUN_TASK_IMMEDIATELY(new DisplayType().icon(new IconType().cssClass("fa fa-play").color("green")).color("green"));
 
     public static AuditEventType fromSchemaValue(AuditEventTypeType event) {
         if (event == null) {
@@ -84,6 +86,20 @@ public enum AuditEventType {
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }
+    }
+
+    private DisplayType display;
+
+    AuditEventType() {
+        this(null);
+    }
+
+    AuditEventType(DisplayType display) {
+        this.display = display;
+    }
+
+    public DisplayType getDisplay() {
+        return display;
     }
 
     public static AuditEventTypeType toSchemaValue(AuditEventType event) {

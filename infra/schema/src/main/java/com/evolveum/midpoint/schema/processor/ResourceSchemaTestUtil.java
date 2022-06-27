@@ -51,7 +51,7 @@ public class ResourceSchemaTestUtil {
      * (Although not exactly the same: now we require type definition, whereas in 4.4 and before
      * we could return a definition even if no schemaHandling was present.)
      *
-     * This method is quite obscure, mainly because of its non-determinism, and shouldn't be used much.
+     * !!! This method is quite obscure, mainly because of its non-determinism, and shouldn't be used much. !!!
      */
     public static @Nullable ResourceObjectTypeDefinition findDefaultOrAnyObjectTypeDefinition(
             @NotNull ResourceSchema schema,

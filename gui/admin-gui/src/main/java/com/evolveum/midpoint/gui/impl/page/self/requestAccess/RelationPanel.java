@@ -7,19 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,9 +18,19 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -62,11 +62,17 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
 
             @Override
             protected List<Tile<QName>> load() {
+                RelationSelectionType config = getRelationConfiguration();
+
+                QName defaultRelation = config.getDefaultRelation();
+                getModelObject().setRelation(defaultRelation);
+
                 List<Tile<QName>> tiles = new ArrayList<>();
 
                 List<QName> list = getAvailableRelationsList();
                 for (QName name : list) {
                     Tile<QName> tile = createTileForRelation(name);
+                    tile.setSelected(name.equals(defaultRelation));
                     tile.setValue(name);
 
                     tiles.add(tile);
@@ -154,13 +160,22 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     private List<QName> getAvailableRelationsList() {
-        // todo fix focus parameter
-        FocusType focus = null;
-        try {
-            focus = SecurityUtil.getPrincipal().getFocus();
-        } catch (SecurityViolationException ex) {
-            ex.printStackTrace();
+        List<ObjectReferenceType> personsOfInterest = getModelObject().getPersonOfInterest();
+        if (personsOfInterest.isEmpty()) {
+            return new ArrayList<>();
         }
+
+        ObjectReferenceType ref = personsOfInterest.get(0);
+
+        FocusType focus;
+        try {
+            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, getPageBase());
+            focus = prismFocus.asObjectable();
+        } catch (Exception ex) {
+            getPageBase().error(getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
+            return new ArrayList<>();
+        }
+
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
         List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(
