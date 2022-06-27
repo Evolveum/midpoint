@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -571,10 +572,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         assertThat(suggestions)
                 .as("suggested properties")
-                .hasSize(2);
+                .hasSize(1);
         suggestions.forEach(suggestion -> {
-            assertTrue("Unexpected value of suggestion " + suggestion.getRealValue() + ", expected: " + expectedSuggestions,
-                    expectedSuggestions.contains((String) suggestion.getRealValue()));
+            Collection<?> suggestionValues = suggestion.getDefinition().getSuggestedValues().stream()
+                    .map(displayVal -> displayVal.getValue()).collect(Collectors.toList());
+            assertTrue("Unexpected value of suggestion " + suggestion.getDefinition().getSuggestedValues() + ", expected: " + expectedSuggestions,
+                    expectedSuggestions.containsAll(suggestionValues));
         });
 
         assertEquals("Was created entry connector in cache", cachedConnectorsCount, getSizeOfConnectorCache());
