@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -100,7 +100,6 @@
                     <catalog>${basedir}/src/compile/resources/catalog.xml</catalog>
                     <laxSchemaValidation>true</laxSchemaValidation>
                     <verbose>false</verbose>
-                    <!-- JDK 11 does not need exclusions of imported files like JDK 8 -->
                 </configuration>
                 <dependencies>
                     <!--
