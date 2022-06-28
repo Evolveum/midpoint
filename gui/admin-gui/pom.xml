@@ -743,7 +743,7 @@
 
             <!--
             We use both main and test classes downstream.
-            We can't use JAR plugin for main classes, Maven requires different classifier than for
+            TODO (still true?): We can't use JAR plugin for main classes, Maven requires different classifier than for
             the main artifact (which is WAR for admin-gui).
             -->
             <plugin>

@@ -95,7 +95,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -363,7 +363,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -406,7 +406,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -456,7 +456,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -518,7 +518,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -561,7 +561,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 
@@ -610,7 +610,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             recordFatalError(operationResult, t);
             throw t;
         } finally {
-            operationResult.computeStatusIfUnknown();
+            operationResult.close();
         }
     }
 

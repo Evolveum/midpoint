@@ -20,7 +20,7 @@ import org.springframework.boot.loader.tools.Layout;
 import org.springframework.boot.loader.tools.LoaderClassesWriter;
 
 /**
- * Common custom midPoint JAR/WAR layout functionality.
+ * Common custom midPoint JAR layout functionality.
  */
 public interface MidPointLayoutCommon extends CustomLoaderLayout, Layout {
 
