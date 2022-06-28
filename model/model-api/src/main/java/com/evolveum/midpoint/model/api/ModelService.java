@@ -420,17 +420,7 @@ public interface ModelService {
      * Test the resource connection and basic resource connector functionality.
      * </p>
      * <p>
-     * This operation will NOT throw exception in case the resource connection
-     * fails. It such case it will indicate the failure in the return message,
-     * but the operation itself succeeds. The operations fails only if the
-     * provided arguments are wrong, in case of system error, system
-     * misconfiguration, etc.
-     * </p>
-     * <p>
-     * This returns OperationResult instead of taking it as in/out argument.
-     * This is different from the other methods. The testResource method is not
-     * using OperationResult to track its own execution but rather to track the
-     * execution of resource tests (that in fact happen in provisioning).
+     * Work same as {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
      * </p>
      *
      * @param resourceOid OID of resource to test
@@ -438,7 +428,8 @@ public interface ModelService {
      * @throws ObjectNotFoundException specified object does not exist
      * @throws IllegalArgumentException wrong OID format
      */
-    OperationResult testResource(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+    OperationResult testResource(String resourceOid, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
 
     /**
@@ -446,25 +437,26 @@ public interface ModelService {
      * Test partial resource connector configuration. Testing only basic connection.
      * </p>
      * <p>
-     * This operation will NOT throw exception in case the resource connection
-     * fails. It such case it will indicate the failure in the return message,
-     * but the operation itself succeeds. The operations fails only if the
-     * provided arguments are wrong, in case of system error, system
-     * misconfiguration, etc.
-     * </p>
-     * <p>
-     * This returns OperationResult instead of taking it as in/out argument.
-     * This is different from the other methods. The testResourcePartialConfiguration method is not
-     * using OperationResult to track its own execution but rather to track the
-     * execution of resource partial configuration test.
+     * Method work with OperationResult same as method
+     * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
      * </p>
      *
      * @param resource resource to test
      * @return results of executed partial test
      * @throws ObjectNotFoundException specified object does not exist
      */
-    OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+    OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
+    /**
+     * <p>
+     * Method work same as
+     * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConfiguration(PrismObject, OperationResult)}.
+     * </p>
+     *
+     * @param resource resource with minimal connector configuration
+     * @return Suggested configuration properties wrapped in DiscoveredConfiguration.
+     */
     DiscoveredConfiguration discoverResourceConnectorConfiguration(PrismObject<ResourceType> resource, OperationResult result);
 
 
