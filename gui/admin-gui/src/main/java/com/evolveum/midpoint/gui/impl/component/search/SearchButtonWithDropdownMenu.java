@@ -9,23 +9,25 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SearchButtonWithDropdownMenu extends BasePanel<List<InlineMenuItem>> {
+public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BasePanel<List<E>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -33,11 +35,11 @@ public abstract class SearchButtonWithDropdownMenu extends BasePanel<List<Inline
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_MENU_ITEM = "menuItem";
 
-    InlineMenuItem selectedItem;
+    IModel<String> buttonLabelModel;
 
-    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<InlineMenuItem>> menuItemsModel) {
+    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel, IModel<String> buttonLabelModel) {
         super(id, menuItemsModel);
-        selectedItem = CollectionUtils.isNotEmpty(menuItemsModel.getObject()) ? menuItemsModel.getObject().get(0) : null;
+        this.buttonLabelModel = buttonLabelModel;
     }
 
     protected void onInitialize() {
@@ -48,17 +50,31 @@ public abstract class SearchButtonWithDropdownMenu extends BasePanel<List<Inline
     private void initLayout() {
         final AjaxSubmitLink searchButton = new AjaxSubmitLink(ID_SEARCH_BUTTON) {
 
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                Form form = SearchButtonWithDropdownMenu.this.findParent(Form.class);
+                if (form != null) {
+                    target.add(form);
+                } else {
+                    target.add(SearchButtonWithDropdownMenu.this.getPageBase());
+                }
+            }
+
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 searchPerformed(target);
             }
         };
         searchButton.setOutputMarkupId(true);
+        searchButton.add(getSearchButtonVisibleEnableBehavior());
 
-        searchButton.add(new Label(ID_SEARCH_BUTTON_LABEL, (IModel<Object>) () -> selectedItem.getLabel()));
+        Label buttonLabel = new Label(ID_SEARCH_BUTTON_LABEL, buttonLabelModel);
+        searchButton.add(buttonLabel);
         add(searchButton);
 
-        ListView<InlineMenuItem> menuItems = new ListView<InlineMenuItem>(ID_MENU_ITEMS, getModel()) {
+        ListView<InlineMenuItem> menuItems = new ListView<InlineMenuItem>(ID_MENU_ITEMS, createMenuItemsModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -80,9 +96,49 @@ public abstract class SearchButtonWithDropdownMenu extends BasePanel<List<Inline
 
     }
 
-    public Component getSearchButton() {
-        return get(ID_SEARCH_BUTTON);
+    protected VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
+        return new VisibleEnableBehaviour();
+    }
+
+    private IModel<List<InlineMenuItem>> createMenuItemsModel() {
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        getModelObject().forEach(item -> {
+            InlineMenuItem searchItem = new InlineMenuItem(createStringResource(item)) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new InlineMenuItemAction() {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            target.add(getSearchButton());
+                            menuItemSelected(target, item);
+                        }
+                    };
+                }
+
+                @Override
+                public IModel<Boolean> getVisible() {
+                    return isMenuItemVisible(item);
+                }
+            };
+            menuItems.add(searchItem);
+        });
+        return Model.ofList(menuItems);
+    }
+
+    public AjaxSubmitLink getSearchButton() {
+        return (AjaxSubmitLink) get(ID_SEARCH_BUTTON);
+    }
+
+    public IModel<Boolean> isMenuItemVisible(E item) {
+        return Model.of(true);
     }
 
     protected abstract void searchPerformed(AjaxRequestTarget target);
+
+    protected abstract void menuItemSelected(AjaxRequestTarget target, E item);
 }

@@ -51,6 +51,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -86,6 +87,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_FORM = "form";
     private static final String ID_SEARCH_ITEMS_PANEL = "searchItemsPanel";
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
+    private static final String ID_SEARCH_BUTTON_PANEL = "searchButtonPanel";
     private static final String ID_SUBMIT_SEARCH_BUTTON = "submitSearchButton";
     private static final String ID_SEARCH_TYPES_MENU = "searchTypesMenu";
     private static final String ID_SEARCH_TYPE_ITEMS = "searchTypeItems";
@@ -131,6 +133,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private void initBasicSearchItemsModel() {
         basicSearchItemsModel = new LoadableModel<List<AbstractSearchItemWrapper>>(true) {
+            private static final long serialVersionUID = 1L;
             @Override
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItems().stream().filter(item
@@ -166,84 +169,54 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         form.add(searchItemsRepeatingView);
         initSearchItemsPanel(searchItemsRepeatingView);
 
-        WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
-        searchContainer.setOutputMarkupId(true);
-        form.add(searchContainer);
-
-        AjaxCompositedIconSubmitButton submitSearchButton = new AjaxCompositedIconSubmitButton(ID_SUBMIT_SEARCH_BUTTON, getSubmitSearchButtonBuilder(),
-                getPageBase().createStringResource("SearchPanel.search")) {
-
-            private static final long serialVersionUID = 1L;
-
+        LoadableDetachableModel<String> labelModel = new LoadableDetachableModel<String>() {
             @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(form);
+            protected String load() {
+                return createStringResource(SearchPanel.this.getModelObject().getSearchMode()).getString();
             }
-
+        };
+        SearchButtonWithDropdownMenu<SearchBoxModeType> searchButtonPanel = new SearchButtonWithDropdownMenu<SearchBoxModeType>(ID_SEARCH_BUTTON_PANEL,
+                Model.ofList(getSearchConfigurationWrapper().getAllowedModeList()), labelModel) {
+            private static final long serialVersionUID = 1L;
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
+            protected void searchPerformed(AjaxRequestTarget target) {
                 searchPerformed(target);
             }
-        };
-
-        IModel<String> buttonRightPaddingModel = () -> {
-            boolean isLongButton = SearchBoxModeType.BASIC.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode())
-                    || SearchBoxModeType.AXIOM_QUERY.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode());
-            String style = "padding-right: " + (isLongButton ? "23" : "16") + "px;";
-            if (getSearchConfigurationWrapper().getAllowedModeList().size() == 1) {
-                style = style + "border-top-right-radius: 3px; border-bottom-right-radius: 3px;";
-            }
-            return style;
-        };
-        submitSearchButton.add(AttributeAppender.append("style", buttonRightPaddingModel));
-
-        submitSearchButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled() {
-                Search search = getModelObject();
-                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
-                        || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
-                    PrismContext ctx = getPageBase().getPrismContext();
-                    return search.isAdvancedQueryValid(ctx);
-                }
-                if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
-                    return search.isFullTextSearchEnabled();
-                }
-                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())) {
-                    return CollectionUtils.isNotEmpty(getModelObject().getItems());
-                }
-                return true;
+            protected void menuItemSelected(AjaxRequestTarget target, SearchBoxModeType searchBoxModeType) {
+                searchBoxTypeUpdated(target, searchBoxModeType);
             }
-        });
-        submitSearchButton.setOutputMarkupId(true);
-        searchContainer.add(submitSearchButton);
-        form.setDefaultButton(submitSearchButton);
-
-        WebMarkupContainer dropdownButton = new WebMarkupContainer(ID_SEARCH_TYPES_MENU);
-        dropdownButton.add(new VisibleBehaviour(() -> getSearchConfigurationWrapper().getAllowedModeList().size() != 1));
-        searchContainer.add(dropdownButton);
-
-        ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_SEARCH_TYPE_ITEMS, getSearchBoxTypesList()) {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<InlineMenuItem> item) {
-                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SEARCH_TYPE, item.getModel());
-                menuItemBody.setRenderBodyOnly(true);
-                item.add(menuItemBody);
-                menuItemBody.add(new VisibleEnableBehaviour() {
-                    @Override
-                    public boolean isVisible() {
-                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
-                    }
-                });
+            public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {
+                if (SearchBoxModeType.AXIOM_QUERY.equals(searchBoxModeType)) {
+                    return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
+                            && getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
+                }
+                return Model.of(getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
+            }
+
+            @Override
+            protected VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
+                return SearchPanel.this.getSearchButtonVisibleEnableBehavior();
             }
         };
-        searchContainer.add(li);
+
+        searchButtonPanel.setOutputMarkupId(true);
+        form.add(searchButtonPanel);
+        form.setDefaultButton(searchButtonPanel.getSearchButton());
+
+//        IModel<String> buttonRightPaddingModel = () -> {
+//            boolean isLongButton = SearchBoxModeType.BASIC.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode())
+//                    || SearchBoxModeType.AXIOM_QUERY.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode());
+//            String style = "padding-right: " + (isLongButton ? "23" : "16") + "px;";
+//            if (getSearchConfigurationWrapper().getAllowedModeList().size() == 1) {
+//                style = style + "border-top-right-radius: 3px; border-bottom-right-radius: 3px;";
+//            }
+//            return style;
+//        };
+//        submitSearchButton.add(AttributeAppender.append("style", buttonRightPaddingModel));
 
         WebMarkupContainer saveSearchContainer = new WebMarkupContainer(ID_SAVE_SEARCH_CONTAINER);
         saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow() && isCollectionInstancePage()));
@@ -325,6 +298,30 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         savedSearchMenu.add(AttributeAppender.append("title",
                 getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
         saveSearchContainer.add(savedSearchMenu);
+    }
+
+    private VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
+        return new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled() {
+                Search search = getModelObject();
+                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
+                        || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
+                    PrismContext ctx = getPageBase().getPrismContext();
+                    return search.isAdvancedQueryValid(ctx);
+                }
+                if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
+                    return search.isFullTextSearchEnabled();
+                }
+                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())) {
+                    return CollectionUtils.isNotEmpty(getModelObject().getItems());
+                }
+                return true;
+            }
+        };
     }
 
     private void selectSavedFilterPerformed(List<AvailableFilterType> filterList, AjaxRequestTarget target) {
