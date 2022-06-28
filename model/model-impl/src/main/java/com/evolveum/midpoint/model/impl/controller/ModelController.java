@@ -1452,17 +1452,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             LOGGER.debug("Finished testing partial configuration of resource: {}, result: {} ", resource, testResult.getStatus());
             LOGGER.trace("Test result:\n{}", lazy(() -> testResult.dump(false)));
             return testResult;
-        } catch (Throwable ex) {
-            LOGGER.error("Error testing partial configuration of resource: {}: {}: {}",
-                    resource, ex.getClass().getSimpleName(), ex.getMessage(), ex);
-            throw ex;
         } finally {
             exitModelMethodNoRepoCache();
         }
     }
 
     @Override
-    public DiscoveredConfiguration discoverResourceConnectorConfiguration(PrismObject<ResourceType> resource, OperationResult result) {
+    public DiscoveredConfiguration discoverResourceConnectorConfiguration(
+            PrismObject<ResourceType> resource, OperationResult result) {
+
         Validate.notNull(resource, "Resource must not be null.");
         LOGGER.trace("Discover connector configuration for resource: {}", resource);
 
@@ -1472,10 +1470,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             LOGGER.debug("Finished discover connector configuration for resource: {}, result: {} ", resource, result.getStatus());
             LOGGER.trace("Discover connector configuration result:\n{}", lazy(() -> result.dump(false)));
             return discoverConfiguration;
-        } catch (Throwable ex) {
-            LOGGER.error("Error discover connector configuration for resource: {}: {}: {}",
-                    resource, ex.getClass().getSimpleName(), ex.getMessage(), ex);
-            throw ex;
         } finally {
             exitModelMethodNoRepoCache();
         }

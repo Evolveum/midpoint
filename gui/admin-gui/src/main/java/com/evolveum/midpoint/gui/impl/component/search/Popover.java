@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.IModel;
@@ -20,14 +22,12 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class Popover extends Border {
+public abstract class Popover extends Border {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_POPOVER = "popover";
+    private static final String ID_ARROW = "arrow";
     private static final String ID_TITLE = "title";
-
-    private Component reference;
 
     private IModel<String> title;
 
@@ -43,9 +43,7 @@ public class Popover extends Border {
         initLayout();
     }
 
-    public void setReference(Component reference) {
-        this.reference = reference;
-    }
+    public abstract Component getPopoverReferenceComponent();
 
     private void initLayout() {
         setOutputMarkupId(true);
@@ -55,9 +53,20 @@ public class Popover extends Border {
         Label title = new Label(ID_TITLE, this.title);
         title.add(new VisibleBehaviour(() -> Popover.this.title.getObject() != null));
         addToBorder(title);
+
+        WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
+        if (StringUtils.isNotEmpty(getArrowCustomStyle())) {
+            arrow.add(AttributeAppender.append("style", getArrowCustomStyle()));
+        }
+        addToBorder(arrow);
     }
 
     public void toggle(AjaxRequestTarget target) {
-        target.appendJavaScript("$(function() { MidPointTheme.togglePopover('#" + reference.getMarkupId() + "', '#" + getMarkupId() + "'); });");
+        target.appendJavaScript("$(function() { MidPointTheme.togglePopover('#" +
+                getPopoverReferenceComponent().getMarkupId() + "', '#" + getMarkupId() + "'); });");
+    }
+
+    protected String getArrowCustomStyle() {
+        return null;
     }
 }

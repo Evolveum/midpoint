@@ -31,7 +31,9 @@ public class ConnectorConfigurationPropertyWrapperFactory<T> extends PrismProper
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        if (def instanceof PrismPropertyDefinition && parent.getDefinition().getItemName().equivalent(ItemPath.create("configurationProperties"))) {
+        if (def instanceof PrismPropertyDefinition
+                && parent != null
+                && parent.getDefinition().getItemName().equivalent(ItemPath.create("configurationProperties"))) {
             return true;
         }
         return false;

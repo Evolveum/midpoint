@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
  */
 public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T>> {
 
+    private static final long serialVersionUID = 1L;
     private static final String ID_POPOVER = "popover";
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_ITEM_LIST = "itemList";
@@ -66,7 +68,19 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
     }
 
     private void initLayout() {
-        Popover popover = new Popover(ID_POPOVER);
+        Popover popover = new Popover(ID_POPOVER) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Component getPopoverReferenceComponent() {
+                return SelectableItemListPopoverPanel.this.getPopoverReferenceComponent();
+            }
+
+            @Override
+            protected String getArrowCustomStyle() {
+                return getPopoverCustomArrowStyle();
+            }
+        };
         add(popover);
 
         final WebMarkupContainer propList = new WebMarkupContainer(ID_ITEM_LIST);
@@ -154,7 +168,7 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
         };
         propList.add(properties);
 
-        AjaxButton add = new AjaxButton(ID_ADD_BUTTON, createStringResource("SearchPanel.add")) {
+        AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON, createStringResource("SearchPanel.add")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -163,7 +177,8 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
                 addItemsPerformed(getSelectedItemList(), target);
             }
         };
-        popover.add(add);
+        addButton.add(new VisibleBehaviour(this::isSelectable));
+        popover.add(addButton);
 
         AjaxButton close = new AjaxButton(ID_CLOSE_BUTTON, createStringResource("SearchPanel.close")) {
 
@@ -176,7 +191,10 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
         };
         popover.add(close);
 
-        popover.setReference(getPopoverReferenceComponent());
+    }
+
+    private boolean isSelectable() {
+        return CollectionUtils.isNotEmpty(getModelObject().stream().filter(item -> item instanceof SelectableRow).collect(Collectors.toList()));
     }
 
     protected abstract void addItemsPerformed(List<T> item, AjaxRequestTarget target);
@@ -203,5 +221,9 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
 
     public void togglePopover(AjaxRequestTarget target) {
         ((Popover) get(ID_POPOVER)).toggle(target);
+    }
+
+    protected String getPopoverCustomArrowStyle() {
+        return null;
     }
 }
