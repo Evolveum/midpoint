@@ -250,33 +250,23 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     /**
      * Returns appropriate {@link ResourceObjectDefinition} for given shadow. We are not too strict here.
-     * Unknown kind/intent values are ignored (treated like null). Intent without kind is ignored.
+     * Unknown kind/intent values are ignored (treated like null). Incomplete classification is considered
+     * as kind=null, intent=null.
      *
-     * Takes auxiliary object classes defined in the shadow into account.
-     *
-     * Note: we could be even more relaxed (in the future):
-     *
-     * 1. Currently the consistency between kind, intent, and OC is checked. We could avoid this.
-     * 2. The {@link ResourceObjectDefinitionResolver#findObjectDefinition(ResourceSchema, ShadowKindType, String, QName)} method used throws an exception
-     * when it cannot decide among various definitions for given kind (when intent and OC is null). We could be more
-     * permissive and return any of them.
+     * Takes auxiliary object classes defined in the shadow, in the structural object definition, and those explicitly
+     * provided itself into account - by creating {@link CompositeObjectDefinition} in such cases.
      */
-    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) {
-        return ResourceObjectDefinitionResolver.findDefinitionForShadow(this, shadow);
+    default @Nullable ResourceObjectDefinition findDefinitionForShadow(
+            @NotNull ShadowType shadow,
+            @NotNull Collection<QName> additionalAuxObjectClassNames) {
+        return ResourceObjectDefinitionResolver.findDefinitionForShadow(this, shadow, additionalAuxObjectClassNames);
     }
-    //endregion
 
     /**
-     * Determines the object definition based on kind and object class.
-     *
-     * TODO specify the behavior
-     *
-     * Legacy. Should not be used for new code.
+     * Convenience variant of {@link #findDefinitionForShadow(ShadowType, Collection)}.
      */
-    default @Nullable ResourceObjectDefinition findObjectDefinitionForKindAndObjectClass(
-            @NotNull ShadowKindType kind,
-            @Nullable QName objectClassName) {
-        return ResourceObjectDefinitionResolver.findObjectDefinition(this, kind, null, objectClassName);
+    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) {
+        return findDefinitionForShadow(shadow, List.of());
     }
     //endregion
 

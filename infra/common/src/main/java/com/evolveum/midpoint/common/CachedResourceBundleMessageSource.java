@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
- * Looking for resource bundle in compressed war and compressed libraries inside war is pretty expensive.
+ * Looking for resource bundle in compressed JAR and compressed libraries inside JAR is pretty expensive.
  * Therefore this implementation caches information about whether bundle exists.
  *
  * @author Viliam Repan (lazyman).

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAdministrativeStateType;
 
@@ -30,6 +31,8 @@ public class QResource extends QAssignmentHolder<MResource> {
 
     public static final ColumnMetadata BUSINESS_ADMINISTRATIVE_STATE =
             ColumnMetadata.named("businessAdministrativeState").ofType(Types.OTHER);
+    public static final ColumnMetadata ADMINISTRATIVE_OPERATIONAL_STATE_ADMINISTRATIVE_AVAILABILITY_STATUS =
+            ColumnMetadata.named("administrativeOperationalStateAdministrativeAvailabilityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS =
             ColumnMetadata.named("operationalStateLastAvailabilityStatus").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_REF_TARGET_OID =
@@ -42,6 +45,10 @@ public class QResource extends QAssignmentHolder<MResource> {
     public final EnumPath<ResourceAdministrativeStateType> businessAdministrativeState =
             createEnum("businessAdministrativeState", ResourceAdministrativeStateType.class,
                     BUSINESS_ADMINISTRATIVE_STATE);
+    public final EnumPath<AdministrativeAvailabilityStatusType> administrativeOperationalStateAdministrativeAvailabilityStatus =
+            createEnum("administrativeOperationalStateAdministrativeAvailabilityStatus",
+                    AdministrativeAvailabilityStatusType.class,
+                    ADMINISTRATIVE_OPERATIONAL_STATE_ADMINISTRATIVE_AVAILABILITY_STATUS);
     public final EnumPath<AvailabilityStatusType> operationalStateLastAvailabilityStatus =
             createEnum("operationalStateLastAvailabilityStatus", AvailabilityStatusType.class,
                     OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS);

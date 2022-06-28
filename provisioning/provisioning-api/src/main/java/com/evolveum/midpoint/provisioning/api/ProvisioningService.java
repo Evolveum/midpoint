@@ -192,10 +192,11 @@ public interface ProvisioningService {
      * * If both kind and intent are specified, object type is determined based on them. It is then checked against
      * object class name - the object class for given object type must match the specified object class name,
      * if it's provided.
-     * * If only kind is specified (without intent; and with or without object class name), a complex algorithm
-     * for determining the intent is carried out. See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType,
-     * ShadowKindType, String, QName)} for details. (The simplest case is when
-     * {@link ResourceObjectTypeDefinition#isDefaultForKind()} is set for an object type. Then that one is used.)
+     * * If only kind is specified (without intent), the default object type is found; and checked against
+     * object class name just like above.
+     *
+     * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)} for
+     * the details.
      *
      * Note that it's not possible to specify intent without kind.
      * Also, `unknown` values for kind or intent are not supported.
@@ -272,7 +273,8 @@ public interface ProvisioningService {
      *
      * The object class or type used for on-resource search is then determined like this:
      *
-     * - if `kind` is specified, a combination of `kind`, `intent`, and `objectclass` is used to find object type definition,
+     * - if `kind` and `intent` are specified, the appropriate type is looked for;
+     * - if `kind` is specified but `intent` is not, the default type for given kind is looked for;
      * - if `kind` is not specified, `objectclass` is used to find the most appropriate object class or object type definition.
      *
      * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)} for

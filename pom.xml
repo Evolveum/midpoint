@@ -26,7 +26,7 @@
 
     Quick developer's run without any tests, skipping distribution and documentation build (~5m):
     mvn clean install -P -dist -DskipTests
-    After this, it's possible to run midPoint WAR with: java -jar gui/admin-gui/target/midpoint-executable.war
+    After this, it's possible to run midPoint JAR with: java -jar gui/midpoint-jar/target/midpoint.jar
 
     Quick build of distribution without running tests, skipping documentation (~6m):
     mvn clean install -P -docs -DskipTests
@@ -165,7 +165,7 @@
         <!-- Build system options -->
         <!-- Encoding for both sources and resources -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.source.version>11</project.source.version>
+        <project.source.version>17</project.source.version>
         <project.build.locale>en_US</project.build.locale>
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
@@ -179,7 +179,6 @@
         <!--
         JVM args for testing plugins, can be used to add profiling, etc.
         Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
-        It works fine for JDK 11 as well, no need for separate profiles.
         -->
         <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
         <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
@@ -448,7 +447,7 @@
             <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
-                <!-- Version compatible with JDK 11. Transitive dependency from hibernate. Hibernate has older version. -->
+                <!-- Version compatible with JDK 11+. Transitive dependency from hibernate. Hibernate has older version. -->
                 <version>3.28.0-GA</version>
             </dependency>
             <dependency>
@@ -1782,7 +1781,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
                 <configuration>
                     <skipIfEmpty>true</skipIfEmpty>
                     <archive>
@@ -1798,33 +1796,7 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.3</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Version-Number>${project.version}</Version-Number>
-                            <SCM-Revision>${git.describe}</SCM-Revision>
-                            <Organization>Evolveum</Organization>
-                            <Organization-URL>https://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
-                            <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
-                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
-                        </manifestEntries>
-                    </archive>
-                    <attachClasses>true</attachClasses>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
 
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>3.0.1</version>
-                <!-- Used in system-init module. -->
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -2056,7 +2028,7 @@
                                     <pluginExecutionFilter>
                                         <groupId>com.lukegb.mojo</groupId>
                                         <artifactId>gitdescribe-maven-plugin</artifactId>
-                                        <versionRange>[3.0,)</versionRange>
+                                        <versionRange>3.0</versionRange>
                                         <goals>
                                             <goal>gitdescribe</goal>
                                         </goals>

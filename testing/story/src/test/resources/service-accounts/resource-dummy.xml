@@ -56,10 +56,17 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
-            <!-- Cannot be a default for object class, as this would cause all AccountObjectClass
-                 objects be classified as this type. -->
-            <defaultForKind>true</defaultForKind>
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <classificationCondition>
+                    <!-- All AccountObjectClass instances would get classified as account/default (because of default=true)
+                         if this condition would not be set. -->
+                    <script>
+                        <code>false</code>
+                    </script>
+                </classificationCondition>
+            </delineation>
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>

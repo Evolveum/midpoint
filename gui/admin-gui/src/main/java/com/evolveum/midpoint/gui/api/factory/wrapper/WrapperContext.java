@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -14,12 +15,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -62,6 +65,8 @@ public class WrapperContext {
 
      private GuiObjectDetailsPageType detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
+
+    private DiscoveredConfiguration connectorConfigurationSuggestions;
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -245,6 +250,14 @@ public class WrapperContext {
         this.detailsPageTypeConfiguration = detailsPageTypeConfiguration;
     }
 
+    public DiscoveredConfiguration getConnectorConfigurationSuggestions() {
+        return connectorConfigurationSuggestions;
+    }
+
+    public void setConnectorConfigurationSuggestions(DiscoveredConfiguration connectorConfigurationSuggestions) {
+        this.connectorConfigurationSuggestions = connectorConfigurationSuggestions;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -261,6 +274,7 @@ public class WrapperContext {
         ctx.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
         ctx.lookupTableCache = lookupTableCache;
         ctx.setDetailsPageTypeConfiguration(detailsPageTypeConfiguration);
+        ctx.setConnectorConfigurationSuggestions(connectorConfigurationSuggestions);
         return ctx;
     }
 }

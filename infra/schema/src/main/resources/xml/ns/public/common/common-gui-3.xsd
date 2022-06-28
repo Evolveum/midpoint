@@ -379,7 +379,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="defaultRelation" type="xsd:anyURI" minOccurs="0">
+            <xsd:element name="defaultRelation" type="xsd:QName" minOccurs="0">
 
             </xsd:element>
             <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0">

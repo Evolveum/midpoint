@@ -216,7 +216,7 @@ public class ResourceManager {
         result.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
 
         ConnectorInstance connector =
-                connectorManager.getConfiguredConnectorInstance(connectorSpec, false, false, result);
+                connectorManager.getConfiguredConnectorInstance(connectorSpec, result);
         return DiscoveredConfiguration.of(
                 connector.discoverConfiguration(result));
     }
@@ -313,7 +313,7 @@ public class ResourceManager {
             ExpressionEvaluationException {
         PrismObject<ResourceType> resource = getResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
-        ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
+        ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
         try {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(
@@ -331,7 +331,7 @@ public class ResourceManager {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         List<ConnectorOperationalStatus> statuses = new ArrayList<>();
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource.asObjectable())) {
-            ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
+            ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
             ConnectorOperationalStatus operationalStatus = connectorInstance.getOperationalStatus();
             if (operationalStatus != null) {
                 operationalStatus.setConnectorName(connectorSpec.getConnectorName());
@@ -348,7 +348,7 @@ public class ResourceManager {
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, capabilityClass);
-        return connectorManager.getConfiguredConnectorInstance(connectorSpec, forceFresh, parentResult);
+        return connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, forceFresh, parentResult);
     }
 
     // Used by the tests. Does not change anything.

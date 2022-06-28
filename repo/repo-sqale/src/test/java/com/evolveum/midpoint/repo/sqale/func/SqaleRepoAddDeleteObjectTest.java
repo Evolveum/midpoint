@@ -1296,6 +1296,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 ServiceType.COMPLEX_TYPE, approver2Relation))
                 .operationalState(new OperationalStateType()
                         .lastAvailabilityStatus(AvailabilityStatusType.BROKEN))
+                .administrativeOperationalState(new AdministrativeOperationalStateType()
+                        .administrativeAvailabilityStatus(AdministrativeAvailabilityStatusType.MAINTENANCE))
                 .connectorRef(connectorOid.toString(),
                         ConnectorType.COMPLEX_TYPE, connectorRelation);
 
@@ -1310,6 +1312,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .isEqualTo(ResourceAdministrativeStateType.DISABLED);
         assertThat(row.operationalStateLastAvailabilityStatus)
                 .isEqualTo(AvailabilityStatusType.BROKEN);
+        assertThat(row.administrativeOperationalStateAdministrativeAvailabilityStatus)
+                .isEqualTo(AdministrativeAvailabilityStatusType.MAINTENANCE);
         assertThat(row.connectorRefTargetOid).isEqualTo(connectorOid);
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);

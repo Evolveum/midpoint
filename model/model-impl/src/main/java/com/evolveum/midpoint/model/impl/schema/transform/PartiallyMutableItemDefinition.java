@@ -17,6 +17,9 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.SchemaMigration;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
+import com.evolveum.midpoint.util.DisplayableValue;
+
+import java.util.Collection;
 
 public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends MutableItemDefinition<I> {
 
@@ -265,6 +268,16 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
 
         @Override
         default void setInherited(boolean value) {
+            throw new IllegalStateException("Item Definition is not modifiable");
+        }
+
+        @Override
+        default void setAllowedValues(Collection<? extends DisplayableValue<T>> allowedValues){
+            throw new IllegalStateException("Item Definition is not modifiable");
+        }
+
+        @Override
+        default void setSuggestedValues(Collection<? extends DisplayableValue<T>> suggestedValues) {
             throw new IllegalStateException("Item Definition is not modifiable");
         }
     }

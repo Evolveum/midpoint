@@ -375,7 +375,7 @@ class ResourceSchemaHelper {
             throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             connectorManager
-                    .getConfiguredConnectorInstance(connectorSpec, false, result)
+                    .getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)
                     .updateSchema(rawResourceSchema);
         }
     }

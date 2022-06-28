@@ -30,30 +30,6 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
-
-        <!-- JDBC DRIVERS -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!--
-        Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
-        TODO: in admin-gui they are provided, because it's handy for developer
-         but perhaps we can just delete it here and recheck whether they are packaged.
-         This may actually be useless here, because developer runs main class from the GUI module (at least now).
-         But we leave it here + the exclusion in repackage, so no harm done.
-        -->
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -89,17 +65,6 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>
-                    <!-- This excludes these deps, including their transitive dependencies. -->
-                    <excludes>
-                        <exclude>
-                            <groupId>com.microsoft.sqlserver</groupId>
-                            <artifactId>mssql-jdbc</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>com.oracle.database.jdbc</groupId>
-                            <artifactId>ojdbc11</artifactId>
-                        </exclude>
-                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

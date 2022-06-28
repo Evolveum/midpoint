@@ -9,10 +9,13 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.model.IModel;
@@ -74,6 +77,19 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
                 }
             };
             return WebComponentUtil.createDropDownChoices(panelCtx.getComponentId(), convertModel, choices, true, panelCtx.getPageBase());
+        }
+
+        Collection<? extends DisplayableValue<T>> suggestedValues = panelCtx.getSuggestedValues();
+        if (CollectionUtils.isNotEmpty(suggestedValues)) {
+            Iterator<T> choices = suggestedValues.stream()
+                    .map(disValue -> disValue.getValue())
+                    .collect(Collectors.toCollection(ArrayList::new)).iterator();
+            return new AutoCompleteTextPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false) {
+                @Override
+                public Iterator<T> getIterator(String input) {
+                    return choices;
+                }
+            };
         }
 
         return new TextPanel<>(panelCtx.getComponentId(),

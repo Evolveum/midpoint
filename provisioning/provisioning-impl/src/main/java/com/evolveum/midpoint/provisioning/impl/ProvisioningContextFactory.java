@@ -12,27 +12,24 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
-
-import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -88,9 +85,7 @@ public class ProvisioningContextFactory {
                         resource,
                         coords.getKind(),
                         coords.getIntent(),
-                        coords.getObjectClass(),
-                        List.of(),
-                        false),
+                        coords.getObjectClass()),
                 null,
                 this);
     }
@@ -116,16 +111,6 @@ public class ProvisioningContextFactory {
                 scopedDefinition.definition,
                 scopedDefinition.wholeClass,
                 this);
-    }
-
-    /** Just a variant of the above. */
-    public @NotNull ProvisioningContext createForBulkOperation(
-            @Nullable ObjectQuery query,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-        return createForBulkOperation(
-                ObjectQueryUtil.getOperationCoordinates(query), task, result);
     }
 
     private ScopedDefinition createScopedDefinitionForBulkOperation(ResourceOperationCoordinates coords, ResourceType resource)
@@ -161,17 +146,19 @@ public class ProvisioningContextFactory {
             @NotNull ProvisioningContext originalCtx,
             @NotNull ShadowKindType kind,
             @NotNull String intent) throws SchemaException, ConfigurationException {
+        ResourceSchema schema = originalCtx.getResourceSchema();
         return new ProvisioningContext(
                 originalCtx,
                 originalCtx.getTask(),
-                ResourceSchemaUtil.findObjectDefinitionPrecisely(
-                        originalCtx.getResource(),
-                        kind,
-                        intent,
-                        null,
-                        List.of(),
-                        false),
+                getDefinition(schema, kind, intent),
                 false); // The client has explicitly requested kind/intent, so it wants the type, not the class.
+    }
+
+    @NotNull
+    private ResourceObjectDefinition getDefinition(
+            @NotNull ResourceSchema schema, @NotNull ShadowKindType kind, @NotNull String intent) {
+        ResourceObjectDefinition definition = schema.findObjectDefinitionRequired(kind, intent);
+        return ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, schema);
     }
 
     /**
@@ -184,18 +171,24 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull QName objectClassName,
             boolean useRawDefinition) throws SchemaException, ConfigurationException {
-        @NotNull ResourceObjectDefinition definition = ResourceSchemaUtil.findObjectDefinitionPrecisely(
-                originalCtx.getResource(),
-                null,
-                null,
-                objectClassName,
-                List.of(),
-                false);
+        ResourceSchema resourceSchema = originalCtx.getResourceSchema();
+        ResourceObjectDefinition definition = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
+        ResourceObjectDefinition augmented = ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, resourceSchema);
         return new ProvisioningContext(
                 originalCtx,
                 task,
-                useRawDefinition ? definition.getRawObjectClassDefinition() : definition,
+                useRawDefinition ? augmented.getRawObjectClassDefinition() : augmented,
                 true);
+    }
+
+    /** A convenience variant of {@link #createForShadow(ShadowType, Task, OperationResult)}. */
+    public ProvisioningContext createForShadow(
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return createForShadow(shadow.asObjectable(), task, result);
     }
 
     /**
@@ -204,7 +197,7 @@ public class ProvisioningContextFactory {
      * Assuming there is no pre-resolved resource.
      */
     public ProvisioningContext createForShadow(
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -226,7 +219,7 @@ public class ProvisioningContextFactory {
      * Additional auxiliary object class names are to be put into the object type definition.
      */
     public ProvisioningContext createForShadow(
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull Collection<QName> additionalAuxiliaryObjectClassNames,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -245,7 +238,7 @@ public class ProvisioningContextFactory {
      * Creates the context for a given pre-resolved resource, and a shadow (pointing to kind, and intent).
      */
     public ProvisioningContext createForShadow(
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull ResourceType resource,
             @NotNull Task task)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -264,7 +257,7 @@ public class ProvisioningContextFactory {
      */
     ProvisioningContext spawnForShadow(
             @NotNull ProvisioningContext originalCtx,
-            @NotNull PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
+            @NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
         assertSameResource(originalCtx, shadow);
         return new ProvisioningContext(
                 originalCtx,
@@ -274,17 +267,17 @@ public class ProvisioningContextFactory {
         );
     }
 
-    private void assertSameResource(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> shadow) {
+    private void assertSameResource(@NotNull ProvisioningContext ctx, @NotNull ShadowType shadow) {
         String oidInShadow = ShadowUtil.getResourceOid(shadow);
         stateCheck(oidInShadow == null || oidInShadow.equals(ctx.getResourceOid()),
                 "Not allowed to change resource OID in provisioning context (from %s to %s): %s",
                 ctx.getResourceOid(), oidInShadow, ctx);
     }
 
-    public @NotNull ResourceType getResource(PrismObject<ShadowType> shadow, Task task, OperationResult result)
+    public @NotNull ResourceType getResource(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
         return getResource(
-                ShadowUtil.getResourceOidRequired(shadow.asObjectable()),
+                ShadowUtil.getResourceOidRequired(shadow),
                 task, result);
     }
 
@@ -296,20 +289,10 @@ public class ProvisioningContextFactory {
 
     private ResourceObjectDefinition getObjectDefinition(
             @NotNull ResourceType resource,
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull Collection<QName> additionalAuxiliaryObjectClassNames) throws SchemaException, ConfigurationException {
-
-        ShadowUtil.checkForPartialClassification(shadow.asObjectable());
-
-        return ResourceSchemaUtil.findObjectDefinitionPrecisely(
-                resource,
-                shadow.asObjectable().getKind(),
-                shadow.asObjectable().getIntent(),
-                shadow.asObjectable().getObjectClass(),
-                MiscUtil.union(
-                        shadow.asObjectable().getAuxiliaryObjectClass(),
-                        additionalAuxiliaryObjectClassNames),
-                true);
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        return schema.findDefinitionForShadow(shadow, additionalAuxiliaryObjectClassNames);
     }
 
     @NotNull ResourceManager getResourceManager() {

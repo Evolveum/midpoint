@@ -18,7 +18,7 @@
 
     <artifactId>midpoint-boot-layout</artifactId>
 
-    <name>midPoint Tools - custom Spring Boot WAR/JAR layout</name>
+    <name>midPoint Tools - custom Spring Boot JAR layout</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>

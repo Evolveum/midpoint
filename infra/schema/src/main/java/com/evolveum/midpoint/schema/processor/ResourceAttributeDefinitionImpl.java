@@ -507,6 +507,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public Collection<? extends DisplayableValue<T>> getSuggestedValues() {
+        return rawDefinition.getSuggestedValues();
+    }
+
+    @Override
     public T defaultValue() {
         return rawDefinition.defaultValue();
     }

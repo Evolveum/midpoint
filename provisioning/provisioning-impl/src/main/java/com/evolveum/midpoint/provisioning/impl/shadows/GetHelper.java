@@ -278,7 +278,7 @@ class GetHelper {
                     LOGGER.debug("Classified {} as {}", repoShadow, classification.getDefinition());
                     repoShadow = shadowManager.fixShadow(ctx, repoShadow, result);
                     shadowCaretaker.updateAndReturnShadowState(ctx, repoShadow, now);
-                    ProvisioningContext tempCtx = ctx.spawnForShadow(repoShadow);
+                    ProvisioningContext tempCtx = ctx.spawnForShadow(repoShadow.asObjectable());
                     shadowCaretaker.applyAttributesDefinition(tempCtx, repoShadow);
                 }
             }
@@ -288,7 +288,7 @@ class GetHelper {
             // kind/intent and these information is only in repo shadow, therefore the following 2 lines...
             resourceObject.asObjectable().setKind(repoShadow.asObjectable().getKind());
             resourceObject.asObjectable().setIntent(repoShadow.asObjectable().getIntent());
-            ProvisioningContext shadowCtx = ctx.spawnForShadow(resourceObject);
+            ProvisioningContext shadowCtx = ctx.spawnForShadow(resourceObject.asObjectable());
 
             String operationCtx = "getting " + repoShadow + " was successful.";
 

@@ -4,25 +4,20 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.prism.panel.verticalForm;
+package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-
-import javax.xml.namespace.QName;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -31,6 +26,8 @@ import java.util.List;
 public class VerticalFormDefaultContainerablePanel<C extends Containerable> extends DefaultContainerablePanel<C, PrismContainerValueWrapper<C>> {
 
     private static final String ID_PROPERTY = "property";
+
+    private static final String ID_SHOW_EMPTY_BUTTON_CONTAINER = "showEmptyButtonContainer";
 
     public VerticalFormDefaultContainerablePanel(String id, IModel<PrismContainerValueWrapper<C>> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -59,4 +56,19 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         item.add(propertyPanel);
     }
 
+    @Override
+    protected AjaxButton createShowEmptyButton(String id) {
+        AjaxButton button = super.createShowEmptyButton(id);
+        AjaxButton buttonContainer = new AjaxButton(ID_SHOW_EMPTY_BUTTON_CONTAINER) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                button.onClick(target);
+            }
+
+        };
+        buttonContainer.add(button);
+        return buttonContainer;
+    }
 }

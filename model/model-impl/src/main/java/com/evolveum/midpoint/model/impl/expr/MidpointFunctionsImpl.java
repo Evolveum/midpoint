@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.BooleanUtils;
@@ -1819,6 +1820,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             @NotNull ShadowKindType kind,
             @NotNull String intent) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+
+        Preconditions.checkArgument(ShadowUtil.isKnown(kind), "kind is not known: %s", kind);
+        Preconditions.checkArgument(ShadowUtil.isKnown(intent), "intent is not known: %s", intent);
 
         Task task = getCurrentTaskRequired();
         OperationResult result = getCurrentResult(OP_FIND_CANDIDATE_OWNERS)

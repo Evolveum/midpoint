@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.util.DisplayableValue;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -95,7 +98,10 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
 
         for (PrismProperty<?> discoveredProperty : discoveredProperties) {
             if (discoveredProperty.getElementName().getLocalPart().equals("baseContext")) {
-                assertEquals("Wrong discovered base context", openDJController.getSuffix(), discoveredProperty.getRealValue());
+                assertThat(discoveredProperty.getDefinition().getAllowedValues())
+                        .as("suggested properties")
+                        .hasSize(1)
+                        .anyMatch(suggestion -> openDJController.getSuffix().equals(suggestion.getValue()));
             }
         }
 
@@ -133,8 +139,12 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
             ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
                     SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
                     discoveredProperty.getElementName());
+            PrismPropertyDefinition<?> def = discoveredProperty.getDefinition();
+            Collection<? extends DisplayableValue<?>> suggestions = def.getAllowedValues() != null ? def.getAllowedValues() : def.getSuggestedValues();
             PropertyDelta<Object> propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-                    propertyPath, discoveredProperty.getDefinition(), discoveredProperty.getRealValues().toArray());
+                    propertyPath,
+                    discoveredProperty.getDefinition(),
+                    suggestions.stream().map(displayValue -> displayValue.getValue()).toArray());
             modifications.add(propertyDelta);
         }
 

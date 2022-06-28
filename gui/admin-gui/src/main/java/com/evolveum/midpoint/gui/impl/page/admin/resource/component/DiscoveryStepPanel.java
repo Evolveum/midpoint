@@ -6,46 +6,29 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPrismPropertyValuePanel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lskublik
  */
-@PanelType(name = "discoverWizard")
-@PanelInstance(identifier = "discoverWizard",
+@PanelType(name = "discoverConnectorConfigurationWizard")
+@PanelInstance(identifier = "discoverConnectorConfigurationWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         defaultPanel = true,
@@ -54,10 +37,27 @@ import javax.xml.namespace.QName;
         expanded = true)
 public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "discoverWizard";
+    private static final String DOT_CLASS = DiscoveryStepPanel.class.getName() + ".";
+    private static final String OPERATION_DISCOVER_CONFIGURATION = DOT_CLASS + "discoverConfiguration";
+
+    private static final String PANEL_TYPE = "discoverConnectorConfigurationWizard";
 
     public DiscoveryStepPanel(ResourceDetailsModel model) {
         super(model);
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        PageBase pageBase = getPageBase();
+        OperationResult result = new OperationResult(OPERATION_DISCOVER_CONFIGURATION);
+
+        DiscoveredConfiguration discoverProperties =
+                pageBase.getModelService().discoverResourceConnectorConfiguration(getResourceModel().getObjectWrapper().getObject(), result);
+
+        getResourceModel().setConnectorConfigurationSuggestions(discoverProperties);
+        getResourceModel().getObjectWrapperModel().reset();
+
+        super.onBeforeRender();
     }
 
     protected String getPanelType() {
@@ -84,10 +84,13 @@ public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
         return createStringResource("PageResource.wizard.discovery.subText");
     }
 
-    protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
-        if(itemWrapper.isMandatory()) {
-            return ItemVisibility.HIDDEN;
-        }
-        return ItemVisibility.AUTO;
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return w -> {
+            if (w.isMandatory()) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
     }
 }

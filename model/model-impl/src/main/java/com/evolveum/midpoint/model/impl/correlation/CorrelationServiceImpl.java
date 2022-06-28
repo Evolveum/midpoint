@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.correlation;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -88,7 +88,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 PrismContext.get().createObjectable(focusType),
                 ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task,
-                synchronizationPolicy.getResourceObjectDefinition(),
+                synchronizationPolicy.getObjectTypeDefinition(),
                 beans);
         new PreMappingsEvaluation<>(preInboundsContext, beans)
                 .evaluate(result);
@@ -112,7 +112,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 PrismContext.get().createObjectable(focusType),
                 ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task,
-                synchronizationPolicy.getResourceObjectDefinition(),
+                synchronizationPolicy.getObjectTypeDefinition(),
                 beans);
         new PreMappingsEvaluation<>(preInboundsContext, beans)
                 .evaluate(result);
@@ -144,13 +144,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         ResourceType resource =
                 beans.provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
 
-        // We expect that the shadow is classified + reasonably fresh (= not legacy), so it has kind+intent present.
-        ShadowKindType kind = MiscUtil.requireNonNull(shadow.getKind(), () -> new IllegalStateException("No kind in " + shadow));
-        String intent = MiscUtil.requireNonNull(shadow.getIntent(), () -> new IllegalStateException("No intent in " + shadow));
-        // TODO check for "unknown" ?
+        ShadowKindType kind = shadow.getKind();
+        String intent = shadow.getIntent();
 
-        SynchronizationPolicy policy =
-                SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource);
+        stateCheck(ShadowUtil.isClassified(kind, intent), "Shadow %s is not classified: %s/%s", shadow, kind, intent);
+
+        SynchronizationPolicy policy = SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource);
         if (policy == null) {
             throw new IllegalStateException(
                     "No " + kind + "/" + intent + " (kind/intent) type and synchronization definition in " + resource
@@ -159,7 +158,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             return new FullCorrelationContext(
                     shadow,
                     resource,
-                    policy.getResourceObjectDefinition(),
+                    policy.getObjectTypeDefinition(),
                     policy,
                     asObjectable(systemObjectCache.getSystemConfiguration(result)));
         }

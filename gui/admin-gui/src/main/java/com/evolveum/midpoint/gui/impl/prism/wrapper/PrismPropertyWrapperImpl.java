@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -40,6 +41,11 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     @Override
     public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return getItemDefinition().getAllowedValues();
+    }
+
+    @Override
+    public Collection<? extends DisplayableValue<T>> getSuggestedValues() {
+        return getItemDefinition().getSuggestedValues();
     }
 
     @Override

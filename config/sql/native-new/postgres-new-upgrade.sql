@@ -29,7 +29,8 @@ Current database name is ''%'', schema name is ''%''.', current_database(), curr
     END
 $$;
 
--- SCHEMA-COMMIT 4.4: commit 69e8c29b
+-- SCHEMA-COMMIT 4.4: commit 20ad200b
+-- see: https://github.com/Evolveum/midpoint/blob/20ad200bd10a114fd70d2d131c0d11b5cd920150/config/sql/native-new/postgres-new.sql
 
 -- changes for 4.4.1
 
@@ -92,6 +93,7 @@ CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modif
 $aa$);
 
 -- MID-7487 Identity matching
+-- We add the new enum value in separate change, because it must be committed before it is used.
 call apply_change(4, $aa$
 CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
 $aa$);
@@ -109,6 +111,23 @@ CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTim
 CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
 CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
 $aa$);
+
+-- SCHEMA-COMMIT 4.5: commit c5f19c9e
+
+-- changes for 4.6
+
+-- MID-7746
+-- We add the new enum value in separate change, because it must be committed before it is used.
+call apply_change(6, $aa$
+CREATE TYPE AdministrativeAvailabilityStatusType AS ENUM ('MAINTENANCE', 'OPERATIONAL');
+$aa$);
+
+call apply_change(7, $aa$
+ALTER TABLE m_resource
+ADD COLUMN administrativeOperationalStateAdministrativeAvailabilityStatus AdministrativeAvailabilityStatusType;
+$aa$);
+
+-- SCHEMA-COMMIT 4.6: commit TODO
 
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

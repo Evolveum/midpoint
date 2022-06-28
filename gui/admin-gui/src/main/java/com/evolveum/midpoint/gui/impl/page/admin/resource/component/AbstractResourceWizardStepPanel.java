@@ -7,24 +7,19 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.verticalForm.VerticalFormPrismPropertyValuePanel;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -43,7 +38,7 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        iniLayout();
+        initLayout();
     }
 
     public ResourceDetailsModel getResourceModel() {
@@ -55,9 +50,9 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
         return "mt-5 mx-auto col-8";
     }
 
-    private void iniLayout() {
+    protected void initLayout() {
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler(w -> checkVisibility(w))
+                .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(w -> checkMandatory(w))
                 .build();
         VerticalFormPanel form = new VerticalFormPanel(ID_FORM, this.resourceModel.getObjectWrapperModel(), settings, getContainerConfiguration()) {
@@ -70,9 +65,15 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
             protected IModel<?> getTitleModel() {
                 return getTitle();
             }
+
+
         };
         form.add(AttributeAppender.append("class", "col-8"));
         add(form);
+    }
+
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return null;
     }
 
     protected abstract String getIcon();
@@ -87,10 +88,6 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
         return itemWrapper.isMandatory();
     }
 
-    protected ItemVisibility checkVisibility(ItemWrapper itemWrapper) {
-        return ItemVisibility.AUTO;
-    }
-
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
         getVerticalForm().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
@@ -98,7 +95,11 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
         });
     }
 
-    private MarkupContainer getVerticalForm() {
-        return (MarkupContainer) get(ID_FORM);
+    private VerticalFormPanel getVerticalForm() {
+        return (VerticalFormPanel) get(ID_FORM);
+    }
+
+    protected WebMarkupContainer getFeedback() {
+        return getVerticalForm().getFeedbackPanel();
     }
 }

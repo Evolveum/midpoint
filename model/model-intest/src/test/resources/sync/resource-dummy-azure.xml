@@ -15,9 +15,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource Azure</name>
     <connectorRef type="c:ConnectorType">
@@ -73,10 +71,17 @@
             <kind>account</kind>
             <intent>trap</intent>
             <displayName>Trap Account</displayName>
-            <!-- Cannot be marked as defaultForClass, because the new (4.6) classifier automatically
-                 prefers it over non-default ones. -->
-            <defaultForKind>true</defaultForKind>
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <!-- All AccountObjectClass instances would get classified as account/trap (because of default=true)
+                     if this condition would not be set. -->
+                <classificationCondition>
+                    <script>
+                        <code>false</code>
+                    </script>
+                </classificationCondition>
+            </delineation>
             <attribute>
                 <ref>ri:ship</ref>
                 <displayName>Ship</displayName>

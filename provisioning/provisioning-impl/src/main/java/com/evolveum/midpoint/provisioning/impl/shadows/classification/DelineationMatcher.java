@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextClassificationUseType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +44,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import static com.evolveum.midpoint.schema.util.ShadowUtil.getObjectClassRequired;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextClassificationUseType.IF_APPLICABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextClassificationUseType.IGNORED;
 
 /**
  * Answers the question if a shadow matches given object type delineation. It does so by evaluating the following:
@@ -79,7 +85,11 @@ class DelineationMatcher {
     public boolean matches(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (!baseContextMatches()) {
+        if (!objectClassMatches()) {
+            LOGGER.trace("Object class does not match");
+            return false;
+        }
+        if (!isBaseContextIgnored() && !baseContextMatches()) {
             LOGGER.trace("Base context does not match");
             return false;
         }
@@ -95,12 +105,27 @@ class DelineationMatcher {
         return true;
     }
 
+    private boolean objectClassMatches() throws SchemaException {
+        return QNameUtil.match(
+                getObjectClassRequired(context.getShadowedResourceObject()),
+                delineation.getObjectClassName());
+    }
+
+    private boolean isBaseContextIgnored() {
+        return delineation.getBaseContextClassificationUse() == IGNORED;
+    }
+
     /**
      * This is tricky, as the base context is currently interpreted in connectors.
      *
      * So only LDAP distinguished names are supported for now.
      *
-     * In other cases, we return `true`, relying on other means of classification (filters, conditions).
+     * In other cases, we return
+     *
+     *  - `true`, relying on other means of classification (filters, conditions) - if the use of base context is optional
+     *  ({@link BaseContextClassificationUseType#IF_APPLICABLE}
+     *  - `false`, considering the object as non-matching - if {@link BaseContextClassificationUseType#REQUIRED} is set
+     *
      * See limitations described in the class javadocs.
      */
     private boolean baseContextMatches() throws SchemaException, ConfigurationException {
@@ -110,19 +135,23 @@ class DelineationMatcher {
         }
         LdapName scopeRootDn = getRootDistinguishedName(baseContext);
         if (scopeRootDn == null) {
-            LOGGER.debug("-> no root DN, not using the base context for classification");
-            return true;
+            LOGGER.debug("-> no root DN, base context cannot be used for classification");
+            return isBaseContextOptional();
         }
         LdapName shadowDn = getShadowDistinguishedName();
         if (shadowDn == null) {
-            LOGGER.debug("-> no DN in shadow, not using the base context for classification");
-            return true;
+            LOGGER.debug("-> no DN in shadow, base context cannot be used for classification");
+            return isBaseContextOptional();
         }
 
         SearchHierarchyScope scope = delineation.getSearchHierarchyScope();
         boolean rv = isUnder(shadowDn, scopeRootDn, scope);
         LOGGER.trace("{} is under {} (scope {}): {}", shadowDn, scopeRootDn, scope, rv);
         return rv;
+    }
+
+    private boolean isBaseContextOptional() {
+        return delineation.getBaseContextClassificationUse() == IF_APPLICABLE;
     }
 
     private boolean isUnder(LdapName child, LdapName parent, SearchHierarchyScope scope) {
@@ -155,7 +184,7 @@ class DelineationMatcher {
         }
         ResourceObjectDefinition scopeObjectClassDefinition = Resource.of(context.getResource())
                 .getRawSchemaRequired()
-                .findDefinitionForObjectClassRequired(rootObjectClassName); // TODO or findObjectClassDefinitionRequired?
+                .findObjectClassDefinitionRequired(rootObjectClassName);
         ObjectFilter filter = QueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
         if (!(filter instanceof EqualFilter)) {
             LOGGER.debug("Base context filter not supported for classification: {}", filter);

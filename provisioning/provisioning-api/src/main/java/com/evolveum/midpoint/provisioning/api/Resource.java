@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -16,6 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * "One stop shop" for accessing various aspects of a resource (defined by {@link ResourceType} object).
@@ -49,5 +53,11 @@ public class Resource {
 
     public @NotNull ResourceSchema getCompleteSchemaRequired() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getCompleteSchemaRequired(resourceBean);
+    }
+
+    public @NotNull Collection<ResourceObjectTypeDefinition> getObjectTypeDefinitions()
+            throws SchemaException, ConfigurationException {
+        ResourceSchema schema = getCompleteSchema();
+        return schema != null ? schema.getObjectTypeDefinitions() : List.of();
     }
 }

@@ -137,7 +137,6 @@ public class ProcessingScope implements DebugDumpable {
         ResourceSchema resourceSchema = getCompleteSchema(resource);
         ResourceObjectDefinition definition = resourceSchema.findDefinitionForShadow(shadow);
         return new ProcessingScope(resource, definition, null, null, null);
-
     }
 
     private static @NotNull ResourceSchema getCompleteSchema(ResourceType resource) throws ActivityRunException {

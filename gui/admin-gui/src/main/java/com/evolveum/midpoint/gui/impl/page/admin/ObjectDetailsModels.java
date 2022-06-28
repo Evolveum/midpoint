@@ -71,6 +71,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 WrapperContext ctx = new WrapperContext(task, result);
                 ctx.setCreateIfEmpty(true);
                 ctx.setDetailsPageTypeConfiguration(detailsPageConfigurationModel.getObject());
+                customizationWrapperContext(ctx);
                 if (isReadonly()) {
                     ctx.setReadOnly(isReadonly());
                 }
@@ -108,6 +109,9 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 return object.asObjectable();
             }
         };
+    }
+
+    protected void customizationWrapperContext(WrapperContext ctx) {
     }
 
     private void loadParentOrgs(PrismObject<O> object) {

@@ -77,7 +77,7 @@ public class AssignedResourceObjectConstruction<AH extends AssignmentHolderType>
                         () -> resource + " as specified in construction in " + getSource()));
 
         for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
-            ResourceObjectDefinition auxOcDef = refinedSchema.findDefinitionForObjectClass(auxiliaryObjectClassName);
+            ResourceObjectDefinition auxOcDef = refinedSchema.findObjectClassDefinition(auxiliaryObjectClassName);
             if (auxOcDef == null) {
                 throw new SchemaException(
                         "No auxiliary object class " + auxiliaryObjectClassName + " found in "
