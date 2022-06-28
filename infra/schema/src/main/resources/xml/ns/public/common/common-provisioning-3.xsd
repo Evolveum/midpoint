@@ -50,7 +50,7 @@
                 IDM system connects to it to create accounts, assign
                 accounts to groups, etc. But it also may be an authoritative source of
                 data, system that maintains lookup tables, database that
-                contains organizational structure, etc. The {{Resource}}
+                contains organizational structure, etc. The resource
                 provides a combination of several functions (e.g.
                 both provisioning and authoritative data for some attributes).
             </xsd:documentation>
@@ -65,9 +65,24 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="administrativeOperationalState" type="tns:AdministrativeOperationalStateType" minOccurs="0"/>
-                    <xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
-                    <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="administrativeOperationalState" type="tns:AdministrativeOperationalStateType"
+                            minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Metadata about administrative operational state of the resource.
+                                Experimental. Contributed by the community.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Metadata about operational state of the resource.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="operationalStateHistory" type="tns:OperationalStateType"
+                            minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Previous values of the operationalState item.
@@ -111,8 +126,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType" minOccurs="0"/>
-                    <xsd:element name="additionalConnector" type="tns:ConnectorInstanceSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource configuration (hostname, port, ...). The structure of this section is specific
+                                for each resource type i.e. connector (CSV, LDAP, and so on). There may be some parts
+                                common to e.g. all ConnId-based resources.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="additionalConnector" type="tns:ConnectorInstanceSpecificationType"
+                            minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specification of additional connector(s). Additional connectors may add
@@ -154,21 +178,19 @@
                     <xsd:element name="capabilities" type="tns:CapabilitiesType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO: update
-
                                 The capabilities supported by the resource, including both native capabilities of
-                                the connector and simulated capabilities.
-                                If this element is not present at all, the value of nativeCapabilities element is
-                                assumed.
-                                The value of this element is not generated, it should be set by the administrator.
-                                The value of this element indicates administrator decisions what connector capabilities
-                                to use, what capabilities to simulate and how to simulate them.
-
-                                The values of this element indicates what the connector is allowed to do.
+                                the connector and configured capabilities. See the CapabilitiesType for the distinction
+                                between these two.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="scripts" type="tns:OperationProvisioningScriptsType" minOccurs="0"/>
+                    <xsd:element name="scripts" type="tns:OperationProvisioningScriptsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scripts to be executed for various provisioning operations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -465,22 +487,45 @@
                     <xsd:documentation>
                         Refinement (modification, extension) of definitions of object classes in the "native" resource schema.
 
-                        Beware: Not all elements of ResourceObjectTypeDefinitionType are supported here. For example, it's
-                        not possible to specify kind, intent, nor super-type here. Because of a limitation of XSD we are not
-                        able to express these limitations without changing the order of XML elements in complying documents.
+                        This is to specify refinements that should be applied to _all_ objects and operations related
+                        to given object class. For example, if we want to specify fetch strategy for specific attribute
+                        of groupOfUniqueNames object class, and apply this consistently to all search operations over
+                        this object class, we should specify the strategy here.
 
-                        We also don't advise to specify pure object-type concepts (like mappings) in these definitions.
-                        It would be better to provide a special object type to do this.
+                        This is something that has been achieved by setting default=true for a selected object type definition.
+                        However, the use of object class refinement is more focused and (in a sense) more clear way how to
+                        achieve this.
+
+                        Beware: Although the XSD type is formally ResourceObjectTypeDefinitionType (primarily because
+                        of implementation reasons), not all elements of ResourceObjectTypeDefinitionType are supported here.
+                        For example, it's not possible to specify kind, intent, nor super-type here. Because of a limitation
+                        of XSD language we are not able to express these restrictions without changing the order of XML
+                        elements in complying documents (because the typical solution: deriving both
+                        ResourceObjectTypeDefinitionType and something like "ResourceObjectClassDefinitionType" from a common
+                        ancestor would mean that the order of XML elements in resulting documents would be different from what
+                        it is now).
+
+                        We also advise avoid specification of pure object-type concepts (like mappings) in these definitions.
+                        It is better to create a special (abstract) object type to do this.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The objectType part of schema handling definition provides a mechanism to define
-                        concrete types of objects that this resource supports. There should be definitions
-                        of account types, entitlement types, etc. These are the definitions that should be
-                        used in constructions in roles, orgs, assignments, etc.
+                        Definition of types of objects this resource supports: account types, entitlement types,
+                        and so on. Each type has its delineation (specification what resource objects belong to it),
+                        focus specification (what focal objects correspond to it), attribute definitions (mappings and other
+                        options), association definitions, protected objects specification, capabilities, and so on.
+
+                        Resource object types are used when resource objects are addressed: for example when they are assigned
+                        (to roles, orgs, users), targeted by synchronization tasks, searched for using Query API, and so on.
+
+                        Type definitions can form hierarchies, with subtypes inheriting definitions from their supertypes.
+                        (And all inheriting definitions from refined object class definitions.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -493,7 +538,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 Defines a type of resource objects. By pointing to this kind of definition (by specifying kind
-                and intent) resource objects can be created and searched for.
+                and intent), resource objects can be created and searched for.
+
+                Note that this XSD type is - maybe temporarily - used also for specification of resource object class
+                refinements. See SchemaHandlingType.objectClass item description.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -537,7 +585,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Is this an abstract object type? Such a type cannot be referenced from a construction,
-                        nor it can be used as a categorization result.
+                        nor it can be used as a categorization result. It is also not referencable from e.g. search queries.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -563,7 +611,13 @@
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Default value for both defaultForKind and defaultForObjectClass properties.
+                        Specifies whether this resource object type is the default one that is used when:
+
+                        1. Kind without intent is specified (e.g. in assigned construction or in synchronization task).
+                        2. Object class without kind/intent is specified (e.g. in synchronization task).
+
+                        Technically, setting a value for this property is propagated to both "defaultForKind"
+                        and "defaultForObjectClass" ones. See their documentation for more information.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -571,11 +625,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies whether this resource object type is the default one for given kind of objects, i.e.
-                        for accounts, entitlements or "generic objects". This means that if e.g. a resource object construction
-                        is specified with kind=account (without providing an intent), then the intent of the default account type
-                        is selected. In a similar way, if a synchronization activity (like import or reconciliation)
-                        is specified with kind=account (without providing an intent), then the intent of the default account type
-                        is selected to specify the objects to be processed by the activity.
+                        for accounts, entitlements or "generic objects".
+
+                        This means that if e.g. object type T is specified with kind=account and defaultForKind=true,
+                        and a resource object construction is assigned with kind=account (without providing an intent),
+                        then this object type (T) is being assigned as a result.
+
+                        In a similar way, if a synchronization activity (like import or reconciliation)
+                        is specified with kind=account (without providing an intent), then the synchronization proceeds against
+                        objects of this type T. (I.e. NOT against all objects with kind=account!)
 
                         Only one type can be the default one for given kind. Setting this flag to true for more than one type
                         is an error.
@@ -588,16 +646,24 @@
             <xsd:element name="defaultForObjectClass" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specifies whether this resource object type is the default one for the given object class
-                        - e.g. for ri:AccountObjectClass or ri:inetOrgPerson. This means that if e.g. synchronization task
-                        is started for object class of ri:inetOrgPerson (without providing kind/intent), the definition
-                        to be used when issuing the query - e.g. attributes to return, object scope, and so on - is the one
-                        with the "defaultForObjectClass = true". (Note that midPoint still attempts to synchronize all members
-                        of the said object class, if such a request is issued.)
+                        Specifies whether this resource object type is the default one for the given object class,
+                        e.g. for ri:AccountObjectClass or ri:inetOrgPerson.
 
-                        Note that since 4.6, the preferred way is to use so-called refined object class definitions,
-                        i.e. to provide schemaHandling/objectClass refinement for ri:inetOrgPerson. Therefore, it's no longer
-                        necessary to specify default object type for object class.
+                        This means that if e.g. given object type T is specified with objectClass=ri:inetOrgPerson and
+                        defaultForObjectClass=true, and a synchronization task is started for object class of ri:inetOrgPerson
+                        (without providing kind/intent), the definition to be used when issuing the query - e.g. attributes
+                        to return, base context, and so on - is derived from the definition of this object type T. (Note that
+                        midPoint still attempts to synchronize all members of the said object class, if only the object class
+                        is specified in the synchronization task.)
+
+                        Since 4.6, the preferred way to provide such object-class-level definitions is to use so-called
+                        refined object class definitions, i.e. to provide schemaHandling/objectClass refinement
+                        for ri:inetOrgPerson. Therefore, it's no longer necessary to specify default object type
+                        for object class just for this purpose.
+
+                        Another use of this flag is to specify the default type for classification of resource objects of given
+                        object class. But this functionality can be achieved also using "classificationOrder" property
+                        of object type delineation.
 
                         Only one type can be the default one for given object class. Setting this flag to true for more
                         than one type is an error.
@@ -610,19 +676,30 @@
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
+                        For object type definition:
+
                         Object class (like ri:inetOrgPerson) for this resource object type.
-                        MOVED TO delineation FOR OBJECT TYPES.
-                        But for refined object class definitions, it should be used here!
+                        MOVED TO "delineation".
+
+                        For refined object class definition:
+
+                        Name of object class (like ri:inetOrgPerson) that is refined by this definition.
+                        In this case, this property should be used here, not in "delineation" definition.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
+                        For object type definition:
+
                         The reference to additional object classes for this object. The reference should
                         point to object class definition (complex type definition in resource schema) and
                         this definition should be marked as auxiliary.
-                        MOVED TO delineation.
+
+                        DEPRECATED. MOVED TO "delineation".
+
+                        For object class definition: Should not be used at all.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -663,15 +740,15 @@
             <xsd:element name="multiplicity" type="tns:ResourceObjectMultiplicityType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Describes how "multi-accounts" are treated for this object type.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="delineation" type="tns:ResourceObjectTypeDelineationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Delineates (defines) the set of objects corresponding to this object type, e.g. by
-                        providing the base context and/or a search filter.
+                        Delineates (defines) the set of objects corresponding to this object type, e.g.
+                        by providing object class(es), a base context and/or a search filter.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
@@ -715,7 +792,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Type and archetype (optional) of the focus objects that correspond to this resource object type.
-                        If not specified (neither here nor in synchronization configuration), the UserType is assumed.
+                        If not specified (neither here nor in legacy synchronization configuration), the UserType is assumed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
@@ -727,7 +804,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies provenance properties that should be associated with data that originate here.
-                        Resource objects of the type that is defined here will be assumed to have the provenance specified in this data structure.
+                        Resource objects of the type that is defined here will be assumed to have the provenance specified
+                        in this data structure.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.2</a:since>
@@ -737,13 +815,27 @@
             <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded" type="tns:ResourceAttributeDefinitionType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specification of handling of an account attribute.
+                        Specification of handling of resource object attributes.
                         This overrides annotations in the resource schema.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="dependency" type="tns:ResourceObjectTypeDependencyType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="dependency" type="tns:ResourceObjectTypeDependencyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of dependencies of this object type on other type or types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of associations for this object types. Associations do not always have the same physical
+                        manifestation as attributes, i.e. they are not always directly visible on the raw resource object.
+                        They may be represented implicitly e.g. in the form of group membership.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -760,12 +852,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
+            <xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of an iteration process where the unique identifier (e.g. a name) of the resource object
+                        is determined iteratively: taking the first "available" value. Like trying smith1, smith2, and so on;
+                        until the unused one is found.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="protected" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specification of a protected account: account that cannot be affected by IDM. It will be
-                        ignored by operations, will not appear in lists, etc.
+                        Specification of a protected resource object: one that cannot be affected by IDM. It will be
+                        ignored by operations, will not appear in lists, etc. A typical example is the administrator's account.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -843,7 +943,7 @@
             <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How objects of this type are correlated?
+                        How objects of this type are correlated to focus objects?
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
@@ -853,10 +953,10 @@
             <xsd:element name="synchronization" type="tns:SynchronizationReactionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO better description
+                        Defines reactions to specific synchronization-related situations (like "unmatched resource object",
+                        or "disputed" (owner), and so on.
 
-                        How this object type is synchronized (from the resource to midPoint).
-                        Before 4.6 this was part of the "synchronization" section of the resource definition.
+                        Before 4.6, this information was part of the "synchronization" section of the resource definition.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
@@ -883,7 +983,7 @@
                     <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Kind of the parent type. If not specified, the kind of the child is used.
+                                Kind of the parent type. If not specified, the kind of the referencing child is used.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2094,7 +2194,7 @@
     <xsd:complexType name="ResourceObjectMultiplicityType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Describes how "multi-accounts" are treated for given object type.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -2112,11 +2212,10 @@
             <xsd:element name="tag" type="tns:ShadowTagSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Specifies how shadow tags should be generated.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -2136,14 +2235,16 @@
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        An expression providing tag value for given shadow (found on a resource).
+                        Expects $shadow ($projection) variable containing the shadowed resource object.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        An outbound mapping that provides a value (or values) for the shadow tag when assigned resource
+                        object construction is evaluated. Expects $focus variable as well as assignment path-related ones.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2176,7 +2277,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The filter used to look for the object. This filter does NOT need to contain
-                        clauses for resource. This will be automatically added by midpoint.
+                        clauses for resource. This will be automatically added by midPoint.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2184,17 +2285,36 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to shadow that represents the resource object. If present, then it will be
-                        used directly. If not present then the search filter will be used to locate the shadow
-                        and the result will be set to this reference.
+                        used directly. (Unless resolutionFrequency is ALWAYS.)
+
+                        If not present then the search filter will be used to locate the shadow. (Unless resolutionFrequency
+                        is NONE.)
+
+                        In the future, midPoint will store the resolved shadow OID into this field. But this is not yet
+                        implemented.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="resolutionStrategy" type="tns:ResourceObjectReferenceResolutionStrategyType" minOccurs="0" default="repository">
+            <xsd:element name="resolutionStrategy" type="tns:ResourceObjectReferenceResolutionStrategyType" minOccurs="0"
+                    default="repository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not implemented yet. Search on resource is always executed.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
-            <xsd:element name="resolutionFrequency" type="tns:ResourceObjectReferenceResolutionFrequencyType" minOccurs="0" default="once">
+            <xsd:element name="resolutionFrequency" type="tns:ResourceObjectReferenceResolutionFrequencyType" minOccurs="0"
+                    default="once">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The strategy used to resolve resource object references. However, only ALWAYS and NEVER ones
+                        are fully implemented. The default ONCE strategy works like ALWAYS: the filter is evaluated
+                        but the result is not stored in the definition.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2295,7 +2415,7 @@
                 Description of the entitlement handling details, such as display name,
                 read/write access and so on.
 
-                This is supposed to be used in schemaHandling part and in assignments/inducements
+                This is supposed to be used in schemaHandling part and in assignments/inducements,
                 and therefore it describes the decisions of the system administrator about the
                 way how entitlements are used in midPoint.
             </xsd:documentation>
@@ -2380,8 +2500,7 @@
                             <xsd:documentation>
                                 Name of the attribute from with a value for association attribute is taken.
                                 The value is taken from this attribute and it will be stored in the association attribute.
-                                This
-                                attribute will NOT be modifier when the association changes, it is only for reading.
+                                This attribute will NOT be modified when the association changes, it is only for reading.
                                 In object-to-subject associations this is the attribute of the subject (e.g. account).
                                 In subject-to-object associations this is an attribute of the object (e.g. group).
 
@@ -2490,12 +2609,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 Collection of resource capabilities. Each element in this collection defines a specific resource
-                capability. Standard midpoint capabilities are defined in a separate namespace. But that is not
-                a closed set. Resource may also specify additional capabilities. If the code that is processing
-                capabilities encounters unknown capability it must ignore it.
+                capability.
 
                 Each capability should have boolean property "enabled" with true default value. This is used in
-                the configured capabilities section to disable individual capabilities.
+                the configured "capabilities" section to disable individual capabilities.
 
                 This part defines native and configured capabilities. The effective capabilities of the resource
                 are determined by application of configured capabilities to native capabilities.
@@ -2530,7 +2647,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The configured capabilities of the resource. This part contains "tweaks" of the native capabilities.
-                        Some of the native capabilities may be turned off, other capabilities may be simulated.
+                        Some native capabilities may be turned off, other capabilities may be simulated.
 
                         If this element is not present at all then the native capabilities in the unchanged form are assumed.
 
@@ -2590,7 +2707,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Constraints script execution only to resource objects of a specified kind.
-                                If not present then the scrip will be executed for objects of all kinds.
+                                If not present then the script will be executed for objects of all kinds.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2822,9 +2939,13 @@
                 Defines a synchronization properties (configuration) for a
                 specific type of object, e.g. User. This applies to all flavors of synchronization
                 (live sync, reconciliation, import, ...)
+
+                DEPRECATED. Use definitions in schemaHandling/objectType (ResourceObjectTypeDefinitionType) instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.6</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3002,6 +3123,36 @@
             <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:element name="synchronization" type="tns:SynchronizationType"/>
+
+    <xsd:complexType name="SynchronizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a synchronization properties (configuration) for a
+                resource. This applies to all flavors of synchronization
+                (live sync, reconciliation, import, ...)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType" minOccurs="0"/>
+            <xsd:element name="objectSynchronization" type="tns:ObjectSynchronizationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Use object type definitions in schemaHandling instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:container>true</a:container>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectSynchronizationSorterType">
@@ -3307,7 +3458,13 @@
                 for each situation).
                 If there is no definition for a particular situation, there will be no reaction ("do nothing").
                 The set of situation reactions is considered to be unordered.
+
+                DEPRECATED. Use new synchronization definitions right in the object type definition.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.6</a:deprecatedSince>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
@@ -4636,6 +4793,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Delineates the boundary of a resource object type (i.e. objects that belong to that type).
+                Contains also supporting ("imperative") instructions regarding classification of objects
+                into types.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -4656,6 +4815,10 @@
                         The reference to additional object classes for this object. The reference should
                         point to object class definition (complex type definition in resource schema) and
                         this definition should be marked as auxiliary.
+
+                        Definitions of attributes from these classes are "imported" to the object type.
+                        However, currently this auxiliary object classes are not used for classification; i.e. the classification
+                        decision is not based on their presence in the specific resource object.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4667,6 +4830,9 @@
                         hierarchically below the baseContext are returned by such a search.
                         E.g. this is used to specify LDAP organizationalUnit that contains users or groups
                         of particular type.
+
+                        This information is used for object classification as well. See also "baseContextClassificationUse"
+                        property.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4676,6 +4842,9 @@
                         Definition of search hierarchy scope. It specifies how "deep" the search should go
                         into the object hierarchy. It is only applicable to resources that support hierarchical
                         organization of objects (e.g. LDAP resources).
+
+                        This information is used for object classification (along with baseContext) as well.
+                        See also "baseContextClassificationUse" property.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4683,6 +4852,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         A filter that defines the object set. Appended to any filter(s) defined in the supertype(s).
+                        Used also for classification.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4692,6 +4862,8 @@
                         Expression that is evaluated to check whether a resource object is of given type.
                         It is assumed to return a boolean value. (If no condition is present then it is assumed
                         to be always true, i.e. the classification is done using the other means.)
+
+                        It is preferable to use declarative means for classification, i.e. baseContext and filter(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4699,7 +4871,21 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         In what order should this delineation specification be used for classification? No value means
-                        it should be used at the end. (Like a default value to be used when no other value matches.)
+                        it should be used at the end.
+
+                        So, the overall classification algorithm is the following:
+
+                        1. First, candidate object types with classification order specified are tried - in their respective
+                        order. The first matching one is used.
+
+                        2. Then, candidate object types without order are tried. Matching ones are collected.
+
+                        - If there is a default object type ("default for object class") among matching ones, it is used.
+                        - If there is exactly one matching type, it is used.
+                        - If there is no matching type, the classification is unsuccessful.
+                        - If there are multiple (non-default) matching types, a special heuristic is executed: the first
+                        one with the legacy synchronization section present is returned. Otherwise, arbitrary one is used.
+                        (This may be changed in the future.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4763,9 +4949,7 @@
     <xsd:complexType name="SynchronizationReactionsType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines reaction(s) to synchronization situations, plus other synchronization settings.
-
-                TODO better name, better structure?
+                Defines reaction(s) to synchronization-related situations, plus other synchronization settings.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -4790,7 +4974,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" type="tns:SynchronizationReactionNewType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="reaction" type="tns:SynchronizationReactionNewType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reaction(s) to individual synchronization situation(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -4809,24 +4999,24 @@
             <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Default value for AbstractClockworkBasedSynchronizationActionType#reconcile.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="reconcileAll" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true, applicable synchronization reactions will attempt to reconcile the real attributes
-                        from all resource with the state of the midPoint repository. This may require additional read and
-                        recompute, therefore may be slightly less efficient.
-
-                        If set to false, attribute values will not be reconciled.
-
-                        If set to true, the full user reconciliation will be done.
+                        Default value for AbstractClockworkBasedSynchronizationActionType#reconcileAll.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default value for AbstractClockworkBasedSynchronizationActionType#limitPropagation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4857,12 +5047,15 @@
     <xsd:complexType name="SynchronizationReactionNewType">
         <xsd:annotation>
             <xsd:documentation>
-                Reaction to a synchronization situation(s).
+                Reaction to synchronization situation or situations.
+
                 There is a list of situations to which this entry pertains.
                 The list is further optionally qualified by channel(s) and a condition.
+
                 Only if a situation (any of), a channel (any of), and the condition all match, then the action(s) are applied.
-                The list of reactions is evaluated in the (optional) order given. Entries without explicit order are evaluated
-                last.
+
+                The list of reactions is evaluated in the (optional) order given.
+                Entries without explicit order are evaluated last.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -4884,11 +5077,17 @@
             <xsd:element name="situation" type="tns:SynchronizationSituationType" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines a particular synchronization situation.
+                        Defines a particular synchronization situation or situations.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If present, limits the applicability of this reaction to given synchronization channel or channels.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4896,12 +5095,15 @@
                         context. It is assumed to return a boolean value. If it returns 'true' then this reaction
                         will be applied. If it returns 'false' it will be ignored.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.1</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="actions" type="tns:SynchronizationActionsNewType" minOccurs="0"/>
+            <xsd:element name="actions" type="tns:SynchronizationActionsNewType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Action or actions to be executed in the given situation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -4971,14 +5173,19 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 If set to false, the clockwork will not run. So e.g. linking and unlinking will be done
-                                in "fast" way. TODO or should we create separate actions for this?
+                                in "fast" way.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                If true, the focus and the projection being synchronized will be reconciled while executing
+                                changes. (The default value is "true" for situations when there is no known object delta
+                                - i.e. change information - coming from the resource.)
+
+                                See also ModelExecuteOptionsType#reconcile.
+                                See also SynchronizationReactionsDefaultSettingsType#reconcile.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4986,7 +5193,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 If set to true, applicable synchronization reactions will attempt to reconcile the real attributes
-                                from all resource with the state of the midPoint repository. This may require additional read and
+                                from all resources with the state of the midPoint repository. This may require additional read and
                                 recompute, therefore may be slightly less efficient.
 
                                 If set to false, attribute values will not be reconciled.
@@ -4995,7 +5202,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Option to limit change computation and execution only for the source resource.
+
+                                See ModelExecuteOptionsType#limitPropagation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5058,7 +5273,7 @@
     <xsd:complexType name="UnlinkSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
-                Unlinks resource object from its owning focus. TODO what if there's none?
+                Unlinks resource object from its owning focus.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -5073,7 +5288,7 @@
     <xsd:complexType name="AddFocusSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
-                Creates an owning focus for the resource object. TODO what if it already exists?
+                Creates an owning focus for the resource object.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -5088,7 +5303,7 @@
     <xsd:complexType name="DeleteFocusSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
-                Deletes the owning focus for the resource object. TODO what if it's not there?
+                Deletes the owning focus for the resource object.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -5103,7 +5318,7 @@
     <xsd:complexType name="InactivateFocusSynchronizationActionType">
         <xsd:annotation>
             <xsd:documentation>
-                Inactivates the owning focus for the resource object. TODO what if it's not there?
+                Inactivates the owning focus for the resource object.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>

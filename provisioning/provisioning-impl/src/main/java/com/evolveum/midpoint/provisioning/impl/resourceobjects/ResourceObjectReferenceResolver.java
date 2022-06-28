@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
 
 /**
  * Resolves resource objects (also) with the help of the repository / shadow manager.
@@ -100,14 +102,15 @@ class ResourceObjectReferenceResolver {
                     SecurityViolationException, ExpressionEvaluationException {
 
         ObjectReferenceType shadowRef = resourceObjectReference.getShadowRef();
+        ResourceObjectReferenceResolutionFrequencyType resolutionFrequency =
+                Objects.requireNonNullElse(resourceObjectReference.getResolutionFrequency(), ONCE);
         if (shadowRef != null && shadowRef.getOid() != null) {
-            if (resourceObjectReference.getResolutionFrequency() == null
-                    || resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.ONCE) {
+            if (resolutionFrequency != ALWAYS) {
                 PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
                 shadowsFacade.applyDefinition(shadow, ctx.getTask(), result);
                 return shadow;
             }
-        } else if (resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.NEVER) {
+        } else if (resolutionFrequency == NEVER) {
             throw new ObjectNotFoundException("No shadowRef OID in "+desc+" and resolution frequency set to NEVER");
         }
 

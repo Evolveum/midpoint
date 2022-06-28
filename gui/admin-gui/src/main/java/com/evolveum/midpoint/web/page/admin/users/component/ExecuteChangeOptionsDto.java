@@ -130,8 +130,8 @@ public class ExecuteChangeOptionsDto implements Serializable {
     }
 
     @NotNull
-    public ModelExecuteOptions createOptions(PrismContext prismContext) {
-        ModelExecuteOptions options = new ModelExecuteOptions(prismContext);
+    public ModelExecuteOptions createOptions(PrismContext ignored) {
+        ModelExecuteOptions options = new ModelExecuteOptions();
         options.force(isForce());
         options.reconcile(isReconcile());
         options.executeImmediatelyAfterApproval(!isExecuteAfterAllApprovals());
