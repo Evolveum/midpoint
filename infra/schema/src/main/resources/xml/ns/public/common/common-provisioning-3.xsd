@@ -2962,21 +2962,21 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Object class that will be processed by this definition.
+                        Should be the same as object class in the object type referenced (by kind/intent).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Shadow kind assumed by this definition. Should be present. But if it's not, ACCOUNT is used.
+                        Shadow kind assumed by this definition. Should be present. If it's not, ACCOUNT is used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+            <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Shadow intent assumed by this definition. Should be present. But if it's not a default
-                        type definition for given kind is looked for.
+                        Shadow intent assumed by this definition. Should be present. If it's not, "default" is used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3120,7 +3120,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="reaction" type="tns:LegacySynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -3450,7 +3450,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="SynchronizationReactionType">
+    <xsd:complexType name="LegacySynchronizationReactionType">
         <xsd:annotation>
             <xsd:documentation>
                 Reaction to a synchronization situation.
@@ -4974,7 +4974,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" type="tns:SynchronizationReactionNewType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reaction(s) to individual synchronization situation(s).
@@ -5044,7 +5044,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SynchronizationReactionNewType">
+    <xsd:complexType name="SynchronizationReactionType">
         <xsd:annotation>
             <xsd:documentation>
                 Reaction to synchronization situation or situations.
@@ -5097,7 +5097,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="actions" type="tns:SynchronizationActionsNewType" minOccurs="0">
+            <xsd:element name="actions" type="tns:SynchronizationActionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Action or actions to be executed in the given situation.
@@ -5107,7 +5107,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SynchronizationActionsNewType">
+    <xsd:complexType name="SynchronizationActionsType">
         <xsd:annotation>
             <xsd:documentation>
                 Action(s) that have to be executed in specified synchronization situation.

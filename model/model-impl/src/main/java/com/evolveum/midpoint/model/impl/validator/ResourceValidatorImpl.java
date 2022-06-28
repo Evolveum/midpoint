@@ -594,7 +594,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
     private void checkObjectSynchronization(ResourceValidationContext ctx, ItemPath path, ObjectSynchronizationType objectSync) {
         Map<SynchronizationSituationType,Integer> counts = new HashMap<>();
-        for (SynchronizationReactionType reaction : objectSync.getReaction()) {
+        for (LegacySynchronizationReactionType reaction : objectSync.getReaction()) {
             if (reaction.getSituation() == null) {
                 ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_SITUATION,
                         getString(CLASS_DOT + C_NO_SITUATION, getName(objectSync)),

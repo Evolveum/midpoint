@@ -15889,6 +15889,8 @@
                         An exception to this meaning is when this flag is used during synchronization process (like in import,
                         reconciliation, or live sync task). In this case, setting reconcile = true sets the reconciliation
                         only for the projection being synchronized. Other projections are not affected.
+
+                        This "conditional" meaning may change in the future.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

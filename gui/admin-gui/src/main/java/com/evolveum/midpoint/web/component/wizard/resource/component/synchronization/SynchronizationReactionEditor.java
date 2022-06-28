@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -45,7 +44,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class SynchronizationReactionEditor extends BasePanel<SynchronizationReactionType> {
+public class SynchronizationReactionEditor extends BasePanel<LegacySynchronizationReactionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationReactionEditor.class);
 
@@ -75,7 +74,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
     @NotNull private final SynchronizationStep parentStep;
 
-    public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model, SynchronizationStep parentStep,
+    public SynchronizationReactionEditor(String id, IModel<LegacySynchronizationReactionType> model, SynchronizationStep parentStep,
             PageResourceWizard parentPage) {
         super(id, model);
         this.parentStep = parentStep;

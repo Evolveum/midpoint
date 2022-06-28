@@ -128,7 +128,7 @@ public class ClockworkSettings {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    ClockworkSettings updateFrom(SynchronizationReactionType bean) {
+    ClockworkSettings updateFrom(LegacySynchronizationReactionType bean) {
         ClockworkSettings updated = this;
         if (bean.isReconcileAll() != null) {
             updated = updated.reconcileAll(bean.isReconcileAll());
