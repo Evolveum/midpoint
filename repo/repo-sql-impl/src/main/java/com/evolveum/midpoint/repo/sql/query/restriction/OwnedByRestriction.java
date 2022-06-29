@@ -62,30 +62,30 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
         Class<? extends Containerable> expectedOwnerType;
 
         if (ownedType.equals(AssignmentType.class)) {
-            expectedOwnerType = AbstractRoleType.F_INDUCEMENT.equals(path)
+            expectedOwnerType = AbstractRoleType.F_INDUCEMENT.equivalent(path)
                     ? AbstractRoleType.class
                     : AssignmentHolderType.class;
             if (path != null
-                    && !AbstractRoleType.F_INDUCEMENT.equals(path)
-                    && !AssignmentHolderType.F_ASSIGNMENT.equals(path)) {
+                    && !AbstractRoleType.F_INDUCEMENT.equivalent(path)
+                    && !AssignmentHolderType.F_ASSIGNMENT.equivalent(path)) {
                 throw new QueryException("OwnedBy filter for type '"
                         + ownedType.getSimpleName() + "' used with invalid path: " + path);
             }
         } else if (ownedType.equals(AccessCertificationCaseType.class)) {
             expectedOwnerType = AccessCertificationCampaignType.class;
-            if (path != null && !AccessCertificationCampaignType.F_CASE.equals(path)) {
+            if (path != null && !AccessCertificationCampaignType.F_CASE.equivalent(path)) {
                 throw new QueryException("OwnedBy filter for type '"
                         + ownedType.getSimpleName() + "' used with invalid path: " + path);
             }
         } else if (ownedType.equals(AccessCertificationWorkItemType.class)) {
             expectedOwnerType = AccessCertificationCaseType.class;
-            if (path != null && !AccessCertificationCaseType.F_WORK_ITEM.equals(path)) {
+            if (path != null && !AccessCertificationCaseType.F_WORK_ITEM.equivalent(path)) {
                 throw new QueryException("OwnedBy filter for type '"
                         + ownedType.getSimpleName() + "' used with invalid path: " + path);
             }
         } else if (ownedType.equals(CaseWorkItemType.class)) {
             expectedOwnerType = CaseType.class;
-            if (path != null && !CaseType.F_WORK_ITEM.equals(path)) {
+            if (path != null && !CaseType.F_WORK_ITEM.equivalent(path)) {
                 throw new QueryException("OwnedBy filter for type '"
                         + ownedType.getSimpleName() + "' used with invalid path: " + path);
             }
