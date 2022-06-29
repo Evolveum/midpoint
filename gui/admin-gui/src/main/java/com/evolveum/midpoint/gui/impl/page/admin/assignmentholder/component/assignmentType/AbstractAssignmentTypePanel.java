@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -17,6 +19,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -26,6 +29,7 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -48,11 +52,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.data.ContainerValueDataProviderFactory;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -64,6 +71,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.AssignmentListProvider;
+import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.GenericPageStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -82,10 +90,16 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
-    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config) {
+    private Class<? extends Objectable> objectType;
+    private String objectOid;
+
+    public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
         this.model = model;
+        this.objectType = type;
+        this.objectOid = oid;
     }
+
 
     protected void setModel(IModel<PrismContainerWrapper<AssignmentType>> model) {
         this.model = model;
@@ -102,6 +116,10 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return isNewObjectButtonVisible(getFocusObject());
     }
 
+    protected boolean isRepositorySearchEnabled() {
+        return providerFactory().isRepositorySearchEnabled();
+    }
+
     @Override
     protected IModel<PrismContainerWrapper<AssignmentType>> getContainerModel() {
         return model;
@@ -112,6 +130,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         target.add(AbstractAssignmentTypePanel.this);
     }
 
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
         columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
@@ -135,7 +154,9 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-        return new AjaxLinkColumn<>(displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel) {
+        displayModel = displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel;
+
+        return new AjaxLinkColumn<>(displayModel, RepoAssignmentListProvider.TARGET_NAME_STRING, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -529,31 +550,34 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         super.deleteItemPerformed(target, toDeleteList);
     }
 
-    @Override
-    protected AssignmentListProvider createProvider() {
-        return createAssignmentProvider(getSearchModel(), loadValuesModel());
+    protected ContainerValueDataProviderFactory<AssignmentType, ?> providerFactory() {
+        return getPageBase().getDataProviderRegistry().forContainerValue(AssignmentType.class, this.getPanelConfiguration().getListView(), InMemoryAssignmentDataProviderType.class);
     }
 
-    private AssignmentListProvider createAssignmentProvider(IModel<Search<AssignmentType>> searchModel, IModel<List<PrismContainerValueWrapper<AssignmentType>>> assignments) {
-        AssignmentListProvider assignmentListProvider = new AssignmentListProvider(AbstractAssignmentTypePanel.this, searchModel, assignments) {
+    @Override
+    protected ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> createProvider() {
+        var searchModel = getSearchModel();
+        var assignments = loadValuesModel();
+        var itemPath = model.getObject().getPath();
+        return providerFactory().create(AbstractAssignmentTypePanel.this, searchModel, assignments, objectType, objectOid, itemPath, getObjectCollectionView(), new ContainerValueDataProviderFactory.Customization<AssignmentType>() {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected PageStorage getPageStorage() {
+            public PageStorage getPageStorage() {
                 return AbstractAssignmentTypePanel.this.getPageStorage();
             }
 
             @Override
-            protected List<PrismContainerValueWrapper<AssignmentType>> postFilter(List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
+            public List<PrismContainerValueWrapper<AssignmentType>> postFilter(List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
                 return customPostSearch(assignmentList);
             }
 
             @Override
-            protected ObjectQuery getCustomizeContentQuery() {
+            public ObjectQuery getCustomizeContentQuery() {
                 return AbstractAssignmentTypePanel.this.getCustomizeQuery();
             }
-        };
-        assignmentListProvider.setCompiledObjectCollectionView(getObjectCollectionView());
-        return assignmentListProvider;
+        });
     }
 
     protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
@@ -565,6 +589,17 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected abstract ObjectQuery getCustomizeQuery();
+
+    protected List<PrismContainerValueWrapper<AssignmentType>> prefilterUsingQuery(
+            List<PrismContainerValueWrapper<AssignmentType>> list, ObjectQuery query) {
+        return list.stream().filter(valueWrapper -> {
+            try {
+                return ObjectQuery.match(valueWrapper.getRealValue(), query.getFilter(), getPageBase().getMatchingRuleRegistry());
+            } catch (SchemaException e) {
+                throw new TunnelException(e.getMessage());
+            }
+        }).collect(Collectors.toList());
+    }
 
     @Override
     protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(

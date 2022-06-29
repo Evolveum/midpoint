@@ -309,10 +309,11 @@ public class ObjectRetriever {
 
     public <C extends Containerable> int countContainersAttempt(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        boolean assignments = AssignmentType.class.equals(type);
         boolean cases = AccessCertificationCaseType.class.equals(type);
         boolean workItems = AccessCertificationWorkItemType.class.equals(type);
         boolean caseWorkItems = CaseWorkItemType.class.equals(type);
-        if (!cases && !workItems && !caseWorkItems) {
+        if (!assignments && !cases && !workItems && !caseWorkItems) {
             throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
         }
 

@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -25,6 +28,7 @@ import org.apache.wicket.model.IModel;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @PanelType(name = "focusMappingsAssignments")
 @PanelInstance(identifier = "focusMappingsAssignments",
@@ -57,9 +61,27 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
         return defs;
     }
 
-    @Override
-    protected ObjectQuery getCustomizeQuery() {
+    protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
+    }
+
+    @Override
+    protected ObjectQuery getCustomizeQuery() {
+        // CustomizeQuery is not repo indexed
+        if (isRepositorySearchEnabled()) {
+            return null;
+        }
+        return createCustomizeQuery();
+    }
+
+    @Override
+    protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(
+            List<PrismContainerValueWrapper<AssignmentType>> list) {
+        // customizeQuery is not repository supported, so we need to prefilter list using in-memory search
+        if (isRepositorySearchEnabled()) {
+            return prefilterUsingQuery(list, createCustomizeQuery());
+        }
+        return super.customPostSearch(list);
     }
 }

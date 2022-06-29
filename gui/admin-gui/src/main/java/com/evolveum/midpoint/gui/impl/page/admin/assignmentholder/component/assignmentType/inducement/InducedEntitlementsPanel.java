@@ -175,6 +175,7 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
         return constructionDetailsPanel;
     }
 
+    @Override
     protected List<ObjectTypes> getObjectTypesList() {
         return Collections.singletonList(ObjectTypes.RESOURCE);
     }
