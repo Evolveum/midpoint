@@ -2866,6 +2866,19 @@
                     <!-- TODO: layout -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
                     </xsd:element>
+                    <xsd:element name="objectCollectionViewIdentifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to an object collection view which should be displayed on dashboard. The reference
+                                value is an object collection view identifier which is already defined in system.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:displayName>DashboardType.objectCollectionViewReference</a:displayName>
+                                <a:help>DashboardType.objectCollectionViewReference.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
