@@ -187,18 +187,25 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     static <AH extends AssignmentHolderType> TemplateMappingsEvaluation<AH, AH> createForStandardTemplate(
             ModelBeans beans, LensContext<AH> context, ObjectTemplateMappingEvaluationPhaseType phase,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
+            XMLGregorianCalendar now, Task task, OperationResult result) {
         LensFocusContext<AH> focusContext = context.getFocusContextRequired();
         TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusContext.getObjectNew(), true);
-        return new TemplateMappingsEvaluation<>(beans, context,
+        return new TemplateMappingsEvaluation<>(
+                beans,
+                context,
                 focusContext.getObjectDeltaObjectRelative(),
                 phase,
                 context.getFocusTemplate(),
-                focusContext.getIteration(), focusContext.getIterationToken(),
-                targetSpecification, focusContext.getCurrentDelta(),
+                focusContext.getIteration(),
+                focusContext.getIterationToken(),
+                targetSpecification,
+                focusContext.getCurrentDelta(),
                 context::primaryFocusItemDeltaExists,
                 focusContext.getObjectDefinition(),
-                "focus " + focusContext.getObjectAny(), now, task, result);
+                "focus " + focusContext.getObjectAny(),
+                now,
+                task,
+                result);
     }
 
     public static <F extends AssignmentHolderType, T extends AssignmentHolderType>
@@ -210,15 +217,22 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             String contextDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) {
         TargetObjectSpecification<T> targetSpecification = new FixedTargetSpecification<>(targetObject, false);
-        return new TemplateMappingsEvaluation<>(beans, context,
+        return new TemplateMappingsEvaluation<>(
+                beans,
+                context,
                 focusOdoAbsolute,
                 BEFORE_ASSIGNMENTS,
                 template,
-                0, null,
-                targetSpecification, targetAPrioriDelta,
+                0,
+                null,
+                targetSpecification,
+                targetAPrioriDelta,
                 itemPath -> targetAPrioriDelta != null && targetAPrioriDelta.findItemDelta(itemPath) != null,
                 targetObject.getDefinition(),
-                contextDescription, now, task, result);
+                contextDescription,
+                now,
+                task,
+                result);
     }
 
     public void computeItemDeltas() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,

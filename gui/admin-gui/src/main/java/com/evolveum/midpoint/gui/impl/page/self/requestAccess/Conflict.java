@@ -9,10 +9,14 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class Conflict implements Serializable {
+
+    private ObjectReferenceType personOfInterest;
 
     private ConflictItem added;
 
@@ -24,11 +28,16 @@ public class Conflict implements Serializable {
 
     private boolean warning;
 
-    public Conflict(ConflictItem added, ConflictItem exclusion, String message, boolean warning) {
+    public Conflict(ObjectReferenceType personOfInterest, ConflictItem added, ConflictItem exclusion, String message, boolean warning) {
+        this.personOfInterest = personOfInterest;
         this.added = added;
         this.exclusion = exclusion;
         this.warning = warning;
         this.message = message;
+    }
+
+    public ObjectReferenceType getPersonOfInterest() {
+        return personOfInterest;
     }
 
     public ConflictItem getAdded() {

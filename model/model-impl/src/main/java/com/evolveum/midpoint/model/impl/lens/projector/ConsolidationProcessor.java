@@ -196,7 +196,7 @@ public class ConsolidationProcessor {
                     continue;
                 }
                 auxOcNames.add(auxObjectClassName);
-                ResourceObjectDefinition auxOcDef = refinedSchema.findDefinitionForObjectClass(auxObjectClassName);
+                ResourceObjectDefinition auxOcDef = refinedSchema.findObjectClassDefinition(auxObjectClassName);
                 if (auxOcDef == null) {
                     LOGGER.error("Auxiliary object class definition {} for {} not found in the schema, but it should be there, dumping context:\n{}",
                             auxObjectClassName, key, context.debugDump());

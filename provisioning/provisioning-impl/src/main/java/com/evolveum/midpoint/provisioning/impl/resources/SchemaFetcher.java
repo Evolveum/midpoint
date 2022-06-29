@@ -61,7 +61,7 @@ public class SchemaFetcher {
             return null;
         }
         InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
-        ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
+        ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, parentResult);
 
         LOGGER.debug("Trying to get schema from {}", connectorSpec);
         ResourceSchema rawResourceSchema = connectorInstance.fetchResourceSchema(parentResult);

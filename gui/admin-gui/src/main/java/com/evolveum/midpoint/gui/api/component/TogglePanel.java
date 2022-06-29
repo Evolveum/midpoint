@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
+package com.evolveum.midpoint.gui.api.component;
 
 import java.io.Serializable;
 import java.util.List;
@@ -22,7 +22,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**

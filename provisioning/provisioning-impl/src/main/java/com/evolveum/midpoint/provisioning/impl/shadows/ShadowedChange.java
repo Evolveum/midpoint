@@ -187,7 +187,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
         assert repoShadow != null;
         assert isDelete();
         if (context.isWildcard()) {
-            context = context.spawnForShadow(repoShadow);
+            context = context.spawnForShadow(repoShadow.asObjectable());
         }
     }
 
@@ -244,7 +244,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
         if (objectDefinition == null) {
             throw new IllegalStateException("Could not create shadow from change description. Object definition is not specified.");
         }
-        ShadowType fakeResourceObject = new ShadowType(beans.prismContext);
+        ShadowType fakeResourceObject = new ShadowType();
         fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
         ResourceAttributeContainer attributeContainer = objectDefinition
                 .toResourceAttributeContainerDefinition().instantiate();

@@ -63,7 +63,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         content = new ModelExecuteOptionsType();
     }
 
-    private ModelExecuteOptions() {
+    public ModelExecuteOptions() {
         content = new ModelExecuteOptionsType();
     }
 
@@ -209,11 +209,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return is(options, ModelExecuteOptionsType.F_RECONCILE);
     }
 
-    @Deprecated // kept because of (expected) external uses; use create(prismContext).reconcile() instead
+    @Deprecated // kept because of (expected) external uses; use create().reconcile() instead
     public static ModelExecuteOptions createReconcile() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.reconcile(true);
-        return opts;
+        return new ModelExecuteOptions()
+                .reconcile();
     }
 
     public ModelExecuteOptions reconcileFocus(Boolean reconcileFocus) {

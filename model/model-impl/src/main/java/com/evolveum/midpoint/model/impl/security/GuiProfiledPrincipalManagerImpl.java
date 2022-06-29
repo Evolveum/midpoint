@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.FocusComputer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

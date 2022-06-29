@@ -1079,6 +1079,10 @@ public class ObjectTypeUtil {
         }
     }
 
+    public static String getOid(ObjectType object) {
+        return object != null ? object.getOid() : null;
+    }
+
     @FunctionalInterface
     private interface ExtensionItemRemover {
         // Removes item (known from the context) from the extension

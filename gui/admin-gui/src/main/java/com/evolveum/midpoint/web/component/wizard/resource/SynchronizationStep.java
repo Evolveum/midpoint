@@ -11,8 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -461,18 +459,18 @@ public class SynchronizationStep extends WizardStep {
         };
         editor.add(editorCorrelation);
 
-        MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
+        MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<LegacySynchronizationReactionType>(ID_EDITOR_REACTION,
                 new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
                 new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
                 false, true, parentPage.getReadOnlyModel()) {
 
             @Override
-            protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
+            protected IModel<String> createTextModel(final IModel<LegacySynchronizationReactionType> model) {
                 return new Model<String>() {
 
                     @Override
                     public String getObject() {
-                        SynchronizationReactionType reaction = model.getObject();
+                        LegacySynchronizationReactionType reaction = model.getObject();
                         if (reaction == null) {
                             return "";
                         }
@@ -505,22 +503,22 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected SynchronizationReactionType createNewEmptyItem() {
-                return new SynchronizationReactionType();
+            protected LegacySynchronizationReactionType createNewEmptyItem() {
+                return new LegacySynchronizationReactionType();
             }
 
             @Override
-            protected void editPerformed(AjaxRequestTarget target, SynchronizationReactionType object) {
+            protected void editPerformed(AjaxRequestTarget target, LegacySynchronizationReactionType object) {
                 reactionEditPerformed(target, object);
             }
 
             @Override
-            protected void performAddValueHook(AjaxRequestTarget target, SynchronizationReactionType added) {
+            protected void performAddValueHook(AjaxRequestTarget target, LegacySynchronizationReactionType added) {
                 parentPage.refreshIssues(target);
             }
 
             @Override
-            protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<SynchronizationReactionType> item) {
+            protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<LegacySynchronizationReactionType> item) {
                 parentPage.refreshIssues(target);
             }
 
@@ -688,7 +686,7 @@ public class SynchronizationStep extends WizardStep {
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction) {
+    private void reactionEditPerformed(AjaxRequestTarget target, LegacySynchronizationReactionType reaction) {
         WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this, parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 

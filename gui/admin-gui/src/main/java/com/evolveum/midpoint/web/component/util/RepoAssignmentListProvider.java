@@ -9,16 +9,17 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -27,10 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.ArrayList;import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +41,10 @@ import java.util.stream.Collectors;
 public class RepoAssignmentListProvider extends ContainerListDataProvider<AssignmentType> {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String TARGET_NAME_STRING = "targetRef.targetName.orig";
+    private static final ItemPath TARGET_NAME_PATH = ItemPath.create(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+
 
     private final IModel<List<PrismContainerValueWrapper<AssignmentType>>> model;
     private final String oid;
@@ -54,7 +60,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
         this.oid = oid;
         this.objectType = objectType;
         this.path = path;
-        //setSort(new SortParam("targetRef.targetName.orig", true));
+        setSort(new SortParam(TARGET_NAME_STRING, true));
     }
 
     @Override
@@ -174,6 +180,19 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
         targetRef.asReferenceValue().setObject(object);
     }
 
+    @Override
+    protected @NotNull List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        if (sortParam == null) {
+            return super.createObjectOrderings(sortParam);
+        }
+        String property = sortParam.getProperty();
+        if (!TARGET_NAME_STRING.equals(property)) {
+            return super.createObjectOrderings(sortParam);
+        }
+        OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+        return Collections.singletonList(
+                getPrismContext().queryFactory().createOrdering(TARGET_NAME_PATH, order));
+    }
 
     /**
      * Returns query for Data Provider

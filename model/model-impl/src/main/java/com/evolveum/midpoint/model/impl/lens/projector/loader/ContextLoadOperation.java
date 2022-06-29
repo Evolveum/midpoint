@@ -22,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
-import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 /**
  * Represents the loading of the lens context: both focus and projections.
@@ -183,30 +181,19 @@ class ContextLoadOperation<F extends ObjectType> {
      * TODO Eliminate "upward" calls to {@link ContextLoader}.
      */
     private void updatePolicies(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, PolicyViolationException {
 
         // maybe not really needed; the update is also done at the beginning of the clockwork run
         context.updateSystemConfiguration(result);
 
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        if (focusContext != null) {
+            beans.contextLoader.updateArchetypePolicyAndRelatives(focusContext, false, result);
+        }
+
         SystemConfigurationType systemConfiguration = context.getSystemConfigurationBean();
-        if (systemConfiguration == null) {
-            return; // This happens in some tests. And also during first startup.
-        }
-
-        if (context.getFocusContext() != null) {
-            if (context.getFocusContext().getArchetypePolicy() == null) {
-                ArchetypePolicyType archetypePolicy = beans.contextLoader.determineArchetypePolicy(context, result);
-                LOGGER.trace("Using archetype policy:\n{}", debugDumpLazily(archetypePolicy, 1));
-                context.getFocusContext().setArchetypePolicy(archetypePolicy);
-            }
-        }
-
-        if (context.getFocusTemplate() == null) {
-            // TODO is the nullity check needed here?
-            beans.contextLoader.updateFocusTemplate(context, result);
-        }
-
-        if (context.getAccountSynchronizationSettings() == null) {
+        if (systemConfiguration != null && context.getAccountSynchronizationSettings() == null) {
             ProjectionPolicyType globalSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
             LOGGER.trace("Applying globalAccountSynchronizationSettings to context: {}", globalSettings);
             context.setAccountSynchronizationSettings(globalSettings);

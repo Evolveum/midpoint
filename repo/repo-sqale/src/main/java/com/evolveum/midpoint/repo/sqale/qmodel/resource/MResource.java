@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAdministrativeStateType;
 
@@ -19,6 +20,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAdministrati
 public class MResource extends MObject {
 
     public ResourceAdministrativeStateType businessAdministrativeState;
+    // administrativeOperationalState/administrativeAvailabilityStatus
+    public AdministrativeAvailabilityStatusType administrativeOperationalStateAdministrativeAvailabilityStatus;
+    // operationalState/lastAvailabilityStatus
     public AvailabilityStatusType operationalStateLastAvailabilityStatus;
     public UUID connectorRefTargetOid;
     public MObjectType connectorRefTargetType;

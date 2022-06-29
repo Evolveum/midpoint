@@ -178,7 +178,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
             }
         };
         submit.add(new EnableBehaviour(() -> getModelObject().canSubmit()));
-        submit.add(AttributeAppender.append("class", () -> !submit.isEnabledInHierarchy() ? "disabled" : null));
+        WebComponentUtil.addDisabledClassBehavior(submit);
         add(submit);
     }
 

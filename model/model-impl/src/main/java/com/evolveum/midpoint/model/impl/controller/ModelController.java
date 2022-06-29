@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.CaseManager;
 
+import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.schema.util.*;
 
 import org.apache.commons.lang3.Validate;
@@ -58,10 +59,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.provisioning.api.EventDispatcher;
-import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
@@ -1440,6 +1437,41 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throw ex;
         } finally {
             exitModelMethod();
+        }
+    }
+
+    @Override
+    public OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        Validate.notNull(resource, "Resource must not be null.");
+        LOGGER.trace("Testing partial configuration of resource: {}", resource);
+
+        enterModelMethodNoRepoCache();
+        try {
+            OperationResult testResult = provisioning.testPartialConfiguration(resource, task, result);
+            LOGGER.debug("Finished testing partial configuration of resource: {}, result: {} ", resource, testResult.getStatus());
+            LOGGER.trace("Test result:\n{}", lazy(() -> testResult.dump(false)));
+            return testResult;
+        } finally {
+            exitModelMethodNoRepoCache();
+        }
+    }
+
+    @Override
+    public DiscoveredConfiguration discoverResourceConnectorConfiguration(
+            PrismObject<ResourceType> resource, OperationResult result) {
+
+        Validate.notNull(resource, "Resource must not be null.");
+        LOGGER.trace("Discover connector configuration for resource: {}", resource);
+
+        enterModelMethodNoRepoCache();
+        try {
+            @NotNull DiscoveredConfiguration discoverConfiguration = provisioning.discoverConfiguration(resource, result);
+            LOGGER.debug("Finished discover connector configuration for resource: {}, result: {} ", resource, result.getStatus());
+            LOGGER.trace("Discover connector configuration result:\n{}", lazy(() -> result.dump(false)));
+            return discoverConfiguration;
+        } finally {
+            exitModelMethodNoRepoCache();
         }
     }
 

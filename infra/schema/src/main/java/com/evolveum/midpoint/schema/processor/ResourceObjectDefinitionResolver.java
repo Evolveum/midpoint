@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -130,9 +128,6 @@ class ResourceObjectDefinitionResolver {
      * Determines object definition (type or class level) when only kind is specified (i.e. intent is null).
      * Optional filtering using object class name is available.
      *
-     * See the code for the algorithm description. The behavior is described also in
-     * {@link ResourceSchemaUtil#findObjectDefinitionPrecisely(ResourceType, ShadowKindType, String, QName, Collection, boolean)} javadoc.
-     *
      * @throws IllegalArgumentException If the default definition for given kind cannot be determined.
      * This is not a {@link ConfigurationException} because the configuration itself may be legal.
      * (Or should we throw that one?)
@@ -142,44 +137,14 @@ class ResourceObjectDefinitionResolver {
             @NotNull ShadowKindType kind,
             @Nullable QName objectClassName) {
 
-        // #1: Is there a type definition that is declared as default for its kind?
-        ResourceObjectTypeDefinition markedAsDefault = findDefaultObjectTypeDefinitionInternal(schema, kind, objectClassName);
-        if (markedAsDefault != null) {
-            return markedAsDefault;
-        }
-
-        // #2: Is there a type definition with the intent="default"? We are intentionally not using
-        // the object class name in the call, to avoid exceptions if there is a default but with non-matching OC name.
-        ResourceObjectDefinition intentDefault = findObjectDefinitionForKindAndIntentInternal(
-                schema, kind, SchemaConstants.INTENT_DEFAULT, null);
-        if (intentDefault != null) {
-            return intentDefault;
-            // OC compatibility is checked in upper layers e.g. ResourceObjectDefinitionResolver#findObjectDefinitionPrecisely.
-        }
-
-        // #3: Is there a single definition with given kind + OC (if specified)?
-        // TODO is this correct?!
-        List<? extends ResourceObjectTypeDefinition> matchingKindAndObjectClass =
-                schema.getObjectTypeDefinitions(kind).stream()
-                        .filter(def -> def.matchesObjectClassName(objectClassName))
-                        .collect(Collectors.toList());
-
-        if (matchingKindAndObjectClass.size() == 1) {
-            return matchingKindAndObjectClass.get(0);
-        } else if (matchingKindAndObjectClass.size() > 1 && objectClassName == null) {
-            // Out of luck. We have nothing more to try. There are certainly some definitions,
-            // but we just have no chance to decide among them.
-            throw new IllegalArgumentException("Couldn't determine the default definition for kind " + kind
-                    + ", because there are " + matchingKindAndObjectClass.size() + " candidates");
-        }
-
-        // #4: Fallback: if an object class is known, let us look up its raw definition.
-        if (objectClassName != null) {
+        ResourceObjectTypeDefinition defaultDefinition = findDefaultObjectTypeDefinitionInternal(schema, kind, objectClassName);
+        if (defaultDefinition != null) {
+            return defaultDefinition;
+        } else if (objectClassName != null) {
             return schema.findObjectClassDefinition(objectClassName);
+        } else {
+            return null;
         }
-
-        // #5: Sorry.
-        return null;
     }
 
     /**
@@ -233,165 +198,43 @@ class ResourceObjectDefinitionResolver {
     }
 
     /**
-     * Returns appropriate {@link ResourceObjectDefinition} for given shadow. We are not too strict here.
-     * Unknown kind/intent values are ignored (treated like null). Intent without kind is ignored.
-     *
-     * Takes auxiliary object classes defined in the shadow into account.
-     *
-     * Note: we could be even more relaxed (in the future):
-     *
-     * 1. Currently the consistency between kind, intent, and OC is checked. We could avoid this.
-     * 2. The {@link #findObjectDefinition(ResourceSchema, ShadowKindType, String, QName)} method used throws an exception
-     * when it cannot decide among various definitions for given kind (when intent and OC is null). We could be more
-     * permissive and return any of them.
+     * See {@link ResourceSchema#findDefinitionForShadow(ShadowType)} for the description.
      */
     static @Nullable ResourceObjectDefinition findDefinitionForShadow(
-            @NotNull ResourceSchema schema, @NotNull ShadowType shadow) {
-
-        QName objectClassName = shadow.getObjectClass();
-        ShadowKindType kind;
-        String intent;
-
-        // Ignoring "UNKNOWN" values
-        if (ShadowUtil.isNotKnown(shadow.getKind())) {
-            kind = null;
-            intent = null;
-        } else {
-            kind = shadow.getKind();
-            if (ShadowUtil.isNotKnown(shadow.getIntent())) {
-                intent = null;
-            } else {
-                intent = shadow.getIntent();
-            }
-        }
-
-        ResourceObjectDefinition structuralDefinition;
-
-        if (kind != null) {
-            if (intent == null) {
-                // TODO should this be really a warning or a lower-level message suffices?
-                LOGGER.warn("Partially-classified {}. Looking for default type of {}, if present", shadow, kind);
-            }
-            structuralDefinition = findObjectDefinition(schema, kind, intent, objectClassName);
-        } else if (objectClassName != null) {
-            // TODO or findObjectClassDefinition?
-            structuralDefinition = schema.findDefinitionForObjectClass(objectClassName);
-        } else {
-            structuralDefinition = null;
-        }
-
+            @NotNull ResourceSchema schema, @NotNull ShadowType shadow, @NotNull Collection<QName> additionalAuxObjectClassNames) {
+        ResourceObjectDefinition structuralDefinition = findStructuralDefinitionForShadow(schema, shadow);
         if (structuralDefinition != null) {
-            return addAuxiliaryObjectClasses(structuralDefinition, shadow.getAuxiliaryObjectClass(), schema);
+            return addAuxiliaryObjectClasses(
+                    structuralDefinition,
+                    MiscUtil.union(
+                            structuralDefinition.getConfiguredAuxiliaryObjectClassNames(),
+                            shadow.getAuxiliaryObjectClass(),
+                            additionalAuxObjectClassNames),
+                    schema);
         } else {
             return null;
         }
     }
 
-    /**
-     * See {@link ResourceSchemaUtil#findObjectDefinitionPrecisely(ResourceType, ShadowKindType, String, QName, Collection, boolean)}
-     * for the description.
-     */
-    static ResourceObjectDefinition findObjectDefinitionPrecisely(
-            @NotNull ResourceType resource,
-            @NotNull ResourceSchema resourceSchema,
-            @Nullable ShadowKindType kind,
-            @Nullable String intent,
-            @Nullable QName objectClassName,
-            @NotNull Collection<QName> additionalAuxiliaryObjectClassNames) throws ConfigurationException {
-
-        if (kind == ShadowKindType.UNKNOWN && objectClassName == null) {
-            throw new IllegalStateException("Not possible to determine object definition with kind being \"unknown\""
-                    + " and no object class name present");
-        }
-
-        disallowIntentWithoutKind(kind, intent, objectClassName);
-
-        boolean specificKindPresent = kind != null && kind != ShadowKindType.UNKNOWN;
-        boolean specificIntentPresent = intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent);
-        String specificIntent = specificIntentPresent ? intent : null;
-
-        ResourceObjectDefinition objectDefinition;
-        if (specificKindPresent) {
-            objectDefinition = findObjectDefinition(resourceSchema, kind, specificIntent, objectClassName);
-            if (objectDefinition == null) {
-                throw new ConfigurationException("No object type definition for " + kind + "/" + specificIntent
-                        + (objectClassName != null ? " (object class " + objectClassName.getLocalPart() + ")" : "")
-                        + " in " + resource
-                        + (SchemaConstants.INTENT_UNKNOWN.equals(intent) ? " (looking for unknown intent)" : ""));
+    private static @Nullable ResourceObjectDefinition findStructuralDefinitionForShadow(
+            @NotNull ResourceSchema schema, @NotNull ShadowType shadow) {
+        QName shadowObjectClassName = shadow.getObjectClass();
+        ResourceObjectTypeIdentification shadowTypeId = ResourceObjectTypeIdentification.createIfKnown(shadow);
+        if (shadowTypeId != null) {
+            ResourceObjectTypeDefinition typeDef = schema.getObjectTypeDefinition(shadowTypeId);
+            if (typeDef != null) {
+                if (!QNameUtil.match(typeDef.getObjectClassName(), shadowObjectClassName)) {
+                    LOGGER.warn("Shadow {} with object class name ({}) not compatible with the classification ({})",
+                            shadow, shadowObjectClassName, typeDef);
+                }
+                return typeDef;
             }
-            checkObjectClassCompatibility(kind, intent, objectClassName, objectDefinition);
+        }
+        if (shadowObjectClassName != null) {
+            return schema.findDefinitionForObjectClass(shadowObjectClassName);
         } else {
-            // Kind is null or unknown, so the object class name must be specified
-            objectDefinition = resourceSchema.findDefinitionForObjectClass(Objects.requireNonNull(objectClassName));
-            if (objectDefinition == null) {
-                throw new ConfigurationException("No object type or class definition for object class: " + objectClassName
-                        + " in " + resource);
-            }
-        }
-
-        Collection<QName> allAuxiliaryClassNames = MiscUtil.union(
-                additionalAuxiliaryObjectClassNames,
-                objectDefinition.getConfiguredAuxiliaryObjectClassNames());
-
-        return addAuxiliaryObjectClasses(objectDefinition, allAuxiliaryClassNames, resourceSchema);
-    }
-
-    /**
-     * Adds resolved auxiliary object classes to a given resource object definition.
-     * (Creating {@link CompositeObjectDefinition} if needed.)
-     */
-    private static @NotNull ResourceObjectDefinition addAuxiliaryObjectClasses(
-            @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<QName> auxiliaryObjectClassNames,
-            @NotNull ResourceSchema resourceSchema) {
-        if (auxiliaryObjectClassNames.isEmpty()) {
-            return objectDefinition;
-        }
-        Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
-                new ArrayList<>(auxiliaryObjectClassNames.size());
-        for (QName auxiliaryObjectClassName: auxiliaryObjectClassNames) {
-            auxiliaryObjectClassDefinitions.add(
-                    resourceSchema.findDefinitionForObjectClassRequired(auxiliaryObjectClassName));
-        }
-        return new CompositeObjectDefinitionImpl(objectDefinition, auxiliaryObjectClassDefinitions);
-    }
-
-    /**
-     * Check that we do not have intent without kind.
-     *
-     * This is a safety check, to not return definition in poorly defined (ambiguous) cases.
-     * We may remove this check in the future, if needed.
-     */
-    private static void disallowIntentWithoutKind(ShadowKindType kind, String intent, QName objectClassName) {
-        if (kind == null) {
-            if (intent != null) {
-                throw new UnsupportedOperationException("Determination of object definition with kind being null "
-                        + "and intent being non-null is not supported: null/" + intent + "/" + objectClassName);
-            }
-        } else if (kind == ShadowKindType.UNKNOWN) {
-            if (intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent)) {
-                throw new UnsupportedOperationException("Determination of object definition with kind being \"unknown\""
-                        + " and intent being known is not supported: " + kind + "/" + intent + "/" + objectClassName);
-            }
-        }
-    }
-
-    /**
-     * Checks whether object definition (found using kind/intent) matches object class name - if the name is specified.
-     *
-     * TODO consider changing exception to {@link ConfigurationException}
-     */
-    private static void checkObjectClassCompatibility(
-            @NotNull ShadowKindType kind,
-            @Nullable String intent,
-            @Nullable QName objectClassName,
-            @Nullable ResourceObjectDefinition objectDefinition) {
-        if (objectDefinition != null
-                && objectClassName != null
-                && !QNameUtil.match(objectClassName, objectDefinition.getObjectClassName())) {
-            throw new IllegalStateException(Strings.lenientFormat(
-                    "Specified kind/intent (%s/%s) point to object class %s which differs from the requested one: %s",
-                    kind, intent, objectDefinition.getObjectClassName(), objectClassName));
+            LOGGER.warn("Shadow {} without object class", shadow);
+            return null;
         }
     }
 

@@ -53,8 +53,8 @@ class TypeSpecificMergersConfigurator {
                         CorrelationItemTargetDefinitionType.class,
                         () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemTargetDefinitionType.F_QUALIFIER))),
                 entry(
-                        SynchronizationReactionNewType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(SynchronizationReactionNewType.F_NAME))),
+                        SynchronizationReactionType.class,
+                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(SynchronizationReactionType.F_NAME))),
                 entry(
                         AbstractSynchronizationActionType.class,
                         () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME)))

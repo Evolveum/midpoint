@@ -143,7 +143,7 @@ public class ShadowCaretaker {
     public ProvisioningContext applyAttributesDefinition(ProvisioningContext ctx,
             PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        ProvisioningContext subctx = ctx.spawnForShadow(shadow);
+        ProvisioningContext subctx = ctx.spawnForShadow(shadow.asObjectable());
         subctx.assertDefinition();
         ResourceObjectDefinition objectDefinition = subctx.getObjectDefinitionRequired();
 
@@ -194,8 +194,7 @@ public class ShadowCaretaker {
      * of the object class that was originally requested, etc.
      */
     public ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
-            PrismObject<ShadowType> rawResourceObject) throws SchemaException, ConfigurationException,
-                    ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            PrismObject<ShadowType> rawResourceObject) throws SchemaException, ConfigurationException {
         ShadowType rawResourceObjectBean = rawResourceObject.asObjectable();
         QName objectClassQName = rawResourceObjectBean.getObjectClass();
         List<QName> auxiliaryObjectClassQNames = rawResourceObjectBean.getAuxiliaryObjectClass();
@@ -204,7 +203,7 @@ public class ShadowCaretaker {
             // shortcut, no need to reapply anything
             return ctx;
         }
-        ProvisioningContext shadowCtx = ctx.spawnForShadow(rawResourceObject);
+        ProvisioningContext shadowCtx = ctx.spawnForShadow(rawResourceObject.asObjectable());
         shadowCtx.assertDefinition();
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceObject);
         attributesContainer.applyDefinition(

@@ -7,7 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
@@ -19,6 +29,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -29,15 +41,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -45,11 +48,19 @@ public class RequestAccess implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RequestAccess.class);
 
+    private static final String DOT_CLASS = RequestAccess.class.getName() + ".";
+    private static final String OPERATION_COMPUTE_ALL_CONFLICTS = DOT_CLASS + "computeAllConflicts";
+    private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
+
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
-    private Set<AssignmentType> assignments = new HashSet<>();
+    private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
+
+    private Set<AssignmentType> selectedAssignments = new HashSet<>();
 
     private QName relation;
+
+    private QName defaultRelation = SchemaConstants.ORG_DEFAULT;
 
     private String comment;
 
@@ -98,7 +109,7 @@ public class RequestAccess implements Serializable {
                 continue;
             }
 
-            List<AssignmentType> assignments = this.assignments.stream().map(a -> a.clone()).collect(Collectors.toList());
+            List<AssignmentType> assignments = this.selectedAssignments.stream().map(a -> a.clone()).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
             changed = true;
@@ -124,8 +135,10 @@ public class RequestAccess implements Serializable {
         if (assignments == null || assignments.isEmpty()) {
             return;
         }
-        //todo remove naive implementation
-        assignments.forEach(a -> this.assignments.add(a.clone()));
+
+        assignments.stream()
+                .filter(a -> !selectedAssignments.contains(a))
+                .forEach(a -> selectedAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             assignments.forEach(a -> list.add(a.clone()));
@@ -140,7 +153,7 @@ public class RequestAccess implements Serializable {
 
         }
         for (AssignmentType a : assignments) {
-            this.assignments.remove(a);
+            this.selectedAssignments.remove(a);
 
             for (List<AssignmentType> list : requestItems.values()) {
                 list.remove(a);
@@ -156,6 +169,15 @@ public class RequestAccess implements Serializable {
         requestItems.values().stream().forEach(list -> assignments.addAll(list));
 
         return List.copyOf(assignments);
+    }
+
+    public List<AssignmentType> getShoppingCartAssignments(ObjectReferenceType personOfInterestRef) {
+        if (personOfInterestRef == null) {
+            return new ArrayList<>();
+        }
+
+        List<AssignmentType> assignments = requestItems.get(personOfInterestRef);
+        return assignments != null ? assignments : new ArrayList<>();
     }
 
     public List<RequestAccessItem> getRequestAccessItems() {
@@ -197,34 +219,48 @@ public class RequestAccess implements Serializable {
 
     public void setRelation(QName relation) {
         if (relation == null) {
-            // todo set default relation
+            relation = defaultRelation;
         }
         this.relation = relation;
 
-        assignments.forEach(a -> a.getTargetRef().setRelation(relation));
+        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
         for (List<AssignmentType> list : requestItems.values()) {
-            list.forEach(a -> a.getTargetRef().setRelation(relation));
+            list.forEach(a -> a.getTargetRef().setRelation(this.relation));
         }
 
         markConflictsDirty();
     }
 
+    public QName getDefaultRelation() {
+        return defaultRelation;
+    }
+
+    public void setDefaultRelation(QName defaultRelation) {
+        if (defaultRelation == null) {
+            defaultRelation = SchemaConstants.ORG_DEFAULT;
+        }
+        this.defaultRelation = defaultRelation;
+    }
+
     public long getWarningCount() {
-        return getConflicts().stream().filter(c -> c.isWarning()).count();
+        return getConflicts().stream().filter(c -> c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
     public long getErrorCount() {
-        return getConflicts().stream().filter(c -> !c.isWarning()).count();
+        return getConflicts().stream().filter(c -> !c.isWarning() && c.getState() != ConflictState.SOLVED).count();
     }
 
     public void clearCart() {
         requestItems.clear();
-        assignments.clear();
+        requestItemsExistingToRemove.clear();
+
+        selectedAssignments.clear();
         relation = null;
 
         comment = null;
 
         conflictsDirty = false;
+        conflicts.clear();
     }
 
     public boolean canSubmit() {
@@ -240,18 +276,48 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        MidPointApplication mp = MidPointApplication.get();
-
         Task task = page.createSimpleTask("computeConflicts");
         OperationResult result = task.getResult();
 
+        List<Conflict> allConflicts = new ArrayList<>();
+        for (ObjectReferenceType ref : getPersonOfInterest()) {
+            List<Conflict> conflicts = computeConflictsForOnePerson(ref, task, page);
+            allConflicts.addAll(conflicts);
+        }
+
+        result.computeStatusIfUnknown();
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            page.error(result);
+        }
+
+        this.conflicts = allConflicts;
+        conflictsDirty = false;
+    }
+
+    private ObjectReferenceType createRef(PrismObject object) {
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = (ObjectType) object.asObjectable();
+
+        return new ObjectReferenceType()
+                .oid(object.getOid())
+                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
+                .targetName(obj.getName());
+    }
+
+    public List<Conflict> computeConflictsForOnePerson(ObjectReferenceType ref, Task task, PageBase page) {
+        OperationResult result = task.getResult().createSubresult(OPERATION_COMPUTE_CONFLICT);
         try {
-            PrismObject<UserType> user = WebModelServiceUtils.loadObject(getPersonOfInterest().get(0), page);
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(ref, page);
             ObjectDelta<UserType> delta = user.createModifyDelta();
 
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
-            createAssignmentDelta(delta, getShoppingCartAssignments(), def);
+            ObjectReferenceType userRef = createRef(user);
+            List<AssignmentType> assignments = getShoppingCartAssignments(userRef);
+            createAssignmentDelta(delta, assignments, def);
 
             PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
             processing.setInbound(SKIP);
@@ -259,6 +325,7 @@ public class RequestAccess implements Serializable {
 
             ModelExecuteOptions options = ModelExecuteOptions.create().partialProcessing(processing);
 
+            MidPointApplication mp = MidPointApplication.get();
             ModelContext<UserType> ctx = mp.getModelInteractionService()
                     .previewChanges(MiscUtil.createCollection(delta), options, task, result);
 
@@ -276,23 +343,26 @@ public class RequestAccess implements Serializable {
                         // everything other than 'enforce' is a warning
                         boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
 
-                        createConflicts(conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
+                        createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
                     }
                 }
             } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
                 page.warn(msg);
             }
+            return new ArrayList(conflicts.values());
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", ex);
 
-            this.conflicts = new ArrayList<>(conflicts.values());
-            conflictsDirty = false;
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
-            page.error("Couldn't get assignments conflicts. Reason: " + e);
+            result.recordFatalError("Couldn't get assignments conflicts", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
+
+        return new ArrayList<>();
     }
 
-    private <F extends FocusType> void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+    private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
             EvaluatedExclusionTrigger trigger, boolean warning) {
 
         EvaluatedAssignment<F> conflictingAssignment = trigger.getConflictingAssignment();
@@ -302,8 +372,10 @@ public class RequestAccess implements Serializable {
         final String key = StringUtils.join(addedAssignmentTargetObj.getOid(), "/", exclusionTargetObj.getOid());
         final String alternateKey = StringUtils.join(exclusionTargetObj.getOid(), "/", addedAssignmentTargetObj.getOid());
 
-        ConflictItem added = new ConflictItem(exclusionTargetObj, conflictingAssignment.getAssignment(true) != null);
-        ConflictItem exclusion = new ConflictItem(addedAssignmentTargetObj, evaluatedAssignment.getAssignment(true) != null);
+        ConflictItem added = new ConflictItem(evaluatedAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(addedAssignmentTargetObj),
+                evaluatedAssignment.getAssignment(true) != null);
+        ConflictItem exclusion = new ConflictItem(conflictingAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(exclusionTargetObj),
+                conflictingAssignment.getAssignment(true) != null);
 
         String message = null;
         if (trigger.getMessage() != null) {
@@ -311,7 +383,7 @@ public class RequestAccess implements Serializable {
             message = mp.getLocalizationService().translate(trigger.getMessage());
         }
 
-        Conflict conflict = new Conflict(added, exclusion, message, warning);
+        Conflict conflict = new Conflict(userRef, added, exclusion, message, warning);
 
         if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
             conflicts.put(key, conflict);
@@ -325,16 +397,16 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    private void createConflicts(Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger) {
-                createConflicts(conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
+                createConflicts(userRef, conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
             } else if (trigger instanceof EvaluatedCompositeTrigger) {
                 EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
                 Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
-                createConflicts(conflicts, evaluatedAssignment, innerTriggers, warning);
+                createConflicts(userRef, conflicts, evaluatedAssignment, innerTriggers, warning);
             }
         }
     }
@@ -371,5 +443,38 @@ public class RequestAccess implements Serializable {
         }
 
         return delta;
+    }
+
+    private void addExistingToBeRemoved(ObjectReferenceType ref, AssignmentType assignment) {
+        List<AssignmentType> list = requestItemsExistingToRemove.get(ref);
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        requestItemsExistingToRemove.put(ref, list);
+
+        list.add(assignment);
+    }
+
+    public void solveConflict(Conflict conflict, ConflictItem toRemove) {
+        if (toRemove.isExisting()) {
+            addExistingToBeRemoved(conflict.getPersonOfInterest(), toRemove.getAssignment());
+        } else {
+            List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
+            assignments.remove(toRemove.getAssignment());
+        }
+
+        conflict.setState(ConflictState.SOLVED);
+
+        markConflictsDirty();
+    }
+
+    public boolean isAllConflictsSolved() {
+        return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
+    }
+
+    public void submitRequest() {
+        // todo submit stuff
+
+        clearCart();
     }
 }

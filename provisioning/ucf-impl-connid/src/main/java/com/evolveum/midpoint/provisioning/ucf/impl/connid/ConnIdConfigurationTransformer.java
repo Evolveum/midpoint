@@ -180,13 +180,15 @@ public class ConnIdConfigurationTransformer {
 
             PrismContext prismContext = PrismContext.get();
             QName qNameOfType = propertyDef.getTypeName();
-            MutableItemDefinition def;
+            MutablePrismPropertyDefinition def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType);
             if (ValueListOpenness.OPEN.equals(values.getOpenness())) {
-                def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType);
+                Collection suggestedValues = values.getValues().stream()
+                        .map((value) -> new DisplayableValueImpl<>(value, null, null)).collect(Collectors.toList());
+                def.setSuggestedValues(suggestedValues);
             } else if (ValueListOpenness.CLOSED.equals(values.getOpenness())) {
                 Collection allowedValues = values.getValues().stream()
                         .map((value) -> new DisplayableValueImpl<>(value, null, null)).collect(Collectors.toList());
-                def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType, allowedValues, null).toMutable();
+                def.setAllowedValues(allowedValues);
             } else {
                 LOGGER.debug("Suggestion " + propertyName + " contains unsupported type of ValueListOpenness: " + values.getOpenness());
                 continue;
@@ -204,28 +206,10 @@ public class ConnIdConfigurationTransformer {
             def.setHelp(propertyDef.getHelp());
             def.setDisplayOrder(propertyDef.getDisplayOrder());
             def.setDocumentation(propertyDef.getDocumentation());
+            def.setMaxOccurs(propertyDef.isMultiValue() ? -1 : 1);
 
-            if (propertyDef.isMultiValue()) {
-                def.setMaxOccurs(-1);
-                //noinspection unchecked
-                PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
-                for (Object value : values.getValues()) {
-                    PrismPropertyValue<Object> propertyValue = prismContext.itemFactory().createPropertyValue();
-                    propertyValue.setValue(value);
-                    property.add(propertyValue);
-                }
-                convertedSuggestions.add(property);
-            } else {
-                def.setMaxOccurs(1);
-                for (Object value : values.getValues()) {
-                    //noinspection unchecked
-                    PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
-                    PrismPropertyValue<Object> propertyValue = prismContext.itemFactory().createPropertyValue();
-                    propertyValue.setValue(value);
-                    property.add(propertyValue);
-                    convertedSuggestions.add(property);
-                }
-            }
+            PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
+            convertedSuggestions.add(property);
         }
         return convertedSuggestions;
     }
@@ -295,6 +279,9 @@ public class ConnIdConfigurationTransformer {
                 QName propertyQName = prismProperty.getElementName();
                 if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                     String subelementName = propertyQName.getLocalPart();
+                    if (prismProperty.getRealValue() == null) {
+                        continue;
+                    }
                     if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
                             .equals(subelementName)) {
                         connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
@@ -344,6 +331,9 @@ public class ConnIdConfigurationTransformer {
         for (PrismProperty prismProperty : connectorTimeoutsContainer.getValue().getProperties()) {
             QName propertQName = prismProperty.getElementName();
 
+            if (prismProperty.getRealValue() == null) {
+                continue;
+            }
             if (SchemaConstants.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
                 String opName = propertQName.getLocalPart();
                 Collection<Class<? extends APIOperation>> apiOpClasses = ConnectorFactoryConnIdImpl.resolveApiOpClass(opName);
@@ -368,6 +358,9 @@ public class ConnIdConfigurationTransformer {
 
         for (PrismProperty prismProperty : resultsHandlerConfigurationContainer.getValue().getProperties()) {
             QName propertyQName = prismProperty.getElementName();
+            if (prismProperty.getRealValue() == null) {
+                continue;
+            }
             if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                 String subelementName = propertyQName.getLocalPart();
                 if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER

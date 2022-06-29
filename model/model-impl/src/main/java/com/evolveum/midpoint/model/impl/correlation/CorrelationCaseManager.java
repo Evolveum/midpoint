@@ -42,7 +42,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -222,7 +222,7 @@ public class CorrelationCaseManager {
             throws SchemaException {
         checkOid(resourceObject);
         LOGGER.trace("Looking for correlation case for {}", resourceObject);
-        S_AtomicFilterExit q = prismContext.queryFor(CaseType.class)
+        S_FilterExit q = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_TARGET_REF).ref(resourceObject.getOid())
                 .and().item(CaseType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
         if (mustBeOpen) {

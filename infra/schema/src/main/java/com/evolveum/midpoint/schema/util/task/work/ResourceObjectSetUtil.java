@@ -16,7 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,7 +31,7 @@ public class ResourceObjectSetUtil {
 
     public static @NotNull ResourceObjectSetType fromLegacySource(@NotNull LegacyWorkDefinitionSource source) {
         PrismContainerValue<?> extension = source.getTaskExtension();
-        return new ResourceObjectSetType(PrismContext.get())
+        return new ResourceObjectSetType()
                 .resourceRef(source.getObjectRef())
                 .objectclass(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS, QName.class))
                 .kind(getItemRealValue(extension, SchemaConstants.MODEL_EXTENSION_KIND, ShadowKindType.class))
@@ -61,7 +60,7 @@ public class ResourceObjectSetUtil {
     }
 
     public static @NotNull ResourceObjectSetType fromConfiguration(ResourceObjectSetType resourceObjects) {
-         return resourceObjects != null ? resourceObjects : new ResourceObjectSetType(PrismContext.get());
+         return resourceObjects != null ? resourceObjects : new ResourceObjectSetType();
     }
 
     public static @Nullable ResourceObjectSetType fromTask(TaskType task){

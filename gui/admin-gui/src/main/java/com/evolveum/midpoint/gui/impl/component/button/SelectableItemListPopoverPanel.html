@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2021 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="popover">
+        <div class="search-popover">
+            <input wicket:id="searchText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
+
+            <dl class="border-bottom mb-2" wicket:id="itemList">
+                <dt class="mb-1">
+                    <div wicket:id="itemsTitle" />
+                </dt>
+                <dd wicket:id="items">
+                    <label>
+                        <input wicket:id="itemCheckbox" type="checkbox">&nbsp;
+                        <a wicket:id="itemLink"><span wicket:id="itemName"/></a>
+                        <i wicket:id="itemHelp"/>
+                    </label>
+                </dd>
+            </dl>
+
+            <div class="mt-2 mb-1">
+                <a wicket:id="addButton" class="btn btn-sm btn-success"/>
+                <a wicket:id="closeButton" class="btn btn-sm btn-default"/>
+            </div>
+        </div>
+    </div>
+</wicket:panel>

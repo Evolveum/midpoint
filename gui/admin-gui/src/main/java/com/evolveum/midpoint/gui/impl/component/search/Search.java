@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
@@ -21,20 +20,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,7 +38,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
-    public static final String F_ITEMS = "items";
+    private static final String DOT_CLASS = Search.class.getName() + ".";
+    private static final String OPERATION_EVALUATE_COLLECTION_FILTER = DOT_CLASS + "evaluateCollectionFilter";
     public static final String F_FULL_TEXT = "fullText";
     public static final String F_TYPE = "type";
 
@@ -191,7 +186,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
             }
 
-            ObjectQuery archetypeQuery = getArchetypeQuery(pageBase);
+            ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
             query = mergeQueries(query, archetypeQuery);
         }
         query = mergeQueries(query, customizeContentQuery);
@@ -280,25 +275,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return query;
     }
 
-    private ObjectQuery getArchetypeQuery(PageBase pageBase) {
+    private ObjectQuery evaluateCollectionFilter(PageBase pageBase) {
         CompiledObjectCollectionView view = null;
-        OperationResult result = new OperationResult("evaluate filter");
-        Task task = pageBase.createSimpleTask("evaluate filter");
+        OperationResult result = new OperationResult(OPERATION_EVALUATE_COLLECTION_FILTER);
+        Task task = pageBase.createSimpleTask(OPERATION_EVALUATE_COLLECTION_FILTER);
         ObjectFilter collectionFilter = null;
         if (findObjectCollectionSearchItemWrapper() != null && findObjectCollectionSearchItemWrapper().getObjectCollectionView() != null) {
             view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
-            if (view == null || view.getFilter() == null) {
-                return null;
-            }
-            collectionFilter = view.getFilter();
+            collectionFilter = view != null ? view.getFilter() : null;
         } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionViewName())) {
             view = pageBase.getCompiledGuiProfile()
                     .findObjectCollectionView(WebComponentUtil.containerClassToQName(pageBase.getPrismContext(), getTypeClass()),
                             searchConfigurationWrapper.getCollectionViewName());
-            if (view == null || view.getFilter() == null) {
-                return null;
-            }
-            collectionFilter = view.getFilter();
+            collectionFilter = view != null ? view.getFilter() : null;
         } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionRefOid())) {
             try {
                 PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
@@ -310,6 +299,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 LOGGER.error("Failed to parse filter from object collection, oid {}, {}", searchConfigurationWrapper.getCollectionRefOid(), e.getStackTrace());
                 pageBase.error("Failed to parse filter from object collection, oid " + searchConfigurationWrapper.getCollectionRefOid());
             }
+        }
+        if (collectionFilter == null) {
+            return null;
         }
         ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
         query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(collectionFilter, result, pageBase));

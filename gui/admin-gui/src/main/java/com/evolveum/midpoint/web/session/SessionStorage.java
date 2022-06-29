@@ -6,6 +6,14 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RequestAccess;
 import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
@@ -14,14 +22,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * @author lazyman

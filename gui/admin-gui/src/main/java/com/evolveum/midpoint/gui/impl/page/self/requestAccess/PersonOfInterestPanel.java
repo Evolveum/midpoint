@@ -7,20 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -34,11 +24,20 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -47,22 +46,36 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PersonOfInterest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TileType.class);
 
-    private enum PersonOfInterest {
+    private static final String DEFAULT_TILE_ICON = "fas fa-user-friends";
+
+    private enum TileType {
 
         MYSELF("fas fa-user-circle"),
 
-        GROUP_OTHERS("fas fa-user-friends");
+        GROUP_OTHERS(DEFAULT_TILE_ICON);
 
         private String icon;
 
-        PersonOfInterest(String icon) {
+        TileType(String icon) {
             this.icon = icon;
         }
 
         public String getIcon() {
             return icon;
+        }
+    }
+
+    private static class PersonOfInterest implements Serializable {
+
+        private String groupIdentifier;
+
+        private TileType type;
+
+        public PersonOfInterest(String groupIdentifier, TileType type) {
+            this.groupIdentifier = groupIdentifier;
+            this.type = type;
         }
     }
 
@@ -116,14 +129,37 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     private void initModels() {
         tiles = new LoadableModel<>(false) {
+
             @Override
             protected List<Tile<PersonOfInterest>> load() {
                 List<Tile<PersonOfInterest>> list = new ArrayList<>();
 
-                for (PersonOfInterest poi : PersonOfInterest.values()) {
-                    Tile tile = new Tile(poi.getIcon(), getString(poi));
-                    tile.setValue(poi);
-                    list.add(tile);
+                TargetSelectionType selection = getTargetSelectionConfiguration();
+                if (selection == null) {
+                    for (TileType type : TileType.values()) {
+                        Tile tile = createDefaultTile(type);
+                        list.add(tile);
+                    }
+
+                    return list;
+                }
+
+                if (selection.isAllowRequestForMyself() == null || selection.isAllowRequestForMyself()) {
+                    list.add(createDefaultTile(TileType.MYSELF));
+                }
+
+                if (selection.isAllowRequestForOthers() != null && !selection.isAllowRequestForOthers()) {
+                    return list;
+                }
+
+                List<GroupSelectionType> selections = selection.getGroup();
+                if (selections.isEmpty()) {
+                    list.add(createDefaultTile(TileType.GROUP_OTHERS));
+                    return list;
+                }
+
+                for (GroupSelectionType gs : selections) {
+                    list.add(createTile(gs));
                 }
 
                 return list;
@@ -131,18 +167,53 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         };
     }
 
+    private Tile<PersonOfInterest> createTile(GroupSelectionType selection) {
+        DisplayType display = selection.getDisplay();
+        if (display == null) {
+            display = new DisplayType();
+        }
+
+        String icon = DEFAULT_TILE_ICON;
+
+        IconType iconType = display.getIcon();
+        if (iconType != null && iconType.getCssClass() != null) {
+            icon = iconType.getCssClass();
+        }
+
+        String label = getString(TileType.GROUP_OTHERS);
+        if (display.getLabel() != null) {
+            label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
+        }
+
+        Tile tile = new Tile(icon, label);
+        tile.setValue(new PersonOfInterest(selection.getIdentifier(), TileType.GROUP_OTHERS));
+
+        return tile;
+    }
+
+    private Tile<PersonOfInterest> createDefaultTile(TileType type) {
+        Tile tile = new Tile(type.getIcon(), getString(type));
+        tile.setValue(new PersonOfInterest(null, type));
+
+        return tile;
+    }
+
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return new VisibleBehaviour(() -> {
-            Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
-            Tile<PersonOfInterest> others = getTileBy(PersonOfInterest.GROUP_OTHERS);
+            Tile<PersonOfInterest> selected = getSelectedTile();
+            if (selected == null) {
+                return false;
+            }
 
-            return myself.isSelected() || (others.isSelected() && selectedGroupOfUsers.getObject().size() > 0);
+            TileType type = selected.getValue().type;
+
+            return type == TileType.MYSELF || (type == TileType.GROUP_OTHERS && selectedGroupOfUsers.getObject().size() > 0);
         });
     }
 
-    private Tile<PersonOfInterest> getTileBy(PersonOfInterest type) {
-        return tiles.getObject().stream().filter(t -> t.getValue() == type).findFirst().orElseGet(null);
+    private Tile<PersonOfInterest> getSelectedTile() {
+        return tiles.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
     }
 
     private void initLayout() {
@@ -166,7 +237,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
                         Tile<PersonOfInterest> tile = item.getModelObject();
-                        switch (tile.getValue()) {
+                        switch (tile.getValue().type) {
                             case MYSELF:
                                 myselfPerformed(target, tile);
                                 break;
@@ -225,6 +296,11 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     private void groupOthersPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> groupOthers) {
+        Tile<PersonOfInterest> selected = getSelectedTile();
+        if (selected != null && selected.getValue().type == TileType.GROUP_OTHERS && selected != groupOthers) {
+            selectedGroupOfUsers.setObject(new ArrayList<>());
+        }
+
         tiles.getObject().forEach(t -> t.setSelected(false));
 
         if (!groupOthers.isSelected()) {
@@ -236,10 +312,60 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         target.add(this);
     }
 
+    private ObjectFilter createObjectFilterFromGroupSelection(String identifier) {
+        if (identifier==null) {
+            return null;
+        }
+
+        TargetSelectionType targetSelection = getTargetSelectionConfiguration();
+        if (targetSelection == null) {
+            return null;
+        }
+
+        List<GroupSelectionType> selections = getTargetSelectionConfiguration().getGroup();
+        GroupSelectionType selection = selections.stream().filter(gs -> identifier.equals(gs.getIdentifier())).findFirst().orElse(null);
+        if (selection == null) {
+            return null;
+        }
+
+        CollectionRefSpecificationType collection = selection.getCollection();
+        if (collection == null) {
+            return null;
+        }
+
+        if (collection.getCollectionRef() != null) {
+            com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
+            // todo use collection somehow as well
+        }
+
+        SearchFilterType search = collection.getFilter();
+        if (search == null) {
+            return null;
+        }
+
+        try {
+            return getPageBase().getQueryConverter().createObjectFilter(UserType.class, search);
+        } catch (Exception ex) {
+            LOGGER.debug("Couldn't create search filter", ex);
+            getPageBase().error("Couldn't create search filter, reason: " + ex.getMessage());
+        }
+
+        return null;
+    }
+
     private void selectManuallyPerformed(AjaxRequestTarget target) {
-        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(
-                getPageBase().getMainPopupBodyId(), UserType.class,
-                List.of(UserType.COMPLEX_TYPE), true, getPageBase()) {
+        ObjectFilter filter = null;
+
+        Tile<PersonOfInterest> selected = getSelectedTile();
+        if (selected != null) {
+            String identifier = selected.getValue().groupIdentifier;
+            filter = createObjectFilterFromGroupSelection(identifier);
+        }
+
+        // todo user group identifier from tile PersonOfInterest to properly filter users, also support collections somehow
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(getPageBase().getMainPopupBodyId(), UserType.class,
+                List.of(UserType.COMPLEX_TYPE), true, getPageBase(), filter) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -283,8 +409,13 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        Tile<PersonOfInterest> myself = getTileBy(PersonOfInterest.MYSELF);
-        if (myself.isSelected()) {
+        Tile<PersonOfInterest> selected = getSelectedTile();
+        if (selected == null) {
+            return false;
+        }
+
+        TileType type = selected.getValue().type;
+        if (type == TileType.MYSELF) {
             try {
                 MidPointPrincipal principal = SecurityUtil.getPrincipal();
 
@@ -304,5 +435,19 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         target.add(getWizard().getPanel());
 
         return false;
+    }
+
+    private TargetSelectionType getTargetSelectionConfiguration() {
+        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+        if (profile == null) {
+            return null;
+        }
+
+        AccessRequestType accessRequest = profile.getAccessRequest();
+        if (accessRequest == null) {
+            return null;
+        }
+
+        return accessRequest.getTargetSelection();
     }
 }

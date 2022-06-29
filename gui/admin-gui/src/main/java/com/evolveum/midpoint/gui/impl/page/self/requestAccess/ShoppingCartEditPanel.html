@@ -7,43 +7,52 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="row">
+    <form class="row" wicket:id="form">
         <div class="col-12">
             <div class="form-group">
-                <label class="col-form-label font-weight-bold">Relation
-                    <span class="text-gray font-weight-light">- Optional</span></label>
-                <select class="form-control">
+                <label class="col-form-label font-weight-bold">
+                    <wicket:message key="ObjectReferenceType.relation"/>
+                </label>
+                <select class="form-control" wicket:id="relation">
                     <option>Member</option>
                 </select>
             </div>
         </div>
         <div class="col-12">
             <div class="form-group">
-                <label class="col-form-label">Administrative status
-                    <span class="text-gray font-weight-light">- Optional</span></label>
-                <select class="form-control">
+                <label class="col-form-label">
+                    <wicket:message key="ActivationType.administrativeStatus"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
+                <select class="form-control" wicket:id="administrativeStatus">
                     <option>Undefined</option>
                 </select>
             </div>
         </div>
         <div class="col-12">
             <div class="form-group">
-                <label class="col-form-label">Validity</label>
+                <label class="col-form-label">
+                    <wicket:message key="ShoppingCartEditPanel.validity"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
                 <div class="input-group">
                     <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1">
-                                <i class="fa-solid fa-calendar-days"></i>
-                            </span>
+                        <span class="input-group-text" id="basic-addon1">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </span>
                     </div>
                     <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" value="06/01/2022 - 06/07/2022">
                 </div>
             </div>
         </div>
-    </div>
-    <!--<a class="btn btn-primary mt-2" href="#">
-        <i class="fa-solid fa-user-gear mr-1"></i>
-        Change user selection
-    </a>-->
+    </form>
+    <wicket:remove>
+        <!-- todo implement later -->
+        <a class="btn btn-primary mt-2" href="#">
+            <i class="fa-solid fa-user-gear mr-1"></i>
+            Change user selection
+        </a>
+    </wicket:remove>
 
     <wicket:fragment wicket:id="buttons">
         <div class="d-flex flex-wrap gap-2 w-100">

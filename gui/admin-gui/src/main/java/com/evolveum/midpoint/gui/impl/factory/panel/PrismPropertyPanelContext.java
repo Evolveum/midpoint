@@ -33,6 +33,10 @@ public class PrismPropertyPanelContext<T> extends ItemPanelContext<T, PrismPrope
         return unwrapWrapperModel().getAllowedValues();
     }
 
+    public Collection<? extends DisplayableValue<T>> getSuggestedValues() {
+        return unwrapWrapperModel().getSuggestedValues();
+    }
+
     public boolean hasValueEnumerationRef() {
         return unwrapWrapperModel().getValueEnumerationRef() != null;
     }

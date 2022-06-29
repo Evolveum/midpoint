@@ -9,7 +9,10 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
+import java.util.Collection;
 
 /**
  * @author katka
@@ -19,5 +22,4 @@ public interface PrismPropertyWrapper<T> extends ItemWrapper<PrismProperty<T>, P
 
     String getPredefinedValuesOid();
     void setPredefinedValuesOid(String oid);
-
 }

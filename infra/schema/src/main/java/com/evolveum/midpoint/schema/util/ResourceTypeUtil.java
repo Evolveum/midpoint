@@ -553,6 +553,7 @@ public class ResourceTypeUtil {
     }
 
     // TODO specify semantics of this method
+    @Deprecated
     @Nullable
     public static ObjectSynchronizationType findObjectSynchronization(
             @Nullable ResourceType resource, @Nullable ShadowKindType kind, @Nullable String intent) {

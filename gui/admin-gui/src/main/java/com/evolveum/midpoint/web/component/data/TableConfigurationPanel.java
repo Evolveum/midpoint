@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
 import com.evolveum.midpoint.gui.impl.component.search.Popover;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -52,13 +54,18 @@ public class TableConfigurationPanel extends BasePanel {
         cog.setOutputMarkupId(true);
         add(cog);
 
-        popover.setReference(cog);
     }
 
     private Popover initPopoverLayout() {
-        Popover popover = new Popover(ID_POPOVER);
+        Popover popover = new Popover(ID_POPOVER) {
+
+            private static final long serialVersionUID = 1L;
+            @Override
+            public Component getPopoverReferenceComponent() {
+                return TableConfigurationPanel.this.get(ID_COG);
+            }
+        };
         popover.setOutputMarkupId(true);
-        popover.setReference(popover);
         add(popover);
 
         Form<?> form = new MidpointForm<>(ID_FORM);

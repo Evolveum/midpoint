@@ -480,7 +480,13 @@ class ResourceTestOperation {
                     .createSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
 
             try {
-                PrismObjectDefinition<ResourceType> newResourceDefinition = resource.asPrismObject().getDefinition().clone();
+                PrismObjectDefinition<ResourceType> resourceDefinition = resource.asPrismObject().getDefinition();
+                PrismObjectDefinition<ResourceType> newResourceDefinition;
+                if (resourceDefinition.isImmutable()) {
+                    newResourceDefinition = resourceDefinition.clone();
+                } else {
+                    newResourceDefinition = resourceDefinition;
+                }
                 schemaHelper.applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
                 PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
                 PrismContainerValue<ConnectorConfigurationType> configuration =
@@ -496,25 +502,27 @@ class ResourceTestOperation {
                                 .doNotCache(!options.isFullMode()),
                         result);
 
-                // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
-                // cannot be detected by the connector and therefore are provided in the resource
-                //
-                // NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
-                //       The detected schema will come later. The schema here is the one that is stored in the resource
-                //       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
-                //       that was manually defined. This is needed to be passed to the connector in case that the connector
-                //       cannot detect the schema and needs schema/capabilities definition to establish a connection.
-                //       Most connectors will just ignore the schema and capabilities that are provided here.
-                //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
-                //
-                ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-                CapabilityCollectionType previousCapabilities =
-                        ResourceTypeUtil.getNativeCapabilitiesCollection(resource);
-                connector.initialize(
-                        previousResourceSchema,
-                        previousCapabilities,
-                        ResourceTypeUtil.isCaseIgnoreAttributeNames(resource),
-                        result);
+                if (options.isFullMode()) {
+                    // We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
+                    // cannot be detected by the connector and therefore are provided in the resource
+                    //
+                    // NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
+                    //       The detected schema will come later. The schema here is the one that is stored in the resource
+                    //       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
+                    //       that was manually defined. This is needed to be passed to the connector in case that the connector
+                    //       cannot detect the schema and needs schema/capabilities definition to establish a connection.
+                    //       Most connectors will just ignore the schema and capabilities that are provided here.
+                    //       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
+                    //
+                    ResourceSchema previousResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+                    CapabilityCollectionType previousCapabilities =
+                            ResourceTypeUtil.getNativeCapabilitiesCollection(resource);
+                    connector.initialize(
+                            previousResourceSchema,
+                            previousCapabilities,
+                            ResourceTypeUtil.isCaseIgnoreAttributeNames(resource),
+                            result);
+                }
 
             } catch (CommunicationException e) {
                 onConfigurationProblem(e, "Communication error", DOWN, result);

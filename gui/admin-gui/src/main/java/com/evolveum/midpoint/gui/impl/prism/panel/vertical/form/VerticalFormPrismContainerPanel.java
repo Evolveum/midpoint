@@ -4,16 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.prism.panel.verticalForm;
+package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 

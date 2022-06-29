@@ -24,11 +24,6 @@
             <source>../gui/midpoint-jar/target/midpoint.jar</source>
             <destName>lib/midpoint.jar</destName>
         </file>
-        <!-- TODO: temporary, will go away during 2022-06 -->
-        <file>
-            <source>../gui/midpoint-war/target/midpoint.war</source>
-            <destName>lib/midpoint.war</destName>
-        </file>
     </files>
     <fileSets>
         <fileSet>

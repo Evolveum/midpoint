@@ -147,7 +147,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         ResourceObjectDefinition ocdef = null;
         QName objectClassName = getObjectClassName(objectType);
         if (ctx.resourceSchema != null && objectClassName != null) {
-            ocdef = ctx.resourceSchema.findDefinitionForObjectClass(objectClassName);
+            ocdef = ctx.resourceSchema.findObjectClassDefinition(objectClassName);
             checkObjectClassDefinition(ctx, path, objectType, ocdef);
         }
         int i = 1;
@@ -291,7 +291,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             }
             if (rad == null) {
                 for (QName auxOcName : getAuxiliaryObjectClassNames(objectType)) {
-                    ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findDefinitionForObjectClass(auxOcName);
+                    ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findObjectClassDefinition(auxOcName);
                     if (auxOcDef != null) {
                         rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
                         if (rad != null) {
@@ -594,7 +594,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
     private void checkObjectSynchronization(ResourceValidationContext ctx, ItemPath path, ObjectSynchronizationType objectSync) {
         Map<SynchronizationSituationType,Integer> counts = new HashMap<>();
-        for (SynchronizationReactionType reaction : objectSync.getReaction()) {
+        for (LegacySynchronizationReactionType reaction : objectSync.getReaction()) {
             if (reaction.getSituation() == null) {
                 ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_SITUATION,
                         getString(CLASS_DOT + C_NO_SITUATION, getName(objectSync)),
