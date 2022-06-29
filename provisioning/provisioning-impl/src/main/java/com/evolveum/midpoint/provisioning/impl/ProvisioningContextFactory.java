@@ -43,8 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Note about the "unknown" values for kind/intent: They should come _only_ when determining
  * a definition for given shadow. They should never be requested by the client of provisioning API.
- *
- * TODO implement MID-7470
  */
 @Component
 public class ProvisioningContextFactory {

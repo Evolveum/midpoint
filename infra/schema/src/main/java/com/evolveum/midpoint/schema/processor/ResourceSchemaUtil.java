@@ -55,11 +55,11 @@ public class ResourceSchemaUtil {
      *
      * Basic schema is:
      *
-     * . No kind, intent, nor object class: No definition (the `null` value) is returned.
-     * . No kind (or kind=UNKNOWN, if allowed) -> the decision is based on the object class name:
+     * . No kind, intent, nor object class is present: No definition (the `null` value) is returned.
+     * . Kind is not present -> the decision is based on the object class name:
      * .. if there is a type definition (for given object class name) marked as "default for object class", it is returned;
      * .. otherwise, the object class definition (refined, if there's any; raw otherwise) is returned.
-     * . Kind is present
+     * . Kind is present:
      * .. if intent is specified, then the type definition for given kind/intent is found (and its object class is
      * checked for equality with the specified one, if there's any);
      * .. if no intent is specified, then "default for kind" definition is looked for.

@@ -88,7 +88,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * * Creating and closing the operation-level {@link OperationResult} (and recording any exceptions in the standard manner).
  * More complex methods (e.g. `getObject`, `searchObjects`, `searchObjectsIterative`) may *clean up* the result before returning.
  * (Except for auxiliary methods like {@link #classifyResourceObject(ShadowType, ResourceType,
- * ObjectSynchronizationDiscriminatorType, Task, OperationResult)} and {@link ProvisioningService#generateShadowTag(ShadowType, ResourceType, ResourceObjectDefinition, Task, OperationResult)}).
+ * ObjectSynchronizationDiscriminatorType, Task, OperationResult)} and {@link ProvisioningService#generateShadowTag(ShadowType,
+ * ResourceType, ResourceObjectDefinition, Task, OperationResult)}).
  *
  * * Logging at the operation level.
  *

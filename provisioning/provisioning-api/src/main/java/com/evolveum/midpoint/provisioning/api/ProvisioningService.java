@@ -10,9 +10,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
 import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -254,30 +257,43 @@ public interface ProvisioningService {
      * The method call should fail if object type is wrong. Should fail if the query is wrong, e.g. if it contains
      * a reference to an unknown attribute.
      *
-     * == Specifying the coordinates
+     * == Specifying the "coordinates"
      *
-     * When dealing with shadow queries in non-raw mode, there are the following requirements:
+     * When dealing with shadow queries in non-raw mode, there are the following requirements on the query:
      *
-     * - there must be exactly one `resourceRef` obtainable from the query (i.e. present in the conjunction at the root level),
-     * - there must be either `objectclass` or `kind` (optionally with `intent`) obtainable from the query (or both).
+     * . there must be exactly one `resourceRef` obtainable from the query (i.e. present in the conjunction at the root level),
+     * . and
+     * .. either `kind` is specified (optionally with `intent` and/or `objectClass`),
+     * .. or `objectClass` is specified (and both `kind` and `intent` are not specified).
+     *
+     * See also {@link ObjectQueryUtil#getOperationCoordinates(ObjectFilter)}.
      *
      * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
      *
-     * == Determining the object class or type to be searched for
+     * == Interpreting the query for on-resource search
      *
-     * When issuing the on-resource search, the object class of objects must be known; and sometimes even more information
-     * (like whose attributes are returned by default and whose have to be requested explicitly) needs to be known.
+     * === If `kind` is specified
      *
-     * Technically speaking, we have to know the object class name, and - sometimes - even the refined object class
-     * (or object type) definition.
+     * In this case, a specific _object type_ definition is looked up: either by `kind` and `intent` (if the latter is present),
+     * or - if `intent` is not specified - by looking for a type marked as "default for its kind". The search is then executed
+     * against this object type, taking its delineation (object class, base context, additional filters) into account.
      *
-     * The object class or type used for on-resource search is then determined like this:
+     * If `objectClass` is specified as well, it is just checked against the value in given object type definition. (Hence it
+     * is not necessary nor advisable to specify object class when kind is specified.)
      *
-     * - if `kind` and `intent` are specified, the appropriate type is looked for;
-     * - if `kind` is specified but `intent` is not, the default type for given kind is looked for;
-     * - if `kind` is not specified, `objectclass` is used to find the most appropriate object class or object type definition.
+     * === If only `objectClass` is specified
      *
-     * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)} for
+     * Here the implementation searches for all objects of given `objectClass`. However, there are few things that must be done
+     * during the search, for example determining "attributes to get" i.e. what attributes should be explicitly requested.
+     * These things depend on object class or object type definition. Therefore, the implementation has to look up appropriate
+     * definition first.
+     *
+     * It does so by looking up raw or refined object class definition. If there is a type definition marked as "default for
+     * object class", it is used. However, if such a type definition is found, the delineation (base context, filters, and so on)
+     * are ignored: as stated above, all objects of given object class are searched for.
+     *
+     * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)}
+     * and {@link ResourceSchemaUtil#findObjectDefinitionPrecisely(ResourceType, ShadowKindType, String, QName)} for
      * the details.
      *
      * == Extra resource objects
@@ -619,6 +635,10 @@ public interface ProvisioningService {
 
     /**
      * Applies appropriate definition to the query.
+     *
+     * The query (for shadows) must comply with requirements similar to ones of {@link #searchObjects(Class, ObjectQuery,
+     * Collection, Task, OperationResult)} method. See also {@link ResourceSchemaUtil#findObjectDefinitionPrecisely(ResourceType,
+     * ShadowKindType, String, QName)}.
      */
     <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)
         throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
@@ -687,9 +707,17 @@ public interface ProvisioningService {
     void setSynchronizationSorterEvaluator(SynchronizationSorterEvaluator evaluator);
 
     /**
-     * TODO
+     * Classifies resource object, i.e. determines its kind and intent (not the tag!).
      *
-     * This method does _not_ update shadow in the repository (with newly determined classification).
+     * . Ignores existing shadow classification.
+     * . Invokes synchronization sorter, if it's defined for the resource.
+     * . Even if new classification is determined, does _not_ update shadow in the repository.
+     *
+     * If you need to classify an unclassified (and not fetched yet) shadow, it may be generally better
+     * to call {@link #getObject(Class, String, Collection, Task, OperationResult)} method. It attempts
+     * to classify any unclassified objects retrieved.
+     *
+     * @param combinedObject Resource object combined with its shadow. Full "shadowization" is not required.
      */
     @NotNull ResourceObjectClassification classifyResourceObject(
             @NotNull ShadowType combinedObject,
@@ -700,7 +728,10 @@ public interface ProvisioningService {
             SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
     /**
-     * TODO
+     * Generates shadow tag (for multi-account scenarios).
+     *
+     * . Ignores existing shadow tag.
+     * . Does _not_ update shadow in the repository.
      */
     @Nullable String generateShadowTag(
             @NotNull ShadowType combinedObject,
