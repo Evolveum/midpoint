@@ -388,6 +388,21 @@ link (based on #read, #modify, #add and #delete model authorizations)
 
 |===
 
+== Case actions
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#cases
+| All cases. If only this authorization is defined, no views (My Cases, All Approvals) will be shown in the sidebar menu.
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#casesView
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for cases.
+|
+
+|===
+
 == Work items actions
 
 [%autowidth]
@@ -497,6 +512,10 @@ link (based on #read, #modify, #add and #delete model authorizations)
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
 | Org. unit details (including editing) and New org. link
 |
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgDetails
+| Edit Org Unit
+| Since 4.4.3
 
 |===
 
