@@ -266,6 +266,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_ORG_UNIT_QNAME = new QName(NS_AUTHORIZATION_UI, "orgUnit");
     public static final String AUTZ_UI_ORG_UNIT_URL = NS_AUTHORIZATION_UI + "#orgUnit";
 
+    public static final QName AUTZ_UI_ORG_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "orgDetails");
+    public static final String AUTZ_UI_ORG_DETAILS_URL = NS_AUTHORIZATION_UI + "#orgDetails";
+
     //Approvals (workflows)
     public static final String AUTZ_UI_APPROVALS_ALL_URL = NS_AUTHORIZATION_UI + "#approvalsAll";
     public static final String AUTZ_UI_MY_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myWorkItems";

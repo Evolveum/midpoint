@@ -70,7 +70,7 @@ public enum PageUrlMapping {
     ORG_NEW_DETAILS("/admin/org/**",
             new AuthorizationActionValue(AUTZ_UI_ORG_ALL_URL,
                     "PageAdminUsers.auth.orgAll.label", "PageAdminUsers.auth.orgAll.description"),
-            new AuthorizationActionValue(AUTZ_UI_ORG_UNIT_URL,
+            new AuthorizationActionValue(AUTZ_UI_ORG_DETAILS_URL,
                     "PageOrgUnit.auth.orgUnit.label", "PageOrgUnit.auth.orgUnit.description")),
     SERVICE_NEW_DETAILS("/admin/serviceNew/**",
             new AuthorizationActionValue(AUTZ_UI_SERVICE_DETAILS_URL,
