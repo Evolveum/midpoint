@@ -764,6 +764,63 @@ Panels applicable only for system configuration:
 | 30
 |===
 
+==== Assignment Panels: Switching Data Provider
+
+WARNING: This feature is available since midPoint 4.6
+
+It is possible to switch implementation of data provider (search engine) in
+assignment panels. Currently we support two implementations:
+
+
+`InMemoryAssignmentDataProviderType`::
+  (default) It is in-memory data provider, which was present in previous versions
+  of midPoint. Search is performed only in-memory, so no fulltext or filtering
+  on assignment target properties is available.
+
+ `RepositoryAssignmentDataProviderType`::
+   Search is backed by repository, which allows using full text search for
+   referenced objects and filtering on indexed assignment target properties.
+   Since search is repository-indexed any unsaved changes may not be reflected
+   in search, and newly added assignments are always present in result set.
+
+
+IMPORTANT: Repository Search Provider is mainly intended for All Assignments panel,
+we do not recommend enabling it for other assignments panels, because they may
+be using not indexed properties.
+
+
+In order to enable repository search, you need to modify panel configuration
+for specific assignment panel.
+The configuration is done by setting `xsi:type` of `panel -> listView -> dataProvider` container.
+
+
+.Enabling repository search for Users -> Assignments -> All
+[source, xml]
+----
+<systemConfiguration>
+   ...
+    <adminGuiConfiguration>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:UserType</type>
+                <panel>
+                    <identifier>assignments</identifier>
+                    <panel>
+                        <identifier>allAssignments</identifier>
+                        <listView>
+                            <dataProvider xsi:type="c:RepositoryAssignmentDataProviderType"/>
+                        </listView>
+                    </panel>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+    ...
+<systemConfiguration>
+----
+
+
+
 == Examples
 
 === Show Only Some Default Forms

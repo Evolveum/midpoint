@@ -145,6 +145,8 @@ They are of two categories:
 
 === Trivial filters
 
+// TODO fulltext, missing throughout this document
+
 [%autowidth]
 |===
 | Filter | Description
