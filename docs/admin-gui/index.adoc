@@ -15,7 +15,7 @@ It is not artificially divided into end-user and administration part because of 
 Some users may have administrative authorizations over a portion of a system and they can do both self-service and administration tasks from the same user interface.
 Despite that the midPoint user interface is a single application it is visually divided into two parts:
 
-* xref:/midpoint/reference/admin-gui/self-service/[Self Services] part has a simple look & fell and it has functionality targeted at common users.
+* xref:/midpoint/reference/admin-gui/self-service/[Self Services] part has a simple look & feel and it has functionality targeted at common users.
 
 * Administration part has comprehensive functionality targeted at identity administrators, delegated administrators and deployment engineers.
 

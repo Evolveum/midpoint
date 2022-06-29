@@ -8,7 +8,7 @@
 :page-upkeep-status: orange
 
 To make midPoint GUI more user friendly, especially for usual (not administrator) users, a separate section of Self Services was created.
-We want the users of midPoint not to be confused about some comlicated functionality of IDM system, that is why GUI for self services is simple, understandable and demostrative.
+We want the users of midPoint not to be confused about some complicated functionality of IDM system, that is why GUI for self services is simple, understandable and demonstrative.
 This section is so obvious that you can easily scroll some chapters.
 This documentation is created to describe some configuration opportunities or some used conditions.
 
