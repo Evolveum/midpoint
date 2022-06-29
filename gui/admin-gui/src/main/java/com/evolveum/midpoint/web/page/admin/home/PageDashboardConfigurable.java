@@ -93,7 +93,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         LINKS_REF_COLLECTIONS = map;
     }
 
-    private IModel<DashboardType> dashboardModel;
+    protected IModel<DashboardType> dashboardModel;
 
     private static final String ID_WIDGETS = "widgets";
     private static final String ID_WIDGET = "widget";

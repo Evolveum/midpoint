@@ -23,6 +23,8 @@ public class CompiledDashboardType implements DebugDumpable, Serializable {
     private UserInterfaceElementVisibilityType visibility;
     private DashboardType originalDashboard;
 
+    private String identifier;
+
     public CompiledDashboardType(DashboardType originalDashboard) {
         this.originalDashboard = originalDashboard;
     }
@@ -53,6 +55,14 @@ public class CompiledDashboardType implements DebugDumpable, Serializable {
 
     public String getOid() {
         return originalDashboard.getOid();
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
     @Override

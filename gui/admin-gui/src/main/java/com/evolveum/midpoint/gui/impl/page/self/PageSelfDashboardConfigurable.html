@@ -7,15 +7,14 @@
   -->
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:wicket="http://wicket.apache.org">
+        xmlns:wicket="http://wicket.apache.org">
 <body>
-    <wicket:extend>
-        <div class="row">
-            <div class="col-12 col-md-6 col-lg-3" wicket:id="widgets">
-                <div class="mb-4" wicket:id="widget"/>
-            </div>
+<wicket:extend>
+    <div class="d-flex justify-content-between">
+        <div class="flex-grow-1" wicket:id="objectCollectionViews">
+            <div class="mb-5" wicket:id="objectCollectionView"/>
         </div>
-        <wicket:child></wicket:child>
-    </wicket:extend>
+    </div>
+</wicket:extend>
 </body>
 </html>

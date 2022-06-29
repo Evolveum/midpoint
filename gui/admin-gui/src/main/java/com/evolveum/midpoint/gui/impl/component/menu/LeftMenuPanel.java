@@ -15,6 +15,7 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+import com.evolveum.midpoint.gui.impl.page.self.PageSelfDashboardConfigurable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.application.CollectionInstance;
@@ -301,6 +302,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.selfService", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
                 PageSelfDashboard.class));
+        menu.addMainMenuItem(createSelfDashboardItems());
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, WebModelServiceUtils.getLoggedInFocusOid());
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.profile", GuiStyleConstants.CLASS_ICON_PROFILE,
@@ -339,18 +341,32 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
+    private MainMenuItem createSelfDashboardItems() {
+        MainMenuItem selfDashboard = createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD);
+
+        List<CompiledDashboardType> dashboards = getPageBase().getCompiledGuiProfile().getConfigurableDashboards();
+        List<CompiledDashboardType> selfDashboards = dashboards.stream()
+                .filter(dashboard -> dashboard.getIdentifier() == null || dashboard.getIdentifier().startsWith("self")).toList();
+        return createDashboardItems(selfDashboard, selfDashboards);
+    }
+
     private MainMenuItem createHomeItems() {
         MainMenuItem homeMenu = createMainMenuItem("PageAdmin.menu.dashboard", GuiStyleConstants.CLASS_DASHBOARD_ICON);
         homeMenu.addMenuItem(new MenuItem("PageAdmin.menu.dashboard.info", PageDashboardInfo.class));
 
         List<CompiledDashboardType> dashboards = getPageBase().getCompiledGuiProfile().getConfigurableDashboards();
+        List<CompiledDashboardType> adminDashboards = dashboards.stream()
+                .filter(dashboard -> dashboard.getIdentifier() == null || dashboard.getIdentifier().startsWith("admin")).toList();
+        return createDashboardItems(homeMenu, adminDashboards);
+    }
 
+    private MainMenuItem createDashboardItems(MainMenuItem mainMenu, List<CompiledDashboardType> dashboards) {
         for (CompiledDashboardType prismObject : dashboards) {
             MenuItem dashboardMenu = createDashboardMenuItem(prismObject);
-            homeMenu.addMenuItem(dashboardMenu);
+            mainMenu.addMenuItem(dashboardMenu);
         }
 
-        return homeMenu;
+        return mainMenu;
     }
 
     private MenuItem createDashboardMenuItem(CompiledDashboardType dashboard) {
@@ -368,7 +384,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             active = dashboard.getOid().equals(dashboardOidParam.toString());
         }
 
-        return new MenuItem(label, PageDashboardConfigurable.class, createDashboardPageParameters(dashboard), active);
+        return new MenuItem(label, PageSelfDashboardConfigurable.class, createDashboardPageParameters(dashboard), active);
 
     }
 

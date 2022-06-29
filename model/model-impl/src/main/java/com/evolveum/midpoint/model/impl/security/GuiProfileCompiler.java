@@ -347,6 +347,9 @@ public class GuiProfileCompiler {
             MiscSchemaUtil.mergeDisplay(configurableUserDashboard.getDisplay(), dashboardType.getDisplay());
             compiledDashboard.setDisplayType(configurableUserDashboard.getDisplay());
 
+            if (StringUtils.isNotEmpty(configurableUserDashboard.getIdentifier())) {
+                compiledDashboard.setIdentifier(configurableUserDashboard.getIdentifier());
+            }
             UserInterfaceElementVisibilityType visibility = configurableUserDashboard.getVisibility();
             if (visibility == null) {
                 visibility = UserInterfaceElementVisibilityType.AUTOMATIC;
