@@ -96,12 +96,31 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="abstract" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="template" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Is this a resource template? By setting this flag to "true", this object will be presented
+                                to users in Resource Wizard as a starting point for creation of new resources.
+
+                                Note that in the future we may replace this flag with something more elaborate
+                                (like more detailed information about the kind of resource template).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="abstract" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Is this an abstract resource, i.e. something that cannot be used directly (serving like
                                 e.g. a template for creation of specific resources)?
+
+                                The default is "false" for regular resources and "true" for resource templates (template=true).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="super" type="tns:SuperResourceDeclarationType" minOccurs="0">

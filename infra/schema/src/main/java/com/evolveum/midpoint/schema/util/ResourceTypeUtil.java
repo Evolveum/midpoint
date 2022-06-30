@@ -690,4 +690,17 @@ public class ResourceTypeUtil {
     public static boolean hasSchema(ResourceType resource) {
         return getResourceXsdSchema(resource) != null;
     }
+
+    public static boolean isAbstract(@NotNull ResourceType resource) {
+        Boolean isAbstract = resource.isAbstract();
+        if (isAbstract != null) {
+            return isAbstract;
+        } else {
+            return isTemplate(resource);
+        }
+    }
+
+    public static boolean isTemplate(@NotNull ResourceType resource) {
+        return Boolean.TRUE.equals(resource.isTemplate());
+    }
 }
