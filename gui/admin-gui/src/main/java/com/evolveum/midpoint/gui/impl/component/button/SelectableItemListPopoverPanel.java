@@ -194,6 +194,9 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
     }
 
     private boolean isSelectable() {
+        if (getModelObject() == null) {
+            return false;
+        }
         return CollectionUtils.isNotEmpty(getModelObject().stream().filter(item -> item instanceof SelectableRow).collect(Collectors.toList()));
     }
 
