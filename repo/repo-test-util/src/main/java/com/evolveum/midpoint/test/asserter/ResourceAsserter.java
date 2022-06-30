@@ -218,6 +218,23 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
         return asserter;
     }
 
+    public ResourceAsserter<RA> assertConnectorRefIgnoringMetadata(ObjectReferenceType expected) {
+        assertThat(stripMetadata(getObjectable().getConnectorRef()))
+                .as("connectorRef")
+                .isEqualTo(stripMetadata(expected));
+        return this;
+    }
+
+    private ObjectReferenceType stripMetadata(ObjectReferenceType ref) {
+        if (ref != null && ref.asReferenceValue().hasValueMetadata()) {
+            ObjectReferenceType clone = ref.clone();
+            clone.asReferenceValue().getValueMetadata().clear();
+            return clone;
+        } else {
+            return ref;
+        }
+    }
+
     public ResourceAsserter<RA> assertConnectorRef(ObjectReferenceType expected) {
         assertThat(getObjectable().getConnectorRef())
                 .as("connectorRef")

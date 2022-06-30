@@ -9,9 +9,10 @@ package com.evolveum.midpoint.schema.merger.objdef;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.merger.BaseCustomItemMerger;
+import com.evolveum.midpoint.schema.merger.BaseItemMerger;
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
 import com.evolveum.midpoint.schema.merger.GenericItemMerger;
+import com.evolveum.midpoint.schema.merger.OriginMarker;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -36,7 +37,11 @@ import java.util.List;
  *
  * This should work with any interpretation of the {@link PropertyLimitationsType} in the follow-on code.
  */
-public class LimitationsMerger extends BaseCustomItemMerger<PrismContainer<PropertyLimitationsType>> {
+public class LimitationsMerger extends BaseItemMerger<PrismContainer<PropertyLimitationsType>> {
+
+    public LimitationsMerger(@Nullable OriginMarker originMarker) {
+        super(originMarker);
+    }
 
     @Override
     protected void mergeInternal(
@@ -88,7 +93,7 @@ public class LimitationsMerger extends BaseCustomItemMerger<PrismContainer<Prope
         new BaseMergeOperation<>(
                 targetLimitations,
                 sourceLimitations,
-                new GenericItemMerger(new PathKeyedMap<>()))
+                new GenericItemMerger(originMarker, new PathKeyedMap<>()))
                 .execute();
         return targetLimitations;
     }

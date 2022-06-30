@@ -22,6 +22,7 @@
     </connectorConfiguration>
     <schema>
         <generationConstraints>
+            <generateObjectClass>B</generateObjectClass> <!-- the same as in parent -> should be only once & without origin  -->
             <generateObjectClass>C</generateObjectClass> <!-- should be added to A and B in the parent -->
         </generationConstraints>
     </schema>

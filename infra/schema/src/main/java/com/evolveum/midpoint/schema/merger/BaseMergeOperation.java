@@ -29,16 +29,18 @@ public class BaseMergeOperation<C extends Containerable> {
 
     @NotNull private final C target;
     @NotNull private final C source;
-    @NotNull private final ItemMerger rootMerger;
+    @NotNull private final GenericItemMerger rootMerger;
 
-    public BaseMergeOperation(@NotNull C target, @NotNull C source, @NotNull ItemMerger rootMerger) {
+    public BaseMergeOperation(@NotNull C target, @NotNull C source, @NotNull GenericItemMerger rootMerger) {
         this.target = target;
         this.source = source;
         this.rootMerger = rootMerger;
     }
 
     public void execute() throws ConfigurationException, SchemaException {
-        rootMerger.merge(target.asPrismContainerValue(), source.asPrismContainerValue());
+        rootMerger.mergeContainerValues(
+                target.asPrismContainerValue(),
+                source.asPrismContainerValue());
     }
 
     protected static boolean hasValue(PrismContainerValue<?> pcv, @NotNull ItemName itemName) {
@@ -50,9 +52,5 @@ public class BaseMergeOperation<C extends Containerable> {
         PathKeyedMap<ItemMerger> newMap = new PathKeyedMap<>();
         newMap.putAll(sourceMap);
         return newMap;
-    }
-
-    protected static PathKeyedMap<ItemMerger> emptyPathMap() {
-        return new PathKeyedMap<>();
     }
 }

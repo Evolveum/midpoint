@@ -41,7 +41,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * 2. For multi-valued items with a natural key defined, the values having the same key are considered matching.
  * 3. For multi-valued items without a natural key, no values are matching.
  */
-public class GenericItemMerger implements ItemMerger {
+public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(GenericItemMerger.class);
 
@@ -55,31 +55,32 @@ public class GenericItemMerger implements ItemMerger {
     @NotNull private final Map<Class<?>, Supplier<ItemMerger>> typeSpecificMergers;
 
     private GenericItemMerger(
+            @Nullable OriginMarker originMarker,
             @Nullable NaturalKey naturalKey,
             @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
+        super(originMarker);
         this.naturalKey = naturalKey;
         this.childrenMergers = childrenMergers;
 
         // In the future this may be parameterized on instance creation.
-        this.typeSpecificMergers = TypeSpecificMergersConfigurator.createStandardTypeSpecificMergersMap();
+        this.typeSpecificMergers = TypeSpecificMergersConfigurator.createStandardTypeSpecificMergersMap(originMarker);
     }
 
-    public GenericItemMerger(@NotNull PathKeyedMap<ItemMerger> childrenMergers) {
-        this(null, childrenMergers);
+    public GenericItemMerger(
+            @Nullable OriginMarker originMarker,
+            @NotNull PathKeyedMap<ItemMerger> childrenMergers) {
+        this(originMarker, null, childrenMergers);
     }
 
     @SuppressWarnings("WeakerAccess")
-    public GenericItemMerger(NaturalKey naturalKey) {
-        this(naturalKey, new PathKeyedMap<>());
+    public GenericItemMerger(
+            @Nullable OriginMarker originMarker,
+            NaturalKey naturalKey) {
+        this(originMarker, naturalKey, new PathKeyedMap<>());
     }
 
-    @Override
-    public void merge(@NotNull PrismValue target, @NotNull PrismValue source) throws ConfigurationException, SchemaException {
-        argCheck(target instanceof PrismContainerValue, "Non-PCV values are not supported (yet): %s", target);
-        argCheck(source instanceof PrismContainerValue, "Non-PCV values are not supported (yet): %s", source);
-
-        PrismContainerValue<?> targetPcv = (PrismContainerValue<?>) target;
-        PrismContainerValue<?> sourcePcv = (PrismContainerValue<?>) source;
+    void mergeContainerValues(@NotNull PrismContainerValue<?> targetPcv, @NotNull PrismContainerValue<?> sourcePcv)
+            throws ConfigurationException, SchemaException {
         for (QName qName : determineItemNames(targetPcv, sourcePcv)) {
             LOGGER.trace("Merging {}", qName);
             ItemName itemName = ItemName.fromQName(qName);
@@ -121,6 +122,7 @@ public class GenericItemMerger implements ItemMerger {
 
     private ItemMerger createDefaultSubMerger(ItemName itemName) {
         return new GenericItemMerger(
+                originMarker,
                 createSubChildMergersMap(itemName));
     }
 
@@ -146,48 +148,30 @@ public class GenericItemMerger implements ItemMerger {
     }
 
     @Override
-    public void merge(
-            @NotNull ItemName itemName,
-            @NotNull PrismContainerValue<?> target,
-            @NotNull PrismContainerValue<?> source)
+    protected void mergeInternal(@NotNull Item<?, ?> targetItem, @NotNull Item<?, ?> sourceItem)
             throws ConfigurationException, SchemaException {
-        LOGGER.trace("Merging item {}", itemName);
-        Item<?, ?> sourceItem = source.findItem(itemName);
-        if (sourceItem == null || sourceItem.hasNoValues()) {
-            LOGGER.trace(" -> Nothing found at source; keeping target unchanged");
+        boolean isTargetItemSingleValued = isSingleValued(targetItem);
+        boolean isSourceItemSingleValued = isSingleValued(sourceItem);
+        stateCheck(isSourceItemSingleValued == isTargetItemSingleValued,
+                "Mismatch between the cardinality of source and target items: single=%s (source) vs single=%s (target)",
+                isSourceItemSingleValued, isTargetItemSingleValued);
+        if (isSourceItemSingleValued) {
+            LOGGER.trace(" -> Merging as single-valued item");
+            mergeSingleValuedItem(targetItem, sourceItem);
         } else {
-            Item<?, ?> targetItem = target.findItem(itemName);
-            if (targetItem == null || targetItem.hasNoValues()) {
-                LOGGER.trace(" -> Nothing found at target; copying source value(s) to the target");
-                //noinspection unchecked
-                target.add(
-                        sourceItem.clone());
-            } else {
-                boolean isTargetItemSingleValued = isSingleValued(targetItem);
-                boolean isSourceItemSingleValued = isSingleValued(sourceItem);
-                stateCheck(isSourceItemSingleValued == isTargetItemSingleValued,
-                        "Mismatch between the cardinality of source and target items: single=%s (source) vs single=%s (target)",
-                        isSourceItemSingleValued, isTargetItemSingleValued);
-                if (isSourceItemSingleValued) {
-                    LOGGER.trace(" -> Merging as single-valued item");
-                    mergeSingleValuedItem(targetItem, sourceItem);
-                } else {
-                    LOGGER.trace(" -> Merging as multi-valued item");
-                    mergeMultiValuedItem(targetItem, sourceItem);
-                }
-            }
+            LOGGER.trace(" -> Merging as multi-valued item");
+            mergeMultiValuedItem(targetItem, sourceItem);
         }
-        LOGGER.trace("Finished merging item {}", itemName);
     }
 
     private void mergeSingleValuedItem(Item<?, ?> targetItem, Item<?, ?> sourceItem)
             throws SchemaException, ConfigurationException {
         Kind kind = Kind.of(targetItem, sourceItem);
-        PrismValue targetValue = getSingleValue(targetItem);
-        PrismValue sourceValue = getSingleValue(sourceItem);
         if (kind == CONTAINER) {
             LOGGER.trace("Merging matching container (single) values");
-            merge(targetValue, sourceValue);
+            mergeContainerValues(
+                    (PrismContainerValue<?>) getSingleValue(targetItem),
+                    (PrismContainerValue<?>) getSingleValue(sourceItem));
         } else {
             LOGGER.trace("Overriding non-container (single) value - i.e. keeping target item as is");
         }
@@ -210,20 +194,26 @@ public class GenericItemMerger implements ItemMerger {
                 if (matchingTargetValue != null) {
                     LOGGER.trace(" -> Matching target value found, merging into it: {}", matchingTargetValue);
                     mergeKey(matchingTargetValue, sourcePcv);
-                    merge(matchingTargetValue, sourcePcv);
+                    mergeContainerValues(matchingTargetValue, sourcePcv);
                 } else {
-                    LOGGER.trace(" -> Has no matching target value, so adding it to the target item (without ID)");
-                    PrismContainerValue<?> sourcePcvClone = sourcePcv.clone();
-                    sourcePcvClone.setId(null);
-                    //noinspection unchecked
-                    ((Item<PrismValue, ?>) targetItem).add(sourcePcvClone);
+                    LOGGER.trace(" -> Has no matching target value, so adding it to the target item (without ID) - if needed");
+                    addIfNotThere(targetItem, sourceValue);
                 }
             } else {
-                LOGGER.trace(" -> Not a container, adding the value right to the target item");
-                //noinspection unchecked
-                ((Item<PrismValue, ?>) targetItem).add(
-                        sourceValue.clone());
+                LOGGER.trace(" -> Not a container, adding the value right to the target item - if needed");
+                addIfNotThere(targetItem, sourceValue);
             }
+        }
+    }
+
+    private void addIfNotThere(Item<?, ?> targetItem, PrismValue sourceValue) throws SchemaException {
+        //noinspection unchecked
+        Item<PrismValue, ?> target = (Item<PrismValue, ?>) targetItem;
+        if (target.contains(sourceValue, VALUE_COMPARISON_STRATEGY)) {
+            LOGGER.trace("     (but target contains the corresponding value - not adding)");
+        } else {
+            target.add(
+                    createMarkedClone(sourceValue));
         }
     }
 

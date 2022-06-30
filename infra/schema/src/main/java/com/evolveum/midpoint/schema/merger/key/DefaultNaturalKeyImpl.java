@@ -10,8 +10,9 @@ package com.evolveum.midpoint.schema.merger.key;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.schema.merger.BaseItemMerger;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +57,7 @@ public class DefaultNaturalKeyImpl implements NaturalKey {
 
     private boolean areNotEquivalent(Item<?, ?> targetKeyItem, Item<?, ?> sourceKeyItem) {
         if (targetKeyItem != null && targetKeyItem.hasAnyValue()) {
-            return !targetKeyItem.equals(sourceKeyItem, EquivalenceStrategy.DATA);
+            return !targetKeyItem.equals(sourceKeyItem, BaseItemMerger.VALUE_COMPARISON_STRATEGY);
         } else {
             return sourceKeyItem != null && sourceKeyItem.hasAnyValue();
         }

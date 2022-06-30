@@ -11,12 +11,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.merger.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger;
-import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Merges {@link ResourceObjectTypeDefinitionType} objects.
@@ -25,12 +26,15 @@ public class ResourceObjectTypeDefinitionMergeOperation extends BaseMergeOperati
 
     public ResourceObjectTypeDefinitionMergeOperation(
             @NotNull ResourceObjectTypeDefinitionType target,
-            @NotNull ResourceObjectTypeDefinitionType source) {
+            @NotNull ResourceObjectTypeDefinitionType source,
+            @Nullable OriginMarker originMarker) {
 
         super(target,
                 source,
-                new GenericItemMerger(createPathMap(Map.of(
-                        F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE // otherwise everything would be abstract
-                ))));
+                new GenericItemMerger(
+                        originMarker,
+                        createPathMap(Map.of(
+                                F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE // otherwise everything would be abstract
+                        ))));
     }
 }

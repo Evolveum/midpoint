@@ -10,10 +10,8 @@ package com.evolveum.midpoint.schema.merger;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Ignores the value in the source object.
@@ -21,11 +19,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class IgnoreSourceItemMerger implements ItemMerger {
 
     public static final IgnoreSourceItemMerger INSTANCE = new IgnoreSourceItemMerger();
-
-    @Override
-    public void merge(@NotNull PrismValue target, @NotNull PrismValue source) throws ConfigurationException, SchemaException {
-        throw new UnsupportedOperationException(); // FIXME
-    }
 
     @Override
     public void merge(@NotNull ItemName itemName, @NotNull PrismContainerValue<?> target, @NotNull PrismContainerValue<?> source)
