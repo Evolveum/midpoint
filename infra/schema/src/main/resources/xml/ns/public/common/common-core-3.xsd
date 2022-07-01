@@ -6261,25 +6261,6 @@
 
     <xsd:element name="sequentialValue" type="tns:SequentialValueExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-    <xsd:element name="synchronization" type="tns:SynchronizationType"/>
-
-    <xsd:complexType name="SynchronizationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Defines a synchronization properties (configuration) for a
-                resource. This applies to all flavors of synchronization
-                (live sync, reconciliation, import, ...)
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType" minOccurs="0"/>
-            <xsd:element name="objectSynchronization" type="tns:ObjectSynchronizationType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="ConditionalSearchFilterType">
         <xsd:annotation>
             <xsd:documentation>
@@ -15903,6 +15884,12 @@
                     <xsd:documentation>
                         Option to reconcile focus and all projections while executing changes.
                         (implies reconcileFocus)
+
+                        An exception to this meaning is when this flag is used during synchronization process (like in import,
+                        reconciliation, or live sync task). In this case, setting reconcile = true sets the reconciliation
+                        only for the projection being synchronized. Other projections are not affected.
+
+                        This "conditional" meaning may change in the future.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

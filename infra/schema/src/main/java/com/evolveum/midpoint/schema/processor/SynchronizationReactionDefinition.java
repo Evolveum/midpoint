@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Wraps both {@link SynchronizationReactionType} and {@link SynchronizationReactionNewType}.
+ * Wraps both {@link LegacySynchronizationReactionType} and {@link SynchronizationReactionType}.
  */
 public class SynchronizationReactionDefinition implements Comparable<SynchronizationReactionDefinition> {
 
@@ -37,7 +37,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     @NotNull private final List<SynchronizationActionDefinition> actions;
 
     private SynchronizationReactionDefinition(
-            @NotNull SynchronizationReactionType legacyBean,
+            @NotNull LegacySynchronizationReactionType legacyBean,
             boolean addCreateCasesAction,
             @NotNull ClockworkSettings syncLevelSettings)
             throws ConfigurationException {
@@ -65,7 +65,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     }
 
     private List<SynchronizationActionDefinition> createActions(
-            @NotNull SynchronizationReactionType bean,
+            @NotNull LegacySynchronizationReactionType bean,
             @NotNull ClockworkSettings defaultSettings) {
         if (bean.getAction().isEmpty()) {
             if (Boolean.TRUE.equals(bean.isSynchronize())) {
@@ -81,7 +81,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     }
 
     private SynchronizationReactionDefinition(
-            @NotNull SynchronizationReactionNewType bean, @NotNull ClockworkSettings syncLevelSettings) {
+            @NotNull SynchronizationReactionType bean, @NotNull ClockworkSettings syncLevelSettings) {
         this.order = bean.getOrder();
         this.name = bean.getName();
         this.situations = new HashSet<>(bean.getSituation());
@@ -92,7 +92,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     }
 
     private List<SynchronizationActionDefinition> createActions(
-            @NotNull SynchronizationReactionNewType bean,
+            @NotNull SynchronizationReactionType bean,
             @NotNull ClockworkSettings syncLevelSettings) {
         return getAllActionBeans(bean).stream()
                 .map(a -> new SynchronizationActionDefinition.New(a, syncLevelSettings))
@@ -100,8 +100,8 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
                 .collect(Collectors.toList());
     }
 
-    private List<AbstractSynchronizationActionType> getAllActionBeans(@NotNull SynchronizationReactionNewType reaction) {
-        SynchronizationActionsNewType actions = reaction.getActions();
+    private List<AbstractSynchronizationActionType> getAllActionBeans(@NotNull SynchronizationReactionType reaction) {
+        SynchronizationActionsType actions = reaction.getActions();
         if (actions == null) {
             return List.of();
         }
@@ -120,7 +120,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     }
 
     public static @NotNull SynchronizationReactionDefinition of(
-            @NotNull SynchronizationReactionType legacyBean,
+            @NotNull LegacySynchronizationReactionType legacyBean,
             boolean addCreateCasesAction,
             @NotNull ClockworkSettings defaultSettings)
             throws ConfigurationException {
@@ -128,7 +128,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
     }
 
     public static @NotNull SynchronizationReactionDefinition of(
-            @NotNull SynchronizationReactionNewType bean,
+            @NotNull SynchronizationReactionType bean,
             @NotNull ClockworkSettings defaultSettings) {
         return new SynchronizationReactionDefinition(bean, defaultSettings);
     }

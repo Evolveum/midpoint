@@ -65,8 +65,8 @@ public class Migrator {
             return;
         }
 
-        List<SynchronizationReactionType> migratedReactions = new ArrayList<>();
-        for (SynchronizationReactionType reaction : sync.getReaction()){
+        List<LegacySynchronizationReactionType> migratedReactions = new ArrayList<>();
+        for (LegacySynchronizationReactionType reaction : sync.getReaction()){
             if (reaction.getAction() == null){
                 continue;
             }
@@ -74,7 +74,7 @@ public class Migrator {
             for (SynchronizationActionType action : reaction.getAction()){
                 migratedAction.add(migrateAction(action));
             }
-            SynchronizationReactionType migratedReaction = reaction.clone();
+            LegacySynchronizationReactionType migratedReaction = reaction.clone();
             migratedReaction.getAction().clear();
             migratedReaction.getAction().addAll(migratedAction);
             migratedReactions.add(migratedReaction);

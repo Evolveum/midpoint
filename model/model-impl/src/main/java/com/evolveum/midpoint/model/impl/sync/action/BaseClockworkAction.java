@@ -126,18 +126,18 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
         if (options.getReconcile() == null) {
             Boolean isReconcile = actionDefinition.isReconcile();
             if (isReconcile != null) {
-                options.reconcile(isReconcile);
+                options = options.reconcile(isReconcile);
             } else {
                 // We have to do reconciliation if we have got a full shadow and no delta.
                 // There is no other good way how to reflect the changes from the shadow.
                 if (change.getObjectDelta() == null) {
-                    options.reconcile();
+                    options = options.reconcile();
                 }
             }
         }
 
         if (options.getLimitPropagation() == null) {
-            options.limitPropagation(isLimitPropagation());
+            options = options.limitPropagation(isLimitPropagation());
         }
 
         return options;

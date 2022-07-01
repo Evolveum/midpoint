@@ -6666,21 +6666,57 @@
             <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Kind of objects to be processed. TODO default value
+                        Kind of objects to be processed.
+
+                        If specified, a resource object type is looked up using provided kind and intent values. The activity
+                        is then executed against objects of given type.
+
+                        If not specified, the scope of the operation is driven by the object class.
+
+                        For activities that do not select objects right on the resource (e.g. shadow cleanup),
+                        the kind, intent, and objectclass are interpreted "literally", i.e. as filters against
+                        values of kind, intent, and object class stored in the repository.
+
+                        See documentation of searchObjects and synchronize methods in ProvisioningService for more information.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="intent" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Intent of objects of given kind to be processed.
+                        Complements the kind in specifying resource object type that should be processed by the activity.
+                        Must not be specified if kind is missing.
+
+                        If kind is specified but intent is not, the object type marked as "default for kind" is selected.
+
+                        For activities that do not select objects right on the resource (e.g. shadow cleanup),
+                        the kind, intent, and objectclass are interpreted "literally", i.e. as filters against
+                        values of kind, intent, and object class stored in the repository.
+
+                        See documentation of searchObjects and synchronize methods in ProvisioningService for more information.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectclass" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Class of objects to be processed.
+                        Denotes the object class to be processed by the activity.
+
+                        If kind (with or without intent) is specified, then the value provided here must match the object class
+                        connected to specified resource object type. Therefore, it is not necessary nor advisable to specify
+                        object class if kind is specified.
+
+                        If kind is not specified, then the value provided here specifies the class of objects to be processed
+                        by the activity. (For example, all of "inetOrgPerson".)
+
+                        If neither kind nor object class is specified (and no custom query is provided), then the activity
+                        is assumed to be executed on all objects on given resource. Not all activities support this mode.
+
+                        For activities that do not select objects right on the resource (e.g. shadow cleanup),
+                        the kind, intent, and objectclass are interpreted "literally", i.e. as filters against
+                        values of kind, intent, and object class stored in the repository.
+
+                        See documentation of searchObjects and synchronize methods in ProvisioningService for more information.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -262,7 +262,7 @@ public class RefinedResourceSchemaParser {
     private void merge(
             @NotNull ResourceObjectTypeDefinitionType target,
             @NotNull ResourceObjectTypeDefinitionType source) throws SchemaException, ConfigurationException {
-        new ResourceObjectTypeDefinitionMergeOperation(target, source)
+        new ResourceObjectTypeDefinitionMergeOperation(target, source, null)
                 .execute();
     }
 

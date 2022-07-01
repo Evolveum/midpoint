@@ -54,6 +54,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.*;
+
 @Component
 public class ResourceManager {
 
@@ -124,6 +126,11 @@ public class ResourceManager {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         String oid = repositoryObject.getOid();
 
+        if (isAbstract(repositoryObject.asObjectable())) {
+            LOGGER.trace("Not putting {} into cache because it's abstract", repositoryObject);
+            return repositoryObject;
+        }
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Completing and caching fetched resource {}, version {} to cache "
                             + "(previously cached version {}, options={})",
@@ -139,7 +146,7 @@ public class ResourceManager {
         if (!ResourceTypeUtil.isComplete(completedResource)) {
             // No not cache non-complete resources (e.g. those retrieved with noFetch)
             LOGGER.debug("Not putting {} into cache because it's not complete: hasSchema={}, hasCapabilitiesCached={}",
-                    repositoryObject, ResourceTypeUtil.hasSchema(completedResource), ResourceTypeUtil.hasCapabilitiesCached(completedResource));
+                    repositoryObject, hasSchema(completedResource), hasCapabilitiesCached(completedResource));
         } else {
             OperationResultStatus completionStatus = completionOperation.getOperationResultStatus();
             if (completionStatus != OperationResultStatus.SUCCESS) {

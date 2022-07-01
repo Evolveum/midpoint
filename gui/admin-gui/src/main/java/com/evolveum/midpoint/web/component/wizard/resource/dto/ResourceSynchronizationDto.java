@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LegacySynchronizationReactionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -32,7 +32,7 @@ public class ResourceSynchronizationDto implements Serializable{
     private final List<ObjectSynchronizationType> objectSynchronizationList;        // live list in resourceModel
     private ObjectSynchronizationType selected;
     private ConditionalSearchFilterType selectedCorrelation;
-    private SynchronizationReactionType selectedReaction;
+    private LegacySynchronizationReactionType selectedReaction;
     private List<QName> objectClassList;
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
@@ -60,11 +60,11 @@ public class ResourceSynchronizationDto implements Serializable{
         this.selectedCorrelation = selectedCorrelation;
     }
 
-    public SynchronizationReactionType getSelectedReaction() {
+    public LegacySynchronizationReactionType getSelectedReaction() {
         return selectedReaction;
     }
 
-    public void setSelectedReaction(SynchronizationReactionType selectedReaction) {
+    public void setSelectedReaction(LegacySynchronizationReactionType selectedReaction) {
         this.selectedReaction = selectedReaction;
     }
 

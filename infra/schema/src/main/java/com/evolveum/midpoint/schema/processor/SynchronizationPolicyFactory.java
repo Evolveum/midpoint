@@ -202,7 +202,7 @@ public class SynchronizationPolicyFactory {
         List<SynchronizationReactionDefinition> list = new ArrayList<>();
 
         boolean createCasesActionAdded = false;
-        for (SynchronizationReactionType synchronizationReactionBean : synchronizationBean.getReaction()) {
+        for (LegacySynchronizationReactionType synchronizationReactionBean : synchronizationBean.getReaction()) {
             boolean addCreateCasesActionHere =
                     legacyCorrelationCasesEnabled && synchronizationReactionBean.getSituation() == DISPUTED;
             list.add(
@@ -215,7 +215,7 @@ public class SynchronizationPolicyFactory {
 
         if (legacyCorrelationCasesEnabled && !createCasesActionAdded) {
             list.add(SynchronizationReactionDefinition.of(
-                    new SynchronizationReactionType().situation(DISPUTED),
+                    new LegacySynchronizationReactionType().situation(DISPUTED),
                     true,
                     ClockworkSettings.empty()));
         }

@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
 import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -23,41 +25,43 @@ import static java.util.Map.entry;
  */
 class TypeSpecificMergersConfigurator {
 
-    static Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap() {
+    static Map<Class<?>, Supplier<ItemMerger>> createStandardTypeSpecificMergersMap(@Nullable OriginMarker marker) {
         return Map.ofEntries(
                 // for ResourceType
                 entry(
                         ConnectorInstanceSpecificationType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(ConnectorInstanceSpecificationType.F_NAME))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ConnectorInstanceSpecificationType.F_NAME))),
                 entry(
                         ResourceObjectTypeDefinitionType.class,
-                        ObjectTypeDefinitionMerger::new),
+                        () -> new ObjectTypeDefinitionMerger(marker)),
 
                 // for ResourceObjectTypeDefinitionType (object type definitions and embedded structures)
                 entry(
                         ResourceItemDefinitionType.class,
-                        () -> new GenericItemMerger(SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
+                        () -> new GenericItemMerger(
+                                marker, SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
                 entry(
                         PropertyLimitationsType.class,
-                        LimitationsMerger::new),
+                        () -> new LimitationsMerger(marker)),
                 entry(
                         MappingType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(MappingType.F_NAME))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(MappingType.F_NAME))),
                 entry(
                         AbstractCorrelatorType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractCorrelatorType.F_NAME))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractCorrelatorType.F_NAME))),
                 entry(
                         CorrelationItemDefinitionType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemDefinitionType.F_NAME))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(CorrelationItemDefinitionType.F_NAME))),
                 entry(
                         CorrelationItemTargetDefinitionType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(CorrelationItemTargetDefinitionType.F_QUALIFIER))),
+                        () -> new GenericItemMerger(
+                                marker, DefaultNaturalKeyImpl.of(CorrelationItemTargetDefinitionType.F_QUALIFIER))),
                 entry(
-                        SynchronizationReactionNewType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(SynchronizationReactionNewType.F_NAME))),
+                        SynchronizationReactionType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SynchronizationReactionType.F_NAME))),
                 entry(
                         AbstractSynchronizationActionType.class,
-                        () -> new GenericItemMerger(DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME)))
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME)))
         );
     }
 }

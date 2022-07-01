@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.gui.impl.component.search.Popover;
+import com.evolveum.midpoint.web.component.data.TableConfigurationPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
 import org.apache.wicket.Component;
@@ -52,7 +53,14 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         textField.setEnabled(false);
         add(textField);
 
-        Popover popover = new Popover(ID_POPOVER);
+        Popover popover = new Popover(ID_POPOVER) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Component getPopoverReferenceComponent() {
+                return PopoverSearchPanel.this.get(ID_EDIT_BUTTON);
+            }
+        };
         add(popover);
 
         AjaxButton setDateButton = new AjaxButton(ID_EDIT_BUTTON) {
@@ -65,8 +73,6 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         };
         setDateButton.setOutputMarkupId(true);
         add(setDateButton);
-
-        popover.setReference(setDateButton);
 
         WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(ID_POPOVER_PANEL);
         popover.add(searchPopupPanel);

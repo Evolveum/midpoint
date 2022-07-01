@@ -162,7 +162,7 @@ public class ShadowCleanupActivityHandler
 
         @Override
         public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) throws CommonException {
+                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
             return GetOperationOptions.updateToNoFetch(configuredOptions);
         }
 
@@ -189,10 +189,10 @@ public class ShadowCleanupActivityHandler
         @NotNull private final Duration interval;
 
         MyWorkDefinition(WorkDefinitionSource source) {
-            if (source instanceof LegacyWorkDefinitionSource) {
-                LegacyWorkDefinitionSource legacy = (LegacyWorkDefinitionSource) source;
+            if (source instanceof LegacyWorkDefinitionSource legacy) {
                 shadows = ResourceObjectSetUtil.fromLegacySource(legacy);
-                interval = legacy.getExtensionItemRealValue(SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME, Duration.class);
+                interval = legacy.getExtensionItemRealValue(
+                        SchemaConstants.LEGACY_NOT_UPDATED_DURATION_PROPERTY_NAME, Duration.class);
             } else {
                 ShadowCleanupWorkDefinitionType typedDefinition = (ShadowCleanupWorkDefinitionType)
                         ((TypedWorkDefinitionWrapper) source).getTypedDefinition();

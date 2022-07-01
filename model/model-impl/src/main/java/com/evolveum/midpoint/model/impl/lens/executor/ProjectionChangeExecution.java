@@ -123,7 +123,8 @@ public class ProjectionChangeExecution<O extends ObjectType> {
             }
 
             if (!skipDeltaExecution) {
-                DeltaExecution<O, ShadowType> deltaExecution = new DeltaExecution<>(context, projCtx, projectionDelta, null, task, b);
+                DeltaExecution<O, ShadowType> deltaExecution =
+                        new DeltaExecution<>(context, projCtx, projectionDelta, null, task, b);
                 try {
                     deltaExecution.execute(result);
                 } catch (ConflictDetectedException e) {

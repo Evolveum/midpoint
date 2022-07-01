@@ -27,7 +27,6 @@
         <maven.install.skip>true</maven.install.skip>
         <!-- This enables build without -DskipTests option (e.g. full build). -->
         <maven.test.skip>true</maven.test.skip>
-        <!-- Profile for JDK11 sets additional javadocs options for java 11 (which are removed in java 13+). -->
         <javadoc.options></javadoc.options>
     </properties>
 
@@ -75,7 +74,7 @@
                     <debug>false</debug>
 
                     <!--
-                    TODO: Not usable yet, see https://github.com/asciidoctor/asciidoclet/pull/96 for the progress on JDK 11 support.
+                    TODO: Not usable yet, see https://github.com/asciidoctor/asciidoclet/pull/96 for the progress on JDK 11+ support.
                     Currently fails on:
                     [ERROR] javadoc: error - invalid flag: -author
 
@@ -117,16 +116,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>active-on-jdk-11</id>
-            <activation>
-                <jdk>11</jdk>
-            </activation>
-            <properties>
-                <javadoc.options>--no-module-directories</javadoc.options>
-            </properties>
-        </profile>
-    </profiles>
 </project>
