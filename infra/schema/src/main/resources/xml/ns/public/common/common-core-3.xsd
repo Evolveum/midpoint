@@ -218,7 +218,6 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.description</a:displayName>
                         <a:displayOrder>10</a:displayOrder>
-                        <a:emphasized>true</a:emphasized>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

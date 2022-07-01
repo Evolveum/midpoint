@@ -32,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -111,7 +110,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
                 LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
             }
 
-            List<PrismObject<O>> list = getModel().searchObjects(getType(), query, getOptionsToUse(), task, result);
+            List<PrismObject<O>> list = getModelService().searchObjects(getType(), query, getOptionsToUse(), task, result);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Query {} resulted in {} objects", getType().getSimpleName(), list.size());
@@ -160,7 +159,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(getType(), getQuery(), getOptionsToUse(), task, result);
+            count = getModelService().countObjects(getType(), getQuery(), getOptionsToUse(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);

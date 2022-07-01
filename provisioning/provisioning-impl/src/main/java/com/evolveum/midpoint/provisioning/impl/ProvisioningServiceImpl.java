@@ -26,6 +26,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.google.common.base.Preconditions;
@@ -678,6 +679,23 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.warn("Failed while discovering connector configuration: {}", e.getMessage(), e);
             result.recordFatalError("Failed while discovering connector configuration: " + e.getMessage(), e);
             return DiscoveredConfiguration.empty();
+        } catch (Throwable t) {
+            // This is more serious, like OutOfMemoryError and the like. We won't pretend it's OK.
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    public @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result) {
+        LOGGER.trace("Fetching resource schema for {}", resource);
+        try {
+            return resourceManager.fetchSchema(resource.asObjectable(), result);
+        } catch (Exception e) {
+            LOGGER.warn("Failed while fetch schema: {}", e.getMessage(), e);
+            result.recordFatalError("Failed while fetch schema: " + e.getMessage(), e);
+            return null;
         } catch (Throwable t) {
             // This is more serious, like OutOfMemoryError and the like. We won't pretend it's OK.
             result.recordFatalError(t);

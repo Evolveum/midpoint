@@ -46,14 +46,14 @@ public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends
 //            builder.headerVisibility(false);
 //
 //            Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getModelObject().getTypeName(),
-//                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.EMPTY_PATH), builder.build());
+//                    PrismContainerWrapperModel.fromContainerWrapper(getModelService(), ItemPath.EMPTY_PATH), builder.build());
 //            add(main);
 //
 //            RepeatingView view = new RepeatingView(ID_VIRTUAL_PANELS);
 //            if (getPanelConfiguration() != null) {
 //                List<VirtualContainersSpecificationType> virtualContainers = getPanelConfiguration().getContainer();
 //                for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
-//                    PrismContainerWrapperModel virtualContainerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), virtualContainer.getIdentifier());
+//                    PrismContainerWrapperModel virtualContainerModel = PrismContainerWrapperModel.fromContainerWrapper(getModelService(), virtualContainer.getIdentifier());
 //                    Panel virtualPanel = new PrismContainerPanel<>(view.newChildId(), virtualContainerModel, builder.build());
 //                    view.add(virtualPanel);
 //                }

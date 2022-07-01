@@ -86,7 +86,7 @@ public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType
             private static final long serialVersionUID = 1L;
 
             protected void populateItem(ListItem<ConnectorOperationalStatus> item) {
-//                item.add(new Label("label", item.getModel()));
+//                item.add(new Label("label", item.getModelService()));
                 IModel<ConnectorOperationalStatus> statModel = item.getModel();
                 item.add(createLabel(statModel, ID_CONNECTOR_NAME, ConnectorOperationalStatus.F_CONNECTOR_NAME));
                 item.add(createLabel(statModel, ID_CONNECOTR_CLASS, ConnectorOperationalStatus.F_CONNECTOR_CLASS_NAME));

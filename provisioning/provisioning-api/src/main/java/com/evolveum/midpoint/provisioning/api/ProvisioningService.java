@@ -581,6 +581,14 @@ public interface ProvisioningService {
             @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
+     * The operation try fetch schema by connector configuration from resource object.
+     *
+     * @param resource resource with connector configuration
+     * @return Resource schema fetched by connector
+     */
+    @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
+
+    /**
      * Discovers local or remote connectors.
      *
      * The operation will try to search for new connectors. It works either on local host (hostType is null)

@@ -279,9 +279,6 @@ public class ConnIdConfigurationTransformer {
                 QName propertyQName = prismProperty.getElementName();
                 if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                     String subelementName = propertyQName.getLocalPart();
-                    if (prismProperty.getRealValue() == null) {
-                        continue;
-                    }
                     if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
                             .equals(subelementName)) {
                         connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
@@ -331,9 +328,6 @@ public class ConnIdConfigurationTransformer {
         for (PrismProperty prismProperty : connectorTimeoutsContainer.getValue().getProperties()) {
             QName propertQName = prismProperty.getElementName();
 
-            if (prismProperty.getRealValue() == null) {
-                continue;
-            }
             if (SchemaConstants.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
                 String opName = propertQName.getLocalPart();
                 Collection<Class<? extends APIOperation>> apiOpClasses = ConnectorFactoryConnIdImpl.resolveApiOpClass(opName);
@@ -358,9 +352,6 @@ public class ConnIdConfigurationTransformer {
 
         for (PrismProperty prismProperty : resultsHandlerConfigurationContainer.getValue().getProperties()) {
             QName propertyQName = prismProperty.getElementName();
-            if (prismProperty.getRealValue() == null) {
-                continue;
-            }
             if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                 String subelementName = propertyQName.getLocalPart();
                 if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER

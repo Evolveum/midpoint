@@ -32,8 +32,8 @@ public class ModelOperationStatusPanel extends BasePanel<ModelOperationStatusDto
     protected void initLayout() {
 
         add(new Label(ID_STATE, new StringResourceModel("ModelOperationStatusPanel.state.${}", new PropertyModel<ModelState>(getModel(), ModelOperationStatusDto.F_STATE))));
-//        add(new Label(ID_FOCUS_TYPE, new PropertyModel<String>(getModel(), ModelOperationStatusDto.F_FOCUS_TYPE)));
-//        add(new Label(ID_FOCUS_NAME, new PropertyModel<String>(getModel(), ModelOperationStatusDto.F_FOCUS_NAME)));
+//        add(new Label(ID_FOCUS_TYPE, new PropertyModel<String>(getModelService(), ModelOperationStatusDto.F_FOCUS_TYPE)));
+//        add(new Label(ID_FOCUS_NAME, new PropertyModel<String>(getModelService(), ModelOperationStatusDto.F_FOCUS_NAME)));
 
 
         ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<>(getModel(), ModelOperationStatusDto.F_PRIMARY_DELTA));

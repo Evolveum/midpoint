@@ -9,13 +9,10 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +69,7 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
             Class<O> type = SearchBoxModeType.OID.equals(getSearchModel().getObject().getSearchMode()) ? (Class<O>) ObjectType.class : getType();
-            List<? extends PrismObject<? extends ObjectType>> list = getModel().searchObjects(type, query, options,
+            List<? extends PrismObject<? extends ObjectType>> list = getModelService().searchObjects(type, query, options,
                     getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
                 getAvailableData().add(createItem(object, result));
@@ -135,7 +132,7 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
         PrismObject<ResourceType> resource = null;
         String type = null;
         try {
-            resource = getModel().getObject(ResourceType.class, oid, options,
+            resource = getModelService().getObject(ResourceType.class, oid, options,
                     getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE), subResult);
 
             PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
@@ -171,7 +168,7 @@ public class RepositoryObjectDataProvider<O extends ObjectType>
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Class<O> type = SearchBoxModeType.OID.equals(getSearchModel().getObject().getSearchMode()) ? (Class<O>) ObjectType.class : getType();
-            count = getModel().countObjects(type, getQuery(), getOptions(),
+            count = getModelService().countObjects(type, getQuery(), getOptions(),
                     getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);

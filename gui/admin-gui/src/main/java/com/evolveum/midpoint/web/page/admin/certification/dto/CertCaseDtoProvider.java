@@ -129,7 +129,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
         query.setPaging(paging);
-        return getModel().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
+        return getModelService().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
     private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -137,7 +137,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
         InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
-        return getModel().countContainers(AccessCertificationCaseType.class, query, options, task, result);
+        return getModelService().countContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
     @NotNull

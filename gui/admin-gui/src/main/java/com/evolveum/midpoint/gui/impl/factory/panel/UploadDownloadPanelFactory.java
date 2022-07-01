@@ -39,7 +39,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
-        return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModel().getObject().isReadonly()
+        return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModelService().getObject().isReadonly()
 
             private static final long serialVersionUID = 1L;
 

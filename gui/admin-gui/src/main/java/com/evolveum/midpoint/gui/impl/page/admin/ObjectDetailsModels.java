@@ -36,9 +36,9 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 public class ObjectDetailsModels<O extends ObjectType> implements Serializable, IDetachable {
 
@@ -321,6 +321,17 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             return prismObjectModel.getObject();
         }
         return getObjectWrapper().getObject();
+    }
+
+    public void reloadPrismObjectModel(@NotNull PrismObject<O> newObject) {
+        prismObjectModel.detach();
+        prismObjectModel = new LoadableDetachableModel<>(){
+
+            @Override
+            protected PrismObject<O> load() {
+                return newObject;
+            }
+        };
     }
 
     public LoadableModel<GuiObjectDetailsPageType> getObjectDetailsPageConfiguration() {
