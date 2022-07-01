@@ -283,7 +283,13 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
         caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
 
-        caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
+        if (shadowOid != null) {
+            caseType.setTargetRef(
+                    new ObjectReferenceType()
+                            .oid(shadowOid)
+                            .targetName(shadowName)
+                            .type(ShadowType.COMPLEX_TYPE));
+        }
 
         if (task != null) {
             caseType.setRequestorRef(task.getOwnerRef());
