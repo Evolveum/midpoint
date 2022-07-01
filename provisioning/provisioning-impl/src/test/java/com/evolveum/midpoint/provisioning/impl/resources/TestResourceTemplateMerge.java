@@ -480,7 +480,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("schema can be retrieved");
         PrismObject<ResourceType> current =
-                beans.resourceManager.getResource(RESOURCE_OBJECT_TYPES_1.oid, null, task, result);
+                provisioningService.getObject(
+                        ResourceType.class, RESOURCE_OBJECT_TYPES_1.oid, null, task, result);
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(current);
 
         displayDumpable("schema", schema);
@@ -669,6 +670,18 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(phases.getPhase())
                 .as("default inbound mapping evaluation phases")
                 .containsExactlyInAnyOrder(CLOCKWORK, BEFORE_CORRELATION);
+
+        and("resource is cached");
+        rememberResourceCacheStats();
+        PrismObject<ResourceType> reloaded =
+                provisioningService.getObject(
+                        ResourceType.class, RESOURCE_OBJECT_TYPES_1.oid, null, task, result);
+        assertResourceCacheHitsIncrement(1);
+
+        and("origins are preserved in the cached version");
+        assertResource(reloaded, "after")
+                .displayXml();
+        assertOrigin(reloaded.asObjectable(), ResourceType.F_CONNECTOR_REF, RESOURCE_OBJECT_TYPES_TEMPLATE.oid);
     }
 
     /**
@@ -687,7 +700,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("schema can be retrieved");
         PrismObject<ResourceType> current =
-                beans.resourceManager.getResource(RESOURCE_EXPLICIT_TYPE_INHERITANCE.oid, null, task, result);
+                provisioningService.getObject(
+                        ResourceType.class, RESOURCE_EXPLICIT_TYPE_INHERITANCE.oid, null, task, result);
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(current);
 
         displayDumpable("schema", schema);

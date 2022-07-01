@@ -800,20 +800,24 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws SchemaException {
         ResourceType resourceType = resource.asObjectable();
         PrismObject<ConnectorType> connector = findConnectorByType(connectorType, result);
-        if (resourceType.getConnectorRef() == null) {
-            resourceType.setConnectorRef(new ObjectReferenceType());
+        ObjectReferenceType connectorRef = resourceType.getConnectorRef();
+        if (connectorRef == null) {
+            // Test code probably does not want the connectorRef to be inserted
+        } else {
+            connectorRef.setOid(connector.getOid());
+            connectorRef.setType(ObjectTypes.CONNECTOR.getTypeQName());
         }
-        resourceType.getConnectorRef().setOid(connector.getOid());
-        resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource,
             String connectorName, String connectorType, OperationResult result)
             throws SchemaException {
         ResourceType resourceType = resource.asObjectable();
         PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
         for (ConnectorInstanceSpecificationType additionalConnector : resourceType.getAdditionalConnector()) {
-            if (connectorName.equals(additionalConnector.getName())) {
+            if (additionalConnector.getConnectorRef() != null
+                    && connectorName.equals(additionalConnector.getName())) {
                 ObjectReferenceType ref = new ObjectReferenceType().oid(connectorPrism.getOid());
                 additionalConnector.setConnectorRef(ref);
             }
