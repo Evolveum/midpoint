@@ -686,6 +686,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     @Test
     public void test100AssignWillRoleOne() throws Exception {
+        final String TEST_NAME = "test100AssignWillRoleOne";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
         // The count will be checked only after propagation was run, so we can address both direct and grouping cases
         rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
 
@@ -694,6 +700,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0, 1);
         assertSteadyResources();
+
+        CaseType aCase = repositoryService
+                .getObject(CaseType.class, willLastCaseOid, null, result)
+                .asObjectable();
+        assertNull("Malformed targetRef is present in the manual provisioning case", aCase.getTargetRef());
     }
 
     @Test
