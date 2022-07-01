@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     <name>midPoint Super pom</name>
     <description>Super POM for all projects</description>
-    <url>http://</url>
+
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
@@ -95,6 +95,8 @@
         <maven.api.version>3.6.2</maven.api.version>
         <checkstyle.version>3.1.0</checkstyle.version>
         <tomcat.version>9.0.64</tomcat.version>
+
+        <failsafe.args>-Xmx8g -Duser.language=en</failsafe.args>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -1723,8 +1725,7 @@
                                     <midpoint.home>target/midpoint-home</midpoint.home>
                                     <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                                 </systemPropertyVariables>
-                                <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
-                                <!--argLine>-Xms16g -Xmx16g -Duser.language=en</argLine-->
+                                <argLine>${failsafe.args}</argLine>
                                 <suiteXmlFiles>
                                     <suiteXmlFile>testng-integration.xml</suiteXmlFile>
                                 </suiteXmlFiles>

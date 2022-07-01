@@ -28,8 +28,8 @@ podTemplate(
                         command: 'cat',
                         resourceRequestCpu: params.BUILDER_CPU ?: '4',
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
-                        resourceRequestMemory: '16Gi',
-                        resourceLimitMemory: '16Gi') // see also -Xmx flag lower
+                        resourceRequestMemory: '10Gi',
+                        resourceLimitMemory: '10Gi') // see also -Xmx flag lower
         ]
 ) {
     node(POD_LABEL) {
@@ -64,7 +64,7 @@ podTemplate(
                 container('maven') {
                     // -Xmx10g was not enough for story tests
                     sh """#!/bin/bash -ex
-                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xmx13g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                        mvn -B -ntp -Dmaven.test.failure.ignore verify -P extratest,-dist -Dfailsafe.args="-Xmx8g -Duser.language=en"
 
                         if [ "${verbose}" -ge 1 ]; then
                             df -h
