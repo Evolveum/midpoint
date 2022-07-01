@@ -122,11 +122,16 @@ class ResourceUpdater {
     }
 
     void updateSchema(ResourceSchema rawResourceSchema) throws SchemaException {
-        modifications.add(
-                PrismContext.get().deltaFor(ResourceType.class)
-                        .item(ResourceType.F_SCHEMA)
-                        .replace(createSchemaUpdateValue(rawResourceSchema))
-                        .asItemDelta());
+        if (updateRepository) {
+            modifications.add(
+                    PrismContext.get().deltaFor(ResourceType.class)
+                            .item(ResourceType.F_SCHEMA)
+                            .replace(createSchemaUpdateValue(rawResourceSchema))
+                            .asItemDelta());
+        }
+        if (updateInMemory) {
+            resource.schema(createSchemaUpdateValue(rawResourceSchema));
+        }
     }
 
     private XmlSchemaType createSchemaUpdateValue(ResourceSchema rawResourceSchema) throws SchemaException {

@@ -151,7 +151,7 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
 //
 //                String pathValue = targetSearchFilterPathInput.getBaseFormComponent().getValue();
 //                if (AssociationExpressionValuePanel.this.getModelObject() == null){
-//                    AssociationExpressionValuePanel.this.getModel().setObject(new ExpressionType());
+//                    AssociationExpressionValuePanel.this.getModelService().setObject(new ExpressionType());
 //                }
 //                try {
 //                    ExpressionUtil.updateAssociationTargetSearchPath(AssociationExpressionValuePanel.this.getModelObject(),

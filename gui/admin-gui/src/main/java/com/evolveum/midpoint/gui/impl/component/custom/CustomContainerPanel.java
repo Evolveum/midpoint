@@ -62,7 +62,7 @@ public class CustomContainerPanel<O extends ObjectType> extends BasePanel<PrismO
 //                }).build();
 //
 //        try {
-//            Panel panel = getPageBase().initItemPanel(ID_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), path), settings);
+//            Panel panel = getPageBase().initItemPanel(ID_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModelService(), path), settings);
 //            add(panel);
 //        } catch (SchemaException e) {
 //            //TODO:

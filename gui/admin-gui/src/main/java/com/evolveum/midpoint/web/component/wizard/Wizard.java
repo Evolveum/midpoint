@@ -221,8 +221,8 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
     @Override
     public void onFinish() {
         // 'show result' is already done
-//        if(getModel() != null && getModel().getObject() != null){
-//            IWizardStep activeStep = getModel().getObject().getActiveStep();
+//        if(getModelService() != null && getModelService().getObject() != null){
+//            IWizardStep activeStep = getModelService().getObject().getActiveStep();
 //
 //            if(activeStep != null){
 //                OperationResult result = ((WizardStep)activeStep).getResult();

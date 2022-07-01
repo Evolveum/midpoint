@@ -50,7 +50,7 @@ public class LinkPrismPropertyColumn<C extends Containerable, T> { //extends Pri
 //    @Override
 //    protected void populate(ListItem<PrismPropertyValueWrapper<T>> item, IModel<?> rowModel) {
 //        AjaxLinkPanel linkPanel = new AjaxLinkPanel(ID_LABEL,
-//                new ItemRealValueModel(item.getModel())) {
+//                new ItemRealValueModel(item.getModelService())) {
 //            private static final long serialVersionUID = 1L;
 //
 //            @Override

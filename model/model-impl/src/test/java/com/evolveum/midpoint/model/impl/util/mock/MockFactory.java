@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -182,6 +184,11 @@ public class MockFactory {
                     @NotNull PrismObject<ResourceType> resource,
                     @NotNull OperationResult parentResult) {
                 return DiscoveredConfiguration.empty();
+            }
+
+            @Override
+            public @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult) {
+                return null;
             }
 
             @Override

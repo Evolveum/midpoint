@@ -335,7 +335,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 //
 //            @Override
 //            protected void populateItem(ListItem<InlineMenuItem> item) {
-//                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SAVED_SEARCH_ITEM, item.getModel());
+//                WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_SAVED_SEARCH_ITEM, item.getModelService());
 //                menuItemBody.setRenderBodyOnly(true);
 //                item.add(menuItemBody);
 //                menuItemBody.add(new VisibleEnableBehaviour() {

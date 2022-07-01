@@ -57,7 +57,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
                     }
                 };
 
-//                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, item.getModel()) {
+//                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(ID_COMPOSITED_BUTTON, item.getModelService()) {
 //
 //                    @Override
 //                    public void onClick(AjaxRequestTarget target) {

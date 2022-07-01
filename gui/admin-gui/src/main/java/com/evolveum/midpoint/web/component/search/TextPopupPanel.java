@@ -59,14 +59,14 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
     }
 
     private TextField initTextField() {
-//        IModel data = new PropertyModel(getModel(), SearchValue.F_VALUE);
+//        IModel data = new PropertyModel(getModelService(), SearchValue.F_VALUE);
 
         if (lookup == null) {
             return new TextField(ID_TEXT_INPUT, new PropertyModel(getModel(), SearchValue.F_VALUE));
         }
 
         //TODO: displayName
-//        LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModel(), SearchValue.F_VALUE, lookup.asObjectable()) {
+//        LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModelService(), SearchValue.F_VALUE, lookup.asObjectable()) {
 //
 //            private static final long serialVersionUID = 1L;
 //

@@ -52,12 +52,16 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         this.model = Model.ofList(Collections.EMPTY_LIST);
     }
 
+    protected IModel<List<T>> getModel() {
+        return model;
+    }
+
     @Override
     public Iterator<W> internalIterator(long first, long count) {
 
         getAvailableData().clear();
 
-        List<T> list = model.getObject();
+        List<T> list = getListFromModel();
         sort(list);
 
         if (list != null) {
@@ -71,6 +75,10 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         }
 
         return getAvailableData().iterator();
+    }
+
+    protected List<T> getListFromModel() {
+        return getModel().getObject();
     }
 
     //TODO clenaup, coppied from MultivalueCOntainerListDataProvider
@@ -105,7 +113,7 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
 
     @Override
     protected int internalSize() {
-        List<T> list = model.getObject();
+        List<T> list = getModel().getObject();
         if (list == null) {
             return 0;
         }

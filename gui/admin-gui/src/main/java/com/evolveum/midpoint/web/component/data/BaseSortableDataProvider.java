@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.lang3.Validate;
@@ -21,7 +20,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,7 +88,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return SortOrder.ASCENDING;
     }
 
-    protected ModelService getModel() {
+    protected ModelService getModelService() {
         MidPointApplication application = MidPointApplication.get();
         return application.getModel();
     }

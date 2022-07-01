@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -420,7 +422,7 @@ public interface ModelService {
      * Test the resource connection and basic resource connector functionality.
      * </p>
      * <p>
-     * Work same as {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
+     * Work same as {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#testResource(String, Task, OperationResult)}.
      * </p>
      *
      * @param resourceOid OID of resource to test
@@ -429,6 +431,21 @@ public interface ModelService {
      * @throws IllegalArgumentException wrong OID format
      */
     OperationResult testResource(String resourceOid, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException;
+
+    /**
+     * <p>
+     * Test the resource connection and basic resource connector functionality.
+     * </p>
+     * <p>
+     * Work same as {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#testResource(PrismObject, Task, OperationResult)}.
+     * </p>
+     *
+     * @param resource resource to test
+     * @return results of executed tests
+     * @throws ObjectNotFoundException specified object does not exist
+     */
+    OperationResult testResource(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
 
@@ -458,6 +475,17 @@ public interface ModelService {
      * @return Suggested configuration properties wrapped in DiscoveredConfiguration.
      */
     DiscoveredConfiguration discoverResourceConnectorConfiguration(PrismObject<ResourceType> resource, OperationResult result);
+
+    /**
+     * <p>
+     * Method work same as
+     * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#fetchSchema(PrismObject, OperationResult)}.
+     * </p>
+     *
+     * @param resource resource with connector configuration
+     * @return Resource schema fetched by connector
+     */
+    @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
 
     /**

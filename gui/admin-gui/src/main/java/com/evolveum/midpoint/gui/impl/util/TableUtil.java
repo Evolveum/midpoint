@@ -25,9 +25,9 @@ public class TableUtil {
             if (row.getModelObject().isSelected()) {
                 objects.add(row.getModel().getObject());
             }
-//                SelectableObjectModel<T> model = (SelectableObjectModel<T>) row.getModel();
+//                SelectableObjectModel<T> model = (SelectableObjectModel<T>) row.getModelService();
 //                if (model.isSelected()) {
-//                    objects.add((SelectableObjectModel<T>) row.getModel());
+//                    objects.add((SelectableObjectModel<T>) row.getModelService());
 //                }
         });
         return objects;

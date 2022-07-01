@@ -97,7 +97,7 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
         private void resetPerformed(AjaxRequestTarget target) {
             OperationResult result = new OperationResult(PageInternals.class.getName() + ".changeTimeReset");
             clock.resetOverride();
-//            getModel().reset();
+//            getModelService().reset();
             result.recordSuccess();
             getPageBase().showResult(result);
             target.add(InternalsClockPanel.this);

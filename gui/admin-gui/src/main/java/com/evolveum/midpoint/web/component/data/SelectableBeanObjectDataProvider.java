@@ -19,7 +19,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
 
 /**
  * @author lazyman
@@ -57,7 +55,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     public List<SelectableBean<O>> createDataObjectWrappers(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<? extends O>> list = (List) getModel().searchObjects(type, query, options, task, result);
+        List<PrismObject<? extends O>> list = (List) getModelService().searchObjects(type, query, options, task, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
@@ -98,7 +96,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     @Override
     protected Integer countObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return getModel().countObjects(type, getQuery(), currentOptions, task, result);
+        return getModelService().countObjects(type, getQuery(), currentOptions, task, result);
     }
 
     @Override
@@ -160,7 +158,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     @Override
     protected List<O> searchObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
-        return getModel().searchObjects(type, query, options, task, result).map(prismObject -> prismObject.asObjectable());
+        return getModelService().searchObjects(type, query, options, task, result).map(prismObject -> prismObject.asObjectable());
     }
 
     @Override

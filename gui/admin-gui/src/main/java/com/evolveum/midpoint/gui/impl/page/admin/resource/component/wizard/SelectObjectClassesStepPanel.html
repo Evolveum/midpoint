@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="col-lg-8 px-0">
+        <div class="bg-white rounded border d-flex px-3 py-2">
+            <span class="mt-2">
+                <i class="fa fa-table-cells"></i>
+                <span class="pl-1">
+                    <wicket:message key="PageResource.wizard.step.selectObjectClasses"/>
+                </span>
+            </span>
+            <div class="ml-auto input-group" style="width: 350px;">
+                <input class="form-control" wicket:id="searchFiled"/>
+                <div class="input-group-append">
+                    <a class="btn btn-primary" wicket:id="searchButton">
+                        <i class="fa fa-magnifying-glass mr-2"></i>
+                        <wicket:message key="pageResources.button.search"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded border d-flex p-3" style="min-height: 4rem;">
+            
+        </div>
+        <div class="bg-white rounded border mb-0" wicket:id="table" style="box-shadow: none;"/>
+    </div>
+</wicket:extend>
+</html>

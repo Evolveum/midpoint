@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
@@ -13,7 +13,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -22,6 +25,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -31,14 +35,16 @@ import org.apache.wicket.model.IModel;
 @PanelInstance(identifier = "discoverConnectorConfigurationWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        defaultPanel = true,
         display = @PanelDisplay(label = "PageResource.wizard.step.discovery", icon = "fa fa-list-check"),
         containerPath = "connectorConfiguration/configurationProperties",
         expanded = true)
 public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
 
+    private static final Trace LOGGER = TraceManager.getTrace(DiscoveryStepPanel.class);
+
     private static final String DOT_CLASS = DiscoveryStepPanel.class.getName() + ".";
     private static final String OPERATION_DISCOVER_CONFIGURATION = DOT_CLASS + "discoverConfiguration";
+    private static final String OPERATION_RESOURCE_TEST = DOT_CLASS + "partialConfigurationTest";
 
     private static final String PANEL_TYPE = "discoverConnectorConfigurationWizard";
 
@@ -51,11 +57,17 @@ public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
         PageBase pageBase = getPageBase();
         OperationResult result = new OperationResult(OPERATION_DISCOVER_CONFIGURATION);
 
-        DiscoveredConfiguration discoverProperties =
-                pageBase.getModelService().discoverResourceConnectorConfiguration(getResourceModel().getObjectWrapper().getObject(), result);
+        try {
+            DiscoveredConfiguration discoverProperties = pageBase.getModelService().discoverResourceConnectorConfiguration(
+                            getResourceModel().getObjectWrapper().getObjectApplyDelta(), result);
 
-        getResourceModel().setConnectorConfigurationSuggestions(discoverProperties);
-        getResourceModel().getObjectWrapperModel().reset();
+            getResourceModel().reloadPrismObjectModel(getResourceModel().getObjectWrapper().getObjectApplyDelta());
+            getResourceModel().setConnectorConfigurationSuggestions(discoverProperties);
+            getResourceModel().getObjectWrapperModel().reset();
+
+        } catch (SchemaException e) {
+            result.recordFatalError("Couldn't get discovered configuration.", e);
+        }
 
         super.onBeforeRender();
     }
@@ -92,5 +104,28 @@ public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
             }
             return ItemVisibility.AUTO;
         };
+    }
+
+    @Override
+    public boolean onNextPerformed(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
+        Task task = pageBase.createSimpleTask(OPERATION_RESOURCE_TEST);
+        OperationResult result = task.getResult();
+
+        try {
+            pageBase.getModelService().testResource(getResourceModel().getObjectWrapper().getObjectApplyDelta(), task, result);
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to test resource connection", e);
+            result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);
+        }
+        result.computeStatus();
+
+        if (result.isSuccess()) {
+            return super.onNextPerformed(target);
+        }
+        pageBase.showResult(result);
+        target.add(getFeedback());
+
+        return false;
     }
 }

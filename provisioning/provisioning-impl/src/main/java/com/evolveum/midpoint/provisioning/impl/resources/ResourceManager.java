@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -219,6 +220,13 @@ public class ResourceManager {
                 connectorManager.getConfiguredConnectorInstance(connectorSpec, result);
         return DiscoveredConfiguration.of(
                 connector.discoverConfiguration(result));
+    }
+
+    public @Nullable ResourceSchema fetchSchema(@NotNull ResourceType resource, @NotNull OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
+            SchemaException {
+        LOGGER.trace("Fetching resource schema for {}", resource);
+        return schemaFetcher.fetchResourceSchema(resource, null, result);
     }
 
     /**

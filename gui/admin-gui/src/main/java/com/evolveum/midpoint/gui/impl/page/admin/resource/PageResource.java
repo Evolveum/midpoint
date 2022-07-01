@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.*;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -127,7 +127,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
         DiscoveryStepPanel discover = new DiscoveryStepPanel(getObjectDetailsModels());
 
-        return List.of(basicSettings, configuration, discover);
+        SelectObjectClassesStepPanel selectObjectClasses = new SelectObjectClassesStepPanel(getObjectDetailsModels());
+
+        return List.of(basicSettings, configuration, discover, selectObjectClasses);
     }
 
     @Override

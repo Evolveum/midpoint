@@ -15,9 +15,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ObjectClassWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,19 +29,28 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceType> {
 
     private static final String DOT_CLASS = ResourceDetailsModel.class.getName() + ".";
     private static final String OPERATION_CREATE_CONFIGURATION_WRAPPERS = DOT_CLASS + "loadConnectorWrapper";
+    private static final String OPERATION_FETCH_SCHEMA = DOT_CLASS + "fetchSchema";
 
     private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
+
+    private final LoadableModel<List<ObjectClassWrapper>> objectClassesModel;
     private DiscoveredConfiguration connectorConfigurationSuggestions;
 
     public ResourceDetailsModel(LoadableDetachableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
@@ -55,6 +67,36 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                     getPageBase().showResult(result);
                     return null;
                 }
+            }
+        };
+
+        this.objectClassesModel = new LoadableModel<>() {
+            @Override
+            protected List<ObjectClassWrapper> load() {
+                List<ObjectClassWrapper> list = new ArrayList<>();
+
+                ResourceSchema schema = null;
+                OperationResult result = new OperationResult(OPERATION_FETCH_SCHEMA);
+                try {
+                    schema = getPageBase().getModelService().fetchSchema(getObjectWrapper().getObjectApplyDelta(), result);
+                } catch (SchemaException | RuntimeException e) {
+                    result.recordFatalError("Cannot load schema object classes, " + e.getMessage());
+                    result.computeStatus();
+                    getPageBase().showResult(result);
+                }
+
+
+                if (schema == null) {
+                    return list;
+                }
+
+                for(ResourceObjectClassDefinition definition: schema.getObjectClassDefinitions()){
+                    list.add(new ObjectClassWrapper(definition));
+                }
+
+                Collections.sort(list);
+
+                return list;
             }
         };
     }
@@ -128,6 +170,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     public void reset() {
         super.reset();
         configurationModel.reset();
+        objectClassesModel.reset();
     }
 
     @Override
@@ -144,5 +187,9 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
     protected void customizationWrapperContext(WrapperContext ctx) {
         ctx.setConnectorConfigurationSuggestions(this.connectorConfigurationSuggestions);
+    }
+
+    public IModel<List<ObjectClassWrapper>> getObjectClassesModel() {
+        return objectClassesModel;
     }
 }

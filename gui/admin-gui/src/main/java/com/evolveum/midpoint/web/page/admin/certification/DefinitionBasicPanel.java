@@ -116,8 +116,8 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
         });
         add(stopReviewOn);
 
-        //        add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(getModel(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        //        add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(getModel(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        //        add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(getModelService(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        //        add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(getModelService(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
         add(new Label(ID_LAST_STARTED, new PropertyModel<>(getModel(), CertDefinitionDto.F_LAST_STARTED)));
         add(new Label(ID_LAST_CLOSED, new PropertyModel<>(getModel(), CertDefinitionDto.F_LAST_CLOSED)));
         add(WebComponentUtil.createHelp(ID_LAST_STARTED_HELP));

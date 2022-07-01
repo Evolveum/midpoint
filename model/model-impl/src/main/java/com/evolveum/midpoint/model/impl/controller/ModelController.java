@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.cases.api.CaseManager;
 
 import com.evolveum.midpoint.provisioning.api.*;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.*;
 
 import org.apache.commons.lang3.Validate;
@@ -1441,6 +1442,23 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
+    public OperationResult testResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+        Validate.notNull(resource, "Resource must not be null.");
+        LOGGER.trace("Testing resource: {}", resource);
+
+        enterModelMethod();
+        try {
+            OperationResult testResult = provisioning.testResource(resource, task, result);
+            LOGGER.debug("Finished testing resource: {}, result: {} ", resource, testResult.getStatus());
+            LOGGER.trace("Test result:\n{}", lazy(() -> testResult.dump(false)));
+            return testResult;
+        } finally {
+            exitModelMethod();
+        }
+    }
+
+    @Override
     public OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         Validate.notNull(resource, "Resource must not be null.");
@@ -1470,6 +1488,26 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             LOGGER.debug("Finished discover connector configuration for resource: {}, result: {} ", resource, result.getStatus());
             LOGGER.trace("Discover connector configuration result:\n{}", lazy(() -> result.dump(false)));
             return discoverConfiguration;
+        } finally {
+            exitModelMethodNoRepoCache();
+        }
+    }
+
+    @Override
+    public @Nullable ResourceSchema fetchSchema(
+            @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result) {
+        Validate.notNull(resource, "Resource must not be null.");
+        LOGGER.trace("Fetch schema by connector configuration from resource: {}", resource);
+
+        enterModelMethodNoRepoCache();
+        try {
+            @Nullable ResourceSchema schema = provisioning.fetchSchema(resource, result);
+            LOGGER.debug(
+                    "Finished fetch schema by connector configuration from resource: {}, result: {} ",
+                    resource,
+                    result.getStatus());
+            LOGGER.trace("Fetch schema by connector configuration result:\n{}", lazy(() -> result.dump(false)));
+            return schema;
         } finally {
             exitModelMethodNoRepoCache();
         }
