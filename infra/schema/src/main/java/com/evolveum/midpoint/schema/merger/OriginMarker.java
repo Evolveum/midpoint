@@ -30,11 +30,11 @@ import javax.xml.namespace.QName;
  * Notes:
  *
  * . When a composite value ({@link PrismContainerValue}) is inherited, only the root value gets the metadata. It's not necessary
- * (and therefore avoided) to set the metadata on each of the container ("inner") values.
- * . When a value is passed through multiple layers of inheritance (like inherited from `O1` to `O2` and finally to `O3`,
- * only the first occurrence (i.e. `O1`) is recorded.
+ * (and therefore it's avoided) to set the metadata on each of the contained ("inner") values.
+ * . When a value is passed through multiple layers of inheritance (e.g. inherited from `O1` to `O2` and finally to `O3`),
+ * only the "real" origin (i.e. `O1`) is recorded.
  * . Origin for values not passing through the inheritance relation (i.e. values at the bottom of the inheritance hierarchy)
- * are not marked; even if the containing resource has an OID.
+ * are not marked - not even if the containing resource has an OID.
  *
  * For some examples please see `TestResourceTemplateMerge`.
  *
