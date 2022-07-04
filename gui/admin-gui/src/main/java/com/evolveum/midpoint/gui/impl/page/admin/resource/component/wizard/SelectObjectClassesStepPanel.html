@@ -16,18 +16,31 @@
                     <wicket:message key="PageResource.wizard.step.selectObjectClasses"/>
                 </span>
             </span>
-            <div class="ml-auto input-group" style="width: 350px;">
+            <form class="ml-auto input-group" style="width: 350px;" wicket:id="searchForm">
                 <input class="form-control" wicket:id="searchFiled"/>
                 <div class="input-group-append">
-                    <a class="btn btn-primary" wicket:id="searchButton">
+                    <a class="btn btn-primary" wicket:id="searchButton"
+                            style="border-bottom-right-radius: 0.25rem; border-top-right-radius: 0.25rem;">
                         <i class="fa fa-magnifying-glass mr-2"></i>
                         <wicket:message key="pageResources.button.search"/>
                     </a>
                 </div>
-            </div>
+            </form>
         </div>
-        <div class="bg-white rounded border d-flex p-3" style="min-height: 4rem;">
-            
+        <div class="bg-white rounded border-left border-right d-flex flex-column p-3" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
+            <span>
+                <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
+            </span>
+            <div class="d-inline-flex">
+                <wicket:container wicket:id="selectedItemContainer">
+                    <div class="btn-sm btn-primary d-flex" style="cursor: auto;">
+                        <div wicket:id="selectedItem"/>
+                        <a wicket:id="deselectButton">
+                            <i class="fa fa-xmark ml-2 text-white"></i>
+                        </a>
+                    </div>
+                </wicket:container>
+            </div>
         </div>
         <div class="bg-white rounded border mb-0" wicket:id="table" style="box-shadow: none;"/>
     </div>
