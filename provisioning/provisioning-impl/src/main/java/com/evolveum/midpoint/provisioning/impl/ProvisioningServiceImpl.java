@@ -106,6 +106,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     private static final String OP_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
     private static final String OP_DELETE_OBJECT = ProvisioningService.class.getName() + ".deleteObject";
     private static final String OP_DISCOVER_CONFIGURATION = ProvisioningService.class.getName() + ".discoverConfiguration";
+    private static final String OP_EXPAND_CONFIGURATION_OBJECT = ProvisioningService.class.getName()
+            + ".expandConfigurationObject";
     // TODO reconsider names of these operations
     private static final String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
 
@@ -1115,5 +1117,31 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         return shadowTagGenerator.generateTag(combinedObject, resource, definition, task, result);
+    }
+
+    @Override
+    public void expandConfigurationObject(
+            @NotNull PrismObject<? extends ObjectType> configurationObject,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        OperationResult result = parentResult.subresult(OP_EXPAND_CONFIGURATION_OBJECT)
+                .addParam("configurationObject", configurationObject)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
+        try {
+            ObjectType objectBean = configurationObject.asObjectable();
+            if (objectBean instanceof ResourceType resource) {
+                LOGGER.trace("Starting expanding {}", configurationObject);
+                resourceManager.expandResource(resource, result);
+                LOGGER.trace("Finished expanding {}", configurationObject);
+            } else {
+                // Nothing to do here; intentionally not throwing an exception
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 }

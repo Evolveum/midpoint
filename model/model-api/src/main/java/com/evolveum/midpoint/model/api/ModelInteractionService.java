@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -515,4 +516,15 @@ public interface ModelInteractionService {
     Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * See {@link ProvisioningService#expandConfigurationObject(PrismObject, Task, OperationResult)} for the description.
+     *
+     * TODO security aspects
+     */
+    @Experimental
+    void expandConfigurationObject(
+            @NotNull PrismObject<? extends ObjectType> configurationObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
 }

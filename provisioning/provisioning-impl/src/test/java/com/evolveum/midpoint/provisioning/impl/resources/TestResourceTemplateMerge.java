@@ -120,17 +120,15 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
      */
     @Test
     public void test100Basic1() throws CommonException {
-        OperationResult result = getTestOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         when("basic1 is expanded");
-        ResourceExpansionOperation expansionOperation = new ResourceExpansionOperation(
-                RESOURCE_BASIC_1.getObjectable().clone(),
-                beans);
-        expansionOperation.execute(result);
+        ResourceType expanded = RESOURCE_BASIC_1.getObjectable().clone();
+        provisioningService.expandConfigurationObject(expanded.asPrismObject(), task, result);
 
         then("expanded version can be displayed");
         // @formatter:off
-        ResourceType expanded = expansionOperation.getExpandedResource();
         assertResource(expanded, "after")
                 .displayXml();
 
@@ -203,11 +201,6 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .configuredCapability(CreateCapabilityType.class) // from the template
                 .end();
         // @formatter:on
-
-        and("ancestors are OK");
-        assertThat(expansionOperation.getAncestorsOids())
-                .as("ancestors OIDs")
-                .containsExactly(RESOURCE_BASIC_TEMPLATE.oid);
     }
 
     private void assertNoOrigin(Containerable containerable, ItemPath path) {

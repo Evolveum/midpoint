@@ -13,9 +13,12 @@ import java.util.Set;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
+import com.evolveum.midpoint.schema.merger.OriginMarker;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -748,4 +751,20 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Expands (in-memory) configuration object by (e.g.) resolving references to super/template objects, and so on.
+     *
+     * The expansion is done in-place i.e. the object is directly modified by the operation.
+     * Provenance metadata are filled-in, see the description in {@link OriginMarker}.
+     *
+     * Assumes that there are no value metadata on entry!
+     *
+     * Currently implemented for resources.
+     */
+    @Experimental
+    void expandConfigurationObject(
+            @NotNull PrismObject<? extends ObjectType> configurationObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
 }
