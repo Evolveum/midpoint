@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -122,6 +122,17 @@
                         <groupId>xalan</groupId>
                         <artifactId>xalan</artifactId>
                         <version>${xalan.version}</version>
+                    </dependency>
+                    <!-- Added after MID-7937, fix based on https://stackoverflow.com/a/71979169/658826 -->
+                    <dependency>
+                        <groupId>org.glassfish.jaxb</groupId>
+                        <artifactId>jaxb-runtime</artifactId>
+                        <version>${glassfish-jaxb.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.glassfish.jaxb</groupId>
+                        <artifactId>jaxb-xjc</artifactId>
+                        <version>${glassfish-jaxb.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
