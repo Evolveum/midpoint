@@ -7,19 +7,24 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query.hqm.condition.ExistsCondition;
+import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author lazyman
@@ -32,6 +37,18 @@ public class TypeRestriction extends Restriction<TypeFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
+        Class<ObjectType> targetType = ObjectTypes.getObjectTypeClass(filter.getType());
+        InterpretationContext subcontext = context.createSubcontext(targetType);
+        HqlEntityInstance outerEntity = getBaseHqlEntity(); // parent query
+
+        ExistsCondition existsCondition = new ExistsCondition(subcontext);
+        existsCondition.addCorrelationCondition("oid", outerEntity.getHqlPath() + ".oid");
+        existsCondition.interpretFilter(filter.getFilter());
+
+        return existsCondition;
+    }
+
+    public Condition interpretOld() throws QueryException {
         InterpretationContext context = getContext();
         HibernateQuery hibernateQuery = context.getHibernateQuery();
 

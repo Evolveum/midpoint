@@ -9,14 +9,18 @@ package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.hqm.GenericProjectionElement;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
  * Generic EXISTS condition with subquery provided as a parameter.
  * This produces "exists (select 1 from ...)" type query.
+ * This condition also handles RObject vs AssignmentHolderType discrepancy and filters out shadows if necessary.
  */
 public class ExistsCondition extends Condition {
 
@@ -27,6 +31,15 @@ public class ExistsCondition extends Condition {
         this.subcontext = subcontext;
 
         hibernateQuery.addProjectionElement(new GenericProjectionElement("1")); // select 1
+
+        // AssignmentHolderType is mapped to RObject which also includes RShadow, so little fix is needed:
+        if (subcontext.getType().equals(AssignmentHolderType.class)) {
+            hibernateQuery.addCondition(
+                    hibernateQuery.createNot(
+                            hibernateQuery.createEq(
+                                    entityAlias() + '.' + RObject.F_OBJECT_TYPE_CLASS,
+                                    RObjectType.SHADOW)));
+        }
     }
 
     /**
