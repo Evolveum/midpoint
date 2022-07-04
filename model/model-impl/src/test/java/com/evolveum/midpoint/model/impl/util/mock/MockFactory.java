@@ -10,6 +10,10 @@ import java.util.*;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -306,6 +310,13 @@ public class MockFactory {
                     @NotNull Task task,
                     @NotNull OperationResult result) {
                 return null;
+            }
+
+            @Override
+            public void expandConfigurationObject(
+                    @NotNull PrismObject<? extends ObjectType> configurationObject,
+                    @NotNull Task task,
+                    @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
             }
         };
     }
