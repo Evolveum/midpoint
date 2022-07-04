@@ -127,6 +127,7 @@ public class ResourceManager {
         String oid = repositoryObject.getOid();
 
         if (isAbstract(repositoryObject.asObjectable())) {
+            expandResource(repositoryObject.asObjectable(), result);
             LOGGER.trace("Not putting {} into cache because it's abstract", repositoryObject);
             return repositoryObject;
         }
@@ -201,14 +202,14 @@ public class ResourceManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        expandResource(resource, result);
+        expandResource(resource.asObjectable(), result);
         return new ResourceTestOperation(resource, options, task, beans)
                 .execute(result);
     }
 
-    private void expandResource(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result)
+    public void expandResource(@NotNull ResourceType resource, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        new ResourceExpansionOperation(resource.asObjectable(), beans)
+        new ResourceExpansionOperation(resource, beans)
                 .execute(result);
     }
 
@@ -217,7 +218,7 @@ public class ResourceManager {
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
-        expandResource(resource, result);
+        expandResource(resource.asObjectable(), result);
 
         ConnectorSpec connectorSpec = ConnectorSpec.main(resource.asObjectable());
         result.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());

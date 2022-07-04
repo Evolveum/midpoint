@@ -2132,4 +2132,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         query.setFilter(filter);
         return query;
     }
+
+    @Override
+    public void expandConfigurationObject(
+            @NotNull PrismObject<? extends ObjectType> configurationObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        provisioning.expandConfigurationObject(configurationObject, task, result);
+    }
 }
