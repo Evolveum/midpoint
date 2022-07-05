@@ -22,7 +22,7 @@
             </relation>
             <relation>
                 <ref>test:extra</ref>
-                <kind>member</kind>            <!-- selected automatically as the default -->
+                <kind>member</kind> <!-- selected automatically as the default -->
             </relation>
             <relation>
                 <ref>test:approver</ref>

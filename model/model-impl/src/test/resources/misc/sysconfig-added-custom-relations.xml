@@ -24,10 +24,10 @@
                 <ref>test:extra</ref>
             </relation>
             <relation>
-                <ref>test:approver</ref>        <!-- local name collision -->
+                <ref>test:approver</ref> <!-- local name collision -->
                 <!-- intentionally not of APPROVER kind -->
             </relation>
-            <relation>    <!-- overriding default relation -->
+            <relation> <!-- overriding default relation -->
                 <ref>org:meta</ref>
                 <display>
                     <label>Meta-relation</label>
