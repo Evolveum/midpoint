@@ -155,9 +155,6 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
             OperationResult result) throws SchemaException {
         for (PrismContainerValueWrapper<AssignmentType> item : model.getObject()) {
             if (Objects.equals(item.getRealValue().getId(),object.getId())) {
-                if (ValueStatus.DELETED == item.getStatus()) {
-                    return null;
-                }
                 postProcessWrapper(item);
                 return item;
             }
