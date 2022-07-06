@@ -412,7 +412,8 @@ public class HibernateQuery {
 
     public String createAlias(String name, boolean entity) {
         // Prefixing aliases with parent query info to keep them unique.
-        String aliasPrefix = parentQuery != null ? parentQuery.getPrimaryEntityAlias() : "";
+        // All aliases are prefixed with _ to avoid any accidental similarity to keywords like "or" for subqueries.
+        String aliasPrefix = parentQuery != null ? parentQuery.getPrimaryEntityAlias() : "_";
         // We want to skip 'R' prefix for entity definition names.
         int prefixIndex = entity ? 1 : 0;
         String aliasBase = aliasPrefix + Character.toString(name.charAt(prefixIndex)).toLowerCase();
