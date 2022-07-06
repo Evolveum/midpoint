@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -626,6 +627,13 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
         return createSearchableItems(containerDef);
+    }
+
+    @Override
+    protected Search createSearch(Class<AssignmentType> type) {
+        Search search = super.createSearch(type);
+        search.setFullTextSearchEnabled(isRepositorySearchEnabled());
+        return search;
     }
 
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
