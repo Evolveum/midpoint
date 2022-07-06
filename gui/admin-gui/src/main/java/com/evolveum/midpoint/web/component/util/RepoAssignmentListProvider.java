@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.ItemPathParser;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,6 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import javax.xml.namespace.QName;
 
 public class RepoAssignmentListProvider extends ContainerListDataProvider<AssignmentType> {
 
@@ -184,12 +188,21 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
             return super.createObjectOrderings(sortParam);
         }
         String property = sortParam.getProperty();
-        if (!TARGET_NAME_STRING.equals(property)) {
-            return super.createObjectOrderings(sortParam);
+        final ItemPath path;
+        if (TARGET_NAME_STRING.equals(property)) {
+            path = TARGET_NAME_PATH;
+        } else if (property.contains(".")) {
+            property = property.replaceAll("\\.", "/");
+            path = getPrismContext().itemPathParser().asItemPath(property);
+        } else if (property.contains("/")) {
+            // Try to parse it as item path for now
+            path = getPrismContext().itemPathParser().asItemPath(property);
+        } else {
+            path = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
         }
         OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
         return Collections.singletonList(
-                getPrismContext().queryFactory().createOrdering(TARGET_NAME_PATH, order));
+                getPrismContext().queryFactory().createOrdering(path, order));
     }
 
     /**
