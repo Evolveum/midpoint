@@ -1,5 +1,5 @@
 = Full-Text Search
-:page-wiki-name: Full text search HOWTO
+:page-wiki-name: Full-text search HOWTO
 :page-wiki-id: 24085323
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2017-02-27T11:45:43.315+01:00
@@ -13,11 +13,11 @@
 
 == Background information
 
-MidPoint contains a simple full text search feature.
+MidPoint contains a simple full-text search feature.
 Selected items can be indexed and then queries can be put against their content.
 More specifically:
 
-. Any textual properties of midPoint objects can be designated as "full text search indexed" in system configuration.
+. Any textual properties of midPoint objects can be designated as "full-text search indexed" in system configuration.
 These can be either standard properties (e.g. user's given and family names) or extension properties.
 
 . When updating these objects, midPoint extracts content of these properties, normalizes it, and stores in a separate `m_object.fullTextInfo` column (or a separate `m_object_text_info` table for the old Generic repository).
@@ -113,7 +113,7 @@ select oid, fulltextinfo from m_object
 
 == Using it
 
-If the full text search feature is enabled in the system configuration, it can be used from the GUI.
+If the full-text search feature is enabled in the system configuration, it can be used from the GUI.
 
 image::images/image2017-2-28-10-46-42.png[]
 
