@@ -217,6 +217,8 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
         var idFilter = postFilterIds();
         ObjectFilter filter = orig != null ? orig.getFilter() : null;
         if (orig != null) {
+
+            System.out.println(Objects.toString(filter));
             // We have user entered filter
             if (idFilter != null) {
                 // PostFilter filtered data, so we need to search only in these data
