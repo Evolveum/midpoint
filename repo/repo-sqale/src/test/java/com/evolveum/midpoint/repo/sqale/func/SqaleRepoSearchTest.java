@@ -9,8 +9,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
-import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
+import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
@@ -191,6 +190,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .modifyTimestamp(asXMLGregorianCalendar(2L)))
                 .subtype("workerA")
                 .subtype("workerC")
+                .employeeNumber("user1")
                 .policySituation("situationA")
                 .policySituation("situationC")
                 .activation(new ActivationType(prismContext)
@@ -2382,6 +2382,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         expect("isDescendant returns false for reverse relationship");
         assertFalse(repositoryService.isDescendant(org11, org112Oid));
+    }
+
+    @Test(description = "MID-8005")
+    public void test991SearchObjectWithStringIgnoreCaseWithoutNamespace()
+            throws SchemaException {
+        searchUsersTest("with string item matching ignore-case comparison",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).contains("USer1")
+                        // Use QName without namespace
+                        .matching(new QName(STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart())),
+                user1Oid);
     }
     // endregion
 }

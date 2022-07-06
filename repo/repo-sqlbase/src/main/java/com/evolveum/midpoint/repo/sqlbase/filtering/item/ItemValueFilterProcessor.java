@@ -76,9 +76,11 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
         throw new QueryException("Can't translate filter '" + filter + "' to operation.");
     }
 
+    private static final String STRING_IGNORE_CASE = STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart();
+
     protected boolean isIgnoreCaseFilter(ValueFilter<?, ?> filter) {
         return filter.getMatchingRule() != null
-                && filter.getMatchingRule().equals(STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+                && filter.getMatchingRule().getLocalPart().equals(STRING_IGNORE_CASE);
     }
 
     @NotNull
