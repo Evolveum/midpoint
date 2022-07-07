@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
@@ -313,15 +313,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE, relation2)
                 .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
                 .policySituation("situationA")
-                .assignment(new AssignmentType()
-                        .lifecycleState("ls-user3-ass1")
-                        .metadata(new MetadataType()
-                                .creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
-                                .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
-                        .activation(new ActivationType()
-                                .validFrom("2021-01-01T00:00:00Z"))
-                        .subtype("ass-subtype-1")
-                        .subtype("ass-subtype-2"))
                 .linkRef(shadow1Oid, ShadowType.COMPLEX_TYPE)
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass2")
@@ -339,6 +330,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user3Extension, "int", 10);
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
                 asXMLGregorianCalendar(1633_200_000_000L));
+        ExtensionType user3AssignmentExtension = new ExtensionType();
+        user3.assignment(new AssignmentType()
+                .lifecycleState("ls-user3-ass1")
+                .metadata(new MetadataType()
+                        .creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                        .createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
+                .activation(new ActivationType()
+                        .validFrom("2021-01-01T00:00:00Z"))
+                .subtype("ass-subtype-1")
+                .subtype("ass-subtype-2")
+                .extension(user3AssignmentExtension));
+        addExtensionValue(user3AssignmentExtension, "integer", BigInteger.valueOf(48));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
 
         user4Oid = repositoryService.addObject(
@@ -2139,7 +2142,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test620OrderBySingleValueReferenceTargetPropertyIsSupported() throws SchemaException {
+    public void test620ContainerOrderBySingleValueReferenceTargetPropertyIsSupported() throws SchemaException {
         SearchResultList<AssignmentType> result = searchContainerTest(
                 "having creator ref name and order by it", AssignmentType.class,
                 f -> f.not().item(AssignmentType.F_METADATA, MetadataType.F_CREATOR_REF,
@@ -2150,6 +2153,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result)
                 .extracting(a -> a.getLifecycleState())
                 .containsExactly("ls-user3-ass2", "ls-user3-ass1");
+    }
+
+    @Test
+    public void test621AssignmentSearchOrderByExtensionAttribute() throws SchemaException {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "having not-null extension/integer, order by that extension item", AssignmentType.class,
+                f -> f.not().item(AssignmentType.F_EXTENSION, new ItemName("integer")).isNull()
+                        .asc(AssignmentType.F_EXTENSION, new ItemName("integer")));
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactly("assignment1-3-ext", "ls-user3-ass1");
     }
 
     @Test
