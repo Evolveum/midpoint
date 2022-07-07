@@ -10,7 +10,7 @@ scripts: [ 'multi-source.js' ]
 :page-wiki-metadata-modify-date: 2020-03-30T11:27:33.062+02:00
 :page-display-order: 500
 :page-toc: top
-:toclevels: 3
+:toclevels: 2
 
 [NOTE]
 This document is up-to-date for midPoint 4.4 LTS version.
@@ -24,6 +24,9 @@ objects on the xref:/midpoint/reference/resources/[Resources].
 MidPoint *query* allows us to select only the objects that match specified criteria.
 These criteria are formulated as a *filter* and are part of the *query*.
 Both query and filter are part of the midPoint Query API described in this document.
+
+[NOTE]
+Query language is defined in Prism project in link:https://github.com/Evolveum/prism/blob/master/infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd[query-3 schema].
 
 === Prism and Resource objects refresher
 
@@ -45,12 +48,9 @@ But resources generally don't understand midPoint Query language, and the query 
 For instance, when a xref:/midpoint/reference/resources/connid/[ConnId Connector] is used, the Query is translated for the ConnId framework.
 Limitations are mentioned in this document later.
 
-=== Query
+== Queries and filters
 
-[NOTE]
-Query language is defined in Prism project in link:https://github.com/Evolveum/prism/blob/master/infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd[query-3 schema].
-
-==== Object and Container value query
+=== Object and Container value query
 
 We have two types of queries based on the returning type:
 
@@ -86,7 +86,7 @@ We don't want these values, we don't want to load them from the repository and p
 * Also, some containers are standalone and have no parent objects ("owner").
 This is the case of xref:/midpoint/reference/security/audit/[audit records].
 
-==== Query anatomy
+=== Query anatomy
 
 Each query consists of two parts:
 
@@ -101,12 +101,12 @@ These are typically delivered together with the query, but are not part of it:
 
 * Type of the object or container value we want to query.
 * Additional options fine-tuning the search and retrieval process.
-Options can specify what optional pieces to fetch and also wheter `DISTINCT` should be applied to the results.
+Options can specify what optional pieces to fetch and also wheter `distinct` should be applied to the results.
 
 This additional information is either implied or can be provided close to the query as needed,
 for instance as additional parameters to the repository call, etc.
 
-==== Query representation
+=== Query representation
 
 Query can be represented in multiple ways and formats:
 
@@ -158,17 +158,17 @@ or
 ----
 prismContext.queryFor(UserType.class) // fluent API starts with query
     .block()
-    .block()
-    .item(FocusType.F_COST_CENTER).gt("100000")
-    .and()
-    .item(FocusType.F_COST_CENTER).lt("999999")
-    .endBlock()
-    .or()
-    .block()
-    .item(FocusType.F_COST_CENTER).ge("X100")
-    .and()
-    .item(FocusType.F_COST_CENTER).le("X999")
-    .endBlock()
+        .block()
+            .item(FocusType.F_COST_CENTER).gt("100000")
+            .and()
+            .item(FocusType.F_COST_CENTER).lt("999999")
+        .endBlock()
+        .or()
+        .block()
+            .item(FocusType.F_COST_CENTER).ge("X100")
+            .and()
+            .item(FocusType.F_COST_CENTER).le("X999")
+        .endBlock()
     .endBlock()
     .build(); // returns ObjectQuery, for ObjectFilter use .buildFilter()
 ----
@@ -259,7 +259,7 @@ so even then the distinct option is useless and, when honoured, can potetinally 
 
 These filters don't actually test the objects, they either match none or all of them.
 They are rarely useful on their own.
-When empty filter is provided where filter is expected, typically `ALL` filter is implied.
+When empty filter is provided where filter is expected, typically `all` filter is implied.
 
 [%autowidth]
 |===
@@ -361,7 +361,7 @@ See the section after this table.
 | Ref filter
 | reference
 | -
-| single or multivalued (since 3.6), nullable
+| single or multivalued, nullable
 | -
 a| For null filter values: Accepts if the reference is empty.
 
@@ -382,10 +382,9 @@ To match any relations, use `PrismConstants.Q_ANY`.
 | -
 | Accepts if the object is direct child or any descendant (this is configurable) of the referenced org.
 Alternatively, passes if the object is the root of the tree.
-As of 3.7.1 it can check the relation as well (see a note below).
 
 Although technically not a Value filter, this filter can be seen as a special case of Ref filter
-using *parentOrgRef* as the item to be tested, and with some advanced options (`scope`, `isRoot`).
+using `parentOrgRef` as the item to be tested, and with some advanced options (`scope`, `isRoot`).
 
 The Org filter relation is supported only for the `directChildOf` and `childOf` queries.
 It is silently ignored for `parentOf` queries.
@@ -406,7 +405,7 @@ a| Accepts if object OID (or ID for container values) is among filter values.
 Question is if we should treat querying by ID/OID in the same way as querying by property, i.e. via Equal filter.
 ID/OID would be treated as a special kind of property.
 This would eliminate the need for InOid filter, but it might require deeper changes (e.g. there is no itemDefinition for ID/OID, etc).
-So, at least for midPoint 3.4, querying by ID/OID is done via InOid filter, not Equal filter.
+So, querying by ID/OID is done via InOid filter, not Equal filter.
 
 | Full-text filter
 | applicable to object as a whole
@@ -429,6 +428,172 @@ If you need to check for any relation, you have to provide a value of q:any ther
 
 * For Org filter, null relation means any relation.
 Of course, q:any can be used as well, and is recommended for clarity.
+====
+
+=== Org filter
+
+// TODO enhance with multi-source examples
+
+[NOTE]
+Java Query API is used in this section for brevity.
+
+First we reiterate the information from above:
+
+* Org filter is used for the whole object.
+Query can return organizations or other types assignable to organizations, depending on the filter
+specifics (see the table below).
+* Org filter works only for repository queries.
+* With `is(Direct)ChildOf` filters it is possible to filter on `relation` value as well.
+If relation is not stated, it matches any relation (this is different from normal ref filters).
+* Parameter of the `is(Direct)ChildOf` and `isParentOf` is an OID of another organization.
+With `isParentOf` it's not possible to search for organizations above, let's say, a user.
+
+[%autowidth]
+|===
+| Org filter | Possible `queryFor` type | Parameter | Notes
+
+| `isRoot`
+| `OrgType` only, not defined on non-org query
+| none
+| Matches orgs without any parent organization.
+Does not take any parameter.
+
+| `isChildOf`
+| `OrgType` or any type assignable to organization
+| `OrgType` specified by OID or as `PrismReferenceValue`
+| Matches any object that is directly or indirectly under the organization specified in the parameter.
+If `relation` is specified (`isChildOf` with `PrismReferenceValue` parameter must be used for this)
+it filters the objects with their parent-org reference having the specified relation (the reference
+closest to the returned object, see picture below for example).
+
+Query does not return object used as a parameter (object is not considered a child of itself).
+
+| `isDirectChildOf`
+| `OrgType` or any type assignable to organization
+| `OrgType` specified by OID or as `PrismReferenceValue`
+| Matches any object that is directly under the organization.
+Technically, this means that the returned object must have a parent-org reference with the target
+pointing to the organization specified in the parameter of the filter.
+Just as in `isChildOf`, optional `relation` can be specified, here the semantics is obvious as there
+is only a single ref leading from possibly returned object to the org specified in the parameter.
+
+Query does not return object used as a parameter (an org is not considered a child of itself).
+
+| `isParentOf`
+| `OrgType` only, not defined on non-org query
+| `OrgType` specified by OID or as `PrismReferenceValue`
+| Matches any organization that is direct or indirect parent (ancestor) of the organization
+specified in the parameter.
+It is not possible to filter by `relation`, it is ignored if specified.
+
+Query does not return object used as a parameter (an org is not considered a parent of itself).
+
+|===
+
+Few examples of matching and not-matching filters are shown in the following picture.
+Note, that symbolic names are used as parameters instead of the actual OIDs of the objects.
+Also, relations are not covered by this example, see the next section for a thorough treatment.
+
+image::org-filters.png[]
+
+Assuming a query for `OrgType` the following filter matches only `ORG 1`:
+
+[source,xml]
+----
+<org>
+    <isRoot>true</isRoot>
+</org>
+----
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(OrgType.class).isRoot().buildFilter();
+----
+
+Assuming a query for `OrgType` the following filter matches all the descendant organizations
+(direct and indirect) of the one defined by `oid` in the `orgRef` element:
+
+[source,xml]
+----
+<org>
+    <orgRef>
+        <oid>12345678-1234-1234-1234-0123456789abcd</oid>
+    </orgRef>
+    <scope>SUBTREE</scope> <!-- this is the default -->
+</org>
+----
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(OrgType.class)
+    .isChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
+----
+
+Similar to the previous example, but only direct children match this filter:
+
+[source,xml]
+----
+<org>
+    <orgRef>
+        <oid>12345678-1234-1234-1234-0123456789abcd</oid>
+    </orgRef>
+    <scope>ONE_LEVEL</scope>
+</org>
+----
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(OrgType.class)
+    .isDirectChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
+----
+
+==== Relation matching examples
+
+Examples above do not consider relations of the references pointing to the organizations.
+It is possible to specify the desired relation of the `parentOrgRef` reference.
+
+Let's consider the following filter now:
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(ObjectType.class)
+    .isChildOf(prismContext.itemFactory().createReferenceValue(oidOrg1, relationX))
+    .buildFilter();
+----
+
+Let's use this simple organization structure where red arrows designate parent-org references with *X* relation:
+
+image::org-filters-relation.png[]
+
+Query with this filter returns objects with red border because the parent-org references they
+own have relation *X* (these would appear in object's serialized form as `parentOrgRef` elements).
+Other objects have references with different relations and are not returned.
+If `isChildOf(oidOrg1)` was used instead without specifying the relation, query would return all
+objects under *ORG 1*.
+
+Now let's change the object type for the query to `UserType`:
+
+[source,java]
+----
+ObjectFilter filter = prismContext.queryFor(UserType.class)
+    .isChildOf(prismContext.itemFactory().createReferenceValue(oidOrg1, relationX))
+    .buildFilter();
+----
+
+The query returns *User 1-1-1_E* and *User 1-1_B* because only these have the right relation
+in their immediate (owned) parent-org reference and are of the requested type.
+
+Similarly, only the orgs with red border would be returned if `OrgType` was used instead.
+
+[IMPORTANT]
+====
+Only the parent-org reference *owned by the potentially matching object* is consulted.
+This does not mean that only leaves of the tree are returned, as demonstrated by *ORG 1-1* being
+returned (because its parent-org ref has the specifiec *X* relation).
+
+Notice, that *User 1-1-1_D* also has parent-org ref with relation *X* _somewhere on the path_ to
+the *ORG 1* (parameter of the `isChildOf` filter), but this does not matter as the reference it
+ownes (the one pointing to *Org 1-1-1*) has different relation.
 ====
 
 === Full-text filter
@@ -480,7 +645,7 @@ For some complex filters the nested filter is optional.
 
 There are the following complex filters:
 
-* Logical filters: `AND`, `OR`, `NOT`
+* Logical filters: `and`, `or`, `not`
 * Type filter
 * Exists filter
 * Ref filter with target filter
@@ -548,6 +713,7 @@ This one could be interpreted in two ways:
 
 . There should be assignments $a1, $a2 (potentially being the same) such that $a1/tenantRef = oid1 and $a2/orgRef = oid2.
 
+// TODO review and cleanup for 4.0 and later only
 Up to and including midPoint 3.3.1, the query is interpreted in the first way (one assignment satisfying both conditions).
 
 But the interpretation should be following:
@@ -595,30 +761,156 @@ This feature is a part of midPoint 3.4 and above.
 
 [WARNING]
 ====
-While `EXISTS` works as expected with complex combination of conditions for the common multi-value container
-(like assignment in the example above), `NOT EXIST` behavior works properly only with the new Native repository.
-Native repository (available since midPoint 4.4) translates `EXISTS` filter to SQL `EXISTS` and `NOT`
+While `exists` works as expected with complex combination of conditions for the common multi-value container
+(like assignment in the example above), `not` with `exists` behavior works properly only with the new Native repository.
+Native repository (available since midPoint 4.4) translates `exists` filter to SQL `EXISTS` and `NOT`
 is applied to the SQL `EXISTS` resulting in `NOT EXISTS` query, which works as expected.
 
-`EXISTS` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
+`exists` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
 conditions, but does not work with `NOT` as usual in SQL.
-`NOT EXISTS` is interpreted as "any of the entries does not match the condition inside".
+In the Generic repo, `not` with `exists` is interpreted as "any of the entries does not match the condition inside".
 See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 ====
 
 === Ref filter with target filter
 
-[IMPORTANT]
-Works only since midPoint 4.6.
+++++
+{% include since.html since="4.6" %}
+++++
 
-Since version 4.6, `REF` filter can optionally contain a nested *target filter* which is applied to the target of the reference.
+`Ref` filter can optionally contain a nested *target filter* which is applied to the target of the reference.
 When the `filter` element is present, it is applied as an additional test for each possible value.
+
 With fluent API it is also possible to construct a ref filter without any value, only with the nested target filter - this works fine in repository queries.
 // TODO remove the note, if/when fixed
 Currently, it is not possible to construct such a filter with XML/JSON/YAML or Axiom query language.
-As a workaround, it is possible to use `value` element with `type` attribute only - just specify the
+As a workaround, it is possible to use `value` element with `type` attribute only.
+Alternatively, `exists` with path of the ref followed by the dereference segment (`@`) can be used, e.g. `assignment/targetRef/@`.
 
-// TODO
+Ref filter with included target filter is especially important for multi-value references, because
+it truly enforces that all conditions are met on any of the references *and* their targets.
+For example, for single value reference we can say something like this:
+
+.Construct with `and` works well only for single value refs!
+[source,xml]
+----
+<filter>
+    <and>
+        <ref>
+            <path>someSingleValueRef</path>
+            <value type="UserType"/>
+        </ref>
+        <exists>
+            <path>someSingleValueRef/@</path>
+            <filter>
+                <!-- filter for the object that the reference points to -->
+            </filter>
+        </exists>
+    </and>
+</filter>
+----
+
+But the same filter would not work predicatably for the multi-value references.
+Although the `and` filter is used, it would be enough if one of the references was for `UserType`
+and another reference value pointed to an object (possibly of different type) that matches the `exists` filter.
+That is definitely not, what the user expects.
+
+[WARNING]
+*Multi-value refs are not supported for the old generic repository!*
+While the query seemingly works, it uses two different ``JOIN``s for the value conditions and target filter which may lead to surprising and incorrect results.
+
+==== Ref filter with single value and target filter
+
+To be able to apply both reference conditions (provided as `value` elements) and a `filter`
+for the target of the same reference value we can use the complex `ref` filter that includes
+target `filter` as part of the `ref` filter.
+For example, we can filter users that are members of roles with names starting with the specified string like this:
+
+[source,xml]
+----
+<filter>
+    <ref>
+        <path>roleMembershipRef</path>
+        <value type="RoleType"/>
+        <filter>
+            <substring>
+                <path>name</path>
+                <value>super</value>
+                <anchorStart>true</anchorStart>
+                <matching>origIgnoreCase</matching>
+            </substring>
+        </filter>
+    </ref>
+</filter>
+----
+
+[source,axiom]
+----
+roleMembershipRef matches (
+    targetType = RoleType
+    and
+    // @ represents ref target, target filter is inside (...)
+    @ matches (
+        name startsWith[origIgnoreCase] "super" ) )
+----
+
+[source,java]
+----
+f.ref(FocusType.F_ROLE_MEMBERSHIP_REF, RoleType.COMPLEX_TYPE)
+    .item(ObjectType.F_NAME).startsWith("super").matching("origIgnoreCase")
+----
+
+[source,yaml]
+----
+filter:
+  ref:
+    path: "roleMembershipRef"
+    value:
+      type: "RoleType"
+    filter:
+      substring:
+        path: "name"
+        value: "super"
+        anchorStart: "true"
+        matching: "origIgnoreCase"
+----
+
+[source,json]
+----
+"filter" : {
+  "ref" : {
+    "path" : "roleMembershipRef",
+    "value" : {
+      "type" : "RoleType"
+    },
+    "filter" : {
+      "substring" : {
+        "path" : "name",
+        "value" : "super",
+        "anchorStart" : "true",
+        "matching" : "origIgnoreCase"
+      }
+    }
+  }
+}
+----
+
+Note, that not mentioning the `relation` implies `c:default` relation.
+If the relation is not important, `relation="q:any"` has to be provided explicitly.
+
+Value can also specify OID of the target object, although the combination with target `filter` is questionable in this case.
+
+==== Ref filter with multiple values and target filter
+
+Just like for the `ref` filter without a target filter, multiple values can be provided.
+The semantics is the same, the `ref` filter accepts the object if the value of the reference
+matches any of the provided values (that is `IN` semantics).
+For multi-value references, the `ref` filter accepts, if any of the actual reference values
+match any of the provided values (that is `ANY IN` semantics).
+With the target filter added, the reference value (or any of the values of the multi-value reference)
+must match any of the provided values *and* the target object for the matching reference value must also match the target filter.
+
+// TODO some clear example? Describe two objects with roleMembershipRef, one matching, one narrowly not?
 
 === OwnedBy filter
 
@@ -653,7 +945,6 @@ Due to historical reasons they might even interpret some filters in a slightly d
 Let us summarize main differences here.
 Note that "ok" means "fully supported".
 "N/A" means "not applicable", i.e. not supported at all.
-The state is current as of midPoint 3.7.1.
 
 [%autowidth]
 |===
@@ -716,7 +1007,7 @@ For authoritative information about provisioning filter interpretation, see link
 
 == Filter examples
 
-// TODO how to create filters, move to
+// TODO merge with parts above, create sections for missing filters, keep one filter on a single place including examples
 
 Filters can be created using Fluent Java API or via XML (or equivalentYAML/JSON).
 
@@ -917,6 +1208,7 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ==== Ref filter
 
 "Canonical" form is the following:
+// TODO the whole or is canonical, or any of the ref shown is canonical? (probably the latter)
 
 [source,xml]
 ----
@@ -953,6 +1245,7 @@ ObjectFilter filter = prismContext.queryFor(ShadowType.class)
 
 Semantics of individual 'or'-conditions is:
 
+// TODO clarify relation = (empty), because it likely means default here
 . resourceRef should contain: target OID = 'oid1', relation = (empty), and the type of target object (stored in the resourceRef!) can be any
 
 . resourceRef should contain: target OID = 'oid1', relation = (empty), type of target (stored in the resourceRef!) must be 'ResourceType'
@@ -983,58 +1276,6 @@ XML can be written also in alternative ways:
         </value>
     </ref>
 </or>
-----
-
-==== Org filter
-
-.XML
-[source,xml]
-----
-<org>
-    <isRoot>true</isRoot>
-</org>
-----
-
-.XML
-[source,xml]
-----
-<org>
-    <orgRef>
-        <oid>12345678-1234-1234-1234-0123456789abcd</oid>
-    </orgRef>
-    <scope>SUBTREE</scope> <!-- this is the default -->
-</org>
-----
-
-.XML
-[source,xml]
-----
-<org>
-    <orgRef>
-        <oid>12345678-1234-1234-1234-0123456789abcd</oid>
-    </orgRef>
-    <scope>ONE_LEVEL</scope>
-</org>
-----
-
-.Fluent Java API
-[source,java]
-----
-ObjectFilter filter = prismContext.queryFor(OrgType.class).isRoot().buildFilter();
-----
-
-.Fluent Java API
-[source,java]
-----
-ObjectFilter filter = prismContext.queryFor(OrgType.class)
-    .isChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
-----
-
-.Fluent Java API
-[source,java]
-----
-ObjectFilter filter = prismContext.queryFor(OrgType.class)
-    .isDirectChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
 ----
 
 ==== InOid
@@ -1401,113 +1642,5 @@ Using example above will return first 10 records ordered by `name` where `admini
 
 [NOTE]
 Ordering objects by items inside multi-value container have unclear semantics and is not supported.
-
-== Org filter
-
-[NOTE]
-Java Query API is used in this section for brevity.
-
-First we reiterate the information from above:
-
-* Org filter is used for the whole object.
-Query can return organizations or other types assignable to organizations, depending on the filter
-specifics (see the table below).
-* Org filter works only for repository queries.
-* With `is(Direct)ChildOf` filters it is possible to filter on `relation` value as well.
-If relation is not stated, it matches any relation (this is different from normal ref filters).
-* Parameter of the `is(Direct)ChildOf` and `isParentOf` is an OID of another organization.
-With `isParentOf` it's not possible to search for organizations above, let's say, a user.
-
-[%autowidth]
-|===
-| Org filter | Possible `queryFor` type | Parameter | Notes
-
-| `isRoot`
-| `OrgType` only, not defined on non-org query
-| none
-| Matches orgs without any parent organization.
-Does not take any parameter.
-
-| `isChildOf`
-| `OrgType` or any type assignable to organization
-| `OrgType` specified by OID or as `PrismReferenceValue`
-| Matches any object that is directly or indirectly under the organization specified in the parameter.
-If `relation` is specified (`isChildOf` with `PrismReferenceValue` parameter must be used for this)
-it filters the objects with their parent-org reference having the specified relation (the reference
-closest to the returned object, see picture below for example).
-
-Query does not return object used as a parameter (object is not considered a child of itself).
-
-| `isDirectChildOf`
-| `OrgType` or any type assignable to organization
-| `OrgType` specified by OID or as `PrismReferenceValue`
-| Matches any object that is directly under the organization.
-Technically, this means that the returned object must have a parent-org reference with the target
-pointing to the organization specified in the parameter of the filter.
-Just as in `isChildOf`, optional `relation` can be specified, here the semantics is obvious as there
-is only a single ref leading from possibly returned object to the org specified in the parameter.
-
-Query does not return object used as a parameter (an org is not considered a child of itself).
-
-| `isParentOf`
-| `OrgType` only, not defined on non-org query
-| `OrgType` specified by OID or as `PrismReferenceValue`
-| Matches any organization that is direct or indirect parent (ancestor) of the organization
-specified in the parameter.
-It is not possible to filter by `relation`, it is ignored if specified.
-
-Query does not return object used as a parameter (an org is not considered a parent of itself).
-
-|===
-
-Few examples of matching and not-matching filters are shown in the following picture:
-
-image::org-filters.png[]
-
-=== Relation matching examples
-
-Let's consider the following filter now:
-
-[source,java]
-----
-ObjectFilter filter = prismContext.queryFor(ObjectType.class)
-    .isChildOf(prismContext.itemFactory().createReferenceValue(oidOrg1, relationX))
-    .buildFilter();
-----
-
-Let's use this simple organization structure where red arrows designate parent-org references with *X* relation:
-
-image::org-filters-relation.png[]
-
-Query with this filter returns objects with red border because the parent-org references they
-own have relation *X* (these would appear in object's serialized form as `parentOrgRef` elements).
-Other objects have references with different relations and are not returned.
-If `isChildOf(oidOrg1)` was used instead without specifying the relation, query would return all
-objects under *ORG 1*.
-
-Now let's change the object type for the query to `UserType`:
-
-[source,java]
-----
-ObjectFilter filter = prismContext.queryFor(UserType.class)
-    .isChildOf(prismContext.itemFactory().createReferenceValue(oidOrg1, relationX))
-    .buildFilter();
-----
-
-The query returns *User 1-1-1_E* and *User 1-1_B* because only these have the right relation
-in their immediate (owned) parent-org reference and are of the requested type.
-
-Similarly, only the orgs with red border would be returned if `OrgType` was used instead.
-
-[IMPORTANT]
-====
-Only the parent-org reference *owned by the potentially matching object* is consulted.
-This does not mean that only leaves of the tree are returned, as demonstrated by *ORG 1-1* being
-returned (because its parent-org ref has the specifiec *X* relation).
-
-Notice, that *User 1-1-1_D* also has parent-org ref with relation *X* _somewhere on the path_ to
-the *ORG 1* (parameter of the `isChildOf` filter), but this does not matter as the reference it
-ownes (the one pointing to *Org 1-1-1*) has different relation.
-====
 
 // TODO mention extensions, xref:/midpoint/reference/schema/custom-schema-extension/
