@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.impl.manual;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -115,6 +111,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final String ACCOUNT_WILL_DESCRIPTION_MANUAL = "manual";
     protected static final String ACCOUNT_WILL_PASSWORD_OLD = "3lizab3th";
     protected static final String ACCOUNT_WILL_PASSWORD_NEW = "ELIZAbeth";
+
+    protected static final File ACCOUNT_BLACK_FILE = new File(TEST_DIR, "account-black.xml");
+    protected static final String ACCOUNT_BLACK_OID = "c9de3f3d-125f-452f-b321-b90cc7457246";
 
     protected static final String ATTR_USERNAME = "username";
     protected static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
@@ -2457,6 +2456,71 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowPassword(shadowProvisioningFuture);
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+    }
+
+    /**
+     * Tests renaming of account with pending changes. MID-7985, MID-7924
+     */
+    @Test
+    public void test600RenameAccount() throws Exception {
+        final String TEST_NAME = "test600RenameAccount";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // GIVEN: black account is created
+        PrismObject<ShadowType> account = parseObject(ACCOUNT_BLACK_FILE);
+        account.checkConsistence();
+
+        display("Creating account", account);
+        OperationResult creationResult = result.createSubresult("create");
+        provisioningService.addObject(account, null, null, task, creationResult);
+        creationResult.computeStatus();
+
+        String creationCaseOid = assertInProgress(creationResult);
+        assertCaseState(creationCaseOid, SchemaConstants.CASE_STATE_OPEN);
+
+        // AND: black account is renamed
+        OperationResult modificationResult = result.createSubresult("modify");
+        provisioningService.modifyObject(
+                ShadowType.class,
+                ACCOUNT_BLACK_OID,
+                deltaFor(ShadowType.class)
+                        .item(
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_USERNAME),
+                                getAttributeDefinition(resource, ATTR_USERNAME_QNAME))
+                        .replace("white")
+                        .asItemDeltas(),
+                null,
+                null,
+                task,
+                modificationResult);
+        modificationResult.computeStatus();
+
+        String modificationCaseOid = assertInProgress(modificationResult);
+        assertCaseState(modificationCaseOid, SchemaConstants.CASE_STATE_OPEN);
+
+        // AND: manual cases are closed
+        closeCase(creationCaseOid);
+        closeCase(modificationCaseOid);
+
+        // WHEN: shadow is refreshed
+        displayWhen();
+        OperationResult refreshResult = result.createSubresult("refresh");
+        provisioningService.refreshShadow(
+                getShadowRepo(ACCOUNT_BLACK_OID),
+                null,
+                task,
+                refreshResult);
+        refreshResult.computeStatus();
+
+        // THEN: the operation should be successful
+        displayThen();
+        assertSuccess(refreshResult);
+
+        // AND: the shadow is renamed
+        assertRepoShadow(ACCOUNT_BLACK_OID)
+                .assertName("white");
     }
 
     // TODO: create, close case, then update backing store.
