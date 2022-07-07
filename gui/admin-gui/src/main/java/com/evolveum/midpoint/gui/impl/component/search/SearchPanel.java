@@ -180,13 +180,15 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             private static final long serialVersionUID = 1L;
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
-                searchPerformed(target);
+                SearchPanel.this.searchPerformed(target);
             }
+
 
             @Override
             protected void menuItemSelected(AjaxRequestTarget target, SearchBoxModeType searchBoxModeType) {
                 searchBoxTypeUpdated(target, searchBoxModeType);
             }
+
 
             @Override
             public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {
