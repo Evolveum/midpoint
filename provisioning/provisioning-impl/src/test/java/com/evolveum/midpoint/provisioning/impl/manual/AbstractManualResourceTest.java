@@ -2500,7 +2500,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 ACCOUNT_BLACK_OID,
                 deltaFor(ShadowType.class)
                         .item(
-                                getAttributePath(ATTR_USERNAME),
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_USERNAME),
                                 getAttributeDefinition(resource, ATTR_USERNAME_QNAME))
                         .replace("white")
                         .asItemDeltas(),
