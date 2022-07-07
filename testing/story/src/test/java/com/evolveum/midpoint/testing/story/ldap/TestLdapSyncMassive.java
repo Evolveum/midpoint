@@ -6,14 +6,19 @@
  */
 package com.evolveum.midpoint.testing.story.ldap;
 
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -22,30 +27,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.ParallelTestThread;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.io.File;
+import java.util.Objects;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Testing sync, with lot of sync cycles. The goal is to test thread pooling and memory
@@ -60,7 +45,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
     public static final File TEST_DIR = new File(LDAP_TEST_DIR, "sync-massive");
 
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final File RESOURCE_OPENDJ_FILE_BAD = new File(TEST_DIR, "resource-opendj-bad.xml");
 
@@ -72,8 +56,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
     private static final String ACCOUNT_WILL_LDAP_CN = "Will Turner";
 
     private static final File ACCOUNT_KRAKEN_LDIF_FILE = new File(TEST_DIR, "kraken.ldif");
-    private static final String ACCOUNT_KRAKEN_LDAP_UID = "kraken";
-    private static final String ACCOUNT_KRAKEN_LDAP_CN = "Kraken Krakenoff";
 
     private static final int THREAD_COUNT_TOLERANCE = 10;
     private static final int THREAD_COUNT_TOLERANCE_BIG = 20;
@@ -92,8 +74,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
      * 3. instance is for worker thread of LiveSync task when it's starting (it does so each second)
      */
     private static final int INSTANCES_MAX = 3;
-
-    private PrismObject<ResourceType> resourceOpenDj;
 
     private Integer lastSyncToken;
     private int threadCountBaseline;
@@ -126,7 +106,9 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj =
+                importAndGetObjectFromFile(
+                        ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
     }
 
@@ -529,7 +511,9 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     private void assertSyncTokenIncrement(int expectedIncrement) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<TaskType> syncTask = getTask(TASK_LIVE_SYNC_OID);
-        Integer currentSyncToken = ObjectTypeUtil.getExtensionItemRealValue(syncTask, SchemaConstants.SYNC_TOKEN);
+        int currentSyncToken =
+                Objects.requireNonNull(
+                        ObjectTypeUtil.getExtensionItemRealValue(syncTask, SchemaConstants.SYNC_TOKEN));
         display("Sync token, last="+lastSyncToken+", current="+currentSyncToken+", expectedIncrement="+expectedIncrement);
         if (currentSyncToken != lastSyncToken + expectedIncrement) {
             fail("Expected sync token increment "+expectedIncrement+", but it was "+(currentSyncToken-lastSyncToken));
