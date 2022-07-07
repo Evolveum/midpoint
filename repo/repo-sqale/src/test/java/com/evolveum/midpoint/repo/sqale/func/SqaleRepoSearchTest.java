@@ -1851,10 +1851,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.not().block()
                         // both AND parts must match user1, this ine is norm, so -- is ignored
                         .item(UserType.F_EXTENSION, new QName("poly")).ge("pOlY--vAlUe")
-                        .matching(new QName(PolyStringItemFilterProcessor.NORM_IGNORE_CASE))
+                        .matching(PolyStringItemFilterProcessor.NORM_IGNORE_CASE)
                         .and()
                         .item(UserType.F_EXTENSION, new QName("poly")).le("pOlY-vAlUe")
-                        .matching(new QName(PolyStringItemFilterProcessor.ORIG_IGNORE_CASE))
+                        .matching(PolyStringItemFilterProcessor.ORIG_IGNORE_CASE)
                         .endBlock(),
                 creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
