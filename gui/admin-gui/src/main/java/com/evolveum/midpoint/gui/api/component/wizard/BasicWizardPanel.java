@@ -88,11 +88,15 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(next);
         add(next);
 
-        Label nextLabel = new Label(ID_NEXT_LABEL, () -> {
+        Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
+        next.add(nextLabel);
+    }
+
+    protected IModel<String> getNextLabelModel() {
+        return () -> {
             WizardStep step = getWizard().getNextPanel();
             return step != null ? step.getTitle().getObject() : null;
-        });
-        next.add(nextLabel);
+        };
     }
 
     protected void updateFeedbackPanels(AjaxRequestTarget target) {

@@ -113,7 +113,7 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
 
     @Override
     protected int internalSize() {
-        List<T> list = getModel().getObject();
+        List<T> list = getListFromModel();
         if (list == null) {
             return 0;
         }

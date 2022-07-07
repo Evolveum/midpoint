@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -21,6 +20,8 @@ import java.util.List;
  * @author lskublik
  */
 public class ObjectClassDataProvider extends SelectableListDataProvider<SelectableBean<ObjectClassWrapper>, ObjectClassWrapper> {
+
+    public final static String F_FILTER = "filter";
 
     private String filter;
 
@@ -48,5 +49,10 @@ public class ObjectClassDataProvider extends SelectableListDataProvider<Selectab
 
     public String getFilter() {
         return filter;
+    }
+
+    @Override
+    public long size() {
+        return super.size();
     }
 }

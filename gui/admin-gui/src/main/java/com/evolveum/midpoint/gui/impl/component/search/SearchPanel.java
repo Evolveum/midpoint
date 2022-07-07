@@ -881,7 +881,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             target.add(
                     SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP)),
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
+                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
         }
 
         private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
@@ -896,7 +896,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             target.add(
                     SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_CHECK)),
                     SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_ERROR_GROUP)),
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
+                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
         }
 
     }
