@@ -183,10 +183,12 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 SearchPanel.this.searchPerformed(target);
             }
 
+
             @Override
             protected void menuItemSelected(AjaxRequestTarget target, SearchBoxModeType searchBoxModeType) {
                 searchBoxTypeUpdated(target, searchBoxModeType);
             }
+
 
             @Override
             public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {

@@ -45,16 +45,12 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 
-    private static final File RESOURCE_OPENDJ_FILE_BAD = new File(TEST_DIR, "resource-opendj-bad.xml");
-
     private static final File TASK_LIVE_SYNC_FILE = new File(TEST_DIR, "task-live-sync.xml");
     private static final String TASK_LIVE_SYNC_OID = "eba4a816-2a05-11e9-9123-03a2334b9b4c";
 
     private static final File ACCOUNT_WILL_LDIF_FILE = new File(TEST_DIR, "will.ldif");
     private static final String ACCOUNT_WILL_LDAP_UID = "will";
     private static final String ACCOUNT_WILL_LDAP_CN = "Will Turner";
-
-    private static final File ACCOUNT_KRAKEN_LDIF_FILE = new File(TEST_DIR, "kraken.ldif");
 
     private static final int THREAD_COUNT_TOLERANCE = 10;
     private static final int THREAD_COUNT_TOLERANCE_BIG = 20;
@@ -277,7 +273,9 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         // When system is put under load, this means more threads. But not huge number of threads.
         assertThreadCount(THREAD_COUNT_TOLERANCE_BIG);
-        assertLdapConnectorInstances(1, NUMBER_OF_TEST_THREADS);
+
+        // One connector instance is for livesync task
+        assertLdapConnectorInstances(1, NUMBER_OF_TEST_THREADS + 1);
     }
 
     private void reconcile(PrismObject<UserType> user)
@@ -292,7 +290,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         // We do not bother to check result. Even though the
         // timeout is small, the operation may succeed occasionally.
-        // This annoying success cout cause the tests to fail.
+        // This annoying success count cause the tests to fail.
     }
 
     private void syncAddAttemptGood(String prefix, int index) throws Exception {
@@ -308,20 +306,6 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         assertUserAfterByUsername(uid)
                 .assertFullName(cn);
 
-        assertThreadCount();
-    }
-
-    private void syncAddAttemptBad(String prefix, int index) throws Exception {
-
-        String uid = String.format("%s%05d", prefix, index);
-        String cn = prefix + " " + index;
-        addAttemptEntry(uid, cn, Integer.toString(index));
-
-        OperationResult taskResult = waitForTaskNextRun(TASK_LIVE_SYNC_OID);
-
-        assertFailure(taskResult);
-        assertSyncTokenIncrement(0);
-        assertLdapConnectorInstances(1);
         assertThreadCount();
     }
 
