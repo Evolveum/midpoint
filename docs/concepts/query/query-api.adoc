@@ -117,6 +117,111 @@ These are typically written in the same format as the object, for instance XML.
 * Finally, filters and queries can be written using fluent Java-based API, which is useful not only for
 hard-core customizations (e.g. with xref:/midpoint/reference/deployment/maven-overlay-project.adoc[midPoint Overlay] mechanism) but also for xref:/midpoint/reference/expressions/expressions/script/[script expressions] written typically in Groovy language.
 
+Here is an example of the same filter in various representations:
+
+[source,xml]
+----
+<filter>
+    <or>
+        <and>
+            <greater>
+                <path>costCenter</path>
+                <value>100000</value>
+            </greater>
+            <less>
+                <path>costCenter</path>
+                <value>999999</value>
+            </less>
+        </and>
+        <and>
+            <greaterOrEqual>
+                <path>costCenter</path>
+                <value>X100</value>
+            </greaterOrEqual>
+            <lessOrEqual>
+                <path>costCenter</path>
+                <value>X999</value>
+            </lessOrEqual>
+        </and>
+    </or>
+</filter>
+----
+
+[source,axiom]
+----
+( costCenter > "100000" and costCenter < "999999" )
+or
+( costCenter >= "X100" and costCenter <= "X999" )
+----
+
+[source,java]
+----
+prismContext.queryFor(UserType.class) // fluent API starts with query
+    .block()
+    .block()
+    .item(FocusType.F_COST_CENTER).gt("100000")
+    .and()
+    .item(FocusType.F_COST_CENTER).lt("999999")
+    .endBlock()
+    .or()
+    .block()
+    .item(FocusType.F_COST_CENTER).ge("X100")
+    .and()
+    .item(FocusType.F_COST_CENTER).le("X999")
+    .endBlock()
+    .endBlock()
+    .build(); // returns ObjectQuery, for ObjectFilter use .buildFilter()
+----
+
+[source,yaml]
+----
+---
+filter:
+  or:
+    and:
+    - greater:
+        path: "costCenter"
+        value: "100000"
+      less:
+        path: "costCenter"
+        value: "999999"
+    - greaterOrEqual:
+        path: "costCenter"
+        value: "X100"
+      lessOrEqual:
+        path: "costCenter"
+        value: "X999"
+----
+
+[source,json]
+----
+"filter" : {
+  "or" : {
+    "and" : [ {
+      "greater" : {
+        "path" : "costCenter",
+        "value" : "100000"
+      },
+      "less" : {
+        "path" : "costCenter",
+        "value" : "999999"
+      }
+    }, {
+      "greaterOrEqual" : {
+        "path" : "costCenter",
+        "value" : "X100"
+      },
+      "lessOrEqual" : {
+        "path" : "costCenter",
+        "value" : "X999"
+      }
+    } ]
+  }
+}
+----
+
+Please, note, that in various
+
 == Query playground
 
 To experiment with the query language, there is hardly a better place than the actual running midPoint.
@@ -510,7 +615,7 @@ Since version 4.6, `REF` filter can optionally contain a nested *target filter* 
 When the `filter` element is present, it is applied as an additional test for each possible value.
 With fluent API it is also possible to construct a ref filter without any value, only with the nested target filter - this works fine in repository queries.
 // TODO remove the note, if/when fixed
-Currently, it is not possible to construct such a filter with XML/JSON/YAML or Axiom QL.
+Currently, it is not possible to construct such a filter with XML/JSON/YAML or Axiom query language.
 As a workaround, it is possible to use `value` element with `type` attribute only - just specify the
 
 // TODO
@@ -622,19 +727,11 @@ XML versions are in the files named `test*.xml` in link:https://github.com/Evolv
 
 ==== AllFilter
 
-.XML
 [source,xml]
 ----
 <all/>
 ----
 
-.Traditional Java API
-[source,java]
-----
-ObjectFilter filter = AllFilter.createAll();
-----
-
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -648,7 +745,6 @@ None and *Undefined* filters are created similarly.
 
 Just for completeness, the whole query looks like this:
 
-.XML
 [source,xml]
 ----
 <query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -660,7 +756,6 @@ Just for completeness, the whole query looks like this:
 
 The corresponding Fluent Java API call is:
 
-.Fluent Java API
 [source,java]
 ----
 ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -674,7 +769,6 @@ To be concise, we'll show only filters (no wrapping queries) in the following ex
 
 ==== EqualFilter
 
-.XML
 [source,xml]
 ----
 <equal>
@@ -684,9 +778,6 @@ To be concise, we'll show only filters (no wrapping queries) in the following ex
 </equal>
 ----
 
-Fluent Java API:
-
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -696,7 +787,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 Another example (we'll show only XML and fluent Java API from this point on):
 
-.XML
 [source,xml]
 ----
 <equal>
@@ -706,7 +796,6 @@ Another example (we'll show only XML and fluent Java API from this point on):
 </equal>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -716,7 +805,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 Comparing item to another item:
 
-.XML
 [source,xml]
 ----
 <equal>
@@ -725,7 +813,6 @@ Comparing item to another item:
 </equal>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -735,7 +822,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 ==== Comparisons
 
-.XML
 [source,xml]
 ----
 <greater>
@@ -744,7 +830,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 </greater>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -754,7 +839,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 Or a more complex example:
 
-.XML
 [source,xml]
 ----
 <or>
@@ -781,7 +865,6 @@ Or a more complex example:
 </or>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -795,7 +878,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 ==== Substring filter
 
-.XML
 [source,xml]
 ----
 <or>
@@ -822,7 +904,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 </or>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -837,7 +918,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 "Canonical" form is the following:
 
-.XML
 [source,xml]
 ----
 <or xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -858,8 +938,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
     </ref>
 </or>
 ----
-
-In Java:
 
 [source,java]
 ----
@@ -961,7 +1039,6 @@ ObjectFilter filter = prismContext.queryFor(OrgType.class)
 
 ==== InOid
 
-.XML
 [source,xml]
 ----
 <inOid>
@@ -971,7 +1048,6 @@ ObjectFilter filter = prismContext.queryFor(OrgType.class)
 </inOid>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -983,7 +1059,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 This one selects container values with ID 1, 2 or 3, having owner (object) with OID of "00000000-1111-2222-3333-777777777777".
 
-.XML
 [source,xml]
 ----
 <and>
@@ -999,7 +1074,6 @@ This one selects container values with ID 1, 2 or 3, having owner (object) with 
 </and>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -1012,7 +1086,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 An artificial example:
 
-.XML
 [source,xml]
 ----
 <and>
@@ -1031,7 +1104,6 @@ An artificial example:
 </and>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(UserType.class)
@@ -1052,7 +1124,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 === Type filter
 
-.XML
 [source,xml]
 ----
 <type>
@@ -1066,7 +1137,6 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 </type>
 ----
 
-.Fluent Java API
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(ObjectType.class)
@@ -1087,9 +1157,8 @@ So we are looking for a certification case, that has a decision D for which:
 
 . D's response is either null or 'noResponse'
 
-It looks like this in XML:
+It looks like this:
 
-.XML
 [source,xml]
 ----
 <exists>
@@ -1117,8 +1186,6 @@ It looks like this in XML:
     </filter>
 </exists>
 ----
-
-And in Java:
 
 [source,java]
 ----
@@ -1221,8 +1288,6 @@ An active certification case is one that is part of a campaign that is in a revi
 </and>
 ----
 
-The `..` symbol denotes "owning campaign".
-
 [source,java]
 ----
 ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
@@ -1232,7 +1297,7 @@ ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
         .buildFilter();
 ----
 
-`PrismConstants.T_PARENT` is the QName for `..` path segment.
+The `..` symbol denotes "owning campaign", `T_PARENT` (defined in `PrismConstants`) has the same meaning in Java fluent API.
 
 Following example uses `@` symbol to dereference `linkRef` to `ShadowType` in user object.
 This allows e.g. filtering users that have projection on specified resource.
