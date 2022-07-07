@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.story.ldap;
 
 
@@ -53,11 +52,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * management related to sync (e.g. MID-5099)
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public  class TestLdapSyncMassive extends AbstractLdapTest {
+public class TestLdapSyncMassive extends AbstractLdapTest {
 
     public static final File TEST_DIR = new File(LDAP_TEST_DIR, "sync-massive");
 
@@ -87,7 +85,16 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     private static final Integer TEST_THREADS_RANDOM_START_RANGE = 10;
     private static final long PARALLEL_TEST_TIMEOUT = 60000L;
 
+    /**
+     * Hypothesis why we experience three (not only two) connector instances e.g. for test150AddGoblins:
+     * 1. instance is for main thread when creating goblins
+     * 2. instance is for some internal connector thread for live sync query (this thread seems to run asynchronously even after sync() returns)
+     * 3. instance is for worker thread of LiveSync task when it's starting (it does so each second)
+     */
+    private static final int INSTANCES_MAX = 3;
+
     private PrismObject<ResourceType> resourceOpenDj;
+
     private Integer lastSyncToken;
     private int threadCountBaseline;
 
@@ -110,7 +117,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -226,9 +233,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         displayThen(TEST_NAME);
 
         dumpLdap();
-
     }
-
 
     /**
      * Add "goblin" users, each with an LDAP account.
@@ -261,23 +266,21 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         displayThen(TEST_NAME);
 
         dumpLdap();
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertSyncTokenIncrement(NUMBER_OF_GOBLINS);
         assertThreadCount();
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertSyncTokenIncrement(0);
         assertThreadCount();
 
     }
-
-
 
     private String goblinUsername(int i) {
         return String.format("goblin%05d", i);
@@ -435,6 +438,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         int segmentSize = users.size() / NUMBER_OF_TEST_THREADS;
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (threadIndex) -> {
+                    login(userAdministrator.clone());
                     for (int i = segmentSize * threadIndex; i < segmentSize * threadIndex + segmentSize; i++) {
                         PrismObject<UserType> user = users.get(i);
                         reconcile(TEST_NAME, user);
@@ -448,7 +452,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 
         // When system is put under load, this means more threads. But not huge number of threads.
         assertThreadCount(THREAD_COUNT_TOLERANCE_BIG);
-        assertLdapConnectorInstances(1,NUMBER_OF_TEST_THREADS);
+        assertLdapConnectorInstances(1, NUMBER_OF_TEST_THREADS);
     }
 
     private void reconcile(final String TEST_NAME, PrismObject<UserType> user) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
@@ -459,7 +463,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 
         // We do not bother to check result. Even though the
         // timeout is small, the operation may succeed occasionally.
-        // This annoying success cout cause the tests to fail.
+        // This annoying success count cause the tests to fail.
     }
 
     private void syncAddAttemptGood(String prefix, int index) throws Exception {
@@ -494,16 +498,16 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 
     private void addAttemptEntry(String uid, String cn, String sn) throws Exception {
         Entry entry = openDJController.addEntry(
-                "dn: uid="+uid+",ou=People,dc=example,dc=com\n" +
-                "uid: "+uid+"\n" +
-                "cn: "+cn+"\n" +
-                "sn: "+sn+"\n" +
-                "givenname: "+uid+"\n" +
-                "objectclass: top\n" +
-                "objectclass: person\n" +
-                "objectclass: organizationalPerson\n" +
-                "objectclass: inetOrgPerson"
-                );
+                "dn: uid=" + uid + ",ou=People,dc=example,dc=com\n" +
+                        "uid: " + uid + "\n" +
+                        "cn: " + cn + "\n" +
+                        "sn: " + sn + "\n" +
+                        "givenname: " + uid + "\n" +
+                        "objectclass: top\n" +
+                        "objectclass: person\n" +
+                        "objectclass: organizationalPerson\n" +
+                        "objectclass: inetOrgPerson"
+        );
         display("Added generated entry", entry);
     }
 
@@ -514,18 +518,13 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     private void assertThreadCount(int tolerance) {
         int currentThreadCount = Thread.activeCount();
         if (!isWithinTolerance(threadCountBaseline, currentThreadCount, tolerance)) {
-            fail("Thread count out of tolerance: "+currentThreadCount+" ("+(currentThreadCount-threadCountBaseline)+")");
+            fail("Thread count out of tolerance: " + currentThreadCount + " (" + (currentThreadCount - threadCountBaseline) + ")");
         }
     }
 
     private boolean isWithinTolerance(int baseline, int currentCount, int tolerance) {
-        if (currentCount > baseline + tolerance) {
-            return false;
-        }
-        if (currentCount < baseline - tolerance) {
-            return false;
-        }
-        return true;
+        return currentCount <= baseline + tolerance
+                && currentCount >= baseline - tolerance;
     }
 
     private void assertSyncTokenIncrement(int expectedIncrement) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -542,6 +541,4 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     protected void dumpLdap() throws DirectoryException {
         display("LDAP server tree", openDJController.dumpTree());
     }
-
-
 }
