@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecifi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -78,7 +79,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
-        SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<C>(type);
+        SearchBoxConfigurationType maybeConfig = null;
+        if (getPanelConfiguration() != null && getPanelConfiguration().getListView() != null) {
+            maybeConfig = getPanelConfiguration().getListView().getSearchBoxConfiguration();
+        }
+
+
+        SearchConfigurationWrapper<C> searchConfigWrapper = maybeConfig != null ? new SearchConfigurationWrapper<C>(type, maybeConfig) : new SearchConfigurationWrapper<C>(type);
         CompiledObjectCollectionView collectionView = getObjectCollectionView();
         if (objectCollectionRefExists(collectionView)) {
             searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
@@ -187,6 +194,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
             private static final long serialVersionUID = 1L;
 
+            @Override
             public CompositedIconBuilder getIconCompositedBuilder(){
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
@@ -274,6 +282,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     protected abstract boolean isCreateNewObjectVisible();
 
+    @Override
     public boolean isListPanelVisible(){
         return true;
     }

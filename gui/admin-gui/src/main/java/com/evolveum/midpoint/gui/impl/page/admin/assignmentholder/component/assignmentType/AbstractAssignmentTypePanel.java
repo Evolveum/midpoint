@@ -633,13 +633,6 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return createSearchableItemWrappers(containerDef);
     }
 
-    @Override
-    protected Search createSearch(Class<AssignmentType> type) {
-        Search search = super.createSearch(type);
-        search.setFullTextSearchEnabled(isRepositorySearchEnabled());
-        return search;
-    }
-
     @Deprecated
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
         List<SearchItemDefinition> defs = new ArrayList<>();
