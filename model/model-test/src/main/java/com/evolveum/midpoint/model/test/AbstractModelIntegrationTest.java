@@ -1995,7 +1995,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     protected ObjectQuery createAccountShadowQuery(
             String username, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
