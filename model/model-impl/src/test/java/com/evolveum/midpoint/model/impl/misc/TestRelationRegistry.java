@@ -39,6 +39,7 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "misc");
     private static final File SYSCONFIG_ADDED_CUSTOM_RELATIONS_FILE = new File(TEST_DIR, "sysconfig-added-custom-relations.xml");
     private static final File SYSCONFIG_REPLACED_ALL_RELATIONS_FILE = new File(TEST_DIR, "sysconfig-replaced-all-relations.xml");
+    private static final File SYSCONFIG_OVERRIDDEN_ORG_MANAGER = new File(TEST_DIR, "sysconfig-overridden-org-manager.xml");
 
     private static final String TEST_NS = "http://test";
     private static final QName TEST_KINDER_MANAGER = new QName(TEST_NS, "kinderManager");
@@ -347,4 +348,11 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
         assertFalse("'org:approver' is automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_APPROVER));
     }
 
+    @Test
+    public void test130OverrideOrgManager() throws SchemaException, IOException {
+        PrismObject<SystemConfigurationType> sysconfigObject = prismContext.parseObject(SYSCONFIG_OVERRIDDEN_ORG_MANAGER);
+        relationRegistry.applyRelationsConfiguration(sysconfigObject.asObjectable());
+        assertTrue("'org:manager' is stored into parentOrgRef",
+                relationRegistry.isStoredIntoParentOrgRef(SchemaConstants.ORG_MANAGER));
+    }
 }

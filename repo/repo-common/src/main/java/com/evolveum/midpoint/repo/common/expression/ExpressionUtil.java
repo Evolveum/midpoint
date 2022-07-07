@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 
 import groovy.lang.GString;
 import org.jetbrains.annotations.Contract;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.impl.query.ReferencedByFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -61,19 +62,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-
-/**
- * @author semancik
- */
 public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
     /**
      * Slightly more powerful version of "convert" as compared to
-     * JavaTypeConverter. This version can also encrypt/decrypt and also handles
-     * polystrings.
+     * JavaTypeConverter. This version can also encrypt/decrypt and also handles poly-strings.
      */
     public static <I, O> O convertValue(Class<O> finalExpectedJavaType, Function<Object, Object> additionalConvertor, I inputVal,
             Protector protector,
@@ -161,10 +156,13 @@ public class ExpressionUtil {
                 .resolve(result);
     }
 
+    @SuppressWarnings("unchecked")
     public static <V extends PrismValue> Collection<V> computeTargetValues(
-            VariableBindingDefinitionType target,
-            TypedValue defaultTargetContext, VariablesMap variables, ObjectResolver objectResolver, String contextDesc,
-            PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            VariableBindingDefinitionType target, TypedValue<?> defaultTargetContext,
+            VariablesMap variables, ObjectResolver objectResolver, String contextDesc,
+            PrismContext prismContext, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (target == null) {
             // Is this correct? What about default targets?
             return null;
@@ -181,7 +179,7 @@ public class ExpressionUtil {
         if (object == null) {
             return new ArrayList<>();
         } else if (object instanceof Item) {
-            return ((Item) object).getValues();
+            return ((Item<V, ?>) object).getValues();
         } else if (object instanceof PrismValue) {
             return (List<V>) Collections.singletonList((PrismValue) object);
         } else if (object instanceof ItemDeltaItem) {
@@ -252,8 +250,7 @@ public class ExpressionUtil {
         if (value instanceof PrismObject<?>) {
             typedValue.setValue(((PrismObject<?>) value).asObjectable());
             return typedValue;
-        } else if (value instanceof PrismProperty<?>) {
-            PrismProperty<?> prop = (PrismProperty<?>) value;
+        } else if (value instanceof PrismProperty<?> prop) {
             PrismPropertyDefinition<?> def = prop.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
@@ -267,8 +264,7 @@ public class ExpressionUtil {
                         prop.getElementName(), PrimitiveType.STRING.getQname());
                 return new TypedValue<>(prop.getRealValues(), fakeDef);
             }
-        } else if (value instanceof PrismReference) {
-            PrismReference ref = (PrismReference) value;
+        } else if (value instanceof PrismReference ref) {
             PrismReferenceDefinition def = ref.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
@@ -280,8 +276,7 @@ public class ExpressionUtil {
                 PrismReferenceDefinition fakeDef = prismContext.definitionFactory().createReferenceDefinition(ref.getElementName(), ObjectType.COMPLEX_TYPE);
                 return new TypedValue<>(ref.getRealValues(), fakeDef);
             }
-        } else if (value instanceof PrismContainer<?>) {
-            PrismContainer<?> container = (PrismContainer<?>) value;
+        } else if (value instanceof PrismContainer<?> container) {
             PrismContainerDefinition<?> def = container.getDefinition();
             Class<?> containerCompileTimeClass = container.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
@@ -320,8 +315,8 @@ public class ExpressionUtil {
         if (!(collection instanceof Collection)) {
             return typedValue;
         }
-        List realValues = new ArrayList();
-        ((Collection) collection).forEach(value -> realValues.add(convertPrismValueToRealValue(value)));
+        List<Object> realValues = new ArrayList<>();
+        ((Collection<?>) collection).forEach(value -> realValues.add(convertPrismValueToRealValue(value)));
         typedValue.setValue(realValues);
         return typedValue;
     }
@@ -332,8 +327,7 @@ public class ExpressionUtil {
     }
 
     private static Object convertPrismValueToRealValue(Object value) {
-        if (value instanceof PrismContainerValue<?>) {
-            PrismContainerValue<?> cval = ((PrismContainerValue<?>) value);
+        if (value instanceof PrismContainerValue<?> cval) {
             Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
                 // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
@@ -386,7 +380,7 @@ public class ExpressionUtil {
         if (objectVariableMode == ObjectVariableModeType.PRISM_REFERENCE) {
             if (resolvedTypedValue != null && resolvedTypedValue.getValue() instanceof PrismObject) {
                 PrismReferenceValue value = reference.asReferenceValue();
-                value.setObject((PrismObject) resolvedTypedValue.getValue());
+                value.setObject((PrismObject<?>) resolvedTypedValue.getValue());
                 return new TypedValue<>(value, value.getDefinition());
             } else {
                 return referenceTypedValue;
@@ -551,8 +545,7 @@ public class ExpressionUtil {
         }
         Holder<Boolean> result = new Holder<>(false);
         filter.accept(f -> {
-            if (f instanceof ValueFilter) {
-                ValueFilter<?, ?> vf = (ValueFilter<?, ?>) f;
+            if (f instanceof ValueFilter<?, ?> vf) {
                 if (vf.getExpression() != null) {
                     result.setValue(true);
                 }
@@ -581,7 +574,7 @@ public class ExpressionUtil {
                 return FilterCreationUtil.createNone(prismContext);
             }
 
-            ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
+            ExpressionType valueExpression = getFilterExpression(expressionWrapper, shortDesc);
 
             try {
                 Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
@@ -610,7 +603,7 @@ public class ExpressionUtil {
             if (expressionMissing(expressionWrapper, filter, shortDesc)) {
                 return filter.clone();
             }
-            ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
+            ExpressionType valueExpression = getFilterExpression(expressionWrapper, shortDesc);
 
             try {
                 Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
@@ -644,9 +637,7 @@ public class ExpressionUtil {
             }
             return evaluatedFilter;
 
-        } else if (filter instanceof ValueFilter) {
-            ValueFilter valueFilter = (ValueFilter) filter;
-
+        } else if (filter instanceof ValueFilter valueFilter) {
             if (valueFilter.getValues() != null && !valueFilter.getValues().isEmpty()) {
                 // We have value. Nothing to evaluate.
                 return valueFilter.clone();
@@ -656,7 +647,7 @@ public class ExpressionUtil {
             if (expressionMissing(expressionWrapper, filter, shortDesc)) {
                 return valueFilter.clone();
             }
-            ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
+            ExpressionType valueExpression = getFilterExpression(expressionWrapper, shortDesc);
 
             try {
                 ItemDefinition outputDefinition = ((ValueFilter) filter).getDefinition();
@@ -727,14 +718,12 @@ public class ExpressionUtil {
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             evaluatedFilter.setFilter(evaluatedSubFilter);
             return evaluatedFilter;
-        } else if (filter instanceof ReferencedByFilter) {
-            var orig = (ReferencedByFilter) filter;
+        } else if (filter instanceof ReferencedByFilter orig) {
             var subfilter = evaluateFilterExpressionsInternal(orig.getFilter(), variables,
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             return ReferencedByFilterImpl.create(orig.getType().getTypeName(),
                     orig.getPath(), subfilter, orig.getRelation());
-        } else if (filter instanceof OwnedByFilter) {
-            var orig = (OwnedByFilter) filter;
+        } else if (filter instanceof OwnedByFilter orig) {
             var subfilter = evaluateFilterExpressionsInternal(orig.getFilter(), variables,
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             return OwnedByFilterImpl.create(orig.getType(), orig.getPath(), subfilter);
@@ -755,10 +744,10 @@ public class ExpressionUtil {
         return false;
     }
 
-    private static ExpressionType getExpression(ExpressionWrapper expressionWrapper, String shortDesc) throws SchemaException {
+    private static ExpressionType getFilterExpression(ExpressionWrapper expressionWrapper, String shortDesc) throws SchemaException {
         if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
-            throw new SchemaException("Unexpected expression type "
-                    + expressionWrapper.getExpression().getClass() + " in element " + expressionWrapper.getElementName() + " filter in " + shortDesc);
+            throw new SchemaException("Unexpected filter expression type "
+                    + expressionWrapper.getExpression().getClass() + " in element '" + expressionWrapper.getElementName() + "' in " + shortDesc);
         }
         return (ExpressionType) expressionWrapper.getExpression();
     }
@@ -892,7 +881,7 @@ public class ExpressionUtil {
             return null;
         }
 
-        return PrismValueCollectionsUtil.getRealValuesOfCollection((Collection) nonNegativeValues);
+        return PrismValueCollectionsUtil.getRealValuesOfCollection(nonNegativeValues);
         // return nonNegativeValues.iterator().next();
     }
 
@@ -1144,7 +1133,7 @@ public class ExpressionUtil {
 
             } else if (value instanceof PrismContainerValue<?>) {
                 try {
-                    prismContext.adopt((PrismContainerValue) value);
+                    prismContext.adopt((PrismContainerValue<Containerable>) value);
                     ((PrismContainerValue) value).applyDefinition(definition);
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
@@ -1326,7 +1315,7 @@ public class ExpressionUtil {
         return variables;
     }
 
-    public static <O extends ObjectType> void addDefaultVariablesMap(
+    public static void addDefaultVariablesMap(
             VariablesMap variables,
             PrismObject<? extends ObjectType> focus,
             PrismObject<? extends ShadowType> shadow,

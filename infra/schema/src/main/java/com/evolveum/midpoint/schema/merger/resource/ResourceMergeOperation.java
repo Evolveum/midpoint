@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.merger.resource;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ABSTRACT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_TEMPLATE;
 
 import java.util.Map;
 
@@ -32,8 +33,13 @@ public class ResourceMergeOperation extends BaseMergeOperation<ResourceType> {
                 new GenericItemMerger(
                         OriginMarker.forOid(source.getOid(), ResourceType.COMPLEX_TYPE),
                         createPathMap(Map.of(
-                                F_NAME, RequiredItemMerger.INSTANCE,
-                                F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE // otherwise this would propagate to specific resources
+                                // Resource name: we don't want to copy super-resource (e.g. template) name to the specific
+                                // resource object. Originally here was "required" but we no longer require the name - e.g.
+                                // when new resource is being created.
+                                F_NAME, IgnoreSourceItemMerger.INSTANCE,
+                                // Neither we want to propagate "abstract" and "template" flags
+                                F_ABSTRACT, IgnoreSourceItemMerger.INSTANCE,
+                                F_TEMPLATE, IgnoreSourceItemMerger.INSTANCE
                         ))));
     }
 }
