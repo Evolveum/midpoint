@@ -190,9 +190,6 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
         final ItemPath path;
         if (TARGET_NAME_STRING.equals(property)) {
             path = TARGET_NAME_PATH;
-        } else if (property.contains(".")) {
-            property = property.replaceAll("\\.", "/");
-            path = getPrismContext().itemPathParser().asItemPath(property);
         } else if (property.contains("/")) {
             // Try to parse it as item path for now
             path = getPrismContext().itemPathParser().asItemPath(property);
