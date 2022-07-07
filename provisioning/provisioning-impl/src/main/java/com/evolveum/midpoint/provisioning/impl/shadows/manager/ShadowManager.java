@@ -304,7 +304,8 @@ public class ShadowManager {
      * Really modifies shadow attributes. It applies the changes. It is used for synchronous operations and also for
      * applying the results of completed asynchronous operations.
      */
-    public void modifyShadowAttributes(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications,
+    public void modifyShadowAttributes(
+            ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, parentResult);

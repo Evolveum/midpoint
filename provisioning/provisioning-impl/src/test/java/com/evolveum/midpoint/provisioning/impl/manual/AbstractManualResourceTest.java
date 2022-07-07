@@ -91,6 +91,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final File ACCOUNT_FIASCO_FILE = new File(TEST_DIR, "account-fiasco.xml");
     protected static final String ACCOUNT_FIASCO_OID = "414dd45c-017f-11eb-acac-1760a547c740";
 
+    protected static final File ACCOUNT_BLACK_FILE = new File(TEST_DIR, "account-black.xml");
+    protected static final String ACCOUNT_BLACK_OID = "c9de3f3d-125f-452f-b321-b90cc7457246";
+
     protected static final String ATTR_USERNAME = "username";
     protected static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
 
@@ -2469,6 +2472,65 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertCaseState(fiascoCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
+    }
+
+    /**
+     * Tests renaming of account with pending changes. MID-7985, MID-7924
+     */
+    @Test
+    public void test600RenameAccount() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("black account is created");
+        PrismObject<ShadowType> account = parseObject(ACCOUNT_BLACK_FILE);
+        account.checkConsistence();
+
+        display("Creating account", account);
+        OperationResult creationResult = result.createSubresult("create");
+        provisioningService.addObject(account, null, null, task, creationResult);
+        creationResult.close();
+        String creationCaseOid = assertInProgress(creationResult);
+        assertCaseState(creationCaseOid, SchemaConstants.CASE_STATE_OPEN);
+
+        and("black account is renamed");
+        OperationResult modificationResult = result.createSubresult("modify");
+        provisioningService.modifyObject(
+                ShadowType.class,
+                ACCOUNT_BLACK_OID,
+                deltaFor(ShadowType.class)
+                        .item(
+                                getAttributePath(ATTR_USERNAME),
+                                getAttributeDefinition(resource, ATTR_USERNAME_QNAME))
+                        .replace("white")
+                        .asItemDeltas(),
+                null,
+                null,
+                task,
+                modificationResult);
+        modificationResult.close();
+        String modificationCaseOid = assertInProgress(modificationResult);
+        assertCaseState(modificationCaseOid, SchemaConstants.CASE_STATE_OPEN);
+
+        and("manual cases are closed");
+        closeCase(creationCaseOid, OperationResultStatusType.SUCCESS);
+        closeCase(modificationCaseOid, OperationResultStatusType.SUCCESS);
+
+        when("shadow is refreshed");
+        OperationResult refreshResult = result.createSubresult("refresh");
+        provisioningService.refreshShadow(
+                getShadowRepo(ACCOUNT_BLACK_OID),
+                null,
+                task,
+                refreshResult);
+        refreshResult.close();
+
+        then("the operation should be successful");
+        assertSuccess(refreshResult);
+
+        and("the shadow is renamed");
+        assertRepoShadow(ACCOUNT_BLACK_OID)
+                .assertName("white");
     }
 
     // TODO: create, close case, then update backing store.

@@ -193,7 +193,8 @@ class RefreshHelper {
             try {
                 refreshAsyncResult = resourceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
             } catch (CommunicationException e) {
-                LOGGER.debug("Communication error while trying to refresh pending operation of {}. Skipping refresh of this operation.", repoShadow, e);
+                LOGGER.debug("Communication error while trying to refresh pending operation of {}. "
+                        + "Skipping refresh of this operation.", repoShadow, e);
                 parentResult.recordPartialError(e);
                 continue;
             }
@@ -203,11 +204,13 @@ class RefreshHelper {
                 continue;
             }
             OperationResultStatusType newStatusType = newStatus.createStatusType();
-            if (newStatusType.equals(pendingOperation.getResultStatus())) {
+            if (newStatusType == pendingOperation.getResultStatus()) {
                 continue;
             }
 
-            boolean operationCompleted = ProvisioningUtil.isCompleted(newStatusType) && pendingOperation.getCompletionTimestamp() == null;
+            boolean operationCompleted =
+                    ProvisioningUtil.isCompleted(newStatusType)
+                            && pendingOperation.getCompletionTimestamp() == null;
 
             if (operationCompleted && gracePeriod == null) {
                 LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
@@ -228,7 +231,8 @@ class RefreshHelper {
                 continue;
 
             } else {
-                PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
+                PropertyDelta<OperationResultStatusType> resultStatusDelta =
+                        shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
                 resultStatusDelta.setRealValuesToReplace(newStatusType);
                 shadowDelta.addModification(resultStatusDelta);
             }
@@ -236,16 +240,19 @@ class RefreshHelper {
             if (operationCompleted) {
                 // Operation completed
 
-                PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
+                PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta =
+                        shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
                 executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
                 shadowDelta.addModification(executionStatusDelta);
 
-                PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
+                PropertyDelta<XMLGregorianCalendar> completionTimestampDelta =
+                        shadowDelta.createPropertyModification(
+                                containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
                 completionTimestampDelta.setRealValuesToReplace(clock.currentTimeXMLGregorianCalendar());
                 shadowDelta.addModification(completionTimestampDelta);
 
-                ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+                ObjectDelta<ShadowType> pendingDelta =
+                        DeltaConvertor.createObjectDelta(pendingOperation.getDelta(), prismContext);
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
@@ -255,22 +262,27 @@ class RefreshHelper {
                 if (pendingDelta.isModify()) {
 
                     // Apply shadow naming attribute modification
-                    PrismContainer<ShadowAttributesType> shadowAttributesContainer = repoShadow.findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
-                    ResourceAttributeContainer resourceAttributeContainer = ResourceAttributeContainer.convertFromContainer(shadowAttributesContainer, ctx.getObjectClassDefinition());
+                    PrismContainer<ShadowAttributesType> shadowAttributesContainer =
+                            repoShadow.findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
+
+                    ResourceAttributeContainer resourceAttributeContainer = ResourceAttributeContainer.convertFromContainer(
+                                    shadowAttributesContainer, ctx.getObjectClassDefinition());
                     ResourceAttributeContainerDefinition resourceAttrDefinition = resourceAttributeContainer.getDefinition();
-                    if(resourceAttrDefinition != null) {
+                    if (resourceAttrDefinition != null) {
 
                         // If naming attribute is present in delta...
                         ResourceAttributeDefinition namingAttribute = resourceAttrDefinition.getNamingAttribute();
                         if (namingAttribute != null) {
-                            if (pendingDelta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName()))) {
+                            ItemPath namingAttributePath =
+                                    ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName());
+                            if (pendingDelta.hasItemDelta(namingAttributePath)) {
 
                                 // Retrieve a possible changed name per the defined naming attribute for the resource
-                                ItemDelta namingAttributeDelta = pendingDelta.findItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName()));
+                                ItemDelta namingAttributeDelta = pendingDelta.findItemDelta(namingAttributePath);
                                 Collection<?> valuesToReplace = namingAttributeDelta.getValuesToReplace();
                                 Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
 
-                                if (valueToReplace.isPresent()){
+                                if (valueToReplace.isPresent()) {
                                     Object valueToReplaceObj = ((PrismPropertyValue)valueToReplace.get()).getValue();
                                     if (valueToReplaceObj instanceof String) {
 

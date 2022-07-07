@@ -462,6 +462,8 @@ class ShadowUpdater {
 
         RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
         CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        ItemDelta<?, ?> attributeBasedNameChange = null;
+        ItemDelta<?, ?> explicitNameChange = null;
         Collection<ItemDelta<?, ?>> repoChanges = new ArrayList<>();
         for (ItemDelta itemDelta : objectChange) {
             if (ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
@@ -470,14 +472,16 @@ class ShadowUpdater {
                         || (objectClassDefinition.getAllIdentifiers().size() == 1 && objectClassDefinition.isPrimaryIdentifier(attrName))) {
                     // Change of secondary identifier, or primary identifier when it is only one, means object rename. We also need to change $shadow/name
                     // TODO: change this to displayName attribute later
+                    // TODO what if there are multiple secondary identifiers (like dn and samAccountName)?
                     String newName = null;
                     if (itemDelta.getValuesToReplace() != null && !itemDelta.getValuesToReplace().isEmpty()) {
                         newName = ((PrismPropertyValue) itemDelta.getValuesToReplace().iterator().next()).getValue().toString();
                     } else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
                         newName = ((PrismPropertyValue) itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
                     }
-                    PropertyDelta<PolyString> nameDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
-                    repoChanges.add(nameDelta);
+                    attributeBasedNameChange =
+                            prismContext.deltaFactory().property()
+                                    .createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
                 }
                 if (objectClassDefinition.isPrimaryIdentifier(attrName)) {
                     // Change of primary identifier $shadow/primaryIdentifier.
@@ -497,8 +501,10 @@ class ShadowUpdater {
                         throw new SystemException(e.getMessage(), e);
                     }
                     String normalizedNewPrimaryIdentifier = helper.getNormalizedAttributeValue(rDef, newPrimaryIdentifier);
-                    PropertyDelta<String> primaryIdentifierDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
-                            ShadowType.F_PRIMARY_IDENTIFIER_VALUE, normalizedNewPrimaryIdentifier);
+                    PropertyDelta<String> primaryIdentifierDelta =
+                            prismContext.deltaFactory().property()
+                                    .createReplaceDelta(shadow.getDefinition(), ShadowType.F_PRIMARY_IDENTIFIER_VALUE,
+                                            normalizedNewPrimaryIdentifier);
                     repoChanges.add(primaryIdentifierDelta);
                 }
                 if (!ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
@@ -524,10 +530,25 @@ class ShadowUpdater {
                 continue;
             }
             helper.normalizeDelta(itemDelta, objectClassDefinition);
-            repoChanges.add(itemDelta);
+            if (isShadowNameDelta(itemDelta)) {
+                explicitNameChange = itemDelta;
+            } else {
+                repoChanges.add(itemDelta);
+            }
+        }
+
+        if (explicitNameChange != null) {
+            repoChanges.add(explicitNameChange);
+        } else if (attributeBasedNameChange != null) {
+            repoChanges.add(attributeBasedNameChange);
         }
 
         return repoChanges;
+    }
+
+    private boolean isShadowNameDelta(ItemDelta<?, ?> itemDelta) {
+        return itemDelta instanceof PropertyDelta<?>
+                && ShadowType.F_NAME.equivalent(itemDelta.getPath());
     }
 
     private void addPasswordDelta(Collection<ItemDelta<?, ?>> repoChanges, ItemDelta<?, ?> requestedPasswordDelta,
