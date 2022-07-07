@@ -86,8 +86,7 @@ public class TestDummyExtra extends TestDummy {
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition accountRDef =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
 
         Collection<ResourceAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());

@@ -308,8 +308,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceType resourceType = resource.asObjectable();
 
         ResourceSchema rSchema = ResourceSchemaFactory.parseCompleteSchema(resourceType);
-        ResourceObjectTypeDefinition defaultAccountDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
+        assertThat(rSchema).isNotNull();
+        ResourceObjectDefinition defaultAccountDefinition = rSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in " + rSchema, defaultAccountDefinition);
 
         PrismObject<ShadowType> accObject = prismContext.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
@@ -341,8 +341,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceSchema rSchema = ResourceSchemaFactory.parseCompleteSchema(resource.asObjectable());
         System.out.println("Refined schema:");
         System.out.println(rSchema.debugDump(1));
-        ResourceObjectTypeDefinition defaultAccountDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition defaultAccountDefinition = rSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in " + rSchema, defaultAccountDefinition);
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.debugDump(1));

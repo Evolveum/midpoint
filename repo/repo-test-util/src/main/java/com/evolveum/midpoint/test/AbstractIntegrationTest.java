@@ -1428,9 +1428,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         shadowType.setResourceRef(resourceRef);
         shadowType.setKind(ShadowKindType.ACCOUNT);
         shadowType.setIntent(SchemaConstants.INTENT_DEFAULT);
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition objectClassDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
+        ResourceObjectDefinition objectClassDefinition = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         if (uid != null) {
@@ -1460,8 +1459,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             T... values) throws SchemaException, ConfigurationException {
         ShadowType shadowBean = shadow.asObjectable();
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition objectClassDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, shadowBean.getKind());
+        ResourceObjectDefinition objectClassDefinition = refinedSchema.findDefaultDefinitionForKindRequired(shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         //noinspection unchecked
@@ -1552,9 +1550,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition rAccount =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
+        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
@@ -1597,8 +1594,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             String attributeName, String attributeValue, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition rAccount =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         return createShadowQueryByAttribute(rAccount.getObjectClassDefinition(), attributeName, attributeValue, resource);
     }
 
@@ -2999,12 +2995,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName)
             throws SchemaException, ConfigurationException {
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (refinedSchema == null) {
-            throw new SchemaException("No refined schema for " + resource);
-        }
-        ResourceObjectTypeDefinition accountDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
+        ResourceObjectDefinition accountDefinition = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         return accountDefinition.findAttributeDefinition(attributeName);
     }
 

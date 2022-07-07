@@ -1995,9 +1995,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     protected ObjectQuery createAccountShadowQuery(
             String username, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition rAccount =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(rSchema, ShadowKindType.ACCOUNT);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
         ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
@@ -2771,9 +2770,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resource.getOid());
         shadowType.setResourceRef(resourceRef);
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        ResourceObjectTypeDefinition objectClassDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
+        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
+        ResourceObjectDefinition objectClassDefinition = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
         shadowType.setIntent(INTENT_DEFAULT);

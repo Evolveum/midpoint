@@ -86,19 +86,8 @@ public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
         return new QName(MidPointConstants.NS_RI, ocName);
     }
 
-    public ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultDefinition(ShadowKindType kind) {
-        ResourceObjectTypeDefinition objectClassDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(getSchema(), kind);
-        ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter =
-                new ResourceObjectDefinitionAsserter<>(objectClassDefinition, this,
-                        "default definition for kind " + kind + " in " + desc());
-        copySetupTo(asserter);
-        return asserter;
-    }
-
     public ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultAccountDefinition() {
-        ResourceObjectTypeDefinition objectClassDefinition =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(getSchema(), ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition objectClassDefinition = getSchema().findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         ResourceObjectDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ResourceObjectDefinitionAsserter<>(objectClassDefinition, this, "default account definition in " + desc());
         copySetupTo(asserter);
         return asserter;

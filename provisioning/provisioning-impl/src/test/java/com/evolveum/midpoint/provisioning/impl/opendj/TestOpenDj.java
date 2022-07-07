@@ -527,8 +527,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // object instance is returned
         assertSame("Broken caching", refinedSchema, ResourceSchemaFactory.getCompleteSchema(resourceBean));
 
-        ResourceObjectTypeDefinition accountDef =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition accountDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());

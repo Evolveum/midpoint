@@ -249,16 +249,4 @@ class ResourceObjectDefinitionResolver {
             return schema.findDefaultDefinitionForKind(kind);
         }
     }
-
-    static @Nullable ResourceObjectTypeDefinition findDefaultOrAnyObjectTypeDefinition(@NotNull ResourceSchema schema, @NotNull ShadowKindType kind) {
-        ResourceObjectTypeDefinition defaultDefinition = findDefaultObjectTypeDefinitionInternal(schema, kind, null);
-        if (defaultDefinition != null) {
-            return defaultDefinition;
-        } else {
-            return schema.getObjectTypeDefinitions().stream()
-                    .filter(def -> def.matchesKind(kind))
-                    .findFirst()
-                    .orElse(null);
-        }
-    }
 }

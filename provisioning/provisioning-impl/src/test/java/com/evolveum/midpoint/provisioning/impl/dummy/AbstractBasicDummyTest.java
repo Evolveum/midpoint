@@ -718,8 +718,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("Broken caching",
                 refinedSchema == ResourceSchemaFactory.getCompleteSchema(resourceBean));
 
-        ResourceObjectTypeDefinition accountDef =
-                ResourceSchemaTestUtil.findDefaultOrAnyObjectTypeDefinition(refinedSchema, ShadowKindType.ACCOUNT);
+        ResourceObjectDefinition accountDef = refinedSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
         assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
         assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
@@ -729,9 +728,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertFalse("No nativeObjectClass in account",
                 StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClass()));
 
-        assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
-        assertTrue("Account definition in not default", accountDef.isDefaultForKind());
-        assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountDef.getIntent());
+        ResourceObjectTypeDefinition accountTypeDef = accountDef.getTypeDefinition();
+        assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountTypeDef.getKind());
+        assertTrue("Account definition in not default", accountTypeDef.isDefaultForKind());
+        assertEquals("Wrong intent in account definition", SchemaConstants.INTENT_DEFAULT, accountTypeDef.getIntent());
         assertFalse("Account definition is deprecated", accountDef.isDeprecated());
         assertFalse("Account definition in auxiliary",
                 accountDef.getObjectClassDefinition().isAuxiliary());
