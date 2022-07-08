@@ -361,19 +361,29 @@ public class QueryInterpreter {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void addOrdering(InterpretationContext context, ObjectOrdering ordering) throws QueryException {
-
         ItemPath orderByPath = ordering.getOrderBy();
 
-        // TODO if we'd like to have order-by extension properties, we'd need to provide itemDefinition for them
+        ItemDefinition<?> itemDefinition = null;
+        try {
+            //noinspection ConstantConditions,rawtypes
+            itemDefinition = context.getPrismContext().getSchemaRegistry()
+                    .findContainerDefinitionByCompileTimeClass((Class) context.getRootEntityDefinition().getJaxbClass())
+                    .findItemDefinition(orderByPath);
+        } catch (Exception e) {
+            // ignored, it better works without definition (typically various T_PARENT paths, etc.)
+        }
+
         ProperDataSearchResult<?> result = context.getItemPathResolver().findProperDataDefinition(
-                context.getRootEntityDefinition(), orderByPath, null, JpaDataNodeDefinition.class, context.getPrismContext());
+                context.getRootEntityDefinition(), orderByPath, itemDefinition,
+                JpaDataNodeDefinition.class, context.getPrismContext());
         if (result == null) {
             LOGGER.error("Unknown path '" + orderByPath + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");
             return;
         }
-        JpaDataNodeDefinition targetDefinition = result.getLinkDefinition().getTargetDefinition();
+        JpaDataNodeDefinition<?> targetDefinition = result.getLinkDefinition().getTargetDefinition();
         if (targetDefinition instanceof JpaAnyContainerDefinition) {
             throw new QueryException("Sorting based on extension item or attribute is not supported yet: " + orderByPath);
         } else if (targetDefinition instanceof JpaReferenceDefinition) {
@@ -389,7 +399,7 @@ public class QueryInterpreter {
         JpaEntityDefinition baseEntityDefinition = result.getEntityDefinition();
         JpaPropertyDefinition<?> orderByDefinition = (JpaPropertyDefinition<?>) targetDefinition;
         String hqlPropertyPath = context.getItemPathResolver()
-                .resolveItemPath(orderByPath, null, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
+                .resolveItemPath(orderByPath, itemDefinition, context.getPrimaryEntityAlias(), baseEntityDefinition, true)
                 .getHqlPath();
         if (RPolyString.class.equals(orderByDefinition.getJpaClass())) {
             hqlPropertyPath += ".orig";
@@ -408,7 +418,6 @@ public class QueryInterpreter {
         } else {
             hibernateQuery.addOrdering(hqlPropertyPath, OrderDirection.ASCENDING);
         }
-
     }
 
     public <T> Matcher<T> findMatcher(T value) {
