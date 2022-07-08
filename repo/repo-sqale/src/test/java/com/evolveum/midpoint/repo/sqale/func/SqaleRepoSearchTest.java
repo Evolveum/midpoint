@@ -2028,9 +2028,23 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test602SearchContainerWithOwnedByParent() throws SchemaException {
+    public void test602SearchContainerWithNestedOwnedBy() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
-                "by parent using exists", AccessCertificationWorkItemType.class,
+                "by parent and its parent using ownedBy", AccessCertificationWorkItemType.class,
+                f -> f.ownedBy(AccessCertificationCaseType.class)
+                        .ownedBy(AccessCertificationCampaignType.class)
+                        .id(accCertCampaign1Oid));
+
+        // Finds all WIs from both AccCertCampaigns of accCertCampaign1.
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12, 21, 22);
+    }
+
+    @Test
+    public void test603SearchContainerWithNestedOwnedByComplexCondition() throws SchemaException {
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent and its parent using ownedBy and complex filter", AccessCertificationWorkItemType.class,
                 f -> f.ownedBy(AccessCertificationCaseType.class)
                         .block()
                         .id(1)
@@ -2046,7 +2060,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test603SearchContainerWithExistsParent() throws SchemaException {
+    public void test604SearchContainerWithExistsParent() throws SchemaException {
         SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
                 "by parent using exists", AccessCertificationWorkItemType.class,
                 f -> f.exists(T_PARENT)
@@ -2063,7 +2077,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test604SearchAccessCertificationCaseContainer() throws SchemaException {
+    public void test605SearchAccessCertificationCaseContainer() throws SchemaException {
         SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
                 "by stage number", AccessCertificationCaseType.class,
                 f -> f.item(AccessCertificationCaseType.F_STAGE_NUMBER).gt(1));
@@ -2073,7 +2087,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test605SearchCaseWorkItemContainer() throws SchemaException {
+    public void test606SearchCaseWorkItemContainer() throws SchemaException {
         SearchResultList<CaseWorkItemType> result = searchContainerTest(
                 "by stage number", CaseWorkItemType.class,
                 f -> f.item(CaseWorkItemType.F_STAGE_NUMBER).eq(1));
@@ -2091,6 +2105,38 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .matches(wi -> wi.getPerformerRef().getRelation().equals(ORG_DEFAULT))
                 .matches(wi -> wi.getOutput().getOutcome().equals("OUTCOME one"));
         // multi-value refs are not fetched yet
+    }
+
+    @Test
+    public void test607SearchContainerByParentItemCondition() throws SchemaException {
+        // Single level parent is OK, otherwise use ownedBy().
+        SearchResultList<AccessCertificationCaseType> result = searchContainerTest(
+                "by parent with specified stage number (using item)", AccessCertificationCaseType.class,
+                f -> f.item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0));
+
+        // We're asserting stage numbers of the containers, not the parent:
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(1, 2);
+    }
+
+    @Test
+    public void test609SearchContainerByParentUnsupportedCases() {
+        // Unsure what repo would do, but both these cases fail during filter construction in Prism.
+        assertThatThrownBy(() ->
+                searchContainerTest(
+                        "by parent with specified stage number (using exists)", AccessCertificationWorkItemType.class,
+                        f -> f.exists(T_PARENT, T_PARENT) // .exists(..).exists(..) fails on check inside R_Filter.exists(...)
+                                .item(AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("Couldn't find definition for parent for");
+
+        assertThatThrownBy(() ->
+                searchContainerTest(
+                        "by value filter with parent/parent", AccessCertificationWorkItemType.class,
+                        f -> f.item(T_PARENT, T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageStartingWith("Couldn't find definition for parent for");
     }
 
     @Test
