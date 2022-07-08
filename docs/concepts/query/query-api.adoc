@@ -12,9 +12,6 @@ scripts: [ 'multi-source.js' ]
 :page-toc: top
 :toclevels: 2
 
-[NOTE]
-This document is up-to-date for midPoint 4.4 LTS version.
-
 == Introduction
 
 MidPoint works with *objects* of various types, which can be part of the running process (in memory),
@@ -101,7 +98,7 @@ These are typically delivered together with the query, but are not part of it:
 
 * Type of the object or container value we want to query.
 * Additional options fine-tuning the search and retrieval process.
-Options can specify what optional pieces to fetch and also wheter `distinct` should be applied to the results.
+Options can specify what optional pieces to fetch and also whether `distinct` should be applied to the results.
 
 This additional information is either implied or can be provided close to the query as needed,
 for instance as additional parameters to the repository call, etc.
@@ -252,7 +249,7 @@ The new xref:/midpoint/reference/repository/native-postgresql/[Native repository
 by these problems as it always uses SQL `EXISTS` when traversing to multi-value containers and also for Exists filter.
 Native repository actually *ignores distinct* if there is no `JOIN` in the final query, as the returned raws must be distinct.
 Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets,
-so even then the distinct option is useless and, when honoured, can potetinally hurt SQL performance.
+so even then the distinct option is useless and, when honoured, can potentially hurt SQL performance.
 ====
 
 == Trivial filters
@@ -275,7 +272,7 @@ When empty filter is provided where filter is expected, typically `all` filter i
 
 | Undefined filter
 a| Treated like nonexistent or invisible filter.
-For all fiters `F1` and `F2` the following holds:
+For all filters `F1` and `F2` the following holds:
 
 * `F1 && Undefined = F1`
 * `F2 \|\| Undefined = F2`
@@ -320,7 +317,7 @@ For single filter value: Accepts if one of the left-hand property values is the 
 
 * If left-hand item is a multi-value property, it is _any equals_ semantics.
 
-* If left-hand item is single-value property in multi-value container, it is _any equals_ semantis.
+* If left-hand item is single-value property in multi-value container, it is _any equals_ semantics.
 
 For multiple filter values: Accepts if one of the left-hand property values is the same as any of the filter values.
 
@@ -589,11 +586,11 @@ Similarly, only the orgs with red border would be returned if `OrgType` was used
 ====
 Only the parent-org reference *owned by the potentially matching object* is consulted.
 This does not mean that only leaves of the tree are returned, as demonstrated by *ORG 1-1* being
-returned (because its parent-org ref has the specifiec *X* relation).
+returned (because its parent-org ref has the specific *X* relation).
 
 Notice, that *User 1-1-1_D* also has parent-org ref with relation *X* _somewhere on the path_ to
 the *ORG 1* (parameter of the `isChildOf` filter), but this does not matter as the reference it
-ownes (the one pointing to *Org 1-1-1*) has different relation.
+owns (the one pointing to *Org 1-1-1*) has different relation.
 ====
 
 === Full-text filter
@@ -621,7 +618,7 @@ It is virtually impossible to optimize for all cases, given the filtering flexib
 
 * Queries are translated to the repository natural language - which is SQL.
 Things like collation can affect some operations, especially ordering and comparison of strings.
-Results can be different from expected, e.g. collation may be case-insesitive (default collation actually is).
+Results can be different from expected, e.g. collation may be case-insensitive (default collation actually is).
 
 * Support for possible filter types (operations) for multi-value items depends on how they are stored in the DB.
 There is a full support for _equals_ operation without any matching rule, regardless of the implementation.
@@ -646,11 +643,11 @@ For some complex filters the nested filter is optional.
 There are the following complex filters:
 
 * Logical filters: `and`, `or`, `not`
-* Type filter
-* Exists filter
-* Ref filter with target filter
-* OwnedBy filter
-* ReferencedBy filter
+* *Type* filter - to narrow the type of the searched object.
+* *Exists* filter - to apply multiple conditions on each value from a multi-value item.
+* *Ref* filter with target filter - for complex conditions on the multi-value references and their targets.
+* *OwnedBy* filter - for container searches with conditions on their parents.
+* *ReferencedBy* filter - for object searches with conditions on other objects that reference them.
 
 === Logical filters
 
@@ -681,7 +678,8 @@ Then it is possible to set up Type filter with type=UserType, filter=(name equal
 
 === Exists filter
 
-Exists filter with parameters `item` and optional `filter` accepts iff there exists a value in the specfied `item` and the value matches the provided `filter`.
+Exists filter with parameters `item` and optional `filter` accepts iff there exists a value
+in the specified `item` and the value matches the provided `filter`.
 Exists inner filter works for container items and reference targets; reference targets are supported only in the repository.
 
 For example, the filter is useful to find an assignment with a given tenantRef and orgRef.
@@ -810,7 +808,7 @@ For example, for single value reference we can say something like this:
 </filter>
 ----
 
-But the same filter would not work predicatably for the multi-value references.
+But the same filter would not work predictably for the multi-value references.
 Although the `and` filter is used, it would be enough if one of the references was for `UserType`
 and another reference value pointed to an object (possibly of different type) that matches the `exists` filter.
 That is definitely not, what the user expects.
@@ -913,6 +911,37 @@ must match any of the provided values *and* the target object for the matching r
 // TODO some clear example? Describe two objects with roleMembershipRef, one matching, one narrowly not?
 
 === OwnedBy filter
+
+This filter is related to containers and is practical in container searches.
+It allows searches like "give me all assignments for any user" or "for any user with name starting with 'a'".
+
+OwnedBy filter is a generalization and simplification of a few existing mechanisms:
+
+* `inOid` filter with `considerOwner` set to true - which allows to find containers for an object with specified OID, but is arguably ugly;
+* `exists` filter on `..` (`T_PARENT`) path, where, again, one can use `inOid` (without `considerOwner`
+this time), but also other conditions;
+* or a value filter with an item in the parent, e.g. `../costCenter = "001"`.
+
+////
+// TODO examples and exists/exists or parent/parent problem + assignment vs inducement problem
+
+[source,java]
+----
+prismContext.queryFor(AccessCertificationWorkItemType.class)
+    .ownedBy(AccessCertificationCaseType.class)
+    .block()
+        .id(1) // container ID of owning AccessCertificationCaseType
+        .and()
+        .ownedBy(AccessCertificationCampaignType.class)
+        .id(accCertCampaignOid) // OID of the owning object
+    .endBlock());
+----
+////
+
+[NOTE]
+Technically, the filter can be used in object searches.
+For instance, it can be used inside the `exists` filter for container path.
+However, this is meaningless, because the same conditions can be applied directly on the searched object.
 
 === ReferencedBy filter
 
@@ -1208,25 +1237,22 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ==== Ref filter
 
 "Canonical" form is the following:
-// TODO the whole or is canonical, or any of the ref shown is canonical? (probably the latter)
+// TODO the whole or is canonical, or any of the ref shown is canonical? (probably the latter) YES, rework
 
 [source,xml]
 ----
-<or xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
-       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<or>
     <ref>
         <path>c:resourceRef</path>
-        <value xsi:type="t:ObjectReferenceType" oid="oid1" />
+        <value oid="oid1" />
     </ref>
     <ref>
         <path>c:resourceRef</path>
-        <value xsi:type="t:ObjectReferenceType" oid="oid2" type="c:ResourceType" />
+        <value oid="oid2" type="c:ResourceType" />
     </ref>
     <ref>
         <path>c:resourceRef</path>
-        <value xsi:type="t:ObjectReferenceType" oid="oid3" type="c:ResourceType" relation="test"/>
+        <value oid="oid3" type="c:ResourceType" relation="test"/>
     </ref>
 </or>
 ----
@@ -1246,30 +1272,25 @@ ObjectFilter filter = prismContext.queryFor(ShadowType.class)
 Semantics of individual 'or'-conditions is:
 
 // TODO clarify relation = (empty), because it likely means default here
-. resourceRef should contain: target OID = 'oid1', relation = (empty), and the type of target object (stored in the resourceRef!) can be any
+. resourceRef should contain: target OID = 'oid1', relation = (empty), and the type of target object (stored in the resourceRef!) can be any;
 
-. resourceRef should contain: target OID = 'oid1', relation = (empty), type of target (stored in the resourceRef!) must be 'ResourceType'
+. resourceRef should contain: target OID = 'oid1', relation = (empty), type of target (stored in the resourceRef!) must be 'ResourceType';
 
-. resourceRef should contain: target OID = 'oid1', relation = 'test', and type of target (stored in the resourceRef!) must be 'ResourceType'
+. resourceRef should contain: target OID = 'oid1', relation = 'test', and type of target (stored in the resourceRef!) must be 'ResourceType'.
 
 The reference target type, if used, must match exactly.
 So e.g. if the references uses `RoleType`, and the filter asks for `AbstractRoleType`, the value would not match.
 
 It is suggested to avoid querying for target object type, if possible.
 
-XML can be written also in alternative ways:
+XML can be written also in alternative way:
 
 [source,xml]
 ----
 <or>
     <ref>
         <path>c:resourceRef</path>
-        <!-- no xsi:type for 'value' element (this is not compliant with query-3 XSD) -->
-        <value oid="oid1" />
-    </ref>
-    <ref>
-        <path>c:resourceRef</path>
-        <!-- no xsi:type, items stored as elements -->
+        <!-- items stored as elements -->
         <value>
             <c:oid>oid4</c:oid>
             <c:type>c:ResourceType</c:type>
@@ -1494,7 +1515,7 @@ This example returns all objects with a name starting with "C".
 </and>
 ----
 
-This example returns all objects with extension attribute "EndDate" (type of XMLGregorianCalendar), which is set since 31 Decenber last year to 01 January of this year.
+This example returns all objects with extension attribute "EndDate" (type of XMLGregorianCalendar), which is set since 31 December last year to 01 January of this year.
 
 === Special symbols in item paths (`..`, `@`, `#`)
 
