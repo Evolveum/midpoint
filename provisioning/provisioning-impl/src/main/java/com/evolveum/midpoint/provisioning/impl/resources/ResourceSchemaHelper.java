@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -62,63 +64,132 @@ class ResourceSchemaHelper {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
-    @Autowired private ResourceConnectorsManager connectorSelector;
 
     /**
-     * Applies proper definition (connector schema) to the resource.
+     * Applies a definition on a resource we know nothing about - i.e. it may be unexpanded.
+     * So, expanding if (presumably) needed.
      */
-    void applyConnectorSchemasToResource(ResourceType resource, Task task, OperationResult result)
+    void applyConnectorSchemasToResource(
+            @NotNull ResourceType resource,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
-        checkMutable(resource.asPrismObject());
-        PrismObjectDefinition<ResourceType> newResourceDefinition = resource.asPrismObject().getDefinition().clone();
-        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
-            try {
-                applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
-            } catch (CommunicationException | SecurityViolationException e) {
-                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e); // fixme temporary solution
-            }
+        ResourceType expanded;
+        if (ResourceTypeUtil.doesNeedExpansion(resource)) {
+            expanded = resource.clone();
+            resourceManager.expandResource(expanded, result);
+        } else {
+            expanded = resource;
         }
-        newResourceDefinition.freeze();
-        resource.asPrismObject().setDefinition(newResourceDefinition);
+        applyConnectorSchemasToResource(resource, expanded, result);
+    }
+
+    /** Use this if the resource is already expanded. */
+    void applyConnectorSchemasToExpandedResource(
+            @NotNull ResourceType resource,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+        applyConnectorSchemasToResource(resource, resource, result);
     }
 
     /**
      * Applies proper definition (connector schema) to the resource.
      *
-     * !!! Also evaluates expressions in configuration properties. !!!
+     * @param target Resource on which we need to apply the definition
+     * @param source A variant of `resource` used to derive the definition (e.g. expanded version - to be able to
+     * obtain connector OIDs); may be the resource itself.
+     */
+    private void applyConnectorSchemasToResource(
+            @NotNull ResourceType target,
+            @NotNull ResourceType source,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+        checkMutable(target.asPrismObject());
+        PrismObjectDefinition<ResourceType> newResourceDefinition = target.asPrismObject().getDefinition().clone();
+        for (ConnectorSpec sourceConnectorSpec : ConnectorSpec.all(source)) {
+            try {
+                ConnectorSpec targetConnectorSpec = ConnectorSpec.find(target, sourceConnectorSpec.getConnectorName());
+                applyConnectorSchemaToResource(targetConnectorSpec, sourceConnectorSpec, newResourceDefinition, result);
+            } catch (CommunicationException | SecurityViolationException e) {
+                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e); // fixme temporary solution
+            }
+        }
+        newResourceDefinition.freeze();
+        target.asPrismObject().setDefinition(newResourceDefinition);
+    }
+
+    /**
+     * Applies proper definition (connector schema) to the resource - to the definition and particular connector spec.
+     *
+     * @param targetConnectorSpec Connector spec that should be updated (may be null if not present)
+     * @param sourceConnectorSpec Connector spec that is used as the definition source - usually the same as target,
+     * or an expanded version of it.
+     * @param targetDefinition Resource-level definition that should be updated
      */
     void applyConnectorSchemaToResource(
-            ConnectorSpec connectorSpec,
-            PrismObjectDefinition<ResourceType> resourceDefinition,
-            ResourceType resource,
-            Task task,
+            @Nullable ConnectorSpec targetConnectorSpec,
+            @NotNull ConnectorSpec sourceConnectorSpec,
+            @NotNull PrismObjectDefinition<ResourceType> targetDefinition,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        var connectorWithSchema = connectorManager.getConnectorWithSchema(connectorSpec, result);
+        boolean isMain = sourceConnectorSpec.getConnectorName() == null;
+
+        var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition =
                 connectorWithSchema.getConfigurationContainerDefinition().clone();
 
-        PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
+        PrismContainer<ConnectorConfigurationType> sourceConfigurationContainer = sourceConnectorSpec.getConnectorConfiguration();
         // We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
         // the element is global in the connector schema. therefore it does not have correct maxOccurs
-        if (configurationContainer != null) {
-            configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
-            configurationContainer.applyDefinition(configurationContainerDefinition, true);
-            evaluateExpressions(configurationContainer, resource, task, result);
-        } else {
+        if (sourceConfigurationContainer != null) {
+            configurationContainerDefinition.adoptElementDefinitionFrom(sourceConfigurationContainer.getDefinition());
+        } else if (isMain) {
             configurationContainerDefinition.adoptElementDefinitionFrom(
-                    resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
+                    targetDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
         }
 
-        if (connectorSpec.getConnectorName() == null) {
+        PrismContainer<ConnectorConfigurationType> targetConfigurationContainer =
+                targetConnectorSpec != null ? targetConnectorSpec.getConnectorConfiguration() : null;
+        if (targetConfigurationContainer != null) {
+            targetConfigurationContainer.applyDefinition(configurationContainerDefinition, true);
+        }
+
+        if (isMain) {
             // Default connector, for compatibility
             // It does not make sense to update this for any other connectors.
             // We cannot have one definition for additionalConnector[1]/connectorConfiguration and
             // different definition for additionalConnector[2]/connectorConfiguration in the object definition.
             // The way to go is to set up definitions on the container level.
-            resourceDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
+            targetDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
+        }
+    }
+
+    /**
+     * Evaluates expressions in configuration properties (of all connectors). Assumes the definitions have been already applied.
+     */
+    void evaluateExpressionsInConfigurationProperties(
+            ResourceType resource,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
+            evaluateExpressionsInConfigurationProperties(connectorSpec, resource, task, result);
+        }
+    }
+
+    /**
+     * Evaluates expressions in configuration properties. Assumes the definitions have been already applied.
+     */
+    void evaluateExpressionsInConfigurationProperties(
+            ConnectorSpec connectorSpec,
+            ResourceType resource,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+        PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
+        if (configurationContainer != null) {
+            evaluateExpressions(configurationContainer, resource, task, result);
         }
     }
 
@@ -127,7 +198,7 @@ class ResourceSchemaHelper {
             ResourceType resource,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            ConfigurationException {
         try {
             //noinspection unchecked
             configurationContainer.accept(visitable -> {
@@ -149,17 +220,14 @@ class ResourceSchemaHelper {
                 throw (ObjectNotFoundException)e;
             } else if (e instanceof ExpressionEvaluationException) {
                 throw (ExpressionEvaluationException)e;
-            } else if (e instanceof CommunicationException) {
-                throw (CommunicationException)e;
             } else if (e instanceof ConfigurationException) {
                 throw (ConfigurationException)e;
-            } else if (e instanceof SecurityViolationException) {
-                throw (SecurityViolationException)e;
             } else if (e instanceof RuntimeException) {
                 throw (RuntimeException)e;
             } else if (e instanceof Error) {
                 throw (Error)e;
             } else {
+                // CommunicationException and SecurityViolationException are handled here (temporary solution)
                 throw new SystemException(e);
             }
         }
@@ -226,7 +294,7 @@ class ResourceSchemaHelper {
 
         if (delta.isAdd()) {
             ResourceType resource = delta.getObjectToAdd().asObjectable();
-            applyConnectorSchemasToResource(resource, task, objectResult);
+            applyConnectorSchemasToResource(resource, objectResult);
             return;
 
         } else if (delta.isModify()) {

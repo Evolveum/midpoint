@@ -17,7 +17,10 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
+import com.evolveum.midpoint.test.TestResource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -53,6 +55,12 @@ public class TestClockwork extends AbstractLensTest {
 
     @Autowired private Clockwork clockwork;
     @Autowired private TaskManager taskManager;
+
+    private static final TestResource<ResourceType> RESOURCE_TEMPLATE = new TestResource<>(
+            TEST_DIR, "resource-template.xml", "50070cb6-46f0-439e-ab77-29b82ed80d93");
+
+    private static final TestResource<ResourceType> RESOURCE_SPECIFIC_1 = new TestResource<>(
+            TEST_DIR, "resource-specific-1.xml", "94d2600e-37ac-4739-a037-246434c40535");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -336,12 +344,35 @@ public class TestClockwork extends AbstractLensTest {
     private void unassignJackAccount()
             throws SchemaException, ObjectNotFoundException, IOException, PolicyViolationException,
             ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            ConfigurationException, SecurityViolationException {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
         LensContext<UserType> context = createUserLensContext();
         OperationResult result = task.getResult();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
         clockwork.run(context, task, result);
+    }
+
+    @Test
+    public void test100AddResourceFromTemplate() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("there is a resource template");
+        importObjectFromFile(RESOURCE_TEMPLATE.file, task, result);
+
+        when("adding a specific resource");
+        RESOURCE_SPECIFIC_1.read();
+        modelService.executeChanges(
+                List.of(
+                        DeltaFactory.Object.createAddDelta(
+                                RESOURCE_SPECIFIC_1.getObject())),
+                null,
+                task,
+                result);
+
+        then("resource is added successfully");
+        assertSuccess(result);
+        assertResourceAfter(RESOURCE_SPECIFIC_1.oid);
     }
 }

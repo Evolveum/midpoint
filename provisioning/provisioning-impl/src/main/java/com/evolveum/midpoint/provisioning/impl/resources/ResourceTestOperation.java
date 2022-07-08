@@ -487,7 +487,8 @@ class ResourceTestOperation {
                 } else {
                     newResourceDefinition = resourceDefinition;
                 }
-                schemaHelper.applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
+                schemaHelper.applyConnectorSchemaToResource(connectorSpec, connectorSpec, newResourceDefinition, result);
+                schemaHelper.evaluateExpressionsInConfigurationProperties(connectorSpec, resource, task, result);
                 PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
                 PrismContainerValue<ConnectorConfigurationType> configuration =
                         configurationContainer != null ?

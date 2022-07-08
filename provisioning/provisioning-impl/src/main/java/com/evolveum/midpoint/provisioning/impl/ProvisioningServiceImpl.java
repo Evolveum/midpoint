@@ -851,7 +851,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
                 shadowsFacade.applyDefinition((ObjectDelta<ShadowType>) delta, (ShadowType) object, task, result);
             } else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                resourceManager.applyDefinition((ObjectDelta<ResourceType>) delta, (ResourceType) object, null, task, result);
+                resourceManager.applyDefinition(
+                        (ObjectDelta<ResourceType>) delta, (ResourceType) object, null, task, result);
             } else {
                 throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
             }
@@ -879,7 +880,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (object.isOfType(ShadowType.class)) {
                 shadowsFacade.applyDefinition((PrismObject<ShadowType>) object, task, result);
             } else if (object.isOfType(ResourceType.class)) {
-                resourceManager.applyDefinition((PrismObject<ResourceType>) object, task, result);
+                resourceManager.applyDefinition((ResourceType) object.asObjectable(), result);
             } else {
                 throw new IllegalArgumentException("Could not apply definition to object type: " + object.getCompileTimeClass());
             }

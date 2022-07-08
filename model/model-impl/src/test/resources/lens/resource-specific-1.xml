@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="94d2600e-37ac-4739-a037-246434c40535"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>resource-specific-1</name>
+    <super>
+        <resourceRef oid="50070cb6-46f0-439e-ab77-29b82ed80d93"/>
+    </super>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>specific-1</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+</resource>

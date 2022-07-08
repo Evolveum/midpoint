@@ -77,6 +77,20 @@ public abstract class ConnectorSpec {
         return connectorSpecs;
     }
 
+    public static @Nullable ConnectorSpec find(@NotNull ResourceType resource, @Nullable String name)
+            throws ConfigurationException {
+        if (name == null) {
+            return ConnectorSpec.main(resource);
+        } else {
+            for (ConnectorInstanceSpecificationType additionalConnector : resource.getAdditionalConnector()) {
+                if (name.equals(additionalConnector.getName())) {
+                    return additional(resource, additionalConnector);
+                }
+            }
+            return null;
+        }
+    }
+
     public @NotNull ResourceType getResource() {
         return resource;
     }

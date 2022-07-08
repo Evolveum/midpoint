@@ -120,7 +120,7 @@ class ResourceCompletionOperation {
         result = parentResult.createMinorSubresult(OP_COMPLETE_RESOURCE);
         try {
             expand(resource);
-            applyConnectorSchema();
+            applyConnectorSchemaAndExpressions();
 
             ResourceType completed;
             if (!ResourceTypeUtil.isComplete(resource)) {
@@ -155,13 +155,14 @@ class ResourceCompletionOperation {
         }
     }
 
-    private void applyConnectorSchema() throws StopException {
+    private void applyConnectorSchemaAndExpressions() throws StopException {
         try {
-            schemaHelper.applyConnectorSchemasToResource(resource, task, result);
+            schemaHelper.applyConnectorSchemasToExpandedResource(resource, result);
+            schemaHelper.evaluateExpressionsInConfigurationProperties(resource, task, result);
         } catch (Throwable t) {
             String message =
-                    "An error occurred while applying connector schema to connector configuration of " + resource + ": "
-                            + t.getMessage();
+                    "An error occurred while applying connector schema and expressions to connector configuration of "
+                            + resource + ": " + t.getMessage();
             result.recordPartialError(message, t); // Maybe fatal is more appropriate
             LOGGER.warn(message, t);
             throw new StopException();
@@ -198,8 +199,9 @@ class ResourceCompletionOperation {
 
         expand(reloaded);
 
-        // Schema is in some cases applied (when expanding), but expressions in configuration need to be resolved.
-        schemaHelper.applyConnectorSchemasToResource(reloaded, task, result);
+        // Schema is in some cases applied (when expanding).
+        schemaHelper.applyConnectorSchemasToExpandedResource(reloaded, result);
+        schemaHelper.evaluateExpressionsInConfigurationProperties(reloaded, task, result);
 
         LOGGER.trace("Completed resource after reload:\n{}", reloaded.debugDumpLazily(1));
 

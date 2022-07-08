@@ -315,9 +315,13 @@ public class ResourceManager {
         schemaHelper.applyDefinition(delta, resourceWhenNoOid, options, task, objectResult);
     }
 
-    public void applyDefinition(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
+    /**
+     * Applies a definition on a resource coming from the external client - i.e. it is a resource we know nothing about.
+     * It may be e.g. unexpanded (deriving from a super-resource and not yet expanded).
+     */
+    public void applyDefinition(ResourceType resource, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
-        schemaHelper.applyConnectorSchemasToResource(resource.asObjectable(), task, parentResult);
+        schemaHelper.applyConnectorSchemasToResource(resource, result);
     }
 
     public void applyDefinition(ObjectQuery query, OperationResult result) {

@@ -703,4 +703,12 @@ public class ResourceTypeUtil {
     public static boolean isTemplate(@NotNull ResourceType resource) {
         return Boolean.TRUE.equals(resource.isTemplate());
     }
+
+    /**
+     * Note that this method is not 100% accurate. It's because even if the resource is expanded, currently the `super`
+     * item is not removed. This may change in the future.
+     */
+    public static boolean doesNeedExpansion(ResourceType resource) {
+        return resource.getSuper() != null;
+    }
 }
