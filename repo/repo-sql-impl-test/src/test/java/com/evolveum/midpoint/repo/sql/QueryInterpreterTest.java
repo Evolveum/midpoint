@@ -2388,6 +2388,32 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test165QueryObjectOrderByExtensionItem() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    // Ordering supports only single-value extensions, e.g. "weapon" would not work here.
+                    .asc(UserType.F_EXTENSION, new QName("http://example.com/p", "shipName"))
+                    .build();
+
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
+            assertThat(realQuery.getQuery().getQueryString())
+                    .isEqualToIgnoringWhitespace("select\n"
+                            + "  _u.oid,\n"
+                            + "  _u.fullObject\n"
+                            + "from\n"
+                            + "  RUser _u\n"
+                            + "    left join _u.strings _s with (\n"
+                            + "_s.ownerType = :ownerType and\n"
+                            + "1=0\n"
+                            + ")\n"
+                            + "order by _s.value asc");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test166QueryObjectTypeByTypeAndReference() throws Exception {
         Session session = open();
         try {
