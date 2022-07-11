@@ -17,11 +17,16 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -34,6 +39,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -153,23 +159,37 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             PrismObject<ResourceType> obj = def.instantiate();
 
             ResourceTemplate resourceTemplate = tile.getTemplateObject();
-            if (resourceTemplate != null){
+            if (resourceTemplate != null) {
                 if (QNameUtil.match(ConnectorType.COMPLEX_TYPE, resourceTemplate.type)) {
-                    obj.asObjectable().connectorRef(
-                            new ObjectReferenceType()
+                    obj.asObjectable().beginConnectorRef()
                                     .oid(resourceTemplate.oid)
-                                    .type(ConnectorType.COMPLEX_TYPE));
+                                    .type(ConnectorType.COMPLEX_TYPE);
                 } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, resourceTemplate.type)) {
-                    obj.asObjectable()._super(
-                            new SuperResourceDeclarationType()
-                                    .resourceRef(
-                                            new ObjectReferenceType()
-                                                .oid(resourceTemplate.oid)
-                                                .type(ResourceType.COMPLEX_TYPE)));
+                    Task task = getPageBase().createSimpleTask("load resource template");
+                    OperationResult result = task.getResult();
+//                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(
+//                            ResourceType.class,
+//                            resourceTemplate.oid,
+//                            getPageBase(),
+//                            task,
+//                            result);
+//                    if (resource != null) {
+                    obj.asObjectable().beginSuper().beginResourceRef()
+                            .oid(resourceTemplate.oid)
+                            .type(ResourceType.COMPLEX_TYPE);
+//                        obj = resource.cloneComplex(CloneStrategy.REUSE);
+                        getPageBase().getModelInteractionService().expandConfigurationObject(obj, task, result);
+//                    }
+
+                    result.computeStatus();
+                    if (!result.isSuccess()) {
+                        getPageBase().showResult(result);
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
                 }
             }
             onTemplateChosePerformed(obj, target);
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
@@ -193,7 +213,6 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                                 loadResourceTemplateTask.getResult(),
                                 getPageBase());
 
-
                 if (CollectionUtils.isNotEmpty(connectors)) {
                     connectors.forEach(connector -> {
                         @NotNull ConnectorType connectorObject = connector.asObjectable();
@@ -215,9 +234,18 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 @NotNull List<PrismObject<ResourceType>> resources =
                         WebModelServiceUtils.searchObjects(
                                 ResourceType.class,
-                                searchModel.getObject().createObjectQuery(getPageBase()), // TODO fix me
+                                searchModel.getObject().createObjectQuery(
+//                                        null,
+                                        getPageBase() //,
+//                                        PrismContext.get()
+//                                                .queryFor(ResourceType.class)
+//                                                .item(ResourceType.F_TEMPLATE) //TODO uncomment after adding to repo
+//                                                .eq(true).build()
+                                ),
                                 loadResourceTemplateTask.getResult(),
                                 getPageBase());
+
+                resources.removeIf(resource -> !Boolean.TRUE.equals(resource.asObjectable().isTemplate())); //TODO remove after adding to repo
 
                 if (CollectionUtils.isNotEmpty(resources)) {
                     resources.forEach(resource -> {
@@ -255,7 +283,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         private String oid;
         private QName type;
 
-        ResourceTemplate(String oid, QName type){
+        ResourceTemplate(String oid, QName type) {
             this.oid = oid;
             this.type = type;
         }

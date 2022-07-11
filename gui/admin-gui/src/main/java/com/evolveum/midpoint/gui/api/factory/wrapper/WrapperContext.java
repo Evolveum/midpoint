@@ -66,8 +66,6 @@ public class WrapperContext {
      private GuiObjectDetailsPageType detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
-    private DiscoveredConfiguration connectorConfigurationSuggestions;
-
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
         this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -250,14 +248,6 @@ public class WrapperContext {
         this.detailsPageTypeConfiguration = detailsPageTypeConfiguration;
     }
 
-    public DiscoveredConfiguration getConnectorConfigurationSuggestions() {
-        return connectorConfigurationSuggestions;
-    }
-
-    public void setConnectorConfigurationSuggestions(DiscoveredConfiguration connectorConfigurationSuggestions) {
-        this.connectorConfigurationSuggestions = connectorConfigurationSuggestions;
-    }
-
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -274,7 +264,6 @@ public class WrapperContext {
         ctx.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
         ctx.lookupTableCache = lookupTableCache;
         ctx.setDetailsPageTypeConfiguration(detailsPageTypeConfiguration);
-        ctx.setConnectorConfigurationSuggestions(connectorConfigurationSuggestions);
         return ctx;
     }
 }

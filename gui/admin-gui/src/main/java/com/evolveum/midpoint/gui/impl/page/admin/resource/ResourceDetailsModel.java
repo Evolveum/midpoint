@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ObjectClassWrapper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
@@ -30,15 +31,13 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -185,11 +184,12 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         this.connectorConfigurationSuggestions = connectorConfigurationSuggestions;
     }
 
-    protected void customizationWrapperContext(WrapperContext ctx) {
-        ctx.setConnectorConfigurationSuggestions(this.connectorConfigurationSuggestions);
-    }
-
     public IModel<List<ObjectClassWrapper>> getObjectClassesModel() {
         return objectClassesModel;
+    }
+
+    @Override
+    public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
+        return super.collectDeltas(result);
     }
 }
