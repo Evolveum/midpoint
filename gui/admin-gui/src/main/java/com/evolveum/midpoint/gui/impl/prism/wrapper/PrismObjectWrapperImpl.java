@@ -78,6 +78,10 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
         shadowDeltas.add(shadowRefDelta);
     }
 
+    protected List<ReferenceDelta> getShadowDeltas() {
+        return shadowDeltas;
+    }
+
     @Override
     @Deprecated
     public String getOid() {

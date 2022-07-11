@@ -8,11 +8,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceWrapper;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+
+import java.util.Collection;
 
 /**
  * @author lskublik
@@ -59,12 +71,28 @@ public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
 
         try {
             DiscoveredConfiguration discoverProperties = pageBase.getModelService().discoverResourceConnectorConfiguration(
-                            getResourceModel().getObjectWrapper().getObjectApplyDelta(), result);
+                    getResourceModel().getObjectWrapper().getObjectApplyDelta(), result);
 
-            getResourceModel().reloadPrismObjectModel(getResourceModel().getObjectWrapper().getObjectApplyDelta());
-            getResourceModel().setConnectorConfigurationSuggestions(discoverProperties);
-            getResourceModel().getObjectWrapperModel().reset();
+            for (PrismProperty<?> suggestion : discoverProperties.getDiscoveredProperties()) {
+                PrismPropertyDefinition<?> suggestionDef = suggestion.getDefinition();
 
+                PrismPropertyWrapper<Object> item = getResourceModel().getObjectWrapper().findProperty(
+                        ItemPath.create(
+                                "connectorConfiguration",
+                                "configurationProperties",
+                                suggestionDef.getItemName()));
+
+                if (item != null) {
+                    if (suggestionDef.getAllowedValues() != null && !suggestionDef.getAllowedValues().isEmpty()) {
+                        item.toMutable().setAllowedValues(
+                                (Collection<? extends DisplayableValue<Object>>) suggestionDef.getAllowedValues());
+                    }
+                    if (suggestionDef.getSuggestedValues() != null && !suggestionDef.getSuggestedValues().isEmpty()) {
+                        item.toMutable().setSuggestedValues(
+                                (Collection<? extends DisplayableValue<Object>>) suggestionDef.getSuggestedValues());
+                    }
+                }
+            }
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't get discovered configuration.", e);
         }

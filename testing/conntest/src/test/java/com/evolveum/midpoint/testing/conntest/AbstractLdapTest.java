@@ -463,6 +463,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertNotNull("Null native capabilities", nativeCapabilities);
         assertFalse("Empty native capabilities", CapabilityUtil.isEmpty(nativeCapabilities));
 
+        assertCapability(nativeCapabilities, DiscoverConfigurationCapabilityType.class);
         assertCapability(nativeCapabilities, ReadCapabilityType.class);
         assertCapability(nativeCapabilities, CreateCapabilityType.class);
         assertCapability(nativeCapabilities, UpdateCapabilityType.class);

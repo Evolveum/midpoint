@@ -252,7 +252,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
 
                     delta.addValueToAdd(valueToAdd);
                     deltas.add((D) delta);
-                    LOGGER.trace("Computed delta: \n {}", delta.debugDump());
+                    LOGGER.trace("Computed delta: \n {}", delta);
                     break;
                 case NOT_CHANGED:
                     for (ItemWrapper iw : pVal.getItems()) {
