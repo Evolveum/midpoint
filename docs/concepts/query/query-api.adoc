@@ -1008,7 +1008,8 @@ filter:
 Example demonstrates unique features of the `ownedBy` filter - that is the embedded `path`
 and `type` information - note that these are prefixed with `@` in the Axiom query.
 
-.Container path in the owning object
+==== Container path in the owning object
+
 OwnedBy filter logically resolves a previous limitation in filtering assignments vs inducements.
 These are both of `AssignmentType` and selecting them by parent is not enough to select only one or the other.
 To qualifiy the actual container, `ownedBy` filter allows us to specify the `path` for the container in the parent.
@@ -1017,7 +1018,8 @@ Currently, this is relevant only for assignments and inducements (and only for s
 where `inducement` container is defined), but it makes the filter more flexible in general.
 The path is optional in cases with no ambuguity, e.g. `CaseWorkItem` is used only by a single container in the `CaseType`.
 
-.Owner type
+==== Owner type
+
 OwnedBy filter mandates specifying the `type` of the owning object.
 This is more efficient than adding a `type` filter into `exists(..)` filter.
 Even though the parent type is obviousl for some container types (`AccessCertificationCaseType`,
@@ -1029,7 +1031,8 @@ and specify `type = FocusType`, assuming there is no other focus object with tha
 But it is both clearer and more efficient to specify `type = UserType`.
 Of course, if owners of various types are checked, usage of the common super type is perfectly fine.
 
-.Searching by owner ID
+==== Searching by owner ID
+
 Filtering by the owner using universal filter is
 When searching by owner ID (object OID, unless the containers are deeply nested like `AccessCertificationWorkItemType`)
 one can use `inOid` filter in the inner `filter`:
@@ -1148,7 +1151,7 @@ prismContext.queryFor(AccessCertificationWorkItemType.class)
     .endBlock()
 ----
 
-.When to use "old" filters?
+==== When to use other filters?
 
 Sometimes the `ownedBy` filter can be replaced by one of existing filters - and often it is more efficient.
 (Perhaps in the future you can write `ownedBy` filter and it will be optimized for you, but it is not the case yet.)
@@ -1233,7 +1236,7 @@ In other words: Search for access certification work items which belong to ("for
 the access certification case with container id 1 (`inOid` without `considerOwner`) and belong
 to the object (access certication) with the specfified OID (`inOid` with `considerOwner` set to true).
 
-To summerize the `ownedBy` filter:
+==== OwnedBy summarization
 
 * OwnedBy filter is similar to `exists` with `..` (`T_PARENT` in Java API) with a few extensions.
 * It allows to narrow the `type` (`@type` in Axiom) which is more efficient than addin `type` filter
