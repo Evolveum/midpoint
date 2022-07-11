@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemCo
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
             @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {
-                onSelectionPerformed(target, (IModel) rowModel, null);
+                onSelectionPerformed(target, Arrays.asList((IModel) rowModel), null);
             }
 
             @Override
