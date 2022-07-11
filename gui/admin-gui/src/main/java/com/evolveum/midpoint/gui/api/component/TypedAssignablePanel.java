@@ -408,7 +408,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel, DataTable table) {
+            protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<T>>> rowModelList, DataTable table) {
                 if (type.equals(ObjectTypes.RESOURCE)) {
                     target.add(TypedAssignablePanel.this);
                 }
