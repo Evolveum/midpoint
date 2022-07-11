@@ -114,7 +114,17 @@ These are typically written in the same format as the object, for instance XML.
 * Finally, filters and queries can be written using fluent Java-based API, which is useful not only for
 hard-core customizations (e.g. with xref:/midpoint/reference/deployment/maven-overlay-project.adoc[midPoint Overlay] mechanism) but also for xref:/midpoint/reference/expressions/expressions/script/[script expressions] written typically in Groovy language.
 
+[IMPORTANT]
+Axiom is experimentally available since 4.3 and fully supported since 4.5.
+
 Here is an example of the same filter in various representations:
+
+[source,axiom]
+----
+( costCenter > "100000" and costCenter < "999999" )
+or
+( costCenter >= "X100" and costCenter <= "X999" )
+----
 
 [source,xml]
 ----
@@ -142,13 +152,6 @@ Here is an example of the same filter in various representations:
         </and>
     </or>
 </filter>
-----
-
-[source,axiom]
-----
-( costCenter > "100000" and costCenter < "999999" )
-or
-( costCenter >= "X100" and costCenter <= "X999" )
 ----
 
 [source,java]
@@ -217,7 +220,12 @@ filter:
 }
 ----
 
-Please, note, that in various
+Please, note, that in some situations the syntax of XML requires more strict usage of namespaces.
+In this guide we will not use namespaces to make the examples shorter.
+The namespaces are mostly not necessary, just be ready to add them if the parser complains.
+
+// TODO more about how to start and end Java, example of Groovy inside XML
+// TODO mention that most of the examples will omit build/buildFilter calls, but keep the intro (just to clarify the type)
 
 == Query playground
 
@@ -776,6 +784,9 @@ See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 {% include since.html since="4.6" %}
 ++++
 
+[IMPORTANT]
+Ref filter with nested target filter is supported only for repository searches.
+
 `Ref` filter can optionally contain a nested *target filter* which is applied to the target of the reference.
 When the `filter` element is present, it is applied as an additional test for each possible value.
 
@@ -817,12 +828,22 @@ That is definitely not, what the user expects.
 *Multi-value refs are not supported for the old generic repository!*
 While the query seemingly works, it uses two different ``JOIN``s for the value conditions and target filter which may lead to surprising and incorrect results.
 
-==== Ref filter with single value and target filter
+==== Ref filter with one value and target filter
 
 To be able to apply both reference conditions (provided as `value` elements) and a `filter`
 for the target of the same reference value we can use the complex `ref` filter that includes
 target `filter` as part of the `ref` filter.
 For example, we can filter users that are members of roles with names starting with the specified string like this:
+
+[source,axiom]
+----
+roleMembershipRef matches (
+    targetType = RoleType
+    and
+    // @ represents ref target, target filter is inside (...)
+    @ matches (
+        name startsWith[origIgnoreCase] "super" ) )
+----
 
 [source,xml]
 ----
@@ -842,19 +863,10 @@ For example, we can filter users that are members of roles with names starting w
 </filter>
 ----
 
-[source,axiom]
-----
-roleMembershipRef matches (
-    targetType = RoleType
-    and
-    // @ represents ref target, target filter is inside (...)
-    @ matches (
-        name startsWith[origIgnoreCase] "super" ) )
-----
-
 [source,java]
 ----
-f.ref(FocusType.F_ROLE_MEMBERSHIP_REF, RoleType.COMPLEX_TYPE)
+prismContext.queryFor(UserType.class)
+    .ref(FocusType.F_ROLE_MEMBERSHIP_REF, RoleType.COMPLEX_TYPE)
     .item(ObjectType.F_NAME).startsWith("super").matching("origIgnoreCase")
 ----
 
@@ -912,18 +924,217 @@ must match any of the provided values *and* the target object for the matching r
 
 === OwnedBy filter
 
+++++
+{% include since.html since="4.6" %}
+++++
+
+[IMPORTANT]
+This filter is supported only for repository searches.
+
 This filter is related to containers and is practical in container searches.
 It allows searches like "give me all assignments for any user" or "for any user with name starting with 'a'".
 
 OwnedBy filter is a generalization and simplification of a few existing mechanisms:
 
-* `inOid` filter with `considerOwner` set to true - which allows to find containers for an object with specified OID, but is arguably ugly;
+* `inOid` filter with `considerOwner` set to true - which allows to find containers for an object with specified OID;
 * `exists` filter on `..` (`T_PARENT`) path, where, again, one can use `inOid` (without `considerOwner`
 this time), but also other conditions;
 * or a value filter with an item in the parent, e.g. `../costCenter = "001"`.
 
+OwnedBy filter allows to specify necessary basic information about the owner object and add filter on it as well.
+
+Let's start with an example of filtering assignments for a user with specified name:
+
+[source,axiom]
+----
+. ownedBy (
+    @type = UserType
+    and @path = assignment
+    and name = "user-3"
+)
+----
+
+[source,xml]
+----
+<filter>
+    <ownedBy>
+        <type>UserType</type>
+        <path>assignment</path>
+        <filter>
+            <equal>
+                <path>name</path>
+                <value>user-3</value>
+            </equal>
+        </filter>
+    </ownedBy>
+</filter>
+----
+
+[source,java]
+----
+prismContext.queryFor(UserType.class)
+    .ownedBy(UserType.class, F_ASSIGNMENT)
+    .item(F_NAME).eq("user-3")) // nested filter for ownedBy
+----
+
+[source,yaml]
+----
+filter:
+  ownedBy:
+    type: "UserType"
+    path: "assignment"
+    filter:
+      equal:
+        path: "name"
+        value: "user-3"
+----
+
+[source,json]
+----
+"filter" : {
+  "ownedBy" : {
+    "type" : "UserType",
+    "path" : "assignment",
+    "filter" : {
+      "equal" : {
+        "path" : "name",
+        "value" : "user-3"
+      }
+    }
+  }
+}
+----
+
+Example demonstrates unique features of the `ownedBy` filter - that is the embedded `path`
+and `type` information - note that these are prefixed with `@` in the Axiom query.
+
+.Container path in the owning object
+OwnedBy filter logically resolves a previous limitation in filtering assignments vs inducements.
+These are both of `AssignmentType` and selecting them by parent is not enough to select only one or the other.
+To qualifiy the actual container, `ownedBy` filter allows us to specify the `path` for the container in the parent.
+This was previously not possible and allows to query only for container values on that path - even if the same object type has other containers of the same type.
+Currently, this is relevant only for assignments and inducements (and only for subtypes of `AbstractRoleType`
+where `inducement` container is defined), but it makes the filter more flexible in general.
+The path is optional in cases with no ambuguity, e.g. `CaseWorkItem` is used only by a single container in the `CaseType`.
+
+.Owner type
+OwnedBy filter mandates specifying the `type` of the owning object.
+This is more efficient than adding a `type` filter into `exists(..)` filter.
+Even though the parent type is obviousl for some container types (`AccessCertificationCaseType`,
+`AccessCertificationWorkItemType` and `CaseWorkItemType`) it is a required parameter of the filter.
+
+It is always preferred to specify the most concrete type possible - for instance, when searching
+for assignments of the administrator user, one can use inner filter `name = "administrator"`
+and specify `type = FocusType`, assuming there is no other focus object with that name.
+But it is both clearer and more efficient to specify `type = UserType`.
+Of course, if owners of various types are checked, usage of the common super type is perfectly fine.
+
+.Searching by owner ID
+Filtering by the owner using universal filter is
+When searching by owner ID (object OID, unless the containers are deeply nested like `AccessCertificationWorkItemType`)
+one can use `inOid` filter in the inner `filter`:
+
 ////
-// TODO examples and exists/exists or parent/parent problem + assignment vs inducement problem
+TODO: how to do this in Axiom?
+[source,axiom]
+----
+. ownedBy (
+    @type = UserType
+    and . inOrg "299a0b60-564a-42cb-b471-8e4c90272cd4"
+)
+----
+////
+
+[source,xml]
+----
+<filter>
+    <ownedBy>
+        <type>CaseType</type>
+        <filter>
+            <inOid>
+                <!-- OID of a concrete case, multiple values possible -->
+                <value>299a0b60-564a-42cb-b471-8e4c90272cd4</value>
+            </inOid>
+        </filter>
+    </ownedBy>
+</filter>
+----
+
+[source,java]
+----
+prismContext.queryFor(CaseWorkItemType.class)
+    .ownedBy(CaseType.class)
+    .id(case1Oid)
+----
+
+Of course, the `ownedBy` filter can be combined with other filters applied to the container itself
+(e.g. you want only work items with `closeTimestamp` before specified time), typically by wrapping
+all the filters inside the `and` filter.
+
+.Nested containers example
+It is possible to nest `ownedBy` filters to search by the "parent's parent".
+This is handy when we search containers that are nested in another container.
+Typical example is `AccessCertificationWorkItemType` that is under `AccessCertificationCaseType`
+container of the object type `AccessCertificationCampaignType`.
+
+The following example shows the search for all `AccessCertificationWorkItemType` containers that
+are part of an object with specfied OID:
+
+[source,xml]
+----
+<filter>
+    <ownedBy>
+        <type>AccessCertificationCaseType</type>
+        <filter>
+            <ownedBy>
+                <type>AccessCertificationCampaignType</type>
+                <filter>
+                    <inOid>
+                        <value>a4397437-db99-413d-ae60-a437624dc8c8</value>
+                    </inOid>
+                </filter>
+            </ownedBy>
+        </filter>
+    </ownedBy>
+</filter>
+----
+
+[source,java]
+----
+prismContext.queryFor(AccessCertificationWorkItemType.class)
+    .ownedBy(AccessCertificationCaseType.class)
+    .ownedBy(AccessCertificationCampaignType.class)
+    .id(accCertCampaign1Oid)
+----
+
+The next example shows a similar search, but this time limited to the work items under a single
+`AccessCertificationCaseType` container specified by its container ID in addition to the object OID:
+
+[source,xml]
+----
+<filter>
+    <ownedBy>
+        <type>AccessCertificationCaseType</type>
+        <filter>
+            <and>
+                <inOid>
+                    <!-- container ID of owning AccessCertificationCaseType -->
+                    <value>1</value>
+                </inOid>
+                <ownedBy>
+                    <type>AccessCertificationCampaignType</type>
+                    <filter>
+                        <inOid>
+                            <!-- OID of the owning object -->
+                            <value>37f1f742-37e9-49ed-96e5-4b28a2b6bed8</value>
+                        </inOid>
+                    </filter>
+                </ownedBy>
+            </and>
+        </filter>
+    </ownedBy>
+</filter>
+----
 
 [source,java]
 ----
@@ -934,9 +1145,107 @@ prismContext.queryFor(AccessCertificationWorkItemType.class)
         .and()
         .ownedBy(AccessCertificationCampaignType.class)
         .id(accCertCampaignOid) // OID of the owning object
-    .endBlock());
+    .endBlock()
 ----
-////
+
+.When to use "old" filters?
+
+Sometimes the `ownedBy` filter can be replaced by one of existing filters - and often it is more efficient.
+(Perhaps in the future you can write `ownedBy` filter and it will be optimized for you, but it is not the case yet.)
+The following filters can often do the same job:
+
+* `exists` filter with `..` path,
+* `inOid` filter with `considerOwner` flag set to true, when only parent's ID/OID is important.
+
+For instance, the last nested `ownedBy` filter that only specified parent object OID can be written
+using existing `inOid` filter with `considerOwner` flag, so there is no need for the inner `ownedBy`:
+
+[source,xml]
+----
+<filter>
+    <ownedBy>
+        <type>AccessCertificationCaseType</type>
+        <filter>
+            <and>
+                <inOid>
+                    <value>1</value>
+                </inOid>
+                <inOid>
+                    <value>817dba10-9d5f-4ff2-ad76-88a6d85cb3e2</value>
+                    <considerOwner>true</considerOwner>
+                </inOid>
+            </and>
+        </filter>
+    </ownedBy>
+</filter>
+----
+
+[source,java]
+----
+prismContext.queryFor(AccessCertificationWorkItemType.class)
+    .ownedBy(AccessCertificationCaseType.class)
+    .block()
+        .id(1)
+        .and()
+        .ownerId(accCertCampaign1Oid)
+    .endBlock()
+----
+
+As an implementation note, this query is more efficient, because it internally uses the `ownerOid`
+column from the `AccessCertificationCaseType` container table instead of checking the `oid` column
+on the parent table, so it's "one less join" (in very simplified terms).
+This may not warrant optimization for this particular query, but may be noticable for others.
+
+Even the outer `ownedBy` filter can be replaced in the previous examples:
+
+[source,xml]
+----
+<filter>
+    <exists>
+        <path>..</path>
+        <filter>
+            <and>
+                <inOid>
+                    <value>d1ae23ed-dfa2-4b5c-807d-6611e7831b8f</value>
+                    <considerOwner>true</considerOwner>
+                </inOid>
+                <inOid>
+                    <value>1</value>
+                </inOid>
+            </and>
+        </filter>
+    </exists>
+</filter>
+----
+
+[source,java]
+----
+prismContext.queryFor(AccessCertificationWorkItemType.class)
+    .exists(T_PARENT)
+    .block()
+        .ownerId(accCertCampaign1Oid)
+        .and()
+        .id(1)
+    .endBlock()
+----
+
+In other words: Search for access certification work items which belong to ("for which exists")
+the access certification case with container id 1 (`inOid` without `considerOwner`) and belong
+to the object (access certication) with the specfified OID (`inOid` with `considerOwner` set to true).
+
+To summerize the `ownedBy` filter:
+
+* OwnedBy filter is similar to `exists` with `..` (`T_PARENT` in Java API) with a few extensions.
+* It allows to narrow the `type` (`@type` in Axiom) which is more efficient than addin `type` filter
+inside the `exists ..` filter.
+* It allows to specify the item path for the owned container (the path from the owning object/container).
+This is a unique feature that allows to distinguish between assignments and inducements
+where it was previously not possile.
+* If simple check on parent's ID/OID is needed, prefer `inOid` filter with `considerOwner` flag.
+Using `inOid` for the filtered owning object itself works equally well with both `ownedBy` and `exists ..`.
+* It is possible to use value filters with item paths containing parent (`..`) segment for simple cases,
+but ambiguous cases (assignments vs inducements) will complain about the parent definition.
+In these cases you have to use `ownedBy` filter instead.
 
 [NOTE]
 Technically, the filter can be used in object searches.
@@ -944,6 +1253,15 @@ For instance, it can be used inside the `exists` filter for container path.
 However, this is meaningless, because the same conditions can be applied directly on the searched object.
 
 === ReferencedBy filter
+
+++++
+{% include since.html since="4.6" %}
+++++
+
+[IMPORTANT]
+This filter is supported only for the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
+
+// TODO
 
 == Differences in filter interpretation
 
@@ -1518,6 +1836,9 @@ This example returns all objects with a name starting with "C".
 This example returns all objects with extension attribute "EndDate" (type of XMLGregorianCalendar), which is set since 31 December last year to 01 January of this year.
 
 === Special symbols in item paths (`..`, `@`, `#`)
+
+// TODO move higher somewhere to value filters and discuss item paths thoroughly.
+// TODO definitely make .. non-experimental for all the basic and currently well-supported cases.
 
 [NOTE]
 This section is not up-to-date with midPoint 4.4 LTS version.
