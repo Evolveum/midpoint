@@ -564,12 +564,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel, DataTable dataTable) {
-                                target.add(getObjectListPanel());
-                                tabLabelPanelUpdate(target);
-                            }
-
-                            @Override
                             protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ArchetypeType>> rowModel) {
                                 if (rowModel == null) {
                                     return Model.of(false);
