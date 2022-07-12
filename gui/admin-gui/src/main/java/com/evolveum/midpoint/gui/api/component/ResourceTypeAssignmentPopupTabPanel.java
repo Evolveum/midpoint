@@ -284,7 +284,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel, DataTable dataTable) {
+    protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<ResourceType>>> rowModelList, DataTable dataTable) {
         TableUtil.updateRows(dataTable, target);
         target.add(getKindDropDown());
         target.add(getIntentDropDown());

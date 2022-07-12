@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -51,9 +52,14 @@ public class RequestAccess implements Serializable {
     private static final String DOT_CLASS = RequestAccess.class.getName() + ".";
     private static final String OPERATION_COMPUTE_ALL_CONFLICTS = DOT_CLASS + "computeAllConflicts";
     private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
+    private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
+    private static final String OPERATION_REQUEST_ASSIGNMENTS_SINGLE = DOT_CLASS + "requestAssignmentsSingle";
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
+    /**
+     * This map contains existing assignments from users that have to be removed to avoid conflicts when requesting
+     */
     private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
 
     private Set<AssignmentType> selectedAssignments = new HashSet<>();
@@ -172,11 +178,19 @@ public class RequestAccess implements Serializable {
     }
 
     public List<AssignmentType> getShoppingCartAssignments(ObjectReferenceType personOfInterestRef) {
+        return getAssignments(personOfInterestRef, requestItems);
+    }
+
+    private List<AssignmentType> getAssignmentsToBeRemoved(ObjectReferenceType personOfInterestRef) {
+        return getAssignments(personOfInterestRef, requestItemsExistingToRemove);
+    }
+
+    private List<AssignmentType> getAssignments(ObjectReferenceType personOfInterestRef, Map<ObjectReferenceType, List<AssignmentType>> map) {
         if (personOfInterestRef == null) {
             return new ArrayList<>();
         }
 
-        List<AssignmentType> assignments = requestItems.get(personOfInterestRef);
+        List<AssignmentType> assignments = map.get(personOfInterestRef);
         return assignments != null ? assignments : new ArrayList<>();
     }
 
@@ -311,13 +325,9 @@ public class RequestAccess implements Serializable {
         OperationResult result = task.getResult().createSubresult(OPERATION_COMPUTE_CONFLICT);
         try {
             PrismObject<UserType> user = WebModelServiceUtils.loadObject(ref, page);
-            ObjectDelta<UserType> delta = user.createModifyDelta();
-
-            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-
             ObjectReferenceType userRef = createRef(user);
-            List<AssignmentType> assignments = getShoppingCartAssignments(userRef);
-            createAssignmentDelta(delta, assignments, def);
+
+            ObjectDelta<UserType> delta = createUserDelta(user);
 
             PartialProcessingOptionsType processing = new PartialProcessingOptionsType();
             processing.setInbound(SKIP);
@@ -425,17 +435,38 @@ public class RequestAccess implements Serializable {
         return sb.toString();
     }
 
-    private ContainerDelta createAssignmentDelta(ObjectDelta<UserType> focusDelta,
-            List<AssignmentType> assignments, PrismContainerDefinition def) throws SchemaException {
+    private ObjectDelta<UserType> createUserDelta(PrismObject<UserType> user) throws SchemaException {
+
+        ObjectReferenceType userRef = createRef(user);
+        List<AssignmentType> assignmentsToAdd = getShoppingCartAssignments(userRef);
+        List<AssignmentType> assignmentsToRemove = getAssignmentsToBeRemoved(userRef);
+
+        ObjectDelta<UserType> delta = user.createModifyDelta();
+
+        PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+
+        addAssignmentDeltas(delta, assignmentsToAdd, def, true);
+        addAssignmentDeltas(delta, assignmentsToRemove, def, false);
+
+        return delta;
+    }
+
+    private ContainerDelta addAssignmentDeltas(ObjectDelta<UserType> focusDelta, List<AssignmentType> assignments,
+            PrismContainerDefinition def, boolean addAssignments) throws SchemaException {
 
         PrismContext ctx = def.getPrismContext();
-        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);  //todo use this probably def.createEmptyDelta(ItemPath.EMPTY_PATH)
+        //todo use this probably def.createEmptyDelta(ItemPath.EMPTY_PATH)
+        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
 
         for (AssignmentType a : assignments) {
             PrismContainerValue newValue = a.asPrismContainerValue();
 
             newValue.applyDefinition(def, false);
-            delta.addValueToAdd(newValue.clone());
+            if (addAssignments) {
+                delta.addValueToAdd(newValue.clone());
+            } else {
+                delta.addValueToDelete(newValue.clone());
+            }
         }
 
         if (!delta.isEmpty()) {
@@ -458,10 +489,10 @@ public class RequestAccess implements Serializable {
     public void solveConflict(Conflict conflict, ConflictItem toRemove) {
         if (toRemove.isExisting()) {
             addExistingToBeRemoved(conflict.getPersonOfInterest(), toRemove.getAssignment());
-        } else {
-            List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
-            assignments.remove(toRemove.getAssignment());
         }
+
+        List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
+        assignments.remove(toRemove.getAssignment());
 
         conflict.setState(ConflictState.SOLVED);
 
@@ -472,9 +503,56 @@ public class RequestAccess implements Serializable {
         return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
     }
 
-    public void submitRequest() {
-        // todo submit stuff
+    public OperationResult submitRequest(PageBase page) {
+        int usersCount = requestItems.keySet().size();
+        if (usersCount == 0) {
+            return null;
+        }
 
-        clearCart();
+        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
+        OperationResult result = task.getResult();
+
+        for (ObjectReferenceType poiRef : requestItems.keySet()) {
+            OperationResult subresult = result.createSubresult(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
+
+            ObjectDelta<UserType> delta;
+            try {
+                PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
+                delta = createUserDelta(user);
+
+                // todo add async flag
+                ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
+                options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+                page.getModelService().executeChanges(Collections.singletonList(delta), options, task, subresult);
+
+                subresult.recordSuccess();
+            } catch (Exception e) {
+                subresult.recordFatalError(e);
+                subresult.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
+                LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            } finally {
+                subresult.recomputeStatus();
+            }
+        }
+
+        result.computeStatusIfUnknown();
+
+        return result;
+    }
+
+    private ModelExecuteOptions createSubmitModelOptions(PrismContext ctx) {
+        OperationBusinessContextType businessContextType;
+
+        if (StringUtils.isNotEmpty(comment)) {
+            businessContextType = new OperationBusinessContextType();
+            businessContextType.setComment(comment);
+        } else {
+            businessContextType = null;
+        }
+
+        ModelExecuteOptions options = ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions(ctx);
+        options.requestBusinessContext(businessContextType);
+
+        return options;
     }
 }

@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
@@ -63,13 +65,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 @Override
                 protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
                     super.onUpdateRow(target, table, rowModel, selected);
-                    onUpdateCheckbox(target, rowModel, table);
+                    onUpdateCheckbox(target, Arrays.asList(rowModel), table);
                 }
 
                 @Override
                 protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                     super.onUpdateHeader(target, selected, table);
-                    onUpdateCheckbox(target, null, table);
+                    onUpdateCheckbox(target, TableUtil.getAvailableData(table), table);
                 }
 
                 @Override
@@ -117,7 +119,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends O>> objectsSupplier) {
     }
 
-    protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel, DataTable table) {
+    protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModel, DataTable table) {
     }
 
     protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel) {

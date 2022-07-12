@@ -2174,6 +2174,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test617SearchAssignmentsByUserName() throws SchemaException {
+        SearchResultList<AssignmentType> result = searchContainerTest(
+                "by user name", AssignmentType.class,
+                f -> f.ownedBy(UserType.class, F_ASSIGNMENT)
+                        .item(F_NAME).eq("user-3"));
+        assertThat(result)
+                .extracting(a -> a.getLifecycleState())
+                .containsExactlyInAnyOrder("ls-user3-ass1", "ls-user3-ass2");
+    }
+
+    @Test
     public void test618OrderByMultiValueReferenceTargetPropertyIsNotPossible() {
         assertThatThrownBy(() -> searchContainerTest(
                 "having any approver (with order)", AssignmentType.class,

@@ -66,6 +66,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="schema" type="tns:SchemaCapabilityType" minOccurs="0"/>
+            <xsd:element name="discoverConfiguration" type="tns:DiscoverConfigurationCapabilityType" minOccurs="0"/>
             <xsd:element name="activation" type="tns:ActivationCapabilityType" minOccurs="0"/>
             <xsd:element name="credentials" type="tns:CredentialsCapabilityType" minOccurs="0"/>
             <xsd:element name="liveSync" type="tns:LiveSyncCapabilityType" minOccurs="0"/>
@@ -135,6 +136,25 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="schema" type="tns:SchemaCapabilityType"/>
+
+    <xsd:complexType name="DiscoverConfigurationCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to do configuration discovery, check and recommendation
+                (`DiscoverConfigurationApiOp`).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="discoverConfiguration" type="tns:DiscoverConfigurationCapabilityType"/>
 
     <xsd:complexType name="ActivationCapabilityType">
         <xsd:annotation>

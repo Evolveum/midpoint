@@ -142,7 +142,7 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel, DataTable dataTable) {
+                            protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<ArchetypeType>>> rowModelList, DataTable dataTable) {
                                 target.add(getObjectListPanel());
                                 tabLabelPanelUpdate(target);
                             }

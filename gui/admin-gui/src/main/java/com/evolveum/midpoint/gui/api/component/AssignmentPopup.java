@@ -287,7 +287,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel, DataTable dataTable) {
+                        protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<RoleType>>> rowModelList, DataTable dataTable) {
                             tabLabelPanelUpdate(target);
                         }
 
@@ -318,8 +318,8 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
-                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel, DataTable dataTable) {
-                                    selectedOrgsListUpdate(rowModel);
+                                protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<OrgType>>> rowModelList, DataTable dataTable) {
+                                    selectedOrgsListUpdate(rowModelList);
                                     tabLabelPanelUpdate(target);
                                 }
 
@@ -363,8 +363,8 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel, DataTable dataTable) {
-                            selectedOrgsListUpdate(rowModel);
+                        protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<OrgType>>> rowModelList, DataTable dataTable) {
+                            selectedOrgsListUpdate(rowModelList);
                             tabLabelPanelUpdate(target);
                         }
 
@@ -410,7 +410,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
-                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel, DataTable dataTable) {
+                                protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<ServiceType>>> rowModelList, DataTable dataTable) {
                                     tabLabelPanelUpdate(target);
                                 }
 
@@ -442,8 +442,8 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
-                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel, DataTable dataTable) {
-                                    super.onSelectionPerformed(target, rowModel, dataTable);
+                                protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<ResourceType>>> rowModelList, DataTable dataTable) {
+                                    super.onSelectionPerformed(target, rowModelList, dataTable);
                                     tabLabelPanelUpdate(target);
                                 }
 
@@ -536,15 +536,17 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         target.add(get(ID_FORM).get(ID_ASSIGN_BUTTON));
     }
 
-    private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel) {
-        if (rowModel == null) {
+    private void selectedOrgsListUpdate(List<IModel<SelectableBean<OrgType>>> selectedOrgs){
+        if (CollectionUtils.isEmpty(selectedOrgs)){
             return;
         }
-        if (rowModel.getObject().isSelected()) {
-            selectedOrgsList.add(rowModel.getObject().getValue());
-        } else {
-            selectedOrgsList.removeIf((OrgType org) -> org.getOid().equals(rowModel.getObject().getValue().getOid()));
-        }
+        selectedOrgs.forEach(selectedOrg -> {
+            if (selectedOrg.getObject().isSelected()){
+                selectedOrgsList.add(selectedOrg.getObject().getValue());
+            } else {
+                selectedOrgsList.removeIf((OrgType org) -> org.getOid().equals(selectedOrg.getObject().getValue().getOid()));
+            }
+        });
     }
 
     private TabbedPanel getTabbedPanel() {

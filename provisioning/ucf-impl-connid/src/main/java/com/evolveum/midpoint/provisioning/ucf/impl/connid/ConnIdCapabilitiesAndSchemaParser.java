@@ -268,6 +268,10 @@ class ConnIdCapabilitiesAndSchemaParser {
             supportsSchema = false;
         }
 
+        if (connIdSupportedOperations.contains(DiscoverConfigurationApiOp.class)) {
+            capabilities.setDiscoverConfiguration(new DiscoverConfigurationCapabilityType());
+        }
+
         if (connIdSupportedOperations.contains(SyncApiOp.class)) {
             capabilities.setLiveSync(new LiveSyncCapabilityType());
         }

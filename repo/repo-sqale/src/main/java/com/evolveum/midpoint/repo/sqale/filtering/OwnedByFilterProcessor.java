@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
-import com.querydsl.core.types.Predicate;
+import java.util.Objects;
 
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +19,6 @@ import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OwnedByFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
-import com.evolveum.midpoint.repo.sqale.mapping.CountMappingResolver;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor that resolves {@link ExistsFilter}.
@@ -47,20 +46,14 @@ public class OwnedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         this.mapping = context.mapping();
     }
 
-    private OwnedByFilterProcessor(
-            SqaleQueryContext<?, Q, R> context, QueryModelMapping<?, Q, R> mapping) {
-        this.context = context;
-        this.mapping = mapping;
-    }
-
     @Override
     public Predicate process(OwnedByFilter filter) throws RepositoryException {
         return process(filter.getType(), filter.getPath(), filter.getFilter());
     }
 
-    private <TQ extends FlexibleRelationalPathBase<TR>, TR>  Predicate process(
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <TQ extends FlexibleRelationalPathBase<TR>, TR> Predicate process(
             @Nullable ComplexTypeDefinition ownerDefinition, ItemPath path, ObjectFilter innerFilter) throws RepositoryException {
-
 
         ItemRelationResolver<Q, R, TQ, TR> itemResolver = mapping.relationResolver(PARENT);
         // Instead of cleaner solution that would follow the code lower we resolve it here and now.
@@ -75,18 +68,19 @@ public class OwnedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
         var parentMapping = resolver.mapping();
         // User provided more specific definition of type
         if (ownerDefinition != null) {
-            var typeClass = ownerDefinition.getCompileTimeClass();
+            var typeClass = Objects.requireNonNull(ownerDefinition.getCompileTimeClass());
             QueryException.check(parentMapping.schemaType().isAssignableFrom(typeClass),
                     "Requested type %s is not subtype of %s", typeClass, parentMapping.schemaType());
             parentMapping = context.repositoryContext().getMappingBySchemaType(typeClass);
             // Resolver is updated with more specific type, so we search only concrete type and not abstract type
             resolver = resolver.replaceTable(parentMapping);
         }
-        QueryException.check(parentMapping instanceof QueryTableMapping, "Repository supports owned by only for multi-value parent containers (for now)");
+        QueryException.check(parentMapping instanceof QueryTableMapping,
+                "Repository supports owned by only for multi-value parent containers (for now)");
         resolver = resolver.withSubquery();
-        // User provided path different paths may have different corelation queries
-        // so we need to do walk from parent to child in order to obtain correct corelation query
-        // eg. inducement vs assignent
+        // User provided path - different paths may have different correlation queries,
+        // so we need to do walk from parent to child in order to obtain correct correlation
+        // query, e.g. inducement vs assignment.
         if (path != null) {
             @NotNull
             ItemRelationResolver<TQ, TR, FlexibleRelationalPathBase<Object>, Object> actualMapping = parentMapping.relationResolver(path);
@@ -95,7 +89,7 @@ public class OwnedByFilterProcessor<Q extends FlexibleRelationalPathBase<R>, R>
                 resolver = ((TableRelationResolver) actualMapping).reverse(parentMapping);
             }
         }
-        // Finally we have correctly configured resolver so we can proceed with construction of query.
+        // Finally, we have correctly configured resolver so we can proceed with construction of query.
         var resolution = resolver.resolve(context);
         var parent = (SqaleQueryContext<?, TQ, TR>) resolution.context;
         parent.processFilter(innerFilter);

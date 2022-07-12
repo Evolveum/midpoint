@@ -50,7 +50,7 @@ public abstract class ChooseArchetypeMemberPopup<O extends AssignmentHolderType>
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel, DataTable dataTable){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModelList, DataTable dataTable){
                         tabLabelPanelUpdate(target);
                     }
 
