@@ -34,7 +34,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -1534,14 +1532,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("QUERY: " + serializedQuery);
-
-        // sanity check if it's re-parsable
-        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
+        displayQuery(query);
         return auditService.searchObjects(
                 query,
                 Arrays.asList(selectorOptions),
@@ -1560,13 +1551,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("QUERY: " + serializedQuery);
-        // sanity check if it's re-parsable
-        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
+        displayQuery(query);
         return auditService.countObjects(
                 query,
                 Arrays.asList(selectorOptions),
