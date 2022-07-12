@@ -53,6 +53,7 @@ public class RequestAccess implements Serializable {
     private static final String OPERATION_COMPUTE_ALL_CONFLICTS = DOT_CLASS + "computeAllConflicts";
     private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
+    private static final String OPERATION_REQUEST_ASSIGNMENTS_SINGLE = DOT_CLASS + "requestAssignmentsSingle";
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
@@ -488,10 +489,10 @@ public class RequestAccess implements Serializable {
     public void solveConflict(Conflict conflict, ConflictItem toRemove) {
         if (toRemove.isExisting()) {
             addExistingToBeRemoved(conflict.getPersonOfInterest(), toRemove.getAssignment());
-        } else {
-            List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
-            assignments.remove(toRemove.getAssignment());
         }
+
+        List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
+        assignments.remove(toRemove.getAssignment());
 
         conflict.setState(ConflictState.SOLVED);
 
@@ -502,63 +503,41 @@ public class RequestAccess implements Serializable {
         return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
     }
 
-    public void submitRequest(PageBase page) {
-        if (requestItems.keySet().size() == 1) {
-            submitRequestSingle(page);
-        } else {
-            submitRequestMultiple(page);
+    public OperationResult submitRequest(PageBase page) {
+        int usersCount = requestItems.keySet().size();
+        if (usersCount == 0) {
+            return null;
         }
 
-        clearCart();
-    }
-
-    private void submitRequestSingle(PageBase page) {
         Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> delta;
-        try {
-            ObjectReferenceType personOfInterestRef = requestItems.keySet().stream().findFirst().orElse(null);
-            PrismObject<UserType> user = WebModelServiceUtils.loadObject(personOfInterestRef, page);
-            delta = createUserDelta(user);
+        for (ObjectReferenceType poiRef : requestItems.keySet()) {
+            OperationResult subresult = result.createSubresult(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
 
-            ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
-            options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
-            page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
+            ObjectDelta<UserType> delta;
+            try {
+                PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
+                delta = createUserDelta(user);
 
-            result.recordSuccess();
-            clearCart();
-        } catch (Exception e) {
-            result.recordFatalError(e);
-            result.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
-            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-        } finally {
-            result.recomputeStatus();
+                // todo add async flag
+                ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
+                options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+                page.getModelService().executeChanges(Collections.singletonList(delta), options, task, subresult);
+
+                subresult.recordSuccess();
+            } catch (Exception e) {
+                subresult.recordFatalError(e);
+                subresult.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
+                LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            } finally {
+                subresult.recomputeStatus();
+            }
         }
 
-        // todo fix/implement !!!!!!!!!!!
-//        if (hasBackgroundTaskOperation(result)) {
-//            result.setMessage(page.createStringResource("PageAssignmentsList.requestInProgress").getString());
-//            showResult(result);
-//            clearStorage();
-//            setResponsePage(PageAssignmentShoppingCart.class);
-//            return;
-//        }
-//        if (WebComponentUtil.isSuccessOrHandledError(result)
-//                || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
-//            clearStorage();
-//            result.setMessage(createStringResource("PageAssignmentsList.requestSuccess").getString());
-//            setResponsePage(PageAssignmentShoppingCart.class);
-//        } else {
-//            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
-//            target.add(getFeedbackPanel());
-//            target.add(PageAssignmentsList.this.get(ID_FORM));
-//        }
-//        showResult(result);
-    }
+        result.computeStatusIfUnknown();
 
-    private void submitRequestMultiple(PageBase page) {
-
+        return result;
     }
 
     private ModelExecuteOptions createSubmitModelOptions(PrismContext ctx) {
