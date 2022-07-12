@@ -6,9 +6,9 @@
  */
 import $ from 'jquery';
 
-const NAME = 'list-group-menu'
+const NAME = 'listGroupMenu'
 const VERSION = '0.1'
-const DATA_KEY = 'mp.list-group-menu'
+const DATA_KEY = 'midpoint.listGroupMenu'
 const EVENT_KEY = `.${DATA_KEY}`
 const DATA_API_KEY = '.data-api'
 const JQUERY_NO_CONFLICT = $.fn[NAME]
@@ -41,18 +41,3 @@ $.fn[NAME].noConflict = () => {
 
 export default ListGroupMenu;
 
-$(document).ready(function () {
-    $('.list-group-menu').find('.chevron').parent().click(function (event) {
-        event.preventDefault();
-
-        var link = $(this);
-        var item = link.parent();
-        var submenu = item.find('.list-group-submenu');
-        if (!submenu.is(':visible')) {
-            $(submenu).slideDown();
-        } else {
-            console.info('visible');
-            $(submenu).slideUp();
-        }
-    });
-});
