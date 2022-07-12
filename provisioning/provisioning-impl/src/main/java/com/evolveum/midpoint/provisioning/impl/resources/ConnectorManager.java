@@ -205,6 +205,20 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     /**
+     * Returns uncached connector instance. The entry is just created and not cached.
+     * Connector instance is not initialized and configured.
+     *
+     * @throws ObjectNotFoundException A required object (e.g. connector or connector host) does not exist
+     */
+    ConnectorInstance getConnectorInstanceByConnectorOid(
+            @NotNull String connOid,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+
+        return createConnectorInstance(connOid,  result);
+    }
+
+    /**
      * Returns connector cache entry with connector instance. The entry may come from the cache or it may be just
      * created and not yet cached. In the latter case the connector instance is not yet configured. This is indicated
      * by cacheEntry.configuration == null.
@@ -301,6 +315,29 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     }
 
+    private ConnectorInstance createConnectorInstance(String connectorOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+
+        ConnectorType connectorBean = getConnectorWithSchema(connectorOid, result).getConnector();
+
+        ConnectorFactory connectorFactory = determineConnectorFactory(connectorBean);
+
+        InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+
+        ConnectorInstance connectorInstance = connectorFactory.createConnectorInstance(connectorBean,
+                connectorBean.getName().toString(),
+                connectorBean.toString());
+
+        // This log message should be INFO level. It happens only occasionally.
+        // If it happens often, it may be an
+        // indication of a problem. Therefore it is good for admin to see it.
+        LOGGER.info("Created new connector instance for {}: {} v{}",
+                connectorOid, connectorBean.getConnectorType(), connectorBean.getConnectorVersion());
+
+        return connectorInstance;
+
+    }
+
     private void configureConnector(
             ConnectorInstance connector, ConnectorSpec connectorSpec, boolean productionUse, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException {
@@ -361,6 +398,12 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             throw new ConfigurationException("Connector OID missing in " + connectorSpec);
         }
         String connOid = connectorSpec.getConnectorOid();
+
+        return getConnectorWithSchema(connOid, result);
+    }
+
+    private @NotNull ConnectorWithSchema getConnectorWithSchema(String connOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
 
         ConnectorWithSchema cachedConnectorWithSchema = connectorBeanCache.get(connOid);
         if (cachedConnectorWithSchema != null) {

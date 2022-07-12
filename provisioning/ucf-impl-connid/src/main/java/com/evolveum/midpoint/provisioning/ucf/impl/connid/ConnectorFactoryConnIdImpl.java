@@ -24,6 +24,8 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
@@ -190,23 +192,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName, String instanceDescription)
             throws ObjectNotFoundException, SchemaException {
 
-        ConnectorInfo cinfo = getConnectorInfo(connectorType);
-
-        if (cinfo == null) {
-            LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorType));
-            LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
-                    ObjectTypeUtil.toShortString(connectorType));
-            LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
-            if (connectorType.getConnectorHostRef() != null) {
-                if (connectorType.getConnectorHostRef().asReferenceValue().getObject() == null) {
-                    LOGGER.trace("Connector host ref: {}", connectorType.getConnectorHostRef());
-                } else {
-                    LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
-                }
-            }
-            throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
-                    + " were not found by the ICF framework; bundle=" + connectorType.getConnectorBundle() + " connector type=" + connectorType.getConnectorType() + ", version=" + connectorType.getConnectorVersion());
-        }
+        ConnectorInfo cinfo = getAndVerifyConnectorInfo(connectorType);
 
         PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
         if (connectorSchema == null) {
@@ -731,6 +717,28 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                     "Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
         }
         return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
+    }
+
+    private ConnectorInfo getAndVerifyConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
+        ConnectorInfo cinfo = getConnectorInfo(connectorType);
+
+        if (cinfo == null) {
+            LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorType));
+            LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
+                    ObjectTypeUtil.toShortString(connectorType));
+            LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
+            if (connectorType.getConnectorHostRef() != null) {
+                if (connectorType.getConnectorHostRef().asReferenceValue().getObject() == null) {
+                    LOGGER.trace("Connector host ref: {}", connectorType.getConnectorHostRef());
+                } else {
+                    LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
+                }
+            }
+            throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
+                    + " were not found by the ICF framework; bundle=" + connectorType.getConnectorBundle() + " connector type=" + connectorType.getConnectorType() + ", version=" + connectorType.getConnectorVersion());
+        }
+
+        return cinfo;
     }
 
     private ConnectorKey getConnectorKey(ConnectorType connectorType) {

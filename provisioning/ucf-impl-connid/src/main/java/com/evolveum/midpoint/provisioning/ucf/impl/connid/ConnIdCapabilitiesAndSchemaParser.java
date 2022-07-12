@@ -159,6 +159,18 @@ class ConnIdCapabilitiesAndSchemaParser {
         }
     }
 
+    /**
+     * Retrieves and parses resource capabilities.
+     */
+    void retrieveResourceCapabilities(OperationResult result)
+            throws CommunicationException, ConfigurationException, GenericFrameworkException {
+
+        fetchSupportedOperations(result);
+
+        // sets supportsSchema flag
+        processOperationCapabilities();
+    }
+
     private void fetchSupportedOperations(OperationResult parentResult)
             throws CommunicationException, ConfigurationException, GenericFrameworkException {
         OperationResult result = parentResult.createSubresult(OP_GET_SUPPORTED_OPERATIONS);

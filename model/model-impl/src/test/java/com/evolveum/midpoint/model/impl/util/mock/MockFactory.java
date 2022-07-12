@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -317,6 +319,11 @@ public class MockFactory {
                     @NotNull PrismObject<? extends ObjectType> configurationObject,
                     @NotNull Task task,
                     @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            }
+
+            @Override
+            public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
+                return new CapabilityCollectionType();
             }
         };
     }
