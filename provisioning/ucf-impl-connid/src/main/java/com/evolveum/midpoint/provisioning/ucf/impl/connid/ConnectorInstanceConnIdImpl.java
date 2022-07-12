@@ -2212,7 +2212,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         ConnIdCapabilitiesAndSchemaParser parser =
                 new ConnIdCapabilitiesAndSchemaParser(
-                        null,
                         facade,
                         getHumanReadableName());
         parser.retrieveResourceCapabilities(result);

@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
@@ -46,14 +48,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Class that can parse ConnId capabilities and schema into midPoint format.
+ *
  * It is also used to hold the parsed capabilities and schema.
+ *
  * This is a "builder" that builds/converts the schema. As such it
- * hides all the intermediary parsing states. Therefore the ConnectorInstance
+ * hides all the intermediary parsing states. Therefore the {@link ConnectorInstance}
  * always has a consistent schema, even during reconfigure and fetch operations.
  * There is either old schema or new schema, but there is no partially-parsed schema.
  *
- * @author Radovan Semancik
+ * May be used either for parsing both capabilities and schema (see
+ * {@link #retrieveResourceCapabilitiesAndSchema(List, OperationResult)}) or for parsing
+ * capabilities only (see {@link #retrieveResourceCapabilities(OperationResult)}).
  *
+ * @author Radovan Semancik
  */
 class ConnIdCapabilitiesAndSchemaParser {
 
@@ -63,7 +70,7 @@ class ConnIdCapabilitiesAndSchemaParser {
     private static final String OP_SCHEMA = ConnectorFacade.class.getName() + ".schema";
 
     // INPUT fields
-    private final ConnIdNameMapper connIdNameMapper;
+    private final ConnIdNameMapper connIdNameMapper; // null if schema parsing is not needed
     private final ConnectorFacade connIdConnectorFacade;
     private final String connectorHumanReadableName;
 
@@ -97,11 +104,21 @@ class ConnIdCapabilitiesAndSchemaParser {
      */
     private final CapabilityCollectionType capabilities = new CapabilityCollectionType();
 
+    /** When schema parsing is requested. */
     ConnIdCapabilitiesAndSchemaParser(
-            ConnIdNameMapper connIdNameMapper,
+            @NotNull ConnIdNameMapper connIdNameMapper,
             ConnectorFacade connIdConnectorFacade,
             String connectorHumanReadableName) {
         this.connIdNameMapper = connIdNameMapper;
+        this.connIdConnectorFacade = connIdConnectorFacade;
+        this.connectorHumanReadableName = connectorHumanReadableName;
+    }
+
+    /** When schema parsing is not necessary. */
+    ConnIdCapabilitiesAndSchemaParser(
+            ConnectorFacade connIdConnectorFacade,
+            String connectorHumanReadableName) {
+        this.connIdNameMapper = null;
         this.connIdConnectorFacade = connIdConnectorFacade;
         this.connectorHumanReadableName = connectorHumanReadableName;
     }
@@ -164,10 +181,7 @@ class ConnIdCapabilitiesAndSchemaParser {
      */
     void retrieveResourceCapabilities(OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException {
-
         fetchSupportedOperations(result);
-
-        // sets supportsSchema flag
         processOperationCapabilities();
     }
 
@@ -364,6 +378,7 @@ class ConnIdCapabilitiesAndSchemaParser {
             List<QName> objectClassesToGenerate,
             @NotNull SpecialAttributes specialAttributes) throws SchemaException {
 
+        assert connIdNameMapper != null : "accessing schema without mapper?";
         // "Flat" ConnId object class names needs to be mapped to QNames
         QName objectClassXsdName = connIdNameMapper.objectClassToQname(
                 new ObjectClass(objectClassInfo.getType()), legacySchema);
@@ -408,7 +423,7 @@ class ConnIdCapabilitiesAndSchemaParser {
             }
 
             QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(attributeNameToUse, ocDef);
-            QName attrXsdType = connIdTypeToXsdType(attributeInfo, false);
+            QName attrXsdType = connIdTypeToXsdType(attributeInfo);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
@@ -725,7 +740,7 @@ class ConnIdCapabilitiesAndSchemaParser {
         }
     }
 
-    private static QName connIdTypeToXsdType(AttributeInfo attrInfo, boolean isConfidential) throws SchemaException {
+    private static QName connIdTypeToXsdType(AttributeInfo attrInfo) throws SchemaException {
         if (Map.class.isAssignableFrom(attrInfo.getType())) {
             // ConnId type is "Map". We need more precise definition on midPoint side.
             String subtype = attrInfo.getSubtype();
@@ -738,7 +753,7 @@ class ConnIdCapabilitiesAndSchemaParser {
                 throw new SchemaException("Attribute "+attrInfo.getName()+" defined as Map, but there is unsupported subtype '"+subtype+"'");
             }
         }
-        return connIdTypeToXsdType(attrInfo.getType(), isConfidential);
+        return connIdTypeToXsdType(attrInfo.getType(), false);
     }
 
     static QName connIdTypeToXsdType(Class<?> type, boolean isConfidential) {
