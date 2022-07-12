@@ -160,11 +160,14 @@ export default class MidPointTheme {
 
                 var link = $(this);
                 var item = link.parent();
+                var chevron = link.find('.chevron');
                 var submenu = item.find('.list-group-submenu');
+
                 if (!submenu.is(':visible')) {
+                    chevron.css('transform', 'rotate(270deg)');
                     $(submenu).slideDown();
                 } else {
-                    console.info('visible');
+                    chevron.css('transform', 'rotate(0deg)');
                     $(submenu).slideUp();
                 }
             });
