@@ -60,7 +60,7 @@ spec:
             stage("conntest") {
                 container('maven') {
                     sh """#!/bin/bash -ex
-                        mvn -B -ntp clean install -DskipConnTests=false -pl testing/conntest
+                        mvn -B -ntp -Dmaven.test.failure.ignore clean install -DskipConnTests=false -pl testing/conntest
 
                         if [ '${VERBOSE}' = '1' ]
                         then
