@@ -6,7 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -14,6 +20,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -28,7 +35,9 @@ import org.apache.wicket.model.IModel;
                 icon = "fa fa-cog"),
         containerPath = "connectorConfiguration/configurationProperties",
         expanded = true)
-public class ConfigurationStepPanel extends AbstractResourceWizardStepPanel {
+public class ConfigurationStepPanel extends AbstractConfigurationStepPanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConfigurationStepPanel.class);
 
     private static final String PANEL_TYPE = "connectorConfigurationWizard";
 
@@ -38,25 +47,5 @@ public class ConfigurationStepPanel extends AbstractResourceWizardStepPanel {
 
     protected String getPanelType() {
         return PANEL_TYPE;
-    }
-
-    @Override
-    protected String getIcon() {
-        return "fa fa-cog";
-    }
-
-    @Override
-    public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.configuration");
-    }
-
-    @Override
-    protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.configuration.text");
-    }
-
-    @Override
-    protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.configuration.subText");
     }
 }

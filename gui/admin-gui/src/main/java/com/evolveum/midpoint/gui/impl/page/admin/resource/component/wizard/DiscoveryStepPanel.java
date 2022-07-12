@@ -50,14 +50,9 @@ import java.util.Collection;
         display = @PanelDisplay(label = "PageResource.wizard.step.discovery", icon = "fa fa-list-check"),
         containerPath = "connectorConfiguration/configurationProperties",
         expanded = true)
-public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
+public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DiscoveryStepPanel.class);
-
-    private static final String DOT_CLASS = DiscoveryStepPanel.class.getName() + ".";
-    private static final String OPERATION_DISCOVER_CONFIGURATION = DOT_CLASS + "discoverConfiguration";
-    private static final String OPERATION_RESOURCE_TEST = DOT_CLASS + "partialConfigurationTest";
-
+    private static final String OPERATION_DISCOVER_CONFIGURATION = DiscoveryStepPanel.class.getName() + ".discoverConfiguration";
     private static final String PANEL_TYPE = "discoverConnectorConfigurationWizard";
 
     public DiscoveryStepPanel(ResourceDetailsModel model) {
@@ -132,28 +127,5 @@ public class DiscoveryStepPanel extends AbstractResourceWizardStepPanel {
             }
             return ItemVisibility.AUTO;
         };
-    }
-
-    @Override
-    public boolean onNextPerformed(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
-        Task task = pageBase.createSimpleTask(OPERATION_RESOURCE_TEST);
-        OperationResult result = task.getResult();
-
-        try {
-            pageBase.getModelService().testResource(getResourceModel().getObjectWrapper().getObjectApplyDelta(), task, result);
-        } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Failed to test resource connection", e);
-            result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);
-        }
-        result.computeStatus();
-
-        if (result.isSuccess()) {
-            return super.onNextPerformed(target);
-        }
-        pageBase.showResult(result);
-        target.add(getFeedback());
-
-        return false;
     }
 }

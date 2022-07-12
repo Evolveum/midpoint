@@ -493,7 +493,7 @@ public interface ModelService {
      * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#getNativeCapabilities(String, OperationResult)}.
      * </p>
      */
-    @Nullable CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result);
+    @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result);
 
 
     /**

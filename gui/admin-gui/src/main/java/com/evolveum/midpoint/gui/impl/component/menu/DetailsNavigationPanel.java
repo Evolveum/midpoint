@@ -229,14 +229,14 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private boolean isVisibleForAddApply(ContainerPanelConfigurationType config) {
         ItemStatus status = objectDetailsModel.getObjectStatus();
         if (status == ItemStatus.NOT_CHANGED) {
-            return true;
+            return isAllowedForStatus(config, OperationTypeType.MODIFY);
         }
-        return ItemStatus.ADDED == status && isAllowedForAdd(config);
+        return ItemStatus.ADDED == status && isAllowedForStatus(config, OperationTypeType.ADD);
     }
 
-    private boolean isAllowedForAdd(ContainerPanelConfigurationType config) {
+    private boolean isAllowedForStatus(ContainerPanelConfigurationType config, OperationTypeType status) {
         OperationTypeType applicableForOperation = config.getApplicableForOperation();
-        return applicableForOperation == null || OperationTypeType.ADD == applicableForOperation;
+        return applicableForOperation == null || status == applicableForOperation;
     }
 
     protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
