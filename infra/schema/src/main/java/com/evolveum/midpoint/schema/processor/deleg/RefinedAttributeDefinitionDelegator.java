@@ -142,5 +142,11 @@ public interface RefinedAttributeDefinitionDelegator<T> extends AttributeDefinit
     }
 
     @Override
+    @Nullable
+    default ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
+        return delegate().getCorrelationDefinitionBean();
+    }
+
+    @Override
     ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
 }

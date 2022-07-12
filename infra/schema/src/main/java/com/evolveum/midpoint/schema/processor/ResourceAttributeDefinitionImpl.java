@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -52,7 +53,7 @@ public class ResourceAttributeDefinitionImpl<T>
         extends AbstractFreezable
         implements ResourceAttributeDefinition<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     /**
      * Default value for {@link #currentLayer}.
@@ -854,6 +855,11 @@ public class ResourceAttributeDefinitionImpl<T>
     public boolean isDisplayNameAttribute() {
         return Boolean.TRUE.equals(
                 customizationBean.isDisplayNameAttribute());
+    }
+
+    @Override
+    public @Nullable ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
+        return customizationBean.getCorrelation();
     }
 
     @Override

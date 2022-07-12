@@ -50,6 +50,7 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
+                <correlation/>
                 <outbound>
                     <source>
                         <path>name</path>
@@ -59,41 +60,22 @@
                     <target>
                         <path>name</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
-
-    <synchronization>
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <enabled>true</enabled>
-            <correlationDefinition>
-                <correlators>
-                    <items>
-                        <item>
-                            <path>name</path>
-                        </item>
-                    </items>
-                </correlators>
-            </correlationDefinition>
-            <reaction>
-                <situation>deleted</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
 </resource>

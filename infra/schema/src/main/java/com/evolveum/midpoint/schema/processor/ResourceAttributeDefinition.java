@@ -278,4 +278,7 @@ public interface ResourceAttributeDefinition<T>
      * @see ResourceItemDefinitionType#isDisplayNameAttribute()
      */
     boolean isDisplayNameAttribute();
+
+    /** @see ItemRefinedDefinitionType#getCorrelation() */
+    @Nullable ItemCorrelationDefinitionType getCorrelationDefinitionBean();
 }

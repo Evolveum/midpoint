@@ -3984,6 +3984,22 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="correlation" type="tns:ItemCorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies the correlation for this item. Currently, it is supported only for definitions
+                        of resource attributes. But later we plan to extend the support also to focal item definitions.
+
+                        For attributes this automatically employs "beforeCorrelation" mapping evaluation phase.
+                        (If not explicitly forbidden in the attribute definition.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>ItemRefinedDefinitionType.correlation</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

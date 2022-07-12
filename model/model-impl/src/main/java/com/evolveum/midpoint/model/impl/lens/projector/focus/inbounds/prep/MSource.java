@@ -217,10 +217,13 @@ abstract class MSource implements DebugDumpable {
      * Selects mappings appropriate for the current evaluation phase.
      * (The method is here, because we have {@link #resourceObjectDefinition} where defaults are defined.)
      */
-    @NotNull List<InboundMappingType> filterApplicableMappingBeans(@NotNull List<InboundMappingType> beans) {
+    @NotNull List<InboundMappingType> filterApplicableMappingBeans(
+            @NotNull List<InboundMappingType> beans,
+            boolean itemCorrelationDefined) {
         InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
-        List<InboundMappingType> filtered = new ApplicabilityEvaluator(getDefaultEvaluationPhases(), currentPhase)
-                .filterApplicableMappingBeans(beans);
+        List<InboundMappingType> filtered =
+                new ApplicabilityEvaluator(getDefaultEvaluationPhases(), itemCorrelationDefined, currentPhase)
+                        .filterApplicableMappingBeans(beans);
         if (filtered.size() < beans.size()) {
             LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",
                     beans.size() - filtered.size(), beans.size(), currentPhase);

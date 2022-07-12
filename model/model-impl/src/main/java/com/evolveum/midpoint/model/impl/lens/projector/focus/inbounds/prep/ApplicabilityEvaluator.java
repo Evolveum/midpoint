@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
  */
 class ApplicabilityEvaluator {
 
-    private static final InboundMappingEvaluationPhaseType[] DEFAULT_PHASES =
-            new InboundMappingEvaluationPhaseType[] { InboundMappingEvaluationPhaseType.CLOCKWORK };
+    private static final List<InboundMappingEvaluationPhaseType> DEFAULT_PHASES =
+            List.of(InboundMappingEvaluationPhaseType.CLOCKWORK);
 
     /** Default phases for mappings evaluation. */
     @NotNull private final Collection<InboundMappingEvaluationPhaseType> defaultPhases;
@@ -37,18 +36,14 @@ class ApplicabilityEvaluator {
 
     ApplicabilityEvaluator(
             @Nullable DefaultInboundMappingEvaluationPhasesType defaultPhasesConfiguration,
+            boolean itemCorrelationDefined,
             @NotNull InboundMappingEvaluationPhaseType currentPhase) {
-        this.defaultPhases = getDefaultPhases(defaultPhasesConfiguration);
-        this.currentPhase = currentPhase;
-    }
-
-    private static @NotNull Collection<InboundMappingEvaluationPhaseType> getDefaultPhases(
-            @Nullable DefaultInboundMappingEvaluationPhasesType defaultPhasesConfiguration) {
-        if (defaultPhasesConfiguration == null) {
-            return Set.of(DEFAULT_PHASES);
-        } else {
-            return new HashSet<>(defaultPhasesConfiguration.getPhase());
+        this.defaultPhases = new HashSet<>(
+                defaultPhasesConfiguration != null ? defaultPhasesConfiguration.getPhase() : DEFAULT_PHASES);
+        if (itemCorrelationDefined) {
+            defaultPhases.add(InboundMappingEvaluationPhaseType.BEFORE_CORRELATION);
         }
+        this.currentPhase = currentPhase;
     }
 
     List<InboundMappingType> filterApplicableMappingBeans(List<InboundMappingType> beans) {

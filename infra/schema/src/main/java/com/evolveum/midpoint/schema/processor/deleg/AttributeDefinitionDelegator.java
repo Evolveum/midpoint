@@ -195,6 +195,12 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     }
 
     @Override
+    @Nullable
+    default ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
+        return delegate().getCorrelationDefinitionBean();
+    }
+
+    @Override
     default ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         return null;
     }
