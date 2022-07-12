@@ -414,4 +414,13 @@ public interface ConnectorInstance {
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Method create collection of capabilities which connector support.
+     *
+     * @return  Return supported operations for connector.
+     */
+    CapabilityCollectionType getNativeCapabilities(OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException;
+
 }

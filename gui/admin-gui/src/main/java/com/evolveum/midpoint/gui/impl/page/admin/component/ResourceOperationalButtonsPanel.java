@@ -99,30 +99,30 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         refreshSchema.showTitleAsLabel(true);
         resourceButtons.add(refreshSchema);
 
-        AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
-                createStringResource("pageResource.button.wizardShow")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                startWizard(false, true);
-            }
-        };
-        wizardShow.showTitleAsLabel(true);
-        wizardShow.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
-        resourceButtons.add(wizardShow);
-        AjaxIconButton wizardEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
-                createStringResource("pageResource.button.wizardEdit")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                startWizard(false, false);
-            }
-        };
-        wizardEdit.showTitleAsLabel(true);
-        wizardEdit.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
-        resourceButtons.add(wizardEdit);
+//        AjaxIconButton wizardShow = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+//                createStringResource("pageResource.button.wizardShow")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                startWizard(false, true);
+//            }
+//        };
+//        wizardShow.showTitleAsLabel(true);
+//        wizardShow.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
+//        resourceButtons.add(wizardShow);
+//        AjaxIconButton wizardEdit = new AjaxIconButton(resourceButtons.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+//                createStringResource("pageResource.button.wizardEdit")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                startWizard(false, false);
+//            }
+//        };
+//        wizardEdit.showTitleAsLabel(true);
+//        wizardEdit.add(new VisibleBehaviour(() -> isEditingObject() && canEdit(getObjectType())));
+//        resourceButtons.add(wizardEdit);
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
@@ -169,13 +169,13 @@ public class ResourceOperationalButtonsPanel extends AssignmentHolderOperational
         return true;
     }
 
-    private void startWizard(boolean configOnly, boolean readOnly) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, getPrismObject().getOid());        // compatibility with PageAdminResources
-        parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
-        parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
-        getPageBase().navigateToNext(new PageResourceWizard(parameters));
-    }
+//    private void startWizard(boolean configOnly, boolean readOnly) {
+//        PageParameters parameters = new PageParameters();
+//        parameters.add(OnePageParameterEncoder.PARAMETER, getPrismObject().getOid());        // compatibility with PageAdminResources
+//        parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
+//        parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
+//        getPageBase().navigateToNext(new PageResourceWizard(parameters));
+//    }
 
     private boolean isVisibleRefresSchemaButton(ResourceType resource) {
         if (!isEditingObject()) {

@@ -24,6 +24,8 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;

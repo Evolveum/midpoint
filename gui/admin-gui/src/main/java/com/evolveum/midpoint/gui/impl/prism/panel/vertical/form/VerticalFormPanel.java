@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -74,7 +75,11 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                 return new VerticalFormPrismContainerPanel<C>(id, model, builder.build()) {
                     @Override
                     protected IModel<String> getTitleModel() {
-                        return VerticalFormPanel.this.getTitleModel();
+                        PrismContainerWrapper<C> container = getModelObject();
+                        if (container == null || !container.isVirtual() || StringUtils.isEmpty(container.getDisplayName())) {
+                            return VerticalFormPanel.this.getTitleModel();
+                        }
+                        return super.getTitleModel();
                     }
 
                     @Override

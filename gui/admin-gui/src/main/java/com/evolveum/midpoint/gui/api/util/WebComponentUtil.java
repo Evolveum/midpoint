@@ -231,7 +231,7 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
+//    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
 
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
 
@@ -253,10 +253,10 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
     }
 
-    static {
-        CREATE_NEW_OBJECT_PAGE_MAP = new HashMap<>();
-        CREATE_NEW_OBJECT_PAGE_MAP.put(ResourceType.class, PageResourceWizard.class);
-    }
+//    static {
+//        CREATE_NEW_OBJECT_PAGE_MAP = new HashMap<>();
+//        CREATE_NEW_OBJECT_PAGE_MAP.put(ResourceType.class, PageResourceWizard.class);
+//    }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
     private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_LIST_PAGE_MAP;
@@ -2652,11 +2652,11 @@ public final class WebComponentUtil {
     }
 
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
-        if (ResourceType.class.equals(type)) {
-            return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
-        } else {
+//        if (ResourceType.class.equals(type)) {
+//            return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
+//        } else {
             return OBJECT_DETAILS_PAGE_MAP.get(type);
-        }
+//        }
     }
 
     public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {

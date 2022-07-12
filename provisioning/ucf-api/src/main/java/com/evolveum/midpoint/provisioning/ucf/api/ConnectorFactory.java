@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import java.util.Set;
 
@@ -98,5 +99,4 @@ public interface ConnectorFactory {
     void registerDiscoveryListener(ConnectorDiscoveryListener listener);
 
     void shutdown();
-
 }

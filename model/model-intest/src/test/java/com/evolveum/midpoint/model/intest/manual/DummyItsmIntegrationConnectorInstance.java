@@ -33,6 +33,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -192,6 +194,11 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     @Override
     public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
         return Collections.emptySet();
+    }
+
+    @Override
+    public CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
+        return fetchCapabilities(result);
     }
 
 }

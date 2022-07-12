@@ -24,6 +24,8 @@ import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1508,6 +1510,25 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     result.getStatus());
             LOGGER.trace("Fetch schema by connector configuration result:\n{}", lazy(() -> result.dump(false)));
             return schema;
+        } finally {
+            exitModelMethodNoRepoCache();
+        }
+    }
+
+    @Override
+    public @Nullable CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
+        Validate.notNull(connOid, "ConnOid must not be null.");
+        LOGGER.trace("Getting native capabilities by connector oid: {}", connOid);
+
+        enterModelMethodNoRepoCache();
+        try {
+            CapabilityCollectionType capability = provisioning.getNativeCapabilities(connOid, result);
+            LOGGER.debug(
+                    "Finished getting native capabilities by connector oid: {}, result: {} ",
+                    connOid,
+                    result.getStatus());
+            LOGGER.trace("Getting native capabilities by connector oid:\n{}", lazy(() -> result.dump(false)));
+            return capability;
         } finally {
             exitModelMethodNoRepoCache();
         }

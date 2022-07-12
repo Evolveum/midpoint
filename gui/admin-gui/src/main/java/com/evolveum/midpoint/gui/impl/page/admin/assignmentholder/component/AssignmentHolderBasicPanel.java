@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
 @PanelInstance(identifier = "basic",
         applicableForType = ResourceType.class,
-        applicableForOperation = OperationTypeType.ADD,
         defaultPanel = true,
         display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
 public class AssignmentHolderBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {

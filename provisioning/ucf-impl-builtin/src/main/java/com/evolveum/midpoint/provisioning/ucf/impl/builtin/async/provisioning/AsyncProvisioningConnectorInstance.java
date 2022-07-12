@@ -23,6 +23,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -170,6 +172,11 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     @Override
     public @NotNull Collection<PrismProperty<?>> discoverConfiguration(OperationResult parentResult) {
         return Collections.emptySet();
+    }
+
+    @Override
+    public CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
+        return fetchCapabilities(result);
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
 import org.apache.wicket.AttributeModifier;
@@ -180,7 +181,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         if(clazz.equals(RoleType.class)){
             page.navigateToNext(PageRole.class, parameters);
         } else if(clazz.equals(ResourceType.class)){
-            page.navigateToNext(PageResourceWizard.class, parameters);
+            page.navigateToNext(PageResource.class, parameters);
         } else if(clazz.equals(OrgType.class)){
             page.navigateToNext(PageOrg.class, parameters);
         }

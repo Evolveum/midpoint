@@ -204,27 +204,27 @@ public class PageResources extends PageAdmin {
             }
         });
 
-        menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
-                        editResourcePerformed(rowDto.getValue());
-                    }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-        });
+//        menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public InlineMenuItemAction initAction() {
+//                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
+//                        editResourcePerformed(rowDto.getValue());
+//                    }
+//                };
+//            }
+//
+//            @Override
+//            public boolean isHeaderMenuItem() {
+//                return false;
+//            }
+//        });
 
         menuItems.add(new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
             private static final long serialVersionUID = 1L;
@@ -473,11 +473,11 @@ public class PageResources extends PageAdmin {
         WebComponentUtil.deleteSyncTokenPerformed(target, resourceType, PageResources.this);
     }
 
-    private void editResourcePerformed(ResourceType resourceType) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, resourceType.getOid());
-        navigateToNext(new PageResourceWizard(parameters));
-    }
+//    private void editResourcePerformed(ResourceType resourceType) {
+//        PageParameters parameters = new PageParameters();
+//        parameters.add(OnePageParameterEncoder.PARAMETER, resourceType.getOid());
+//        navigateToNext(new PageResourceWizard(parameters));
+//    }
 
     private void editAsXmlPerformed(ResourceType resourceType) {
         PageParameters parameters = new PageParameters();
