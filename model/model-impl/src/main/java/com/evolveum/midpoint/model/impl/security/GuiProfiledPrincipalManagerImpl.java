@@ -384,6 +384,11 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
     @Override
     public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
             CacheInvalidationContext context) {
+        if (sessionRegistry == null) {
+            // In tests sessionRegistry is null.
+            return;
+        }
+
         List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
         for (Object principal : loggedInUsers) {
 
