@@ -57,12 +57,12 @@ public class CacheInvalidationEventSpecification {
     }
 
     @NotNull
-    Set<ItemPath> getPaths() {
+    public Set<ItemPath> getPaths() {
         return paths;
     }
 
     @NotNull
-    Set<ChangeType> getChangeTypes() {
+    public Set<ChangeType> getChangeTypes() {
         return changeTypes;
     }
 

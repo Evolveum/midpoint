@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.api;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+
 /**
  * Contains information about object deletion result; primarily needed by repository caching algorithms.
  * Because it is bound to the current (SQL) implementation of the repository, avoid using this information
@@ -29,5 +31,10 @@ public class DeleteObjectResult implements RepositoryOperationResult {
      */
     public String getObjectTextRepresentation() {
         return objectTextRepresentation;
+    }
+
+    @Override
+    public ChangeType getChangeType() {
+        return ChangeType.DELETE;
     }
 }

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.cache.handlers;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -34,5 +35,10 @@ public class AddObjectResult<T extends ObjectType> implements RepositoryOperatio
     @Override
     public String toString() {
         return object.toString();
+    }
+
+    @Override
+    public ChangeType getChangeType() {
+        return ChangeType.ADD;
     }
 }

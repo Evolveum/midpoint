@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.repo.api;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+
 public interface RepositoryOperationResult {
+
+    ChangeType getChangeType();
 
 }
