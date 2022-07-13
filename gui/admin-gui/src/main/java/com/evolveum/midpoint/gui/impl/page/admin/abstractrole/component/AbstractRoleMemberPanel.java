@@ -241,6 +241,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 if (getSearchModel().isAttached() && getSearchModel().getObject()!= null
                         && getSearchModel().getObject().isTypeChanged()) {
                     clearCache();
+                    getMemberPanelStorage().setSearch(SearchFactory.createMemberPanelSearch(
+                            createSearchConfigWrapper(getSearchModel().getObject().getTypeClass()), getPageBase()));
                 }
                 if (reloadPageOnRefresh()) {
                     throw new RestartResponseException(getPage().getClass());
@@ -384,20 +386,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return memberPanelStorage.getSearch();
         }
 
-        return SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(), getPageBase());
-//        SearchBoxConfigurationHelper searchBoxConfig = getSearchBoxConfiguration();
-//        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(searchBoxConfig), null, null,
-//                null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
-//        search.addCompositedSpecialItem(createMemberSearchPanel(search, searchBoxConfig));
-//
-//        if (additionalPanelConfig != null){
-//            search.setCanConfigure(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
-//        }
-//        memberPanelStorage.setSearch(search);
-//        return search;
+        Search<AH> search = SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(getDefaultObjectType()), getPageBase());
+        memberPanelStorage.setSearch(search);
+        return search;
     }
 
-    private SearchConfigurationWrapper createSearchConfigWrapper() {
+    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> defaultObjectType) {
         SearchBoxConfigurationType searchConfig = getAdditionalPanelConfig();
         if (searchConfig == null) {
             searchConfig = new SearchBoxConfigurationType();
@@ -405,7 +399,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getObjectTypeConfiguration() == null) {
             ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
             objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
-            objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
+            objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), defaultObjectType));
             searchConfig.setObjectTypeConfiguration(objTypeConfig);
         }
 
@@ -429,7 +423,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
         }
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(getDefaultObjectType(), searchConfig);
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(defaultObjectType, searchConfig);
         SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
         if (additionalPanelConfig != null) {
             searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
