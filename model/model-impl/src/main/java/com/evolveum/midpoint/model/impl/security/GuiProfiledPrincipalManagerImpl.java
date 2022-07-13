@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +45,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
 import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
+import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -68,7 +72,7 @@ import com.google.common.collect.ImmutableSet;
  * @author semancik
  */
 @Service(value = "guiProfiledPrincipalManager")
-public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
+public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
@@ -98,6 +102,9 @@ public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListene
     @Autowired
     private SecurityContextManager securityContextManager;
 
+    @Autowired
+    private CacheDispatcher cacheDispatcher;
+
     // registry is not available e.g. during tests
     @Autowired(required = false)
     private SessionRegistry sessionRegistry;
@@ -107,6 +114,12 @@ public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListene
     @Override
     public void setMessageSource(MessageSource messageSource) {
         this.messages = new MessageSourceAccessor(messageSource);
+    }
+
+    @PostConstruct
+    public void initialize() {
+        LOGGER.info("Registering as cache listener");
+        cacheDispatcher.registerCacheListener(this);
     }
 
     @Override
@@ -371,8 +384,6 @@ public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListene
     @Override
     public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
             CacheInvalidationContext context) {
-        // TODO Auto-generated method stub
-
         List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
         for (Object principal : loggedInUsers) {
 
@@ -385,12 +396,12 @@ public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListene
                 continue;
             }
             GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
-            if (oid == midPointPrincipal.getOid()) {
-                // User was changed
-            }
-
             CompiledGuiProfile compiledProfile = midPointPrincipal.getCompiledGuiProfile();
-            if (compiledProfile.derivedFrom(oid)) {
+            LOGGER.debug("Checking {} if it is derived from {}", midPointPrincipal, oid);
+            LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
+
+            if (oid == null || compiledProfile.derivedFrom(oid)) {
+                LOGGER.info("Markin profile invalid for {} because of change in {}:{}", midPointPrincipal, type, oid);
                 compiledProfile.markInvalid();
             }
 
@@ -403,12 +414,16 @@ public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListene
         OperationResult result = new OperationResult("refreshCompiledProfile");
 
         // Maybe focus was also changed, we should probably reload it
+        // TODO: Should recompute / compute be synchronized on principal?
+
+        LOGGER.debug("Recomputing GUI profile for {}", principal);
         var focus = principal.getFocus().asPrismObject();
         securityContextManager.setTemporaryPrincipalOid(principal.getFocus().getOid());
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
             focusComputer.recompute(focus, lifecycleModel);
+            principal.getAuthorities().clear();
             initializePrincipalFromAssignments(principal, systemConfiguration, null);
             return principal.getCompiledGuiProfile();
         } finally {

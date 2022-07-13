@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
@@ -533,10 +534,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     }
 
     public boolean isInvalid() {
-        return true;
+        return invalid;
     }
 
     public void setDependencies(Set<String> value) {
         dependencies = value;
+    }
+
+    public Set<String> getDependencies() {
+        return dependencies;
     }
 }
