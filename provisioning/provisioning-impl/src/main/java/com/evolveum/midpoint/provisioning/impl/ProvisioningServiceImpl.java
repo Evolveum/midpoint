@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -110,6 +112,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             + ".expandConfigurationObject";
     // TODO reconsider names of these operations
     private static final String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
+
+    private static final String OP_GET_NATIVE_CAPABILITIES = ProvisioningService.class.getName() + ".getNativeCapabilities";
 
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
@@ -1139,6 +1143,28 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 // Nothing to do here; intentionally not throwing an exception
             }
         } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        OperationResult result = parentResult.subresult(OP_GET_NATIVE_CAPABILITIES)
+                .addParam("connectorOid", connOid)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
+        try {
+            LOGGER.trace("Start getting native capabilities by connector oid {}", connOid);
+            CapabilityCollectionType capabilities = resourceManager.getNativeCapabilities(connOid, result);
+            LOGGER.debug("Finished getting native capabilities by connector oid {}:\n{}",
+                    connOid, capabilities.debugDumpLazily(1));
+            return capabilities;
+        } catch (Throwable t) {
+            // This is more serious, like OutOfMemoryError and the like. We won't pretend it's OK.
             result.recordFatalError(t);
             throw t;
         } finally {

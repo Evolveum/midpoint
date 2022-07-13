@@ -226,8 +226,14 @@ public class WrapperContext {
 
     private void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
         for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
-            virtualContainers.addAll(panelConfig.getContainer());
-            collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
+            if (objectStatus == null || panelConfig.getApplicableForOperation() == null
+                    || (ItemStatus.NOT_CHANGED.equals(objectStatus)
+                        && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
+                    || (ItemStatus.ADDED.equals(objectStatus)
+                    && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))) {
+                virtualContainers.addAll(panelConfig.getContainer());
+                collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
+            }
         }
     }
 

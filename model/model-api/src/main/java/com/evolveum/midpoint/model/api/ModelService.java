@@ -33,9 +33,12 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -484,6 +487,18 @@ public interface ModelService {
      * @return Resource schema fetched by connector
      */
     @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
+
+    /**
+     * <p>
+     * Method work same as
+     * {@link com.evolveum.midpoint.provisioning.api.ProvisioningService#getNativeCapabilities(String, OperationResult)}.
+     * </p>
+     *
+     * EXPERIMENTAL feature.
+     */
+    @Experimental
+    @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
 
 
     /**

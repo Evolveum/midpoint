@@ -18,7 +18,6 @@ $list-group-item-padding-sm-x: 1rem;
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 273px;
 
   @include list-reset();
 
@@ -38,7 +37,7 @@ $list-group-item-padding-sm-x: 1rem;
 
   & > a.item-link {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     // todo for "sm" version 0.5rem 1rem
     padding: $list-group-item-padding-y $list-group-item-padding-x;
@@ -77,6 +76,9 @@ $list-group-item-padding-sm-x: 1rem;
 
     & > span.label {
       flex-grow: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 

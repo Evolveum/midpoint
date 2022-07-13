@@ -15,6 +15,8 @@ import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -103,7 +105,8 @@ public class ResourceManager {
     /**
      * Gets a resource. We try the cache first. If it's not there, then we fetch, complete, and cache it.
      */
-    @NotNull public PrismObject<ResourceType> getResource(
+    @NotNull
+    public PrismObject<ResourceType> getResource(
             @NotNull String oid, @Nullable GetOperationOptions options, @NotNull Task task, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
@@ -190,7 +193,6 @@ public class ResourceManager {
         return provisioningService.getSystemConfiguration();
     }
 
-
     /**
      * Tests the connection.
      *
@@ -230,6 +232,22 @@ public class ResourceManager {
                 connector.discoverConfiguration(result));
     }
 
+    //    @Override
+    public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        try {
+            ConnectorInstance connInstance = connectorManager.getConnectorInstanceByConnectorOid(connOid, result);
+            return connInstance.getNativeCapabilities(result);
+        } catch (GenericFrameworkException e) {
+            // Not expected. Transform to system exception
+            result.recordFatalError("Generic provisioning framework error", e);
+            throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
+        } catch (CommunicationException | ConfigurationException e) {
+            result.recordFatalError(e);
+            throw e;
+        }
+    }
+
     public @Nullable ResourceSchema fetchSchema(@NotNull ResourceType resource, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
@@ -249,9 +267,8 @@ public class ResourceManager {
      *
      * @param statusChangeReason Description of the reason of changing the availability status.
      * @param skipGetResource True if we want to skip "getResource" operation and therefore apply the change regardless of
-     *                        the current resource availability status. This is to be used in situations where we expect that
-     *                        the resource might not be successfully retrievable (e.g. if it's broken).
-     *
+     * the current resource availability status. This is to be used in situations where we expect that
+     * the resource might not be successfully retrievable (e.g. if it's broken).
      * @throws ObjectNotFoundException If the resource object does not exist in repository.
      */
     public void modifyResourceAvailabilityStatus(String resourceOid, AvailabilityStatusType newStatus, String statusChangeReason,
@@ -300,7 +317,7 @@ public class ResourceManager {
 
         if (newStatus != currentStatus) {
             OperationalStateType newState = operationalStateManager.createAndLogOperationalState(
-                    currentStatus,newStatus, resourceDesc, statusChangeReason);
+                    currentStatus, newStatus, resourceDesc, statusChangeReason);
             resource.operationalState(newState);
         }
     }
@@ -334,7 +351,7 @@ public class ResourceManager {
         PrismObject<ResourceType> resource = getResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
-        ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
+        ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource, prismContext);
         try {
             UcfExecutionContext ucfCtx = new UcfExecutionContext(
                     lightweightIdentifierGenerator, resource.asObjectable(), task);

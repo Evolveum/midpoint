@@ -2202,6 +2202,23 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
+    @Override
+    public CapabilityCollectionType getNativeCapabilities(OperationResult result)
+            throws CommunicationException, ConfigurationException, GenericFrameworkException {
+
+        APIConfiguration apiConfig = connectorInfo.createDefaultAPIConfiguration();
+
+        ConnectorFacade facade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
+
+        ConnIdCapabilitiesAndSchemaParser parser =
+                new ConnIdCapabilitiesAndSchemaParser(
+                        facade,
+                        getHumanReadableName());
+        parser.retrieveResourceCapabilities(result);
+
+        return parser.getCapabilities();
+    }
+
     @Contract("!null, _, _, _ -> !null; null, _, _, _ -> null")
     private @Nullable ConnIdOperation recordIcfOperationStart(UcfExecutionContext reporter, ProvisioningOperation operation,
             ResourceObjectDefinition objectDefinition, Uid uid) {

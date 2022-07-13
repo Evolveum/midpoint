@@ -11,6 +11,9 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -173,6 +176,12 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
         } else {
             throw new IllegalStateException("Another listening has been started in " + this);
         }
+    }
+
+    @Override
+    public CapabilityCollectionType getNativeCapabilities(OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException {
+        return fetchCapabilities(result);
     }
 
     @Override

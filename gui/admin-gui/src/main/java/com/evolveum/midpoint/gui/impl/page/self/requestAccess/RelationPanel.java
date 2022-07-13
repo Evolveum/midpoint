@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -63,8 +64,15 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
             @Override
             protected List<Tile<QName>> load() {
                 RelationSelectionType config = getRelationConfiguration();
+                QName defaultRelation = null;
+                if (config != null) {
+                    defaultRelation = config.getDefaultRelation();
+                }
 
-                QName defaultRelation = config.getDefaultRelation();
+                if (defaultRelation == null) {
+                    defaultRelation = SchemaConstants.ORG_DEFAULT;
+                }
+
                 getModelObject().setRelation(defaultRelation);
 
                 List<Tile<QName>> tiles = new ArrayList<>();

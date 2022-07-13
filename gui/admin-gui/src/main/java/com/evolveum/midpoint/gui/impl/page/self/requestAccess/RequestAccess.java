@@ -12,7 +12,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,6 +57,7 @@ public class RequestAccess implements Serializable {
     private static final String OPERATION_COMPUTE_ALL_CONFLICTS = DOT_CLASS + "computeAllConflicts";
     private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
+    private static final String OPERATION_REQUEST_ASSIGNMENTS_SINGLE = DOT_CLASS + "requestAssignmentsSingle";
 
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
@@ -66,6 +71,8 @@ public class RequestAccess implements Serializable {
     private QName relation;
 
     private QName defaultRelation = SchemaConstants.ORG_DEFAULT;
+
+    private Duration validity;
 
     private String comment;
 
@@ -488,10 +495,10 @@ public class RequestAccess implements Serializable {
     public void solveConflict(Conflict conflict, ConflictItem toRemove) {
         if (toRemove.isExisting()) {
             addExistingToBeRemoved(conflict.getPersonOfInterest(), toRemove.getAssignment());
-        } else {
-            List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
-            assignments.remove(toRemove.getAssignment());
         }
+
+        List<AssignmentType> assignments = requestItems.get(conflict.getPersonOfInterest());
+        assignments.remove(toRemove.getAssignment());
 
         conflict.setState(ConflictState.SOLVED);
 
@@ -502,63 +509,41 @@ public class RequestAccess implements Serializable {
         return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
     }
 
-    public void submitRequest(PageBase page) {
-        if (requestItems.keySet().size() == 1) {
-            submitRequestSingle(page);
-        } else {
-            submitRequestMultiple(page);
+    public OperationResult submitRequest(PageBase page) {
+        int usersCount = requestItems.keySet().size();
+        if (usersCount == 0) {
+            return null;
         }
 
-        clearCart();
-    }
-
-    private void submitRequestSingle(PageBase page) {
         Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> delta;
-        try {
-            ObjectReferenceType personOfInterestRef = requestItems.keySet().stream().findFirst().orElse(null);
-            PrismObject<UserType> user = WebModelServiceUtils.loadObject(personOfInterestRef, page);
-            delta = createUserDelta(user);
+        for (ObjectReferenceType poiRef : requestItems.keySet()) {
+            OperationResult subresult = result.createSubresult(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
 
-            ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
-            options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
-            page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
+            ObjectDelta<UserType> delta;
+            try {
+                PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
+                delta = createUserDelta(user);
 
-            result.recordSuccess();
-            clearCart();
-        } catch (Exception e) {
-            result.recordFatalError(e);
-            result.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
-            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-        } finally {
-            result.recomputeStatus();
+                // todo add async flag
+                ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
+                options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+                page.getModelService().executeChanges(Collections.singletonList(delta), options, task, subresult);
+
+                subresult.recordSuccess();
+            } catch (Exception e) {
+                subresult.recordFatalError(e);
+                subresult.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
+                LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            } finally {
+                subresult.recomputeStatus();
+            }
         }
 
-        // todo fix/implement !!!!!!!!!!!
-//        if (hasBackgroundTaskOperation(result)) {
-//            result.setMessage(page.createStringResource("PageAssignmentsList.requestInProgress").getString());
-//            showResult(result);
-//            clearStorage();
-//            setResponsePage(PageAssignmentShoppingCart.class);
-//            return;
-//        }
-//        if (WebComponentUtil.isSuccessOrHandledError(result)
-//                || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
-//            clearStorage();
-//            result.setMessage(createStringResource("PageAssignmentsList.requestSuccess").getString());
-//            setResponsePage(PageAssignmentShoppingCart.class);
-//        } else {
-//            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
-//            target.add(getFeedbackPanel());
-//            target.add(PageAssignmentsList.this.get(ID_FORM));
-//        }
-//        showResult(result);
-    }
+        result.computeStatusIfUnknown();
 
-    private void submitRequestMultiple(PageBase page) {
-
+        return result;
     }
 
     private ModelExecuteOptions createSubmitModelOptions(PrismContext ctx) {
@@ -575,5 +560,41 @@ public class RequestAccess implements Serializable {
         options.requestBusinessContext(businessContextType);
 
         return options;
+    }
+
+    public Duration getValidity() {
+        return validity;
+    }
+
+    public void setValidity(Duration validity) {
+        if (Objects.equals(this.validity, validity)) {
+            return;
+        }
+
+        this.validity = validity;
+
+        for (List<AssignmentType> list : requestItems.values()) {
+            list.forEach(a -> {
+                if (validity == null) {
+                    a.setActivation(null);
+                } else {
+                    ActivationType activation = a.getActivation();
+                    if (activation == null) {
+                        activation = new ActivationType();
+                        a.setActivation(activation);
+                    }
+
+                    XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar();
+
+                    XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(from);
+                    to.add(validity);
+
+                    activation.validFrom(from)
+                            .validTo(to);
+                }
+            });
+        }
+
+        markConflictsDirty();
     }
 }

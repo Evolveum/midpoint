@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -59,10 +59,10 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
             return; // not-indexed, no action
         }
 
-        // If the extension is single value (and we know it now, we should proceed with deletion of
-        // multivalue variant and vice-versa (this variants may be indroduced during raw import
-        // or changes in multiplicity of extension definition or resource definition
-        context.deleteItem(reverseCardinality(extProcessor, extItemInfo.item));
+        // If the extension is single value (and we know it now), we should proceed with deletion of
+        // multivalue variant and vice-versa. This variants may be introduced during raw import
+        // or changes in multiplicity of extension definition or resource definition.
+        context.deleteItem(reverseCardinality(extItemInfo.item));
 
         if (realValues == null || realValues.isEmpty()) {
             context.deleteItem(extItemInfo.getId());
@@ -73,8 +73,10 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
         context.setChangedItem(extItemInfo.getId(), extProcessor.extItemValue(item, extItemInfo));
     }
 
-    private String reverseCardinality(ExtensionProcessor extProcessor, MExtItem extItem) {
-        var reverseCardinality = MExtItemCardinality.SCALAR.equals(extItem.cardinality) ? MExtItemCardinality.ARRAY : MExtItemCardinality.SCALAR;
+    private String reverseCardinality(MExtItem extItem) {
+        var reverseCardinality = MExtItemCardinality.SCALAR.equals(extItem.cardinality)
+                ? MExtItemCardinality.ARRAY
+                : MExtItemCardinality.SCALAR;
         var reverseKey = new MExtItem.Key();
         reverseKey.cardinality = reverseCardinality;
         reverseKey.itemName = extItem.itemName;

@@ -20,6 +20,8 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -767,4 +769,15 @@ public interface ProvisioningService {
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Method create collection of capabilities which connector support.
+     *
+     * EXPERIMENTAL feature.
+     *
+     * @return  Return supported operations for connector.
+     */
+    @Experimental
+    CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
 }

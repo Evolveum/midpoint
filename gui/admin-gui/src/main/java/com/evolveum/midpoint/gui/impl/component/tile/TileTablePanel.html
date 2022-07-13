@@ -10,10 +10,10 @@
     <wicket:enclosure child="tilesContainer">
         <div class="d-flex flex-column flex-grow-1 gap-3">
             <div wicket:id="tilesHeader"/>
-            <div class="d-flex flex-grow-1 flex-wrap gap-3" wicket:id="tilesContainer">
-                <wicket:container wicket:id="tiles">
+            <div class="row" wicket:id="tilesContainer">
+                <div wicket:id="tiles">
                     <div wicket:id="tile"/>
-                </wicket:container>
+                </div>
             </div>
             <div class="align-self-end" wicket:id="tilesPaging"/>
         </div>

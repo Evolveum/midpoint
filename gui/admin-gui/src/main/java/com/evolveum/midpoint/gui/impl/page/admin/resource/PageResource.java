@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -13,17 +14,23 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.*;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,6 +44,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
+
+import org.jetbrains.annotations.Nullable;
 
 @PageDescriptor(
         urls = {
@@ -102,18 +111,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     private List<WizardStep> createSteps() {
-        BasicSettingStepPanel basicSettings = new BasicSettingStepPanel(getObjectDetailsModels()) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new BasicSettingStepPanel(getObjectDetailsModels()) {
 
             @Override
             public boolean onBackPerformed(AjaxRequestTarget target) {
-                super.onBackPerformed(target);
-
-                // index is already lowered
-                int index = getWizard().getActiveStepIndex();
-                if (index == 0) {
-                    return false;
-                }
-
                 Fragment fragment = createTemplateFragment();
                 fragment.setOutputMarkupId(true);
                 PageResource.this.replace(fragment);
@@ -121,15 +123,29 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
                 return false;
             }
-        };
+        });
 
-        PartialConfigurationStepPanel configuration = new PartialConfigurationStepPanel(getObjectDetailsModels());
 
-        DiscoveryStepPanel discover = new DiscoveryStepPanel(getObjectDetailsModels());
 
-        SelectObjectClassesStepPanel selectObjectClasses = new SelectObjectClassesStepPanel(getObjectDetailsModels());
+        PrismObject<ConnectorType> connector = WebModelServiceUtils.loadObject(getModelObjectType().getConnectorRef(), PageResource.this);
 
-        return List.of(basicSettings, configuration, discover, selectObjectClasses);
+        if (connector != null && SchemaConstants.ICF_FRAMEWORK_URI.equals(connector.asObjectable().getFramework())) {
+            CapabilityCollectionType capabilities
+                    = WebComponentUtil.getNativeCapabilities(getModelObjectType(), PageResource.this);
+
+            if (capabilities.getDiscoverConfiguration() != null) {
+                steps.add(new PartialConfigurationStepPanel(getObjectDetailsModels()));
+                steps.add(new DiscoveryStepPanel(getObjectDetailsModels()));
+            } else {
+                steps.add(new ConfigurationStepPanel(getObjectDetailsModels()));
+            }
+
+            if (capabilities.getSchema() != null) {
+                steps.add(new SelectObjectClassesStepPanel(getObjectDetailsModels()));
+            }
+        }
+
+        return steps;
     }
 
     @Override

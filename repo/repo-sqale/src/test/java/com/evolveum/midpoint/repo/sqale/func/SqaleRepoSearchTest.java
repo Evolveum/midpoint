@@ -483,6 +483,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test101SearchAllObjectsWithNullQuery() throws Exception {
+        when("searching all objects with null query");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result =
+                searchObjects(ObjectType.class, (ObjectQuery) null, operationResult);
+
+        then("all objects are returned");
+        assertThat(result).hasSize((int) count(QObject.CLASS));
+        assertThatOperationResult(operationResult).isSuccess();
+    }
+
+    @Test
     public void test110SearchUserByName() throws Exception {
         searchUsersTest("with name matching provided value",
                 f -> f.item(F_NAME).eq(PolyString.fromOrig("user-1")),
@@ -2330,12 +2342,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user4Oid);
     }
 
-    @Test(expectedExceptions = SystemException.class)
-    public void test820SearchUsersWithReferencedPath() throws SchemaException {
-        searchUsersTest("fullName does not equals fname",
-                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
-                        .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                user1Oid, user2Oid, user3Oid, user4Oid);
+    @Test
+    public void test820SearchUsersWithReferencedPath() {
+        assertThatThrownBy(() ->
+                searchUsersTest("fullName does not equals fname",
+                        f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                                .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                        user1Oid, user2Oid, user3Oid, user4Oid))
+                .isInstanceOf(SystemException.class);
         // Should fail because right-hand side nesting into multivalue container is not supported
     }
     // endregion

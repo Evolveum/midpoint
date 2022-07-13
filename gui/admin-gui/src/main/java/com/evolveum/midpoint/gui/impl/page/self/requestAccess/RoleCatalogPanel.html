@@ -7,15 +7,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-column flex-md-row gap-3">
-        <div class="d-flex flex-column align-items-stretch gap-3">
+    <div class="row">
+        <div class="col-sm-12 col-md-5 col-lg-4 col-xxl-2 d-flex flex-column align-items-stretch gap-3">
             <div wicket:id="viewToggle"/>
             <ul wicket:id="menu"/>
         </div>
         <wicket:remove>
             <!-- todo mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout -->
         </wicket:remove>
-        <div class="flex-grow-1 mt-2" wicket:id="tilesTable"/>
+        <div class="col-sm-12 col-md-7 col-lg-8 col-xxl-10 mt-2 role-catalog-tiles-table" wicket:id="tilesTable"/>
     </div>
 </wicket:panel>
 
