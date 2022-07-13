@@ -1726,7 +1726,15 @@ th.debug-list-buttons {
   }
 }
 
-.role-catalog-tiles-table .catalog-tile-panel {
-  height: 376px;
-  margin-bottom: $grid-gutter-width;
+.request-access-wizard {
+  & .simple-tile {
+    width: 250px;
+    height: 250px;
+  }
+
+  & .role-catalog-tiles-table .catalog-tile-panel {
+    height: 376px;
+    margin-bottom: $grid-gutter-width;
+  }
 }
+
