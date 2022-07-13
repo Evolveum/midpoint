@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.cache.handlers;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * because this operation returns String. This long-time convention cannot be changed easily, so we use
  * this workaround.
  */
-public class AddObjectResult<T extends ObjectType> {
+public class AddObjectResult<T extends ObjectType> implements RepositoryOperationResult {
 
     @NotNull private final PrismObject<T> object;
 

@@ -27,7 +27,7 @@ import java.util.Collection;
  *  EXPERIMENTAL. We will probably drop objectBefore and modifications.
  */
 @Experimental
-public class ModifyObjectResult<T extends ObjectType> {
+public class ModifyObjectResult<T extends ObjectType> implements RepositoryOperationResult {
 
     private final PrismObject<T> objectBefore;
     private final PrismObject<T> objectAfter;
