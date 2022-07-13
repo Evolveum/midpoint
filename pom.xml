@@ -176,6 +176,11 @@
     <profiles>
         <profile>
             <id>dist</id>
+            <activation>
+                <property>
+                    <name>!skipDist</name>
+                </property>
+            </activation>
             <modules>
                 <module>dist</module>
             </modules>
