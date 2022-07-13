@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -62,7 +63,7 @@ public abstract class AbstractConfigurationStepPanel extends AbstractResourceWiz
     public boolean onNextPerformed(AjaxRequestTarget target) {
 
         CapabilityCollectionType capabilities
-                = WebModelServiceUtils.getNativeCapabilities(getResourceModel().getObjectType(), getPageBase());
+                = WebComponentUtil.getNativeCapabilities(getResourceModel().getObjectType(), getPageBase());
 
         if (capabilities.getSchema() != null || capabilities.getTestConnection() != null) {
             PageBase pageBase = getPageBase();

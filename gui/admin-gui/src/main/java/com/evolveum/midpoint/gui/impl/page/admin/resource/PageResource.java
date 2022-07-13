@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -130,7 +131,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
         if (connector != null && SchemaConstants.ICF_FRAMEWORK_URI.equals(connector.asObjectable().getFramework())) {
             CapabilityCollectionType capabilities
-                    = WebModelServiceUtils.getNativeCapabilities(getModelObjectType(), PageResource.this);
+                    = WebComponentUtil.getNativeCapabilities(getModelObjectType(), PageResource.this);
 
             if (capabilities.getDiscoverConfiguration() != null) {
                 steps.add(new PartialConfigurationStepPanel(getObjectDetailsModels()));

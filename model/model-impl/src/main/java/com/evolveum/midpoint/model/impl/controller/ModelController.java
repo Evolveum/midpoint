@@ -1516,7 +1516,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public @Nullable CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
+    public @Nullable CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         Validate.notNull(connOid, "ConnOid must not be null.");
         LOGGER.trace("Getting native capabilities by connector oid: {}", connOid);
 

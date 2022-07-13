@@ -38,9 +38,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         ObjectDelta<ResourceType> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
-        Collection<ItemDelta> deltas = new ArrayList<>();
+        Collection<ItemDelta<PrismValue, ItemDefinition>> deltas = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : getValue().getItems()) {
-            Collection<ItemDelta> delta = itemWrapper.getDelta();
+            Collection<ItemDelta<PrismValue, ItemDefinition>> delta = itemWrapper.getDelta();
             if (delta == null || delta.isEmpty()) {
                 continue;
             }
@@ -51,14 +51,15 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             case ADDED:
                 objectDelta.setChangeType(ChangeType.ADD);
                 PrismObject<ResourceType> clone = (PrismObject<ResourceType>) getOldItem().clone();
-                removingMetadataForSuperOrigin(clone, false);
+                removingMetadataForSuperOrigin(clone);
+                removingMetadataForSuperOrigin(deltas);
                 for (ItemDelta d : deltas) {
                     d.applyTo(clone);
                 }
-                removingMetadataForSuperOrigin(clone, true);
                 objectDelta.setObjectToAdd(clone);
                 break;
             case NOT_CHANGED:
+                removingMetadataForSuperOrigin(deltas);
                 objectDelta.mergeModifications(deltas);
                 break;
             case DELETED:
@@ -73,25 +74,44 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         return objectDelta;
     }
 
-    private void removingMetadataForSuperOrigin(PrismObject<ResourceType> clone, boolean onlyMetadata) {
+    private void removingMetadataForSuperOrigin(Collection<ItemDelta<PrismValue, ItemDefinition>> deltas) {
+        deltas.forEach(delta -> {
+            removingMetadataFromValues(delta.getValuesToAdd());
+            removingMetadataFromValues(delta.getValuesToReplace());
+            removingMetadataFromValues(delta.getValuesToDelete());
+        });
+    }
+
+    private void removingMetadataFromValues(Collection<PrismValue> values) {
+        if (values == null) {
+            return;
+        }
+        values.forEach(value -> {
+            if (hasValueMetadata(value)) {
+                value.setValueMetadata((ValueMetadata) null);
+            }
+        });
+    }
+
+    private void removingMetadataForSuperOrigin(PrismObject<ResourceType> clone) {
         clone.getDefinition().getDefinitions().forEach(def -> {
             Item<PrismValue, ItemDefinition> item = clone.findItem(def.getItemName());
-            removingMetadataForSuperOrigin(item, onlyMetadata);
+            removingMetadataForSuperOrigin(item);
             if (item != null && item.isEmpty()) {
                 clone.remove(item);
             }
         });
     }
 
-    private boolean removingMetadataForSuperOrigin(PrismContainer container, boolean onlyMetadata) {
+    private boolean removingMetadataForSuperOrigin(PrismContainer container) {
         AtomicBoolean containsValueWithoutMetadata = new AtomicBoolean(false);
         container.removeIf(value -> {
             AtomicBoolean containsValueWithoutMetadataForValue = new AtomicBoolean(false);
             container.getDefinition().getDefinitions().forEach(def -> {
                 Item item = (Item) ((PrismValue) value).find(((ItemDefinition) def).getItemName());
-                boolean containsValueWithoutMetadataForItem = removingMetadataForSuperOrigin(item, onlyMetadata);
+                boolean containsValueWithoutMetadataForItem = removingMetadataForSuperOrigin(item);
                 if (item.isEmpty()) {
-                    ((PrismContainerValue)value).remove(item);
+                    ((PrismContainerValue) value).remove(item);
                 }
                 containsValueWithoutMetadataForValue.set(
                         containsValueWithoutMetadataForValue.get() || containsValueWithoutMetadataForItem);
@@ -103,26 +123,18 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
         return containsValueWithoutMetadata.get();
     }
 
-    private boolean removingMetadataForSuperOrigin(Item item, boolean onlyMetadata) {
+    private boolean removingMetadataForSuperOrigin(Item item) {
         AtomicBoolean containsValueWithoutMetadata = new AtomicBoolean(false);
         if (item == null) {
             return false;
         }
-        if (onlyMetadata) {
-            item.getValues().forEach(value -> {
-                if (hasValueMetadata(((PrismValue) value))) {
-                    ((PrismValue) value).setValueMetadata((ValueMetadata) null);
-                }
-            });
-        } else {
-            item.removeIf(value -> {
-                if (hasValueMetadata(((PrismValue) value))) {
-                    return true;
-                }
-                containsValueWithoutMetadata.set(true);
-                return false;
-            });
-        }
+        item.removeIf(value -> {
+            if (hasValueMetadata(((PrismValue) value))) {
+                return true;
+            }
+            containsValueWithoutMetadata.set(true);
+            return false;
+        });
         return containsValueWithoutMetadata.get();
     }
 

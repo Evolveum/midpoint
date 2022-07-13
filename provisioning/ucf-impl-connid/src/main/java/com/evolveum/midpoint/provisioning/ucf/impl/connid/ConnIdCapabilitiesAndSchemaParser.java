@@ -686,18 +686,10 @@ class ConnIdCapabilitiesAndSchemaParser {
             return true;
         }
 
-        boolean allIsNull = true;
         for (QName objClassToGenerate : generateObjectClasses) {
-            if (objClassToGenerate != null) {
-                allIsNull = false;
-                if (objClassToGenerate.equals(objectClassXsdName)) {
-                    return true;
-                }
+            if (objClassToGenerate.equals(objectClassXsdName)) {
+                return true;
             }
-        }
-
-        if (allIsNull) {
-            return true;
         }
 
         return false;
