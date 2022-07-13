@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import java.io.Serializable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
+public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<ListGroupMenuItem<T>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,7 +39,7 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
-    public ListGroupMenuItemPanel(String id, IModel<ListGroupMenuItem> model) {
+    public ListGroupMenuItemPanel(String id, IModel<ListGroupMenuItem<T>> model) {
         super(id, model);
 
         initLayout();
@@ -57,12 +57,11 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onClickPerformed(target);
+                onClickPerformed(target, ListGroupMenuItemPanel.this.getModelObject());
             }
         };
         link.add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
         link.add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
-        link.add(new EnableBehaviour(() -> getModelObject().getItems().isEmpty()));
         add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
@@ -92,17 +91,23 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
         itemsContainer.add(new VisibleBehaviour(() -> !getModelObject().getItems().isEmpty()));
         add(itemsContainer);
 
-        ListView<ListGroupMenuItem> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
+        ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
 
             @Override
-            protected void populateItem(ListItem<ListGroupMenuItem> item) {
-                item.add(new ListGroupMenuItemPanel(ID_ITEM, item.getModel()));
+            protected void populateItem(ListItem<ListGroupMenuItem<T>> item) {
+                item.add(new ListGroupMenuItemPanel(ID_ITEM, item.getModel()) {
+
+                    @Override
+                    protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
+                        ListGroupMenuItemPanel.this.onClickPerformed(target, item);
+                    }
+                });
             }
         };
         itemsContainer.add(items);
     }
 
-    protected void onClickPerformed(AjaxRequestTarget target) {
+    protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
 
     }
 }

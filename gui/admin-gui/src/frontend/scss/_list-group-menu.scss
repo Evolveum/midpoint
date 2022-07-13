@@ -80,6 +80,10 @@ $list-group-item-padding-sm-x: 1rem;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    & > i.chevron {
+      margin-left: 10px;
+    }
   }
 
   & > .form-control {
