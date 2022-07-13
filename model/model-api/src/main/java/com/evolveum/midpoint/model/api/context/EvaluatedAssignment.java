@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -136,5 +137,11 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
      * Assignment was present at the beginning and is not being deleted.
      */
     boolean isBeingKept();
+
+    /**
+     * Set of abstract role OIDs considered for addition of admin gui configuration
+     *
+     */
+    Set<String> getAdminGuiDendencies();
 
 }

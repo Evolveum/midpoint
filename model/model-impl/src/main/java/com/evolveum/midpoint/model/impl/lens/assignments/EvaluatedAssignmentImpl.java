@@ -124,6 +124,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      */
     @NotNull private final AssignmentOrigin origin;
 
+    private Set<String> adminGuiDependencies = new HashSet<>();
+
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             boolean evaluatedOld, @NotNull AssignmentOrigin origin, PrismContext prismContext) {
@@ -292,6 +294,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         authorizations.add(authorization);
     }
 
+    @Override
     @NotNull
     public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
         return adminGuiConfigurations;
@@ -301,6 +304,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         adminGuiConfigurations.add(adminGuiConfiguration);
     }
 
+    @Override
     @NotNull
     public Collection<MappingImpl<?,?>> getFocusMappings() {
         return focusMappings;
@@ -388,6 +392,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return origin.isOld();
     }
 
+    @Override
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getFocusPolicyRules() {
         return focusPolicyRules;
@@ -397,6 +402,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         focusPolicyRules.add(policyRule);
     }
 
+    @Override
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getThisTargetPolicyRules() {
         return thisTargetPolicyRules;
@@ -406,6 +412,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         thisTargetPolicyRules.add(policyRule);
     }
 
+    @Override
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getOtherTargetsPolicyRules() {
         return otherTargetsPolicyRules;
@@ -415,6 +422,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         otherTargetsPolicyRules.add(policyRule);
     }
 
+    @Override
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getAllTargetsPolicyRules() {
         return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
@@ -619,15 +627,29 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return origin.getAbsoluteMode();
     }
 
+    @Override
     public boolean isBeingAdded() {
         return origin.isBeingAdded();
     }
 
+    @Override
     public boolean isBeingDeleted() {
         return origin.isBeingDeleted();
     }
 
+    @Override
     public boolean isBeingKept() {
         return origin.isBeingKept();
     }
+
+    @Override
+    public Set<String> getAdminGuiDendencies() {
+        return adminGuiDependencies;
+    }
+
+    public void addAdminGuiDependency(String oid) {
+        adminGuiDependencies.add(oid);
+    }
+
+
 }
