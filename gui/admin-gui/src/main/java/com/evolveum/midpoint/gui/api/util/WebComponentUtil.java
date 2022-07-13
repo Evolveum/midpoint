@@ -29,6 +29,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -3158,6 +3160,18 @@ public final class WebComponentUtil {
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.partialConfigurationTest.fatalError").getString(), e);
         }
         result.computeStatus();
+    }
+
+    public static CapabilityCollectionType getNativeCapabilities(ResourceType resource, PageBase pageBase) {
+        OperationResult result = new OperationResult("load native capabilities");
+        try {
+            return pageBase.getModelService().getNativeCapabilities(resource.getConnectorRef().getOid(), result);
+        } catch (ObjectNotFoundException | SchemaException
+                | CommunicationException | ConfigurationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error getting native capabilities", e);
+            result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.gettingNativeCapabilities.fatalError").getString(), e);
+            return new CapabilityCollectionType();
+        }
     }
 
     public static List<QName> getCategoryRelationChoices(AreaCategoryType category, List<RelationDefinitionType> defList) {
