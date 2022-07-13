@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidation
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Dispatches cache-related events - mainly invalidation ones - to all relevant listeners:
@@ -46,13 +47,13 @@ public class CacheDispatcherImpl implements CacheDispatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(CacheDispatcherImpl.class);
 
-    @Autowired
     private List<CacheInvalidationListener> cacheListeners = new ArrayList<>();
 
 
 
     @Override
     public synchronized void registerCacheListener(CacheListener cacheListener) {
+        LOGGER.info("Registering listener {}", cacheListener);
         if (cacheListeners.contains(cacheListener)) {
             LOGGER.warn("Registering listener {} which was already registered.", cacheListener);
             return;
@@ -93,8 +94,13 @@ public class CacheDispatcherImpl implements CacheDispatcher {
             // Fast path for cache listeners interested in all events
             return true;
         }
+        if (type == null) {
+            return true;
+        }
+
         for(CacheInvalidationEventSpecification eventSpec : eventSpecs) {
             if (eventSpec.getObjectType().isAssignableFrom(type)) {
+                LOGGER.info("Listener interested in {}, repository result is {}", type, result);
                 // Listener is interested in this type
                 if (result == null) {
                     // FIXME: What to do here? this is caused by addDiagnosticInformation
@@ -119,7 +125,7 @@ public class CacheDispatcherImpl implements CacheDispatcher {
         }
         for (ItemPath path : eventSpec.getPaths()) {
             for (ItemDelta<?, ?> modification : result.getModifications()) {
-                if(path.isSuperPathOrEquivalent(modification.getPath())) {
+                if (modification.getPath().startsWith(path)) {
                     return true;
                 }
             }
