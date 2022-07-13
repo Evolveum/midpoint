@@ -81,8 +81,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             }
         };
 
-        DropDownChoice administrativeStatus = new DropDownChoice(ID_ADMINISTRATIVE_STATUS,
-                WebComponentUtil.createReadonlyModelFromEnum(ActivationStatusType.class), model,
+        DropDownChoice administrativeStatus = new DropDownChoice(ID_ADMINISTRATIVE_STATUS, model,
+                WebComponentUtil.createReadonlyModelFromEnum(ActivationStatusType.class),
                 WebComponentUtil.getEnumChoiceRenderer(this));
         form.add(administrativeStatus);
 

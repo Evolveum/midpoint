@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -60,6 +62,7 @@ public class ListGroupMenuItemPanel extends BasePanel<ListGroupMenuItem> {
         };
         link.add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
         link.add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
+        link.add(new EnableBehaviour(() -> getModelObject().getItems().isEmpty()));
         add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);

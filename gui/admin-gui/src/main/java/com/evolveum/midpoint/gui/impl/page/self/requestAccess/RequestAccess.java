@@ -12,7 +12,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -67,6 +71,8 @@ public class RequestAccess implements Serializable {
     private QName relation;
 
     private QName defaultRelation = SchemaConstants.ORG_DEFAULT;
+
+    private Duration validity;
 
     private String comment;
 
@@ -554,5 +560,41 @@ public class RequestAccess implements Serializable {
         options.requestBusinessContext(businessContextType);
 
         return options;
+    }
+
+    public Duration getValidity() {
+        return validity;
+    }
+
+    public void setValidity(Duration validity) {
+        if (Objects.equals(this.validity, validity)) {
+            return;
+        }
+
+        this.validity = validity;
+
+        for (List<AssignmentType> list : requestItems.values()) {
+            list.forEach(a -> {
+                if (validity == null) {
+                    a.setActivation(null);
+                } else {
+                    ActivationType activation = a.getActivation();
+                    if (activation == null) {
+                        activation = new ActivationType();
+                        a.setActivation(activation);
+                    }
+
+                    XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar();
+
+                    XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(from);
+                    to.add(validity);
+
+                    activation.validFrom(from)
+                            .validTo(to);
+                }
+            });
+        }
+
+        markConflictsDirty();
     }
 }

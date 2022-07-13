@@ -347,11 +347,13 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 // todo implement
+                getPageBase().hideMainPopup(target);
             }
 
             @Override
             protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 // todo implement
+                getPageBase().hideMainPopup(target);
             }
         };
 

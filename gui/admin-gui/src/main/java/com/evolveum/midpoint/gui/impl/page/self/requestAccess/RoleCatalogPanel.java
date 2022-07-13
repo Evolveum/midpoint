@@ -14,10 +14,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.Toggle;
-
-import com.evolveum.midpoint.gui.api.component.TogglePanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -33,6 +29,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.Toggle;
+import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -331,6 +329,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             for (PrismObject o : objects) {
                 String name = WebComponentUtil.getDisplayNameOrName(o, true);
                 ListGroupMenuItem menu = new ListGroupMenuItem(name);
+                menu.setItemsModel(new LoadableModel<>(false) {
+                    @Override
+                    protected List<ListGroupMenuItem> load() {
+                        ObjectReferenceType parentRef = new ObjectReferenceType()
+                                .oid(o.getOid())
+                                .targetName(o.getName().getOrig())
+                                .type(o.getDefinition().getTypeName());
+
+                        return loadMenuItems(parentRef);
+                    }
+                });
                 list.add(menu);
             }
         } catch (Exception ex) {
