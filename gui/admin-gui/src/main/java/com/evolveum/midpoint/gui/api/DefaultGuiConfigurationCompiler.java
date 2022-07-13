@@ -297,13 +297,13 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
         }
 
-        if (compiledGuiProfile.getObjectDetails().getResourceDetailsPage().isEmpty()) {
-            compiledGuiProfile.getObjectDetails().getResourceDetailsPage().add(new GuiResourceDetailsPageType());
-        }
+        compiledGuiProfile.getObjectDetails().getResourceDetailsPage().add(new GuiResourceDetailsPageType());
 
         for (GuiResourceDetailsPageType resourceDetailsPage : compiledGuiProfile.getObjectDetails().getResourceDetailsPage()) {
+            List<ContainerPanelConfigurationType> cloneResourcePanels = new ArrayList<>();
+            resourcePanels.forEach(panel -> cloneResourcePanels.add(panel.clone()));
             List<ContainerPanelConfigurationType> mergedPanels =
-                    adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(resourcePanels, resourceDetailsPage.getPanel());
+                    adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(cloneResourcePanels, resourceDetailsPage.getPanel());
             resourceDetailsPage.getPanel().clear();
             resourceDetailsPage.getPanel().addAll(mergedPanels);
         }
@@ -506,6 +506,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (StringUtils.isNotEmpty(panelInstance.type())) {
             config.setType(QNameUtil.uriToQName(panelInstance.type(), SchemaConstantsGenerated.NS_COMMON));
         }
+        config.asPrismContainerValue().setParent(null);
 
         return config;
     }

@@ -10,6 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -30,12 +34,12 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 @PanelType(name = "resourceConnectorConfiguration")
-@PanelInstance(identifier = "resourceConnectorConfiguration", applicableForType = ResourceType.class,
+@PanelInstance(identifier = "resourceConnectorConfiguration",
+        applicableForType = ResourceType.class,
         display = @PanelDisplay(label = "PageResource.tab.connector.configuration", icon = "fa fa-plug", order = 20))
 public class ResourceConfigurationPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
@@ -66,12 +70,14 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
 
     private List<ITab> createConfigurationTabs() {
         List<ITab> tabs = new ArrayList<>();
-        getObjectDetailsModels().getConfigurationModel().reset();
-        PrismContainerWrapper<ConnectorConfigurationType> configuration = getObjectDetailsModels().getConfigurationModelObject();
+        PrismContainerWrapper<Containerable> configuration
+                = PrismContainerWrapperModel.fromContainerWrapper(
+                        getObjectWrapperModel(),
+                        ItemPath.create("connectorConfiguration")).getObject();
         if (configuration == null) {
             return new ArrayList<>();
         }
-        PrismContainerValueWrapper<ConnectorConfigurationType> configurationValue;
+        PrismContainerValueWrapper<Containerable> configurationValue;
         try {
             configurationValue = configuration.getValue();
         } catch (SchemaException e) {
@@ -79,19 +85,20 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
             getSession().error("A problem occurred while getting value for connector configuration, " + e.getMessage());
             return null;
         }
-        for (final PrismContainerWrapper<?> wrapper : configurationValue.getContainers()) {
-            String tabName = wrapper.getDisplayName();
-            tabs.add(new AbstractTab(new Model<>(tabName)) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public WebMarkupContainer getPanel(String panelId) {
-                    return new SingleContainerPanel<>(panelId, Model.of(wrapper), wrapper.getTypeName());
-                }
-            });
-        }
-
+        configurationValue.getContainers().forEach(wrapper -> tabs.add(createContainerTab(wrapper)));
         return tabs;
+    }
+
+    private ITab createContainerTab(PrismContainerWrapper<?> wrapper) {
+        String tabName = wrapper.getDisplayName();
+        return new AbstractTab(new Model<>(tabName)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new SingleContainerPanel<>(panelId, Model.of(wrapper), wrapper.getTypeName());
+            }
+        };
     }
 
     public void updateConfigurationTabs() {
