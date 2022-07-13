@@ -13,8 +13,10 @@ import static java.util.Collections.emptyList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -27,16 +29,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.FocusComputer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
+import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -53,15 +61,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author lazyman
  * @author semancik
  */
 @Service(value = "guiProfiledPrincipalManager")
-public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
+public class GuiProfiledPrincipalManagerImpl implements CacheInvalidationListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
+
+    private static final Set<ItemPath> ASSIGNMENTS_AND_ADMIN_GUI_PATHS = ImmutableSet.of(FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION);
+    private static final Set<ChangeType> MODIFY_DELETE_CHANGES = CacheInvalidationEventSpecification.MODIFY_DELETE;
+
+    private static final Collection<CacheInvalidationEventSpecification> CACHE_EVENT_SPECIFICATION =
+            ImmutableSet.<CacheInvalidationEventSpecification>builder()
+            .add(CacheInvalidationEventSpecification.of(UserType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(AbstractRoleType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(SystemConfigurationType.class, ImmutableSet.of(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION), MODIFY_DELETE_CHANGES))
+            .build();
+
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -340,6 +360,59 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
             throw new UsernameNotFoundException(e.getMessage(), e);
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CACHE_EVENT_SPECIFICATION;
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
+            CacheInvalidationContext context) {
+        // TODO Auto-generated method stub
+
+        List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
+        for (Object principal : loggedInUsers) {
+
+            if (!(principal instanceof GuiProfiledPrincipal)) {
+                continue;
+            }
+
+            List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+            if (sessionInfos == null || sessionInfos.isEmpty()) {
+                continue;
+            }
+            GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
+            if (oid == midPointPrincipal.getOid()) {
+                // User was changed
+            }
+
+            CompiledGuiProfile compiledProfile = midPointPrincipal.getCompiledGuiProfile();
+            if (compiledProfile.derivedFrom(oid)) {
+                compiledProfile.markInvalid();
+            }
+
+        }
+    }
+
+
+    @Override
+    public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal principal) {
+        OperationResult result = new OperationResult("refreshCompiledProfile");
+
+        // Maybe focus was also changed, we should probably reload it
+        var focus = principal.getFocus().asPrismObject();
+        securityContextManager.setTemporaryPrincipalOid(principal.getFocus().getOid());
+        try {
+            PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+            LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
+            focusComputer.recompute(focus, lifecycleModel);
+            initializePrincipalFromAssignments(principal, systemConfiguration, null);
+            return principal.getCompiledGuiProfile();
+        } finally {
+            securityContextManager.clearTemporaryPrincipalOid();
         }
     }
 }

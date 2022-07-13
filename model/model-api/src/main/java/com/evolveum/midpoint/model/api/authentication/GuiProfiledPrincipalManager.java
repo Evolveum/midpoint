@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import java.util.Collection;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  */
@@ -48,4 +50,7 @@ public interface GuiProfiledPrincipalManager extends MidPointPrincipalManager {
     List<UserSessionManagementType> getLocalLoggedInPrincipals();
 
     void terminateLocalSessions(TerminateSessionEvent terminateSessionEvent);
+
+    @NotNull
+    CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal);
 }
