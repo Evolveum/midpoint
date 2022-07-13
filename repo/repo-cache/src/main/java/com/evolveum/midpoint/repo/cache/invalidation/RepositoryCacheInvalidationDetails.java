@@ -27,7 +27,7 @@ public final class RepositoryCacheInvalidationDetails implements CacheInvalidati
         return details;
     }
 
-    public RepositoryOperationResult getDetails() {
+    public RepositoryOperationResult getResult() {
         return details;
     }
 }
