@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,16 @@ public class CacheInvalidationEventSpecification {
         this.paths = paths;
         this.changeTypes = changeTypes;
     }
+
+    @SafeVarargs
+    public static Set<CacheInvalidationEventSpecification> setOf(Class<? extends ObjectType>... types) {
+        HashSet<CacheInvalidationEventSpecification> set = new HashSet<>();
+        for (Class<? extends ObjectType> type : types) {
+            set.add(of(type, ALL_CHANGES));
+        }
+        return set;
+    }
+
 
     public static CacheInvalidationEventSpecification of(Class<? extends ObjectType> type, Set<ChangeType> changes) {
         return of(type, null, changes);

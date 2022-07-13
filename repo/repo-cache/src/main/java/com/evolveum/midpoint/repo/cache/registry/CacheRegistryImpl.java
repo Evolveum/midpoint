@@ -30,22 +30,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * be moved to a more appropriate place.
  */
 @Component("cacheRegistry")
-public class CacheRegistryImpl implements CacheListener, CacheRegistry {
+public class CacheRegistryImpl implements CacheRegistry {
 
     private final List<Cache> caches = new ArrayList<>();
 
     @Autowired private CacheDispatcher dispatcher;
     @Autowired private PrismContext prismContext;
-
-    @PostConstruct
-    public void registerListener() {
-        dispatcher.registerCacheListener(this);
-    }
-
-    @PreDestroy
-    public void unregisterListener() {
-        dispatcher.unregisterCacheListener(this);
-    }
 
     @Override
     public synchronized void registerCache(Cache cache) {
@@ -57,16 +47,6 @@ public class CacheRegistryImpl implements CacheListener, CacheRegistry {
     @Override
     public synchronized void unregisterCache(Cache cache) {
         caches.remove(cache);
-    }
-
-    @Override
-    public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
-            CacheInvalidationContext context) {
-        // We currently ignore clusterwide parameter, because it's used by ClusterCacheListener only.
-        // So we assume that the invalidation event - from this point on - is propagated only locally.
-        for (Cache cache : caches) {
-            cache.invalidate(type, oid, context);
-        }
     }
 
     @Override
