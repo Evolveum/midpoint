@@ -47,9 +47,6 @@
 }
 
 .tile-panel {
-  width: 250px;
-  height: 250px;
-
   @include tile();
 }
 
@@ -60,9 +57,6 @@
 }
 
 .catalog-tile-panel {
-  width: 317px;
-  height: 376px;
-
   @include tile();
 
   & > .logo {

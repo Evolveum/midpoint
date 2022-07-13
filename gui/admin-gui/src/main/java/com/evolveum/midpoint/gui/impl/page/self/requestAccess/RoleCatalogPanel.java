@@ -139,7 +139,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
-                new TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>(ID_TILES, provider, columns, createViewToggleModel()) {
+                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel()) {
 
                     @Override
                     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -196,6 +196,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                                 // no selection to be done
                             }
                         };
+                    }
+
+                    @Override
+                    protected String getTileCssClasses() {
+                        return "col-12 col-md-6 col-lg-4 col-xxl-2";
                     }
 
                     @Override

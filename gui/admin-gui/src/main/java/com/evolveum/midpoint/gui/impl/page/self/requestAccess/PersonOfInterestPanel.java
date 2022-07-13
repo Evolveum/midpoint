@@ -25,9 +25,11 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -313,7 +315,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
     }
 
     private ObjectFilter createObjectFilterFromGroupSelection(String identifier) {
-        if (identifier==null) {
+        if (identifier == null) {
             return null;
         }
 
@@ -333,12 +335,20 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
             return null;
         }
 
+        SearchFilterType search;
         if (collection.getCollectionRef() != null) {
             com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            // todo use collection somehow as well
+            PrismObject obj = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+            if (obj == null) {
+                return null;
+            }
+
+            ObjectCollectionType objectCollection = (ObjectCollectionType) obj.asObjectable();
+            search = objectCollection.getFilter();
+        } else {
+            search = collection.getFilter();
         }
 
-        SearchFilterType search = collection.getFilter();
         if (search == null) {
             return null;
         }
@@ -362,7 +372,6 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
             filter = createObjectFilterFromGroupSelection(identifier);
         }
 
-        // todo user group identifier from tile PersonOfInterest to properly filter users, also support collections somehow
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(getPageBase().getMainPopupBodyId(), UserType.class,
                 List.of(UserType.COMPLEX_TYPE), true, getPageBase(), filter) {
 
