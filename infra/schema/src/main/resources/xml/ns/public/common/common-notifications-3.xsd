@@ -350,7 +350,7 @@
                         At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>NotificationTransportConfigurationType.whiteList</a:displayName>
+                        <a:displayName>NotificationTransportConfigurationType.recipientFilterExpression</a:displayName>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2237,7 +2237,7 @@
                         At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>
+                        <a:displayName>GeneralTransportConfigurationType.recipientFilterExpression</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2253,7 +2253,7 @@
                         `getDefaultRecipientAddress(Focus)` in the `Transport` implementation will be used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>GeneralTransportConfigurationType.whiteList</a:displayName>
+                        <a:displayName>GeneralTransportConfigurationType.recipientAddressExpression</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
