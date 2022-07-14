@@ -53,9 +53,9 @@
                     <displayOrder>20</displayOrder>
                     <display>
                         <label>File format</label>
-                        <cssClass>fa fa-file-text-o</cssClass>
+                        <cssClass>fas fa-file-alt</cssClass>
                         <icon>
-                            <cssClass>fa fa-file-text-o</cssClass>
+                            <cssClass>fas fa-file-alt</cssClass>
                         </icon>
                     </display>
                     <container>
