@@ -8,7 +8,7 @@
     "build": "webpack build --env production --config ./webpack.config.js --progress --profile --bail",
     "watch": "webpack watch --env development --config ./webpack.config.js --progress --profile"
   },
-  "author": "",
+  "author": "Evolveum",
   "license": "Apache License 2.0 and European Union Public License",
   "devDependencies": {
     "@fontsource/source-sans-pro": "^4.5.9",
@@ -31,9 +31,9 @@
     "sass": "^1.50.0",
     "sass-loader": "^12.6.0",
     "style-loader": "^3.3.1",
+    "tempusdominus-bootstrap-4": "^5.39.2",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2",
-    "webpack-merge": "^5.8.0",
-    "tempusdominus-bootstrap-4": "^5.39.2"
+    "webpack-merge": "^5.8.0"
   }
 }

@@ -94,26 +94,6 @@
             <artifactId>jquery</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.webjars</groupId>
-            <artifactId>AdminLTE</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>font-awesome</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.npm</groupId>
-            <artifactId>ionicons</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.webjars</groupId>
-            <artifactId>password-score</artifactId>
-            <scope>runtime</scope>
-        </dependency>
 
         <!-- JDBC DRIVERS -->
         <dependency>
