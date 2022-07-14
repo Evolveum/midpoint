@@ -611,6 +611,15 @@ public class RequestAccess implements Serializable {
 
         this.validity = validity;
 
+        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar();
+
+        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(from);
+        to.add(validity);
+
+        setValidity(from, to);
+    }
+
+    private void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> {
                 if (validity == null) {
@@ -622,13 +631,7 @@ public class RequestAccess implements Serializable {
                         a.setActivation(activation);
                     }
 
-                    XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar();
-
-                    XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(from);
-                    to.add(validity);
-
-                    activation.validFrom(from)
-                            .validTo(to);
+                    activation.validFrom(from).validTo(to);
                 }
             });
         }
