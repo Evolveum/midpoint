@@ -115,7 +115,7 @@
                         At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>NotificationTransportConfigurationType.whiteList</a:displayName>
+                        <a:displayName>NotificationTransportConfigurationType.recipientFilterExpression</a:displayName>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
