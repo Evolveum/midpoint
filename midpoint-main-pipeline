@@ -52,7 +52,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore clean deploy -DdeployAtEnd=true
+                        mvn -B -ntp -Dmaven.test.failure.ignore clean deploy
 
                         if [ "${verbose}" -ge 1 ]; then
                             df -h
