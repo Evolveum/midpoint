@@ -45,6 +45,7 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
 
     private void initLayout() {
         add(AttributeAppender.append("class", "list-group-menu"));
+        add(AttributeAppender.append("data-widget", "list-group-menu"));
         setOutputMarkupId(true);
 
         ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
@@ -67,6 +68,6 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
     protected void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<T> item) {
         getModelObject().activateItem(item);
 
-        target.add(this);
+//        target.add(this);
     }
 }
