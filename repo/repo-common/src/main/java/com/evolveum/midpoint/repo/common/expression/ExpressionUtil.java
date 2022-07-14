@@ -250,7 +250,8 @@ public class ExpressionUtil {
         if (value instanceof PrismObject<?>) {
             typedValue.setValue(((PrismObject<?>) value).asObjectable());
             return typedValue;
-        } else if (value instanceof PrismProperty<?> prop) {
+        } else if (value instanceof PrismProperty<?>) {
+            PrismProperty<?> prop = (PrismProperty<?>) value;
             PrismPropertyDefinition<?> def = prop.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
@@ -264,7 +265,8 @@ public class ExpressionUtil {
                         prop.getElementName(), PrimitiveType.STRING.getQname());
                 return new TypedValue<>(prop.getRealValues(), fakeDef);
             }
-        } else if (value instanceof PrismReference ref) {
+        } else if (value instanceof PrismReference) {
+            PrismReference ref = (PrismReference) value;
             PrismReferenceDefinition def = ref.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
@@ -276,7 +278,8 @@ public class ExpressionUtil {
                 PrismReferenceDefinition fakeDef = prismContext.definitionFactory().createReferenceDefinition(ref.getElementName(), ObjectType.COMPLEX_TYPE);
                 return new TypedValue<>(ref.getRealValues(), fakeDef);
             }
-        } else if (value instanceof PrismContainer<?> container) {
+        } else if (value instanceof PrismContainer<?>) {
+            PrismContainer<?> container = (PrismContainer<?>) value;
             PrismContainerDefinition<?> def = container.getDefinition();
             Class<?> containerCompileTimeClass = container.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
@@ -327,7 +330,8 @@ public class ExpressionUtil {
     }
 
     private static Object convertPrismValueToRealValue(Object value) {
-        if (value instanceof PrismContainerValue<?> cval) {
+        if (value instanceof PrismContainerValue<?>) {
+            PrismContainerValue<?> cval = (PrismContainerValue<?>) value;
             Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
                 // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
@@ -545,7 +549,8 @@ public class ExpressionUtil {
         }
         Holder<Boolean> result = new Holder<>(false);
         filter.accept(f -> {
-            if (f instanceof ValueFilter<?, ?> vf) {
+            if (f instanceof ValueFilter<?, ?>) {
+                ValueFilter<?, ?> vf = (ValueFilter<?, ?>) f;
                 if (vf.getExpression() != null) {
                     result.setValue(true);
                 }
@@ -637,7 +642,8 @@ public class ExpressionUtil {
             }
             return evaluatedFilter;
 
-        } else if (filter instanceof ValueFilter valueFilter) {
+        } else if (filter instanceof ValueFilter) {
+            ValueFilter<?, ?> valueFilter = (ValueFilter<?, ?>) filter;
             if (valueFilter.getValues() != null && !valueFilter.getValues().isEmpty()) {
                 // We have value. Nothing to evaluate.
                 return valueFilter.clone();
@@ -718,12 +724,14 @@ public class ExpressionUtil {
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             evaluatedFilter.setFilter(evaluatedSubFilter);
             return evaluatedFilter;
-        } else if (filter instanceof ReferencedByFilter orig) {
+        } else if (filter instanceof ReferencedByFilter) {
+            ReferencedByFilter orig = (ReferencedByFilter) filter;
             var subfilter = evaluateFilterExpressionsInternal(orig.getFilter(), variables,
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             return ReferencedByFilterImpl.create(orig.getType().getTypeName(),
                     orig.getPath(), subfilter, orig.getRelation());
-        } else if (filter instanceof OwnedByFilter orig) {
+        } else if (filter instanceof OwnedByFilter) {
+            OwnedByFilter orig = (OwnedByFilter) filter;
             var subfilter = evaluateFilterExpressionsInternal(orig.getFilter(), variables,
                     expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             return OwnedByFilterImpl.create(orig.getType(), orig.getPath(), subfilter);

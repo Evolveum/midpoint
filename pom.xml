@@ -165,7 +165,8 @@
         <!-- Build system options -->
         <!-- Encoding for both sources and resources -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.source.version>17</project.source.version>
+        <!-- JDK level also affects midPoint Studio, which depends on JDK used by minimum supported IDEA version. -->
+        <project.source.version>11</project.source.version>
         <project.build.locale>en_US</project.build.locale>
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>

@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
 
+import java.util.stream.Collectors;
+
 /**
  * A merger specific to resource definitions: creates inheritance relations between the same definitions
  * (matched by kind and intent).
@@ -68,7 +70,7 @@ public class ObjectTypeDefinitionMerger extends BaseItemMerger<PrismContainer<Re
             PrismContainer<ResourceObjectTypeDefinitionType> container, ShadowKindType kind, String intent) {
         var matching = container.getRealValues().stream()
                 .filter(def -> matchesKindIntent(def, kind, intent))
-                .toList();
+                .collect(Collectors.toList());
         return MiscUtil.extractSingleton(matching,
                 () -> new IllegalStateException("Multiple matching definitions for " + kind + "/" + intent + ": " + matching));
     }

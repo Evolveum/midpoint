@@ -2698,6 +2698,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test982SearchRoleReferencedByUserAssignmentWithComplexFilterNoMatch() throws SchemaException {
         searchObjectTest("referenced by an assignment of the user specified by complex filter (no match)", RoleType.class,
+//                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+//                        .ownedBy(UserType.class, F_ASSIGNMENT)
                 f -> f.referencedBy(UserType.class,
                                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                         .block()
