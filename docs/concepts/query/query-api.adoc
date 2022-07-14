@@ -643,6 +643,11 @@ Multi-value poly-strings currently (4.4+) support only EQ operation.
 Check also xref:/midpoint/reference/schema/custom-schema-extension/#data-types-supported[supported data types for extensions]
 for more information.
 
+//=== Ref filter
+//Let's consider two objects, one referencing the other:
+//
+//image:object-reference-object.png[]
+
 == Complex filters
 
 Complex filters do contain other filters.
@@ -787,6 +792,24 @@ See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 [IMPORTANT]
 Ref filter with nested target filter is supported only for repository searches.
 
+.Ref filter reference
+[%autowidth]
+|===
+| Subelement | Description
+
+| `path` | item path to the refernce item
+// TODO is note about @, .. support needed or desired here?
+
+| `value` | Required value of the reference with attributes `oid`, `type` and `relation`, at least one attribute should be provided.
+Multiple values can be provided, filter matches when any of the values match.
+
+optional, multiple values supported (with mixed attribute usage allowed)
+
+| `filter` | Optional nested _target filter_ that is applied on the target object (the object the reference points to).
+Any filter allowed for objects can be written inside.
+Without the target filter, `ref` filter is just common non-complex value filter.
+|===
+
 `Ref` filter can optionally contain a nested *target filter* which is applied to the target of the reference.
 When the `filter` element is present, it is applied as an additional test for each possible value.
 
@@ -921,6 +944,7 @@ With the target filter added, the reference value (or any of the values of the m
 must match any of the provided values *and* the target object for the matching reference value must also match the target filter.
 
 // TODO some clear example? Describe two objects with roleMembershipRef, one matching, one narrowly not?
+// TODO Axiom syntax described? Or link to axiom-query-language page?
 
 === OwnedBy filter
 
@@ -930,6 +954,19 @@ must match any of the provided values *and* the target object for the matching r
 
 [IMPORTANT]
 This filter is supported only for repository searches.
+
+.OwnedBy filter reference
+[%autowidth]
+|===
+| Subelement | Description
+
+| `type` | type of the owner object/container (the object enclosing the searched container), mandatory
+
+| `path` | item path from the owner to the searched container, mandatory
+
+| `filter` | Optional nested filter applied to the owner object (not the objects we search for).
+Any filter legal for objects/containers of the specified type can be written inside.
+|===
 
 This filter is related to containers and is practical in container searches.
 It allows searches like "give me all assignments for any user" or "for any user with name starting with 'a'".
@@ -1043,7 +1080,7 @@ TODO: how to do this in Axiom?
 ----
 . ownedBy (
     @type = UserType
-    and . inOrg "299a0b60-564a-42cb-b471-8e4c90272cd4"
+    and . inOid "299a0b60-564a-42cb-b471-8e4c90272cd4" // failing, bug, # = "..." works
 )
 ----
 ////
@@ -1264,7 +1301,113 @@ However, this is meaningless, because the same conditions can be applied directl
 [IMPORTANT]
 This filter is supported only for the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
 
-// TODO
+.ReferencedBy filter reference
+[%autowidth]
+|===
+| Subelement | Description
+
+| `type` | type of the referencing object/container (the object pointing to the searched object), mandatory
+
+| `path` | item path from the referencing object to the searched object, mandatory
+
+| `relation` | Optional filter for relation of the reference pointing to the searched object.
+If not stated, any relation matches (equivalent of `q:any`).
+
+| `filter` | Optional nested filter applied to the referencing object (not the objects we search for).
+Any filter allowed for objects/containers can be written inside.
+|===
+
+Referenced-by is a unique filter that allows search for objects that are referenced by other objects
+specified by their type, reference path and optionally additional filter that the referencing object must match.
+Previously existing ref filters and dereferencing (`@`) allowed navigation in the direction of the reference.
+This filter now allows to navigate and filter on the referencing object in the other direction.
+
+Let's consider two objects, one referencing the other:
+
+image:object-reference-object.png[]
+
+With filters before 4.6, we could find object with _oid1_ by various criteria on the _someRef_
+reference or, with dereference, even on the target object (_oid2_).
+But to find objects like _oid2_ by another object referencing it (_oid1_), we need a new mechanism;
+and that is `referencedBy` filter.
+
+We need to know:
+
+* Type of the object(s) (_oid1_) referencing our object(s) of interest  (_oid2_).
+* Item path of the reference, `someRef` in our example.
+* Optionally we can specify the relation of the reference; in constast with the `ref` filter,
+no relation stated means we don't care about the relation (as if `q:any` was used).
+If only `c:default` is desired, it must be stated explicitly in the filter.
+* Finally, we can optionally add any filter on the referencing object, we can narrow it down
+by its name or full-text search, etc.
+
+Note, that the `targetType` of the reference is not considered, any mention of the `type` in this
+filter is related to the type of the referencing object (and implies subtypes as well).
+
+Let's see a realistic example now - we want to find organizations having a particular user assigned.
+Relation is not specified, which means that it does not matter:
+
+[source,axiom]
+----
+. referencedBy (
+    @type = UserType
+    and @path = parentOrgRef
+    and . inOid '2b1fd02e-db31-4896-95e9-82192df00c42'
+)
+----
+
+[source,xml]
+----
+<filter>
+    <referencedBy>
+        <type>UserType</type>
+        <path>parentOrgRef</path>
+        <filter>
+            <inOid>
+                <value>2b1fd02e-db31-4896-95e9-82192df00c42</value>
+            </inOid>
+        </filter>
+    </referencedBy>
+</filter>
+----
+
+[source,java]
+----
+prismContext.queryFor(OrgType.class)
+    .referencedBy(UserType.class, ObjectType.F_PARENT_ORG_REF)
+    .id(user4Oid)
+----
+
+This seems similar to `isParentOf` variant of the `org` filter - but that one actually cannot do this,
+because only another organization can be used as its parameter (here it's user).
+Also, we use OID of the user here, but we could as well use their name, or ask for organizations
+with users having their names starting with a specifed string.
+Any legal filter is allowed inside the `referencedBy` filter.
+
+////
+TODO more examples, .id above is a true nested filter, but rather simple:
+.Axiom Query using `UserType` as referencedBy
+----
+. referencedBy (
+  @type = UserType
+  and @path = assignment/targetRef
+  and archetypeRef/@/name = "System user"
+)
+----
+
+.Axiom Query using `AssignmentType` for referencedBy
+----
+. referencedBy (
+   @type = AssignmentType
+   and @path = targetRef
+   and . ownedBy (
+      @type = UserType
+      and @path = assignment
+      and archetypeRef/@/name = "System user"
+   )
+)
+----
+////
 
 == Differences in filter interpretation
 
