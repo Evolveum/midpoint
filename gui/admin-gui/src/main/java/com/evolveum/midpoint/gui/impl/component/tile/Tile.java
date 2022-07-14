@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class Tile<T extends Serializable> implements Serializable {
+public class Tile<T extends Serializable> implements Comparable<Tile>, Serializable {
 
     private String icon;
 
@@ -65,5 +67,10 @@ public class Tile<T extends Serializable> implements Serializable {
 
     public void setValue(T value) {
         this.value = value;
+    }
+
+    @Override
+    public int compareTo(@NotNull Tile o) {
+        return this.title.compareTo(o.getTitle());
     }
 }

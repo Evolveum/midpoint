@@ -29,6 +29,8 @@ public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
     private static final String ID_TITLE = "title";
     private static final String ID_DESCRIPTION = "description";
 
+    private static final String ID_TAG = "tag";
+
     public ResourceTilePanel(String id, IModel<TemplateTile<O>> model) {
         super(id, model);
 
@@ -36,7 +38,9 @@ public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "selectable-tile flex-grow-1 d-flex flex-column align-items-center bg-white rounded p-3 pb-5 pt-4 h-100"));
+        add(AttributeAppender.append(
+                "class",
+                "card mb-0 col-12 catalog-tile-panel d-flex flex-column align-items-center bg-white p-3 pb-5 pt-4 h-100 mb-0"));
         setOutputMarkupId(true);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
@@ -48,13 +52,19 @@ public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
             return title != null ? getString(title, null, title) : null;
         }));
 
-        Label description = new Label(ID_DESCRIPTION, () -> {
-            String title = getModelObject().getDescription();
-            return title != null ? getString(title, null, title) : null;
+        Label descriptionPanel = new Label(ID_DESCRIPTION, () -> {
+            String description = getModelObject().getDescription();
+            return description != null ? getString(description, null, description) : null;
         });
-        description.add(new VisibleBehaviour(() -> getModelObject().getDescription() != null));
+        descriptionPanel.add(new VisibleBehaviour(() -> getModelObject().getDescription() != null));
+        add(descriptionPanel);
 
-        add(description);
+        Label tagPanel = new Label(ID_TAG, () -> {
+            String tag = getModelObject().getTag();
+            return tag != null ? getString(tag, null, tag) : null;
+        });
+        tagPanel.add(new VisibleBehaviour(() -> getModelObject().getTag() != null));
+        add(tagPanel);
 
         add(new AjaxEventBehavior("click") {
 
