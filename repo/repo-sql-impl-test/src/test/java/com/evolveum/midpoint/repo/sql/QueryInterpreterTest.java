@@ -144,13 +144,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").matchingNorm().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            assertThat(real).isEqualToIgnoringWhitespace("""
-                    select
-                      _u.oid, _u.fullObject
-                    from
-                      RUser _u
-                    where
-                      _u.nameCopy.norm = :norm""");
+            assertThat(real).isEqualToIgnoringWhitespace("select"
+                    + " _u.oid, _u.fullObject"
+                    + " from RUser _u"
+                    + " where _u.nameCopy.norm = :norm");
         } finally {
             close(session);
         }
@@ -168,13 +165,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").matchingOrig().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            assertThat(real).isEqualToIgnoringWhitespace("""
-                    select
-                      _u.oid, _u.fullObject
-                    from
-                      RUser _u
-                    where
-                      _u.nameCopy.orig = :orig""");
+            assertThat(real).isEqualToIgnoringWhitespace("select"
+                    + " _u.oid, _u.fullObject"
+                    + " from RUser _u"
+                    + " where _u.nameCopy.orig = :orig");
         } finally {
             close(session);
         }
@@ -769,7 +763,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
+            query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
 
             String real = getInterpretedQuery(session, UserType.class, query);
             // this doesn't work as expected ... maybe inner join would be better! Until implemented, we should throw UOO
@@ -1601,7 +1595,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void test108InOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .id(new String[0]).build();
-        query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
         assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
     }
 
@@ -1609,7 +1603,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void test110OwnerInOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .ownerId(new String[0]).build();
-        query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
         assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
     }
 
@@ -1617,7 +1611,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void test112LongInOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .id(new long[0]).build();
-        query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
         assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
     }
 
@@ -1625,7 +1619,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void test114LongOwnerInOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .ownerId(new long[0]).build();
-        query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
         assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
     }
 
@@ -4437,7 +4431,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().not().id(new String[0])
                     .maxSize(10)
                     .build();
-            query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));           // necessary to remove "not oid()" clause
+            query.setFilter(ObjectQueryUtil.simplify(query.getFilter())); // necessary to remove "not oid()" clause
             String real = getInterpretedQuery(session, AccessCertificationCampaignType.class, query);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"

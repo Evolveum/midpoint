@@ -1135,7 +1135,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 .build();
         try {
             ObjectType objectBean = configurationObject.asObjectable();
-            if (objectBean instanceof ResourceType resource) {
+            if (objectBean instanceof ResourceType) {
+                ResourceType resource = (ResourceType) objectBean;
                 LOGGER.trace("Starting expanding {}", configurationObject);
                 resourceManager.expandResource(resource, result);
                 LOGGER.trace("Finished expanding {}", configurationObject);
