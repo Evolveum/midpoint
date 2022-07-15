@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -68,23 +69,31 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
             }
         });
 
-        AjaxLink add = new AjaxLink<>(ID_ADD) {
+        Component add = createAddButton(ID_ADD);
+        add(add);
+
+        Component details = createDetailsButton(ID_DETAILS);
+        add(details);
+    }
+
+    protected Component createAddButton(String id) {
+        return new AjaxLink<>(ID_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 CatalogTilePanel.this.onAdd(target);
             }
         };
-        add(add);
+    }
 
-        AjaxLink details = new AjaxLink<>(ID_DETAILS) {
+    protected Component createDetailsButton(String id) {
+        return new AjaxLink<>(id) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 CatalogTilePanel.this.onDetails(target);
             }
         };
-        add(details);
     }
 
     protected void onAdd(AjaxRequestTarget target) {

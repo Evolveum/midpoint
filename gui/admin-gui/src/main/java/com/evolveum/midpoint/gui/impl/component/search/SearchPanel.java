@@ -192,10 +192,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             @Override
             public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {
-                if (SearchBoxModeType.AXIOM_QUERY.equals(searchBoxModeType)) {
-                    return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
-                            && getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
-                }
                 return Model.of(getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
             }
 
