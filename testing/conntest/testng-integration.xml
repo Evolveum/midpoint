@@ -34,8 +34,8 @@
                 <class name="com.evolveum.midpoint.testing.conntest.ad.simple.TestAdLdapRawMedusa"/>
                 <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapChimera"/>
 
-                <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2012"/>
-                <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2012Strange"/>
+                <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2022"/>
+                <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2022Strange"/>
             -->
 
             <!-- Obsolete tests, test environment is shut down and dead.

@@ -23,10 +23,10 @@ import org.testng.annotations.Listeners;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapAd2012Strange extends TestAdLdapAd2012 {
+public class TestAdLdapAd2022Strange extends TestAdLdapAd2022 {
 
     @Override
     protected File getResourceFile() {
-        return new File(getBaseDir(), "resource-ad2012-strange.xml");
+        return new File(getBaseDir(), "resource-ad2022-strange.xml");
     }
 }
