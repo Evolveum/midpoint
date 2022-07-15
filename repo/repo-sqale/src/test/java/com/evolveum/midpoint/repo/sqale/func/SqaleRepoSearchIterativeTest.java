@@ -364,7 +364,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
 
-        display("QUERY: " + query);
+        displayQuery(query);
         return repositoryService.searchObjectsIterative(
                 UserType.class,
                 query,

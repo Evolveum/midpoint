@@ -742,9 +742,4 @@ public class WebModelServiceUtils {
 
         return systemConfig;
     }
-
-    public static CapabilityCollectionType getNativeCapabilities(ResourceType resource, PageBase pageBase) {
-        OperationResult result = new OperationResult("load native capabilities");
-        return pageBase.getModelService().getNativeCapabilities(resource.getConnectorRef().getOid(), result);
-    }
 }

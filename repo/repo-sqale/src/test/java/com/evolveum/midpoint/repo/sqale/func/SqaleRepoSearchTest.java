@@ -483,6 +483,18 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test101SearchAllObjectsWithNullQuery() throws Exception {
+        when("searching all objects with null query");
+        OperationResult operationResult = createOperationResult();
+        SearchResultList<ObjectType> result =
+                searchObjects(ObjectType.class, (ObjectQuery) null, operationResult);
+
+        then("all objects are returned");
+        assertThat(result).hasSize((int) count(QObject.CLASS));
+        assertThatOperationResult(operationResult).isSuccess();
+    }
+
+    @Test
     public void test110SearchUserByName() throws Exception {
         searchUsersTest("with name matching provided value",
                 f -> f.item(F_NAME).eq(PolyString.fromOrig("user-1")),
@@ -2121,12 +2133,27 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test608SearchContainerByParentsParent() throws SchemaException {
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent with specified stage number (using exists)", AccessCertificationWorkItemType.class,
+                f -> f.exists(T_PARENT)
+                        .block() // block is important, .exists(..).exists(..) fails during filter construction
+                        .exists(T_PARENT)
+                        .item(AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0)
+                        .endBlock());
+
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12, 21, 22);
+    }
+
+    @Test
     public void test609SearchContainerByParentUnsupportedCases() {
         // Unsure what repo would do, but both these cases fail during filter construction in Prism.
         assertThatThrownBy(() ->
                 searchContainerTest(
                         "by parent with specified stage number (using exists)", AccessCertificationWorkItemType.class,
-                        f -> f.exists(T_PARENT, T_PARENT) // .exists(..).exists(..) fails on check inside R_Filter.exists(...)
+                        f -> f.exists(T_PARENT, T_PARENT)
                                 .item(AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("Couldn't find definition for parent for");
@@ -2330,12 +2357,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 user4Oid);
     }
 
-    @Test(expectedExceptions = SystemException.class)
-    public void test820SearchUsersWithReferencedPath() throws SchemaException {
-        searchUsersTest("fullName does not equals fname",
-                f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
-                        .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                user1Oid, user2Oid, user3Oid, user4Oid);
+    @Test
+    public void test820SearchUsersWithReferencedPath() {
+        assertThatThrownBy(() ->
+                searchUsersTest("fullName does not equals fname",
+                        f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                                .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                        user1Oid, user2Oid, user3Oid, user4Oid))
+                .isInstanceOf(SystemException.class);
         // Should fail because right-hand side nesting into multivalue container is not supported
     }
     // endregion
@@ -2684,6 +2713,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test982SearchRoleReferencedByUserAssignmentWithComplexFilterNoMatch() throws SchemaException {
         searchObjectTest("referenced by an assignment of the user specified by complex filter (no match)", RoleType.class,
+//                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+//                        .ownedBy(UserType.class, F_ASSIGNMENT)
                 f -> f.referencedBy(UserType.class,
                                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                         .block()

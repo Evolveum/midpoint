@@ -1135,7 +1135,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 .build();
         try {
             ObjectType objectBean = configurationObject.asObjectable();
-            if (objectBean instanceof ResourceType resource) {
+            if (objectBean instanceof ResourceType) {
+                ResourceType resource = (ResourceType) objectBean;
                 LOGGER.trace("Starting expanding {}", configurationObject);
                 resourceManager.expandResource(resource, result);
                 LOGGER.trace("Finished expanding {}", configurationObject);
@@ -1151,7 +1152,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult parentResult) {
+    public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         OperationResult result = parentResult.subresult(OP_GET_NATIVE_CAPABILITIES)
                 .addParam("connectorOid", connOid)
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
@@ -1162,10 +1164,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.debug("Finished getting native capabilities by connector oid {}:\n{}",
                     connOid, capabilities.debugDumpLazily(1));
             return capabilities;
-        } catch (Exception e) {
-            LOGGER.warn("Failed while getting native capabilities: {}", e.getMessage(), e);
-            result.recordFatalError("Failed while getting native capabilities: " + e.getMessage(), e);
-            return new CapabilityCollectionType();
         } catch (Throwable t) {
             // This is more serious, like OutOfMemoryError and the like. We won't pretend it's OK.
             result.recordFatalError(t);

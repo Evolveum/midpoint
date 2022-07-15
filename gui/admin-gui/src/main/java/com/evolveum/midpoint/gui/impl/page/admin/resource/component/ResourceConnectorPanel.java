@@ -52,6 +52,7 @@ public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType
     private static final String ID_POOL_CONFIG_MAX_IDLE = "poolConfigMaxIdle";
     private static final String ID_POOL_CONFIG_WAIT_TIMEOUT = "poolConfigWaitTimeout";
     private static final String ID_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME = "poolConfigMinEvictableIdleTime";
+    private static final String ID_POOL_CONFIG_MAX_IDLE_TIME = "poolConfigMaxIdleTime";
     private static final String ID_POOL_STATUS_NUM_IDLE = "poolStatusNumIdle";
     private static final String ID_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
@@ -96,6 +97,7 @@ public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType
                 item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_IDLE, ConnectorOperationalStatus.F_POOL_CONFIG_MAX_IDLE));
                 item.add(createLabel(statModel, ID_POOL_CONFIG_WAIT_TIMEOUT, ConnectorOperationalStatus.F_POOL_CONFIG_WAIT_TIMEOUT));
                 item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME, ConnectorOperationalStatus.F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME));
+                item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_IDLE_TIME, ConnectorOperationalStatus.F_POOL_CONFIG_MAX_IDLE_TIME));
                 item.add(createLabel(statModel, ID_POOL_STATUS_NUM_IDLE, ConnectorOperationalStatus.F_POOL_STATUS_NUM_IDLE));
                 item.add(createLabel(statModel, ID_POOL_STATUS_NUM_ACTIVE, ConnectorOperationalStatus.F_POOL_STATUS_NUM_ACTIVE));
 

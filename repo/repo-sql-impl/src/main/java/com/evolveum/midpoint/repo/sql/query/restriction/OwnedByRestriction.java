@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AllFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OwnedByFilter;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -139,7 +141,10 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
             addAssignmentVsInducementCondition(subcontext, RAssignmentOwner.FOCUS);
         }
 
-        existsCondition.interpretFilter(filter.getFilter());
+        ObjectFilter innerFilter = filter.getFilter();
+        if (!(innerFilter == null || innerFilter instanceof AllFilter)) {
+            existsCondition.interpretFilter(innerFilter);
+        }
 
         return existsCondition;
     }

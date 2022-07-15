@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
@@ -426,7 +427,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } finally {
             if (record) {
                 queryRecorder.stopRecording();
-                display(queryRecorder.getQueryBuffer().toString());
+                display(queryRecorder.dumpQueryBuffer());
             }
         }
     }
@@ -479,15 +480,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        display("QUERY: " + query);
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("Serialized QUERY: " + serializedQuery);
-
-        // sanity check if it's re-parsable
-        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
+        displayQuery(query);
         return repositorySearchObjects(type, query, operationResult, selectorOptions);
     }
 
@@ -515,15 +508,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        display("QUERY: " + query);
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("Serialized QUERY: " + serializedQuery);
-
-        // sanity check if it's re-parsable
-        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
+        displayQuery(query);
 
         boolean record = !queryRecorder.isRecording();
         if (record) {
@@ -539,9 +524,35 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } finally {
             if (record) {
                 queryRecorder.stopRecording();
-                display(queryRecorder.getQueryBuffer().toString());
+                display(queryRecorder.dumpQueryBuffer());
             }
         }
+    }
+
+    /** Displays the query in XML and Axiom form and checks its XML reparsability. */
+    protected void displayQuery(@Nullable ObjectQuery query) throws SchemaException {
+        display("QUERY: " + query);
+        if (query == null) {
+            return;
+        }
+
+        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
+        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        display("Serialized QUERY: " + serializedQuery);
+
+        if (query.getFilter() != null) {
+            try {
+                PrismQuerySerialization serialization = prismContext.querySerializer().serialize(query.getFilter());
+                display("Filter in Axiom QL: " + serialization.filterText());
+            } catch (Exception e) {
+                display("Cannot serialize to Axiom: " + e);
+            }
+        }
+
+        // sanity check if it's re-parsable
+        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
+                .isNotNull();
     }
 
     /** Parses object from byte array form and returns its real value (not Prism structure). */
@@ -668,7 +679,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             throw new TestException(e);
         } finally {
             queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
+            display(queryRecorder.dumpQueryBuffer());
         }
     }
 }

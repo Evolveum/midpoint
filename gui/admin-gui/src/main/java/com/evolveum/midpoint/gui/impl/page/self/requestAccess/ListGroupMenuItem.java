@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListGroupMenuItem implements Serializable {
+public class ListGroupMenuItem<T extends Serializable> implements Serializable {
 
     private String iconCss;
 
@@ -32,7 +32,9 @@ public class ListGroupMenuItem implements Serializable {
 
     private boolean disabled;
 
-    private IModel<List<ListGroupMenuItem>> items = Model.ofList(new ArrayList<>());
+    private T value;
+
+    private IModel<List<ListGroupMenuItem<T>>> items = Model.ofList(new ArrayList<>());
 
     public ListGroupMenuItem() {
     }
@@ -44,6 +46,14 @@ public class ListGroupMenuItem implements Serializable {
     public ListGroupMenuItem(String iconCss, String label) {
         this.iconCss = iconCss;
         this.label = label;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
     }
 
     public String getIconCss() {
@@ -94,19 +104,19 @@ public class ListGroupMenuItem implements Serializable {
         this.disabled = disabled;
     }
 
-    public List<ListGroupMenuItem> getItems() {
+    public List<ListGroupMenuItem<T>> getItems() {
         return items.getObject();
     }
 
-    public void setItems(List<ListGroupMenuItem> items) {
+    public void setItems(List<ListGroupMenuItem<T>> items) {
         this.items.setObject(items);
     }
 
-    public IModel<List<ListGroupMenuItem>> getItemsModel() {
+    public IModel<List<ListGroupMenuItem<T>>> getItemsModel() {
         return this.items;
     }
 
-    public void setItemsModel(@NotNull IModel<List<ListGroupMenuItem>> items) {
+    public void setItemsModel(@NotNull IModel<List<ListGroupMenuItem<T>>> items) {
         this.items = items;
     }
 }

@@ -31,15 +31,15 @@
 
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
-            <icfcldap:host>ad01.ad2012.lab.evolveum.com</icfcldap:host>
+            <icfcldap:host>ad07.ad2022.lab.evolveum.com</icfcldap:host>
             <icfcldap:port>636</icfcldap:port>
-            <icfcldap:baseContext><expression><const>adBaseDn</const></expression></icfcldap:baseContext>
-            <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:bindDn>
+            <icfcldap:baseContext><expression><const>ad2022BaseDn</const></expression></icfcldap:baseContext>
+            <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:bindDn>
             <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
             <icfcldap:bindPassword>
                 <t:clearValue>qwe.123</t:clearValue>
             </icfcldap:bindPassword>
-            <icfcldap:servers>host=ad02.ad2012.lab.evolveum.com; baseContext=DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
+            <icfcldap:servers>host=ad08.ad2022.lab.evolveum.com; baseContext=DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
             <icfcldap:pagingStrategy>spr</icfcldap:pagingStrategy>
             <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
@@ -47,7 +47,7 @@
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
-            <icfcldap:baseContextToSynchronize>DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
+            <icfcldap:baseContextToSynchronize>DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
