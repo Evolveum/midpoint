@@ -315,6 +315,9 @@ public class RequestAccess implements Serializable {
         selectedAssignments.clear();
         relation = null;
 
+        selectedValidity = null;
+        validity = null;
+
         comment = null;
 
         conflictsDirty = false;
@@ -622,7 +625,7 @@ public class RequestAccess implements Serializable {
         setValidity(from, to);
     }
 
-    private void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
+    public void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> {
                 if (from == null && to == null) {
