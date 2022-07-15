@@ -6,23 +6,19 @@
  */
 package com.evolveum.midpoint.web.page.self.component;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.evolveum.midpoint.gui.impl.component.search.SearchButtonWithDropdownMenu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -47,7 +43,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
     private static final Trace LOGGER = TraceManager.getTrace(DashboardSearchPanel.class);
 
     private static final String ID_SEARCH_INPUT = "searchInput";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_BUTTON_PANEL = "searchButtonPanel";
     private static final String ID_SEARCH_TYPE_ITEM = "searchTypeItem";
     private static final String ID_SEARCH_TYPES = "searchTypes";
     private static final String ID_SEARCH_FORM = "searchForm";
@@ -102,47 +98,75 @@ public class DashboardSearchPanel extends BasePanel<T> {
         searchInput.setOutputMarkupPlaceholderTag(true);
         searchForm.add(searchInput);
 
-        final AjaxSubmitLink searchButton = new AjaxSubmitLink(ID_SEARCH_BUTTON) {
+        SearchButtonWithDropdownMenu<SearchType> searchButton = new SearchButtonWithDropdownMenu<SearchType>(ID_SEARCH_BUTTON_PANEL,
+                Model.ofList(Arrays.asList(SearchType.values())),
+                selectedSearchType) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                performSearch();
+            }
+
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                performSearch(getSearchText());
+            protected void menuItemSelected(AjaxRequestTarget target, SearchType searchBoxModeType) {
+                selectedSearchType = searchBoxModeType;
+                target.add(DashboardSearchPanel.this);
             }
+
+
+//            @Override
+//            public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {
+//                //todo check authorization
+//            }
+
+//            @Override
+//            protected VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
+//
+//            }
         };
+
+//        final AjaxSubmitLink searchButton = new AjaxSubmitLink(ID_SEARCH_BUTTON) {
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target) {
+//                performSearch(getSearchText());
+//            }
+//        };
         searchButton.setOutputMarkupId(true);
 
-        searchButton.add(new Label("searchButtonLabel", (IModel<Object>) () -> searchTypes.get(selectedSearchType).getObject()));
+//        searchButton.add(new Label("searchButtonLabel", (IModel<Object>) () -> searchTypes.get(selectedSearchType).getObject()));
         searchForm.add(searchButton);
-        searchForm.setDefaultButton(searchButton);
+        searchForm.setDefaultButton(searchButton.getSearchButton());
 
-        ListView<SearchType> li = new ListView<>(ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(final ListItem<SearchType> item) {
-                final AjaxLink<String> searchTypeLink = new AjaxLink<>(ID_SEARCH_TYPE_ITEM) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public IModel<String> getBody() {
-                        return searchTypes.get(item.getModelObject());
-                    }
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        selectedSearchType = item.getModelObject();
-
-                        target.add(searchButton);
-                    }
-                };
-                searchTypeLink.setOutputMarkupId(true);
-                item.add(searchTypeLink);
-            }
-        };
-        li.setOutputMarkupId(true);
-        searchForm.add(li);
+//        ListView<SearchType> li = new ListView<>(ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void populateItem(final ListItem<SearchType> item) {
+//                final AjaxLink<String> searchTypeLink = new AjaxLink<>(ID_SEARCH_TYPE_ITEM) {
+//
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public IModel<String> getBody() {
+//                        return searchTypes.get(item.getModelObject());
+//                    }
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        selectedSearchType = item.getModelObject();
+//
+//                        target.add(searchButton);
+//                    }
+//                };
+//                searchTypeLink.setOutputMarkupId(true);
+//                item.add(searchTypeLink);
+//            }
+//        };
+//        li.setOutputMarkupId(true);
+//        searchForm.add(li);
     }
 
     private String getSearchText() {
@@ -157,8 +181,9 @@ public class DashboardSearchPanel extends BasePanel<T> {
         return searchInput.getModelObject();
     }
 
-    private void performSearch(String text) {
+    private void performSearch() {
         PageParameters params = null;
+        String text = getSearchText();
         if (StringUtils.isNotBlank(text)) {
             params = new PageParameters();
             params.add(PageBase.PARAMETER_SEARCH_BY_NAME, text);

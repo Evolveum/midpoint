@@ -9,21 +9,9 @@
     <form wicket:id="searchForm">
         <wicket:enclosure child="searchInput">
             <div class="input-group">
-                <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input" class="form-control" type="text"/>
-                <div class="input-group-append">
-                    <button wicket:id="searchButton" class="btn btn-primary">
-                        <i class="fa fa-search mr-1"/>&nbsp;
-                        <span wicket:id="searchButtonLabel"/>
-                    </button>
-                    <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                        <span class="sr-only"><wicket:message key="SplitButtonDropDown.toggle"/></span>
-                    </button>
-                    <div class="dropdown-menu">
-                        <wicket:container wicket:id="searchTypes">
-                            <a class="dropdown-item" wicket:id="searchTypeItem" href="#"/>
-                        </wicket:container>
-                    </div>
-                </div>
+                <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input"
+                        class="form-control form-control-sm" type="text" style="min-width: 300px;"/>
+                <div wicket:id="searchButtonPanel" />
             </div>
         </wicket:enclosure>
     </form>

@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +36,15 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_MENU_ITEM = "menuItem";
 
-    IModel<String> buttonLabelModel;
+    E selectedValue = null;
 
-    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel, IModel<String> buttonLabelModel) {
+    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel) {
+        this(id, menuItemsModel, null);
+    }
+
+    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel, E defaultValue) {
         super(id, menuItemsModel);
-        this.buttonLabelModel = buttonLabelModel;
+        selectedValue = defaultValue == null ? menuItemsModel.getObject().get(0) : defaultValue;
     }
 
     protected void onInitialize() {
@@ -70,7 +75,12 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
         searchButton.setOutputMarkupId(true);
         searchButton.add(getSearchButtonVisibleEnableBehavior());
 
-        Label buttonLabel = new Label(ID_SEARCH_BUTTON_LABEL, buttonLabelModel);
+        Label buttonLabel = new Label(ID_SEARCH_BUTTON_LABEL, new LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+                return createStringResource(selectedValue).getString();
+            }
+        });
         searchButton.add(buttonLabel);
         add(searchButton);
 
@@ -115,6 +125,7 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             target.add(getSearchButton());
+                            selectedValue = item;
                             menuItemSelected(target, item);
                         }
                     };
