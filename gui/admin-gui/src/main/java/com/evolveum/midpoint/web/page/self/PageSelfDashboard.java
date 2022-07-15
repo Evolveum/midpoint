@@ -12,8 +12,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 
 import java.util.*;
 
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
@@ -58,7 +56,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
-import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

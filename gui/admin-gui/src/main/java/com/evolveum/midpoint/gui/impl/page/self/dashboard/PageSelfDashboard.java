@@ -4,17 +4,22 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.self;
+package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
+import com.evolveum.midpoint.web.page.self.component.LinksPanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+
+import org.apache.wicket.model.Model;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +42,7 @@ public class PageSelfDashboard extends PageSelf {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfDashboard.class);
     private static final String ID_SEARCH_PANEL = "searchPanel";
+    private static final String ID_LINKS_PANEL = "linksPanel";
     private static final String ID_WIDGETS_PANEL = "widgetsPanel";
 
     public PageSelfDashboard() {
@@ -56,13 +62,17 @@ public class PageSelfDashboard extends PageSelf {
         }));
         add(dashboardSearchPanel);
 
-//        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
-//        linksPanel.add(new VisibleBehaviour(() -> {
+        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
+        linksPanel.add(new VisibleBehaviour(() -> {
 //            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
 //            return WebComponentUtil.getElementVisibility(visibility);
-//        }));
-//        add(linksPanel);
+            return true;
+        }));
+        add(linksPanel);
 
      }
 
+    private List<RichHyperlinkType> loadLinksList() {
+        return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
+    }
 }

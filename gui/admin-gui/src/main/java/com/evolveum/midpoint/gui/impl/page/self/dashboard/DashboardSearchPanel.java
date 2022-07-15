@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.self.component;
+package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
 import java.util.Arrays;
 import java.util.HashMap;
