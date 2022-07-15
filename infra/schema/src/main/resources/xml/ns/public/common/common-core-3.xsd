@@ -1542,6 +1542,17 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                (Alternative?) identities of this focus object.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>

@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>user-with-identity-data</name>
+    <identities>
+        <identity id="1">
+            <source xsi:type="ProjectionFocusIdentitySourceType">
+                <shadowRef oid="a5a216fd-7a38-49e3-a782-381e10b68406"/>
+                <resourceRef oid="9dff5686-e695-4ad9-8098-5907758668c7"/>
+                <kind>account</kind>
+                <intent>default</intent>
+                <tag>10704444</tag>
+            </source>
+            <items>
+                <original>
+                    <givenName xsi:type="xsd:string">Alice</givenName>
+                    <familyName xsi:type="xsd:string">Green</familyName>
+                    <dateOfBirth xsi:type="xsd:string">1997-01-01</dateOfBirth>
+                    <nationalId xsi:type="xsd:string">975101/9876</nationalId>
+                </original>
+                <normalized>
+                    <givenName xsi:type="xsd:string">alice</givenName>
+                    <familyName xsi:type="xsd:string">green</familyName>
+                    <familyName.3 xsi:type="xsd:string">gre</familyName.3>
+                    <dateOfBirth xsi:type="xsd:string">1997-01-01</dateOfBirth>
+                    <nationalId xsi:type="xsd:string">9751019876</nationalId>
+                </normalized>
+            </items>
+        </identity>
+        <identity id="2">
+            <source xsi:type="OwnFocusIdentitySourceType"/>
+            <items>
+                <original>
+                    <givenName xsi:type="xsd:string">Alice</givenName>
+                    <familyName xsi:type="xsd:string">Black</familyName>
+                    <dateOfBirth xsi:type="xsd:string">1997-01-01</dateOfBirth>
+                    <nationalId xsi:type="xsd:string">975101/9876</nationalId>
+                </original>
+                <normalized>
+                    <givenName xsi:type="xsd:string">alice</givenName>
+                    <familyName xsi:type="xsd:string">black</familyName>
+                    <familyName.3 xsi:type="xsd:string">bla</familyName.3>
+                    <dateOfBirth xsi:type="xsd:string">1997-01-01</dateOfBirth>
+                    <nationalId xsi:type="xsd:string">9751019876</nationalId>
+                </normalized>
+            </items>
+        </identity>
+    </identities>
+</user>
