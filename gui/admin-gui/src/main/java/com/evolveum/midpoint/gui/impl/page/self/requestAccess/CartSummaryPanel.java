@@ -7,13 +7,23 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.dialog.SimplePopupable;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -28,6 +38,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -36,7 +47,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -45,6 +55,9 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -52,29 +65,16 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P1D"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Day")),
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P7D"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Week")),
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P1M"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Month")),
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P1Y"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Year"))
-    );
-
-    private static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
-
-    private static final String VALIDITY_CUSTOM_FOR_EACH = "validityCustomForEach";
-
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
     private static final String ID_TABLE_BUTTON_COLUMN = "tableButtonColumn";
+    private static final String ID_CUSTOM_VALIDITY_LENGTH = "customValidityLength";
+    private static final String ID_CUSTOM_VALIDITY_LENGTH_FOOTER = "customValidityLengthFooter";
+    private static final String ID_SAVE = "save";
+    private static final String ID_CANCEL = "cancel";
+    private static final String ID_FROM = "from";
+    private static final String ID_TO = "to";
     private static final String ID_CLEAR_CART = "clearCart";
     private static final String ID_EDIT = "edit";
     private static final String ID_REMOVE = "remove";
@@ -136,11 +136,21 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
         };
         add(table);
 
-        DropDownChoice validity = new DropDownChoice(ID_VALIDITY, createValidityOptions(), (IChoiceRenderer) object -> {
-            if (VALIDITY_CUSTOM_LENGTH.equals(object)) {
-                return getString("ShoppingCartPanel.validityCustomLength");
-            } else if (VALIDITY_CUSTOM_FOR_EACH.equals(object)) {
-                return getString("ShoppingCartPanel.validityCustomForEach");
+        IModel validityModel = new IModel<>() {
+            @Override
+            public Object getObject() {
+                return getModelObject().getSelectedValidity();
+            }
+
+            @Override
+            public void setObject(Object object) {
+                getModelObject().setSelectedValidity(object);
+            }
+        };
+
+        DropDownChoice validity = new DropDownChoice(ID_VALIDITY, validityModel, createValidityOptions(), (IChoiceRenderer) object -> {
+            if (RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(object) || RequestAccess.VALIDITY_CUSTOM_FOR_EACH.equals(object)) {
+                return getString("RequestAccess." + object);
             }
 
             if (!(object instanceof ValidityPredefinedValueType)) {
@@ -156,6 +166,15 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
             return value.getDuration().toString();
         });
         validity.add(new VisibleBehaviour(() -> isValidityVisible()));
+        validity.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                Object value = validity.getModelObject();
+                if (RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(value)) {
+                    showCustomValidityLengthPopup(target);
+                }
+            }
+        });
         add(validity);
 
         TextArea comment = new TextArea(ID_COMMENT, new PropertyModel(getModel(), "comment"));
@@ -182,6 +201,63 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
         add(submit);
     }
 
+    private void showCustomValidityLengthPopup(AjaxRequestTarget target) {
+
+        Popupable popupable = new SimplePopupable(300, 500, createStringResource("CartSummaryPanel.customValidityTitle")) {
+
+            @Override
+            public Component getContent() {
+                Fragment content = new Fragment(ID_CONTENT, ID_CUSTOM_VALIDITY_LENGTH, CartSummaryPanel.this);
+
+                IModel<Date> fromModel = Model.of(new Date());
+                IModel<Date> toModel = Model.of(new Date());
+
+                DateInput from = new DateInput(ID_FROM, fromModel);
+                from.add(new AjaxFormComponentUpdatingBehavior("change") {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+
+                    }
+                });
+                content.add(from);
+
+                DateInput to = new DateInput(ID_TO, toModel);
+                to.add(new AjaxFormComponentUpdatingBehavior("change") {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+
+                    }
+                });
+                content.add(to);
+
+                return content;
+            }
+
+            @Override
+            public Component getFooter() {
+                Fragment footer = new Fragment(ID_FOOTER, ID_CUSTOM_VALIDITY_LENGTH_FOOTER, CartSummaryPanel.this);
+                AjaxLink save = new AjaxLink<>(ID_SAVE) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        // todo save
+                    }
+                };
+                footer.add(save);
+
+                AjaxLink cancel = new AjaxLink<>(ID_CANCEL) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        getPageBase().hideMainPopup(target);
+                    }
+                };
+                footer.add(cancel);
+
+                return footer;
+            }
+        };
+        getPageBase().showMainPopup(popupable, target);
+    }
+
     protected void openConflictPerformed(AjaxRequestTarget target) {
     }
 
@@ -198,8 +274,9 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
                 items.addAll(getValidityPeriods());
 
                 if (!isAllowOnlyGlobalSettings()) {
-                    items.add(VALIDITY_CUSTOM_LENGTH);
-                    items.add(VALIDITY_CUSTOM_FOR_EACH);
+                    items.add(RequestAccess.VALIDITY_CUSTOM_LENGTH);
+                    // todo custom value for each - UI not implemented yet
+                    // items.add(RequestAccess.VALIDITY_CUSTOM_FOR_EACH);
                 }
 
                 return items;
@@ -221,12 +298,12 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     private List<ValidityPredefinedValueType> getValidityPeriods() {
         CheckoutType config = getCheckoutConfiguration();
         if (config == null || config.getValidityConfiguration() == null) {
-            return DEFAULT_VALIDITY_PERIODS;
+            return RequestAccess.DEFAULT_VALIDITY_PERIODS;
         }
 
         CheckoutValidityConfigurationType validityConfig = config.getValidityConfiguration();
         List<ValidityPredefinedValueType> values = validityConfig.getPredefinedValue();
-        return values != null && !values.isEmpty() ? values : DEFAULT_VALIDITY_PERIODS;
+        return values != null && !values.isEmpty() ? values : RequestAccess.DEFAULT_VALIDITY_PERIODS;
     }
 
     private CheckoutType getCheckoutConfiguration() {
@@ -285,12 +362,35 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
 
     private List<IColumn<ShoppingCartItem, String>> createColumns() {
         List<IColumn<ShoppingCartItem, String>> columns = new ArrayList<>();
-//        columns.add(new IconColumn() {
-//            @Override
-//            protected DisplayType getIconDisplayType(IModel rowModel) {
-//                return null;
-//            }
-//        });
+        columns.add(new RoundedIconColumn<>(null) {
+
+            @Override
+            protected IModel<AbstractResource> createPreferredImage(IModel<ShoppingCartItem> model) {
+                return new LoadableModel<>(false) {
+                    @Override
+                    protected AbstractResource load() {
+                        ObjectReferenceType ref = model.getObject().getAssignment().getTargetRef();
+
+                        Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                                .build();
+
+                        Task task = getPageBase().createSimpleTask("load photo");
+                        OperationResult result = task.getResult();
+
+                        PrismObject obj = WebModelServiceUtils.loadObject(ObjectTypes.getObjectTypeClass(ref.getType()), ref.getOid(), options, getPageBase(), task, result);
+                        FocusType focus = (FocusType) obj.asObjectable();
+                        byte[] photo = focus.getJpegPhoto();
+
+                        if (photo == null) {
+                            return null;
+                        }
+
+                        return new ByteArrayResource("image/jpeg", photo);
+                    }
+                };
+            }
+        });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
 
             @Override
@@ -331,7 +431,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
                     }
                 });
 
-                item.add(AttributeAppender.append("style", "width: 100px;"));
+                item.add(AttributeAppender.append("style", "width: 120px;"));
                 item.add(fragment);
             }
         });

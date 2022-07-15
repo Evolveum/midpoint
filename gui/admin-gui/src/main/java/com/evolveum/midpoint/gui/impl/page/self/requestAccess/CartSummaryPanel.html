@@ -65,11 +65,35 @@
 </wicket:fragment>
 
 <wicket:fragment wicket:id="tableButtonColumn">
-    <a class="btn btn-xs btn-outline-primary px-2" wicket:id="edit" wicket:message="title:ShoppingCartPanel.edit">
-        <i class="fas fa-pen-to-square"></i>
-    </a>
-    <a class="btn btn-xs btn-outline-danger px-2" wicket:id="remove" wicket:message="title:ShoppingCartPanel.remove">
-        <i class="fas fa-trash-can"></i>
-    </a>
+    <div class="btn-group btn-group-sm">
+        <a class="btn btn-primary" wicket:id="edit" wicket:message="title:ShoppingCartPanel.edit">
+            <i class="fas fa-pen-to-square"></i>
+        </a>
+        <a class="btn btn-default" wicket:id="remove" wicket:message="title:ShoppingCartPanel.remove">
+            <i class="fas fa-trash-can"></i>
+        </a>
+    </div>
+</wicket:fragment>
+
+<wicket:fragment wicket:id="customValidityLength">
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label-sm"><wicket:message key="ActivationType.validFrom"/></label>
+        <div wicket:id="from"/>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label-sm"><wicket:message key="ActivationType.validTo"/></label>
+        <div wicket:id="to"/>
+    </div>
+</wicket:fragment>
+
+<wicket:fragment wicket:id="customValidityLengthFooter">
+    <div class="d-flex flex-wrap gap-2 w-100">
+        <a class="btn btn-success" wicket:id="save">
+            <wicket:message key="Button.apply"/>
+        </a>
+        <a class="btn btn-outline-primary" wicket:id="cancel">
+            <wicket:message key="Button.close"/>
+        </a>
+    </div>
 </wicket:fragment>
 </html>

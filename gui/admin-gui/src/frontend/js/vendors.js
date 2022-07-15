@@ -12,6 +12,10 @@ import '../../../node_modules/admin-lte/dist/js/adminlte';
 import '../../../node_modules/bootstrap-select';
 import '../../../node_modules/bootstrap-multiselect';
 
+import '../../../node_modules/moment/dist/moment'
+
+import '../../../node_modules/daterangepicker/daterangepicker';
+
 import './passwords';
 
 import '../../../node_modules/ace-builds/src-noconflict/ace';
@@ -31,7 +35,7 @@ ace.config.setModuleUrl('ace/ext/searchbox',
 require('file-loader?publicPath=../../static/&name=[name].[ext]&esModule=false!../../../node_modules/ace-builds/src-noconflict/worker-xml.js')
 
 
-// xml worker module is being loaded always using some url, it's different that theme and ext modules, therefore we'll compute
+// xml worker module is always being loaded using some url, it's different that theme and ext modules, therefore we'll compute
 // <midpoint_context>/static/worker-xml.js from current script URL and use it to load correctly worker-xml.js script
 var url = document.currentScript.src;
 url = url.replace(/vendors.js/, "worker-xml.js");
