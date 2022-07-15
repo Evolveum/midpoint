@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -215,12 +217,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
                     @Override
                     protected Component createTile(String id, IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
-                        return new CatalogTilePanel(id, model) {
+                        return new CatalogTilePanel<>(id, model) {
 
                             @Override
                             protected void onAdd(AjaxRequestTarget target) {
                                 SelectableBean<ObjectType> bean = model.getObject().getValue();
                                 addItemsPerformed(target, Arrays.asList(bean.getValue()));
+
+                                target.add(this);
                             }
 
                             @Override
@@ -232,6 +236,22 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                             @Override
                             protected void onClick(AjaxRequestTarget target) {
                                 // no selection to be done
+                            }
+
+                            @Override
+                            protected Component createAddButton(String id) {
+                                Component details = super.createAddButton(id);
+                                WebComponentUtil.addDisabledClassBehavior(details);
+
+                                details.add(new EnableBehaviour(() -> {
+                                    ObjectType object = model.getObject().getValue().getValue();
+
+                                    RequestAccess access = RoleCatalogPanel.this.getModelObject();
+                                    return access.getSelectedAssignments().stream()
+                                            .filter(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()))
+                                            .count() == 0;
+                                }));
+                                return details;
                             }
                         };
                     }

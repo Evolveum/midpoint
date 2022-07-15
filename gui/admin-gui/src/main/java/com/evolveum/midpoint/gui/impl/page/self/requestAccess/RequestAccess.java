@@ -118,6 +118,10 @@ public class RequestAccess implements Serializable {
         this.selectedValidity = selectedValidity;
     }
 
+    public Set<AssignmentType> getSelectedAssignments() {
+        return Collections.unmodifiableSet(selectedAssignments);
+    }
+
     public List<Conflict> getConflicts() {
         if (conflicts == null) {
             conflicts = new ArrayList<>();
