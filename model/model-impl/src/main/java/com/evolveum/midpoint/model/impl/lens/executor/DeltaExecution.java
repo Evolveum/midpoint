@@ -436,6 +436,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     createOwnerResolver(result), task, result);
 
             b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
+            b.identitiesManager.applyOnAdd(objectBeanToAdd, elementContext);
 
             String oid;
             if (objectBeanToAdd instanceof TaskType) {
@@ -538,6 +539,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 b.metadataManager.applyMetadataModify(delta, objectClass, elementContext,
                         b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }
+            b.identitiesManager.applyOnModify(asObjectable(baseObject), delta, objectClass, elementContext);
 
             if (delta.isEmpty()) {
                 // Nothing to do

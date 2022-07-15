@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -144,6 +146,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public boolean isFocusTemplateSetExplicitly() {
         return lensContext.getExplicitFocusTemplateOid() != null;
+    }
+
+    // preliminary version
+    public @Nullable IdentityManagementConfiguration getIdentityManagementConfiguration() {
+        return focusTemplate != null ?
+                IdentityManagementConfiguration.of(focusTemplate) :
+                null;
     }
 
     public LifecycleStateModelType getLifecycleModel() {

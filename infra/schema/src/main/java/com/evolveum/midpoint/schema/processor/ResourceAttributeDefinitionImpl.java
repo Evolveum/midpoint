@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import java.io.Serial;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -53,7 +52,7 @@ public class ResourceAttributeDefinitionImpl<T>
         extends AbstractFreezable
         implements ResourceAttributeDefinition<T> {
 
-    @Serial private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Default value for {@link #currentLayer}.

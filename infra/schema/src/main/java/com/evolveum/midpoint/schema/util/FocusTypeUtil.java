@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -16,12 +15,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static java.util.Collections.emptyList;
 
@@ -173,5 +170,35 @@ public class FocusTypeUtil {
         return focus.getLinkRef().stream()
                 .filter(ref -> relationRegistry.isMember(ref.getRelation()))
                 .collect(Collectors.toList());
+    }
+
+    public static void addOrReplaceIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
+        deleteCompatibleIdentity(focus, identity);
+        addIdentity(focus, identity);
+    }
+
+    private static void addIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
+        FocusIdentitiesType identities = focus.getIdentities();
+        if (identities == null) {
+            focus.setIdentities(identities = new FocusIdentitiesType());
+        }
+        identities.getIdentity().add(identity);
+    }
+
+    private static void deleteCompatibleIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
+        FocusIdentitiesType identities = focus.getIdentities();
+        if (identities != null) {
+            identities.getIdentity().removeIf(
+                    i -> FocusIdentityTypeUtil.isCompatible(i, identity));
+        }
+    }
+
+    public static @Nullable FocusIdentityType getOwnIdentity(@NotNull FocusType focus) {
+        FocusIdentitiesType identities = focus.getIdentities();
+        if (identities != null) {
+            return FocusIdentitiesTypeUtil.getOwnIdentity(identities);
+        } else {
+            return null;
+        }
     }
 }

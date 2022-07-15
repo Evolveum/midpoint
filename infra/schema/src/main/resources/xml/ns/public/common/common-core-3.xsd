@@ -4011,6 +4011,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="identity" type="tns:IdentityItemDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines "identity item" configuration for this item. Currently, it is supported only
+                        for definitions of focal items.
+
+                        TODO define more precisely
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>ItemRefinedDefinitionType.identity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
