@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessages;
@@ -303,7 +304,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         }
 
-        if (newPasswordValue == null) {
+        if (newPasswordValue == null || StringUtils.isEmpty(newPasswordValue.getClearValue())) {
 //            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
 //            target.add(getPageBase().getFeedbackPanel());
             new Toast()

@@ -36,9 +36,6 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 
         setOutputMarkupId(true);
 
-        Label thresholdCounter = new Label(ID_THRESHOLD_COUNTER, createStringResource("InternalsCountersPanel.thresholds"));
-        add(thresholdCounter);
-
         ListView<InternalCounters> countersTable = new ListView<>(ID_COUNTERS_TABLE,
                 Arrays.asList(InternalCounters.values())) {
             private static final long serialVersionUID = 1L;
