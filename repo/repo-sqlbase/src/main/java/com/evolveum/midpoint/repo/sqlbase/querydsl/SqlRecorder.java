@@ -102,6 +102,12 @@ public class SqlRecorder extends SqlLogger {
         return new ArrayDeque<>(queryBuffer);
     }
 
+    public synchronized String dumpQueryBuffer() {
+        StringBuilder sb = new StringBuilder("QUERIES:\n");
+        queryBuffer.forEach(q -> sb.append(q).append('\n'));
+        return sb.toString();
+    }
+
     public synchronized void clearBuffer() {
         queryBuffer.clear();
     }
