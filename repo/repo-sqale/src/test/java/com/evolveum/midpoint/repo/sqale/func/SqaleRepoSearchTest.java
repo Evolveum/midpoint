@@ -2133,12 +2133,27 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test608SearchContainerByParentsParent() throws SchemaException {
+        SearchResultList<AccessCertificationWorkItemType> result = searchContainerTest(
+                "by parent with specified stage number (using exists)", AccessCertificationWorkItemType.class,
+                f -> f.exists(T_PARENT)
+                        .block() // block is important, .exists(..).exists(..) fails during filter construction
+                        .exists(T_PARENT)
+                        .item(AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0)
+                        .endBlock());
+
+        assertThat(result)
+                .extracting(a -> a.getStageNumber())
+                .containsExactlyInAnyOrder(11, 12, 21, 22);
+    }
+
+    @Test
     public void test609SearchContainerByParentUnsupportedCases() {
         // Unsure what repo would do, but both these cases fail during filter construction in Prism.
         assertThatThrownBy(() ->
                 searchContainerTest(
                         "by parent with specified stage number (using exists)", AccessCertificationWorkItemType.class,
-                        f -> f.exists(T_PARENT, T_PARENT) // .exists(..).exists(..) fails on check inside R_Filter.exists(...)
+                        f -> f.exists(T_PARENT, T_PARENT)
                                 .item(AccessCertificationCampaignType.F_STAGE_NUMBER).eq(0)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("Couldn't find definition for parent for");
@@ -2698,6 +2713,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test982SearchRoleReferencedByUserAssignmentWithComplexFilterNoMatch() throws SchemaException {
         searchObjectTest("referenced by an assignment of the user specified by complex filter (no match)", RoleType.class,
+//                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+//                        .ownedBy(UserType.class, F_ASSIGNMENT)
                 f -> f.referencedBy(UserType.class,
                                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                         .block()

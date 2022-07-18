@@ -149,29 +149,6 @@ export default class MidPointTheme {
                 }
             });
         });
-
-
-        // todo move to list-group-menu.js plugin
-        $(document).ready(function () {
-            $('.list-group-menu').find('.chevron').parent().attr("href", "#");
-
-            $('.list-group-menu').find('.chevron').parent().click(function (event) {
-                event.preventDefault();
-
-                var link = $(this);
-                var item = link.parent();
-                var chevron = link.find('.chevron');
-                var submenu = item.find('.list-group-submenu');
-
-                if (!submenu.is(':visible')) {
-                    chevron.css('transform', 'rotate(270deg)');
-                    $(submenu).slideDown();
-                } else {
-                    chevron.css('transform', 'rotate(0deg)');
-                    $(submenu).slideUp();
-                }
-            });
-        });
     }
 
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]

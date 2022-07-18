@@ -439,7 +439,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         and("account has a single (merged) definition");
         List<ResourceObjectTypeDefinitionType> accountDefs = typeDefBeans.stream()
                 .filter(def -> def.getKind() == ShadowKindType.ACCOUNT)
-                .toList();
+                .collect(Collectors.toList());
         assertThat(accountDefs).as("account definitions").hasSize(1);
 
         and("origins in account definition are OK");

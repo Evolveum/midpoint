@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -85,6 +86,8 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
 
             @Override
             protected void populateItem(ListItem<T> item) {
+                item.add(AttributeAppender.append("class", () -> getTileCssClasses()));
+
                 Component tile = createTile(ID_TILE, item.getModel());
                 item.add(tile);
             }
@@ -120,6 +123,10 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         };
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
+    }
+
+    protected String getTileCssClasses() {
+        return null;
     }
 
     protected Component createTile(String id, IModel<T> model) {

@@ -1081,7 +1081,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         table.getDataTable().getColumns().clear();
         //noinspection unchecked
         table.getDataTable().getColumns().addAll(createColumns());
-        ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
+        table.addOrReplace(initSearch("header"));
         resetSearchModel();
         table.setCurrentPage(null);
     }
