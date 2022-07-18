@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (c) 2022 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex flex-column gap-3 align-items-center mt-5">
+        <h2 class="mb-3">
+            <wicket:message key="ResourceWizardPreviewPanel.text"/>
+        </h2>
+        <h5 class="text-secondary mb-5">
+            <wicket:message key="ResourceWizardPreviewPanel.subText"/>
+        </h5>
+        <div class="request-access-wizard d-flex flex-wrap gap-3">
+            <wicket:container wicket:id="list">
+                <div class="card mb-0 simple-tile selectable" wicket:id="tile"/>
+            </wicket:container>
+        </div>
+        <a wicket:id="exit">
+            <i class="fa fa-right-from-bracket"></i>
+            <wicket:message key="ResourceWizardPreviewPanel.exit"/>
+        </a>
+    </div>
+</wicket:panel>
+</body>
+</html>

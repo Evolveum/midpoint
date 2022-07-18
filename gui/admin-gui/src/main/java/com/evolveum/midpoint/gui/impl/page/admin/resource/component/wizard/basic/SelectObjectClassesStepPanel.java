@@ -4,15 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -23,8 +20,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,8 +34,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,12 +44,7 @@ import java.util.List;
 /**
  * @author lskublik
  */
-//@PanelType(name = "selectObjectClassesWizard")
-//@PanelInstance(identifier = "selectObjectClassesWizard",
-//        applicableForType = ResourceType.class,
-//        applicableForOperation = OperationTypeType.ADD,
-//        display = @PanelDisplay(label = "PageResource.wizard.step.selectObjectClasses", icon = "fa fa-table-cells"))
-public class SelectObjectClassesStepPanel extends BasicWizardPanel {
+public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPanel {
 
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH_FIELD = "searchFiled";
@@ -276,7 +264,7 @@ public class SelectObjectClassesStepPanel extends BasicWizardPanel {
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        ((PageResource)getPageBase()).savePerformed(target);
+        onFinishWizardPerformed(target);
         return false;
     }
 }

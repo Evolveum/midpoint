@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
@@ -25,13 +25,13 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
+public abstract class AbstractFormResourceWizardStepPanel extends AbstractResourceWizardStepPanel {
 
     private static final String ID_FORM = "form";
 
     private final ResourceDetailsModel resourceModel;
 
-    public AbstractResourceWizardStepPanel(ResourceDetailsModel model) {
+    public AbstractFormResourceWizardStepPanel(ResourceDetailsModel model) {
         this.resourceModel = model;
     }
 
@@ -58,7 +58,7 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
         VerticalFormPanel form = new VerticalFormPanel(ID_FORM, this.resourceModel.getObjectWrapperModel(), settings, getContainerConfiguration()) {
             @Override
             protected String getIcon() {
-                return AbstractResourceWizardStepPanel.this.getIcon();
+                return AbstractFormResourceWizardStepPanel.this.getIcon();
             }
 
             @Override
