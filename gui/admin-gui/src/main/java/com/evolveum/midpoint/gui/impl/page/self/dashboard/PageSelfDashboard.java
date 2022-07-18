@@ -9,17 +9,20 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,28 +32,27 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.CallableResult;
+import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
-import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
-import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,6 +77,8 @@ public class PageSelfDashboard extends PageSelf {
     private static final String ID_LINK_ITEM = "linkItem";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL = "objectCollectionViewWidgetsPanel";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGET = "objectCollectionViewWidget";
+    private static final String DOT_CLASS = PageSelfDashboard.class.getName() + ".";
+    private static final String OPERATION_LOAD_OBJECTS = DOT_CLASS + "loadObjectCollectionViewObjects";
 
     public PageSelfDashboard() {
         initLayout();
@@ -152,7 +156,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     public CallableResult<List<C>> callWithContextPrepared() {
-                        return loadAssignments();
+                        return loadObjects(view);
                     }
                 };
             }
@@ -181,7 +185,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-                                return null;
+                                return PageSelfDashboard.this.createProvider(view);
                             }
 
                             @Override
@@ -242,7 +246,7 @@ public class PageSelfDashboard extends PageSelf {
         return viewPanel;
     }
 
-    private <C extends Containerable> CallableResult<List<C>> loadAssignments() {
+    private <C extends Containerable> CallableResult<List<C>> loadObjects(CompiledObjectCollectionView view) {
         CallableResult callableResult = new CallableResult();
         List<C> list = new ArrayList<>();
         callableResult.setValue(list);
@@ -251,12 +255,33 @@ public class PageSelfDashboard extends PageSelf {
         OperationResult result = task.getResult();
         callableResult.setResult(result);
 
-        //load the objects
 
         result.recordSuccessIfUnknown();
         result.recomputeStatus();
 
         return callableResult;
     }
+
+    private <C extends Containerable> ContainerListDataProvider<C> createProvider(CompiledObjectCollectionView view) {
+        ContainerListDataProvider<C> provider = new ContainerListDataProvider<>(this, null) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected PageStorage getPageStorage() {
+                return null;
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                ObjectFilter collectionFilter = WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(),
+                        result, PageSelfDashboard.this);    //todo only this filter? getDomainFilter? get filter from collection?
+                return getPrismContext().queryFactory().createQuery(collectionFilter);
+            }
+
+        };
+        return provider;
+    }
+
 
 }
