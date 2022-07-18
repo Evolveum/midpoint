@@ -341,7 +341,7 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        Task task = page.createSimpleTask("computeConflicts");
+        Task task = page.createSimpleTask(OPERATION_COMPUTE_ALL_CONFLICTS);
         OperationResult result = task.getResult();
 
         List<Conflict> allConflicts = new ArrayList<>();

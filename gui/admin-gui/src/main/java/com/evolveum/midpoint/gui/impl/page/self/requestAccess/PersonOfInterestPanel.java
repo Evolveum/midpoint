@@ -59,6 +59,11 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TileType.class);
 
+    private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
+
+    private static final int MULTISELECT_PAGE_SIZE = 10;
+
     private static final String DEFAULT_TILE_ICON = "fas fa-user-friends";
 
     private enum TileType {
@@ -439,7 +444,8 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         for (UserType user : users) {
             refs.add(new ObjectReferenceType()
                     .oid(user.getOid())
-                    .type(UserType.COMPLEX_TYPE));
+                    .type(UserType.COMPLEX_TYPE)
+                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject())));
         }
 
         selectedGroupOfUsers.setObject(refs);
@@ -516,7 +522,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
         @Override
         public String getDisplayValue(ObjectReferenceType ref) {
-            return WebComponentUtil.getDisplayName(ref);
+            return WebComponentUtil.getDisplayNameOrName(ref);
         }
 
         @Override
@@ -546,9 +552,9 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                     .queryFor(UserType.class)
                     .filter(full)
                     .asc(UserType.F_NAME)
-                    .maxSize(10).offset(page * 10).build();
+                    .maxSize(MULTISELECT_PAGE_SIZE).offset(page * MULTISELECT_PAGE_SIZE).build();
 
-            Task task = panel.getPageBase().createSimpleTask("load users");
+            Task task = panel.getPageBase().createSimpleTask(OPERATION_LOAD_USERS);
             OperationResult result = task.getResult();
 
             try {
@@ -558,9 +564,9 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                         .map(o -> new ObjectReferenceType()
                                 .oid(o.getOid())
                                 .type(UserType.COMPLEX_TYPE)
-                                .targetName(WebComponentUtil.getName(o))).collect(Collectors.toList()));
+                                .targetName(WebComponentUtil.getDisplayNameOrName(o))).collect(Collectors.toList()));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                LOGGER.debug("Couldn't search users for multiselect", ex);
             }
         }
 
