@@ -152,7 +152,7 @@ public class RequestAccess implements Serializable {
 
         Set<String> newOids = refs.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
-        Set<ObjectReferenceType> existing = requestItems.keySet();
+        Set<ObjectReferenceType> existing = new HashSet<>(requestItems.keySet());
         Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
         boolean changed = false;

@@ -106,8 +106,8 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         return new WebMarkupContainer(id);
     }
 
-    protected AjaxLink getNext() {
-        return (AjaxLink) get(ID_NEXT);
+    protected AjaxSubmitButton getNext() {
+        return (AjaxSubmitButton) get(ID_NEXT);
     }
 
     protected AjaxLink getBack() {

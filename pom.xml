@@ -225,6 +225,7 @@
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>9.10.0</wicket.version>
+        <wicketstuff.version>9.11.0</wicketstuff.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.11 is also default for Spring Boot 2.7.1 -->
         <groovy.version>3.0.11</groovy.version>
@@ -371,6 +372,11 @@
                 <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-extensions</artifactId>
                 <version>${wicket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wicketstuff</groupId>
+                <artifactId>wicketstuff-select2</artifactId>
+                <version>${wicketstuff.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
