@@ -12,10 +12,14 @@
     <div class="quicksearch-panel d-flex justify-content-end" wicket:id="searchPanel"/>
     <div class="d-flex flex-wrap">
         <wicket:container wicket:id="linksPanel">
-            <span class="p-2 flex-fill" wicket:id="linkItem"/>
+            <span class="p-2 dashboard-link-component" wicket:id="linkItem"/>
         </wicket:container>
     </div>
-<!--    <div wicket:id="widgetsPanel"/>-->
+     <div class="d-flex flex-wrap">
+        <wicket:container wicket:id="objectCollectionViewWidgetsPanel">
+            <span class="p-2 flex-md-fill" wicket:id="objectCollectionViewWidget"/>
+        </wicket:container>
+    </div>
 </wicket:extend>
 </body>
 </html>

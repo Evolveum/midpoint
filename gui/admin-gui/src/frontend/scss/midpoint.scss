@@ -458,6 +458,11 @@ li.dropdown.user.user-menu {
 	margin-bottom: 20px;
 }
 
+//Self -> Home page, the same width for link panels.
+.dashboard-link-component {
+  flex: 1 1 0 !important;
+}
+
 // assignments dashboard panel
 .dash-assignment-header {
 
