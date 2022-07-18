@@ -260,6 +260,8 @@ public class StartupConfiguration implements MidpointConfiguration {
         lookups.put(RandomLookup.PREFIX, new RandomLookup());
         lookups.put(HostnameLookup.PREFIX, new HostnameLookup());
 
+        // This configures only our prefixes, not the default ones like expr (which are also a security concern).
+        // Note that the Lookup.lookup(var) is called when get*() is called, so it can be evaluated every time.
         FileBasedConfigurationBuilder<XMLConfiguration> builder =
                 new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
                         .configure(
