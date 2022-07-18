@@ -24,7 +24,8 @@
             <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2019"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2019Strange"/>
 
-            <class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2016"/>
+            <!-- disabled for now, see MID-7313 -->
+            <!--<class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2016"/>-->
 
             <!--<class name="com.evolveum.midpoint.testing.conntest.ad.multidomain.TestAdLdapAd2016"/>-->
             <!-- Not testing "strange" configuration on 2016 to keep test runtime down. -->
