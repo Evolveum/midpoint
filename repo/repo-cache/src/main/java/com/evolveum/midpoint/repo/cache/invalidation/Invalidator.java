@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -89,7 +90,7 @@ public class Invalidator {
         }
     }
 
-    public <T extends ObjectType> void invalidateCacheEntries(Class<T> type, String oid, Object additionalInfo, OperationResult parentResult) {
+    public <T extends ObjectType> void invalidateCacheEntries(Class<T> type, String oid, RepositoryOperationResult additionalInfo, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(CLASS_NAME_WITH_DOT + "invalidateCacheEntries")
                 .setMinor()
                 .addParam("type", type)

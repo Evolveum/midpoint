@@ -715,7 +715,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             // May be used for unauthenticated user, error pages and so on
             return guiProfileCompiler.getGlobalCompiledGuiProfile(task, parentResult);
         } else {
-            return ((GuiProfiledPrincipal) principal).getCompiledGuiProfile();
+            CompiledGuiProfile profile = ((GuiProfiledPrincipal) principal).getCompiledGuiProfile();
+            if (profile.isInvalid()) {
+                return guiProfiledPrincipalManager.refreshCompiledProfile(((GuiProfiledPrincipal) principal));
+            }
+            return profile;
         }
     }
 

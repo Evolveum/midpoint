@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -72,6 +73,12 @@ public class ArchetypeManager implements Cache {
             SystemConfigurationType.class,
             ObjectTemplateType.class
     );
+
+    private static final Set<CacheInvalidationEventSpecification> CACHE_SPECIFICATION = Collections.unmodifiableSet(
+            CacheInvalidationEventSpecification.setOf(
+                    ArchetypeType.class,
+                    SystemConfigurationType.class,
+                    ObjectTemplateType.class));
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private CacheRegistry cacheRegistry;
@@ -373,6 +380,11 @@ public class ArchetypeManager implements Cache {
         }
         String expressionProfileId = archetypePolicy.getExpressionProfile();
         return systemObjectCache.getExpressionProfile(expressionProfileId, result);
+    }
+
+    @Override
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CACHE_SPECIFICATION;
     }
 
     @Override

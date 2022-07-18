@@ -8,18 +8,29 @@
 package com.evolveum.midpoint.repo.cache.registry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.CacheInvalidationDetails;
+import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
+import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.ModifyObjectResult;
+import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
+import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidationDetails;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Dispatches cache-related events - mainly invalidation ones - to all relevant listeners:
@@ -36,10 +47,13 @@ public class CacheDispatcherImpl implements CacheDispatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(CacheDispatcherImpl.class);
 
-    private final List<CacheListener> cacheListeners = new ArrayList<>();
+    private List<CacheInvalidationListener> cacheListeners = new ArrayList<>();
+
+
 
     @Override
-    public synchronized void registerCacheListener(CacheListener cacheListener) {
+    public synchronized void registerCacheInvalidationListener(CacheInvalidationListener cacheListener) {
+        LOGGER.debug("Registering listener {}", cacheListener);
         if (cacheListeners.contains(cacheListener)) {
             LOGGER.warn("Registering listener {} which was already registered.", cacheListener);
             return;
@@ -48,7 +62,7 @@ public class CacheDispatcherImpl implements CacheDispatcher {
     }
 
     @Override
-    public synchronized void unregisterCacheListener(CacheListener cacheListener) {
+    public synchronized void unregisterCacheInvalidationListener(CacheInvalidationListener cacheListener) {
         if (!cacheListeners.contains(cacheListener)) {
             LOGGER.warn("Unregistering listener {} which was already unregistered.", cacheListener);
             return;
@@ -59,8 +73,64 @@ public class CacheDispatcherImpl implements CacheDispatcher {
     @Override
     public <O extends ObjectType> void dispatchInvalidation(Class<O> type, String oid, boolean clusterwide,
             @Nullable CacheInvalidationContext context) {
-        for (CacheListener listener : cacheListeners) {
-            listener.invalidate(type, oid, clusterwide, context);
+        RepositoryOperationResult repoResult = null;
+        if (context != null) {
+            CacheInvalidationDetails details = context.getDetails();
+            if (details instanceof RepositoryCacheInvalidationDetails) {
+                repoResult = ((RepositoryCacheInvalidationDetails) details).getResult();
+            }
         }
+
+        for (CacheInvalidationListener listener : cacheListeners) {
+            if (isInterested(listener.getEventSpecifications(), type, context, repoResult)) {
+                listener.invalidate(type, oid, clusterwide, context);
+            }
+        }
+    }
+
+    private boolean isInterested(Collection<CacheInvalidationEventSpecification> eventSpecs, Class<? extends ObjectType> type,
+            @Nullable CacheInvalidationContext context, @Nullable RepositoryOperationResult result) {
+        if (CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS == eventSpecs) {
+            // Fast path for cache listeners interested in all events
+            return true;
+        }
+        if (type == null) {
+            // Type was null, means invalidate everything
+            return true;
+        }
+
+        for(CacheInvalidationEventSpecification eventSpec : eventSpecs) {
+            if (eventSpec.getObjectType().isAssignableFrom(type)) {
+                LOGGER.trace("Listener interested in {}, repository result is {}", type, result);
+                // Listener is interested in this type
+                if (result == null) {
+                    // FIXME: What to do here? this is caused by addDiagnosticInformation
+                    // or when we received non Repository event
+                    return true;
+                }
+                if (eventSpec.getChangeTypes().contains(result.getChangeType())) {
+                    if (result instanceof ModifyObjectResult) {
+                        return isAnyPathAffected(eventSpec, (ModifyObjectResult<?>) result);
+                    } else {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isAnyPathAffected(CacheInvalidationEventSpecification eventSpec, ModifyObjectResult<?> result) {
+        if (CacheInvalidationEventSpecification.ALL_PATHS == eventSpec.getPaths()) {
+            return true;
+        }
+        for (ItemPath path : eventSpec.getPaths()) {
+            for (ItemDelta<?, ?> modification : result.getModifications()) {
+                if (modification.getPath().startsWith(path)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

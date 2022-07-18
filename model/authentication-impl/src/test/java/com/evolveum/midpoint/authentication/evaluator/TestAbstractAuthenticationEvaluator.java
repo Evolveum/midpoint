@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationEvaluat
 
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.*;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
@@ -170,6 +172,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             @Override
             public void terminateLocalSessions(TerminateSessionEvent terminateSessionEvent) {
                 //TOTO test it
+            }
+
+            @Override
+            public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal) {
+                return guiProfiledPrincipal.getCompiledGuiProfile();
             }
         });
     }
