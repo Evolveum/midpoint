@@ -96,16 +96,19 @@
             <kind>account</kind>
             <displayName>Default Account</displayName>
             <default>true</default>
-            <objectClass>ri:user</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <expression><const>ad2022UsersDn</const></expression>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <delineation>
+                <objectClass>ri:user</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <expression><const>ad2022UsersDn</const></expression>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </delineation>
+
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
@@ -379,6 +382,53 @@
                     <outbound/>
                 </password>
             </credentials>
+
+            <focus>
+                <type>UserType</type>
+            </focus>
+
+            <correlation>
+                <correlators>
+                    <filter>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>c:name</q:path>
+                                <expression>
+                                    <path>$shadow/attributes/sAMAccountName</path>
+                                </expression>
+                            </q:equal>
+                        </ownerFilter>
+                    </filter>
+                </correlators>
+
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
 
         </objectType>
 
@@ -853,44 +903,5 @@
         <avoidDuplicateValues>true</avoidDuplicateValues>
         <validateSchema>true</validateSchema>
     </consistency>
-
-    <synchronization>
-
-        <objectSynchronization>
-            <name>Account sync</name>
-            <objectClass>ri:user</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <focusType>UserType</focusType>
-            <enabled>true</enabled>
-            <correlation>
-                <q:equal>
-                    <q:path>c:name</q:path>
-                    <expression>
-                        <path>$shadow/attributes/sAMAccountName</path>
-                    </expression>
-                </q:equal>
-            </correlation>
-
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
-            </reaction>
-
-        </objectSynchronization>
-
-    </synchronization>
 
 </resource>

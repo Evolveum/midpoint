@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.cache.invalidation;
 
 import com.evolveum.midpoint.repo.api.CacheInvalidationDetails;
+import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
@@ -15,13 +16,18 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  */
 @Experimental
 public final class RepositoryCacheInvalidationDetails implements CacheInvalidationDetails {
-    private final Object details;
+    private final RepositoryOperationResult details;
 
-    RepositoryCacheInvalidationDetails(Object details) {
+    RepositoryCacheInvalidationDetails(RepositoryOperationResult details) {
         this.details = details;
     }
 
+    @Deprecated
     public Object getObject() {
+        return details;
+    }
+
+    public RepositoryOperationResult getResult() {
         return details;
     }
 }
