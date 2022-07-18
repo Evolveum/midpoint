@@ -15,11 +15,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 
-import org.apache.wicket.model.Model;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +43,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfDashboard.class);
     private static final String ID_SEARCH_PANEL = "searchPanel";
     private static final String ID_LINKS_PANEL = "linksPanel";
+    private static final String ID_LINK_ITEM = "linkItem";
     private static final String ID_WIDGETS_PANEL = "widgetsPanel";
 
     public PageSelfDashboard() {
@@ -62,7 +63,17 @@ public class PageSelfDashboard extends PageSelf {
         }));
         add(dashboardSearchPanel);
 
-        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
+        ListView<RichHyperlinkType> linksPanel = new ListView<>(ID_LINKS_PANEL, () -> loadLinksList()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<RichHyperlinkType> item) {
+                item.add(new DashboardLinkComponent(ID_LINK_ITEM, item.getModel()));
+            }
+        };
+//        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
+        linksPanel.setOutputMarkupId(true);
         linksPanel.add(new VisibleBehaviour(() -> {
 //            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
 //            return WebComponentUtil.getElementVisibility(visibility);

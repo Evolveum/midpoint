@@ -11,12 +11,10 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 
 import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.cxf.common.util.UrlUtils;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.protocol.http.WebApplication;
 
 import javax.servlet.ServletContext;
 
@@ -64,6 +62,7 @@ public class DashboardLinkComponent extends BasePanel<RichHyperlinkType> {
                 tag.put("href", rootContext + (link.getTargetUrl() == null ? "#" : link.getTargetUrl()));
             }
         };
+        add(linkItem);
 
         linkItem.add(new Label(ID_IMAGE) {
 

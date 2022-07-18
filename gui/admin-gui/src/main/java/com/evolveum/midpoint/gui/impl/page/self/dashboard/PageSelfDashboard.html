@@ -10,7 +10,11 @@
 <body>
 <wicket:extend>
     <div class="quicksearch-panel d-flex justify-content-end" wicket:id="searchPanel"/>
-    <div wicket:id="linksPanel"/>
+    <div class="d-flex flex-wrap">
+        <wicket:container wicket:id="linksPanel">
+            <span class="p-2 flex-fill" wicket:id="linkItem"/>
+        </wicket:container>
+    </div>
 <!--    <div wicket:id="widgetsPanel"/>-->
 </wicket:extend>
 </body>
