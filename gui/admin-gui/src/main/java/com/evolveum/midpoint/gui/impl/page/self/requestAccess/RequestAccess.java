@@ -118,6 +118,10 @@ public class RequestAccess implements Serializable {
         this.selectedValidity = selectedValidity;
     }
 
+    public Set<AssignmentType> getSelectedAssignments() {
+        return Collections.unmodifiableSet(selectedAssignments);
+    }
+
     public List<Conflict> getConflicts() {
         if (conflicts == null) {
             conflicts = new ArrayList<>();
@@ -314,6 +318,9 @@ public class RequestAccess implements Serializable {
 
         selectedAssignments.clear();
         relation = null;
+
+        selectedValidity = null;
+        validity = null;
 
         comment = null;
 
@@ -611,18 +618,21 @@ public class RequestAccess implements Serializable {
 
         this.validity = validity;
 
-        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar();
+        XMLGregorianCalendar from = validity != null ? XmlTypeConverter.createXMLGregorianCalendar() : null;
 
-        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(from);
-        to.add(validity);
+        XMLGregorianCalendar to = null;
+        if (validity != null) {
+            to = XmlTypeConverter.createXMLGregorianCalendar(from);
+            to.add(validity);
+        }
 
         setValidity(from, to);
     }
 
-    private void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
+    public void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> {
-                if (validity == null) {
+                if (from == null && to == null) {
                     a.setActivation(null);
                 } else {
                     ActivationType activation = a.getActivation();

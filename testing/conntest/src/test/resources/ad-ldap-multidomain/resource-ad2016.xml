@@ -355,6 +355,17 @@
                     </q:substring>
                 </filter>
             </protected>
+            <protected>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>CN=AD05</q:value>
+                        <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:substring>
+                </filter>
+            </protected>
 
             <activation>
                 <administrativeStatus>

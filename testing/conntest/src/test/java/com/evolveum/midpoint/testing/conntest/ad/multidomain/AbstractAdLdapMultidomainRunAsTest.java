@@ -41,7 +41,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
     @Override
     public void test222ModifyUserBarbossaPasswordSelfServicePassword1Again() throws Exception {
         testModifyUserBarbossaPasswordSelfServiceFailure(
-                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
+                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
 
         assertUserAfter(AbstractLdapTest.USER_BARBOSSA_OID)
                 .assertPassword(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
@@ -57,7 +57,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
     @Override
     public void test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain() throws Exception {
         testModifyUserBarbossaPasswordSelfServiceFailure(
-                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_2, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
+                AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_2);
     }
 
     /**
