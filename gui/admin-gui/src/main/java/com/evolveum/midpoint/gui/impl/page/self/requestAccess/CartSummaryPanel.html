@@ -48,17 +48,19 @@
                             <textarea class="form-control" rows="4" wicket:id="comment"></textarea>
                         </div>
                     </wicket:enclosure>
-                    <a class="btn btn-outline-danger" wicket:id="openConflict">
-                        <i class="fas fa-triangle-exclamation mr-1"></i>
-                        <wicket:message key="ShoppingCartPanel.openConflict"/>
-                    </a>
+                    <div class="form-group mb-1">
+                        <a class="btn btn-outline-danger w-100 mb-2" wicket:id="openConflict">
+                            <i class="fas fa-triangle-exclamation mr-1"></i>
+                            <wicket:message key="ShoppingCartPanel.openConflict"/>
+                        </a>
 
-                    <div class="text-danger" wicket:id="messages"/>
+                        <div class="text-danger" wicket:id="messages"/>
 
-                    <a class="btn btn-success" wicket:id="submit">
-                        <i class="fas fa-credit-card mr-1"></i>
-                        <wicket:message key="ShoppingCartPanel.submit"/>
-                    </a>
+                        <a class="btn btn-success w-100" wicket:id="submit">
+                            <i class="fas fa-credit-card mr-1"></i>
+                            <wicket:message key="ShoppingCartPanel.submit"/>
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

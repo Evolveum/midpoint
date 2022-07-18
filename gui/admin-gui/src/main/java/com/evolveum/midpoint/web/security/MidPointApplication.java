@@ -326,6 +326,12 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         // Additional wicket configuration
         wicketConfigurators.forEach(c -> c.configure(this));
+
+        // default select2 css/js should not be attached via wicket resources. It's already embedded in vendors js/css
+        org.wicketstuff.select2.ApplicationSettings settings = org.wicketstuff.select2.ApplicationSettings.get();
+        settings.setIncludeJavascriptFull(false);
+        settings.setIncludeJavascript(false);
+        settings.setIncludeCss(false);
     }
 
     public DeploymentInformationType getDeploymentInfo() {
