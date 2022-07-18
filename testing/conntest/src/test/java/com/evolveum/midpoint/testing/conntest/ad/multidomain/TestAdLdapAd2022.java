@@ -95,6 +95,8 @@ public class TestAdLdapAd2022 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected int getNumberOfAllAccounts() {
+        //Namely: Administrator, Guest, cloudbase-init, AD07, krbtgt
+        // Jack Sparrow, MidPoint, SSH Test, sub2022$
         return 9;
     }
 
