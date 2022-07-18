@@ -52,8 +52,8 @@ public class CacheDispatcherImpl implements CacheDispatcher {
 
 
     @Override
-    public synchronized void registerCacheListener(CacheListener cacheListener) {
-        LOGGER.info("Registering listener {}", cacheListener);
+    public synchronized void registerCacheInvalidationListener(CacheInvalidationListener cacheListener) {
+        LOGGER.debug("Registering listener {}", cacheListener);
         if (cacheListeners.contains(cacheListener)) {
             LOGGER.warn("Registering listener {} which was already registered.", cacheListener);
             return;
@@ -62,7 +62,7 @@ public class CacheDispatcherImpl implements CacheDispatcher {
     }
 
     @Override
-    public synchronized void unregisterCacheListener(CacheListener cacheListener) {
+    public synchronized void unregisterCacheInvalidationListener(CacheInvalidationListener cacheListener) {
         if (!cacheListeners.contains(cacheListener)) {
             LOGGER.warn("Unregistering listener {} which was already unregistered.", cacheListener);
             return;
@@ -95,12 +95,13 @@ public class CacheDispatcherImpl implements CacheDispatcher {
             return true;
         }
         if (type == null) {
+            // Type was null, means invalidate everything
             return true;
         }
 
         for(CacheInvalidationEventSpecification eventSpec : eventSpecs) {
             if (eventSpec.getObjectType().isAssignableFrom(type)) {
-                LOGGER.info("Listener interested in {}, repository result is {}", type, result);
+                LOGGER.trace("Listener interested in {}, repository result is {}", type, result);
                 // Listener is interested in this type
                 if (result == null) {
                     // FIXME: What to do here? this is caused by addDiagnosticInformation
