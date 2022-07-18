@@ -89,7 +89,9 @@ public class GuiProfileCompiler {
         Set<String> profileDependencies = new HashSet<>();
 
         profileDependencies.add(principal.getOid());
-        profileDependencies.add(systemConfiguration.getOid());
+        if (systemConfiguration != null) {
+            profileDependencies.add(systemConfiguration.getOid());
+        }
         collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
