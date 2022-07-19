@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -146,17 +149,41 @@ public class PageSelfDashboard extends PageSelf {
                 WebComponentUtil.getIconCssClass(view.getDisplay()), null) {
 
             private static final long serialVersionUID = 1L;
+            private ContainerListDataProvider<C> provider = null;
+
+            private void initProvider() {
+                provider = new ContainerListDataProvider<>(this, null) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return null;
+                    }
+
+                    @Override
+                    public ObjectQuery getQuery() {
+                        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                        ObjectFilter collectionFilter = WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(),
+                                result, PageSelfDashboard.this);    //todo only this filter? getDomainFilter? get filter from collection?
+                        return getPrismContext().queryFactory().createQuery(collectionFilter);
+                    }
+
+                };
+            }
 
             @Override
-            protected SecurityContextAwareCallable<CallableResult<List<C>>> createCallable(
+            protected SecurityContextAwareCallable<CallableResult<List<PrismContainerValueWrapper<C>>>> createCallable(
                     Authentication auth, IModel callableParameterModel) {
 
                 return new SecurityContextAwareCallable<>(
                         getSecurityContextManager(), auth) {
 
                     @Override
-                    public CallableResult<List<C>> callWithContextPrepared() {
-                        return loadObjects(view);
+                    public CallableResult<List<PrismContainerValueWrapper<C>>> callWithContextPrepared() {
+                        if (provider == null) {
+                            initProvider();
+                        }
+                        return loadObjects(provider);
                     }
                 };
             }
@@ -175,7 +202,14 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             protected List<IColumn<PrismContainerValueWrapper<C>, String>> createDefaultColumns() {
-                                return new ArrayList<>();
+                                if (CollectionUtils.isNotEmpty(view.getColumns())) {
+                                    return getViewColumnsTransformed(view.getColumns());
+                                }
+                                GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(view.getTargetClass(PrismContext.get()));
+                                if (defaultView == null) {
+                                    return null;
+                                }
+                                return getViewColumnsTransformed(defaultView.getColumn());
                             }
 
                             @Override
@@ -185,7 +219,10 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-                                return PageSelfDashboard.this.createProvider(view);
+                                if (provider == null) {
+                                    initProvider();
+                                }
+                                return provider;
                             }
 
                             @Override
@@ -215,7 +252,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             protected IColumn createIconColumn() {
-                                return null;
+                                return null; //todo fix
                             }
 
                             @Override
@@ -246,42 +283,21 @@ public class PageSelfDashboard extends PageSelf {
         return viewPanel;
     }
 
-    private <C extends Containerable> CallableResult<List<C>> loadObjects(CompiledObjectCollectionView view) {
-        CallableResult callableResult = new CallableResult();
-        List<C> list = new ArrayList<>();
+    private <C extends Containerable> CallableResult<List<PrismContainerValueWrapper<C>>> loadObjects(ContainerListDataProvider<C> provider) {
+        CallableResult<List<PrismContainerValueWrapper<C>>> callableResult = new CallableResult<>();
+        List<PrismContainerValueWrapper<C>> list = new ArrayList<>();
         callableResult.setValue(list);
 
-        Task task = createSimpleTask("loadObjectListForView");
+        Task task = createSimpleTask(OPERATION_LOAD_OBJECTS);
         OperationResult result = task.getResult();
         callableResult.setResult(result);
 
+       provider.internalIterator(0, provider.size()).forEachRemaining(list::add);
 
         result.recordSuccessIfUnknown();
         result.recomputeStatus();
 
         return callableResult;
     }
-
-    private <C extends Containerable> ContainerListDataProvider<C> createProvider(CompiledObjectCollectionView view) {
-        ContainerListDataProvider<C> provider = new ContainerListDataProvider<>(this, null) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return null;
-            }
-
-            @Override
-            public ObjectQuery getQuery() {
-                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
-                ObjectFilter collectionFilter = WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(),
-                        result, PageSelfDashboard.this);    //todo only this filter? getDomainFilter? get filter from collection?
-                return getPrismContext().queryFactory().createQuery(collectionFilter);
-            }
-
-        };
-        return provider;
-    }
-
 
 }
