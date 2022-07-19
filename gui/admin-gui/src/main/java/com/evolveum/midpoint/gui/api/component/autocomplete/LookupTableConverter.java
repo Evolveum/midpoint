@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
@@ -34,12 +35,12 @@ public class LookupTableConverter<C> implements IConverter<C> {
     private static final long serialVersionUID = 1L;
     private IConverter<C> originConverter;
     private String lookupTableOid;
-    private FormComponent baseComponent;
+    private Component baseComponent;
     private boolean strict;
 
-    public LookupTableConverter(IConverter<C> originConverter, LookupTableType lookupTable, FormComponent baseComponent, boolean strict) {
+    public LookupTableConverter(IConverter<C> originConverter, String lookupTableOid, Component baseComponent, boolean strict) {
         this.originConverter = originConverter;
-        this.lookupTableOid = lookupTable != null ? lookupTable.getOid() : null;
+        this.lookupTableOid = lookupTableOid;
         this.baseComponent = baseComponent;
         this.strict = strict;
     }
@@ -55,8 +56,8 @@ public class LookupTableConverter<C> implements IConverter<C> {
             }
         }
         boolean differentValue = true;
-        if (baseComponent != null && baseComponent.getModelObject() != null
-                && baseComponent.getModelObject().equals(value)) {
+        if (baseComponent != null && baseComponent.getDefaultModelObject() != null
+                && baseComponent.getDefaultModelObject().equals(value)) {
             differentValue = false;
         }
 
@@ -83,14 +84,7 @@ public class LookupTableConverter<C> implements IConverter<C> {
 
     protected LookupTableType getLookupTable() {
         if (lookupTableOid != null) {
-            Task task = getPageBase().createSimpleTask("Load lookup table");
-            OperationResult result = task.getResult();
-            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                    .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
-            PrismObject<LookupTableType> prismLookupTable = WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, getPageBase(), task, result);
-            if (prismLookupTable != null) {
-                return  prismLookupTable.asObjectable();
-            }
+            return WebModelServiceUtils.loadLookupTable(lookupTableOid, getPageBase());
         }
         return null;
     }

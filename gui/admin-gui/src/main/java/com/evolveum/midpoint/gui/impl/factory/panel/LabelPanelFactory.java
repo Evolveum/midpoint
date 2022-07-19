@@ -8,6 +8,10 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.LookupAutocompletePanel;
+
+import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableLabelPanel;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +39,10 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
 
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
+        String lookupTableOid = panelCtx.getPredefinedValuesOid();
+        if (lookupTableOid != null) {
+            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
+        }
         Label label = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
         label.add(AttributeAppender.append("style", "padding-top:5px;")); // because prism-property-label has this
         return label;
