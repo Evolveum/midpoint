@@ -17,9 +17,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface CacheDispatcher {
 
-    void registerCacheListener(CacheListener cacheListener);
+    default void registerCacheListener(CacheListener cacheListener) {
+        registerCacheInvalidationListener(cacheListener);
+    }
 
-    void unregisterCacheListener(CacheListener cacheListener);
+    default void unregisterCacheListener(CacheListener cacheListener) {
+        unregisterCacheListener(cacheListener);
+    }
+
+    void registerCacheInvalidationListener(CacheInvalidationListener cacheListener);
+
+    void unregisterCacheInvalidationListener(CacheInvalidationListener cacheListener);
+
 
     /**
      * Dispatches "cache entry/entries invalidation" event to all relevant caches, even clusterwide if requested so.

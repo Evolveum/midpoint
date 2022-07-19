@@ -53,6 +53,7 @@ class TargetPayloadEvaluation<AH extends AssignmentHolderType> extends AbstractE
                     }
                 }
                 AdminGuiConfigurationType adminGuiConfiguration = ((AbstractRoleType) target).getAdminGuiConfiguration();
+                ctx.evalAssignment.addAdminGuiDependency(target.getOid());
                 if (adminGuiConfiguration != null &&
                         !ctx.evalAssignment.getAdminGuiConfigurations().contains(adminGuiConfiguration)) {
                     ctx.evalAssignment.addAdminGuiConfiguration(adminGuiConfiguration);

@@ -13,7 +13,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <name>Reconciliation: AD2012 users</name>
+    <name>Reconciliation: AD2022 users</name>
 
     <extension>
         <syncext:objectclass>ri:user</syncext:objectclass>

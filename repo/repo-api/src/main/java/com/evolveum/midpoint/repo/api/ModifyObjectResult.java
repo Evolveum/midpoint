@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -27,7 +28,7 @@ import java.util.Collection;
  *  EXPERIMENTAL. We will probably drop objectBefore and modifications.
  */
 @Experimental
-public class ModifyObjectResult<T extends ObjectType> {
+public class ModifyObjectResult<T extends ObjectType> implements RepositoryOperationResult {
 
     private final PrismObject<T> objectBefore;
     private final PrismObject<T> objectAfter;
@@ -76,6 +77,11 @@ public class ModifyObjectResult<T extends ObjectType> {
 
     public long getWastedTime() {
         return performanceRecord != null ? performanceRecord.getWastedTime() : 0;
+    }
+
+    @Override
+    public ChangeType getChangeType() {
+        return ChangeType.MODIFY;
     }
 
     @Override
