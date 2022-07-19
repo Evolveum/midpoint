@@ -125,7 +125,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
             return originConverter;
         }
 
-        return new LookupTableConverter<>(originConverter, lookupTableType, getBaseFormComponent(), strict) {
+        return new LookupTableConverter<>(originConverter, lookupTableOid, getBaseFormComponent(), strict) {
 
             @Override
             protected LookupTableType getLookupTable() {

@@ -152,7 +152,7 @@ public class RequestAccess implements Serializable {
 
         Set<String> newOids = refs.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
-        Set<ObjectReferenceType> existing = requestItems.keySet();
+        Set<ObjectReferenceType> existing = new HashSet<>(requestItems.keySet());
         Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
         boolean changed = false;
@@ -341,7 +341,7 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        Task task = page.createSimpleTask("computeConflicts");
+        Task task = page.createSimpleTask(OPERATION_COMPUTE_ALL_CONFLICTS);
         OperationResult result = task.getResult();
 
         List<Conflict> allConflicts = new ArrayList<>();

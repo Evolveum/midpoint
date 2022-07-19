@@ -15,7 +15,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.time.Duration;
+import java.time.Duration;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -46,17 +46,17 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, String boxCssClasses, boolean noPadding) {
-        this(id, title, icon, new Model(), Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses, noPadding);
+        this(id, title, icon, new Model(), Duration.ofSeconds(DEFAULT_TIMER_DURATION), boxCssClasses, noPadding);
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
             String boxCssClasses) {
-        this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses);
+        this(id, title, icon, callableParameterModel, Duration.ofSeconds(DEFAULT_TIMER_DURATION), boxCssClasses);
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
             Duration durationSecs, String boxCssClasses) {
-        this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses, false);
+        this(id, title, icon, callableParameterModel, Duration.ofSeconds(DEFAULT_TIMER_DURATION), boxCssClasses, false);
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,

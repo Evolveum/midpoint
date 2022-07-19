@@ -538,8 +538,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query,
                 getNumberOfAllAccounts(), task, result);
 
-        searchResultList.forEach(shadow -> logger.info("shadow: \n {}", shadow.getName()));
-
         if (isVagueTest()) {
             rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         } else {

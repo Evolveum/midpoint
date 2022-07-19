@@ -8,10 +8,13 @@ package com.evolveum.midpoint.model.api.authentication;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
@@ -66,6 +69,10 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
     private byte[] jpegPhoto;
     private Locale locale;
+
+    private Set<String> dependencies = new HashSet<>();
+
+    private boolean invalid = false;
 
     public String getDefaultTimezone() {
         return defaultTimezone;
@@ -513,5 +520,28 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "approvals", approvals, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "features", features, indent + 1);
         return sb.toString();
+    }
+
+    /**
+     * Returns true if compiled profile is derived from provided OID
+     */
+    public boolean derivedFrom(String oid) {
+        return dependencies.contains(oid);
+    }
+
+    public void markInvalid() {
+        invalid  = true;
+    }
+
+    public boolean isInvalid() {
+        return invalid;
+    }
+
+    public void setDependencies(Set<String> value) {
+        dependencies = value;
+    }
+
+    public Set<String> getDependencies() {
+        return dependencies;
     }
 }

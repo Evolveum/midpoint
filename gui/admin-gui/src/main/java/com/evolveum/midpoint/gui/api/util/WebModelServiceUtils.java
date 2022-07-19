@@ -219,7 +219,7 @@ public class WebModelServiceUtils {
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
             PageAdminLTE page, Task task, OperationResult result) {
-        return loadObject(objectReference, false, page, task, result);
+        return loadObject(objectReference, true, page, task, result);
     }
 
     @Nullable
@@ -741,5 +741,17 @@ public class WebModelServiceUtils {
                 pageBase, task, result);
 
         return systemConfig;
+    }
+
+    public static LookupTableType loadLookupTable(String lookupTableOid, PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("Load lookup table");
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                .createLookupTableRetrieveOptions(pageBase.getSchemaService());
+        PrismObject<LookupTableType> prismLookupTable = loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
+        if (prismLookupTable != null) {
+            return  prismLookupTable.asObjectable();
+        }
+        return null;
     }
 }
