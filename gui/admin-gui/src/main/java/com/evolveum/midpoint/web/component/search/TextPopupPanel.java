@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
@@ -41,11 +43,11 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
 
     private static final int MAX_ITEMS = 10;
 
-    private final PrismObject<LookupTableType> lookup;
+    private final String lookupOid;
 
-    public TextPopupPanel(String id, IModel<DisplayableValue<T>> model, PrismObject<LookupTableType> lookup) {
+    public TextPopupPanel(String id, IModel<DisplayableValue<T>> model, String lookupOid) {
         super(id, model);
-        this.lookup = lookup;
+        this.lookupOid = lookupOid;
 
         initLayout();
     }
@@ -61,7 +63,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
     private TextField initTextField() {
 //        IModel data = new PropertyModel(getModelService(), SearchValue.F_VALUE);
 
-        if (lookup == null) {
+        if (lookupOid == null) {
             return new TextField(ID_TEXT_INPUT, new PropertyModel(getModel(), SearchValue.F_VALUE));
         }
 
@@ -91,11 +93,11 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
             @Override
             public <C> IConverter<C> getConverter(Class<C> type) {
                 IConverter<C> converter = super.getConverter(type);
-                if (lookup == null) {
+                if (lookupOid == null) {
                     return converter;
                 }
 
-                return new LookupTableConverter(converter, lookup.asObjectable(), this, false) {
+                return new LookupTableConverter(converter, lookupOid, this, false) {
                     @Override
                     public Object convertToObject(String value, Locale locale) throws ConversionException {
                         PropertyModel<Object> label = new PropertyModel<>(TextPopupPanel.this.getModelObject(), SearchValue.F_LABEL);
@@ -115,13 +117,15 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
     }
 
     private List<String> prepareAutoCompleteList(String input) {
+
         List<String> values = new ArrayList<>();
 
-        if (lookup == null || lookup.asObjectable().getRow() == null) {
+        if (lookupOid == null) {
             return values;
         }
 
-        List<LookupTableRowType> rows = new ArrayList<>(lookup.asObjectable().getRow());
+        LookupTableType lookup = WebModelServiceUtils.loadLookupTable(lookupOid, getPageBase());
+        List<LookupTableRowType> rows = new ArrayList<>(lookup.getRow());
         rows.sort((o1, o2) -> {
             String s1 = WebComponentUtil.getOrigStringFromPoly(o1.getLabel());
             String s2 = WebComponentUtil.getOrigStringFromPoly(o2.getLabel());
