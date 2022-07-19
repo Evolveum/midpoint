@@ -29,6 +29,7 @@
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
 CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch; -- fuzzy string match (levenshtein, etc.)
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -1351,6 +1352,7 @@ CREATE TABLE m_case_wi_assignee (
 )
     INHERITS (m_reference);
 
+-- indexed by first three PK columns
 ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1368,6 +1370,7 @@ CREATE TABLE m_case_wi_candidate (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns
 ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1508,6 +1511,7 @@ CREATE TABLE m_access_cert_wi (
 )
     INHERITS(m_container);
 
+-- indexed by first two PK columns
 ALTER TABLE m_access_cert_wi
     ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accessCertCaseCid)
         REFERENCES m_access_cert_case (ownerOid, cid)
@@ -1524,10 +1528,12 @@ CREATE TABLE m_access_cert_wi_assignee (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns, TODO: isn't this one superfluous with the next one?
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_case
     FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
+-- indexed by first three PK columns
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
@@ -1547,10 +1553,12 @@ CREATE TABLE m_access_cert_wi_candidate (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns, TODO: isn't this one superfluous with the next one?
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_case
     FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
+-- indexed by first three PK columns
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
@@ -1769,6 +1777,7 @@ CREATE TABLE m_assignment_ref_create_approver (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1787,6 +1796,7 @@ CREATE TABLE m_assignment_ref_modify_approver (
 )
     INHERITS (m_reference);
 
+-- indexed by first three PK columns
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;

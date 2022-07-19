@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPath
 import java.sql.SQLException;
 import java.util.*;
 
+import com.querydsl.core.types.Ops;
+import com.querydsl.core.types.dsl.Expressions;
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.SqaleOps;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -724,6 +727,32 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(row.ext).isNull();
         // but we never set fullObject to null, so this is a good test for doing so with byte[]
         assertThat(row.photo).isNull();
+    }
+
+    /**
+     * This only tests that custom operations are registered (see MidpointPostgreSQLTemplates) and usable.
+     * The tested query actually produces three parameter expression `levenshtein(a, b) < c`.
+     * This means that ExtensionItemFilterProcessor requires some modifications; currently the matchers are
+     * incorporated into the specific type handling (e.g. poly-string), or change `isIgnoreCaseFilter()` return value.
+     * None of the matchers now pass the parameter into the query like we need to do here.
+     */
+    @Test
+    public void test901CustomOperations() {
+        // Any type having strings/TEXT will do, we will use plain string, not poly-string.
+        QUser u = aliasFor(QUser.class);
+
+        try (JdbcSession jdbcSession = startReadOnlyTransaction()) {
+            withQueryRecorded(() ->
+                    jdbcSession.newQuery()
+                            .select(u.oid)
+                            .from(u)
+                            .where(Expressions.predicate(
+                                    Ops.LT,
+                                    Expressions.numberOperation(Integer.class, SqaleOps.LEVENSHTEIN2,
+                                            u.telephoneNumber, Expressions.constant("00000")),
+                                    Expressions.constant(5)))
+                            .fetch());
+        }
     }
 
     @Test
