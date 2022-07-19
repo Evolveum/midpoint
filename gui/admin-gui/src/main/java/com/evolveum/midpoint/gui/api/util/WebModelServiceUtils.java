@@ -219,7 +219,7 @@ public class WebModelServiceUtils {
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Referencable objectReference,
             PageAdminLTE page, Task task, OperationResult result) {
-        return loadObject(objectReference, false, page, task, result);
+        return loadObject(objectReference, true, page, task, result);
     }
 
     @Nullable
