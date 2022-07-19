@@ -13,17 +13,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,32 +25,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.CallableResult;
-import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.springframework.security.core.Authentication;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @PageDescriptor(
@@ -117,7 +106,7 @@ public class PageSelfDashboard extends PageSelf {
         }));
         add(linksPanel);
 
-        ListView<CompiledObjectCollectionView> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, () -> loadObjectCollectionViewList()) {
+        ListView<CompiledObjectCollectionView> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::loadObjectCollectionViewList) {
 
             private static final long serialVersionUID = 1L;
 
@@ -140,7 +129,7 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private List<CompiledObjectCollectionView> loadObjectCollectionViewList() {
-        return new ArrayList<>();
+        return getCompiledGuiProfile().getObjectCollectionViews(); //todo just for testing
     }
 
     private <C extends Containerable> AsyncDashboardPanel<Object, List<C>> initViewPanel(CompiledObjectCollectionView view) {
@@ -149,37 +138,22 @@ public class PageSelfDashboard extends PageSelf {
                 WebComponentUtil.getIconCssClass(view.getDisplay()), null) {
 
             private static final long serialVersionUID = 1L;
-            private ContainerListDataProvider<C> provider = null;
+            private SelectableBeanContainerDataProvider<C> provider = null;
 
             private void initProvider() {
-                provider = new ContainerListDataProvider<>(this, null) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected PageStorage getPageStorage() {
-                        return null;
-                    }
-
-                    @Override
-                    public ObjectQuery getQuery() {
-                        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
-                        ObjectFilter collectionFilter = WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(),
-                                result, PageSelfDashboard.this);    //todo only this filter? getDomainFilter? get filter from collection?
-                        return getPrismContext().queryFactory().createQuery(collectionFilter);
-                    }
-
-                };
+                provider = new SelectableBeanContainerDataProvider<C>(
+                        PageSelfDashboard.this, Model.of(), null, false);
             }
 
             @Override
-            protected SecurityContextAwareCallable<CallableResult<List<PrismContainerValueWrapper<C>>>> createCallable(
+            protected SecurityContextAwareCallable<CallableResult<List<SelectableBean<C>>>> createCallable(
                     Authentication auth, IModel callableParameterModel) {
 
                 return new SecurityContextAwareCallable<>(
                         getSecurityContextManager(), auth) {
 
                     @Override
-                    public CallableResult<List<PrismContainerValueWrapper<C>>> callWithContextPrepared() {
+                    public CallableResult<List<SelectableBean<C>>> callWithContextPrepared() {
                         if (provider == null) {
                             initProvider();
                         }
@@ -190,7 +164,7 @@ public class PageSelfDashboard extends PageSelf {
 
             @Override
             protected Component getMainComponent(String markupId) {
-                ContainerableListPanel<C, PrismContainerValueWrapper<C>> workItemsPanel =
+                ContainerableListPanel<C, SelectableBean<C>> listPanel =
                         new ContainerableListPanel<>(markupId, view.getTargetClass(PrismContext.get())) {
 
                             @Override
@@ -201,7 +175,7 @@ public class PageSelfDashboard extends PageSelf {
                             }
 
                             @Override
-                            protected List<IColumn<PrismContainerValueWrapper<C>, String>> createDefaultColumns() {
+                            protected List<IColumn<SelectableBean<C>, String>> createDefaultColumns() {
                                 if (CollectionUtils.isNotEmpty(view.getColumns())) {
                                     return getViewColumnsTransformed(view.getColumns());
                                 }
@@ -218,7 +192,7 @@ public class PageSelfDashboard extends PageSelf {
                             }
 
                             @Override
-                            protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
+                            protected ISelectableDataProvider<C, SelectableBean<C>> createProvider() {
                                 if (provider == null) {
                                     initProvider();
                                 }
@@ -227,7 +201,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public List<C> getSelectedRealObjects() {
-                                return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+                                return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
                             }
 
                             @Override
@@ -266,15 +240,15 @@ public class PageSelfDashboard extends PageSelf {
                             }
 
                             @Override
-                            protected C getRowRealValue(PrismContainerValueWrapper<C> rowModelObject) {
+                            protected C getRowRealValue(SelectableBean<C> rowModelObject) {
                                 if (rowModelObject == null) {
                                     return null;
                                 }
-                                return rowModelObject.getRealValue();
+                                return rowModelObject.getValue();
                             }
                         };
-                workItemsPanel.setOutputMarkupId(true);
-                return workItemsPanel;
+                listPanel.setOutputMarkupId(true);
+                return listPanel;
             }
         };
         viewPanel.add(new VisibleBehaviour(() -> {
@@ -283,9 +257,9 @@ public class PageSelfDashboard extends PageSelf {
         return viewPanel;
     }
 
-    private <C extends Containerable> CallableResult<List<PrismContainerValueWrapper<C>>> loadObjects(ContainerListDataProvider<C> provider) {
-        CallableResult<List<PrismContainerValueWrapper<C>>> callableResult = new CallableResult<>();
-        List<PrismContainerValueWrapper<C>> list = new ArrayList<>();
+    private <C extends Containerable> CallableResult<List<SelectableBean<C>>> loadObjects(SelectableBeanContainerDataProvider<C> provider) {
+        CallableResult<List<SelectableBean<C>>> callableResult = new CallableResult<>();
+        List<SelectableBean<C>> list = new ArrayList<>();
         callableResult.setValue(list);
 
         Task task = createSimpleTask(OPERATION_LOAD_OBJECTS);
