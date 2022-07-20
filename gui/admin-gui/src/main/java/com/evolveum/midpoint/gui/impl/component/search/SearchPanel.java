@@ -177,7 +177,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
         List<SearchBoxModeType> modesList = getSearchConfigurationWrapper().getAllowedModeList();
         SearchButtonWithDropdownMenu<SearchBoxModeType> searchButtonPanel = new SearchButtonWithDropdownMenu<SearchBoxModeType>(ID_SEARCH_BUTTON_PANEL,
-                Model.ofList(modesList), modesList.get(0)) {
+                Model.ofList(modesList), getSearchConfigurationWrapper().getDefaultSearchBoxMode()) {
             private static final long serialVersionUID = 1L;
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
