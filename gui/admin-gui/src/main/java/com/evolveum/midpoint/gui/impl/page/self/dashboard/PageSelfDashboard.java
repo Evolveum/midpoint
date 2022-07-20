@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -129,7 +131,7 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private List<CompiledObjectCollectionView> loadObjectCollectionViewList() {
-        return getCompiledGuiProfile().getObjectCollectionViews(); //todo just for testing
+        return getCompiledGuiProfile().findAllApplicableObjectCollectionViews(UserType.COMPLEX_TYPE); //todo just for testing
     }
 
     private <C extends Containerable> AsyncDashboardPanel<Object, List<C>> initViewPanel(CompiledObjectCollectionView view) {
@@ -138,11 +140,51 @@ public class PageSelfDashboard extends PageSelf {
                 WebComponentUtil.getIconCssClass(view.getDisplay()), null) {
 
             private static final long serialVersionUID = 1L;
-            private SelectableBeanContainerDataProvider<C> provider = null;
+            private SelectableBeanContainerDataProvider provider = null;
 
             private void initProvider() {
-                provider = new SelectableBeanContainerDataProvider<C>(
-                        PageSelfDashboard.this, Model.of(), null, false);
+                if (ObjectType.class.isAssignableFrom(view.getTargetClass(PrismContext.get()))) {
+                    provider = new SelectableBeanObjectDataProvider<>(PageSelfDashboard.this, null) {
+
+                        @Override
+                        public Class<ObjectType> getType() {
+                            return view.getTargetClass(PrismContext.get());
+                        }
+
+                        @Override
+                        public ObjectQuery getQuery() {
+//                        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+//                        ObjectFilter collectionFilter =
+//                                WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), //todo later evaluate expression
+//                                result, PageSelfDashboard.this);    //todo only this filter? getDomainFilter? get filter from collection?
+                            return PrismContext.get().queryFor(view.getTargetClass(PrismContext.get()))
+                                    .filter(view.getFilter())
+                                    .build();
+                        }
+
+                    };
+                } else {
+                    provider = new SelectableBeanContainerDataProvider<C>(
+                            PageSelfDashboard.this, Model.of(), null, false) {
+
+                        @Override
+                        public Class<C> getType() {
+                            return view.getTargetClass(PrismContext.get());
+                        }
+
+                        @Override
+                        public ObjectQuery getQuery() {
+//                        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+//                        ObjectFilter collectionFilter =
+//                                WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), //todo later evaluate expression
+//                                result, PageSelfDashboard.this);    //todo only this filter? getDomainFilter? get filter from collection?
+                            return PrismContext.get().queryFor(view.getTargetClass(PrismContext.get()))
+                                    .filter(view.getFilter())
+                                    .build();
+                        }
+
+                    };
+                }
             }
 
             @Override
