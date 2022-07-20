@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -169,13 +168,12 @@ public class QShadowMapping
         }
 
         if (loadIndexOnly(retrieveOptions)) {
-            addIndexOnlyAttributes(shadowType, row, entityPath, retrieveOptions);
+            addIndexOnlyAttributes(shadowType, row, entityPath);
         }
         return shadowType;
     }
 
-    private void addIndexOnlyAttributes(ShadowType shadowType, Tuple row,
-            QShadow entityPath, List<SelectorOptions<GetOperationOptions>> retrieveOptions) throws SchemaException {
+    private void addIndexOnlyAttributes(ShadowType shadowType, Tuple row, QShadow entityPath) throws SchemaException {
         Jsonb rowAttributes = row.get(entityPath.attributes);
         if (rowAttributes == null) {
             return;
@@ -187,19 +185,19 @@ public class QShadowMapping
 
         ShadowAttributesType attributeContainer = shadowType.getAttributes();
         if (attributeContainer == null) {
-            attributeContainer = new ShadowAttributesType(prismContext());
+            attributeContainer = new ShadowAttributesType();
             shadowType.attributes(attributeContainer);
         }
         //noinspection unchecked
         PrismContainerValue<ShadowAttributesType> container = attributeContainer.asPrismContainerValue();
         // Now we retrieve indexOnly options
         for (Entry<String, Object> attribute : attributes.entrySet()) {
-            @Nullable
-            MExtItem mapping = repositoryContext().getExtensionItem(Integer.valueOf(attribute.getKey()));
+            MExtItem mapping = Objects.requireNonNull(
+                    repositoryContext().getExtensionItem(Integer.valueOf(attribute.getKey())));
             QName itemName = QNameUtil.uriToQName(mapping.itemName);
             ItemDefinition<?> definition = definitionFrom(itemName, mapping, true);
             if (definition instanceof PrismPropertyDefinition) {
-                var item = container.findOrCreateProperty((PrismPropertyDefinition) definition);
+                var item = container.findOrCreateProperty((PrismPropertyDefinition<?>) definition);
                 switch (mapping.cardinality) {
                     case SCALAR:
                         item.setRealValue(attribute.getValue());
@@ -212,8 +210,9 @@ public class QShadowMapping
                         throw new IllegalStateException("");
                 }
                 if (item.isIncomplete() && (item.getDefinition() == null || !item.getDefinition().isIndexOnly())) {
-                    // Item was not fully serialized / probably indexOnly item
-                    item.applyDefinition((PrismPropertyDefinition) definition);
+                    // Item was not fully serialized / probably indexOnly item.
+                    //noinspection unchecked
+                    item.applyDefinition((PrismPropertyDefinition<Object>) definition);
                 }
                 item.setIncomplete(false);
             }

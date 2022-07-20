@@ -450,11 +450,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull ItemName itemName,
             @NotNull MExtItemHolderType holderType,
             @NotNull Function<Q, JsonbPath> rootToPath) {
-        ExtensionMapping<Q, R> mapping =
-                new ExtensionMapping<>(holderType, queryType(), rootToPath, repositoryContext());
-        addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
-        addItemMapping(itemName, new SqaleItemSqlMapper<>(
-                ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));
+        addExtensionMapping(itemName, holderType, rootToPath, repositoryContext());
     }
 
     /** Converts extension container to the JSONB value. */

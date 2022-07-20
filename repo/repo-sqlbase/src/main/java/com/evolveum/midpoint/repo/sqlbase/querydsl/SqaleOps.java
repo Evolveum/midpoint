@@ -15,6 +15,9 @@ import com.querydsl.core.types.Operator;
  * Operations and functions used here are documented on the following pages:
  *
  * * https://www.postgresql.org/docs/current/fuzzystrmatch.html
+ *
+ * TODO: If this is not used and string templates are generated in the filters directly, it can be removed
+ *  including the test using this.
  */
 public enum SqaleOps implements Operator {
 

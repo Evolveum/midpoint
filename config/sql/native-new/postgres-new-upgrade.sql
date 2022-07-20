@@ -127,6 +127,29 @@ ALTER TABLE m_resource
 ADD COLUMN administrativeOperationalStateAdministrativeAvailabilityStatus AdministrativeAvailabilityStatusType;
 $aa$);
 
+-- smart correlation
+call apply_change(8, $aa$
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch; -- fuzzy string match (levenshtein, etc.)
+
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'FOCUS_IDENTITY' AFTER 'CASE_WORK_ITEM';
+$aa$);
+
+call apply_change(9, $aa$
+CREATE TABLE m_focus_identity (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('FOCUS_IDENTITY') STORED
+        CHECK (containerType = 'FOCUS_IDENTITY'),
+    fullSource BYTEA,
+    sourceResourceRefTargetOid UUID,
+    itemsOriginal JSONB,
+    itemsNormalized JSONB,
+
+    PRIMARY KEY (ownerOid, cid)
+)
+    INHERITS(m_container);
+$aa$);
+-- TODO gin indexes on items*
+
 -- SCHEMA-COMMIT 4.6: commit TODO
 
 -- WRITE CHANGES ABOVE ^^

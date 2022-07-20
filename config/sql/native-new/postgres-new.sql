@@ -41,6 +41,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'ASSIGNMENT',
     'CASE_WORK_ITEM',
+    'FOCUS_IDENTITY',
     'INDUCEMENT',
     'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
@@ -487,6 +488,19 @@ CREATE TABLE m_ref_projection (
 
 CREATE INDEX m_ref_projection_targetOidRelationId_idx
     ON m_ref_projection (targetOid, relationId);
+
+CREATE TABLE m_focus_identity (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('FOCUS_IDENTITY') STORED
+        CHECK (containerType = 'FOCUS_IDENTITY'),
+    fullSource BYTEA,
+    sourceResourceRefTargetOid UUID,
+    itemsOriginal JSONB,
+    itemsNormalized JSONB,
+
+    PRIMARY KEY (ownerOid, cid)
+)
+    INHERITS(m_container);
 
 -- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
 CREATE TABLE m_generic_object (
@@ -1919,4 +1933,4 @@ END $$;
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_change(7, $$ SELECT 1 $$, true);
+call apply_change(9, $$ SELECT 1 $$, true);

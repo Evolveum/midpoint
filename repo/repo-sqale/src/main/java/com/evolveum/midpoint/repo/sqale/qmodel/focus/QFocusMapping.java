@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
@@ -134,7 +134,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return Collections.singletonList(F_JPEG_PHOTO);
+        return List.of(F_JPEG_PHOTO, F_IDENTITIES);
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
@@ -211,5 +211,16 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 QObjectReferenceMapping.getForProjection(), jdbcSession);
         storeRefs(row, schemaObject.getPersonaRef(),
                 QObjectReferenceMapping.getForPersona(), jdbcSession);
+
+        FocusIdentitiesType identitiesWrapper = schemaObject.getIdentities();
+        if (identitiesWrapper != null) {
+            List<FocusIdentityType> identities = identitiesWrapper.getIdentity();
+            if (!identities.isEmpty()) {
+                QFocusIdentityMapping<MFocus> focusIdentityMapping = QFocusIdentityMapping.get();
+                for (FocusIdentityType identity : identities) {
+                    focusIdentityMapping.insert(identity, row, jdbcSession);
+                }
+            }
+        }
     }
 }
