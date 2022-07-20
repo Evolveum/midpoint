@@ -255,6 +255,22 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return item;
     }
 
+    public boolean hasAllDefinitions(List<SearchItemDefinition> definitions) {
+        for (SearchItemDefinition def : definitions) {
+            boolean exists = false;
+            for (SearchItemDefinition existingDef : getAllDefinitions()) {
+                if (existingDef.getPath() != null && existingDef.getPath().equivalent(def.getPath())) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public SearchItem addItem(SearchItemType predefinedFilter) {
         SearchItemDefinition def = null;
         for (SearchItemDefinition searchItemDefinition : availableDefinitions) {
