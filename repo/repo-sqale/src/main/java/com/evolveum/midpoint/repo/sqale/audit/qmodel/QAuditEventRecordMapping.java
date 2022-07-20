@@ -119,7 +119,7 @@ public class QAuditEventRecordMapping
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        AuditEventRecordType record = new AuditEventRecordType(prismContext())
+        AuditEventRecordType record = new AuditEventRecordType()
                 .repoId(row.id)
                 .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 .eventIdentifier(row.eventIdentifier)

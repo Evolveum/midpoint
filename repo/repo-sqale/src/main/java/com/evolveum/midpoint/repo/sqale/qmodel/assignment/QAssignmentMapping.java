@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -211,12 +211,12 @@ public class QAssignmentMapping<OR extends MObject>
         }
 
         if (row.resourceRefTargetOid != null) {
-            assignment.construction(new ConstructionType(prismContext())
+            assignment.construction(new ConstructionType()
                     .resourceRef(objectReference(row.resourceRefTargetOid,
                             row.resourceRefTargetType, row.resourceRefRelationId)));
         }
 
-        ActivationType activation = new ActivationType(prismContext())
+        ActivationType activation = new ActivationType()
                 .administrativeStatus(row.administrativeStatus)
                 .effectiveStatus(row.effectiveStatus)
                 .enableTimestamp(asXMLGregorianCalendar(row.enableTimestamp))
@@ -231,7 +231,7 @@ public class QAssignmentMapping<OR extends MObject>
             assignment.activation(activation);
         }
 
-        MetadataType metadata = new MetadataType(prismContext())
+        MetadataType metadata = new MetadataType()
                 .creatorRef(objectReference(row.creatorRefTargetOid,
                         row.creatorRefTargetType, row.creatorRefRelationId))
                 .createChannel(resolveIdToUri(row.createChannelId))
