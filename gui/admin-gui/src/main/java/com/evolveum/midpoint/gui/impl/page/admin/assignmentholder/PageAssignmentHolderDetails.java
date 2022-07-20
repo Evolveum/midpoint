@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -129,6 +130,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 fragment.setOutputMarkupId(true);
                 PageAssignmentHolderDetails.this.replace(fragment);
                 target.add(fragment);
+                target.add(getTitleContainer());
             }
         };
     }
@@ -169,23 +171,28 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        String objectCollectionName = getObjectCollectionName();
-        if (objectCollectionName != null) {
-            return () -> {
-                if (getObjectDetailsModels() != null && getObjectDetailsModels().getObjectStatus() == ItemStatus.ADDED) {
-                    return createStringResource("PageAdminObjectDetails.title.new", objectCollectionName).getString();
+        final IModel<String> defaultTitleModel = super.createPageTitleModel();
+        return new LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+                String objectCollectionName = getObjectCollectionName();
+                if (objectCollectionName != null) {
+                    if (getObjectDetailsModels() != null && getObjectDetailsModels().getObjectStatus() == ItemStatus.ADDED) {
+                        return createStringResource("PageAdminObjectDetails.title.new", objectCollectionName).getString();
+                    }
+
+                    String name = null;
+                    if (getModelWrapperObject() != null && getModelWrapperObject().getObject() != null) {
+                        name = WebComponentUtil.getName(getModelWrapperObject().getObject());
+                    }
+
+                    return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getModel(), objectCollectionName, name).getString();
                 }
 
-                String name = null;
-                if (getModelWrapperObject() != null && getModelWrapperObject().getObject() != null) {
-                    name = WebComponentUtil.getName(getModelWrapperObject().getObject());
-                }
+                return defaultTitleModel.getObject();
 
-                return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getModel(), objectCollectionName, name).getString();
-            };
-        }
-
-        return super.createPageTitleModel();
+            }
+        };
     }
 
     private String getObjectCollectionName() {
