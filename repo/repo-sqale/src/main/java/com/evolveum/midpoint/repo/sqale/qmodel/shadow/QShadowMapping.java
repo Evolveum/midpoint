@@ -225,14 +225,7 @@ public class QShadowMapping
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
         List<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
 
-        boolean attributes = false;
-        for (ItemDelta<?, ?> modification : modifications) {
-            if (F_ATTRIBUTES.isSubPath(modification.getPath())) {
-                attributes = true;
-                break;
-            }
-        }
-        if (attributes) {
+        if (modifications.stream().anyMatch(m -> F_ATTRIBUTES.isSubPath(m.getPath()))) {
             ret.addAll(SchemaService.get().getOperationOptionsBuilder().item(F_ATTRIBUTES).retrieve().build());
         }
         return ret;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -291,10 +291,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return schemaObject;
     }
 
-    // TODO reconsider, if not necessary in 2023 DELETE (originally meant for ext item per column,
-    //  but can this be used for adding index-only exts to schema object even from JSON?)
-
-    @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
     }
@@ -511,15 +507,35 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return Collections.emptyList();
     }
 
+    // TODO: this resolves the names after toSchemaObject(3 params), but...
+    //  called version of toSchemaObject() doesn't have forceFull flag, so sometimes we need to override this version.
+    //  But calling this via super...() means it can't resolve the names in refs from additional parts
+    //  that are not loaded yet (which is done after super call).
+    //  What is the recommended template for override? Wouldn't using this method with additional stuff in the middle be better?
+    //  1. call toSchemaObject(rowTuple, entityPath, options) - just like here, don't call this 5 param method via super!
+    //  2. do additional stuff, utilizing forceFull flag (and even jdbcSession if necessary)
+    //  3. call resolveReferenceNames just like in this method - at the end
+    //  Alternative:
+    //  - make this method final
+    //  - override only toSchemaObject - but add forceFull flag (do we need jdbcSession as well? so far not)
     public S toSchemaObject(
             Tuple rowTuple,
             Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        S ret = toSchemaObject(rowTuple, entityPath, options);
-        ret = resolveNames(ret, jdbcSession, options);
-        return ret;
+        return toSchemaObject(rowTuple, entityPath, options);
+    }
+
+    public S toSchemaObjectWithResolvedNames(
+            Tuple rowTuple,
+            Q entityPath,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull JdbcSession jdbcSession,
+            boolean forceFull) throws SchemaException {
+        S schemaObject = toSchemaObject(rowTuple, entityPath, options, jdbcSession, forceFull);
+        schemaObject = resolveReferenceNames(schemaObject, jdbcSession, options);
+        return schemaObject;
     }
 
     public S toSchemaObjectSafe(
@@ -529,13 +545,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) {
         try {
-            return toSchemaObject(tuple, entityPath, options, jdbcSession, forceFull);
+            return toSchemaObjectWithResolvedNames(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
             throw new RepositoryMappingException(e);
         }
     }
 
-    protected <O> O resolveNames(O object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
+    protected <O> O resolveReferenceNames(O object, JdbcSession session, Collection<SelectorOptions<GetOperationOptions>> options) {
         // TODO: Performance: This could be transaction shared object
         return ReferenceNameResolver.from(options).resolve(object, session);
     }

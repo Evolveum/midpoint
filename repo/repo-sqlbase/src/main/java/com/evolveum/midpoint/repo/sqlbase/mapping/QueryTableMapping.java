@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and tables.
  * See {@link #addItemMapping(QName, ItemSqlMapper)} for details about mapping mechanism.
- * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
+ * See {@link #createRowTransformer(SqlQueryContext, JdbcSession)} for more about mapping
  * related to-many detail tables.
  *
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
@@ -174,10 +174,14 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * this mapped entity (master).
      * One fetcher per detail type/table is registered under the related item name.
      *
+     * Used only in old-repo audit, we will let it die with that - but don't use in new stuff.
+     * Use {@link #createRowTransformer(SqlQueryContext, JdbcSession)} mechanism instead.
+     *
      * @param itemName item name from schema type that is mapped to detail table in the repository
      * @param detailFetchMapper fetcher-mapper that handles loading of details
      * @see SqlDetailFetchMapper
      */
+    @Deprecated
     public final void addDetailFetchMapper(
             ItemName itemName,
             SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper) {
@@ -248,6 +252,9 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
+     *
+     * Used only in old-repo audit, we will let it die with that - but don't use in new stuff.
+     * Use {@link #createRowTransformer(SqlQueryContext, JdbcSession)} mechanism instead.
      */
     @Deprecated
     public final Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers() {
@@ -298,8 +305,8 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * which is OK if extension columns are used only for query and their information
      * is still contained in the object somehow else (e.g. full object LOB).
      *
-     * Alternative would be dynamically generated list of select expressions and transforming
-     * row to M object directly from {@link com.querydsl.core.Tuple}.
+     * Alternative is to dynamically generate the list of select expressions reading directly from
+     * the {@link com.querydsl.core.Tuple} - see {@link #toSchemaObject(Tuple, FlexibleRelationalPathBase, Collection)}.
      */
     public abstract S toSchemaObject(R row) throws SchemaException;
 
@@ -316,10 +323,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Similarly, transformation to midPoint objects allows for state using {@link ResultListRowTransformer}
-     * instead of is done in one-by-one manner, it is not done by
-     * the mapping (which is otherwise stateless), but the mapping creates transformer , there is also room
-     * for a stateful object
+     * Returns result transformer that by default calls
+     * {@link #toSchemaObject(Tuple, FlexibleRelationalPathBase, Collection)} for each result row.
+     * This can be overridden, see {@link ResultListRowTransformer} javadoc for details.
+     * This is useful for stateful transformers where the whole result can be pre-/post-processed as well.
      */
     public ResultListRowTransformer<S, Q, R> createRowTransformer(
             SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
@@ -332,6 +339,11 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
         };
     }
 
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return options;
+    }
+
     @Override
     public String toString() {
         return "QueryTableMapping{" +
@@ -340,10 +352,5 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
                 ", schemaType=" + schemaType() +
                 ", queryType=" + queryType() +
                 '}';
-    }
-
-    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
-        return options;
     }
 }

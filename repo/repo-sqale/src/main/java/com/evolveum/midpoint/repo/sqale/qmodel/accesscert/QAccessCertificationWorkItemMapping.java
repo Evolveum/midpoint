@@ -193,7 +193,7 @@ public class QAccessCertificationWorkItemMapping
                     throw new SystemException(e);
                 }
             }
-            resolveNames(aCase.asContainerable(), jdbcSession, options);
+            resolveReferenceNames(aCase.asContainerable(), jdbcSession, options);
 
             PrismContainer<AccessCertificationWorkItemType> container =
                     aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
@@ -205,7 +205,7 @@ public class QAccessCertificationWorkItemMapping
                 throw new SystemException("Campaign " + owner + "has no work item with ID " + row.cid);
             }
             @NotNull AccessCertificationWorkItemType ret = value.asContainerable();
-            resolveNames(ret, jdbcSession, options);
+            resolveReferenceNames(ret, jdbcSession, options);
             return ret;
         };
     }

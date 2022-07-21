@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -19,12 +20,14 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -222,5 +225,17 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 }
             }
         }
+    }
+
+    @Override
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        List<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+
+        if (modifications.stream().anyMatch(m -> F_IDENTITIES.isSubPath(m.getPath()))) {
+            ret.addAll(SchemaService.get().getOperationOptionsBuilder().item(F_IDENTITIES).retrieve().build());
+        }
+        return ret;
     }
 }
