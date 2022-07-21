@@ -98,11 +98,12 @@ public class QLookupTableMapping
         return Collections.singleton(F_ROW);
     }
 
+    // TODO rework to toSchemaObject
     @Override
-    public LookupTableType toSchemaObject(
+    public LookupTableType toSchemaObjectWithResolvedNames(
             Tuple rowTuple, QLookupTable entityPath, Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession session, boolean forceFull) throws SchemaException {
-        LookupTableType base = super.toSchemaObject(rowTuple, entityPath, options, session, forceFull);
+        LookupTableType base = super.toSchemaObjectWithResolvedNames(rowTuple, entityPath, options, session, forceFull);
 
         if (forceFull || SelectorOptions.hasToLoadPath(F_ROW, options)) {
             @Nullable GetOperationOptions rowOptions = findLookupTableGetOption(options);

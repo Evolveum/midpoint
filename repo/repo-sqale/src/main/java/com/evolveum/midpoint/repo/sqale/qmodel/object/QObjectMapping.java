@@ -177,7 +177,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) {
         try {
-            return toSchemaObject(tuple, entityPath, options, jdbcSession, forceFull);
+            return toSchemaObjectWithResolvedNames(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
             try {
                 PrismObject<S> errorObject = prismContext().createObject(schemaType());
