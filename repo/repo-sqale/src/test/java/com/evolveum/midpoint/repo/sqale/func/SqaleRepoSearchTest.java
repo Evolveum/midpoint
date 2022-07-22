@@ -30,8 +30,10 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -72,7 +75,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private String user2Oid; // different user, this one is in org
     private String user3Oid; // another user in org
     private String user4Oid; // another user in org
-    private String task1Oid; // task has more attribute type variability
+    private String task1Oid; // task has more item type variability
     private String task2Oid;
     private String shadow1Oid; // shadow with owner
     private String case1Oid; // Closed case, two work items
@@ -377,9 +380,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .id(2L)
                                 .stageNumber(2)
                                 .iteration(2)
+                                .targetRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .workItem(new AccessCertificationWorkItemType(prismContext)
                                         .stageNumber(21)
-                                        .iteration(1))
+                                        .iteration(1)
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE)
+                                        .candidateRef(user1Oid, UserType.COMPLEX_TYPE)
+                                        .performerRef(user1Oid, UserType.COMPLEX_TYPE))
                                 .workItem(new AccessCertificationWorkItemType(prismContext)
                                         .stageNumber(22)
                                         .iteration(1)))
@@ -2319,21 +2326,42 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test960SearchGetNames() throws SchemaException {
+    public void test961SearchGetNames() throws SchemaException {
         var options = SchemaService.get().getOperationOptionsBuilder().resolveNames().build();
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
-        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
+        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options);
         assertNotNull(result);
-        //noinspection rawtypes
-        Visitor check = visitable -> {
-            if (visitable instanceof PrismReferenceValue) {
-                assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set.");
-            }
-        };
-        for (FocusType obj : result) {
-            //noinspection unchecked
-            obj.asPrismObject().accept(check);
-        }
+
+        assertReferenceNamesSet(result);
+    }
+
+    @Test
+    public void test962SearchGetNamesAccessCertificationCampaignsWithCases() throws SchemaException {
+        var options = SchemaService.get().getOperationOptionsBuilder().resolveNames()
+                .item(AccessCertificationCampaignType.F_CASE).retrieve()
+                .build();
+        ObjectQuery query = PrismContext.get().queryFor(AccessCertificationCampaignType.class).all().build();
+        OperationResult opResult = createOperationResult();
+        SearchResultList<AccessCertificationCampaignType> result =
+                searchObjects(AccessCertificationCampaignType.class, query, opResult, options);
+        assertThatOperationResult(opResult).isSuccess();
+        assertNotNull(result);
+
+        assertReferenceNamesSet(result);
+    }
+
+    @Test
+    public void test963SearchGetNamesAccessCertificationCases() throws SchemaException {
+        var options = SchemaService.get().getOperationOptionsBuilder().resolveNames()
+                .build();
+        ObjectQuery query = PrismContext.get().queryFor(AccessCertificationCaseType.class).all().build();
+        OperationResult opResult = createOperationResult();
+        SearchResultList<AccessCertificationCaseType> result =
+                searchContainers(AccessCertificationCaseType.class, query, opResult, options.iterator().next());
+        assertThatOperationResult(opResult).isSuccess();
+        assertNotNull(result);
+
+        assertReferenceNamesSet(result);
     }
 
     @Test

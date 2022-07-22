@@ -535,7 +535,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     /** Search containers using {@link ObjectQuery}. */
     @SafeVarargs
     @NotNull
-    private <T extends Containerable> SearchResultList<T> searchContainers(
+    protected final <T extends Containerable> SearchResultList<T> searchContainers(
             @NotNull Class<T> type,
             ObjectQuery query,
             OperationResult operationResult,
