@@ -425,7 +425,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-
+            <xsd:element name="identifier" type="xsd:string"/>
+            <!-- todo mark deprecated or remove entirely -->
+            <!--<xsd:element name="collectionViewIdentifier" type="xsd:string" minOccurs="0"/>-->
+            <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

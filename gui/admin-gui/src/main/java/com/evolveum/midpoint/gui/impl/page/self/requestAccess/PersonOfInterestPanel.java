@@ -158,6 +158,8 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                         list.add(tile);
                     }
 
+                    selectTileIfOnlyOne(list);
+
                     return list;
                 }
 
@@ -166,12 +168,15 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                 }
 
                 if (selection.isAllowRequestForOthers() != null && !selection.isAllowRequestForOthers()) {
+                    selectTileIfOnlyOne(list);
+
                     return list;
                 }
 
                 List<GroupSelectionType> selections = selection.getGroup();
                 if (selections.isEmpty()) {
                     list.add(createDefaultTile(TileType.GROUP_OTHERS));
+                    selectTileIfOnlyOne(list);
                     return list;
                 }
 
@@ -179,9 +184,17 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                     list.add(createTile(gs));
                 }
 
+                selectTileIfOnlyOne(list);
+
                 return list;
             }
         };
+    }
+
+    private void selectTileIfOnlyOne(List<Tile<PersonOfInterest>> list) {
+        if (list != null && list.size() == 1) {
+            list.get(0).setSelected(true);
+        }
     }
 
     private Tile<PersonOfInterest> createTile(GroupSelectionType selection) {
@@ -321,9 +334,28 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
         return fragment;
     }
 
+    private boolean canSkipStep() {
+        List<Tile<PersonOfInterest>> list = tiles.getObject();
+        if (list.size() != 1) {
+            return false;
+        }
+
+        Tile<PersonOfInterest> tile = list.get(0);
+        return tile.isSelected() && tile.getValue().type == TileType.MYSELF;
+    }
+
     @Override
     protected void onBeforeRender() {
-        super.onBeforeRender();
+        // todo doesn't work properly, header stays hidden on next step
+//        if (canSkipStep()) {
+//            // there's only one option, we don't have to make user choose it, we'll take it and skip this step
+//            if (submitData()) {
+//                getWizard().next();
+//                throw new RestartResponseException(getPage());
+//            }
+//
+//            return;
+//        }
 
         Fragment fragment;
         switch (selectionState.getObject()) {
@@ -335,6 +367,8 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
                 fragment = initTileFragment();
         }
         addOrReplace(fragment);
+
+        super.onBeforeRender();
     }
 
     private void myselfPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> myself) {
@@ -468,6 +502,18 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        boolean submited = submitData();
+        if (!submited) {
+            return false;
+        }
+
+        getWizard().next();
+        target.add(getWizard().getPanel());
+
+        return false;
+    }
+
+    private boolean submitData() {
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected == null) {
             return false;
@@ -490,10 +536,7 @@ public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
             getModelObject().addPersonOfInterest(selectedGroupOfUsers.getObject());
         }
 
-        getWizard().next();
-        target.add(getWizard().getPanel());
-
-        return false;
+        return true;
     }
 
     private TargetSelectionType getTargetSelectionConfiguration() {

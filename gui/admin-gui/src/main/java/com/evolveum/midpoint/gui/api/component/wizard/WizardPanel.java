@@ -17,12 +17,11 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,6 +38,8 @@ public class WizardPanel extends BasePanel {
     public static final String ID_CONTENT_BODY = "contentBody";
 
     private WizardModel wizardModel;
+
+    private int activeStepIndex = -1;
 
     public WizardPanel(String id, WizardModel wizardModel) {
         super(id);
@@ -63,10 +64,14 @@ public class WizardPanel extends BasePanel {
     }
 
     @Override
-    protected void onConfigure() {
-        super.onConfigure();
+    protected void onBeforeRender() {
+        if (activeStepIndex != wizardModel.getActiveStepIndex()) {
+            activeStepIndex = wizardModel.getActiveStepIndex();
 
-        addOrReplace((Component) getCurrentPanel());
+            addOrReplace((Component) getCurrentPanel());
+        }
+
+        super.onBeforeRender();
     }
 
     private void initLayout() {
@@ -94,12 +99,7 @@ public class WizardPanel extends BasePanel {
         };
         header.add(steps);
 
-        IModel<String> currentPanelTitle = () -> getCurrentPanel().getTitle().getObject();
-        IModel<String> nextPanelTitle = () -> {
-            WizardStep next = wizardModel.getNextPanel();
-            return next != null ? next.getTitle().getObject() : null;
-        };
-        WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, currentPanelTitle, nextPanelTitle) {
+        WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, wizardModel) {
 
             @Override
             protected Component createHeaderContent(String id) {
@@ -143,7 +143,7 @@ public class WizardPanel extends BasePanel {
         contentHeader.setOutputMarkupId(true);
         add(contentHeader);
 
-        addOrReplace(new WebMarkupContainer(ID_CONTENT_BODY));
+        add(new WebMarkupContainer(ID_CONTENT_BODY));
     }
 
     public WizardStep getCurrentPanel() {

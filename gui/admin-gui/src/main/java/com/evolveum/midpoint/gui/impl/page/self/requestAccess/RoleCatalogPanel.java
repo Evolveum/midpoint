@@ -14,8 +14,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -59,6 +57,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -170,7 +169,21 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                 }
 
                 if (item.collectionRef() != null) {
-                    // todo handle collectionRef
+                    PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(item.collectionRef(), getPageBase());
+                    ObjectCollectionType objectCollection = collection.asObjectable();
+
+                    try {
+                        QName type = objectCollection.getType();
+                        if (type == null) {
+                            type = RoleType.COMPLEX_TYPE;
+                        }
+                        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
+
+                        return getPageBase().getQueryConverter().createObjectQuery(ot.getClassDefinition(), objectCollection.getFilter());
+                    } catch (Exception ex) {
+                        LOGGER.debug("Couldn't create search filter", ex);
+                        getPageBase().error("Couldn't create search filter, reason: " + ex.getMessage());
+                    }
                 }
 
                 return null;
@@ -366,21 +379,48 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             return new ListGroupMenu<>();
         }
 
+        ListGroupMenu<RoleCatalogQueryItem> menu = new ListGroupMenu<>();
+
         ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
         if (ref != null) {
-            return loadMenuFromOrgTree(ref);
+            List<ListGroupMenuItem<RoleCatalogQueryItem>> items = loadMenuFromOrgTree(ref);
+            if (items != null) {
+                menu.getItems().addAll(items);
+            }
         }
 
-        // todo custom menu tree definition, not via org. tree hierarchy
-        return new ListGroupMenu<>();
-    }
-
-    private ListGroupMenu<RoleCatalogQueryItem> loadMenuFromOrgTree(ObjectReferenceType ref) {
-        ListGroupMenu<RoleCatalogQueryItem> menu = new ListGroupMenu<>();
-        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = loadMenuFromOrgTree(ref, 1, 3);
-        menu.setItems(items);
+        List<RoleCollectionViewType> collections = roleCatalog.getCollection();
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = createMenuFromRoleCollections(collections);
+        if (items != null) {
+            menu.getItems().addAll(items);
+        }
 
         return menu;
+    }
+
+    private List<ListGroupMenuItem<RoleCatalogQueryItem>> createMenuFromRoleCollections(List<RoleCollectionViewType> collections) {
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = new ArrayList<>();
+        for (RoleCollectionViewType collection : collections) {
+            try {
+                ObjectReferenceType collectionRef = collection.getCollectionRef();
+                PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+
+                String name = WebComponentUtil.getDisplayNameOrName(objectCollection, true);
+                ListGroupMenuItem<RoleCatalogQueryItem> item = new ListGroupMenuItem<>(name);
+                item.setValue(new RoleCatalogQueryItem()
+                        .collectionRef(collectionRef));
+
+                items.add(item);
+            } catch (Exception ex) {
+                LOGGER.debug("Couldn't load object collection as role catalog menu item", ex);
+            }
+        }
+
+        return items;
+    }
+
+    private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref) {
+        return loadMenuFromOrgTree(ref, 1, 3);
     }
 
     private void selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu) {
