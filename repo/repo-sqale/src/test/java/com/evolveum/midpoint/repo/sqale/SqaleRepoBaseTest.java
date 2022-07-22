@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertNotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -403,7 +404,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks, vararg options. */
     @SafeVarargs
     @NotNull
     protected final <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
@@ -412,24 +413,25 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        boolean record = !queryRecorder.isRecording();
-        if (record) {
-            queryRecorder.clearBufferAndStartRecording();
-        }
-        try {
-            return repositoryService.searchObjects(
-                            type,
-                            query,
-                            selectorOptions != null && selectorOptions.length != 0
-                                    ? List.of(selectorOptions) : null,
-                            operationResult)
-                    .map(p -> p.asObjectable());
-        } finally {
-            if (record) {
-                queryRecorder.stopRecording();
-                display(queryRecorder.dumpQueryBuffer());
-            }
-        }
+        return repositorySearchObjects(type, query, operationResult,
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null);
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            Collection<SelectorOptions<GetOperationOptions>> selectorOptions)
+            throws SchemaException {
+        return repositoryService.searchObjects(
+                        type,
+                        query,
+                        selectorOptions,
+                        operationResult)
+                .map(p -> p.asObjectable());
     }
 
     /** Search objects using Axiom query language. */
@@ -452,6 +454,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return searchObjectTest(description, UserType.class, filter, expectedOids);
     }
 
+    /**
+     * Like {@link #searchObjects} but checks successful result and that result list contains the expected OIDs.
+     * This version does not allow query options, use {@link #searchObjects} for that and assert result manually.
+     */
     protected <T extends ObjectType> SearchResultList<T> searchObjectTest(
             String description, Class<T> type,
             Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
@@ -471,7 +477,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return result;
     }
 
-    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks, vararg options. */
     @SafeVarargs
     @NotNull
     protected final <T extends ObjectType> SearchResultList<T> searchObjects(
@@ -480,8 +486,32 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
+        return searchObjects(type, query, operationResult,
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null);
+    }
+
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> searchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            Collection<SelectorOptions<GetOperationOptions>> selectorOptions)
+            throws SchemaException {
         displayQuery(query);
-        return repositorySearchObjects(type, query, operationResult, selectorOptions);
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositorySearchObjects(type, query, operationResult, selectorOptions);
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.dumpQueryBuffer());
+            }
+        }
     }
 
     protected <T extends Containerable> SearchResultList<T> searchContainerTest(
@@ -591,6 +621,18 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         operationResult.cleanupResultDeeply();
         operationResult.setSummarizeSuccesses(true);
         operationResult.summarize();
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected <T extends Containerable> void assertReferenceNamesSet(SearchResultList<T> result) {
+        Visitor check = visitable -> {
+            if (visitable instanceof PrismReferenceValue) {
+                assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set for " + visitable);
+            }
+        };
+        for (T obj : result) {
+            obj.asPrismContainerValue().accept(check);
+        }
     }
 
     /**
