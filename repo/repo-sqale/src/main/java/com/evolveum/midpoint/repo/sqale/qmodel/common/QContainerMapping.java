@@ -54,7 +54,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
      * Implemented for searchable containers that do not use fullObject for their recreation.
      */
     @Override
-    public S toSchemaObject(R row) {
+    public S toSchemaObject(R row) throws SchemaException {
         throw new UnsupportedOperationException(
                 "Container search not supported for schema type " + schemaType());
     }

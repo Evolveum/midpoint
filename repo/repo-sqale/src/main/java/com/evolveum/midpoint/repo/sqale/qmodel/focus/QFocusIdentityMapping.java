@@ -9,13 +9,16 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType.F_ITEMS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType.F_SOURCE;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -121,8 +124,26 @@ public class QFocusIdentityMapping<OR extends MFocus>
     }
 
     @Override
-    public FocusIdentityType toSchemaObject(MFocusIdentity row) {
-        // TODO fill in source full object and both items containers from ext columns
-        return new FocusIdentityType();
+    public FocusIdentityType toSchemaObject(MFocusIdentity row) throws SchemaException {
+        FocusIdentityType identity = new FocusIdentityType();
+        identity.setId(row.cid);
+        byte[] fullSource = row.fullSource;
+        if (fullSource != null) {
+            identity.setSource(parseSchemaObject(
+                    Objects.requireNonNull(fullSource),
+                    "identity.source for " + row.ownerOid + "," + row.cid,
+                    AbstractFocusIdentitySourceType.class));
+        }
+
+        FocusIdentityItemsType focusIdentityItems = identity.beginItems();
+        if (row.itemsOriginal != null) {
+            Map<String, Object> itemMap = Jsonb.toMap(row.itemsOriginal);
+            new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginOriginal());
+        }
+        if (row.itemsNormalized != null) {
+            Map<String, Object> itemMap = Jsonb.toMap(row.itemsNormalized);
+            new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginNormalized());
+        }
+        return identity;
     }
 }

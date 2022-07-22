@@ -11,10 +11,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -23,8 +25,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 // TEMPORARY CODE
 public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
@@ -32,6 +33,8 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
     public static final File TEST_DIR = new File("src/test/resources/identity");
 
     private static final File FILE_USER_WITH_IDENTITY_DATA = new File(TEST_DIR, "user-with-identity-data.xml");
+
+    private String userOid;
 
     @BeforeClass
     public void initObjects() {
@@ -43,8 +46,7 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test100AddUserWithIdentityData()
-            throws CommonException, IOException {
+    public void test100AddUserWithIdentityData() throws CommonException, IOException {
         OperationResult result = createOperationResult();
 
         given("user with identity data");
@@ -53,28 +55,55 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         displayValue("user to add (XML)", prismContext.xmlSerializer().serialize(userToAdd));
 
         when("addObject is called");
-        String oid = repositoryService.addObject(userToAdd, null, result);
+        userOid = repositoryService.addObject(userToAdd, null, result);
 
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
+    }
 
-        and("user can be obtained from repo, by default without identities");
+    @Test
+    public void test110GetUserByDefaultDoesNotLoadIdentityData() throws CommonException {
+        when("user is obtained from repo without retrieve options");
         OperationResult getResult = createOperationResult();
-        UserType user = repositoryService.getObject(UserType.class, oid, null, getResult).asObjectable();
+        UserType user = repositoryService.getObject(UserType.class, userOid, null, getResult).asObjectable();
         assertThatOperationResult(getResult).isSuccess();
-        // container is marked incomplete and its value is empty
-        assertThat(user.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isTrue();
-        assertThat(((PrismContainerValue<?>) user.getIdentities().asPrismContainerValue()).isEmpty()).isTrue();
 
-        and("user can be obtained with identities using options");
+        then("user's identity container is empty and incomplete");
+        assertThat(((PrismContainerValue<?>) user.getIdentities().asPrismContainerValue()).isEmpty()).isTrue();
+        assertThat(user.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isTrue();
+    }
+
+    @Test
+    public void test115GetUserWithRetrieveOptions() throws CommonException {
+        when("user is obtained with retrieve options for identities");
         Collection<SelectorOptions<GetOperationOptions>> getOptions = SchemaService.get()
                 .getOperationOptionsBuilder().item(FocusType.F_IDENTITIES).retrieve().build();
         OperationResult getWithIdentitiesResult = createOperationResult();
-        UserType user2 = repositoryService.getObject(UserType.class, oid, getOptions, getWithIdentitiesResult).asObjectable();
+        UserType user2 = repositoryService.getObject(UserType.class, userOid, getOptions, getWithIdentitiesResult).asObjectable();
         assertThatOperationResult(getWithIdentitiesResult).isSuccess();
-        // TODO fix
-//        assertThat(user2.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isFalse();
 
-        // TODO more in-depth check of identity
+        then("identities are complete and contain all the details");
+        assertThat(user2.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isFalse();
+
+        List<FocusIdentityType> identities = user2.getIdentities().getIdentity();
+        assertThat(identities).hasSize(2);
+
+        // one of the identities will be checked thoroughly
+        FocusIdentityType identity = identities.stream().filter(i -> i.getId().equals(1L)).findFirst().orElseThrow();
+        AbstractFocusIdentitySourceType source = identity.getSource();
+        assertThat(source).isInstanceOf(ProjectionFocusIdentitySourceType.class);
+        ObjectReferenceType resourceRef = ((ProjectionFocusIdentitySourceType) source).getResourceRef();
+        assertThat(resourceRef).isNotNull()
+                .extracting(r -> r.getOid())
+                .isEqualTo("9dff5686-e695-4ad9-8098-5907758668c7");
+
+        assertThat(Containerable.asPrismContainerValue(identity.getItems().getOriginal()).getItems())
+                .extracting(i -> i.getElementName().toString())
+                .containsExactlyInAnyOrder("givenName", "familyName", "dateOfBirth", "nationalId");
+        assertThat(Containerable.asPrismContainerValue(identity.getItems().getNormalized()).getItems())
+                .extracting(i -> i.getElementName().toString())
+                .containsExactlyInAnyOrder("givenName", "familyName", "familyName.3", "dateOfBirth", "nationalId");
     }
+
+    // TODO modification test + hopefully updateGetOptions in QFocusMapping does the trick
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,6 +22,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem.Key;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 public class ExtensionProcessor {
@@ -91,7 +93,7 @@ public class ExtensionProcessor {
                 && item.getDefinition().isDynamic();
     }
 
-    private void addSingleValueIndex(Map<String, Object> extMap, Item<?,?> item, MExtItemHolderType holderType) {
+    private void addSingleValueIndex(Map<String, Object> extMap, Item<?, ?> item, MExtItemHolderType holderType) {
         ItemDefinition<?> extDef = item.getDefinition();
         Key singleValueKey = MExtItem.keyFrom(extDef, holderType, MExtItemCardinality.SCALAR);
         MExtItem singleValueExt = repositoryContext.resolveExtensionItem(singleValueKey);
@@ -215,6 +217,37 @@ public class ExtensionProcessor {
         } // else it's reference which is indexed implicitly
 
         return repositoryContext.resolveExtensionItem(MExtItem.keyFrom(definition, holderType));
+    }
+
+    public void extensionsToContainer(Map<String, Object> attributes, Containerable container) throws SchemaException {
+        PrismContainerValue<?> pcv = container.asPrismContainerValue();
+        for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+            MExtItem mapping = Objects.requireNonNull(
+                    repositoryContext.getExtensionItem(Integer.valueOf(attribute.getKey())));
+            QName itemName = QNameUtil.uriToQName(mapping.itemName);
+            ItemDefinition<?> definition = ExtUtils.createDefinition(itemName, mapping, true);
+            if (definition instanceof PrismPropertyDefinition) {
+                var item = pcv.findOrCreateProperty((PrismPropertyDefinition<?>) definition);
+                // TODO: this can first set multi-value and then override it with single value if both variants are written in JSONB (because of unknown schema).
+                switch (mapping.cardinality) {
+                    case SCALAR:
+                        item.setRealValue(attribute.getValue());
+                        break;
+                    case ARRAY:
+                        List<?> value = (List<?>) attribute.getValue();
+                        item.setRealValues(value.toArray());
+                        break;
+                    default:
+                        throw new IllegalStateException("");
+                }
+                if (item.isIncomplete() && (item.getDefinition() == null || !item.getDefinition().isIndexOnly())) {
+                    // Item was not fully serialized / probably indexOnly item.
+                    //noinspection unchecked
+                    item.applyDefinition((PrismPropertyDefinition<Object>) definition);
+                }
+                item.setIncomplete(false);
+            }
+        }
     }
 
     /** Contains ext item from catalog and additional info needed for processing. */

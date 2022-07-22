@@ -9,18 +9,18 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
 import java.util.*;
-import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.item.CountItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
@@ -32,13 +32,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -167,7 +165,7 @@ public class QShadowMapping
             return shadowType;
         }
 
-        if (loadIndexOnly(retrieveOptions)) {
+        if (SelectorOptions.hasToLoadPath(F_ATTRIBUTES, retrieveOptions)) {
             addIndexOnlyAttributes(shadowType, row, entityPath);
         }
         return shadowType;
@@ -188,35 +186,8 @@ public class QShadowMapping
             attributeContainer = new ShadowAttributesType();
             shadowType.attributes(attributeContainer);
         }
-        //noinspection unchecked
-        PrismContainerValue<ShadowAttributesType> container = attributeContainer.asPrismContainerValue();
-        // Now we retrieve indexOnly options
-        for (Entry<String, Object> attribute : attributes.entrySet()) {
-            MExtItem mapping = Objects.requireNonNull(
-                    repositoryContext().getExtensionItem(Integer.valueOf(attribute.getKey())));
-            QName itemName = QNameUtil.uriToQName(mapping.itemName);
-            ItemDefinition<?> definition = definitionFrom(itemName, mapping, true);
-            if (definition instanceof PrismPropertyDefinition) {
-                var item = container.findOrCreateProperty((PrismPropertyDefinition<?>) definition);
-                switch (mapping.cardinality) {
-                    case SCALAR:
-                        item.setRealValue(attribute.getValue());
-                        break;
-                    case ARRAY:
-                        List<?> value = (List<?>) attribute.getValue();
-                        item.setRealValues(value.toArray());
-                        break;
-                    default:
-                        throw new IllegalStateException("");
-                }
-                if (item.isIncomplete() && (item.getDefinition() == null || !item.getDefinition().isIndexOnly())) {
-                    // Item was not fully serialized / probably indexOnly item.
-                    //noinspection unchecked
-                    item.applyDefinition((PrismPropertyDefinition<Object>) definition);
-                }
-                item.setIncomplete(false);
-            }
-        }
+
+        new ExtensionProcessor(repositoryContext()).extensionsToContainer(attributes, attributeContainer);
     }
 
     @Override
@@ -236,25 +207,10 @@ public class QShadowMapping
             Collection<SelectorOptions<GetOperationOptions>> options) {
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
         boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
-        if (isRaw || loadIndexOnly(retrieveOptions)) {
+        if (isRaw || SelectorOptions.hasToLoadPath(F_ATTRIBUTES, retrieveOptions)) {
             return new Path[] { entity.oid, entity.fullObject, entity.attributes };
         }
         return new Path[] { entity.oid, entity.fullObject };
-    }
-
-    private boolean loadIndexOnly(List<SelectorOptions<GetOperationOptions>> retrieveOptions) {
-        for (SelectorOptions<GetOperationOptions> selectorOptions : retrieveOptions) {
-            if (selectorOptions.getOptions() == null || !RetrieveOption.INCLUDE.equals(selectorOptions.getOptions().getRetrieve())) {
-                continue;
-            }
-
-            ItemPath path = selectorOptions.getSelector() != null ? selectorOptions.getSelector().getPath() : null;
-            if (path == null || path.isEmpty() || F_ATTRIBUTES.isSubPathOrEquivalent(path)) {
-                return true;
-            }
-
-        }
-        return false;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -270,7 +226,7 @@ public class QShadowMapping
             ItemName itemName = attribute.getElementName();
             MExtItem itemInfo = definitions.get(itemName);
             if (itemInfo != null && attribute.getDefinition() == null) {
-                ((Item) attribute).applyDefinition(definitionFrom(itemName, itemInfo, false), true);
+                ((Item) attribute).applyDefinition(ExtUtils.createDefinition(itemName, itemInfo, false), true);
             }
         }
     }
@@ -290,21 +246,5 @@ public class QShadowMapping
             }
         }
         return definitions;
-    }
-
-    private ItemDefinition<?> definitionFrom(QName name, MExtItem itemInfo, boolean indexOnly) {
-        QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
-        final MutableItemDefinition<?> def;
-        if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
-            def = PrismContext.get().definitionFactory().createReferenceDefinition(name, typeName);
-        } else {
-            def = PrismContext.get().definitionFactory().createPropertyDefinition(name, typeName);
-        }
-        def.setMinOccurs(0);
-        def.setMaxOccurs(-1);
-        def.setRuntimeSchema(true);
-        def.setDynamic(true);
-        def.setIndexOnly(indexOnly);
-        return def;
     }
 }

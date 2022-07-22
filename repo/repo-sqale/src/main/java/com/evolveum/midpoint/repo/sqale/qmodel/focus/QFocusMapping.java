@@ -18,11 +18,13 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -120,6 +122,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
             return new Path[] { entity.oid, entity.fullObject, entity.photo };
         }
+
+        // F_IDENTITIES are handled with another select via QFocusIdentityMapping.
+
         return new Path[] { entity.oid, entity.fullObject };
     }
 
@@ -188,7 +193,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     }
 
     @Override
-    public S toSchemaObject(@NotNull Tuple row, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options)
+    public S toSchemaObject(@NotNull Tuple row, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
         S focus = super.toSchemaObject(row, entityPath, jdbcSession, options);
 
@@ -202,7 +208,31 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         } else if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
             PrismUtil.setPropertyNullAndComplete(focus.asPrismObject(), F_JPEG_PHOTO);
         }
+
+        if (SelectorOptions.hasToLoadPath(F_IDENTITIES, options)) {
+            loadFocusIdentities(focus, jdbcSession);
+        }
+
         return focus;
+    }
+
+    private void loadFocusIdentities(S focus, JdbcSession jdbcSession)
+            throws SchemaException {
+        QFocusIdentityMapping<MFocus> focusIdentityMapping = QFocusIdentityMapping.get();
+        PrismContainer<FocusIdentityType> focusIdentityWrapper = focus.asPrismObject().findOrCreateContainer(F_IDENTITIES);
+        QFocusIdentity<?> q = focusIdentityMapping.defaultAlias();
+        var query = jdbcSession.newQuery()
+                .from(q)
+                .select(q) // no complications here, we load it whole
+                .where(q.ownerOid.eq(SqaleUtils.oidToUUid(focus.getOid())));
+
+        // TODO limit container ids?
+        focusIdentityWrapper.setIncomplete(false); // DO NOT set, if only selected IDs are loaded
+
+        for (MFocusIdentity row : query.fetch()) {
+            FocusIdentityType focusIdentity = focusIdentityMapping.toSchemaObject(row);
+            focus.getIdentities().identity(focusIdentity);
+        }
     }
 
     @Override

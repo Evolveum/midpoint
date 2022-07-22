@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -147,6 +147,7 @@ public class QAccessCertificationCampaignMapping
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
         AccessCertificationCampaignType base = super.toSchemaObjectInternal(rowTuple, entityPath, options, jdbcSession, forceFull);
+//        if (forceFull || SelectorOptions.hasToLoadPath(F_CASE, options)) { // TODO see the question in hasToLoadPath method
         if (forceFull || shouldLoadCases(options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
