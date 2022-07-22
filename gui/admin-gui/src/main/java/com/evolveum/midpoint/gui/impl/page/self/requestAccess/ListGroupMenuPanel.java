@@ -14,6 +14,8 @@ import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -34,6 +36,13 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
         super(id, model);
 
         initLayout();
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript("$(document).ready(function() { console.log('menu item', $('#"+getMarkupId()+"')); $('#"+getMarkupId()+"').listGroupMenu(); });"));
     }
 
     @Override

@@ -14,6 +14,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -52,6 +54,17 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
         checkComponentTag(tag, "li");
     }
 
+//    @Override
+//    public void renderHead(IHeaderResponse response) {
+//        super.renderHead(response);
+//
+//        response.render(OnDomReadyHeaderItem.forScript("$(document).ready(function() { console.log('menu item', $('#"+getLink().getMarkupId()+"')); $('#"+getLink().getMarkupId()+"').listGroupMenu(); });"));
+//    }
+//
+//    private AjaxLink getLink() {
+//        return (AjaxLink) get(ID_LINK);
+//    }
+
     private void initLayout() {
         AjaxLink link = new AjaxLink<>(ID_LINK) {
 
@@ -62,6 +75,7 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
         };
         link.add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
         link.add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
+        link.setOutputMarkupId(true);
         add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);

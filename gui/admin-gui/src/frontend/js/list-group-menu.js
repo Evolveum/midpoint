@@ -24,7 +24,6 @@ const Default = {
     accordion: true
 }
 
-// todo implement properly
 class ListGroupMenu {
 
     constructor(element, config) {

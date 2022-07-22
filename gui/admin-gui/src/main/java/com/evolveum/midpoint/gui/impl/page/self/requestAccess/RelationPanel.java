@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -58,6 +59,30 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
         initLayout();
     }
 
+    private boolean canSkipStep() {
+        List<Tile<QName>> list = relations.getObject();
+        if (list.size() != 1) {
+            return false;
+        }
+
+        Tile<QName> tile = list.get(0);
+        return tile.isSelected();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        // todo doesn't work properly, header stays hidden on next step
+//        if (canSkipStep()) {
+//            // there's only one relation, we don't have to make user choose it, we'll take it and skip this step
+//            submitData();
+//            getWizard().next();
+//
+//            throw new RestartResponseException(getPage());
+//        }
+
+        super.onBeforeRender();
+    }
+
     private void initModels() {
         relations = new LoadableModel<>(false) {
 
@@ -82,6 +107,11 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
                     Tile<QName> tile = createTileForRelation(name);
                     tile.setSelected(name.equals(defaultRelation));
                     tile.setValue(name);
+
+                    if (BooleanUtils.isFalse(config.isAllowOtherRelations()) && !tile.isSelected()) {
+                        // skip non default tiles as other relations are not allowed
+                        continue;
+                    }
 
                     tiles.add(tile);
                 }
@@ -203,14 +233,18 @@ public class RelationPanel extends BasicWizardPanel<RequestAccess> {
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
-
-        getModelObject().setRelation(selected.getValue());
+        submitData();
 
         getWizard().next();
         target.add(getWizard().getPanel());
 
         return false;
+    }
+
+    private void submitData() {
+        Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
+
+        getModelObject().setRelation(selected.getValue());
     }
 
     private RelationSelectionType getRelationConfiguration() {
