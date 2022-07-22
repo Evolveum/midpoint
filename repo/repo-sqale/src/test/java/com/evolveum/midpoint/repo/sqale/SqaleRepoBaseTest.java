@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertNotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.TestException;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -27,8 +29,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
@@ -48,6 +52,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
+import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -76,6 +81,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
 
     @Autowired protected AuditService auditService;
 
+    /** Also see convenient method {@link #withQueryRecorded(CheckedRunnable)}. */
     protected SqlRecorder queryRecorder;
 
     @BeforeClass
@@ -88,6 +94,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
+    /**
+     * Database cleanup for Sqale tests only.
+     * Check TestSqaleRepositoryBeanConfig.clearDatabase(SqaleRepoContext) for integration tests.
+     */
     private void clearDatabase() {
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
@@ -96,6 +106,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
             jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
             // but after truncating m_object_oid it cleans all the tables
+
+            // audit is cleaned on-demand using clearAudit()
 
             /*
             Truncates are much faster than this delete probably because it works row by row:
@@ -353,6 +365,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return extKey(extContainer, itemName, MExtItemHolderType.EXTENSION);
     }
 
+    /** Returns extension item key (from m_ext_item table) for the specified shadow attribute. */
     protected String shadowAttributeKey(Containerable extContainer, String itemName) {
         return extKey(extContainer, itemName, MExtItemHolderType.ATTRIBUTES);
     }
@@ -394,7 +407,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         }
     }
 
-    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks, vararg options. */
     @SafeVarargs
     @NotNull
     protected final <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
@@ -403,24 +416,25 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        boolean record = !queryRecorder.isRecording();
-        if (record) {
-            queryRecorder.clearBufferAndStartRecording();
-        }
-        try {
-            return repositoryService.searchObjects(
-                            type,
-                            query,
-                            selectorOptions != null && selectorOptions.length != 0
-                                    ? List.of(selectorOptions) : null,
-                            operationResult)
-                    .map(p -> p.asObjectable());
-        } finally {
-            if (record) {
-                queryRecorder.stopRecording();
-                display(queryRecorder.getQueryBuffer().toString());
-            }
-        }
+        return repositorySearchObjects(type, query, operationResult,
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null);
+    }
+
+    /** Low-level shortcut for {@link SqaleRepositoryService#searchObjects}, no checks. */
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> repositorySearchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            Collection<SelectorOptions<GetOperationOptions>> selectorOptions)
+            throws SchemaException {
+        return repositoryService.searchObjects(
+                        type,
+                        query,
+                        selectorOptions,
+                        operationResult)
+                .map(p -> p.asObjectable());
     }
 
     /** Search objects using Axiom query language. */
@@ -438,14 +452,18 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     }
 
     protected SearchResultList<UserType> searchUsersTest(String description,
-            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
             throws SchemaException {
         return searchObjectTest(description, UserType.class, filter, expectedOids);
     }
 
+    /**
+     * Like {@link #searchObjects} but checks successful result and that result list contains the expected OIDs.
+     * This version does not allow query options, use {@link #searchObjects} for that and assert result manually.
+     */
     protected <T extends ObjectType> SearchResultList<T> searchObjectTest(
             String description, Class<T> type,
-            Function<S_FilterEntryOrEmpty, S_FilterExit> filter, String... expectedOids)
+            Function<S_FilterEntryOrEmpty, S_QueryExit> filter, String... expectedOids)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
         when("searching for " + typeName + "(s) " + description);
@@ -462,7 +480,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         return result;
     }
 
-    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks, vararg options. */
     @SafeVarargs
     @NotNull
     protected final <T extends ObjectType> SearchResultList<T> searchObjects(
@@ -471,20 +489,36 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        display("QUERY: " + query);
-        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
-                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        display("Serialized QUERY: " + serializedQuery);
+        return searchObjects(type, query, operationResult,
+                selectorOptions != null && selectorOptions.length != 0
+                        ? List.of(selectorOptions) : null);
+    }
 
-        // sanity check if it's re-parsable
-        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
-                .isNotNull();
-        return repositorySearchObjects(type, query, operationResult, selectorOptions);
+    /** Search objects using {@link ObjectQuery}, including various logs and sanity checks. */
+    @NotNull
+    protected final <T extends ObjectType> SearchResultList<T> searchObjects(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            OperationResult operationResult,
+            Collection<SelectorOptions<GetOperationOptions>> selectorOptions)
+            throws SchemaException {
+        displayQuery(query);
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositorySearchObjects(type, query, operationResult, selectorOptions);
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.dumpQueryBuffer());
+            }
+        }
     }
 
     protected <T extends Containerable> SearchResultList<T> searchContainerTest(
-            String description, Class<T> type, Function<S_FilterEntryOrEmpty, S_FilterExit> filter)
+            String description, Class<T> type, Function<S_FilterEntryOrEmpty, S_QueryExit> filter)
             throws SchemaException {
         String typeName = type.getSimpleName().replaceAll("Type$", "").toLowerCase();
         when("searching for " + typeName + "(s) " + description);
@@ -507,21 +541,51 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
+        displayQuery(query);
+
+        boolean record = !queryRecorder.isRecording();
+        if (record) {
+            queryRecorder.clearBufferAndStartRecording();
+        }
+        try {
+            return repositoryService.searchContainers(
+                    type,
+                    query,
+                    selectorOptions != null && selectorOptions.length != 0
+                            ? List.of(selectorOptions) : null,
+                    operationResult);
+        } finally {
+            if (record) {
+                queryRecorder.stopRecording();
+                display(queryRecorder.dumpQueryBuffer());
+            }
+        }
+    }
+
+    /** Displays the query in XML and Axiom form and checks its XML reparsability. */
+    protected void displayQuery(@Nullable ObjectQuery query) throws SchemaException {
         display("QUERY: " + query);
+        if (query == null) {
+            return;
+        }
+
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
         String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
                 queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
         display("Serialized QUERY: " + serializedQuery);
 
+        if (query.getFilter() != null) {
+            try {
+                PrismQuerySerialization serialization = prismContext.querySerializer().serialize(query.getFilter());
+                display("Filter in Axiom QL: " + serialization.filterText());
+            } catch (Exception e) {
+                display("Cannot serialize to Axiom: " + e);
+            }
+        }
+
         // sanity check if it's re-parsable
         assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
                 .isNotNull();
-        return repositoryService.searchContainers(
-                type,
-                query,
-                selectorOptions != null && selectorOptions.length != 0
-                        ? List.of(selectorOptions) : null,
-                operationResult);
     }
 
     /** Parses object from byte array form and returns its real value (not Prism structure). */
@@ -560,6 +624,18 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         operationResult.cleanupResultDeeply();
         operationResult.setSummarizeSuccesses(true);
         operationResult.summarize();
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected <T extends Containerable> void assertReferenceNamesSet(SearchResultList<T> result) {
+        Visitor check = visitable -> {
+            if (visitable instanceof PrismReferenceValue) {
+                assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set for " + visitable);
+            }
+        };
+        for (T obj : result) {
+            obj.asPrismContainerValue().accept(check);
+        }
     }
 
     /**
@@ -638,5 +714,17 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     protected JdbcSession startReadOnlyTransaction() {
         //noinspection resource
         return sqlRepoContext.newJdbcSession().startReadOnlyTransaction();
+    }
+
+    protected void withQueryRecorded(CheckedRunnable block) {
+        queryRecorder.clearBufferAndStartRecording();
+        try {
+            block.run();
+        } catch (Exception e) {
+            throw new TestException(e);
+        } finally {
+            queryRecorder.stopRecording();
+            display(queryRecorder.dumpQueryBuffer());
+        }
     }
 }
