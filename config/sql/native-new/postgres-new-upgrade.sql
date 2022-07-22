@@ -147,8 +147,11 @@ CREATE TABLE m_focus_identity (
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
+
+CREATE INDEX m_focus_identity_sourceResourceRefTargetOid_idx ON m_focus_identity (sourceResourceRefTargetOid);
+CREATE INDEX m_focus_identity_itemsOriginal_idx ON m_focus_identity USING gin(itemsOriginal);
+CREATE INDEX m_focus_identity_itemsNormalized_idx ON m_focus_identity USING gin(itemsNormalized);
 $aa$);
--- TODO gin indexes on items*
 
 -- SCHEMA-COMMIT 4.6: commit TODO
 
