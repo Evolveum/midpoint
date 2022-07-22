@@ -176,10 +176,11 @@ public class QTaskMapping
     }
 
     @Override
-    public TaskType toSchemaObject(
-            Tuple row, QTask entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
-        TaskType task = super.toSchemaObject(row, entityPath, options);
+    public TaskType toSchemaObject(@NotNull Tuple row,
+            @NotNull QTask entityPath,
+            @NotNull JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+        TaskType task = super.toSchemaObject(row, entityPath, jdbcSession, options);
         // We need to check options too for proper setting of incompleteness.
         byte[] fullResult = row.get(entityPath.fullResult);
         if (fullResult != null) {

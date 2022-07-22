@@ -149,9 +149,9 @@ public class QShadowMapping
     }
 
     @Override
-    public ShadowType toSchemaObject(Tuple row, QShadow entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
-        ShadowType shadowType = super.toSchemaObject(row, entityPath, options);
+    public ShadowType toSchemaObject(@NotNull Tuple row, @NotNull QShadow entityPath,
+            @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+        ShadowType shadowType = super.toSchemaObject(row, entityPath, jdbcSession, options);
         // FIXME: we store it because provisioning now sends it to repo, but it should be transient
         shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATION);
 

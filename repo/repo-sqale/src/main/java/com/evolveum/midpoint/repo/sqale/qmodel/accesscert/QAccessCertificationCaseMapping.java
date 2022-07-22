@@ -132,8 +132,8 @@ public class QAccessCertificationCaseMapping
 
     @Override
     public AccessCertificationCaseType toSchemaObject(
-            Tuple row, QAccessCertificationCase entityPath,
-            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+            @NotNull Tuple row, @NotNull QAccessCertificationCase entityPath,
+            @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
         return parseSchemaObject(
                 Objects.requireNonNull(row.get(entityPath.fullObject)),
                 Objects.requireNonNull(row.get(entityPath.ownerOid)) + ","
@@ -264,7 +264,7 @@ public class QAccessCertificationCaseMapping
                 PrismContainerValue<AccessCertificationCaseType> value = container.findValue(cid);
                 if (value == null) {
                     // value is not present, load it from full object
-                    AccessCertificationCaseType valueObj = toSchemaObject(tuple, entityPath, options);
+                    AccessCertificationCaseType valueObj = toSchemaObjectComplete(tuple, entityPath, options, jdbcSession, false);
                     //noinspection unchecked
                     value = valueObj.asPrismContainerValue();
                     container.add(value);

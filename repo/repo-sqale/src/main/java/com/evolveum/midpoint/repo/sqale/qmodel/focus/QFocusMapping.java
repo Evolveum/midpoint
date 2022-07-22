@@ -188,9 +188,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     }
 
     @Override
-    public S toSchemaObject(Tuple row, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
+    public S toSchemaObject(@NotNull Tuple row, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        S focus = super.toSchemaObject(row, entityPath, options);
+        S focus = super.toSchemaObject(row, entityPath, jdbcSession, options);
 
         byte[] photo = row.get(entityPath.photo);
         if (photo != null) {

@@ -306,7 +306,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * is still contained in the object somehow else (e.g. full object LOB).
      *
      * Alternative is to dynamically generate the list of select expressions reading directly from
-     * the {@link com.querydsl.core.Tuple} - see {@link #toSchemaObject(Tuple, FlexibleRelationalPathBase, Collection)}.
+     * the {@link com.querydsl.core.Tuple} - see {@link #toSchemaObject(Tuple, FlexibleRelationalPathBase, JdbcSession, Collection)}.
      */
     public abstract S toSchemaObject(R row) throws SchemaException;
 
@@ -316,7 +316,10 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
      * This allows loading also dynamically defined columns (like extensions).
      * This is what is used by default in {@link SqlQueryContext}.
      */
-    public S toSchemaObject(Tuple row, Q entityPath,
+    public S toSchemaObject(
+            @NotNull Tuple tuple,
+            @NotNull Q entityPath,
+            @NotNull JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
         throw new UnsupportedOperationException("Not implemented for " + getClass());
@@ -324,7 +327,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Returns result transformer that by default calls
-     * {@link #toSchemaObject(Tuple, FlexibleRelationalPathBase, Collection)} for each result row.
+     * {@link #toSchemaObject(Tuple, FlexibleRelationalPathBase, JdbcSession, Collection)} for each result row.
      * This can be overridden, see {@link ResultListRowTransformer} javadoc for details.
      * This is useful for stateful transformers where the whole result can be pre-/post-processed as well.
      */
@@ -332,14 +335,15 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
             SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
         return (tuple, entityPath, options) -> {
             try {
-                return toSchemaObject(tuple, entityPath, options);
+                return toSchemaObject(tuple, entityPath, jdbcSession, options);
             } catch (SchemaException e) {
                 throw new RepositoryMappingException(e);
             }
         };
     }
 
-    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(Collection<SelectorOptions<GetOperationOptions>> options,
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
         return options;
     }

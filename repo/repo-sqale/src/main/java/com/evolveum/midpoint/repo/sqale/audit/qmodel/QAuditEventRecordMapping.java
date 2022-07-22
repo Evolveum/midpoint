@@ -400,7 +400,7 @@ public class QAuditEventRecordMapping
             @Override
             public AuditEventRecordType transform(Tuple tuple, QAuditEventRecord entityPath,
                     Collection<SelectorOptions<GetOperationOptions>> options) {
-                return toSchemaObjectSafe(tuple, entityPath, options, jdbcSession, false);
+                return toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
             }
         };
     }

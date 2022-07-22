@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -90,7 +91,7 @@ public class QAuditDeltaMapping
 
     @Override
     public ObjectDeltaOperationType toSchemaObject(
-            Tuple row, QAuditDelta entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
+            @NotNull Tuple row, @NotNull QAuditDelta entityPath, @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
         throw new UnsupportedOperationException();
     }

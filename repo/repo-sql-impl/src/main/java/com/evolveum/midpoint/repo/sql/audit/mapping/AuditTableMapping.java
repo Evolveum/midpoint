@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -39,7 +40,7 @@ public abstract class AuditTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     @Override
     public S toSchemaObject(
-            Tuple tuple, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options) {
+            @NotNull Tuple tuple, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         S schemaObject = toSchemaObject(tuple.get(entityPath));
         processExtensionColumns(schemaObject, tuple, entityPath);
         return schemaObject;

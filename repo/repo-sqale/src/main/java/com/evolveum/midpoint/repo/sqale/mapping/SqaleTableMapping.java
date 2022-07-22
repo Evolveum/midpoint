@@ -281,9 +281,17 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Transforms row Tuple containing {@link R} under entity path and extension columns.
+     * While public, for Sqale repo it should only be called for internal mapping purposes.
+     *
+     * *Do not call this in result list transformers* because the results would not have resolved reference names (if requested).
+     * Notice that the default implementation of {@link #createRowTransformer} in this class calls
+     * {@link #toSchemaObjectCompleteSafe} which is the right thing to call in result list transformers.
      */
     @Override
-    public S toSchemaObject(Tuple tuple, Q entityPath,
+    public S toSchemaObject(
+            @NotNull Tuple tuple,
+            @NotNull Q entityPath,
+            @NotNull JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
         S schemaObject = toSchemaObject(tuple.get(entityPath));
@@ -507,45 +515,72 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return Collections.emptyList();
     }
 
-    // TODO: this resolves the names after toSchemaObject(3 params), but...
-    //  called version of toSchemaObject() doesn't have forceFull flag, so sometimes we need to override this version.
-    //  But calling this via super...() means it can't resolve the names in refs from additional parts
-    //  that are not loaded yet (which is done after super call).
-    //  What is the recommended template for override? Wouldn't using this method with additional stuff in the middle be better?
-    //  1. call toSchemaObject(rowTuple, entityPath, options) - just like here, don't call this 5 param method via super!
-    //  2. do additional stuff, utilizing forceFull flag (and even jdbcSession if necessary)
-    //  3. call resolveReferenceNames just like in this method - at the end
-    //  Alternative:
-    //  - make this method final
-    //  - override only toSchemaObject - but add forceFull flag (do we need jdbcSession as well? so far not)
-    public S toSchemaObject(
+    /**
+     * TODO: This should be merged with toSchemaObject and forceFull parameter should be deprecated.
+     *  Proper usage of updateGetOptions() should replace it - see QShadowMapping where toSchemaObject
+     *  is overridden and force reindex works as well.
+     *
+     * In the meantime:
+     *
+     * This is "internal" method in the sense it can be overridden to customize the default transformation behavior.
+     * It is public so one mapper can call it on another mapper, but otherwise should not be called from repo
+     * service or similar places - these should use {@link #toSchemaObjectComplete}.
+     *
+     * *Should I override this or {@link #toSchemaObject} that is called from this method?*
+     * Prefer overriding {@link #toSchemaObject} as we want to get rid of this version and forceFull flag.
+     *
+     * *Do not call this in result list transformers* because the results would not have resolved reference names (if requested).
+     * Notice that the default implementation of {@link #createRowTransformer} in this class calls
+     * {@link #toSchemaObjectCompleteSafe} which is the right thing to call in result list transformers.
+     *
+     * @param forceFull true when reindex is forced on the modified object, otherwise false
+     */
+    @Deprecated
+    public S toSchemaObjectInternal(
             Tuple rowTuple,
             Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        return toSchemaObject(rowTuple, entityPath, options);
+        return toSchemaObject(rowTuple, entityPath, jdbcSession, options);
     }
 
-    public S toSchemaObjectWithResolvedNames(
+    /**
+     * Converts tuple to schema object and resolves reference names if necessary.
+     * This is the method called from the "outside" of mappers to obtain complete object.
+     * This method is final to ensure the reference names resolution is the last step performed on the complete object.
+     * Method {@link #toSchemaObjectInternal} prepares the object; can be overridden by object/container mappers as necessary.
+     *
+     * @param forceFull true when reindex is forced on the modified object, otherwise false
+     */
+    public final S toSchemaObjectComplete(
             Tuple rowTuple,
             Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
-            boolean forceFull) throws SchemaException {
-        S schemaObject = toSchemaObject(rowTuple, entityPath, options, jdbcSession, forceFull);
+            @Deprecated boolean forceFull) throws SchemaException {
+        S schemaObject = toSchemaObjectInternal(rowTuple, entityPath, options, jdbcSession, forceFull);
         schemaObject = resolveReferenceNames(schemaObject, jdbcSession, options);
         return schemaObject;
     }
 
-    public S toSchemaObjectSafe(
+    /**
+     * Version of {@link #toSchemaObjectComplete} with custom schema exception treatment.
+     * By default, it is simply wrapped into runtime exception, but is more sophisticated for object mapping.
+     *
+     * This method should be used when each row in return list should have its own exception treatment, which is
+     * the default behavior in midPoint.
+     * Instead of failing the whole search because of single-object schema error, a placeholder object
+     * for the row can be returned, possibly with error indicated.
+     */
+    public S toSchemaObjectCompleteSafe(
             Tuple tuple,
             Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
-            boolean forceFull) {
+            @Deprecated boolean forceFull) {
         try {
-            return toSchemaObjectWithResolvedNames(tuple, entityPath, options, jdbcSession, forceFull);
+            return toSchemaObjectComplete(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
             throw new RepositoryMappingException(e);
         }
@@ -560,6 +595,6 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     public ResultListRowTransformer<S, Q, R> createRowTransformer(
             SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession) {
         return (tuple, entityPath, options) ->
-                toSchemaObjectSafe(tuple, entityPath, options, jdbcSession, false);
+                toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
     }
 }
