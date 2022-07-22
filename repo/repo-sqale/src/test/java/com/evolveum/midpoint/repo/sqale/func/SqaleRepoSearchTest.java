@@ -29,7 +29,10 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -405,6 +408,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .id(2L)
                                 .stageNumber(2)
                                 .iteration(2)
+                                .targetRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(21)
                                         .iteration(1))
@@ -1961,7 +1965,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         + "  </filter>\n"
                         + "</query>").parseRealValue(QueryType.class));
         SearchResultList<UserType> result =
-                repositorySearchObjects(UserType.class, objectQuery, operationResult);
+                searchObjects(UserType.class, objectQuery, operationResult);
 
         then("users with extension/ref matching any of the values are returned");
         assertThatOperationResult(operationResult).isSuccess();
@@ -2388,7 +2392,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // This is new repo speciality, but this query can't be formatted/reparsed.
         when("searching for user having specified OID");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = repositorySearchObjects(UserType.class,
+        SearchResultList<UserType> result = searchObjects(UserType.class,
                 prismContext.queryFor(UserType.class)
                         .item(PrismConstants.T_ID).eq(user1Oid)
                         .build(),
@@ -2406,7 +2410,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test911SearchByOidLowerThan() throws SchemaException {
         when("searching for objects with OID lower than");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2425,7 +2429,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test912SearchByOidLoe() throws SchemaException {
         when("searching for objects with OID lower than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2446,7 +2450,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test913SearchByOidGoe() throws SchemaException {
         when("searching for objects with OID greater than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2466,7 +2470,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test914SearchByOidPrefixGoe() throws SchemaException {
         when("searching for objects with OID prefix greater than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2487,7 +2491,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test915SearchByUpperCaseOidPrefixGoe() throws SchemaException {
         when("searching for objects with upper-case OID prefix greater than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2509,7 +2513,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test916SearchByOidPrefixStartsWith() throws SchemaException {
         when("searching for objects with OID prefix starting with");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2618,18 +2622,25 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test961SearchGetNames() throws SchemaException {
         var options = SchemaService.get().getOperationOptionsBuilder().resolveNames().build();
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
-        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
+        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options);
         assertNotNull(result);
-        //noinspection rawtypes
-        Visitor check = visitable -> {
-            if (visitable instanceof PrismReferenceValue) {
-                assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set.");
-            }
-        };
-        for (FocusType obj : result) {
-            //noinspection unchecked
-            obj.asPrismObject().accept(check);
-        }
+
+        assertReferenceNamesSet(result);
+    }
+
+    @Test
+    public void test962SearchGetNamesAccessCertificationCampaignsWithCases() throws SchemaException {
+        var options = SchemaService.get().getOperationOptionsBuilder().resolveNames()
+                .item(AccessCertificationCampaignType.F_CASE).retrieve()
+                .build();
+        ObjectQuery query = PrismContext.get().queryFor(AccessCertificationCampaignType.class).all().build();
+        OperationResult opResult = createOperationResult();
+        SearchResultList<AccessCertificationCampaignType> result =
+                searchObjects(AccessCertificationCampaignType.class, query, opResult, options);
+        assertThatOperationResult(opResult).isSuccess();
+        assertNotNull(result);
+
+        assertReferenceNamesSet(result);
     }
 
     @Test
