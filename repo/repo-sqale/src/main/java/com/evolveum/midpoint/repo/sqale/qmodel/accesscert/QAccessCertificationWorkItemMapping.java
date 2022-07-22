@@ -224,7 +224,7 @@ public class QAccessCertificationWorkItemMapping
         }
         try {
             //noinspection unchecked
-            return mapping.toSchemaObject(result, root, Collections.emptyList()).asPrismContainerValue();
+            return mapping.toSchemaObject(result, root, jdbcSession, Collections.emptyList()).asPrismContainerValue();
         } catch (SchemaException e) {
             throw new SystemException(e);
         }

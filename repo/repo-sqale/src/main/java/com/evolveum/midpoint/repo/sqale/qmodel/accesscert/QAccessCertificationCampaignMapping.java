@@ -142,12 +142,11 @@ public class QAccessCertificationCampaignMapping
         }
     }
 
-    // TODO rework to toSchemaObject
     @Override
-    public AccessCertificationCampaignType toSchemaObjectWithResolvedNames(Tuple rowTuple, QAccessCertificationCampaign entityPath,
+    public AccessCertificationCampaignType toSchemaObjectInternal(Tuple rowTuple, QAccessCertificationCampaign entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        AccessCertificationCampaignType base = super.toSchemaObjectWithResolvedNames(rowTuple, entityPath, options, jdbcSession, forceFull);
+        AccessCertificationCampaignType base = super.toSchemaObjectInternal(rowTuple, entityPath, options, jdbcSession, forceFull);
         if (forceFull || shouldLoadCases(options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
@@ -195,7 +194,7 @@ public class QAccessCertificationCampaignMapping
         }
         List<Tuple> rows = query.fetch();
         for (Tuple row : rows) {
-            AccessCertificationCaseType c = casesMapping.toSchemaObjectWithResolvedNames(row, qcase, options, jdbcSession, forceFull);
+            AccessCertificationCaseType c = casesMapping.toSchemaObjectInternal(row, qcase, options, jdbcSession, forceFull);
             cases.add(c.asPrismContainerValue());
         }
     }

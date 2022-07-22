@@ -222,7 +222,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        return rootMapping.toSchemaObjectWithResolvedNames(result, root, options, jdbcSession, false);
+        return rootMapping.toSchemaObjectComplete(result, root, options, jdbcSession, false);
     }
 
     @Override
@@ -706,7 +706,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throw new ObjectNotFoundException(schemaType, oid.toString());
         }
 
-        S object = rootMapping.toSchemaObjectWithResolvedNames(
+        S object = rootMapping.toSchemaObjectComplete(
                 result, entityPath, getOptions, jdbcSession, RepoModifyOptions.isForceReindex(options));
 
         R rootRow = rootMapping.newRowObject();
