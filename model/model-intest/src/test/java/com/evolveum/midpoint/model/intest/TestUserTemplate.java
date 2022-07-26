@@ -120,6 +120,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5892, USER_TEMPLATE_MID_5892.oid, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_6045, USER_TEMPLATE_MID_6045.oid, initResult);
+
+        addObject(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND, initTask, initResult);
     }
 
     protected int getNumberOfRoles() {
@@ -2464,14 +2466,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test800NullTimeFrom() throws Exception {
-        // GIVEN
+        OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         // @formatter:off
@@ -2498,7 +2497,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, funeralTimestamp);
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         // @formatter:off
@@ -2520,11 +2519,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test804PreKaboom() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         // GIVEN
         clockForward("P2D"); // total override is realTime + 2D
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         // @formatter:off
@@ -2542,11 +2543,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test808Kaboom() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         // GIVEN
         clockForward("P1M"); // total override is realTime + 2D + 1M
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         // @formatter:off
@@ -2572,11 +2575,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test810PreTalesBomb() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         // GIVEN
         clockForward("P1D"); // total override is realTime + 2D + 1M + 1D
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         // @formatter:off
@@ -2609,11 +2614,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test812TalesBoom() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         // GIVEN
         clockForward("P3M");
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         // @formatter:off
@@ -2633,6 +2640,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test813TalesBoomRecompute() throws Exception {
+        OperationResult result = getTestOperationResult();
         // GIVEN
 
         // WHEN
@@ -2649,7 +2657,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .assertNone();
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
@@ -2697,7 +2705,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .assertNone();
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
@@ -2707,7 +2715,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .end()
                 .triggers()
                 .assertNone();
-
     }
 
     /**
@@ -2752,7 +2759,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .assertTimestampFuture(funeralTimestamp, "P1Y", 2 * DAY_MILLIS);
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
@@ -2775,11 +2782,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test832LootBoomConditionFalse() throws Exception {
+        OperationResult result = getTestOperationResult();
+
         // GIVEN
         clockForward("P9M");
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
@@ -2850,7 +2859,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result /* no value */);
 
         // WHEN
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        runTriggerScannerOnDemand(result);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
