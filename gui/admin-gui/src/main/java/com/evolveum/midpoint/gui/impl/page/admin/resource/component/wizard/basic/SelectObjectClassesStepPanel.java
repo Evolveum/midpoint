@@ -8,8 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -55,19 +55,16 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     private static final String ID_DESELECT_BUTTON = "deselectButton";
     private static final String ID_TABLE = "table";
 
-    private final ResourceDetailsModel resourceModel;
     private final LoadableModel<List<QName>> selectedItems;
 
     public SelectObjectClassesStepPanel(ResourceDetailsModel model) {
-        super();
-        this.resourceModel = model;
-
+        super(model);
 //        selectedItems = new ItemRealValueModel<>()
 
         selectedItems = new LoadableModel<>() {
             @Override
             protected List<QName> load() {
-                @NotNull ResourceType resource = resourceModel.getObjectType();
+                @NotNull ResourceType resource = getResourceModel().getObjectType();
                 if (resource.getSchema() == null) {
                     resource.beginSchema();
                 }
@@ -247,7 +244,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     }
 
     private ObjectClassDataProvider createProvider() {
-        return new ObjectClassDataProvider(SelectObjectClassesStepPanel.this, resourceModel.getObjectClassesModel()) {
+        return new ObjectClassDataProvider(SelectObjectClassesStepPanel.this, getResourceModel().getObjectClassesModel()) {
             @Override
             protected SelectableBean<ObjectClassWrapper> createObjectWrapper(ObjectClassWrapper object) {
                 SelectableBean<ObjectClassWrapper> wrapper = super.createObjectWrapper(object);

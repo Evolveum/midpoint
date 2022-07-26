@@ -89,7 +89,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<C>> item) {
-                MultivalueContainerDetailsPanel<C> detailsPanel = getMultivalueContainerDetailsPanel(item);
+                WebMarkupContainer detailsPanel = getMultivalueContainerDetailsPanel(item);
                 item.add(detailsPanel);
                 detailsPanel.setOutputMarkupId(true);
             }
@@ -130,7 +130,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         buttonsContainer.add(cancelButton);
     }
 
-    protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
+    protected abstract WebMarkupContainer getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
 
     public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
         editItemPerformed(target, rowModel, null);

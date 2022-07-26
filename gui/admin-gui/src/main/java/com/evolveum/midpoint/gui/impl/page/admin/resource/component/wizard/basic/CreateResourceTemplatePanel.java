@@ -151,7 +151,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 listItem.add(new ResourceTilePanel(ID_TILE, listItem.getModel()) {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
-                        onTemplateChosePerformed(listItem.getModelObject(), target);
+                        onTemplateSelectionPerformed(listItem.getModelObject(), target);
                     }
                 });
             }
@@ -188,7 +188,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         return storage;
     }
 
-    private void onTemplateChosePerformed(TemplateTile<ResourceTemplate> tile, AjaxRequestTarget target) {
+    private void onTemplateSelectionPerformed(TemplateTile<ResourceTemplate> tile, AjaxRequestTarget target) {
         try {
             PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
             PrismObject<ResourceType> obj = def.instantiate();
@@ -214,14 +214,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                     }
                 }
             }
-            onTemplateChosePerformed(obj, target);
+            onTemplateSelectionPerformed(obj, target);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
     }
 
-    abstract protected void onTemplateChosePerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target);
+    abstract protected void onTemplateSelectionPerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target);
 
     protected LoadableDetachableModel<List<TemplateTile<ResourceTemplate>>> loadTileDescriptions() {
         return new LoadableDetachableModel<>() {

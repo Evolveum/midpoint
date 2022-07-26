@@ -4,28 +4,27 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
  */
-public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
+public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPanel {
+
+    private final ResourceDetailsModel resourceModel;
+    public AbstractResourceWizardStepPanel(ResourceDetailsModel model){
+        this.resourceModel = model;
+    }
+
+    public ResourceDetailsModel getResourceModel() {
+        return resourceModel;
+    }
 
     @Override
     protected IModel<String> getNextLabelModel() {
@@ -45,5 +44,10 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardPanel {
     }
 
     protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+    }
+
+    @Override
+    public String appendCssToWizard() {
+        return "mt-5 mx-auto col-8";
     }
 }

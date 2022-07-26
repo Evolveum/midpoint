@@ -22,7 +22,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -44,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class PersonOfInterestPanel extends BasicWizardPanel<RequestAccess> {
+public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 

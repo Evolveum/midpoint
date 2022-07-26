@@ -13,11 +13,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import java.util.List;
 
 /**
  * @author lskublik
@@ -42,7 +43,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         if (item.getModelObject() instanceof PrismPropertyWrapper) {
             propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
         } else {
-            propertyPanel = new PrismReferencePanel(ID_PROPERTY, item.getModel(), settings);
+            propertyPanel = new VerticalFormPrismReferencePanel(ID_PROPERTY, item.getModel(), settings);
         }
         propertyPanel.setOutputMarkupId(true);
 
@@ -54,6 +55,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         }
 
         item.add(propertyPanel);
+    }
+
+    protected IModel<List<PrismContainerWrapper<? extends Containerable>>> createContainersModel() {
+        return Model.ofList(List.of());
     }
 
     @Override

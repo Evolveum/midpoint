@@ -14,8 +14,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -24,20 +22,21 @@ import org.apache.wicket.model.Model;
 /**
  * @author lskublik
  */
-public class BasicWizardPanel<T> extends WizardStepPanel<T> {
+public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BACK = "back";
+    private static final String ID_EXIT = "exit";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
 
-    public BasicWizardPanel() {
+    public BasicWizardStepPanel() {
     }
 
-    public BasicWizardPanel(IModel<T> model) {
+    public BasicWizardStepPanel(IModel<T> model) {
         super(model);
     }
 
@@ -70,6 +69,19 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(back);
         add(back);
 
+        AjaxLink exit = new AjaxLink<>(ID_EXIT) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onExitPerformed(target);
+            }
+        };
+        exit.add(getExitVisibility());
+        exit.setOutputMarkupId(true);
+        exit.setOutputMarkupPlaceholderTag(true);
+        WebComponentUtil.addDisabledClassBehavior(exit);
+        add(exit);
+
         AjaxSubmitButton next = new AjaxSubmitButton(ID_NEXT) {
 
             @Override
@@ -92,6 +104,13 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
         next.add(nextLabel);
     }
 
+    protected VisibleBehaviour getExitVisibility() {
+        return new VisibleBehaviour(() -> false);
+    }
+
+    protected void onExitPerformed(AjaxRequestTarget target) {
+    }
+
     protected IModel<String> getNextLabelModel() {
         return () -> {
             WizardStep step = getWizard().getNextPanel();
@@ -100,10 +119,6 @@ public class BasicWizardPanel<T> extends WizardStepPanel<T> {
     }
 
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
-    }
-
-    protected WebMarkupContainer createContentPanel(String id) {
-        return new WebMarkupContainer(id);
     }
 
     protected AjaxLink getNext() {

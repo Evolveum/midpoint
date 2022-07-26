@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -32,6 +32,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
     private final ResourceDetailsModel resourceModel;
 
     public AbstractFormResourceWizardStepPanel(ResourceDetailsModel model) {
+        super(model);
         this.resourceModel = model;
     }
 
@@ -45,12 +46,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
         return resourceModel;
     }
 
-    @Override
-    public String appendCssToWizard() {
-        return "mt-5 mx-auto col-8";
-    }
-
-    private void initLayout() {
+    protected void initLayout() {
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(w -> checkMandatory(w))
@@ -68,7 +64,6 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
 
         };
-        form.add(AttributeAppender.append("class", "col-8"));
         add(form);
     }
 

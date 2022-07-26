@@ -13,16 +13,17 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPreviewPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectTypes.ResourceObjectTypeTableWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 
@@ -34,7 +35,7 @@ import java.util.List;
  */
 public class BasicResourceWizardPanel extends BasePanel {
 
-    private static final String ID_FRAGMENTS = "fragments";
+    private static final String ID_FRAGMENT = "fragment";
     private static final String ID_TEMPLATE_FRAGMENT = "templateFragment";
     private static final String ID_TEMPLATE = "template";
     private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
@@ -59,15 +60,15 @@ public class BasicResourceWizardPanel extends BasePanel {
     }
 
     protected Fragment createTemplateFragment() {
-        Fragment fragment = new Fragment(ID_FRAGMENTS, ID_TEMPLATE_FRAGMENT, BasicResourceWizardPanel.this);
+        Fragment fragment = new Fragment(ID_FRAGMENT, ID_TEMPLATE_FRAGMENT, BasicResourceWizardPanel.this);
         fragment.setOutputMarkupId(true);
         add(fragment);
         CreateResourceTemplatePanel templatePanel = new CreateResourceTemplatePanel(ID_TEMPLATE) {
 
             @Override
-            protected void onTemplateChosePerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target) {
+            protected void onTemplateSelectionPerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target) {
                 reloadObjectDetailsModel(newObject);
-                Fragment fragment = createWizardFragment();
+                Fragment fragment = createBasicWizardFragment();
                 fragment.setOutputMarkupId(true);
                 BasicResourceWizardPanel.this.replace(fragment);
                 target.add(fragment);
@@ -77,18 +78,14 @@ public class BasicResourceWizardPanel extends BasePanel {
         return fragment;
     }
 
-    private Fragment createWizardFragment() {
-        return new DetailsFragment(ID_FRAGMENTS, ID_WIZARD_FRAGMENT, BasicResourceWizardPanel.this) {
-
-            @Override
-            protected void initFragmentLayout() {
-                Form mainForm = new Form(ID_MAIN_FORM);
-                add(mainForm);
-                WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(createSteps()));
-                wizard.setOutputMarkupId(true);
-                mainForm.add(wizard);
-            }
-        };
+    private Fragment createBasicWizardFragment() {
+        Fragment fragment = new Fragment(ID_FRAGMENT, ID_WIZARD_FRAGMENT, BasicResourceWizardPanel.this);
+        Form mainForm = new Form(ID_MAIN_FORM);
+        fragment.add(mainForm);
+        WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(createBasicSteps()));
+        wizard.setOutputMarkupId(true);
+        mainForm.add(wizard);
+        return fragment;
     }
 
     private void reloadObjectDetailsModel(PrismObject<ResourceType> newObject) {
@@ -100,7 +97,7 @@ public class BasicResourceWizardPanel extends BasePanel {
         return resourceModel;
     }
 
-    private List<WizardStep> createSteps() {
+    private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
         steps.add(new BasicSettingStepPanel(getResourceModel()) {
 
@@ -116,7 +113,7 @@ public class BasicResourceWizardPanel extends BasePanel {
 
             @Override
             protected void onFinishWizardPerformed(AjaxRequestTarget target) {
-                BasicResourceWizardPanel.this.onFinishWizardPerformed(target);
+                BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
             }
         });
 
@@ -131,14 +128,14 @@ public class BasicResourceWizardPanel extends BasePanel {
                 steps.add(new DiscoveryStepPanel(getResourceModel()) {
                     @Override
                     protected void onFinishWizardPerformed(AjaxRequestTarget target) {
-                        BasicResourceWizardPanel.this.onFinishWizardPerformed(target);
+                        BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });
             } else {
                 steps.add(new ConfigurationStepPanel(getResourceModel()) {
                     @Override
                     protected void onFinishWizardPerformed(AjaxRequestTarget target) {
-                        BasicResourceWizardPanel.this.onFinishWizardPerformed(target);
+                        BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });
             }
@@ -147,7 +144,7 @@ public class BasicResourceWizardPanel extends BasePanel {
                 steps.add(new SelectObjectClassesStepPanel(getResourceModel()) {
                     @Override
                     protected void onFinishWizardPerformed(AjaxRequestTarget target) {
-                        BasicResourceWizardPanel.this.onFinishWizardPerformed(target);
+                        BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });
             }
@@ -156,6 +153,6 @@ public class BasicResourceWizardPanel extends BasePanel {
         return steps;
     }
 
-    protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+    protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
     }
 }

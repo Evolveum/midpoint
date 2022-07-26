@@ -7,18 +7,13 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.util.Collection;
-import java.util.Locale;
 
-import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPreviewPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -82,11 +76,13 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     protected WebMarkupContainer createTemplatePanel(String id) {
-        return new BasicResourceWizardPanel(id, getObjectDetailsModels()) {
+        return new ResourceWizardPanel(id, getObjectDetailsModels()) {
 
             @Override
-            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
-                ((PageResource) getPageBase()).savePerformed(target);
+            protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                OperationResult result = new OperationResult(OPERATION_SAVE);
+                saveOrPreviewPerformed(target, result, false);
+                return result;
             }
         };
     }
@@ -121,27 +117,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                     .title(getString("PageResource.createResource"))
                     .icon("fas fa-circle-check")
                     .autohide(true)
-                    .delay(10_000)
+                    .delay(5_000)
                     .body(getString("PageResource.createResourceText")).show(target);
-
-            Fragment fragment = createWizardPreviewFragment();
-            PageResource.this.replace(fragment);
-            fragment.setOutputMarkupId(true);
-            target.add(fragment);
         } else {
             target.add(getFeedbackPanel());
         }
-    }
-
-    private String createMessage(OperationResult result) {
-        if (result.getUserFriendlyMessage() != null) {
-            LocalizationService service = getLocalizationService();
-            Locale locale = getSession().getLocale();
-
-            return service.translate(result.getUserFriendlyMessage(), locale);
-        }
-
-        return result.getMessage();
     }
 
     @Override
@@ -183,17 +163,5 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 .noFetch()
                 .item(ResourceType.F_CONNECTOR_REF).resolve()
                 .build();
-    }
-
-    private Fragment createWizardPreviewFragment() {
-        return new DetailsFragment(ID_DETAILS_VIEW, ID_WIZARD_PREVIEW_FRAGMENT, PageResource.this) {
-
-            @Override
-            protected void initFragmentLayout() {
-                ResourceWizardPreviewPanel preview = new ResourceWizardPreviewPanel(ID_PREVIEW, getObjectDetailsModels());
-                preview.setOutputMarkupId(true);
-                add(preview);
-            }
-        };
     }
 }
