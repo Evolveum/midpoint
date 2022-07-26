@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EX
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -121,7 +123,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
                 if (emptyListOnNullQuery) {
                     return Collections.emptyIterator();
                 }
-                query = getPrismContext().queryFactory().createQuery();
+                query = PrismContext.get().queryFactory().createQuery();
             }
             query.setPaging(paging);
 
@@ -215,7 +217,8 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
         OperationResult result = task.getResult();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
+            Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(PrismContext.get(), options,
+                    null);
             Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
