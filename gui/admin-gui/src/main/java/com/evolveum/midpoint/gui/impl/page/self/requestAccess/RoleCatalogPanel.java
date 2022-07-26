@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -135,7 +136,59 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             }
         };
 
-        ObjectDataProvider provider = new ObjectDataProvider(this, searchModel);
+        IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel = new LoadableModel<>(false) {
+            @Override
+            protected ListGroupMenu<RoleCatalogQueryItem> load() {
+                ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
+                selectFirstMenu(menu);
+
+                return menu;
+            }
+        };
+
+        ObjectDataProvider provider = new ObjectDataProvider(this, searchModel) {
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                ListGroupMenu menu = menuModel.getObject();
+                ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
+                RoleCatalogQueryItem item = active != null ? active.getValue() : null;
+
+                if (item == null) {
+                    return null;
+                }
+
+                if (item.orgRef() != null) {
+                    ObjectReferenceType ref = item.orgRef();
+
+                    return getPrismContext()
+                            .queryFor(OrgType.class)
+                            .isInScopeOf(ref.getOid(), item.scopeOne() ? OrgFilter.Scope.ONE_LEVEL : OrgFilter.Scope.SUBTREE)
+                            .asc(ObjectType.F_NAME)
+                            .build();
+                }
+
+                if (item.collectionRef() != null) {
+                    PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(item.collectionRef(), getPageBase());
+                    ObjectCollectionType objectCollection = collection.asObjectable();
+
+                    try {
+                        QName type = objectCollection.getType();
+                        if (type == null) {
+                            type = RoleType.COMPLEX_TYPE;
+                        }
+                        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
+
+                        return getPageBase().getQueryConverter().createObjectQuery(ot.getClassDefinition(), objectCollection.getFilter());
+                    } catch (Exception ex) {
+                        LOGGER.debug("Couldn't create search filter", ex);
+                        getPageBase().error("Couldn't create search filter, reason: " + ex.getMessage());
+                    }
+                }
+
+                return null;
+            }
+        };
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
@@ -177,12 +230,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
                     @Override
                     protected Component createTile(String id, IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
-                        return new CatalogTilePanel(id, model) {
+                        return new CatalogTilePanel<>(id, model) {
 
                             @Override
                             protected void onAdd(AjaxRequestTarget target) {
                                 SelectableBean<ObjectType> bean = model.getObject().getValue();
                                 addItemsPerformed(target, Arrays.asList(bean.getValue()));
+
+                                target.add(this);
                             }
 
                             @Override
@@ -194,6 +249,22 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                             @Override
                             protected void onClick(AjaxRequestTarget target) {
                                 // no selection to be done
+                            }
+
+                            @Override
+                            protected Component createAddButton(String id) {
+                                Component details = super.createAddButton(id);
+                                WebComponentUtil.addDisabledClassBehavior(details);
+
+                                details.add(new EnableBehaviour(() -> {
+                                    ObjectType object = model.getObject().getValue().getValue();
+
+                                    RequestAccess access = RoleCatalogPanel.this.getModelObject();
+                                    return access.getSelectedAssignments().stream()
+                                            .filter(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()))
+                                            .count() == 0;
+                                }));
+                                return details;
                             }
                         };
                     }
@@ -243,13 +314,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         };
         add(viewToggle);
 
-        IModel<List<ListGroupMenuItem>> model = new LoadableModel<>(false) {
+        ListGroupMenuPanel menu = new ListGroupMenuPanel(ID_MENU, menuModel) {
+
             @Override
-            protected List<ListGroupMenuItem> load() {
-                return loadRoleCatalogMenu();
+            protected void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
+                super.onMenuClickPerformed(target, item);
+
+                if (!item.isActive()) {
+                    // we've clicked on menu that has submenus
+                    return;
+                }
+
+                target.add(tilesTable);
             }
         };
-        ListGroupMenuPanel menu = new ListGroupMenuPanel(ID_MENU, model);
         add(menu);
     }
 
@@ -295,24 +373,87 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         return accessRequest.getRoleCatalog();
     }
 
-    private List<ListGroupMenuItem> loadRoleCatalogMenu() {
+    private ListGroupMenu<RoleCatalogQueryItem> loadRoleCatalogMenu() {
         RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
         if (roleCatalog == null) {
-            return new ArrayList<>();
+            return new ListGroupMenu<>();
         }
+
+        ListGroupMenu<RoleCatalogQueryItem> menu = new ListGroupMenu<>();
 
         ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
         if (ref != null) {
-            return loadMenuItems(ref);
+            List<ListGroupMenuItem<RoleCatalogQueryItem>> items = loadMenuFromOrgTree(ref);
+            if (items != null) {
+                menu.getItems().addAll(items);
+            }
         }
 
-        // todo custom menu tree definition, not via org. tree hierarchy
+        List<RoleCollectionViewType> collections = roleCatalog.getCollection();
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = createMenuFromRoleCollections(collections);
+        if (items != null) {
+            menu.getItems().addAll(items);
+        }
 
-        return loadMenuItems(ref);
+        return menu;
     }
 
-    private List<ListGroupMenuItem> loadMenuItems(ObjectReferenceType ref) {
+    private List<ListGroupMenuItem<RoleCatalogQueryItem>> createMenuFromRoleCollections(List<RoleCollectionViewType> collections) {
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = new ArrayList<>();
+        for (RoleCollectionViewType collection : collections) {
+            try {
+                ObjectReferenceType collectionRef = collection.getCollectionRef();
+                PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+
+                String name = WebComponentUtil.getDisplayNameOrName(objectCollection, true);
+                ListGroupMenuItem<RoleCatalogQueryItem> item = new ListGroupMenuItem<>(name);
+                item.setValue(new RoleCatalogQueryItem()
+                        .collectionRef(collectionRef));
+
+                items.add(item);
+            } catch (Exception ex) {
+                LOGGER.debug("Couldn't load object collection as role catalog menu item", ex);
+            }
+        }
+
+        return items;
+    }
+
+    private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref) {
+        return loadMenuFromOrgTree(ref, 1, 3);
+    }
+
+    private void selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu) {
+        for (ListGroupMenuItem item : menu.getItems()) {
+            boolean selected = selectFirstMenu(menu, item);
+            if (selected) {
+                break;
+            }
+        }
+    }
+
+    private boolean selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu, ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        if (item.getItems().isEmpty()) {
+            menu.activateItem(item);
+            return true;
+        }
+
+        for (ListGroupMenuItem child : item.getItems()) {
+            boolean selected = selectFirstMenu(menu, child);
+            if (selected) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref, int currentLevel, int maxLevel) {
         if (ref == null) {
+            return new ArrayList<>();
+        }
+
+        if (currentLevel > maxLevel) {
             return new ArrayList<>();
         }
 
@@ -328,21 +469,25 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ROLE_CATALOG_MENU);
         OperationResult result = task.getResult();
 
-        List<ListGroupMenuItem> list = new ArrayList<>();
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> list = new ArrayList<>();
         try {
             List<PrismObject<ObjectType>> objects = WebModelServiceUtils.searchObjects(ot.getClassDefinition(), query, result, getPageBase());
             for (PrismObject o : objects) {
                 String name = WebComponentUtil.getDisplayNameOrName(o, true);
-                ListGroupMenuItem menu = new ListGroupMenuItem(name);
+                ListGroupMenuItem<RoleCatalogQueryItem> menu = new ListGroupMenuItem<>(name);
+                menu.setValue(new RoleCatalogQueryItem()
+                        .orgRef(new ObjectReferenceType().oid(o.getOid()).type(o.getDefinition().getTypeName()))
+                        .scopeOne(currentLevel < maxLevel));
+
                 menu.setItemsModel(new LoadableModel<>(false) {
                     @Override
-                    protected List<ListGroupMenuItem> load() {
+                    protected List<ListGroupMenuItem<RoleCatalogQueryItem>> load() {
                         ObjectReferenceType parentRef = new ObjectReferenceType()
                                 .oid(o.getOid())
                                 .targetName(o.getName().getOrig())
                                 .type(o.getDefinition().getTypeName());
 
-                        return loadMenuItems(parentRef);
+                        return loadMenuFromOrgTree(parentRef, currentLevel + 1, maxLevel);
                     }
                 });
                 list.add(menu);

@@ -36,36 +36,36 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
+public class TestAdLdapAd2022 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected File getResourceFile() {
-        return new File(getBaseDir(), "resource-ad2012.xml");
+        return new File(getBaseDir(), "resource-ad2022.xml");
     }
 
     @Override
     protected String getLdapServerHost() {
-        return "ad01.ad2012.lab.evolveum.com";
+        return "ad07.ad2022.lab.evolveum.com";
     }
 
     @Override
     protected String getLdapSuffix() {
-        return "DC=ad2012,DC=lab,DC=evolveum,DC=com";
+        return "DC=ad2022,DC=lab,DC=evolveum,DC=com";
     }
 
     @Override
     protected String getLdapSubServerHost() {
-        return "ad02.ad2012.lab.evolveum.com";
+        return "ad08.ad2022.lab.evolveum.com";
     }
 
     @Override
     protected String getLdapSubSuffix() {
-        return "DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com";
+        return "DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com";
     }
 
     @Override
     protected File getReconciliationTaskFile() {
-        return new File(getBaseDir(), "task-reconcile-ad2012-users.xml");
+        return new File(getBaseDir(), "task-reconcile-ad2022-users.xml");
     }
 
     @Override
@@ -75,7 +75,7 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected File getShadowGhostFile() {
-        return new File(TEST_DIR, "shadow-ghost-2012.xml");
+        return new File(TEST_DIR, "shadow-ghost-2022.xml");
     }
 
     @Override
@@ -90,16 +90,23 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected String getAccountJackSid() {
-        return "S-1-5-21-3636361896-1924952074-658678417-1109";
+        return "S-1-5-21-1409450148-683378572-3960173012-1105";
     }
 
     @Override
     protected int getNumberOfAllAccounts() {
+        //Namely: Administrator, Guest, cloudbase-init, AD07, krbtgt
+        // Jack Sparrow, MidPoint, SSH Test, sub2022$
         return 9;
     }
 
     @Override
     protected boolean hasExchange() {
         return false;
+    }
+
+    @Override
+    protected String getExpected182FirstShadow() {
+        return "CN=Administrator," + getPeopleLdapSuffix();
     }
 }

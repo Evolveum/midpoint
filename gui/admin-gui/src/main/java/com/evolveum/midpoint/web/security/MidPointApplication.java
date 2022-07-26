@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
 import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
 import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
-import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
@@ -326,6 +326,12 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         // Additional wicket configuration
         wicketConfigurators.forEach(c -> c.configure(this));
+
+        // default select2 css/js should not be attached via wicket resources. It's already embedded in vendors js/css
+        org.wicketstuff.select2.ApplicationSettings settings = org.wicketstuff.select2.ApplicationSettings.get();
+        settings.setIncludeJavascriptFull(false);
+        settings.setIncludeJavascript(false);
+        settings.setIncludeCss(false);
     }
 
     public DeploymentInformationType getDeploymentInfo() {

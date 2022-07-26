@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <form wicket:id="searchForm">
+        <wicket:enclosure child="searchInput">
+            <div class="input-group">
+                <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input"
+                        class="form-control form-control-sm" type="text" style="min-width: 300px;"/>
+                <div wicket:id="searchButtonPanel" />
+            </div>
+        </wicket:enclosure>
+    </form>
+</wicket:panel>

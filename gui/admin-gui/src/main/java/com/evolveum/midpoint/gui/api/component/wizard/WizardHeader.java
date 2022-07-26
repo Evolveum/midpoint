@@ -34,17 +34,29 @@ public class WizardHeader extends BasePanel {
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
 
-    public WizardHeader(String id, IModel<String> currentPanelTitle, IModel<String> nextPanelTitle) {
+    private WizardModel model;
+
+    private int activeStepIndex = -1;
+
+    public WizardHeader(String id, WizardModel model) {
         super(id);
+
+        this.model = model;
+
+        IModel<String> currentPanelTitle = () -> model.getActiveStep().getTitle().getObject();
+        IModel<String> nextPanelTitle = () -> {
+            WizardStep next = model.getNextPanel();
+            return next != null ? next.getTitle().getObject() : null;
+        };
 
         initLayout(currentPanelTitle, nextPanelTitle);
     }
 
     @Override
     protected void onBeforeRender() {
-        super.onBeforeRender();
-
         addOrReplace(createHeaderContent(ID_CONTENT));
+
+        super.onBeforeRender();
     }
 
     private void initLayout(IModel<String> currentPanelTitle, IModel<String> nextPanelTitle) {

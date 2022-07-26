@@ -9,10 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -20,6 +23,9 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
@@ -31,8 +37,11 @@ import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +58,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(TileType.class);
+
+    private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
+
+    private static final int MULTISELECT_PAGE_SIZE = 10;
 
     private static final String DEFAULT_TILE_ICON = "fas fa-user-friends";
 
@@ -94,6 +108,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
     private static final String ID_TILE = "tile";
 
     private static final String ID_SELECT_MANUALLY = "selectManually";
+    private static final String ID_MULTISELECT = "multiselect";
 
     private IModel<List<Tile<PersonOfInterest>>> tiles;
 
@@ -143,6 +158,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
                         list.add(tile);
                     }
 
+                    selectTileIfOnlyOne(list);
+
                     return list;
                 }
 
@@ -151,12 +168,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
                 }
 
                 if (selection.isAllowRequestForOthers() != null && !selection.isAllowRequestForOthers()) {
+                    selectTileIfOnlyOne(list);
+
                     return list;
                 }
 
                 List<GroupSelectionType> selections = selection.getGroup();
                 if (selections.isEmpty()) {
                     list.add(createDefaultTile(TileType.GROUP_OTHERS));
+                    selectTileIfOnlyOne(list);
                     return list;
                 }
 
@@ -164,9 +184,17 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
                     list.add(createTile(gs));
                 }
 
+                selectTileIfOnlyOne(list);
+
                 return list;
             }
         };
+    }
+
+    private void selectTileIfOnlyOne(List<Tile<PersonOfInterest>> list) {
+        if (list != null && list.size() == 1) {
+            list.get(0).setSelected(true);
+        }
     }
 
     private Tile<PersonOfInterest> createTile(GroupSelectionType selection) {
@@ -260,6 +288,40 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
     private Fragment initSelectionFragment() {
         Fragment fragment = new Fragment(ID_FRAGMENTS, ID_SELECTION_FRAGMENT, this);
 
+        IModel<Collection<ObjectReferenceType>> multiselectModel = new IModel<>() {
+
+            @Override
+            public Collection<ObjectReferenceType> getObject() {
+                return selectedGroupOfUsers.getObject();
+            }
+
+            @Override
+            public void setObject(Collection<ObjectReferenceType> object) {
+                if (object == null) {
+                    selectedGroupOfUsers.setObject(new ArrayList<>());
+                    return;
+                }
+
+                selectedGroupOfUsers.setObject(new ArrayList<>(object));
+            }
+        };
+
+        Select2MultiChoice<ObjectReferenceType> multiselect = new Select2MultiChoice<>(ID_MULTISELECT, multiselectModel,
+                new ObjectReferenceProvider(this));
+        multiselect.getSettings()
+                .setMinimumInputLength(2);
+        multiselect.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                Collection<ObjectReferenceType> refs = multiselect.getModel().getObject();
+                selectedGroupOfUsers.setObject(new ArrayList<>(refs));
+
+                target.add(PersonOfInterestPanel.this.getNext());
+            }
+        });
+        fragment.add(multiselect);
+
         AjaxLink selectManually = new AjaxLink<>(ID_SELECT_MANUALLY) {
 
             @Override
@@ -272,9 +334,28 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
         return fragment;
     }
 
+    private boolean canSkipStep() {
+        List<Tile<PersonOfInterest>> list = tiles.getObject();
+        if (list.size() != 1) {
+            return false;
+        }
+
+        Tile<PersonOfInterest> tile = list.get(0);
+        return tile.isSelected() && tile.getValue().type == TileType.MYSELF;
+    }
+
     @Override
     protected void onBeforeRender() {
-        super.onBeforeRender();
+        // todo doesn't work properly, header stays hidden on next step
+//        if (canSkipStep()) {
+//            // there's only one option, we don't have to make user choose it, we'll take it and skip this step
+//            if (submitData()) {
+//                getWizard().next();
+//                throw new RestartResponseException(getPage());
+//            }
+//
+//            return;
+//        }
 
         Fragment fragment;
         switch (selectionState.getObject()) {
@@ -286,6 +367,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
                 fragment = initTileFragment();
         }
         addOrReplace(fragment);
+
+        super.onBeforeRender();
     }
 
     private void myselfPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> myself) {
@@ -395,7 +478,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
         for (UserType user : users) {
             refs.add(new ObjectReferenceType()
                     .oid(user.getOid())
-                    .type(UserType.COMPLEX_TYPE));
+                    .type(UserType.COMPLEX_TYPE)
+                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject())));
         }
 
         selectedGroupOfUsers.setObject(refs);
@@ -418,6 +502,18 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        boolean submited = submitData();
+        if (!submited) {
+            return false;
+        }
+
+        getWizard().next();
+        target.add(getWizard().getPanel());
+
+        return false;
+    }
+
+    private boolean submitData() {
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected == null) {
             return false;
@@ -440,10 +536,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
             getModelObject().addPersonOfInterest(selectedGroupOfUsers.getObject());
         }
 
-        getWizard().next();
-        target.add(getWizard().getPanel());
-
-        return false;
+        return true;
     }
 
     private TargetSelectionType getTargetSelectionConfiguration() {
@@ -458,5 +551,74 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
         }
 
         return accessRequest.getTargetSelection();
+    }
+
+    public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {
+
+        private static final long serialVersionUID = 1L;
+
+        private PersonOfInterestPanel panel;
+
+        public ObjectReferenceProvider(PersonOfInterestPanel panel) {
+            this.panel = panel;
+        }
+
+        @Override
+        public String getDisplayValue(ObjectReferenceType ref) {
+            return WebComponentUtil.getDisplayNameOrName(ref);
+        }
+
+        @Override
+        public String getIdValue(ObjectReferenceType ref) {
+            return ref != null ? ref.getOid() : null;
+        }
+
+        @Override
+        public void query(String text, int page, Response<ObjectReferenceType> response) {
+            ObjectFilter filter = null;
+
+            Tile<PersonOfInterest> selected = panel.getSelectedTile();
+            if (selected != null) {
+                String identifier = selected.getValue().groupIdentifier;
+                filter = panel.createObjectFilterFromGroupSelection(identifier);
+            }
+
+            ObjectFilter substring = panel.getPrismContext().queryFor(UserType.class)
+                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+
+            ObjectFilter full = substring;
+            if (filter != null) {
+                full = panel.getPrismContext().queryFactory().createAnd(filter, substring);
+            }
+
+            ObjectQuery query = panel.getPrismContext()
+                    .queryFor(UserType.class)
+                    .filter(full)
+                    .asc(UserType.F_NAME)
+                    .maxSize(MULTISELECT_PAGE_SIZE).offset(page * MULTISELECT_PAGE_SIZE).build();
+
+            Task task = panel.getPageBase().createSimpleTask(OPERATION_LOAD_USERS);
+            OperationResult result = task.getResult();
+
+            try {
+                List<PrismObject<UserType>> objects = WebModelServiceUtils.searchObjects(UserType.class, query, result, panel.getPageBase());
+
+                response.addAll(objects.stream()
+                        .map(o -> new ObjectReferenceType()
+                                .oid(o.getOid())
+                                .type(UserType.COMPLEX_TYPE)
+                                .targetName(WebComponentUtil.getDisplayNameOrName(o))).collect(Collectors.toList()));
+            } catch (Exception ex) {
+                LOGGER.debug("Couldn't search users for multiselect", ex);
+            }
+        }
+
+        @Override
+        public Collection<ObjectReferenceType> toChoices(Collection<String> collection) {
+            return collection.stream()
+                    .map(oid -> new ObjectReferenceType()
+                            .oid(oid)
+                            .type(UserType.COMPLEX_TYPE)).collect(Collectors.toList());
+        }
     }
 }

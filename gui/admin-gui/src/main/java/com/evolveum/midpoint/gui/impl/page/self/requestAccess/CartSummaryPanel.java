@@ -8,13 +8,18 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -22,28 +27,44 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.DateValidator;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -51,25 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class CartSummaryPanel extends BasePanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P1D"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Day")),
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P7D"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Week")),
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P1M"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Month")),
-            new ValidityPredefinedValueType()
-                    .duration(XmlTypeConverter.createDuration("P1Y"))
-                    .display(new DisplayType().label("ShoppingCartPanel.validity1Year"))
-    );
-
-    private static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
-
-    private static final String VALIDITY_CUSTOM_FOR_EACH = "validityCustomForEach";
 
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
@@ -82,6 +84,14 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     private static final String ID_VALIDITY = "validity";
     private static final String ID_OPEN_CONFLICT = "openConflict";
     private static final String ID_SUBMIT = "submit";
+    private static final String ID_VALIDITY_INFO = "validityInfo";
+    private static final String ID_COMMENT_INFO = "commentInfo";
+    private static final String ID_CUSTOM_VALIDITY = "customValidity";
+    private static final String ID_CUSTOM_VALIDITY_INFO = "customValidityInfo";
+    private static final String ID_CUSTOM_VALIDITY_FROM = "customValidityFrom";
+    private static final String ID_CUSTOM_VALIDITY_TO = "customValidityTo";
+    private static final String ID_FORM = "form";
+    private static final String ID_MESSAGES = "messages";
 
     private WizardModel wizard;
 
@@ -97,10 +107,10 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     protected void onConfigure() {
         super.onConfigure();
 
-        DropDownChoice validity = (DropDownChoice) get(ID_VALIDITY);
+        DropDownChoice validity = (DropDownChoice) get(ID_FORM + ":" + ID_VALIDITY);
         validity.setRequired(isValidityRequired());
 
-        TextArea comment = (TextArea) get(ID_COMMENT);
+        TextArea comment = (TextArea) get(ID_FORM + ":" + ID_COMMENT);
         comment.setRequired(isCommentRequired());
     }
 
@@ -136,11 +146,70 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
         };
         add(table);
 
-        DropDownChoice validity = new DropDownChoice(ID_VALIDITY, createValidityOptions(), (IChoiceRenderer) object -> {
-            if (VALIDITY_CUSTOM_LENGTH.equals(object)) {
-                return getString("ShoppingCartPanel.validityCustomLength");
-            } else if (VALIDITY_CUSTOM_FOR_EACH.equals(object)) {
-                return getString("ShoppingCartPanel.validityCustomForEach");
+        IModel validityModel = new IModel<>() {
+            @Override
+            public Object getObject() {
+                return getModelObject().getSelectedValidity();
+            }
+
+            @Override
+            public void setObject(Object object) {
+                getModelObject().setSelectedValidity(object);
+            }
+        };
+
+        IModel<Date> customFrom = Model.of((Date) null);
+        IModel<Date> customTo = Model.of((Date) null);
+
+        MidpointForm form = new MidpointForm(ID_FORM);
+        add(form);
+
+        WebMarkupContainer customValidity = new WebMarkupContainer(ID_CUSTOM_VALIDITY);
+        customValidity.add(new VisibleBehaviour(() -> RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(validityModel.getObject())));
+        customValidity.setOutputMarkupId(true);
+        customValidity.setOutputMarkupPlaceholderTag(true);
+        form.add(customValidity);
+
+        Label customValidityInfo = new Label(ID_CUSTOM_VALIDITY_INFO);
+        customValidityInfo.add(new TooltipBehavior());
+        customValidity.add(customValidityInfo);
+
+        DateInput customValidFrom = new DateInput(ID_CUSTOM_VALIDITY_FROM, customFrom);
+        customValidFrom.setOutputMarkupId(true);
+        customValidity.add(customValidFrom);
+
+        DateInput customValidTo = new DateInput(ID_CUSTOM_VALIDITY_TO, customTo);
+        customValidTo.setOutputMarkupId(true);
+        customValidity.add(customValidTo);
+
+        form.add(new DateValidator(customValidFrom, customValidTo));
+        form.add(new AbstractFormValidator() {
+            @Override
+            public FormComponent<?>[] getDependentFormComponents() {
+                return new FormComponent[]{customValidFrom, customValidTo};
+            }
+
+            @Override
+            public void validate(Form<?> form) {
+                if (!isValidityRequired()) {
+                    return;
+                }
+
+                Date from = customValidFrom.getConvertedInput();
+                Date to = customValidTo.getConvertedInput();
+                if (from == null && to == null) {
+                    form.error(getString("CartSummaryPanel.validityEmpty"));
+                }
+            }
+        });
+
+        Label validityInfo = new Label(ID_VALIDITY_INFO);
+        validityInfo.add(new TooltipBehavior());
+        form.add(validityInfo);
+
+        DropDownChoice validity = new DropDownChoice(ID_VALIDITY, validityModel, createValidityOptions(), (IChoiceRenderer) object -> {
+            if (RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(object) || RequestAccess.VALIDITY_CUSTOM_FOR_EACH.equals(object)) {
+                return getString("RequestAccess." + object);
             }
 
             if (!(object instanceof ValidityPredefinedValueType)) {
@@ -155,12 +224,25 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
 
             return value.getDuration().toString();
         });
+        validity.setNullValid(true);
+        validity.setLabel(createStringResource("ShoppingCartPanel.validity"));
         validity.add(new VisibleBehaviour(() -> isValidityVisible()));
-        add(validity);
+        validity.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(customValidity);
+            }
+        });
+        form.add(validity);
+
+        Label commentInfo = new Label(ID_COMMENT_INFO);
+        commentInfo.add(new TooltipBehavior());
+        form.add(commentInfo);
 
         TextArea comment = new TextArea(ID_COMMENT, new PropertyModel(getModel(), "comment"));
+        comment.setLabel(createStringResource("ShoppingCartPanel.comment"));
         comment.add(new VisibleBehaviour(() -> isCommentVisible()));
-        add(comment);
+        form.add(comment);
 
         AjaxLink openConflict = new AjaxLink<>(ID_OPEN_CONFLICT) {
             @Override
@@ -169,20 +251,47 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
             }
         };
         openConflict.add(new VisibleBehaviour(() -> getModelObject().getWarningCount() > 0 || getModelObject().getErrorCount() > 0));
-        add(openConflict);
+        form.add(openConflict);
 
-        AjaxLink submit = new AjaxLink<>(ID_SUBMIT) {
+        FeedbackPanel messages = new FeedbackPanel(ID_MESSAGES);
+        messages.setOutputMarkupId(true);
+        messages.setOutputMarkupPlaceholderTag(true);
+        form.add(messages);
+
+        AjaxSubmitLink submit = new AjaxSubmitLink(ID_SUBMIT) {
+
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                submitPerformed(target);
+            protected void onSubmit(AjaxRequestTarget target) {
+                submitPerformed(target, customFrom, customTo);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(messages);
             }
         };
         submit.add(new EnableBehaviour(() -> getModelObject().canSubmit()));
         WebComponentUtil.addDisabledClassBehavior(submit);
-        add(submit);
+        form.add(submit);
     }
 
     protected void openConflictPerformed(AjaxRequestTarget target) {
+    }
+
+    private void submitPerformed(AjaxRequestTarget target, IModel<Date> customFrom, IModel<Date> customTo) {
+        RequestAccess access = getModelObject();
+
+        if (!RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(access.getSelectedValidity())) {
+            submitPerformed(target);
+            return;
+        }
+
+        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(customFrom.getObject());
+        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(customTo.getObject());
+
+        access.setValidity(from, to);
+
+        submitPerformed(target);
     }
 
     protected void submitPerformed(AjaxRequestTarget target) {
@@ -198,8 +307,9 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
                 items.addAll(getValidityPeriods());
 
                 if (!isAllowOnlyGlobalSettings()) {
-                    items.add(VALIDITY_CUSTOM_LENGTH);
-                    items.add(VALIDITY_CUSTOM_FOR_EACH);
+                    items.add(RequestAccess.VALIDITY_CUSTOM_LENGTH);
+                    // todo custom value for each - UI not implemented yet
+                    // items.add(RequestAccess.VALIDITY_CUSTOM_FOR_EACH);
                 }
 
                 return items;
@@ -221,12 +331,12 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     private List<ValidityPredefinedValueType> getValidityPeriods() {
         CheckoutType config = getCheckoutConfiguration();
         if (config == null || config.getValidityConfiguration() == null) {
-            return DEFAULT_VALIDITY_PERIODS;
+            return RequestAccess.DEFAULT_VALIDITY_PERIODS;
         }
 
         CheckoutValidityConfigurationType validityConfig = config.getValidityConfiguration();
         List<ValidityPredefinedValueType> values = validityConfig.getPredefinedValue();
-        return values != null && !values.isEmpty() ? values : DEFAULT_VALIDITY_PERIODS;
+        return values != null && !values.isEmpty() ? values : RequestAccess.DEFAULT_VALIDITY_PERIODS;
     }
 
     private CheckoutType getCheckoutConfiguration() {
@@ -285,12 +395,35 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
 
     private List<IColumn<ShoppingCartItem, String>> createColumns() {
         List<IColumn<ShoppingCartItem, String>> columns = new ArrayList<>();
-//        columns.add(new IconColumn() {
-//            @Override
-//            protected DisplayType getIconDisplayType(IModel rowModel) {
-//                return null;
-//            }
-//        });
+        columns.add(new RoundedIconColumn<>(null) {
+
+            @Override
+            protected IModel<AbstractResource> createPreferredImage(IModel<ShoppingCartItem> model) {
+                return new LoadableModel<>(false) {
+                    @Override
+                    protected AbstractResource load() {
+                        ObjectReferenceType ref = model.getObject().getAssignment().getTargetRef();
+
+                        Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                                .build();
+
+                        Task task = getPageBase().createSimpleTask("load photo");
+                        OperationResult result = task.getResult();
+
+                        PrismObject obj = WebModelServiceUtils.loadObject(ObjectTypes.getObjectTypeClass(ref.getType()), ref.getOid(), options, getPageBase(), task, result);
+                        FocusType focus = (FocusType) obj.asObjectable();
+                        byte[] photo = focus.getJpegPhoto();
+
+                        if (photo == null) {
+                            return null;
+                        }
+
+                        return new ByteArrayResource("image/jpeg", photo);
+                    }
+                };
+            }
+        });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
 
             @Override
@@ -331,7 +464,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
                     }
                 });
 
-                item.add(AttributeAppender.append("style", "width: 100px;"));
+                item.add(AttributeAppender.append("style", "width: 120px;"));
                 item.add(fragment);
             }
         });

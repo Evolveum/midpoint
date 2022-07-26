@@ -26,6 +26,7 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
     public static final String F_POOL_CONFIG_MAX_IDLE = "poolConfigMaxIdle";
     public static final String F_POOL_CONFIG_WAIT_TIMEOUT = "poolConfigWaitTimeout";
     public static final String F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME = "poolConfigMinEvictableIdleTime";
+    public static final String F_POOL_CONFIG_MAX_IDLE_TIME = "poolConfigMaxIdleTime";
     public static final String F_POOL_STATUS_NUM_IDLE = "poolStatusNumIdle";
     public static final String F_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
@@ -246,6 +247,7 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelLn(sb, "poolConfigMaxIdle", poolConfigMaxIdle, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "poolConfigWaitTimeout", poolConfigWaitTimeout, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "poolConfigMinEvictableIdleTime", poolConfigMinEvictableIdleTime, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "poolConfigMaxIdleTime", poolConfigMaxIdleTime, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "poolStatusNumIdle", poolStatusNumIdle, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "poolStatusNumActive", poolStatusNumActive, indent + 1);
         return sb.toString();

@@ -16,8 +16,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,6 +58,25 @@ public class RequestAccess implements Serializable {
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_REQUEST_ASSIGNMENTS_SINGLE = DOT_CLASS + "requestAssignmentsSingle";
 
+    public static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
+            new ValidityPredefinedValueType()
+                    .duration(XmlTypeConverter.createDuration("P1D"))
+                    .display(new DisplayType().label("RequestAccess.validity1Day")),
+            new ValidityPredefinedValueType()
+                    .duration(XmlTypeConverter.createDuration("P7D"))
+                    .display(new DisplayType().label("RequestAccess.validity1Week")),
+            new ValidityPredefinedValueType()
+                    .duration(XmlTypeConverter.createDuration("P1M"))
+                    .display(new DisplayType().label("RequestAccess.validity1Month")),
+            new ValidityPredefinedValueType()
+                    .duration(XmlTypeConverter.createDuration("P1Y"))
+                    .display(new DisplayType().label("RequestAccess.validity1Year"))
+    );
+
+    public static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
+
+    public static final String VALIDITY_CUSTOM_FOR_EACH = "validityCustomForEach";
+
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
     /**
@@ -72,6 +90,11 @@ public class RequestAccess implements Serializable {
 
     private QName defaultRelation = SchemaConstants.ORG_DEFAULT;
 
+    /**
+     * Used as backing field for combobox model. It can contain different values - string keys (custom length label), predefined values
+     */
+    private Object selectedValidity;
+
     private Duration validity;
 
     private String comment;
@@ -79,6 +102,25 @@ public class RequestAccess implements Serializable {
     private boolean conflictsDirty;
 
     private List<Conflict> conflicts;
+
+    public Object getSelectedValidity() {
+        return selectedValidity;
+    }
+
+    public void setSelectedValidity(Object selectedValidity) {
+        if (selectedValidity instanceof ValidityPredefinedValueType) {
+            ValidityPredefinedValueType predefined = (ValidityPredefinedValueType) selectedValidity;
+            setValidity(predefined.getDuration());
+        } else {
+            setValidity(null);
+        }
+
+        this.selectedValidity = selectedValidity;
+    }
+
+    public Set<AssignmentType> getSelectedAssignments() {
+        return Collections.unmodifiableSet(selectedAssignments);
+    }
 
     public List<Conflict> getConflicts() {
         if (conflicts == null) {
@@ -110,7 +152,7 @@ public class RequestAccess implements Serializable {
 
         Set<String> newOids = refs.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
-        Set<ObjectReferenceType> existing = requestItems.keySet();
+        Set<ObjectReferenceType> existing = new HashSet<>(requestItems.keySet());
         Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
 
         boolean changed = false;
@@ -277,6 +319,9 @@ public class RequestAccess implements Serializable {
         selectedAssignments.clear();
         relation = null;
 
+        selectedValidity = null;
+        validity = null;
+
         comment = null;
 
         conflictsDirty = false;
@@ -296,7 +341,7 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        Task task = page.createSimpleTask("computeConflicts");
+        Task task = page.createSimpleTask(OPERATION_COMPUTE_ALL_CONFLICTS);
         OperationResult result = task.getResult();
 
         List<Conflict> allConflicts = new ArrayList<>();
@@ -573,9 +618,21 @@ public class RequestAccess implements Serializable {
 
         this.validity = validity;
 
+        XMLGregorianCalendar from = validity != null ? XmlTypeConverter.createXMLGregorianCalendar() : null;
+
+        XMLGregorianCalendar to = null;
+        if (validity != null) {
+            to = XmlTypeConverter.createXMLGregorianCalendar(from);
+            to.add(validity);
+        }
+
+        setValidity(from, to);
+    }
+
+    public void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> {
-                if (validity == null) {
+                if (from == null && to == null) {
                     a.setActivation(null);
                 } else {
                     ActivationType activation = a.getActivation();
@@ -584,13 +641,7 @@ public class RequestAccess implements Serializable {
                         a.setActivation(activation);
                     }
 
-                    XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar();
-
-                    XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(from);
-                    to.add(validity);
-
-                    activation.validFrom(from)
-                            .validTo(to);
+                    activation.validFrom(from).validTo(to);
                 }
             });
         }

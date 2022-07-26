@@ -8,8 +8,10 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
@@ -84,24 +86,34 @@ public class GuiProfileCompiler {
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(), systemConfiguration, task, result));
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-        collect(adminGuiConfigurations, principal, authorizationTransformer, task, result);
+        Set<String> profileDependencies = new HashSet<>();
+
+        profileDependencies.add(principal.getOid());
+        if (systemConfiguration != null) {
+            profileDependencies.add(systemConfiguration.getOid());
+        }
+        collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
         if (compiledGuiProfile != null) {
             setupFocusPhoto(principal, compiledGuiProfile, result);
             setupLocale(principal, compiledGuiProfile);
+            compiledGuiProfile.setDependencies(profileDependencies);
         }
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 
-    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, GuiProfiledPrincipal principal, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
+    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, Set<String> consideredOids, GuiProfiledPrincipal principal, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
         FocusType focusType = principal.getFocus();
 
         Collection<? extends EvaluatedAssignment<? extends FocusType>> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
         Collection<Authorization> authorizations = principal.getAuthorities();
         for (EvaluatedAssignment<? extends FocusType> assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
+                // TODO: Should we add also invalid assignments?
+                consideredOids.addAll(assignment.getAdminGuiDendencies());
+
                 addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
             }

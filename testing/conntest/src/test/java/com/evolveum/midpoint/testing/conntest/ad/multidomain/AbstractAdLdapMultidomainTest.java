@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.testing.conntest.ad.AbstractAdLdapTest;
 import com.evolveum.midpoint.testing.conntest.ad.AdTestMixin;
 
@@ -445,7 +446,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass());
         ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -528,7 +529,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -541,7 +542,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
             rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         } else {
             // This seems to vary quite wildly from system to system. Maybe TODO investigate the reasons later?
-            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 9,10);
+            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 8,10);
         }
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
@@ -562,7 +563,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(2);
@@ -570,8 +571,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 2, task, result);
 
-        // TODO: Why 2? Why not 1?
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -588,7 +588,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(5);
@@ -596,8 +596,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 5, task, result);
 
-        // TODO: Why 2? Why not 1?
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -614,7 +613,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(), ShadowKindType.ACCOUNT, "default");
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(0);
@@ -623,7 +622,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 2, task, result);
 
-        // TODO: Why 2? Why not 1?
+        // increment = 2 because there are two searches:
+        // 1. one for baseContext (as defined for account/default)
+        // 2. one for objects
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
@@ -645,15 +646,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
         query.setPaging(paging);
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 2, task, result);
 
-        // TODO: Why 2? Why not 1?
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -674,7 +674,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass());
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 5);
         query.setPaging(paging);
@@ -687,8 +687,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // THEN
         allowDuplicateSearchResults = false;
 
-        // TODO: Why 2? Why not 1?
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -721,8 +720,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 //        assertAccountShadow(shadows.get(0), "CN=Adolf Supperior,CN=Users,DC=ad,DC=evolveum,DC=com");
 //        assertAccountShadow(shadows.get(1), "CN=DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852},CN=Users,DC=ad,DC=evolveum,DC=com");
 
-        // TODO: Why 2? Why not 1?
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -734,7 +732,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
     }
 
     protected String getExpected182FirstShadow() {
-        return "CN=Administrator," + getPeopleLdapSuffix();
+        return "CN=Admin," + getPeopleLdapSuffix();
     }
 
     /**
@@ -756,7 +754,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         // WHEN
         when();
-        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, SHADOW_GHOST_OID, null, task, result);
+        modelService.getObject(ShadowType.class, SHADOW_GHOST_OID, null, task, result);
 
         // THEN
         then();
@@ -1085,7 +1083,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
     }
 
     protected void testModifyUserBarbossaPasswordSelfServiceFailure(
-            String oldPassword, String newPassword) throws Exception {
+            String oldPassword) throws Exception {
         // GIVEN
         login(USER_BARBOSSA_USERNAME);
 
@@ -1094,7 +1092,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
-                oldPassword, newPassword);
+                oldPassword, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
 
         // WHEN
         when();
@@ -1105,9 +1103,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         login(USER_ADMINISTRATOR_USERNAME);
         assertPartialError(result);
 
-        assertBarbossaEnabled(newPassword);
+        assertBarbossaEnabled(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
         assertUserAfter(USER_BARBOSSA_OID)
-                .assertPassword(newPassword);
+                .assertPassword(AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
 
@@ -1133,7 +1131,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         then();
         assertSuccess(result);
 
-        assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
+        assertBarbossaDisabled();
     }
 
     /**
@@ -1153,7 +1151,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         then();
         assertSuccess(result);
 
-        assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
+        assertBarbossaDisabled();
     }
 
     /**
@@ -1222,7 +1220,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         then();
         assertSuccess(result);
 
-        assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
+        assertBarbossaDisabled();
 
         assertLdapConnectorReasonableInstances();
     }
@@ -1274,7 +1272,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         return user;
     }
 
-    private void assertBarbossaDisabled(String password) throws Exception {
+    private void assertBarbossaDisabled() throws Exception {
 //        assertLdapConnectorInstances(2);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -1293,7 +1291,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertAccountDisabled(shadow);
 
         try {
-            assertLdapPassword(null, entry, password);
+            assertLdapPassword(null, entry, AbstractLdapTest.USER_BARBOSSA_PASSWORD_AD_1);
             AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
             // this is expected
@@ -1918,6 +1916,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         display("Shadow (model)", shadow);
         accountSubmanOid = shadow.getOid();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        assertNotNull("Unexpected situation, no identifiers found", identifiers);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
@@ -2199,7 +2198,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // THEN
         then();
 
-        assertUsers(getNumberOfAllAccounts() + 2); // all accounts + administrator + ?
+        assertUsers(getNumberOfAllAccounts() + 1); // all accounts + administrator
 
         // TODO: better asserts
 

@@ -415,6 +415,24 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="RoleCollectionViewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                todo
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string"/>
+            <!-- todo mark deprecated or remove entirely -->
+            <!--<xsd:element name="collectionViewIdentifier" type="xsd:string" minOccurs="0"/>-->
+            <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="RoleCatalogType">
         <xsd:annotation>
             <xsd:documentation>
@@ -430,8 +448,7 @@
             </xsd:element>
             <xsd:element name="allowedViews" type="tns:RoleCatalogViewType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0"/>
-
-            <!-- todo collection -->
+            <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

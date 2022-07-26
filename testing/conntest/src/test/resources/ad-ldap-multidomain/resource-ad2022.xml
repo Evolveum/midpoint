@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016-2020 Evolveum and contributors
+  ~ Copyright (c) 2016-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
-<!-- AD resource, but with slightly stranger configuration:
-     * SPR is used instead of VLV for paging.
-     -->
-
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -18,7 +13,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           oid="eced6d24-73e3-11e5-8457-93eff15a6b85">
-    <name>Active Directory 2012R2 Strange (LDAP)</name>
+    <name>Active Directory 2022 (LDAP)</name>
 
     <connectorRef type="ConnectorType">
         <filter>
@@ -31,23 +26,22 @@
 
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
-            <icfcldap:host>ad01.ad2012.lab.evolveum.com</icfcldap:host>
+            <icfcldap:host>ad07.ad2022.lab.evolveum.com</icfcldap:host>
             <icfcldap:port>636</icfcldap:port>
-            <icfcldap:baseContext><expression><const>adBaseDn</const></expression></icfcldap:baseContext>
-            <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:bindDn>
+            <icfcldap:baseContext><expression><const>ad2022BaseDn</const></expression></icfcldap:baseContext>
+            <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:bindDn>
             <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
             <icfcldap:bindPassword>
                 <t:clearValue>qwe.123</t:clearValue>
             </icfcldap:bindPassword>
-            <icfcldap:servers>host=ad02.ad2012.lab.evolveum.com; baseContext=DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
-            <icfcldap:pagingStrategy>spr</icfcldap:pagingStrategy>
+            <icfcldap:servers>host=ad08.ad2022.lab.evolveum.com; baseContext=DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
             <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
-            <icfcldap:baseContextToSynchronize>DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
+            <icfcldap:baseContextToSynchronize>DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -57,28 +51,23 @@
     </connectorConfiguration>
 
     <additionalConnector>
-        <name>powershell</name>
+        <name>ssh</name>
         <connectorRef>
             <filter>
                 <q:equal>
                     <q:path>c:connectorType</q:path>
-                    <q:value>com.evolveum.polygon.connector.powershell.PowerShellConnector</q:value>
+                    <q:value>com.evolveum.polygon.connector.ssh.SshConnector</q:value>
                 </q:equal>
             </filter>
         </connectorRef>
         <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-            <icfc:configurationProperties xmlns:icfcps="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-powershell/com.evolveum.polygon.connector.powershell.PowerShellConnector">
-                <icfcps:winRmHost>ad01.ad2012.lab.evolveum.com</icfcps:winRmHost>
-                <icfcps:winRmUsername>midpoint</icfcps:winRmUsername>
-                <icfcps:winRmPassword>
+            <icfc:configurationProperties xmlns:icfssh="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ssh/com.evolveum.polygon.connector.ssh.SshConnector">
+                <icfssh:host>ad07.ad2022.lab.evolveum.com</icfssh:host>
+                <icfssh:username>midpoint</icfssh:username>
+                <icfssh:password>
                     <t:clearValue>qwe.123</t:clearValue>
-                </icfcps:winRmPassword>
-                <icfcps:winRmDomain>midpoint</icfcps:winRmDomain>
-                <icfcps:winRmAuthenticationScheme>credssp</icfcps:winRmAuthenticationScheme>
-                <icfcps:winRmPort>5986</icfcps:winRmPort>
-                <icfcps:winRmUseHttps>true</icfcps:winRmUseHttps>
-                <icfcps:powershellArgumentStyle>variables</icfcps:powershellArgumentStyle>
-                <icfcps:disableCertificateChecks>true</icfcps:disableCertificateChecks>
+                </icfssh:password>
+                <icfssh:argumentStyle>variables-bash</icfssh:argumentStyle>
             </icfc:configurationProperties>
             <icfc:resultsHandlerConfiguration>
                 <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -107,16 +96,19 @@
             <kind>account</kind>
             <displayName>Default Account</displayName>
             <default>true</default>
-            <objectClass>ri:user</objectClass>
-            <baseContext>
-                <objectClass>ri:organizationalUnit</objectClass>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <expression><const>ad2012UsersDn</const></expression>
-                    </q:equal>
-                </filter>
-            </baseContext>
+            <delineation>
+                <objectClass>ri:user</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <expression><const>ad2022UsersDn</const></expression>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </delineation>
+
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
@@ -128,7 +120,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('CN', fullName + iterationToken, midpoint.getConst('ad2012UsersDn'))
+                                basic.composeDnWithSuffix('CN', fullName + iterationToken, midpoint.getConst('ad2022UsersDn'))
                             </code>
                         </script>
                     </expression>
@@ -217,7 +209,7 @@
                     <expression>
                         <script>
                             <code>
-                                name + iterationToken + '@ad2012.lab.evolveum.com'
+                                name + iterationToken + '@ad2022.lab.evolveum.com'
                             </code>
                         </script>
                     </expression>
@@ -242,7 +234,7 @@
                 <ref>ri:objectCategory</ref>
                 <outbound>
                     <expression>
-                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
+                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad2022,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -309,7 +301,9 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>cn=midpoint,cn=users,dc=ad2012,dc=lab,dc=evolveum,dc=com</q:value>
+                        <q:value>CN=Administrator,CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:equal>
                 </filter>
             </protected>
@@ -317,7 +311,29 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>CN=SUB$,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <q:value>cn=midpoint,cn=users,dc=ad2022,dc=lab,dc=evolveum,dc=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>CN=krbtgt,CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>CN=SUB2022$,CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:equal>
                 </filter>
             </protected>
@@ -327,6 +343,8 @@
                         <q:path>attributes/dn</q:path>
                         <q:value>CN=DiscoverySearchMailbox</q:value>
                         <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:substring>
                 </filter>
             </protected>
@@ -336,6 +354,19 @@
                         <q:path>attributes/dn</q:path>
                         <q:value>CN=SystemMailbox</q:value>
                         <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:substring>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>CN=AD07</q:value>
+                        <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                     </q:substring>
                 </filter>
             </protected>
@@ -352,6 +383,53 @@
                 </password>
             </credentials>
 
+            <focus>
+                <type>UserType</type>
+            </focus>
+
+            <correlation>
+                <correlators>
+                    <filter>
+                        <ownerFilter>
+                            <q:equal>
+                                <q:path>c:name</q:path>
+                                <expression>
+                                    <path>$shadow/attributes/sAMAccountName</path>
+                                </expression>
+                            </q:equal>
+                        </ownerFilter>
+                    </filter>
+                </correlators>
+
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+
         </objectType>
 
         <objectType>
@@ -365,7 +443,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <q:value>OU=Org,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -380,7 +458,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('OU', name, 'OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('OU', name, 'OU=Org,DC=ad2022,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -404,7 +482,7 @@
                 <ref>ri:objectCategory</ref>
                 <outbound>
                     <expression>
-                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
+                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad2022,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -423,7 +501,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <q:value>CN=Users,DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -438,7 +516,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('CN', fullName, 'CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('CN', fullName, 'CN=Users,DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -526,7 +604,7 @@
                     <expression>
                         <script>
                             <code>
-                                name + iterationToken + '@sub.ad2012.lab.evolveum.com'
+                                name + iterationToken + '@sub2022.ad2022.lab.evolveum.com'
                             </code>
                         </script>
                     </expression>
@@ -574,7 +652,7 @@
                 </limitations>
                 <outbound>
                     <expression>
-                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
+                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad2022,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -617,7 +695,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <q:value>DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -632,7 +710,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('OU', name, 'DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('OU', name, 'DC=sub2022,DC=ad2022,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -656,7 +734,7 @@
                 <ref>ri:objectCategory</ref>
                 <outbound>
                     <expression>
-                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
+                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad2022,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -676,7 +754,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <q:value>CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -690,7 +768,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('CN', name, 'CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('CN', name, 'CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -738,7 +816,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
+                        <q:value>OU=Org,DC=ad2022,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -753,7 +831,7 @@
                         <script>
                             <code>
                                 def parent = midpoint.getParentOrgByOrgType(focus,null)
-                                basic.composeDnWithSuffix('CN', name, 'OU', parent.getName(), 'OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('CN', name, 'OU', parent.getName(), 'OU=Org,DC=ad2022,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -825,44 +903,5 @@
         <avoidDuplicateValues>true</avoidDuplicateValues>
         <validateSchema>true</validateSchema>
     </consistency>
-
-    <synchronization>
-
-        <objectSynchronization>
-            <name>Account sync</name>
-            <objectClass>ri:user</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <focusType>UserType</focusType>
-            <enabled>true</enabled>
-            <correlation>
-                <q:equal>
-                    <q:path>c:name</q:path>
-                    <expression>
-                        <path>$shadow/attributes/sAMAccountName</path>
-                    </expression>
-                </q:equal>
-            </correlation>
-
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
-            </reaction>
-
-        </objectSynchronization>
-
-    </synchronization>
 
 </resource>

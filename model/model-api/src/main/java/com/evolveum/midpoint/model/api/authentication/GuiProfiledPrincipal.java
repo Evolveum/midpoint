@@ -45,6 +45,7 @@ public class GuiProfiledPrincipal extends MidPointPrincipal {
     /**
      * Semi-shallow clone.
      */
+    @Override
     public GuiProfiledPrincipal clone() {
         GuiProfiledPrincipal clone = new GuiProfiledPrincipal(this.getFocus());
         copyValues(clone);

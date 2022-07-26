@@ -19,32 +19,49 @@
                 </h3>
             </div>
             <div class="card-body d-flex flex-column gap-3 pb-1">
-                <wicket:enclosure wicket:child="validity">
-                    <div class="form-group mb-0">
-                        <label>
-                            <wicket:message key="ShoppingCartPanel.validity"/>
-                            <i class="fas fa-info-circle fa-xs text-primary"></i>
-                        </label>
-                        <select class="form-control" wicket:id="validity"/>
+                <form wicket:id="form">
+                    <wicket:enclosure child="validity">
+                        <div class="form-group">
+                            <label>
+                                <wicket:message key="ShoppingCartPanel.validity"/>
+                                <i class="fas fa-info-circle fa-xs text-primary" wicket:id="validityInfo" wicket:message="title:CartSummaryPanel.validityTitle"></i>
+                            </label>
+                            <select class="form-control" wicket:id="validity"/>
+                        </div>
+                    </wicket:enclosure>
+                    <div class="form-group" wicket:id="customValidity">
+                        <div class="form-group">
+                            <label class="col-form-label-sm"><wicket:message key="ActivationType.validFrom"/></label>
+                            <div wicket:id="customValidityFrom"/>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label-sm"><wicket:message key="ActivationType.validTo"/></label>
+                            <div wicket:id="customValidityTo"/>
+                        </div>
                     </div>
-                </wicket:enclosure>
-                <wicket:enclosure wicket:child="comment">
-                    <div class="form-group mb-0">
-                        <label>
-                            <wicket:message key="ShoppingCartPanel.comment"/>
-                            <i class="fas fa-info-circle fa-xs text-primary"></i>
-                        </label>
-                        <textarea class="form-control" rows="4" wicket:id="comment"></textarea>
+                    <wicket:enclosure child="comment">
+                        <div class="form-group">
+                            <label>
+                                <wicket:message key="ShoppingCartPanel.comment"/>
+                                <i class="fas fa-info-circle fa-xs text-primary" wicket:id="commentInfo" wicket:message="title:CartSummaryPanel.commentTitle"></i>
+                            </label>
+                            <textarea class="form-control" rows="4" wicket:id="comment"></textarea>
+                        </div>
+                    </wicket:enclosure>
+                    <div class="form-group mb-1">
+                        <a class="btn btn-outline-danger w-100 mb-2" wicket:id="openConflict">
+                            <i class="fas fa-triangle-exclamation mr-1"></i>
+                            <wicket:message key="ShoppingCartPanel.openConflict"/>
+                        </a>
+
+                        <div class="text-danger" wicket:id="messages"/>
+
+                        <a class="btn btn-success w-100" wicket:id="submit">
+                            <i class="fas fa-credit-card mr-1"></i>
+                            <wicket:message key="ShoppingCartPanel.submit"/>
+                        </a>
                     </div>
-                </wicket:enclosure>
-                <a class="btn btn-danger" wicket:id="openConflict">
-                    <i class="fas fa-triangle-exclamation mr-1"></i>
-                    <wicket:message key="ShoppingCartPanel.openConflict"/>
-                </a>
-                <a class="btn btn-success" wicket:id="submit">
-                    <i class="fas fa-credit-card mr-1"></i>
-                    <wicket:message key="ShoppingCartPanel.submit"/>
-                </a>
+                </form>
             </div>
         </div>
     </div>
@@ -65,11 +82,13 @@
 </wicket:fragment>
 
 <wicket:fragment wicket:id="tableButtonColumn">
-    <a class="btn btn-xs btn-outline-primary px-2" wicket:id="edit" wicket:message="title:ShoppingCartPanel.edit">
-        <i class="fas fa-pen-to-square"></i>
-    </a>
-    <a class="btn btn-xs btn-outline-danger px-2" wicket:id="remove" wicket:message="title:ShoppingCartPanel.remove">
-        <i class="fas fa-trash-can"></i>
-    </a>
+    <div class="btn-group btn-group-sm">
+        <a class="btn btn-primary" wicket:id="edit" wicket:message="title:ShoppingCartPanel.edit">
+            <i class="fas fa-pen-to-square"></i>
+        </a>
+        <a class="btn btn-default" wicket:id="remove" wicket:message="title:ShoppingCartPanel.remove">
+            <i class="fas fa-trash-can"></i>
+        </a>
+    </div>
 </wicket:fragment>
 </html>

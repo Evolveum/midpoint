@@ -8,11 +8,12 @@
     "build": "webpack build --env production --config ./webpack.config.js --progress --profile --bail",
     "watch": "webpack watch --env development --config ./webpack.config.js --progress --profile"
   },
-  "author": "",
+  "author": "Evolveum",
   "license": "Apache License 2.0 and European Union Public License",
   "devDependencies": {
     "@fontsource/source-sans-pro": "^4.5.9",
     "@fortawesome/fontawesome-free": "^6.1.1",
+    "@ttskch/select2-bootstrap4-theme": "^1.5.2",
     "ace-builds": "^1.4.14",
     "admin-lte": "3.2.0",
     "babel-loader": "^8.2.4",
@@ -21,19 +22,23 @@
     "bs-stepper": "^1.7.0",
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^3.4.1",
+    "daterangepicker": "^3.1.0",
     "expose-loader": "^3.1.0",
     "file-loader": "^6.2.0",
     "flag-icons": "^6.4.2",
+    "jquery-validation": "^1.19.5",
     "knockout": "^3.5.1",
     "mini-css-extract-plugin": "^2.6.0",
+    "moment": "^2.29.4",
     "patch-package": "^6.4.7",
     "postcss-loader": "^6.2.1",
     "sass": "^1.50.0",
     "sass-loader": "^12.6.0",
+    "select2": "^4.0.13",
     "style-loader": "^3.3.1",
+    "tempusdominus-bootstrap-4": "^5.39.2",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2",
-    "webpack-merge": "^5.8.0",
-    "tempusdominus-bootstrap-4": "^5.39.2"
+    "webpack-merge": "^5.8.0"
   }
 }

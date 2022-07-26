@@ -224,7 +224,16 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             protected String getPaginationCssClass() {
                 return BoxedTablePanel.this.getPaginationCssClass();
             }
+
+            @Override
+            protected boolean isPagingVisible() {
+                return BoxedTablePanel.this.isPagingVisible();
+            }
         };
+    }
+
+    protected boolean isPagingVisible() {
+        return true;
     }
 
     protected String getPaginationCssClass() {
@@ -277,6 +286,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             final DataTable dataTable = table.getDataTable();
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
+            footerContainer.add(new VisibleBehaviour(() -> isPagingVisible()));
 
             final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(PagingFooter.this, dataTable));
             count.setOutputMarkupId(true);
@@ -343,6 +353,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
         protected String getPaginationCssClass() {
             return "pagination-sm";
+        }
+
+        protected boolean isPagingVisible() {
+            return true;
         }
     }
 }

@@ -76,11 +76,18 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     private final View view;
 
     private PageParameters pageParameters;
+    private ContainerPanelConfigurationType config;
 
     public CaseWorkItemsPanel(String id, View view) {
         super(id);
         this.view = view;
     }
+    public CaseWorkItemsPanel(String id, View view, ContainerPanelConfigurationType configurationType) {
+        super(id);
+        this.view = view;
+        this.config = configurationType;
+    }
+
 
     public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters) {
         super(id);
@@ -96,14 +103,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     private void initLayout(){
         ContainerableListPanel workItemsPanel =
-                new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
-
-                    @Override
-                    protected void onBeforeRender() {
-                        super.onBeforeRender();
-
-                        getTable().setShowAsCard(!View.DASHBOARD.equals(view));
-                    }
+                new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class, null, config) {
 
                     @Override
                     protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
@@ -134,8 +134,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     }
 
                     @Override
-                    protected boolean hideFooterIfSinglePage() {
-                        return View.DASHBOARD.equals(view);
+                    protected boolean isPagingVisible() {
+                        return View.DASHBOARD != view;
                     }
 
                     @Override
@@ -172,6 +172,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     }
                 };
         workItemsPanel.setOutputMarkupId(true);
+        workItemsPanel.setDashboard(view == View.DASHBOARD);
         add(workItemsPanel);
     }
 

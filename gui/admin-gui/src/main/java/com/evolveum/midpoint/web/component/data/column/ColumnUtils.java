@@ -118,7 +118,7 @@ public class ColumnUtils {
         };
     }
 
-    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type, PageBase pageBase) {
+    public static <C extends ObjectType> List<IColumn<SelectableBean<C>, String>> getDefaultColumns(Class<? extends C> type, PageBase pageBase) {
         if (type == null) {
             return getDefaultUserColumns();
         }
@@ -135,6 +135,8 @@ public class ColumnUtils {
             return getDefaultTaskColumns();
         } else if (type.equals(ResourceType.class)) {
             return getDefaultResourceColumns();
+        } else if (type.equals(AssignmentType.class)) {
+            return getDefaultAssignmentsColumns();
         } else {
             return new ArrayList<>();
 //            throw new UnsupportedOperationException("Will be implemented eventually");
@@ -1090,5 +1092,16 @@ public class ColumnUtils {
         } else {
             return workItem.getCandidateRef();
         }
+    }
+
+    public static <C extends Containerable> List<IColumn<SelectableBean<C>, String>> getDefaultAssignmentsColumns() {
+
+        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
+                new ColumnTypeDto<>("AssignmentType.activation.effectiveStatus",
+                        SelectableBeanImpl.F_VALUE + ".activation.effectiveStatus", null)
+
+        );
+
+        return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
     }
 }

@@ -121,8 +121,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
     }
 
-    protected AjaxLink getNext() {
-        return (AjaxLink) get(ID_NEXT);
+    protected AjaxSubmitButton getNext() {
+        return (AjaxSubmitButton) get(ID_NEXT);
     }
 
     protected AjaxLink getBack() {

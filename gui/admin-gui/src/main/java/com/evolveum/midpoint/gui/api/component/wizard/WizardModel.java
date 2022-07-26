@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.api.component.wizard;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.util.io.IClusterable;
 import org.jetbrains.annotations.NotNull;

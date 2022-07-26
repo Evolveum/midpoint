@@ -427,7 +427,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } finally {
             if (record) {
                 queryRecorder.stopRecording();
-                display(queryRecorder.getQueryBuffer().toString());
+                display(queryRecorder.dumpQueryBuffer());
             }
         }
     }
@@ -524,7 +524,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } finally {
             if (record) {
                 queryRecorder.stopRecording();
-                display(queryRecorder.getQueryBuffer().toString());
+                display(queryRecorder.dumpQueryBuffer());
             }
         }
     }
@@ -679,7 +679,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             throw new TestException(e);
         } finally {
             queryRecorder.stopRecording();
-            display(queryRecorder.getQueryBuffer().toString());
+            display(queryRecorder.dumpQueryBuffer());
         }
     }
 }
