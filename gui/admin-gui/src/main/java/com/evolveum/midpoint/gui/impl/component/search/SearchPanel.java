@@ -69,11 +69,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -403,7 +401,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
         final CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon(GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
+        builder.setBasicIcon(GuiStyleConstants.CLASS_ICON_SEARCH_FLIP, IconCssStyle.IN_ROW_STYLE);
         IconType plusIcon = new IconType();
         plusIcon.setColor("white");
         builder.appendLayerIcon(getIconLabelByModeModel(), plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
