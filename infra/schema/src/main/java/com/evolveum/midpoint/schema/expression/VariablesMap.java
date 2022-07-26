@@ -333,7 +333,7 @@ public class VariablesMap implements Map<String, TypedValue>, DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpMapMultiLine(sb, getAliasReducedMap(), 1);
+        DebugUtil.debugDumpMapMultiLine(sb, getAliasReducedMap(), indent);
         return sb.toString();
     }
 

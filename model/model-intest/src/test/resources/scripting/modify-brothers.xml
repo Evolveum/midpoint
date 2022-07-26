@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <s:type>UserType</s:type>
+    <s:searchFilter>
+        <substring xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+            <path>name</path>
+            <value>brother-</value>
+            <anchorStart>true</anchorStart>
+        </substring>
+    </s:searchFilter>
+    <s:modify>
+        <s:delta>
+            <t:itemDelta> <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
+                <t:modificationType>replace</t:modificationType>
+                <t:path>locality</t:path>
+                <t:value>here</t:value>
+            </t:itemDelta>
+        </s:delta>
+    </s:modify>
+</s:search>
