@@ -9,11 +9,15 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 import static com.evolveum.midpoint.prism.PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
 
 import com.querydsl.core.types.*;
+import com.querydsl.core.types.dsl.Expressions;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Levenshtein;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -87,6 +91,10 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     protected <T> Predicate createBinaryCondition(
             ValueFilter<?, ?> filter, Path<T> path, ValueFilterValues<?, T> values)
             throws QueryException {
+        if (filter instanceof FuzzyStringMatchFilter<?>) {
+            return fuzzyStringPredicate((FuzzyStringMatchFilter<?>) filter, path, values);
+        }
+
         FilterOperation operation = operation(filter);
         if (values.isEmpty()) {
             if (operation.isAnyEqualOperation()) {
@@ -106,6 +114,16 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
         }
 
         return singleValuePredicateWithNotTreated(path, operation, values.singleValue());
+    }
+
+    private  <T> Predicate fuzzyStringPredicate(FuzzyStringMatchFilter<?> filter, Path<T> path,
+            ValueFilterValues<?, T> values) throws QueryException {
+        FuzzyMatchingMethod method = filter.getMatchingMethod();
+        if (method instanceof Levenshtein) {
+            var levenstein = (Levenshtein) method;
+            return Expressions.booleanTemplate("levenshtein_less_equal({0}, '{1s}', {2} ) <= {2}", path, values.singleValue().toString(), levenstein.getThreshold());
+        }
+        throw new QueryException("Unsupported filter " + filter.toString());
     }
 
     /**
