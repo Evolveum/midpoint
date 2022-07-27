@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.model.impl.lens.identities;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +39,7 @@ public class IdentityManagementConfiguration {
         return new IdentityManagementConfiguration(objectTemplate);
     }
 
-    public Collection<IdentityItemConfiguration> getItems() throws ConfigurationException {
+    public @NotNull Collection<IdentityItemConfiguration> getItems() throws ConfigurationException {
         List<IdentityItemConfiguration> itemConfigurationList = new ArrayList<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
             IdentityItemDefinitionType identityDefBean = itemDefBean.getIdentity();
@@ -45,5 +49,15 @@ public class IdentityManagementConfiguration {
             }
         }
         return itemConfigurationList;
+    }
+
+    public @Nullable IdentityItemConfiguration getForPath(@NotNull ItemPath path) throws ConfigurationException {
+        for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
+            ItemPathType ref = itemDefBean.getRef();
+            if (ref != null && ref.getItemPath().equivalent(path)) {
+                return IdentityItemConfiguration.of(itemDefBean, itemDefBean.getIdentity());
+            }
+        }
+        return null;
     }
 }

@@ -273,8 +273,18 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         //  What is used here is the original focus odo, which is maybe correct.
         PrismObject<T> targetObject = targetSpecification.getTargetObject();
 
-        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta, itemDeltaExistsProvider,
-                null, null, targetDefinition, env, beans, context, result);
+        consolidation = new DeltaSetTripleMapConsolidation<>(
+                outputTripleMap,
+                targetObject,
+                targetAPrioriDelta,
+                itemDeltaExistsProvider,
+                null,
+                null,
+                targetDefinition,
+                env,
+                beans,
+                context,
+                result);
         consolidation.computeItemDeltas();
     }
 

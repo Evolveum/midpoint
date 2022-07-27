@@ -183,8 +183,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
      */
     private final OperationResult result;
 
-    @NotNull private final PrismContext prismContext;
-
     /**
      * The output.
      */
@@ -227,7 +225,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         contextDescription = builder.contextDescription;
         result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
                 .addArbitraryObjectAsParam("itemPath", itemPath);
-        prismContext = builder.prismContext;
 
         //noinspection unchecked
         itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
@@ -301,8 +298,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private void applyWeakMappings() throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    private void applyWeakMappings() throws SchemaException {
         Collection<I> valuesToAdd = selectWeakNonNegativeValues();
         LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
                 itemPath, contextDescription, valuesToAdd);
@@ -889,9 +885,11 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         if (result.isTracingNormal(ItemConsolidationTraceType.class)) {
             ItemConsolidationTraceType trace = new ItemConsolidationTraceType();
             trace.setItemPath(new ItemPathType(itemPath));
+            PrismContext prismContext = PrismContext.get();
             try {
                 if (ivwoTriple != null) {
-                    PrismValueDeltaSetTriple<PrismValue> prismValueDeltaSetTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+                    PrismValueDeltaSetTriple<PrismValue> prismValueDeltaSetTriple =
+                            prismContext.deltaFactory().createPrismValueDeltaSetTriple();
                     ivwoTriple.transform(prismValueDeltaSetTriple, ItemValueWithOrigin::getItemValue);
                     trace.setDeltaSetTriple(DeltaSetTripleType.fromDeltaSetTriple(prismValueDeltaSetTriple, prismContext));
                 }

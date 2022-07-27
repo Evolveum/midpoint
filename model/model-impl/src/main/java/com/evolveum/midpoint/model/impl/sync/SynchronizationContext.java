@@ -170,7 +170,7 @@ public abstract class SynchronizationContext<F extends FocusType>
             situation = sorterResult.getSynchronizationSituation();
             LOGGER.trace("Setting correlated owner in synchronization context: {}", sorterResult.getOwner());
             //noinspection unchecked
-            this.correlatedOwner = (F) sorterResult.getOwner();
+            setCorrelatedOwner((F) sorterResult.getOwner());
         } else {
             this.forceClassificationUpdate = false;
         }

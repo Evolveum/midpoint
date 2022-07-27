@@ -9,19 +9,29 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitySourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class FocusIdentitiesTypeUtil {
 
-    public static FocusIdentityType getOwnIdentity(FocusIdentitiesType identities) {
-        List<FocusIdentityType> ownList = identities.getIdentity().stream()
-                .filter(FocusIdentityTypeUtil::isOwn)
+    public static FocusIdentityType getMatchingIdentity(
+            @NotNull FocusIdentitiesType identities, FocusIdentitySourceType source) {
+        return getMatchingIdentity(identities.getIdentity(), source);
+    }
+
+    public static FocusIdentityType getMatchingIdentity(
+            @NotNull Collection<FocusIdentityType> identities, FocusIdentitySourceType source) {
+        List<FocusIdentityType> matchingList = identities.stream()
+                .filter(i -> FocusIdentityTypeUtil.matches(i, source))
                 .collect(Collectors.toList());
         return MiscUtil.extractSingleton(
-                ownList,
-                () -> new IllegalStateException("Multiple own identities: " + ownList));
+                matchingList,
+                () -> new IllegalStateException("Multiple identities matching " + source + ": " + matchingList));
     }
 }

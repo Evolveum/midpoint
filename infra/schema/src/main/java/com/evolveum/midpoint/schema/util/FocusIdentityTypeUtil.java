@@ -12,6 +12,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+
 @SuppressWarnings("WeakerAccess")
 public class FocusIdentityTypeUtil {
 
@@ -25,19 +29,31 @@ public class FocusIdentityTypeUtil {
                 || source.getOriginRef() == null && source.getResourceRef() == null;
     }
 
-    static boolean isCompatible(@NotNull FocusIdentityType identity, @NotNull FocusIdentityType other) {
-        return isCompatible(identity.getSource(), other.getSource());
+    static boolean matches(@NotNull FocusIdentityType identity, @NotNull FocusIdentityType other) {
+        return matches(identity, other.getSource());
     }
 
-    private static boolean isCompatible(FocusIdentitySourceType source, FocusIdentitySourceType other) {
+    public static boolean matches(@NotNull FocusIdentityType identity, FocusIdentitySourceType other) {
+        return matches(identity.getSource(), other);
+    }
+
+    private static boolean matches(FocusIdentitySourceType source, FocusIdentitySourceType other) {
         boolean own = isOwn(source);
         boolean otherOwn = isOwn(other);
         if (own) {
             return otherOwn;
         } else if (otherOwn) {
             return false;
-        } else {
-            throw new UnsupportedOperationException("Cannot compare non-own sources yet");
         }
+
+        // Ignoring originRef for the moment
+        return Objects.equals(getResourceOid(source), getResourceOid(other))
+                && source.getKind() == other.getKind()
+                && Objects.equals(source.getIntent(), other.getIntent())
+                && Objects.equals(source.getTag(), other.getTag());
+    }
+
+    private static String getResourceOid(FocusIdentitySourceType source) {
+        return getOid(source.getResourceRef());
     }
 }

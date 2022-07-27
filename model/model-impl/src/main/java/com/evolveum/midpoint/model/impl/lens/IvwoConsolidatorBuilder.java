@@ -39,7 +39,6 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     String contextDescription;
     OperationResult result;
     StrengthSelector strengthSelector;
-    PrismContext prismContext;
 
     public IvwoConsolidatorBuilder<V, D, I> itemPath(ItemPath val) {
         itemPath = val;
@@ -143,11 +142,6 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
 
     public IvwoConsolidatorBuilder<V, D, I> strengthSelector(StrengthSelector val) {
         strengthSelector = val;
-        return this;
-    }
-
-    public IvwoConsolidatorBuilder<V, D, I> prismContext(PrismContext val) {
-        prismContext = val;
         return this;
     }
 

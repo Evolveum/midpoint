@@ -189,16 +189,7 @@ public class FocusTypeUtil {
         FocusIdentitiesType identities = focus.getIdentities();
         if (identities != null) {
             identities.getIdentity().removeIf(
-                    i -> FocusIdentityTypeUtil.isCompatible(i, identity));
-        }
-    }
-
-    public static @Nullable FocusIdentityType getOwnIdentity(@NotNull FocusType focus) {
-        FocusIdentitiesType identities = focus.getIdentities();
-        if (identities != null) {
-            return FocusIdentitiesTypeUtil.getOwnIdentity(identities);
-        } else {
-            return null;
+                    i -> FocusIdentityTypeUtil.matches(i, identity));
         }
     }
 }

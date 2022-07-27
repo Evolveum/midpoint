@@ -11,10 +11,10 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.util.FocusIdentitiesTypeUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.requireNonNull;
 
@@ -46,21 +46,42 @@ public class FocusIdentitiesAsserter<RA> extends PrismContainerValueAsserter<Foc
         //noinspection unchecked
         FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> asserter =
                 new FocusIdentityAsserter<>(
-                        (PrismContainerValue<FocusIdentityType>) getOwnRequired().asPrismContainerValue(),
+                        (PrismContainerValue<FocusIdentityType>) findRequired(null).asPrismContainerValue(),
                         this,
                         getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    private FocusIdentityType getOwnRequired() throws SchemaException {
-        return requireNonNull(
-                getOwn(),
-                () -> new AssertionError("No own identity found in " + getDetails()));
+    public FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> fromResource(
+            @NotNull String resourceOid,
+            @NotNull ShadowKindType kind,
+            @NotNull String intent,
+            @Nullable String tag) throws SchemaException {
+        FocusIdentitySourceType source = new FocusIdentitySourceType()
+                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                .kind(kind)
+                .intent(intent)
+                .tag(tag);
+
+        //noinspection unchecked
+        FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> asserter =
+                new FocusIdentityAsserter<>(
+                        (PrismContainerValue<FocusIdentityType>) findRequired(source).asPrismContainerValue(),
+                        this,
+                        getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 
-    private FocusIdentityType getOwn() throws SchemaException {
-        return FocusIdentitiesTypeUtil.getOwnIdentity(getIdentitiesBean());
+    private FocusIdentityType findRequired(@Nullable FocusIdentitySourceType source) throws SchemaException {
+        return requireNonNull(
+                find(source),
+                () -> new AssertionError("No identity matching '" + source + "' found in " + getDetails()));
+    }
+
+    private FocusIdentityType find(@Nullable FocusIdentitySourceType source) throws SchemaException {
+        return FocusIdentitiesTypeUtil.getMatchingIdentity(getIdentitiesBean(), source);
     }
 
     private @NotNull FocusIdentitiesType getIdentitiesBean() throws SchemaException {

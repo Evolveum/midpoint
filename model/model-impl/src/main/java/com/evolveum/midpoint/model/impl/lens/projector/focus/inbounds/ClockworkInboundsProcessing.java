@@ -9,22 +9,23 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.function.Function;
+
+import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
+
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.delta.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkShadowInboundsPreparation;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -44,6 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractInboundsProcessing<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkInboundsProcessing.class);
+
+    private static final String OP_UPDATE_FOCUS_IDENTITY_DATA =
+            ClockworkInboundsProcessing.class.getName() + ".updateFocusIdentityData";
 
     @NotNull private final LensContext<F> context;
 
@@ -131,5 +135,30 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
     @Override
     @Nullable LensContext<?> getLensContextIfPresent() {
         return context;
+    }
+
+    @Override
+    void updateFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException {
+        OperationResult identityUpdateResult = result.subresult(OP_UPDATE_FOCUS_IDENTITY_DATA)
+                .setMinor()
+                .build();
+        try {
+            IdentityManagementConfiguration configuration =
+                    beans.identitiesManager.getIdentityManagementConfiguration(context);
+            if (configuration == null) {
+                LOGGER.trace("No identity management configuration for {}; identity data will not be updated", context);
+                identityUpdateResult.recordNotApplicable("No identity management configuration");
+                return;
+            }
+
+            LOGGER.trace("Updating focus identity data from inbound mapping output(s)");
+            new FocusIdentityDataUpdater<>(mappingsMap, configuration, context, env, identityUpdateResult, beans)
+                    .update();
+        } catch (Throwable t) {
+            identityUpdateResult.recordFatalError(t);
+            throw t;
+        } finally {
+            identityUpdateResult.close();
+        }
     }
 }

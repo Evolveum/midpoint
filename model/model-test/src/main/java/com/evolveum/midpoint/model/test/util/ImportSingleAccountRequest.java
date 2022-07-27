@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.Resource;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
@@ -49,6 +50,7 @@ public class ImportSingleAccountRequest {
     private final long timeout;
     private final boolean assertSuccess;
     private final Task task;
+    private final TracingProfileType tracingProfile;
 
     private ImportSingleAccountRequest(
             @NotNull ImportSingleAccountRequestBuilder builder) {
@@ -60,9 +62,10 @@ public class ImportSingleAccountRequest {
         this.timeout = builder.timeout;
         this.assertSuccess = builder.assertSuccess;
         this.task = Objects.requireNonNullElseGet(builder.task, test::getTestTask);
+        this.tracingProfile = builder.tracingProfile;
     }
 
-    public String execute(OperationResult result) throws CommonException {
+    public String execute(OperationResult result) throws CommonException, PreconditionViolationException {
         ResourceAttributeDefinition<?> namingAttrDef = Resource.of(
                         TestSpringBeans.getBean(ProvisioningService.class)
                                 .getObject(ResourceType.class, resourceOid, null, task, result)
@@ -91,7 +94,13 @@ public class ImportSingleAccountRequest {
                                                 .query(prismContext.getQueryConverter().createQueryType(query))
                                                 .queryApplication(ResourceObjectSetQueryApplicationModeType.APPEND)))));
         String taskOid = test.addObject(importTask.asPrismObject(), task, result);
-        test.waitForTaskCloseOrSuspend(taskOid, timeout);
+        if (tracingProfile != null) {
+            test.traced(
+                    tracingProfile,
+                    () -> test.waitForTaskCloseOrSuspend(taskOid, timeout));
+        } else {
+            test.waitForTaskCloseOrSuspend(taskOid, timeout);
+        }
 
         if (assertSuccess) {
             test.assertTask(taskOid, "after")
@@ -110,6 +119,7 @@ public class ImportSingleAccountRequest {
         private String nameValue;
         private long timeout = DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
         private boolean assertSuccess = true;
+        private TracingProfileType tracingProfile;
         private Task task;
 
         public ImportSingleAccountRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
@@ -151,11 +161,22 @@ public class ImportSingleAccountRequest {
             return this;
         }
 
+        @SuppressWarnings("WeakerAccess")
+        public ImportSingleAccountRequestBuilder withTracingProfile(TracingProfileType tracingProfile) {
+            this.tracingProfile = tracingProfile;
+            return this;
+        }
+
+        public ImportSingleAccountRequestBuilder traced() {
+            return withTracingProfile(
+                    test.createModelLoggingTracingProfile());
+        }
+
         public ImportSingleAccountRequest build() {
             return new ImportSingleAccountRequest(this);
         }
 
-        public String execute(OperationResult result) throws CommonException {
+        public String execute(OperationResult result) throws CommonException, PreconditionViolationException {
             return build().execute(result);
         }
     }

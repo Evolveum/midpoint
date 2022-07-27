@@ -2262,7 +2262,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected static final String DEFAULT_TRACING_FILENAME_PATTERN =
             "trace %{timestamp} %{testNameShort} %{operationNameShort} %{focusName} %{milliseconds}";
 
-    protected TracingProfileType createModelLoggingTracingProfile() {
+    public TracingProfileType createModelLoggingTracingProfile() {
         // @formatter:off
         return createDefaultTracingProfile()
                 .beginLoggingOverride()

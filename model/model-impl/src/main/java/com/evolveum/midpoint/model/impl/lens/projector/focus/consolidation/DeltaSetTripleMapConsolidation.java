@@ -83,8 +83,11 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
      */
     private final boolean addUnchangedValues;
 
+    /**
+     * Additional settings for the consolidator.
+     */
     @Experimental
-    private final Consumer<IvwoConsolidatorBuilder> consolidatorBuilderCustomizer;
+    private final Consumer<IvwoConsolidatorBuilder> consolidatorCustomizer;
 
     /**
      * Mapping evaluation environment (context description, now, task).
@@ -129,7 +132,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             ObjectDelta<T> targetAPrioriDelta,
             Function<ItemPath, Boolean> itemDeltaExistsProvider,
             Boolean addUnchangedValuesOverride,
-            Consumer<IvwoConsolidatorBuilder> consolidatorBuilderCustomizer,
+            Consumer<IvwoConsolidatorBuilder> consolidatorCustomizer,
             PrismObjectDefinition<T> targetDefinition,
             MappingEvaluationEnvironment env,
             ModelBeans beans,
@@ -140,7 +143,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         this.targetAPrioriDelta = targetAPrioriDelta;
         this.itemDeltaExistsProvider = itemDeltaExistsProvider;
         this.targetDefinition = targetDefinition;
-        this.consolidatorBuilderCustomizer = consolidatorBuilderCustomizer;
+        this.consolidatorCustomizer = consolidatorCustomizer;
         this.env = env;
         this.parentResult = parentResult;
         this.beans = beans;
@@ -268,8 +271,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                     .strengthSelector(StrengthSelector.ALL)
                     .valueMetadataComputer(valueMetadataComputer)
                     .result(result)
-                    .customize(consolidatorBuilderCustomizer)
-                    .prismContext(beans.prismContext)
+                    .customize(consolidatorCustomizer)
                     .build()) {
                 itemDelta = consolidator.consolidateTriples();
             }

@@ -425,7 +425,6 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                     .strengthSelector(StrengthSelector.ALL)
                     .valueMetadataComputer(valueMetadataComputer)
                     .result(result)
-                    .prismContext(beans.prismContext)
                     .build()) {
 
             ItemDelta itemDelta = consolidator.consolidateTriples();

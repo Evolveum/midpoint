@@ -81,8 +81,15 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         collectMappings();
         evaluateMappings();
+        updateFocusIdentityData();
         consolidateTriples();
     }
+
+    /**
+     * Updates the identity data stored in the focus object - for all projections that have had inbound mappings evaluated.
+     * Currently applicable only to clockwork processing.
+     */
+    abstract void updateFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException;
 
     /**
      * Collects the mappings - either from all projections (for clockwork) or from the input shadow (for pre-mappings).

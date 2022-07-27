@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -127,7 +129,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      * TODO: Consider situations when one account belongs to two different users. It should correspond to
      *  the {@link SynchronizationSituationType#DISPUTED} situation.
      */
-    private <F extends FocusType> @Nullable F findShadowOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+    private <F extends FocusType> @Nullable F findLinkedOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
             throws SchemaException {
         ShadowType shadow = syncCtx.getShadowedResourceObject();
         ObjectQuery query = prismContext.queryFor(FocusType.class)
@@ -242,10 +244,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getFocusClass(), syncCtx.getPolicyName());
 
         try {
-            F linkedOwner = findShadowOwner(syncCtx, result);
+            F linkedOwner = findLinkedOwner(syncCtx, result);
             syncCtx.setLinkedOwner(linkedOwner);
 
-            if (syncCtx.getLinkedOwner() == null || syncCtx.isCorrelatorsUpdateRequested()) {
+            if (linkedOwner == null || syncCtx.isCorrelatorsUpdateRequested()) {
                 determineSituationWithCorrelators(syncCtx, change, result); // TODO change the name (if sorter is used)
             } else {
                 determineSituationWithoutCorrelators(syncCtx, change, result);
@@ -324,9 +326,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        PrismObject<? extends ShadowType> resourceObject = change.getShadowedResourceObject();
-        ResourceType resource = change.getResource().asObjectable();
-        setupResourceRefInShadowIfNeeded(resourceObject.asObjectable(), resource);
+        setupResourceRefInShadowIfNeeded(change);
 
         evaluatePreMappings(syncCtx, result);
 
@@ -385,12 +385,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     // This is maybe not needed
-    private void setupResourceRefInShadowIfNeeded(ShadowType shadow, ResourceType resource) {
-        if (shadow.getResourceRef() == null) {
-            ObjectReferenceType reference = new ObjectReferenceType();
-            reference.setOid(resource.getOid());
-            reference.setType(ResourceType.COMPLEX_TYPE);
-            shadow.setResourceRef(reference);
+    private void setupResourceRefInShadowIfNeeded(ResourceObjectShadowChangeDescription change) {
+        ShadowType shadowedResourceObject = change.getShadowedResourceObject().asObjectable();
+
+        if (shadowedResourceObject.getResourceRef() == null) {
+            shadowedResourceObject.setResourceRef(
+                    ObjectTypeUtil.createObjectRef(
+                            change.getResource()));
         }
     }
 

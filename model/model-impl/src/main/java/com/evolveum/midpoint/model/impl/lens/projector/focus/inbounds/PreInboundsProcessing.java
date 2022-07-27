@@ -128,4 +128,8 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
         return variables;
     }
 
+    @Override
+    void updateFocusIdentityData() {
+        // Not applicable here.
+    }
 }
