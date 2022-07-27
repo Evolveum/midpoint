@@ -7,10 +7,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFocusIdentitySourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitySourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnFocusIdentitySourceType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,15 +19,17 @@ public class FocusIdentityTypeUtil {
         return isOwn(identity.getSource());
     }
 
-    private static boolean isOwn(AbstractFocusIdentitySourceType source) {
-        return source == null || source instanceof OwnFocusIdentitySourceType;
+    private static boolean isOwn(FocusIdentitySourceType source) {
+        // This will be changed after (if?) some well-known "own" origin is created.
+        return source == null
+                || source.getOriginRef() == null && source.getResourceRef() == null;
     }
 
     static boolean isCompatible(@NotNull FocusIdentityType identity, @NotNull FocusIdentityType other) {
         return isCompatible(identity.getSource(), other.getSource());
     }
 
-    private static boolean isCompatible(AbstractFocusIdentitySourceType source, AbstractFocusIdentitySourceType other) {
+    private static boolean isCompatible(FocusIdentitySourceType source, FocusIdentitySourceType other) {
         boolean own = isOwn(source);
         boolean otherOwn = isOwn(other);
         if (own) {

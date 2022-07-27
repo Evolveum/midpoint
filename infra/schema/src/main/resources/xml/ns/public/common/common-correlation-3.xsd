@@ -1263,10 +1263,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="source" type="tns:AbstractFocusIdentitySourceType" minOccurs="0">
+            <xsd:element name="source" type="tns:FocusIdentitySourceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Source of the identity data.
+                        Source of the identity data. Conceptually similar to `ProvenanceAcquisitionType`, but there are some
+                        small differences: we are not interested in the timestamp (yet), and we keep more detailed information
+                        for resource objects.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1281,7 +1283,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractFocusIdentitySourceType"> <!-- should be "abstract" but there are some issues during parsing then -->
+    <xsd:complexType name="FocusIdentitySourceType">
         <xsd:annotation>
             <xsd:documentation>
                 Source of a focus identity.
@@ -1293,88 +1295,63 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="originRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to identity origin.
+
+                        _Origin_ is an abstract, high-level representation of data source.
+                        It represents something that the users will understand, such as _human resource data_,
+                        _marketing data broker_ or _self-service user data entry_. Origin is an ordinary midPoint object,
+                        it is expected that _org_ or _service_ will usually be used to represent origin.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The resource on which the object providing the identity resides. (If applicable.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of resource object providing the identity. (If applicable.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Intent of resource object providing the identity. (If applicable.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tag" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tag of shadow of the resource object providing the identity. (If applicable.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow of the resource object that provides the identity. (If applicable.)
+
+                        TODO Is this really needed?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="OwnFocusIdentitySourceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Focus identity stemming from the focus itself.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.6</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractFocusIdentitySourceType"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ProjectionFocusIdentitySourceType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Focus identity stemming from a projection.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.6</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractFocusIdentitySourceType">
-                <xsd:sequence>
-                    <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The shadow of the resource object that provides the identity.
-                                Formally optional, but should be (always) present.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The resource on which the object providing the identity resides.
-                                Formally optional, but should be (always) present.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Kind of resource object providing the identity.
-                                Formally optional, but should be (always) present.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Intent of resource object providing the identity.
-                                Formally optional, but should be (always) present.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="tag" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Tag of shadow of the resource object providing the identity.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="FocusIdentityItemsType">

@@ -63,9 +63,8 @@ public class QFocusIdentityMapping<OR extends MFocus>
                         QFocusMapping::getFocusMapping,
                         (q, p) -> q.ownerOid.eq(p.oid)));
 
-        // This mapping should only work when ProjectionFocusIdentitySourceType is used.
-        addNestedMapping(F_SOURCE, ProjectionFocusIdentitySourceType.class)
-                .addRefMapping(ProjectionFocusIdentitySourceType.F_RESOURCE_REF,
+        addNestedMapping(F_SOURCE, FocusIdentitySourceType.class)
+                .addRefMapping(FocusIdentitySourceType.F_RESOURCE_REF,
                         q -> q.sourceResourceRefTargetOid,
                         null,
                         null,
@@ -101,15 +100,13 @@ public class QFocusIdentityMapping<OR extends MFocus>
             FocusIdentityType schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         MFocusIdentity row = initRowObject(schemaObject, ownerRow);
 
-        AbstractFocusIdentitySourceType source = schemaObject.getSource();
+        FocusIdentitySourceType source = schemaObject.getSource();
         if (source != null) {
             row.fullSource = createFullObject(schemaObject.getSource());
 
-            if (source instanceof ProjectionFocusIdentitySourceType) {
-                ObjectReferenceType resourceRef = ((ProjectionFocusIdentitySourceType) source).getResourceRef();
-                if (resourceRef != null) {
-                    row.sourceResourceRefTargetOid = UUID.fromString(resourceRef.getOid());
-                }
+            ObjectReferenceType resourceRef = source.getResourceRef();
+            if (resourceRef != null) {
+                row.sourceResourceRefTargetOid = UUID.fromString(resourceRef.getOid());
             }
         }
 
@@ -132,7 +129,7 @@ public class QFocusIdentityMapping<OR extends MFocus>
             identity.setSource(parseSchemaObject(
                     Objects.requireNonNull(fullSource),
                     "identity.source for " + row.ownerOid + "," + row.cid,
-                    AbstractFocusIdentitySourceType.class));
+                    FocusIdentitySourceType.class));
         }
 
         FocusIdentityItemsType focusIdentityItems = identity.beginItems();

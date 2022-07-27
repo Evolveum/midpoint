@@ -90,9 +90,8 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
 
         // one of the identities will be checked thoroughly
         FocusIdentityType identity = identities.stream().filter(i -> i.getId().equals(1L)).findFirst().orElseThrow();
-        AbstractFocusIdentitySourceType source = identity.getSource();
-        assertThat(source).isInstanceOf(ProjectionFocusIdentitySourceType.class);
-        ObjectReferenceType resourceRef = ((ProjectionFocusIdentitySourceType) source).getResourceRef();
+        FocusIdentitySourceType source = identity.getSource();
+        ObjectReferenceType resourceRef = source.getResourceRef();
         assertThat(resourceRef).isNotNull()
                 .extracting(r -> r.getOid())
                 .isEqualTo("9dff5686-e695-4ad9-8098-5907758668c7");

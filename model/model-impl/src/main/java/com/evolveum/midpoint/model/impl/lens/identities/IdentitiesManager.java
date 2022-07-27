@@ -140,9 +140,7 @@ public class IdentitiesManager {
     private @NotNull FocusIdentityType computeOwnIdentity(
             @NotNull FocusType focus,
             @NotNull IdentityManagementConfiguration configuration) throws ConfigurationException, SchemaException {
-        FocusIdentityType identity =
-                new FocusIdentityType()
-                        .source(new OwnFocusIdentitySourceType());
+        FocusIdentityType identity = new FocusIdentityType();
         for (IdentityItemConfiguration itemConfig : configuration.getItems()) {
             ItemPath path = itemConfig.getPath();
             Item<?, ?> item = focus.asPrismObject().findItem(path);

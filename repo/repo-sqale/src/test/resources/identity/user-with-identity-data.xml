@@ -11,12 +11,12 @@
     <name>user-with-identity-data</name>
     <identities>
         <identity id="1">
-            <source xsi:type="ProjectionFocusIdentitySourceType">
-                <shadowRef oid="a5a216fd-7a38-49e3-a782-381e10b68406"/>
+            <source>
                 <resourceRef oid="9dff5686-e695-4ad9-8098-5907758668c7"/>
                 <kind>account</kind>
                 <intent>default</intent>
                 <tag>10704444</tag>
+                <shadowRef oid="a5a216fd-7a38-49e3-a782-381e10b68406"/>
             </source>
             <items>
                 <original>
@@ -35,7 +35,6 @@
             </items>
         </identity>
         <identity id="2">
-            <source xsi:type="OwnFocusIdentitySourceType"/>
             <items>
                 <original>
                     <givenName xsi:type="xsd:string">Alice</givenName>
