@@ -14,6 +14,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -580,7 +584,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
         PageBase page = getPageBase();
-        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(Model.of(object)) {
+
+        // todo this configuration has to go from menu -> item xml
+        ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+        VirtualContainersSpecificationType vcs =
+                c.beginContainer()
+                    .identifier("aaa")
+                    .beginDisplay()
+                        .label("asdf")
+                    .end();
+        vcs.beginItem().path(new ItemPathType(ItemPath.create(ObjectType.F_DESCRIPTION))).end();
+
+        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(() -> Arrays.asList(c), Model.of(object)) {
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
