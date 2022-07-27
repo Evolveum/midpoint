@@ -95,7 +95,15 @@ public class EngineInvocationContext implements DebugDumpable {
 
     @Override
     public String debugDump(int indent) {
-        return currentCase.getApprovalContext().asPrismContainerValue().debugDump(indent);     // TODO
+        ApprovalContextType approvalContext = currentCase.getApprovalContext();
+        if (approvalContext != null) {
+            return approvalContext.asPrismContainerValue().debugDump(indent);
+        }
+        ManualProvisioningContextType manualProvisioningContext = currentCase.getManualProvisioningContext();
+        if (manualProvisioningContext != null) {
+            return manualProvisioningContext.asPrismContainerValue().debugDump(indent);
+        }
+        return currentCase.debugDump(indent);
     }
 
     public String getChannel() {
