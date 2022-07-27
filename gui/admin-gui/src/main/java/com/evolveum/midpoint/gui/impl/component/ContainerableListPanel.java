@@ -10,12 +10,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -27,10 +33,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
@@ -124,6 +127,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
 
     private ContainerPanelConfigurationType config;
+    private boolean dashboard;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -143,6 +147,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.defaultType = defaultType;
         this.options = options;
         this.config = configurationType;
+    }
+
+    public void setDashboard(boolean dashboard) {
+        this.dashboard = dashboard;
     }
 
     @Override
@@ -255,6 +263,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return initSearch(headerId);
     }
 
+    private WidgetTableHeader createWidgetHeader(String headerId) {
+        return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
+    }
+
     protected BoxedTablePanel<PO> initItemTable() {
 
         List<IColumn<PO, String>> columns = createColumns();
@@ -266,6 +278,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected Component createHeader(String headerId) {
+                if (dashboard) {
+                    return createWidgetHeader(headerId);
+                }
                 Component header = ContainerableListPanel.this.createHeader(headerId);
                 header.add(new VisibleBehaviour(() -> isHeaderVisible()));
                 return header;
@@ -282,6 +297,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
+                if (dashboard) {
+                    return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createNavigationButtons(ID_BUTTON));
+                }
                 return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
 
@@ -309,6 +327,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             public boolean enableSavePageSize() {
                 return ContainerableListPanel.this.enableSavePageSize();
             }
+
+            @Override
+            protected boolean isPagingVisible() {
+                return ContainerableListPanel.this.isPagingVisible();
+            }
         };
         itemTable.setOutputMarkupId(true);
         if (getPageStorage() != null) {
@@ -321,6 +344,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
+    }
+
+    protected boolean isPagingVisible() {
+        return !dashboard;
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
@@ -898,6 +925,29 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected List<Component> createToolbarButtonsList(String idButton) {
         return new ArrayList<>();
+    }
+
+    //TODO TODO TODO what about other buttons? e.g. request access?
+    private List<Component> createNavigationButtons(String idButton) {
+        List<Component> buttonsList = new ArrayList<>();
+
+        buttonsList.add(createViewAllButton(idButton));
+        return buttonsList;
+    }
+
+    private AjaxIconButton createViewAllButton(String buttonId) {
+        AjaxIconButton viewAll = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ICON_SEARCH),
+                createStringResource("AjaxIconButton.viewAll")) {
+
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO redirect
+            }
+        };
+        viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        viewAll.showTitleAsLabel(true);
+        return viewAll;
     }
 
     protected String getStorageKey() {

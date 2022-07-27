@@ -19,7 +19,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RelationPanel extends BasicWizardPanel<RequestAccess> {
+public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 

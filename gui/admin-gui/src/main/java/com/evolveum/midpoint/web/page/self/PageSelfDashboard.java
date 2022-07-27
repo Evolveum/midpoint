@@ -67,8 +67,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/self", matchUrlForSecurity = "/self"),
-                @Url(mountUrl = "/self/dashboard")
+//                @Url(mountUrl = "/self", matchUrlForSecurity = "/self"),
+                @Url(mountUrl = "/self/dashboardOld")
         },
         action = {
                 @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

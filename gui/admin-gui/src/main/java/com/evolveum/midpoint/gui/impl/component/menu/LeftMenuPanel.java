@@ -299,8 +299,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
                 PageSelfDashboard.class));
         //the link to new self dashboard page, commented until it's finished
-//        menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
-//                com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard.class));
+        menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
+                com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard.class));
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, WebModelServiceUtils.getLoggedInFocusOid());
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.profile", GuiStyleConstants.CLASS_ICON_PROFILE,
@@ -521,7 +521,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createSystemConfigurationMenu(item);
 
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.internals", "fa fa-archive", PageInternals.class));
-        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.repoQuery", GuiStyleConstants.CLASS_ICON_SEARCH + " flip-icon-margin", PageRepositoryQuery.class));
+        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.repoQuery", GuiStyleConstants.CLASS_ICON_SEARCH_FLIP + " flip-icon-margin", PageRepositoryQuery.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.evaluateMapping", "fa fa-cog", PageEvaluateMapping.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.about", "fa fa-info-circle", PageAbout.class));
         return item;

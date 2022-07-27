@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -362,6 +364,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
+        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage("details" + getType().getSimpleName());
+        if (storage != null) {
+            ContainerPanelConfigurationType config = storage.getDefaultConfiguration();
+            if (config != null) {
+                return config;
+            }
+        }
         ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
 
         if (defaultConfiguration != null) {

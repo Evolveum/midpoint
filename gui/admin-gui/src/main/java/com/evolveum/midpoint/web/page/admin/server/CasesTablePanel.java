@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -43,6 +45,10 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     public CasesTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, CaseType.class, options);
+    }
+
+    public CasesTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
+        super(id, CaseType.class, options, config);
     }
 
     @Override
@@ -90,11 +96,6 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     protected ObjectFilter getCasesFilter(){
         return null;
-    }
-
-    @Override
-    protected boolean hideFooterIfSinglePage() {
-        return isDashboard();
     }
 
     protected boolean isDashboard(){

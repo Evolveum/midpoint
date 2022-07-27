@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.basicSettings", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicSettingStepPanel extends AbstractResourceWizardStepPanel {
+public class BasicSettingStepPanel extends AbstractFormResourceWizardStepPanel {
 
     private static final String PANEL_TYPE = "basicSettingsWizard";
 

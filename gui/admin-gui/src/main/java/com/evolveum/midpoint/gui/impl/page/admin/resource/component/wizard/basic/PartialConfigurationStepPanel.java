@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
@@ -35,7 +35,7 @@ import org.apache.wicket.model.IModel;
                 icon = "fa fa-cog"),
         containerPath = "connectorConfiguration/configurationProperties",
         expanded = true)
-public class PartialConfigurationStepPanel extends AbstractResourceWizardStepPanel {
+public class PartialConfigurationStepPanel extends AbstractFormResourceWizardStepPanel {
 
     private static final String DOT_CLASS = PartialConfigurationStepPanel.class.getName() + ".";
     private static final String OPERATION_PARTIAL_CONFIGURATION_TEST = DOT_CLASS + "partialConfigurationTest";
