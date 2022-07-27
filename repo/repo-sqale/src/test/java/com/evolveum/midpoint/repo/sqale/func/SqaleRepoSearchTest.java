@@ -2762,5 +2762,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .matching(new QName(STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart())),
                 user1Oid);
     }
+
+    @Test
+    public void fuzzyStringSearchTest() throws SchemaException {
+        searchUsersTest("With levelstein",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("User1").levenshtein(2, true),
+                user1Oid);
+
+        searchUsersTest("With levelstein in extension",
+                f -> f.item(UserType.F_EXTENSION, new ItemName("string")).fuzzyString("string_value").levenshtein(2, true),
+                user1Oid);
+
+    }
     // endregion
 }

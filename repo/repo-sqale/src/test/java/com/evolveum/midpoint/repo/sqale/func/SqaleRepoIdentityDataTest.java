@@ -13,17 +13,24 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -104,5 +111,25 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
                 .containsExactlyInAnyOrder("givenName", "familyName", "familyName.3", "dateOfBirth", "nationalId");
     }
 
+
+    @Test
+    public void testSeachUsingFuzzyMatching() throws CommonException {
+        when("user is obtained with retrieve options for identities");
+        Collection<SelectorOptions<GetOperationOptions>> getOptions = SchemaService.get()
+                .getOperationOptionsBuilder().item(FocusType.F_IDENTITIES).retrieve().build();
+        OperationResult result = createOperationResult();
+        ItemName familyNameQName = new ItemName(SchemaConstants.NS_MIDPOINT_PUBLIC_COMMON, "familyName");
+        var  def = PrismContext.get().definitionFactory().createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+        def.toMutable().setRuntimeSchema(true);
+
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class).itemWithDef(def, UserType.F_IDENTITIES,
+                FocusIdentitiesType.F_IDENTITY,
+                FocusIdentityType.F_ITEMS,
+                FocusIdentityItemsType.F_NORMALIZED,
+                new ItemName(SchemaConstants.NS_MIDPOINT_PUBLIC_COMMON, "familyName")
+                ).eq("alice").build();
+        var ret = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertThat(ret.size()).isEqualTo(1);
+    }
     // TODO modification test + hopefully updateGetOptions in QFocusMapping does the trick
 }
