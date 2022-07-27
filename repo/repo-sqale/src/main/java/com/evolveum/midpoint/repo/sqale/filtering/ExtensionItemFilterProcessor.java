@@ -30,6 +30,7 @@ import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -107,6 +108,13 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
         PropertyValueFilter<?> propertyValueFilter = (PropertyValueFilter<?>) filter;
         ValueFilterValues<?, ?> values = ValueFilterValues.from(propertyValueFilter);
+
+        if (filter instanceof FuzzyStringMatchFilter<?>) {
+            return fuzzyStringPredicate((FuzzyStringMatchFilter<?>) filter,
+                    stringTemplate("{0}->>'{1s}'", path, extItem.id), // Resolve nested value
+                    values);
+        }
+
         FilterOperation operation = operation(filter);
 
         if (values.isEmpty()) {

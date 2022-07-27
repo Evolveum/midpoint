@@ -116,8 +116,8 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
         return singleValuePredicateWithNotTreated(path, operation, values.singleValue());
     }
 
-    private  <T> Predicate fuzzyStringPredicate(FuzzyStringMatchFilter<?> filter, Path<T> path,
-            ValueFilterValues<?, T> values) throws QueryException {
+    protected  Predicate fuzzyStringPredicate(FuzzyStringMatchFilter<?> filter, Expression<?> path,
+            ValueFilterValues<?, ?> values) throws QueryException {
         FuzzyMatchingMethod method = filter.getMatchingMethod();
         if (method instanceof Levenshtein) {
             var levenstein = (Levenshtein) method;

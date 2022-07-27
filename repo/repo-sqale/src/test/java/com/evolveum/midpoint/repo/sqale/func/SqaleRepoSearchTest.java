@@ -2768,6 +2768,11 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         searchUsersTest("With levelstein",
                 f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("User1").levenshtein(2, true),
                 user1Oid);
+
+        searchUsersTest("With levelstein in extension",
+                f -> f.item(UserType.F_EXTENSION, new ItemName("string")).fuzzyString("string_value").levenshtein(2, true),
+                user1Oid);
+
     }
     // endregion
 }
