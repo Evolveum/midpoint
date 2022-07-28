@@ -22,6 +22,8 @@ public class RoleCatalogQueryItem implements Serializable {
 
     private ObjectReferenceType collectionRef;
 
+    private String collectionUri;
+
     public ObjectReferenceType orgRef() {
         return orgRef;
     }
@@ -46,6 +48,15 @@ public class RoleCatalogQueryItem implements Serializable {
 
     public RoleCatalogQueryItem scopeOne(boolean scopeOne) {
         this.scopeOne = scopeOne;
+        return this;
+    }
+
+    public String collectionUri() {
+        return collectionUri;
+    }
+
+    public RoleCatalogQueryItem collectionUri(String collectionUri) {
+        this.collectionUri = collectionUri;
         return this;
     }
 }

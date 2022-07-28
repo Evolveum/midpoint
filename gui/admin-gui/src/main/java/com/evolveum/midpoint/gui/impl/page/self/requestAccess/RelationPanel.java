@@ -166,12 +166,11 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
     private Tile<QName> createTileForRelation(QName name) {
         RelationSelectionType config = getRelationConfiguration();
-        RelationsDefinitionType relations = config != null ? config.getRelations() : new RelationsDefinitionType();
 
         String icon = DEFAULT_RELATION_ICON;
         String label = name.getLocalPart();
 
-        for (RelationDefinitionType rel : relations.getRelation()) {
+        for (RelationDefinitionType rel : config.getRelation()) {
             if (!name.equals(rel.getRef())) {
                 continue;
             }

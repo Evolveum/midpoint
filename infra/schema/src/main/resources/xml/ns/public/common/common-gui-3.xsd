@@ -385,7 +385,16 @@
             <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0">
 
             </xsd:element>
-            <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0"/>
+            <xsd:element name="includeDefaultRelations" type="xsd:boolean" minOccurs="0">
+
+            </xsd:element>
+            <xsd:element name="relation" type="tns:RelationDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of a single (custom) relation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -426,8 +435,10 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="identifier" type="xsd:string"/>
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0"/>
             <!-- todo mark deprecated or remove entirely -->
             <!--<xsd:element name="collectionViewIdentifier" type="xsd:string" minOccurs="0"/>-->
+            <xsd:element name="collectionUri" type="xsd:string" minOccurs="0"/>
             <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0"/>
         </xsd:sequence>

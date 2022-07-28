@@ -98,6 +98,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final String DELETE_AND_ADD_JACK = "delete-and-add-jack";
     private static final String MODIFY_JACK = "modify-jack";
     private static final String MODIFY_JACK_BACK = "modify-jack-back";
+    private static final String MODIFY_BROTHERS = "modify-brothers";
     private static final String RECOMPUTE_JACK = "recompute-jack";
 
     // Tests 360-399
@@ -548,6 +549,46 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertUserAfterByUsername(USER_JACK_USERNAME)
                 .assertLocality("Caribbean");
+    }
+
+    /**
+     * Tests modification of multiple users at once. MID-7965
+     */
+    @Test
+    public void test345ModifyBrothers() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("there are two brothers");
+        String oid1 = addObject(
+                new UserType()
+                        .name("brother-1")
+                        .asPrismObject());
+        String oid2 = addObject(
+                new UserType()
+                        .name("brother-2")
+                        .asPrismObject());
+
+        when("they are modified");
+        ExecutionContext output =
+                evaluator.evaluateExpression(
+                        parseScriptingExpression(MODIFY_BROTHERS),
+                        task,
+                        result);
+
+        then("they are really modified");
+        dumpOutput(output, result);
+        assertOutputData(output, 2, OperationResultStatus.SUCCESS);
+        assertSuccess(result);
+
+        assertUserAfterByUsername("brother-1")
+                .assertLocality("here");
+        assertUserAfterByUsername("brother-2")
+                .assertLocality("here");
+
+        and("brothers are deleted"); // to not disturb tests that check # of users
+        deleteObject(UserType.class, oid1);
+        deleteObject(UserType.class, oid2);
     }
 
     @Test

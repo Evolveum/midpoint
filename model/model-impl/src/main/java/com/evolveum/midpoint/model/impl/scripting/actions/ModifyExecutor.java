@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.springframework.stereotype.Component;
@@ -92,19 +93,21 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
 
     private ObjectDelta<? extends ObjectType> createDelta(ObjectType object, ObjectDeltaType deltaBean)
             throws ScriptExecutionException, SchemaException {
-        if (deltaBean.getChangeType() == null) {
-            deltaBean.setChangeType(ChangeTypeType.MODIFY);
+        ObjectDeltaType deltaBeanClone = deltaBean.clone();
+        if (deltaBeanClone.getChangeType() == null) {
+            deltaBeanClone.setChangeType(ChangeTypeType.MODIFY);
         }
-        if (deltaBean.getOid() == null && deltaBean.getChangeType() != ChangeTypeType.ADD) {
-            deltaBean.setOid(object.getOid());
+        if (deltaBeanClone.getOid() == null && deltaBeanClone.getChangeType() != ChangeTypeType.ADD) {
+            deltaBeanClone.setOid(object.getOid());
         }
-        if (deltaBean.getObjectType() == null) {
-            if (object.asPrismObject().getDefinition() == null) {
+        if (deltaBeanClone.getObjectType() == null) {
+            PrismObjectDefinition<? extends ObjectType> definition = object.asPrismObject().getDefinition();
+            if (definition == null) {
                 throw new ScriptExecutionException("No definition for prism object " + object);
             }
-            deltaBean.setObjectType(object.asPrismObject().getDefinition().getTypeName());
+            deltaBeanClone.setObjectType(definition.getTypeName());
         }
-        return DeltaConvertor.createObjectDelta(deltaBean, prismContext);
+        return DeltaConvertor.createObjectDelta(deltaBeanClone, prismContext);
     }
 
     @Override
