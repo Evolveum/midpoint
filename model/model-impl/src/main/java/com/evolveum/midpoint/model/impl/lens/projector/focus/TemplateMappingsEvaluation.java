@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -280,7 +281,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 itemDeltaExistsProvider,
                 null,
                 null,
-                targetDefinition,
+                ItemDefinitionProvider.forObjectDefinition(targetDefinition),
                 env,
                 beans,
                 context,

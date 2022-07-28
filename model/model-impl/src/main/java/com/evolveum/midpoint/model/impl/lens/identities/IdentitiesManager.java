@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -173,13 +174,15 @@ public class IdentitiesManager {
         for (IdentityItemConfiguration itemConfig : configuration.getItems()) {
             ItemPath path = itemConfig.getPath();
             Item<?, ?> item = focus.asPrismObject().findItem(path);
-            List<? extends PrismValue> values = item.getValues();
-            if (values.size() > 1) {
-                throw new UnsupportedOperationException(
-                        String.format("Couldn't use multi-valued item '%s' (%s) as identity item in %s",
-                                path, values, focus));
-            } else if (values.size() == 1) {
-                addIdentityItem(identity, itemConfig, values.get(0));
+            if (item != null) {
+                List<? extends PrismValue> values = item.getValues();
+                if (values.size() > 1) {
+                    throw new UnsupportedOperationException(
+                            String.format("Couldn't use multi-valued item '%s' (%s) as identity item in %s",
+                                    path, values, focus));
+                } else if (values.size() == 1) {
+                    addIdentityItem(identity, itemConfig, values.get(0));
+                }
             }
         }
         LOGGER.trace("Computed own identity:\n{}", identity.debugDumpLazily(1));
@@ -289,5 +292,41 @@ public class IdentitiesManager {
             //noinspection CastCanBeRemovedNarrowingVariableType,unchecked
             itemDeltas.addAll((Collection<? extends ItemDelta<?, ?>>) differences);
         }
+    }
+
+    public @NotNull Collection<? extends ItemDelta<?, ?>> computeNormalizationDeltas(
+            @NotNull FocusType objectNew,
+            @NotNull Set<Long> changedIds,
+            @NotNull IdentityManagementConfiguration configuration) {
+
+        List<ItemDelta<?, ?>> normalizationDeltas = new ArrayList<>();
+
+        boolean all = changedIds.contains(null);
+        FocusIdentitiesType identitiesBean = objectNew.getIdentities();
+        if (identitiesBean == null) {
+            return normalizationDeltas;
+        }
+        List<FocusIdentityType> identityList = identitiesBean.getIdentity();
+        for (FocusIdentityType identityBean : identityList) {
+            Long id = identityBean.getId();
+            if (id == null) {
+                LOGGER.warn("No-ID identity bean in {}: {}", objectNew, identitiesBean);
+                continue;
+            }
+            if (all || changedIds.contains(id)) {
+                computeNormalizationDeltas(identityBean, configuration, normalizationDeltas);
+            }
+        }
+
+        return normalizationDeltas;
+    }
+
+    private void computeNormalizationDeltas(
+            FocusIdentityType identityBean,
+            IdentityManagementConfiguration configuration,
+            List<ItemDelta<?, ?>> normalizationDeltas) {
+
+        // TODO
+
     }
 }

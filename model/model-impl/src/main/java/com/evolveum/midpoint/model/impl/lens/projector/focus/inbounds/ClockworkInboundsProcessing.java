@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import static com.evolveum.midpoint.prism.PrismContainerValue.getId;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 import java.util.function.Function;
@@ -18,6 +21,8 @@ import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfig
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.delta.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitiesType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +51,8 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkInboundsProcessing.class);
 
-    private static final String OP_UPDATE_FOCUS_IDENTITY_DATA =
-            ClockworkInboundsProcessing.class.getName() + ".updateFocusIdentityData";
+    private static final String OP_NORMALIZE_CHANGED_FOCUS_IDENTITY_DATA =
+            ClockworkInboundsProcessing.class.getName() + ".normalizeChangedFocusIdentityData";
 
     @NotNull private final LensContext<F> context;
 
@@ -63,7 +68,7 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
     /**
      * Collects all the mappings from all the projects, sorted by target property.
      *
-     * Motivation: we need to evaluate them together, e.g. in case that there are several mappings
+     * Original motivation (is it still valid?): we need to evaluate them together, e.g. in case that there are several mappings
      * from several projections targeting the same property.
      */
     void collectMappings()
@@ -92,6 +97,7 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
                         projectionContext,
                         context,
                         mappingsMap,
+                        itemDefinitionMap,
                         new ClockworkContext(context, env, result, beans),
                         objectCurrentOrNew,
                         getFocusDefinition(objectCurrentOrNew))
@@ -138,22 +144,54 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
     }
 
     @Override
-    void updateFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException {
-        OperationResult identityUpdateResult = result.subresult(OP_UPDATE_FOCUS_IDENTITY_DATA)
+    void normalizeChangedFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException {
+        OperationResult identityUpdateResult = result.subresult(OP_NORMALIZE_CHANGED_FOCUS_IDENTITY_DATA)
                 .setMinor()
                 .build();
         try {
             IdentityManagementConfiguration configuration =
                     beans.identitiesManager.getIdentityManagementConfiguration(context);
             if (configuration == null) {
-                LOGGER.trace("No identity management configuration for {}; identity data will not be updated", context);
+                LOGGER.trace("No identity management configuration for {}; identity data will not be normalized", context);
                 identityUpdateResult.recordNotApplicable("No identity management configuration");
                 return;
             }
 
-            LOGGER.trace("Updating focus identity data from inbound mapping output(s)");
-            new FocusIdentityDataUpdater<>(mappingsMap, configuration, context, env, identityUpdateResult, beans)
-                    .update();
+            LOGGER.trace("Normalizing focus identity data from inbound mapping output(s)");
+            LensFocusContext<F> focusContext = context.getFocusContextRequired();
+            ObjectDelta<F> secondaryDelta = focusContext.getSecondaryDelta();
+            if (ObjectDelta.isEmpty(secondaryDelta)) {
+                LOGGER.trace("No secondary delta -> nothing to normalize");
+                return;
+            }
+
+            PrismObject<F> objectNew = focusContext.getObjectNew();
+            if (objectNew == null) {
+                LOGGER.trace("No 'object new' -> nothing to normalize (should not occur!)");
+                return;
+            }
+
+            ItemPath identityPrefix = ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
+            stateCheck(secondaryDelta.isModify(), "Not a modify delta?");
+            Set<Long> changedIds = new HashSet<>();
+            for (ItemDelta<?, ?> modification : secondaryDelta.getModifications()) {
+                ItemPath modifiedItemPath = modification.getPath();
+                if (modifiedItemPath.startsWith(identityPrefix)) {
+                    ItemPath rest = modifiedItemPath.rest(2);
+                    if (rest.startsWithId()) {
+                        changedIds.add(rest.firstToId());
+                    } else if (rest.isEmpty()) {
+                        for (PrismValue value : emptyIfNull(modification.getValuesToAdd())) {
+                            changedIds.add(getId(value));
+                        }
+                        for (PrismValue value : emptyIfNull(modification.getValuesToReplace())) {
+                            changedIds.add(getId(value));
+                        }
+                    }
+                }
+            }
+            focusContext.swallowToSecondaryDelta(
+                    beans.identitiesManager.computeNormalizationDeltas(objectNew.asObjectable(), changedIds, configuration));
         } catch (Throwable t) {
             identityUpdateResult.recordFatalError(t);
             throw t;

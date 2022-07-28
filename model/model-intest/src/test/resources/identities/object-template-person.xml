@@ -15,14 +15,56 @@
     <item>
         <ref>givenName</ref>
         <identity/>
+        <mapping> <!-- temporary workaround for a missing functionality -->
+            <source>
+                <path>identities/identity</path>
+            </source>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        import com.evolveum.midpoint.model.intest.TestIdentities
+                        TestIdentities.selectIdentityValue(identity, 'givenName')
+                    </code>
+                </script>
+            </expression>
+        </mapping>
     </item>
     <item>
         <ref>familyName</ref>
         <identity/>
+        <mapping> <!-- temporary workaround for a missing functionality -->
+            <source>
+                <path>identities/identity</path>
+            </source>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        import com.evolveum.midpoint.model.intest.TestIdentities
+                        TestIdentities.selectIdentityValue(identity, 'familyName')
+                    </code>
+                </script>
+            </expression>
+        </mapping>
     </item>
     <item>
         <ref>extension/personalNumber</ref>
         <identity/>
+        <mapping> <!-- temporary workaround for a missing functionality -->
+            <source>
+                <path>identities/identity</path>
+            </source>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        import com.evolveum.midpoint.model.intest.TestIdentities
+                        TestIdentities.selectIdentityValue(identity, 'personalNumber')
+                    </code>
+                </script>
+            </expression>
+        </mapping>
     </item>
     <item>
         <ref>name</ref>

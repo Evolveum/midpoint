@@ -172,6 +172,12 @@ public class FocusTypeUtil {
                 .collect(Collectors.toList());
     }
 
+    public static @Nullable FocusIdentityType getMatchingIdentity(
+            @NotNull FocusType focus, @Nullable FocusIdentitySourceType source) {
+        FocusIdentitiesType identities = focus.getIdentities();
+        return identities != null ? FocusIdentitiesTypeUtil.getMatchingIdentity(identities, source) : null;
+    }
+
     public static void addOrReplaceIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
         deleteCompatibleIdentity(focus, identity);
         addIdentity(focus, identity);

@@ -9,18 +9,23 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityItemConfiguration;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -342,5 +347,70 @@ class ClockworkSource extends MSource {
     @Override
     @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase() {
         return InboundMappingEvaluationPhaseType.CLOCKWORK;
+    }
+
+    @Override
+    @Nullable FocusIdentitySourceType getFocusIdentitySource() {
+        return projectionContext.getFocusIdentitySource();
+    }
+
+    @Override
+    @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) throws ConfigurationException {
+        IdentityManagementConfiguration identityManagementConfiguration =
+                getFocusContext().getIdentityManagementConfiguration();
+        return identityManagementConfiguration != null ?
+                identityManagementConfiguration.getForPath(itemPath) : null;
+    }
+
+    private @NotNull LensFocusContext<? extends ObjectType> getFocusContext() {
+        return projectionContext.getLensContext().getFocusContextRequired();
+    }
+
+    @Override
+    ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException {
+
+        LensFocusContext<?> focusContext = getFocusContext();
+        ObjectType objectNew = asObjectable(focusContext.getObjectNew());
+        if (!(objectNew instanceof FocusType)) {
+            LOGGER.trace("Focus is not a FocusType (or a 'new' object does not exist)");
+            return null;
+        }
+        FocusType focusNew = (FocusType) objectNew;
+
+        IdentityItemConfiguration identityItemConfiguration = getIdentityItemConfiguration(targetItemPath);
+        if (identityItemConfiguration == null) {
+            LOGGER.trace("No identity item configuration for '{}' (target path will not be overridden)", targetItemPath);
+            return null;
+        }
+
+        FocusIdentitySourceType identitySource = getFocusIdentitySource();
+        if (identitySource == null) {
+            return null; // Means that we are not in the clockwork. We will write right to the pre-focus object.
+        }
+        FocusIdentityType identity = FocusTypeUtil.getMatchingIdentity(focusNew, identitySource);
+        long id;
+        if (identity != null) {
+            id = Objects.requireNonNull(
+                    identity.getId(),
+                    () -> "Identity container without an ID: " + identity);
+
+        } else {
+            id = (int) (Math.random() * 1_000_000_000.0); // TODO more deterministic approach (e.g. negative numbers)
+            FocusIdentityType newIdentity = new FocusIdentityType()
+                    .id(id)
+                    .source(identitySource);
+            focusContext.swallowToSecondaryDelta(
+                    PrismContext.get().deltaFor(FocusType.class)
+                            .item(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY)
+                            .add(newIdentity)
+                            .asItemDelta());
+        }
+        return ItemPath.create(
+                FocusType.F_IDENTITIES,
+                FocusIdentitiesType.F_IDENTITY,
+                id,
+                FocusIdentityType.F_ITEMS,
+                FocusIdentityItemsType.F_ORIGINAL,
+                identityItemConfiguration.getName());
     }
 }

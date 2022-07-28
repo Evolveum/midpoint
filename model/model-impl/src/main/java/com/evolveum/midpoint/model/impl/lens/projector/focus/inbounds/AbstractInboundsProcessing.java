@@ -63,6 +63,9 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
      */
     final PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap = new PathKeyedMap<>();
 
+    /** Here we cache definitions for regular and identity items. */
+    final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
+
     /**
      * Output triples for individual target paths.
      */
@@ -81,15 +84,16 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         collectMappings();
         evaluateMappings();
-        updateFocusIdentityData();
         consolidateTriples();
+
+        normalizeChangedFocusIdentityData();
     }
 
     /**
-     * Updates the identity data stored in the focus object - for all projections that have had inbound mappings evaluated.
+     * Focus identity data produced by inbound mappings need to be normalized.
      * Currently applicable only to clockwork processing.
      */
-    abstract void updateFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException;
+    abstract void normalizeChangedFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException;
 
     /**
      * Collects the mappings - either from all projections (for clockwork) or from the input shadow (for pre-mappings).
@@ -158,7 +162,6 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
             SchemaException, SecurityViolationException, ExpressionEvaluationException {
 
         PrismObject<F> focusNew = getFocusNew();
-        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusNew);
         ObjectDelta<F> focusAPrioriDelta = getFocusAPrioriDelta();
 
         //noinspection rawtypes
@@ -175,7 +178,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
                 getFocusPrimaryItemDeltaExistsProvider(),
                 true,
                 customizer,
-                focusDefinition,
+                itemDefinitionMap::get,
                 env,
                 beans,
                 getLensContextIfPresent(),

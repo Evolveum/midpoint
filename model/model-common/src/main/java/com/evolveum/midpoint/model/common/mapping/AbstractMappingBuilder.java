@@ -56,6 +56,7 @@ public abstract class AbstractMappingBuilder<
     private MappingKindType mappingKind;
     private ItemPath implicitSourcePath; // for tracing purposes
     private ItemPath implicitTargetPath; // for tracing purposes
+    private ItemPath targetPathOverride;
     private Source<?, ?> defaultSource;
     private final List<Source<?, ?>> additionalSources = new ArrayList<>();
     private D defaultTargetDefinition;
@@ -105,6 +106,11 @@ public abstract class AbstractMappingBuilder<
 
     public RT implicitTargetPath(ItemPath val) {
         implicitTargetPath = val;
+        return typedThis();
+    }
+
+    public RT targetPathOverride(ItemPath val) {
+        targetPathOverride = val;
         return typedThis();
     }
 
@@ -361,19 +367,23 @@ public abstract class AbstractMappingBuilder<
         return mappingKind;
     }
 
-    public ItemPath getImplicitSourcePath() {
+    ItemPath getImplicitSourcePath() {
         return implicitSourcePath;
     }
 
-    public ItemPath getImplicitTargetPath() {
+    ItemPath getImplicitTargetPath() {
         return implicitTargetPath;
+    }
+
+    ItemPath getTargetPathOverride() {
+        return targetPathOverride;
     }
 
     public Source<?, ?> getDefaultSource() {
         return defaultSource;
     }
 
-    public List<Source<?, ?>> getAdditionalSources() {
+    List<Source<?, ?>> getAdditionalSources() {
         return additionalSources;
     }
 
@@ -385,11 +395,11 @@ public abstract class AbstractMappingBuilder<
         return expressionProfile;
     }
 
-    public ItemPath getDefaultTargetPath() {
+    ItemPath getDefaultTargetPath() {
         return defaultTargetPath;
     }
 
-    public Collection<V> getOriginalTargetValues() {
+    Collection<V> getOriginalTargetValues() {
         return originalTargetValues;
     }
 
@@ -413,23 +423,23 @@ public abstract class AbstractMappingBuilder<
         return valuePolicySupplier;
     }
 
-    public VariableProducer getVariableProducer() {
+    VariableProducer getVariableProducer() {
         return variableProducer;
     }
 
-    public MappingPreExpression getMappingPreExpression() {
+    MappingPreExpression getMappingPreExpression() {
         return mappingPreExpression;
     }
 
-    public boolean isConditionMaskOld() {
+    boolean isConditionMaskOld() {
         return conditionMaskOld;
     }
 
-    public boolean isConditionMaskNew() {
+    boolean isConditionMaskNew() {
         return conditionMaskNew;
     }
 
-    public MappingSpecificationType getMappingSpecification() {
+    MappingSpecificationType getMappingSpecification() {
         return mappingSpecification;
     }
 
@@ -449,7 +459,7 @@ public abstract class AbstractMappingBuilder<
         return contextDescription;
     }
 
-    public QName getMappingQName() {
+    QName getMappingQName() {
         return mappingQName;
     }
 

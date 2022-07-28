@@ -52,6 +52,7 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
             @NotNull LensProjectionContext projectionContext,
             @NotNull LensContext<F> lensContext,
             @NotNull PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap,
+            @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
             @NotNull ClockworkContext context,
             @Nullable PrismObject<F> focus,
             @NotNull PrismObjectDefinition<F> focusDefinition) throws SchemaException, ConfigurationException {
@@ -63,7 +64,7 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
                         projectionContext.getCompositeObjectDefinition(),
                         projectionContext,
                         context),
-                new ClockworkTarget<>(lensContext, focus, focusDefinition),
+                new ClockworkTarget<>(lensContext, focus, focusDefinition, itemDefinitionMap),
                 context
         );
         this.projectionContext = projectionContext;
@@ -248,7 +249,6 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
         params.setHasFullTargetObject(true);
         context.beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, context.env.task, context.result);
     }
-
 
     @Override
     void evaluateSpecialInbounds()

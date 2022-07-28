@@ -8,11 +8,13 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
@@ -236,4 +238,11 @@ abstract class MSource implements DebugDumpable {
     }
 
     abstract @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase();
+
+    /** Computes focus identity source information for given projection. Not applicable to pre-mappings. */
+    abstract @Nullable FocusIdentitySourceType getFocusIdentitySource();
+
+    abstract @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) throws ConfigurationException;
+
+    abstract ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
 }

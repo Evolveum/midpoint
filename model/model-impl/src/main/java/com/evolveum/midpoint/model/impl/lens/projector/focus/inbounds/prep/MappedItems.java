@@ -55,7 +55,6 @@ class MappedItems<F extends FocusType> {
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class)
                     .findContainerDefinition(ShadowType.F_ASSOCIATION));
 
-
     /**
      * Definition of `auxiliaryObjectClass` property in shadows.
      */

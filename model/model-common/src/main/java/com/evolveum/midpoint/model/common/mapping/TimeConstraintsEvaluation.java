@@ -164,9 +164,15 @@ class TimeConstraintsEvaluation implements Serializable {
             SecurityViolationException, ExpressionEvaluationException {
         ItemPath path = m.parser.getSourcePath(source);
 
-        Object sourceObject = ExpressionUtil.resolvePathGetValue(path, m.variables, false,
-                m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
-                "reference time definition in " + m.getMappingContextDescription(), m.getTask(), result);
+        Object sourceObject = ExpressionUtil.resolvePathGetValue(
+                path,
+                m.variables,
+                false,
+                m.getTypedSourceContext(),
+                m.beans.objectResolver,
+                "reference time definition in " + m.getMappingContextDescription(),
+                m.getTask(),
+                result);
         LOGGER.trace("parseTimeSource: path = {}, source object = {}", path, sourceObject);
 
         if (sourceObject == null) {

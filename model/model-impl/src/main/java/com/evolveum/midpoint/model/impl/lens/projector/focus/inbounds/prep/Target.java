@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,13 +35,23 @@ abstract class Target<F extends FocusType> {
     /** Focus definition. */
     @NotNull final PrismObjectDefinition<F> focusDefinition;
 
-    Target(PrismObject<F> focus, @NotNull PrismObjectDefinition<F> focusDefinition) {
+    @NotNull private final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap;
+
+    Target(
+            PrismObject<F> focus,
+            @NotNull PrismObjectDefinition<F> focusDefinition,
+            @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap) {
         this.focus = focus;
         this.focusDefinition = focusDefinition;
+        this.itemDefinitionMap = itemDefinitionMap;
     }
 
     /**
      * Returns true if the focus object is being deleted. Not applicable to pre-mappings.
      */
     abstract boolean isFocusBeingDeleted();
+
+    void addItemDefinition(ItemPath itemPath, ItemDefinition<?> itemDefinition) {
+        itemDefinitionMap.put(itemPath, itemDefinition);
+    }
 }

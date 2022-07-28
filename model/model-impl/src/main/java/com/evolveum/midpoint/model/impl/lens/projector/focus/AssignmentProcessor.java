@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionP
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
@@ -393,7 +394,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     context::primaryFocusItemDeltaExists,
                     null,
                     null,
-                    focusContext.getObjectDefinition(),
+                    ItemDefinitionProvider.forObjectDefinition(focusContext.getObjectDefinition()),
                     env,
                     beans,
                     context,

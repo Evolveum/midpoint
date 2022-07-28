@@ -144,6 +144,8 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     /**
      * Secondary delta for current projection/execution wave.
      * For focus, it is archived and cleared after execution.
+     *
+     * Currently, it is always a MODIFY delta.
      */
     private ObjectDelta<O> secondaryDelta;
 

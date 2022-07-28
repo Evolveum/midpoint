@@ -10,6 +10,7 @@ package com.evolveum.midpoint.test.asserter;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -53,7 +54,7 @@ public class FocusIdentityAsserter<RA> extends PrismContainerValueAsserter<Focus
     private <T> T getValue(IdentityItemsType items, String name, Class<T> type) {
         Item<?, ?> item = items.asPrismContainerValue()
                 .findItem(new ItemName(NS_C, name));
-        return item.getRealValue(type);
+        return JavaTypeConverter.convert(type, item.getRealValue());
     }
 
     @NotNull

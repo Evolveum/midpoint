@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -36,7 +35,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Updates focus identity data related to projections (resource objects).
+ * Normalizes focus identity data related to projections (resource objects).
  */
 class FocusIdentityDataUpdater<F extends FocusType> {
 
@@ -121,7 +120,7 @@ class FocusIdentityDataUpdater<F extends FocusType> {
         }
 
         private void createOrUpdateIdentityWithMappings(InboundMappingInContext<V, D> mappingInContext) {
-            FocusIdentitySourceType source = createIdentitySourceBean(mappingInContext);
+            FocusIdentitySourceType source = mappingInContext.getProjectionContextRequired().getFocusIdentitySource();
             for (IdentityWithMappings identityWithMappings : identitiesWithMappings) {
                 if (FocusIdentityTypeUtil.matches(identityWithMappings.identityBean, source)) {
                     identityWithMappings.mappingInContextList.add(mappingInContext);
@@ -142,22 +141,6 @@ class FocusIdentityDataUpdater<F extends FocusType> {
                     new IdentityWithMappings(
                             global,
                             new ArrayList<>(List.of(mappingInContext))));
-        }
-
-        private FocusIdentitySourceType createIdentitySourceBean(InboundMappingInContext<V, D> mappingInContext) {
-            LensProjectionContext projectionContext = mappingInContext.getProjectionContextRequired();
-            ProjectionContextKey key = projectionContext.getKey();
-            FocusIdentitySourceType source = new FocusIdentitySourceType()
-                    .resourceRef(projectionContext.getResourceOid(), ResourceType.COMPLEX_TYPE)
-                    .kind(key.getKind())
-                    .intent(key.getIntent())
-                    .tag(key.getTag());
-            String shadowOid = projectionContext.getOid();
-            if (shadowOid != null) {
-                source.shadowRef(shadowOid, ShadowType.COMPLEX_TYPE);
-            }
-            // TODO originRef
-            return source;
         }
 
         /** Determines the (consolidated) value of given focus item and adds it to the identity items map. */

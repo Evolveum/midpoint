@@ -50,6 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta;
+import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 /**
@@ -277,9 +278,18 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         PrismContext prismContext = beans.prismContext;
 
         TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
-        Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, beans.mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
+        Collection<V> targetValues =
+                ExpressionUtil.computeTargetValues(
+                        getPath(mappingBean.getTarget()),
+                        defaultTargetContext,
+                        variables,
+                        beans.mappingFactory.getObjectResolver(),
+                        contextDesc,
+                        prismContext,
+                        task,
+                        result);
 
-        MappingSpecificationType specification = new MappingSpecificationType(prismContext)
+        MappingSpecificationType specification = new MappingSpecificationType()
                 .mappingName(mappingBean.getName())
                 .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
                 .assignmentId(createAssignmentId(assignmentPathVariables));

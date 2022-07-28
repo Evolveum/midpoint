@@ -73,9 +73,9 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     private final Function<ItemPath, Boolean> itemDeltaExistsProvider;
 
     /**
-     * Definition of the target object.
+     * Provides the definition of the target item. (Normally by looking up by item path, but there are exceptions.)
      */
-    private final PrismObjectDefinition<T> targetDefinition;
+    private final ItemDefinitionProvider itemDefinitionProvider;
 
     /**
      * Should the values from zero set be transformed to delta ADD section?
@@ -133,7 +133,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             Function<ItemPath, Boolean> itemDeltaExistsProvider,
             Boolean addUnchangedValuesOverride,
             Consumer<IvwoConsolidatorBuilder> consolidatorCustomizer,
-            PrismObjectDefinition<T> targetDefinition,
+            ItemDefinitionProvider itemDefinitionProvider,
             MappingEvaluationEnvironment env,
             ModelBeans beans,
             @Nullable LensContext<?> lensContext,
@@ -142,7 +142,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
         this.itemDeltaExistsProvider = itemDeltaExistsProvider;
-        this.targetDefinition = targetDefinition;
+        this.itemDefinitionProvider = itemDefinitionProvider;
         this.consolidatorCustomizer = consolidatorCustomizer;
         this.env = env;
         this.parentResult = parentResult;
@@ -234,12 +234,13 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         private ItemDelta<V, D> itemDelta;
 
         private DeltaSetTripleConsolidation(ItemPath itemPath, DeltaSetTriple<I> deltaSetTriple, ItemDelta<V, D> aprioriItemDelta,
-                ConsolidationValueMetadataComputer valueMetadataComputer) {
+                ConsolidationValueMetadataComputer valueMetadataComputer) throws SchemaException {
             this.itemPath = itemPath;
             this.deltaSetTriple = deltaSetTriple;
             this.aprioriItemDelta = aprioriItemDelta;
             this.existingItem = targetObject != null ? targetObject.findItem(itemPath) : null;
-            this.itemDefinition = targetDefinition.findItemDefinition(itemPath);
+            //noinspection unchecked
+            this.itemDefinition = (D) itemDefinitionProvider.getDefinition(itemPath); //targetDefinition.findItemDefinition(itemPath)
             this.valueMetadataComputer = valueMetadataComputer;
         }
 
@@ -281,6 +282,18 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             itemDelta.simplify();
             itemDelta.validate(env.contextDescription);
             LOGGER.trace("Computed delta:\n{}", itemDelta.debugDumpLazily());
+        }
+    }
+
+    public interface ItemDefinitionProvider {
+        ItemDefinition<?> getDefinition(@NotNull ItemPath itemPath) throws SchemaException;
+
+        static ItemDefinitionProvider forComplexType(@NotNull ComplexTypeDefinition complexTypeDefinition) {
+            return complexTypeDefinition::findItemDefinition;
+        }
+
+        static ItemDefinitionProvider forObjectDefinition(@NotNull PrismObjectDefinition<?> objectDefinition) {
+            return forComplexType(objectDefinition.getComplexTypeDefinition());
         }
     }
 }

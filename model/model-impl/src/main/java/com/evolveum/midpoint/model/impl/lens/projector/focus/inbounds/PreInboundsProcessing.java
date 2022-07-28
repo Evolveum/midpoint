@@ -65,6 +65,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
             PrismObject<F> preFocus = ctx.getPreFocusAsPrismObject();
             new PreShadowInboundsPreparation<>(
                     mappingsMap,
+                    itemDefinitionMap,
                     new PreContext(ctx, env, result, beans),
                     preFocus,
                     getFocusDefinition(preFocus))
@@ -129,7 +130,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     }
 
     @Override
-    void updateFocusIdentityData() {
+    void normalizeChangedFocusIdentityData() {
         // Not applicable here.
     }
 }
