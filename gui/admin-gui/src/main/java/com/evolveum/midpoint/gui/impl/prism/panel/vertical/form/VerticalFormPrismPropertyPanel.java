@@ -41,7 +41,7 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
 
     @Override
     protected Component createHeaderPanel() {
-        return new PrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
+        return new VerticalFormPrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(VerticalFormPrismPropertyPanel.this);

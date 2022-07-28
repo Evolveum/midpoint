@@ -104,8 +104,12 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         next.add(nextLabel);
     }
 
-    protected VisibleBehaviour getExitVisibility() {
-        return new VisibleBehaviour(() -> false);
+    private VisibleBehaviour getExitVisibility() {
+        return new VisibleBehaviour(() -> isExitButtonVisible());
+    }
+
+    protected boolean isExitButtonVisible() {
+        return false;
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {

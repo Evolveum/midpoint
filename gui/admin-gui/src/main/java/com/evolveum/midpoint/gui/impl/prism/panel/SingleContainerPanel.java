@@ -119,7 +119,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         return PrismContainerWrapperModel.fromContainerWrapper(getModel(), virtualContainer.getIdentifier());
     }
 
-    protected QName getTypeName() {
+    private QName getTypeName() {
         return typeName;
     }
 
