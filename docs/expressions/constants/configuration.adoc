@@ -35,6 +35,17 @@ The constants are defined in the midPoint configuration file (config.xml) in xre
 </configuration>
 ----
 
+[NOTE]
+====
+Instead of changing `config.xml` file you can set up the constants also as parameter or environment variables.
+For more information check the xref:/midpoint/install/midpoint-sh.adoc[Start script] docs page.
+
+Example of the syntax:
+
+* the environment variable: `MP_SET_midpoint_constants_orgName="Example, Inc."`
+* the parameter : `-Dmidpoint.constants.ldapHost="ldap.example.com"`
+
+====
 
 == Use of Constants
 
