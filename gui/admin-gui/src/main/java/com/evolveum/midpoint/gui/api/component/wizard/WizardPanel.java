@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,6 +98,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
         addOrReplace((Component) getCurrentPanel());
     }
 
+    private IModel<List<IModel<String>>> createStepsModel() {
+        return () -> wizardModel.getSteps().stream().filter(s -> BooleanUtils.isTrue(s.isStepVisible().getObject())).map(s -> s.getTitle()).collect(Collectors.toList());
+    }
+
     private void initLayout() {
         add(AttributeAppender.prepend("class", "bs-stepper"));
         add(AttributeAppender.append("class", () -> getCurrentPanel().appendCssToWizard()));
@@ -105,17 +111,18 @@ public class WizardPanel extends BasePanel implements WizardListener {
         header.setOutputMarkupId(true);
         add(header);
 
-        ListView<IModel<String>> steps = new ListView<>(ID_STEPS, () -> wizardModel.getSteps().stream().map(s -> s.getTitle()).collect(Collectors.toList())) {
+        ListView<IModel<String>> steps = new ListView<>(ID_STEPS, createStepsModel()) {
 
             @Override
             protected void populateItem(ListItem<IModel<String>> listItem) {
                 WizardHeaderStepPanel step = new WizardHeaderStepPanel(ID_STEP, listItem.getIndex(), listItem.getModelObject());
+                // todo fix, if steps are invisible index might shift?
                 step.add(AttributeAppender.append("class", () -> wizardModel.getActiveStepIndex() == listItem.getIndex() ? "active" : null));
                 listItem.add(step);
 
                 WebMarkupContainer line = new WebMarkupContainer(ID_LINE);
                 // hide last "line"
-                line.add(new VisibleBehaviour(() -> listItem.getIndex() < wizardModel.getSteps().size() - 1));
+                line.add(new VisibleBehaviour(() -> listItem.getIndex() < getModelObject().size() - 1));
                 listItem.add(line);
             }
         };

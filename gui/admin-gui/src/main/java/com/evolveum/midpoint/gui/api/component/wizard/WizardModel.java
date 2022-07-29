@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.io.IClusterable;
 import org.apache.wicket.util.string.StringValue;
@@ -112,7 +112,7 @@ public class WizardModel implements IClusterable {
         for (int i = 0; i < steps.size(); i++) {
             WizardStep step = steps.get(i);
 
-            if (Objects.equals(id, step.getStepId())) {
+            if (Objects.equals(id, step.getStepId()) && BooleanUtils.isTrue(step.isStepVisible().getObject())) {
                 setActiveStepIndex(i);
                 break;
             }

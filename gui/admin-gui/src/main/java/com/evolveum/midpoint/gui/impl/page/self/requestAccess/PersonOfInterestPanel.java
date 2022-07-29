@@ -29,12 +29,13 @@ import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -53,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
+public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestStep {
 
     private static final long serialVersionUID = 1L;
 
@@ -112,14 +113,18 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
     private static final String ID_SELECT_MANUALLY = "selectManually";
     private static final String ID_MULTISELECT = "multiselect";
 
+    private PageBase page;
+
     private IModel<List<Tile<PersonOfInterest>>> tiles;
 
     private IModel<SelectionState> selectionState = Model.of(SelectionState.TILES);
 
     private IModel<List<ObjectReferenceType>> selectedGroupOfUsers = Model.ofList(new ArrayList<>());
 
-    public PersonOfInterestPanel(IModel<RequestAccess> model) {
+    public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
+
+        this.page = page;
 
         initModels();
         initLayout();
@@ -352,6 +357,23 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
     }
 
     @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+
+        if (canSkipStep()) {
+            // no user input needed, we'll populate model with data
+            submitData();
+
+            wizard.next();
+        }
+    }
+
+    @Override
+    public IModel<Boolean> isStepVisible() {
+        return () -> !canSkipStep();
+    }
+
+    @Override
     protected void onBeforeRender() {
         // todo doesn't work properly, header stays hidden on next step
 //        if (canSkipStep()) {
@@ -428,7 +450,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
         SearchFilterType search;
         if (collection.getCollectionRef() != null) {
             com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType collectionRef = collection.getCollectionRef();
-            PrismObject obj = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+            PrismObject obj = WebModelServiceUtils.loadObject(collectionRef, page);
             if (obj == null) {
                 return null;
             }
@@ -444,10 +466,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
         }
 
         try {
-            return getPageBase().getQueryConverter().createObjectFilter(UserType.class, search);
+            return page.getQueryConverter().createObjectFilter(UserType.class, search);
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
-            getPageBase().error("Couldn't create search filter, reason: " + ex.getMessage());
+            page.error("Couldn't create search filter, reason: " + ex.getMessage());
         }
 
         return null;
@@ -462,8 +484,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
             filter = createObjectFilterFromGroupSelection(identifier);
         }
 
-        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(getPageBase().getMainPopupBodyId(), UserType.class,
-                List.of(UserType.COMPLEX_TYPE), true, getPageBase(), filter) {
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
+                List.of(UserType.COMPLEX_TYPE), true, page, filter) {
 
             private static final long serialVersionUID = 1L;
 
@@ -477,7 +499,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
                 addUsersPerformed(target, selected);
             }
         };
-        getPageBase().showMainPopup(panel, target);
+        page.showMainPopup(panel, target);
     }
 
     private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
@@ -491,7 +513,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
 
         selectedGroupOfUsers.setObject(refs);
 
-        getPageBase().hideMainPopup(target);
+        page.hideMainPopup(target);
         target.add(getWizard().getPanel());
     }
 
@@ -547,12 +569,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
     }
 
     private TargetSelectionType getTargetSelectionConfiguration() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        if (profile == null) {
-            return null;
-        }
-
-        AccessRequestType accessRequest = profile.getAccessRequest();
+        AccessRequestType accessRequest = getAccessRequestConfiguration(page);
         if (accessRequest == null) {
             return null;
         }
@@ -604,11 +621,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
                     .asc(UserType.F_NAME)
                     .maxSize(MULTISELECT_PAGE_SIZE).offset(page * MULTISELECT_PAGE_SIZE).build();
 
-            Task task = panel.getPageBase().createSimpleTask(OPERATION_LOAD_USERS);
+            Task task = panel.page.createSimpleTask(OPERATION_LOAD_USERS);
             OperationResult result = task.getResult();
 
             try {
-                List<PrismObject<UserType>> objects = WebModelServiceUtils.searchObjects(UserType.class, query, result, panel.getPageBase());
+                List<PrismObject<UserType>> objects = WebModelServiceUtils.searchObjects(UserType.class, query, result, panel.page);
 
                 response.addAll(objects.stream()
                         .map(o -> new ObjectReferenceType()

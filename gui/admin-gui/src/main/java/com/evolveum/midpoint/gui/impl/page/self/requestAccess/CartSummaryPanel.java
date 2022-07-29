@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -44,8 +43,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -64,12 +63,10 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CartSummaryPanel extends BasePanel<RequestAccess> {
+public class CartSummaryPanel extends BasePanel<RequestAccess> implements AccessRequestStep {
 
     private static final long serialVersionUID = 1L;
 
@@ -93,12 +90,15 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     private static final String ID_FORM = "form";
     private static final String ID_MESSAGES = "messages";
 
+    private PageBase page;
+
     private WizardModel wizard;
 
-    public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model) {
+    public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model, PageBase page) {
         super(id, model);
 
         this.wizard = wizard;
+        this.page = page;
 
         initLayout();
     }
@@ -186,7 +186,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
         form.add(new AbstractFormValidator() {
             @Override
             public FormComponent<?>[] getDependentFormComponents() {
-                return new FormComponent[]{customValidFrom, customValidTo};
+                return new FormComponent[] { customValidFrom, customValidTo };
             }
 
             @Override
@@ -340,12 +340,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> {
     }
 
     private CheckoutType getCheckoutConfiguration() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        if (profile == null) {
-            return null;
-        }
-
-        AccessRequestType accessRequest = profile.getAccessRequest();
+        AccessRequestType accessRequest = getAccessRequestConfiguration(page);
         if (accessRequest == null) {
             return null;
         }

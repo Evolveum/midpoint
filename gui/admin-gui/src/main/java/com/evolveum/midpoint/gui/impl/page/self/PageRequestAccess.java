@@ -102,10 +102,10 @@ public class PageRequestAccess extends PageSelf {
     private List<WizardStep> createSteps() {
         IModel<RequestAccess> model = () -> getSessionStorage().getRequestAccess();
 
-        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(model);
-        RelationPanel relationPanel = new RelationPanel(model);
-        RoleCatalogPanel roleCatalog = new RoleCatalogPanel(model);
-        ShoppingCartPanel shoppingCart = new ShoppingCartPanel(model);
+        PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(model, this);
+        RelationPanel relationPanel = new RelationPanel(model, this);
+        RoleCatalogPanel roleCatalog = new RoleCatalogPanel(model, this);
+        ShoppingCartPanel shoppingCart = new ShoppingCartPanel(model, this);
 
         return Arrays.asList(personOfInterest, relationPanel, roleCatalog, shoppingCart);
     }

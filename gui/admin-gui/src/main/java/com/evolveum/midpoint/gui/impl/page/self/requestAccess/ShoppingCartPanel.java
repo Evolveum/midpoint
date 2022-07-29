@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
+public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements AccessRequestStep {
 
     private static final long serialVersionUID = 1L;
     public static final String STEP_ID = "cart";
@@ -39,10 +39,14 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     private static final String ID_CONFLICT_SOLVER = "conflictSolver";
     private static final String ID_CART_SUMMARY = "cartSummary";
 
+    private PageBase page;
+
     private IModel<State> state = Model.of(State.SUMMARY);
 
-    public ShoppingCartPanel(IModel<RequestAccess> model) {
+    public ShoppingCartPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
+
+        this.page = page;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     protected void onConfigure() {
         super.onConfigure();
 
-        getModelObject().computeConflicts(getPageBase());
+        getModelObject().computeConflicts(page);
     }
 
     // todo this doesn't work properly first time loading conflict numbers - model is evaluated before computeConflicts...
@@ -102,7 +106,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void initLayout() {
-        CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, getWizard(), getModel()) {
+        CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, getWizard(), getModel(), page) {
 
             private static final long serialVersionUID = 1L;
 
@@ -140,9 +144,8 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
     protected void submitPerformed(AjaxRequestTarget target) {
         RequestAccess requestAccess = getModelObject();
-        OperationResult result = requestAccess.submitRequest(getPageBase());
+        OperationResult result = requestAccess.submitRequest(page);
 
-        PageBase page = getPageBase();
         if (result == null) {
             page.warn(getString("ShoppingCartPanel.nothingToSubmit"));
             target.add(page.getFeedbackPanel());

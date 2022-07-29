@@ -86,4 +86,6 @@ public interface WizardStep extends Serializable {
 
     default void applyState() {
     }
+
+    default IModel<Boolean> isStepVisible() { return () -> true; }
 }

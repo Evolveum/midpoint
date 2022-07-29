@@ -20,12 +20,13 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
+public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestStep {
 
     private static final long serialVersionUID = 1L;
 
@@ -52,10 +53,14 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
     private static final String ID_LIST = "list";
     private static final String ID_TILE = "tile";
 
+    private PageBase page;
+
     private IModel<List<Tile<QName>>> relations;
 
-    public RelationPanel(IModel<RequestAccess> model) {
+    public RelationPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
+
+        this.page = page;
 
         initModels();
         initLayout();
@@ -74,6 +79,23 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
         Tile<QName> tile = list.get(0);
         return tile.isSelected();
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+
+        if (canSkipStep()) {
+            // no user input needed, we'll populate model with data
+            submitData();
+
+            wizard.next();
+        }
+    }
+
+    @Override
+    public IModel<Boolean> isStepVisible() {
+        return () -> !canSkipStep();
     }
 
     @Override
@@ -213,20 +235,20 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
         FocusType focus;
         try {
-            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, getPageBase());
+            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, page);
             focus = prismFocus.asObjectable();
         } catch (Exception ex) {
-            getPageBase().error(getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
+            page.error(getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
             return new ArrayList<>();
         }
 
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
+        Task task = page.createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
         List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(
-                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
 
         if (CollectionUtils.isEmpty(assignableRelationsList)) {
-            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
         }
 
         return assignableRelationsList;
@@ -254,12 +276,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
     }
 
     private RelationSelectionType getRelationConfiguration() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        if (profile == null) {
-            return null;
-        }
-
-        AccessRequestType accessRequest = profile.getAccessRequest();
+        AccessRequestType accessRequest = getAccessRequestConfiguration(page);
         if (accessRequest == null) {
             return null;
         }
