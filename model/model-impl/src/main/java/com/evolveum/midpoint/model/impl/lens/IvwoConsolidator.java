@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asPrismContainerValues;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
@@ -177,9 +178,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     /**
      * Operation result (currently needed for value metadata computation).
      * Experimentally we make this consolidator auto-closeable so the result is marked as closed automatically.
+     * This works - except for the automatic reporting of exceptions.
      *
      * TODO reconsider if we should not record processing in the caller (e.g. because ConsolidationProcessor
-     * already creates a result for item consolidation).
+     *  already creates a result for item consolidation).
      */
     private final OperationResult result;
 
@@ -223,11 +225,15 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         valueMetadataComputer = builder.valueMetadataComputer;
         contextDescription = builder.contextDescription;
-        result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
-                .addArbitraryObjectAsParam("itemPath", itemPath);
+
+        argCheck(builder.itemDefinition != null, "No definition for %s", itemPath);
 
         //noinspection unchecked
         itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
+
+        // Must be the last instruction here (to avoid leaving result open in case of an exception)
+        result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
+                .addArbitraryObjectAsParam("itemPath", itemPath);
     }
 
     /**

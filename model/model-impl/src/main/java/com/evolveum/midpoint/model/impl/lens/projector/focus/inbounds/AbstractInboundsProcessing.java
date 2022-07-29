@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -63,7 +64,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
      */
     final PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap = new PathKeyedMap<>();
 
-    /** Here we cache definitions for regular and identity items. */
+    /** Here we cache definitions for both regular and identity items. */
     final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
 
     /**
@@ -91,9 +92,10 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
 
     /**
      * Focus identity data produced by inbound mappings need to be normalized.
-     * Currently applicable only to clockwork processing.
+     * Currently, it is applicable only to clockwork processing.
      */
-    abstract void normalizeChangedFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException;
+    abstract void normalizeChangedFocusIdentityData()
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException;
 
     /**
      * Collects the mappings - either from all projections (for clockwork) or from the input shadow (for pre-mappings).
@@ -106,7 +108,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
 
     /**
      * Evaluate mappings collected from all the projections. There may be mappings from different projections to the same target.
-     * We want to merge their values. Otherwise those mappings will overwrite each other.
+     * We want to merge their values. Otherwise, those mappings will overwrite each other.
      */
     private void evaluateMappings() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, CommunicationException {
@@ -178,7 +180,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
                 getFocusPrimaryItemDeltaExistsProvider(),
                 true,
                 customizer,
-                itemDefinitionMap::get,
+                this::getItemDefinition,
                 env,
                 beans,
                 getLensContextIfPresent(),
@@ -186,6 +188,12 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
         consolidation.computeItemDeltas();
 
         applyComputedDeltas(consolidation.getItemDeltas());
+    }
+
+    @NotNull private ItemDefinition<?> getItemDefinition(@NotNull ItemPath itemPath) {
+        return Objects.requireNonNull(
+                itemDefinitionMap.get(itemPath),
+                () -> "No cached definition for " + itemPath + " found. Having definitions for: " + itemDefinitionMap.keySet());
     }
 
     private boolean rangeIsCompletelyDefined(ItemPath itemPath) {

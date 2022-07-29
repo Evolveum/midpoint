@@ -155,5 +155,4 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     public IvwoConsolidator<V, D, I> build() {
         return new IvwoConsolidator<>(this);
     }
-
 }

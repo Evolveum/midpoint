@@ -240,7 +240,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             this.aprioriItemDelta = aprioriItemDelta;
             this.existingItem = targetObject != null ? targetObject.findItem(itemPath) : null;
             //noinspection unchecked
-            this.itemDefinition = (D) itemDefinitionProvider.getDefinition(itemPath); //targetDefinition.findItemDefinition(itemPath)
+            this.itemDefinition = (D) itemDefinitionProvider.getDefinition(itemPath);
             this.valueMetadataComputer = valueMetadataComputer;
         }
 

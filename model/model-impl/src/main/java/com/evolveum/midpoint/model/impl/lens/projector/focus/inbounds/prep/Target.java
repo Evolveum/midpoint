@@ -52,6 +52,8 @@ abstract class Target<F extends FocusType> {
     abstract boolean isFocusBeingDeleted();
 
     void addItemDefinition(ItemPath itemPath, ItemDefinition<?> itemDefinition) {
-        itemDefinitionMap.put(itemPath, itemDefinition);
+        itemDefinitionMap.put(
+                itemPath.stripVariableSegment(),
+                itemDefinition);
     }
 }
