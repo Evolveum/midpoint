@@ -177,11 +177,11 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertItem("givenName", "Bob", "bob")
                         .assertItem("familyName", "White", "white")
                         .assertItem("personalNumber", "1003456", "1003456")
-                    .end();
-//                    .fromResource(RESOURCE_SINGLE.oid, ShadowKindType.ACCOUNT, "default", null)
-//                        .assertItem("givenName", "Bob", "bob")
-//                        .assertItem("familyName", "White", "white")
-//                        .assertItem("personalNumber", "1003456", "1003456");
+                    .end()
+                    .fromResource(RESOURCE_SINGLE.oid, ShadowKindType.ACCOUNT, "default", null)
+                        .assertItem("givenName", "Bob", "bob")
+                        .assertItem("familyName", "White", "white")
+                        .assertItem("personalNumber", "1003456", "1003456");
         // @formatter:on
     }
 

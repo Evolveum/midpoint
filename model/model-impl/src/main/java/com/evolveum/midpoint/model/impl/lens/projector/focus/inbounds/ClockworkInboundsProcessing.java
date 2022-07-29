@@ -7,30 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-import static com.evolveum.midpoint.prism.PrismContainerValue.getId;
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.*;
+import java.util.Collection;
 import java.util.function.Function;
-
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
-
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.delta.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitiesType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkShadowInboundsPreparation;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -157,41 +154,13 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
                 return;
             }
 
-            LOGGER.trace("Normalizing focus identity data from inbound mapping output(s)");
             LensFocusContext<F> focusContext = context.getFocusContextRequired();
-            ObjectDelta<F> secondaryDelta = focusContext.getSecondaryDelta();
-            if (ObjectDelta.isEmpty(secondaryDelta)) {
-                LOGGER.trace("No secondary delta -> nothing to normalize");
-                return;
-            }
-
-            PrismObject<F> objectNew = focusContext.getObjectNew();
-            if (objectNew == null) {
-                LOGGER.trace("No 'object new' -> nothing to normalize (should not occur!)");
-                return;
-            }
-
-            ItemPath identityPrefix = ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
-            stateCheck(secondaryDelta.isModify(), "Not a modify delta?");
-            Set<Long> changedIds = new HashSet<>();
-            for (ItemDelta<?, ?> modification : secondaryDelta.getModifications()) {
-                ItemPath modifiedItemPath = modification.getPath();
-                if (modifiedItemPath.startsWith(identityPrefix)) {
-                    ItemPath rest = modifiedItemPath.rest(2);
-                    if (rest.startsWithId()) {
-                        changedIds.add(rest.firstToId());
-                    } else if (rest.isEmpty()) {
-                        for (PrismValue value : emptyIfNull(modification.getValuesToAdd())) {
-                            changedIds.add(getId(value));
-                        }
-                        for (PrismValue value : emptyIfNull(modification.getValuesToReplace())) {
-                            changedIds.add(getId(value));
-                        }
-                    }
-                }
-            }
             focusContext.swallowToSecondaryDelta(
-                    beans.identitiesManager.computeNormalizationDeltas(objectNew.asObjectable(), changedIds, configuration));
+                    beans.identitiesManager.computeNormalizationDeltas(
+                            asObjectable(focusContext.getObjectNew()),
+                            focusContext.getSecondaryDelta(),
+                            configuration));
+
         } catch (Throwable t) {
             identityUpdateResult.recordFatalError(t);
             throw t;

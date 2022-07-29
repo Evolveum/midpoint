@@ -92,7 +92,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
 
     /**
      * Focus identity data produced by inbound mappings need to be normalized.
-     * Currently, it is applicable only to clockwork processing.
+     * Currently, this is applicable only to clockwork processing.
      */
     abstract void normalizeChangedFocusIdentityData()
             throws ConfigurationException, SchemaException, ExpressionEvaluationException;

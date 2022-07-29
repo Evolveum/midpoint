@@ -53,7 +53,7 @@ public class FocusIdentityAsserter<RA> extends PrismContainerValueAsserter<Focus
     @SuppressWarnings("SameParameterValue")
     private <T> T getValue(IdentityItemsType items, String name, Class<T> type) {
         Item<?, ?> item = items.asPrismContainerValue()
-                .findItem(new ItemName(NS_C, name));
+                .findItem(new ItemName(name));
         return JavaTypeConverter.convert(type, item.getRealValue());
     }
 
