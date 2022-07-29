@@ -9,6 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,8 +40,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -73,7 +77,7 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
         ListView<ContainerPanelConfigurationType> panels = new ListView<>(ID_PANELS, containers) {
             @Override
             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
-                IModel<PrismObjectWrapper> wrapper = new LoadableModel<>(false) {
+                IModel<PrismObjectWrapper<ObjectType>> wrapper = new LoadableModel<>(false) {
                     @Override
                     protected PrismObjectWrapper load() {
                         PageBase page = getPageBase();
@@ -106,6 +110,11 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
 
                 SingleContainerPanel container = new SingleContainerPanel(ID_PANEL, wrapper, item.getModelObject());
                 item.add(container);
+
+//                SingleContainerPanel panel = new SingleContainerPanel(ID_PANEL,
+//                        PrismContainerWrapperModel.fromContainerWrapper(wrapper, ItemPath.create(RoleType.F_ACTIVATION)),
+//                        ActivationType.COMPLEX_TYPE);
+//                item.add(panel);
             }
         };
         add(panels);

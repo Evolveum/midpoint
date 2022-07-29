@@ -57,6 +57,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String STEP_ID = "poi";
+
     private static final Trace LOGGER = TraceManager.getTrace(TileType.class);
 
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
@@ -121,6 +123,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> {
 
         initModels();
         initLayout();
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     @Override

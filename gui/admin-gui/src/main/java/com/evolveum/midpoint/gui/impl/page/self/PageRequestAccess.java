@@ -12,7 +12,6 @@ import java.util.List;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -46,8 +45,6 @@ public class PageRequestAccess extends PageSelf {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestAccess.class);
 
-    public static final String PARAM_STEP = "step";
-
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
 
@@ -63,24 +60,6 @@ public class PageRequestAccess extends PageSelf {
         super.onInitialize();
 
         initLayout();
-
-        PageParameters params = getPageParameters();
-        if (params == null) {
-            return;
-        }
-
-        StringValue step = params.get(PARAM_STEP);
-        if (step == null) {
-            return;
-        }
-
-        WizardPanel panel = getWizard();
-        if (panel == null) {
-            return;
-        }
-
-        WizardModel model = panel.getWizardModel();
-        model.setActiveStepById(step.toString());
     }
 
     private WizardPanel getWizard() {

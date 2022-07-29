@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
@@ -405,7 +407,7 @@ public abstract class PageBase extends PageAdminLTE {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PageParameters params = new PageParameters();
-                params.set(PageRequestAccess.PARAM_STEP, ShoppingCartPanel.STEP_ID);
+                params.set(WizardModel.PARAM_STEP, ShoppingCartPanel.STEP_ID);
 
                 setResponsePage(new PageRequestAccess(params));
             }

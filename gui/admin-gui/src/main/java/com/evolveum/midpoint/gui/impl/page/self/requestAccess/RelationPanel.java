@@ -41,6 +41,8 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String STEP_ID = "relation";
+
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
 
@@ -57,6 +59,11 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
         initModels();
         initLayout();
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     private boolean canSkipStep() {

@@ -76,6 +76,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String STEP_ID = "catalog";
+
     private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogPanel.class);
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
@@ -92,6 +94,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
     public RoleCatalogPanel(IModel<RequestAccess> model) {
         super(model);
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     @Override
@@ -587,13 +594,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
         // todo this configuration has to go from menu -> item xml
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+        c.identifier("some-panel");
+        c.type(RoleType.COMPLEX_TYPE);
+        c.path(new ItemPathType(ItemPath.create(".")));
+        c.panelType("formPanel");
         VirtualContainersSpecificationType vcs =
                 c.beginContainer()
-                    .identifier("aaa")
                     .beginDisplay()
                         .label("asdf")
                     .end();
-        vcs.beginItem().path(new ItemPathType(ItemPath.create(ObjectType.F_DESCRIPTION))).end();
+        vcs.path(new ItemPathType(ItemPath.create(".")));
+        vcs.identifier("some-container");
+        vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_NAME))).end();
 
         CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(() -> Arrays.asList(c), Model.of(object)) {
 

@@ -9,14 +9,18 @@ package com.evolveum.midpoint.gui.api.component.wizard;
 
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -26,7 +30,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class WizardPanel extends BasePanel {
+public class WizardPanel extends BasePanel implements WizardListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,17 +43,22 @@ public class WizardPanel extends BasePanel {
 
     private WizardModel wizardModel;
 
-    private int activeStepIndex = -1;
-
     public WizardPanel(String id, WizardModel wizardModel) {
         super(id);
 
         this.wizardModel = wizardModel;
         this.wizardModel.setPanel(this);
 
-        initLayout();
+        wizardModel.addWizardListener(this);
 
-        this.wizardModel.init();
+        initLayout();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        this.wizardModel.init(getPage());
     }
 
     public WizardModel getWizardModel() {
@@ -65,13 +74,26 @@ public class WizardPanel extends BasePanel {
 
     @Override
     protected void onBeforeRender() {
-        if (activeStepIndex != wizardModel.getActiveStepIndex()) {
-            activeStepIndex = wizardModel.getActiveStepIndex();
-
-            addOrReplace((Component) getCurrentPanel());
-        }
-
         super.onBeforeRender();
+
+        String stepId = wizardModel.getActiveStep().getStepId();
+        if (StringUtils.isNotEmpty(stepId)) {
+            PageParameters params = getPage().getPageParameters();
+            params.set(WizardModel.PARAM_STEP, stepId);
+        }
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript(
+                "MidPointTheme.updatePageUrlParameter('" + WizardModel.PARAM_STEP + "', '" + wizardModel.getActiveStep().getStepId() + "');"));
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        addOrReplace((Component) getCurrentPanel());
     }
 
     private void initLayout() {

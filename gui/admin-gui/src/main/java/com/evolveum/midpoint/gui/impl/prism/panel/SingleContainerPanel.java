@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -112,7 +113,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         if (virtualContainer.getPath() != null) {
             return createContainerModel(virtualContainer.getPath().getItemPath());
         }
-        if (virtualContainer.getIdentifier() == null || virtualContainer.getIdentifier().isBlank()) {
+        if (StringUtils.isBlank(virtualContainer.getIdentifier())) {
             getSession().error(getString("SingleContainerPanel.empty.identifier", virtualContainer));
             return null;
         }

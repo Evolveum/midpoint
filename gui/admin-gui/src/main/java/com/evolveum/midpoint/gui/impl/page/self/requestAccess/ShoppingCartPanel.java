@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> {
 
     private static final long serialVersionUID = 1L;
-    public static final String STEP_ID = "shoppingCart";
+    public static final String STEP_ID = "cart";
 
     private enum State {
         SUMMARY, CONFLICTS;
