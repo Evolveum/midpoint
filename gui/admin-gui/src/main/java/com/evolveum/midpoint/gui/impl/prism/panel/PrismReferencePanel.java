@@ -26,7 +26,7 @@ public class PrismReferencePanel<R extends Referencable>
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_HEADER = "header";
+    protected static final String ID_HEADER = "header";
     protected static final String ID_VALUE = "value";
 
     public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
