@@ -357,10 +357,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     @Override
-    public void init(WizardModel wizard) {
-        super.init(wizard);
+    protected void onInitialize() {
+        super.onInitialize();
 
         tiles.reset();
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
 
         if (canSkipStep()) {
             // no user input needed, we'll populate model with data

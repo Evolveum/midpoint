@@ -123,6 +123,16 @@ public class WizardModel implements IClusterable {
         return activeStepIndex;
     }
 
+    public int getActiveStepVisibleIndex() {
+        int index = 0;
+        for (int i = 0; i < activeStepIndex; i++) {
+            if (BooleanUtils.isTrue(steps.get(i).isStepVisible().getObject())) {
+                index++;
+            }
+        }
+        return index;
+    }
+
     private void setActiveStepIndex(int activeStepIndex) {
         if (activeStepIndex < 0) {
             return;

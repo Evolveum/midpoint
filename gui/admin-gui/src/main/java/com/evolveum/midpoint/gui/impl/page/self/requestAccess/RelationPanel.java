@@ -82,10 +82,15 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     @Override
-    public void init(WizardModel wizard) {
-        super.init(wizard);
+    protected void onInitialize() {
+        super.onInitialize();
 
         relations.reset();
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
 
         if (canSkipStep()) {
             // no user input needed, we'll populate model with data
