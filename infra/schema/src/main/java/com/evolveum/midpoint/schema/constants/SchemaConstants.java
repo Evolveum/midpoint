@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 
@@ -640,4 +641,6 @@ public abstract class SchemaConstants {
 
     public static final String CORRELATION_NONE = "none";
     public static final String CORRELATION_EXISTING_PREFIX = "existing-";
+
+    public static final @NotNull ItemPath PATH_IDENTITY = ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
 }

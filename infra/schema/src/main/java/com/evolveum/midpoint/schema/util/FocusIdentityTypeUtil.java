@@ -37,7 +37,11 @@ public class FocusIdentityTypeUtil {
         return matches(identity.getSource(), other);
     }
 
-    private static boolean matches(FocusIdentitySourceType source, FocusIdentitySourceType other) {
+    /**
+     * Returns true if these two sources match - i.e., denote the same "logical" entity.
+     * This means that (e.g.) shadowRef is ignored.
+     */
+    public static boolean matches(FocusIdentitySourceType source, FocusIdentitySourceType other) {
         boolean own = isOwn(source);
         boolean otherOwn = isOwn(other);
         if (own) {

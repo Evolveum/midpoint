@@ -13,6 +13,11 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +42,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Manages `identities` container in focal objects.
@@ -235,7 +242,7 @@ public class IdentitiesManager {
             LOGGER.trace("No identities in focus object -> adding values 'as they are':\n{}",
                     DebugUtil.debugDumpLazily(identities, 1));
             return prismContext.deltaFor(FocusType.class)
-                    .item(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY)
+                    .item(SchemaConstants.PATH_IDENTITY)
                     .addRealValues(identities)
                     .asItemDeltas();
         } else {
@@ -257,7 +264,7 @@ public class IdentitiesManager {
             LOGGER.trace("No matching identity bean -> adding this one:\n{}", identityBean.debugDumpLazily(1));
             itemDeltas.add(
                     prismContext.deltaFor(FocusType.class)
-                            .item(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY)
+                            .item(SchemaConstants.PATH_IDENTITY)
                             .add(identityBean)
                             .asItemDelta());
         } else {
@@ -371,12 +378,11 @@ public class IdentitiesManager {
     }
 
     @NotNull private Set<Long> getChangedIdentityIds(ObjectDelta<?> secondaryDelta) {
-        ItemPath identityPrefix = ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
         stateCheck(secondaryDelta.isModify(), "Secondary delta is not a modify delta: %s", secondaryDelta);
         Set<Long> changedIds = new HashSet<>();
         for (ItemDelta<?, ?> modification : secondaryDelta.getModifications()) {
             ItemPath modifiedItemPath = modification.getPath();
-            if (modifiedItemPath.startsWith(identityPrefix)) {
+            if (modifiedItemPath.startsWith(SchemaConstants.PATH_IDENTITY)) {
                 ItemPath rest = modifiedItemPath.rest(2);
                 if (rest.startsWithId()) {
                     changedIds.add(rest.firstToId());
@@ -392,5 +398,32 @@ public class IdentitiesManager {
         }
         LOGGER.trace("Changed identity beans: {}", changedIds);
         return changedIds;
+    }
+
+    /** See {@link MidpointFunctions#selectIdentityItemValues(Collection, FocusIdentitySourceType, QName)}. */
+    public @NotNull Collection<PrismValue> selectIdentityItemValue(
+            @Nullable Collection<FocusIdentityType> identities,
+            @Nullable FocusIdentitySourceType source,
+            @NotNull QName identityItemName) {
+
+        Set<PrismValue> selected = new HashSet<>();
+        for (FocusIdentityType identityBean : emptyIfNull(identities)) {
+            if (source != null) {
+                if (!FocusIdentityTypeUtil.matches(identityBean, source)) {
+                    continue;
+                }
+            } else {
+                // null source means "any non-own"
+                if (FocusIdentityTypeUtil.isOwn(identityBean)) {
+                    continue;
+                }
+            }
+            PrismProperty<?> property = identityBean.asPrismContainerValue().findProperty(
+                    ItemPath.create(FocusIdentityType.F_ITEMS, FocusIdentityItemsType.F_ORIGINAL, identityItemName));
+            if (property != null) {
+                selected.addAll(property.getClonedValues());
+            }
+        }
+        return selected;
     }
 }

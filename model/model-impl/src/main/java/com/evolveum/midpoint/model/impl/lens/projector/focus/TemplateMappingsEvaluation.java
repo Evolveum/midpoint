@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
@@ -34,9 +35,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
 
@@ -236,7 +240,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 result);
     }
 
-    public void computeItemDeltas() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+    public void computeItemDeltas() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         LOGGER.trace("Applying object template {} to {} (target {}), iteration {} ({}), phase {}",
@@ -248,7 +252,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private void evaluateMappings() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException {
 
         mappingSetEvaluation = new FocalMappingSetEvaluationBuilder<F, T>()
                 .context(context)
@@ -323,21 +327,57 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
-                    .processThisAndIncludedTemplates(template, env.contextDescription, env.task, result,
-                            this::collectLocalMappings);
+                    .processThisAndIncludedTemplates(
+                            template, env.contextDescription, env.task, result, this::collectLocalMappings);
         }
     }
 
-    private void collectLocalMappings(ObjectTemplateType objectTemplate) {
+    private void collectLocalMappings(ObjectTemplateType objectTemplate) throws ConfigurationException {
         for (ObjectTemplateMappingType mapping: objectTemplate.getMapping()) {
-            mappings.add(new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+            mappings.add(
+                    new TemplateMappingEvaluationRequest(mapping, objectTemplate));
         }
-        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
-            for (ObjectTemplateMappingType mapping: templateItemDefType.getMapping()) {
-                mapping = setMappingTarget(mapping, templateItemDefType.getRef());
-                mappings.add(new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+        for (ObjectTemplateItemDefinitionType templateItemDefBean: objectTemplate.getItem()) {
+            ItemPathType ref = templateItemDefBean.getRef();
+            for (ObjectTemplateMappingType mapping: templateItemDefBean.getMapping()) {
+                mapping = setMappingTarget(mapping, ref);
+                mappings.add(
+                        new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+            }
+            IdentityItemDefinitionType identityDefBean = templateItemDefBean.getIdentity();
+            if (identityDefBean != null) {
+                IdentityItemConfiguration config = IdentityItemConfiguration.of(templateItemDefBean, identityDefBean);
+                mappings.add(
+                        new IdentitySelectionMappingEvaluationRequest(
+                                getOrCreateSelectionMapping(identityDefBean, ref, config),
+                                objectTemplate));
             }
         }
+    }
+
+    private ObjectTemplateMappingType getOrCreateSelectionMapping(
+            IdentityItemDefinitionType identityDefBean, ItemPathType ref, IdentityItemConfiguration config) {
+        ObjectTemplateMappingType explicitMapping = identityDefBean.getSelection();
+        ObjectTemplateMappingType selectionMapping;
+        if (explicitMapping != null) {
+            selectionMapping = explicitMapping.clone();
+        } else {
+            QName identityItemName = config.getName();
+            String code = String.format(
+                    "midpoint.selectIdentityItemValues(input, null, new javax.xml.namespace.QName('%s', '%s'))",
+                    identityItemName.getNamespaceURI(), identityItemName.getLocalPart());
+            selectionMapping = new ObjectTemplateMappingType()
+                    .expression(new ExpressionType()
+                            .expressionEvaluator(
+                                    new ObjectFactory().createScript(
+                                            new ScriptExpressionEvaluatorType()
+                                                    .relativityMode(TransformExpressionRelativityModeType.ABSOLUTE)
+                                                    .code(code))));
+        }
+        if (selectionMapping.getStrength() == null) {
+            selectionMapping.setStrength(MappingStrengthType.STRONG);
+        }
+        return setMappingTarget(selectionMapping, ref);
     }
 
     private String getContextDescription(String parentContextDescription) {

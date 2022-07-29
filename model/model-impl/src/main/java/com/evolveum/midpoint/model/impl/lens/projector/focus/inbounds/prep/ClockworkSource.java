@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -401,7 +402,7 @@ class ClockworkSource extends MSource {
                     .source(identitySource);
             focusContext.swallowToSecondaryDelta(
                     PrismContext.get().deltaFor(FocusType.class)
-                            .item(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY)
+                            .item(SchemaConstants.PATH_IDENTITY)
                             .add(newIdentity)
                             .asItemDelta());
         }

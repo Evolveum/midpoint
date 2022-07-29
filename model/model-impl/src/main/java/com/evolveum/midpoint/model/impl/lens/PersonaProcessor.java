@@ -108,7 +108,7 @@ public class PersonaProcessor {
     private <F extends FocusType> HookOperationMode processPersonaChangesFocus(LensContext<F> context, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null || evaluatedAssignmentTriple.isEmpty()) {
             return HookOperationMode.FOREGROUND;
@@ -269,7 +269,7 @@ public class PersonaProcessor {
 
         LOGGER.trace("itemDeltas:\n{}", DebugUtil.debugDumpLazily(itemDeltas));
 
-        for (ItemDelta itemDelta: itemDeltas) {
+        for (ItemDelta<?, ?> itemDelta: itemDeltas) {
             itemDelta.applyTo(target);
         }
 
@@ -301,7 +301,7 @@ public class PersonaProcessor {
         LOGGER.trace("itemDeltas:\n{}", DebugUtil.debugDumpLazily(itemDeltas));
 
         ObjectDelta<T> targetDelta = existingPersona.createModifyDelta();
-        for (ItemDelta itemDelta: itemDeltas) {
+        for (ItemDelta<?, ?> itemDelta: itemDeltas) {
             targetDelta.addModification(itemDelta);
         }
 
@@ -329,7 +329,7 @@ public class PersonaProcessor {
             LensContext<F> context, ObjectTemplateType template, ObjectDeltaObject<F> focusOdoAbsolute,
             PrismObject<T> target, ObjectDelta<T> targetAPrioriDelta, String contextDesc, XMLGregorianCalendar now,
             Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         TemplateMappingsEvaluation<F, T> evaluation = TemplateMappingsEvaluation.createForPersonaTemplate(

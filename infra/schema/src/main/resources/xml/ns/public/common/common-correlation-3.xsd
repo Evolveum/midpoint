@@ -1216,11 +1216,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
+            <xsd:element name="name" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name of this identity item. By default, the last segment of the item path is considered
                         to be the item name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selection" type="tns:ObjectTemplateMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A mapping that takes existing identity data and provides a value for the target item.
+                        It has a default strength of `strong`, and a default source of `identities/identity`
+                        (named "input") -- TODO are we ok with this?.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.FocalMappingEval
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
@@ -131,16 +130,16 @@ class MappingSorter {
     }
 
     // true if any source of mapping1 is equivalent to the target of mapping2
-    private boolean dependsOn(FocalMappingEvaluationRequest<?, ?> mappingRequest1,
+    private boolean dependsOn(
+            FocalMappingEvaluationRequest<?, ?> mappingRequest1,
             FocalMappingEvaluationRequest<?, ?> mappingRequest2) {
-        MappingType mapping1 = mappingRequest1.getMapping();
-        MappingType mapping2 = mappingRequest2.getMapping();
-        if (mapping2.getTarget() == null || mapping2.getTarget().getPath() == null) {
+        VariableBindingDefinitionType target = mappingRequest2.getTarget();
+        if (target == null || target.getPath() == null) {
             return false;
         }
-        ItemPath targetPath = mapping2.getTarget().getPath().getItemPath().stripVariableSegment();
+        ItemPath targetPath = target.getPath().getItemPath().stripVariableSegment();
 
-        for (VariableBindingDefinitionType source : mapping1.getSource()) {
+        for (VariableBindingDefinitionType source : mappingRequest1.getSources()) {
             ItemPath sourcePath = beans.prismContext.toPath(source.getPath());
             if (sourcePath != null && FocalMappingSetEvaluation.stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
                 return true;

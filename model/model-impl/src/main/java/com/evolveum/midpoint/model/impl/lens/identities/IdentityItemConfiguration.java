@@ -16,14 +16,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitio
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 public class IdentityItemConfiguration implements Serializable {
 
-    @NotNull private final String name;
+    @NotNull private final QName name;
     @NotNull private final ItemPath path;
 
-    private IdentityItemConfiguration(@NotNull String name, @NotNull ItemPath path) {
+    private IdentityItemConfiguration(@NotNull QName name, @NotNull ItemPath path) {
         this.name = name;
         this.path = path;
     }
@@ -35,20 +36,19 @@ public class IdentityItemConfiguration implements Serializable {
                         itemDefBean.getRef(),
                         () -> "No 'ref' in " + itemDefBean)
                 .getItemPath();
-        String explicitName = identityDefBean.getName();
-        String name = explicitName != null ? explicitName : deriveName(path, itemDefBean);
+        QName explicitName = identityDefBean.getName();
+        QName name = explicitName != null ? explicitName : deriveName(path, itemDefBean);
         return new IdentityItemConfiguration(name, path);
     }
 
-    private static @NotNull String deriveName(ItemPath path, ItemRefinedDefinitionType itemDefBean)
+    private static @NotNull QName deriveName(ItemPath path, ItemRefinedDefinitionType itemDefBean)
             throws ConfigurationException {
         return MiscUtil.configNonNull(
                         path.lastName(),
-                        () -> "No name in path '" + path + "' in " + itemDefBean)
-                .getLocalPart();
+                        () -> "No name in path '" + path + "' in " + itemDefBean);
     }
 
-    public @NotNull String getName() {
+    public @NotNull QName getName() {
         return name;
     }
 
