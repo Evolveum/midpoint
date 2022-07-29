@@ -55,7 +55,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
 
     private PageBase page;
 
-    private IModel<List<Tile<QName>>> relations;
+    private LoadableModel<List<Tile<QName>>> relations;
 
     public RelationPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -85,6 +85,8 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     public void init(WizardModel wizard) {
         super.init(wizard);
 
+        relations.reset();
+
         if (canSkipStep()) {
             // no user input needed, we'll populate model with data
             submitData();
@@ -98,43 +100,24 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         return () -> !canSkipStep();
     }
 
-    @Override
-    protected void onBeforeRender() {
-        // todo doesn't work properly, header stays hidden on next step
-//        if (canSkipStep()) {
-//            // there's only one relation, we don't have to make user choose it, we'll take it and skip this step
-//            submitData();
-//            getWizard().next();
-//
-//            throw new RestartResponseException(getPage());
-//        }
-
-        super.onBeforeRender();
-    }
-
     private void initModels() {
         relations = new LoadableModel<>(false) {
 
             @Override
             protected List<Tile<QName>> load() {
-                RelationSelectionType config = getRelationConfiguration();
-                QName defaultRelation = null;
-                if (config != null) {
-                    defaultRelation = config.getDefaultRelation();
+                QName currentRelation = getModelObject().getRelation();
+                if (currentRelation == null) {
+                    currentRelation = getDefaultRelation();
+                    getModelObject().setRelation(currentRelation);
                 }
-
-                if (defaultRelation == null) {
-                    defaultRelation = SchemaConstants.ORG_DEFAULT;
-                }
-
-                getModelObject().setRelation(defaultRelation);
 
                 List<Tile<QName>> tiles = new ArrayList<>();
 
+                RelationSelectionType config = getRelationConfiguration();
                 List<QName> list = getAvailableRelationsList();
                 for (QName name : list) {
                     Tile<QName> tile = createTileForRelation(name);
-                    tile.setSelected(name.equals(defaultRelation));
+                    tile.setSelected(name.equals(currentRelation));
                     tile.setValue(name);
 
                     if (BooleanUtils.isFalse(config.isAllowOtherRelations()) && !tile.isSelected()) {
@@ -148,6 +131,16 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
                 return tiles;
             }
         };
+    }
+
+    private QName getDefaultRelation() {
+        RelationSelectionType config = getRelationConfiguration();
+        QName defaultRelation = null;
+        if (config != null) {
+            defaultRelation = config.getDefaultRelation();
+        }
+
+        return defaultRelation != null ? defaultRelation : SchemaConstants.ORG_DEFAULT;
     }
 
     @Override
@@ -276,11 +269,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     private RelationSelectionType getRelationConfiguration() {
-        AccessRequestType accessRequest = getAccessRequestConfiguration(page);
-        if (accessRequest == null) {
-            return null;
-        }
-
-        return accessRequest.getRelationSelection();
+        AccessRequestType config = getAccessRequestConfiguration(page);
+        return config != null ? config.getRelationSelection() : null;
     }
 }

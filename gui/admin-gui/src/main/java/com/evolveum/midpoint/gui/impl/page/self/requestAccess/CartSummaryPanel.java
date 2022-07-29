@@ -340,12 +340,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     }
 
     private CheckoutType getCheckoutConfiguration() {
-        AccessRequestType accessRequest = getAccessRequestConfiguration(page);
-        if (accessRequest == null) {
-            return null;
-        }
-
-        return accessRequest.getCheckout();
+        AccessRequestType config = getAccessRequestConfiguration(page);
+        return config != null ? config.getCheckout() : null;
     }
 
     private boolean isValidityRequired() {

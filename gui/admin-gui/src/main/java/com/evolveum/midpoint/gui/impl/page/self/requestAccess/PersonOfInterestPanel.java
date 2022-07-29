@@ -115,7 +115,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private PageBase page;
 
-    private IModel<List<Tile<PersonOfInterest>>> tiles;
+    private LoadableModel<List<Tile<PersonOfInterest>>> tiles;
 
     private IModel<SelectionState> selectionState = Model.of(SelectionState.TILES);
 
@@ -360,6 +360,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     public void init(WizardModel wizard) {
         super.init(wizard);
 
+        tiles.reset();
+
         if (canSkipStep()) {
             // no user input needed, we'll populate model with data
             submitData();
@@ -375,17 +377,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     @Override
     protected void onBeforeRender() {
-        // todo doesn't work properly, header stays hidden on next step
-//        if (canSkipStep()) {
-//            // there's only one option, we don't have to make user choose it, we'll take it and skip this step
-//            if (submitData()) {
-//                getWizard().next();
-//                throw new RestartResponseException(getPage());
-//            }
-//
-//            return;
-//        }
-
         Fragment fragment;
         switch (selectionState.getObject()) {
             case USERS:
@@ -569,12 +560,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private TargetSelectionType getTargetSelectionConfiguration() {
-        AccessRequestType accessRequest = getAccessRequestConfiguration(page);
-        if (accessRequest == null) {
-            return null;
-        }
-
-        return accessRequest.getTargetSelection();
+        AccessRequestType config = getAccessRequestConfiguration(page);
+        return config != null ? config.getTargetSelection() : null;
     }
 
     public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {

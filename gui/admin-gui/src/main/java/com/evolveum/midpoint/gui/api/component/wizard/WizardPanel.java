@@ -95,7 +95,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
     @Override
     public void onStepChanged(WizardStep newStep) {
-        addOrReplace((Component) getCurrentPanel());
+        WizardStep step = getActiveStep();
+        step.init(wizardModel);
+
+        addOrReplace((Component) step);
     }
 
     private IModel<List<IModel<String>>> createStepsModel() {
@@ -104,10 +107,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
     private void initLayout() {
         add(AttributeAppender.prepend("class", "bs-stepper"));
-        add(AttributeAppender.append("class", () -> getCurrentPanel().appendCssToWizard()));
+        add(AttributeAppender.append("class", () -> getActiveStep().appendCssToWizard()));
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
-        header.add(new BehaviourDelegator(() -> getCurrentPanel().getStepsBehaviour()));
+        header.add(new BehaviourDelegator(() -> getActiveStep().getStepsBehaviour()));
         header.setOutputMarkupId(true);
         add(header);
 
@@ -132,7 +135,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
             @Override
             protected Component createHeaderContent(String id) {
-                return getCurrentPanel().createHeaderContent(id);
+                return getActiveStep().createHeaderContent(id);
             }
 
             @Override
@@ -168,14 +171,14 @@ public class WizardPanel extends BasePanel implements WizardListener {
                 return wizardModel.getActiveStep().getNextBehaviour();
             }
         };
-        contentHeader.add(new BehaviourDelegator(() -> getCurrentPanel().getHeaderBehaviour()));
+        contentHeader.add(new BehaviourDelegator(() -> getActiveStep().getHeaderBehaviour()));
         contentHeader.setOutputMarkupId(true);
         add(contentHeader);
 
         add(new WebMarkupContainer(ID_CONTENT_BODY));
     }
 
-    public WizardStep getCurrentPanel() {
+    public WizardStep getActiveStep() {
         return wizardModel.getActiveStep();
     }
 
