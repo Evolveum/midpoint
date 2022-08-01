@@ -8,42 +8,36 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.AbstractFormResourceWizardStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
  */
-@PanelType(name = "LimitationsAttributeMappingWizard")
-@PanelInstance(identifier = "LimitationsAttributeMappingWizard",
+@PanelType(name = "LimitationsMappingWizard")
+@PanelInstance(identifier = "LimitationsMappingWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.attributes.step.limitation", icon = "fa fa-circle"),
         containerPath = "schemaHandling/objectType/attribute/limitations",
         expanded = true)
-public class LimitationsAttributeMappingStepPanel extends AbstractFormResourceWizardStepPanel {
+public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "LimitationsAttributeMappingWizard";
+    private static final String PANEL_TYPE = "LimitationsMappingWizard";
 
     private final IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel;
 
-    public LimitationsAttributeMappingStepPanel(ResourceDetailsModel model,
+    public LimitationsStepPanel(ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel) {
         super(model);
         this.newValueModel = newValueModel;
@@ -60,19 +54,6 @@ public class LimitationsAttributeMappingStepPanel extends AbstractFormResourceWi
         model.getObject().setExpanded(true);
         return model;
     }
-
-//    @Override
-//    protected ContainerPanelConfigurationType getContainerConfiguration() {
-//        ContainerPanelConfigurationType config = WebComponentUtil.getContainerConfiguration(
-//                getResourceModel().getObjectDetailsPageConfiguration().getObject(),
-//                getPanelType());
-//        if (config != null) {
-//            config.setPath(new ItemPathType(ItemPath.create(
-//                    newValueModel.getObject().getPath(),
-//                    ResourceAttributeDefinitionType.F_LIMITATIONS)));
-//        }
-//        return config;
-//    }
 
     @Override
     protected boolean isExitButtonVisible() {

@@ -25,8 +25,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 /**
  * @author lskublik
@@ -84,28 +82,28 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         if (valueModel == null) {
             valueModel = createModelOfNewValue(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
         }
-        steps.add(new BasicSettingAttributeMappingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new BasicSettingStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
             }
         });
 
-        steps.add(new LimitationsAttributeMappingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new LimitationsStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
             }
         });
 
-        steps.add(new OutboundAttributeMappingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new AttributeOutboundStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
             }
         });
 
-        steps.add(new InboundAttributeMappingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new AttributeInboundStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);

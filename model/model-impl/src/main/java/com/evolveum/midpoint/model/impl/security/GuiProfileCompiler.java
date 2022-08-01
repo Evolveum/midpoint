@@ -97,11 +97,11 @@ public class GuiProfileCompiler {
         collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
-        if (compiledGuiProfile != null) {
+
             setupFocusPhoto(principal, compiledGuiProfile, result);
             setupLocale(principal, compiledGuiProfile);
             compiledGuiProfile.setDependencies(profileDependencies);
-        }
+
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
@@ -160,9 +160,9 @@ public class GuiProfileCompiler {
         if (systemConfiguration != null) {
             globalAdminGuiConfig = systemConfiguration.asObjectable().getAdminGuiConfiguration();
         }
-        // if there's no admin config at all, return null (to preserve original behavior)
+
         if (adminGuiConfigurations.isEmpty() && globalAdminGuiConfig == null) {
-            return null;
+            return new CompiledGuiProfile();
         }
 
         CompiledGuiProfile composite = new CompiledGuiProfile();
@@ -367,7 +367,7 @@ public class GuiProfileCompiler {
 
         rs.setIncludeDefaultRelations(deprecated.isIncludeDefaultRelations());
 
-        deprecated.getRelation().stream().map(r -> r.clone()).forEach(r -> rs.getRelation().add(r));
+        deprecated.getRelation().forEach(r -> rs.getRelation().add(r.clone()));
     }
 
     private void mergeRoleManagementRoleCatalog(AccessRequestType result, RoleManagementConfigurationType deprecated) {
@@ -384,10 +384,13 @@ public class GuiProfileCompiler {
         List<RoleCollectionViewType> collection = rc.getCollection();
         if (collection.isEmpty() && deprecated.getRoleCatalogCollections() != null) {
             ObjectCollectionsUseType ocus = deprecated.getRoleCatalogCollections();
-            ocus.getCollection().stream()
-                    .map(ocu -> mapObjectCollectionUse(ocu, false))
-                    .filter(p -> p != null)
-                    .forEach(rcv -> collection.add(rcv));
+            ocus.getCollection().stream().forEach(ocu -> {
+
+                RoleCollectionViewType rcv = mapObjectCollectionUse(ocu, false);
+                if (rcv != null) {
+                    collection.add(rcv);
+                }
+            });
         }
 
         RoleCollectionViewType defaultCollection = mapObjectCollectionUse(deprecated.getDefaultCollection(), true);
@@ -397,6 +400,9 @@ public class GuiProfileCompiler {
     }
 
     private RoleCollectionViewType mapObjectCollectionUse(ObjectCollectionUseType ocu, boolean isDefault) {
+        if (ocu == null) {
+            return null;
+        }
         String uri = ocu.getCollectionUri();
         if (StringUtils.isEmpty(uri)) {
             return null;
