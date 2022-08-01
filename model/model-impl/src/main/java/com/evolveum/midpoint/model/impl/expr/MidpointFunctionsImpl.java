@@ -1879,7 +1879,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ModelExecuteOptions options)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        return modelInteractionService.previewChanges(deltas, options, getCurrentTask(), getCurrentResult());
+        return previewChanges(deltas, options, getCurrentResult());
+    }
+
+    @Override
+    public <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+        return modelInteractionService.previewChanges(deltas, options, getCurrentTask(), result);
     }
 
     @Override
