@@ -8,14 +8,21 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,6 +35,8 @@ import javax.xml.namespace.QName;
  * @author lskublik
  */
 public abstract class VerticalFormPanel<C extends Containerable> extends BasePanel<PrismContainerWrapper<C>> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(VerticalFormPanel.class);
 
     private static final String ID_SINGLE_CONTAINER = "singleContainer";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
@@ -45,7 +54,21 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        checkMultivalueValues();
         initLayout();
+    }
+
+    private void checkMultivalueValues() {
+        PrismContainerWrapper<C> container = getModelObject();
+        try {
+            if (container.getItem().getDefinition().isMultiValue() && container.getValues().isEmpty()) {
+                PrismContainerValue<C> newItem = container.getItem().createNewValue();
+                PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(container, newItem, getPageBase());
+                container.getValues().add(newItemWrapper);
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot find wrapper: {}", e.getMessage());
+        }
     }
 
     private void initLayout() {
@@ -60,7 +83,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         feedbackList.setOutputMarkupPlaceholderTag(true);
         feedbackContainer.add(feedbackList);
 
-        SingleContainerPanel<C> singleContainer = new SingleContainerPanel<C>(ID_SINGLE_CONTAINER, getModel(), config){
+        SingleContainerPanel<C> singleContainer = new SingleContainerPanel<C>(ID_SINGLE_CONTAINER, getModel(), config) {
             @Override
             protected Panel createPanel(String id, QName typeName, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) throws SchemaException {
                 return createVirtualPanel(id, model, builder);
@@ -87,6 +110,17 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                         return VerticalFormPanel.this.getIcon();
                     }
                 };
+            }
+
+            @Override
+            protected IModel<PrismContainerWrapper<C>> createVirtualContainerModel(VirtualContainersSpecificationType virtualContainer) {
+                PrismContainerWrapper<C> container = getModelObject();
+                if (container.getPath() != null
+                        && virtualContainer.getPath() != null
+                        && container.getPath().equivalent(virtualContainer.getPath().getItemPath())) {
+                    return getModel();
+                }
+                return super.createVirtualContainerModel(virtualContainer);
             }
 
             private ItemVisibilityHandler getVisibilityHandler(ItemVisibilityHandler handler) {

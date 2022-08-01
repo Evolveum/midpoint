@@ -602,19 +602,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public CompiledGuiProfile getCompiledGuiProfile() {
         // TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
         if (compiledGuiProfile == null) {
-            Task task = createSimpleTask(PageAdminLTE.DOT_CLASS + "getCompiledGuiProfile");
-            try {
-                compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, task.getResult());
-            } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                    SecurityViolationException | ExpressionEvaluationException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
-                if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
-                    throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
-                } else {
-                    // Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
-                    return new CompiledGuiProfile();
-                }
-            }
+            compiledGuiProfile = WebComponentUtil.getCompiledGuiProfile();
         }
         return compiledGuiProfile;
     }

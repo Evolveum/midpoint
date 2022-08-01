@@ -21,13 +21,14 @@
             </h3>
         </div>
         <div class="d-flex mt-3">
+            <div wicket:id="type" style="width: 300px;"/>
             <div class="my-auto d-flex ml-auto" wicket:id="search"/>
         </div>
     </div>
 
-    <div class="row justify-content-start mt-3 text-break mb-5 pl-3 pt-3" wicket:id="tileContainer">
+    <div class="d-flex flex-wrap justify-content-start text-break mt-3 mb-5 mr-n3 pt-3" wicket:id="tileContainer">
         <div wicket:id="tiles" class="col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-xxl-2 pr-3 pb-3 p-0">
-            <div class="catalog-tile-panel col-12 selectable-tile" wicket:id="tile"/>
+            <div wicket:id="tile"/>
         </div>
     </div>
 </wicket:panel>

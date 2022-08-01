@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -16,18 +16,17 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,12 +37,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<ResourceType>> {
@@ -53,10 +53,29 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
     private static final String ID_TILE = "tile";
     private static final String ID_SEARCH = "search";
     private static final String ID_BACK = "back";
+    private static final String ID_TYPE_FIELD = "type";
     private static final String CREATE_RESOURCE_TEMPLATE_STORAGE_KEY = "resourceTemplateStorage";
+
+    private enum TemplateType {
+        ALL(AssignmentHolderType.class),
+        TEMPLATE(ResourceType.class),
+        CONNECTOR(ConnectorType.class);
+
+        private final Class<AssignmentHolderType> type;
+
+        private TemplateType(Class<? extends AssignmentHolderType> type) {
+            this.type = (Class<AssignmentHolderType>) type;
+        }
+
+        public Class<AssignmentHolderType> getType() {
+            return type;
+        }
+    }
 
     private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
     private LoadableDetachableModel<List<TemplateTile<ResourceTemplate>>> tilesModel;
+
+    private Model<TemplateType> templateType = Model.of(TemplateType.ALL);
 
     public CreateResourceTemplatePanel(String id) {
         super(id);
@@ -83,7 +102,8 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 protected Search<AssignmentHolderType> load() {
                     PageStorage storage = getStorage();
                     if (storage.getSearch() == null) {
-                        Search<AssignmentHolderType> search = SearchFactory.createSearch(AssignmentHolderType.class, getPageBase());
+                        Search<AssignmentHolderType> search
+                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
                         storage.setSearch(search);
                         return search;
                     }
@@ -95,6 +115,20 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     private void initLayout() {
         setOutputMarkupId(true);
+
+        DropDownChoicePanel<TemplateType> type
+                = WebComponentUtil.createEnumPanel(TemplateType.class, ID_TYPE_FIELD, templateType, this, false);
+        type.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                super.onUpdate(target);
+                searchModel.detach();
+                tilesModel.detach();
+                target.add(CreateResourceTemplatePanel.this.get(ID_SEARCH));
+                target.add(getTilesContainer());
+            }
+        });
+        add(type);
 
         AjaxLink back = new AjaxLink<>(ID_BACK) {
 
@@ -117,12 +151,13 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 listItem.add(new ResourceTilePanel(ID_TILE, listItem.getModel()) {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
-                        onTemplateChosePerformed(listItem.getModelObject(), target);
+                        onTemplateSelectionPerformed(listItem.getModelObject(), target);
                     }
                 });
             }
         };
         tilesContainer.add(tiles);
+
     }
 
     private SearchPanel<AssignmentHolderType> initSearch() {
@@ -153,7 +188,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         return storage;
     }
 
-    private void onTemplateChosePerformed(TemplateTile<ResourceTemplate> tile, AjaxRequestTarget target) {
+    private void onTemplateSelectionPerformed(TemplateTile<ResourceTemplate> tile, AjaxRequestTarget target) {
         try {
             PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
             PrismObject<ResourceType> obj = def.instantiate();
@@ -162,24 +197,15 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             if (resourceTemplate != null) {
                 if (QNameUtil.match(ConnectorType.COMPLEX_TYPE, resourceTemplate.type)) {
                     obj.asObjectable().beginConnectorRef()
-                                    .oid(resourceTemplate.oid)
-                                    .type(ConnectorType.COMPLEX_TYPE);
+                            .oid(resourceTemplate.oid)
+                            .type(ConnectorType.COMPLEX_TYPE);
                 } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, resourceTemplate.type)) {
                     Task task = getPageBase().createSimpleTask("load resource template");
                     OperationResult result = task.getResult();
-//                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(
-//                            ResourceType.class,
-//                            resourceTemplate.oid,
-//                            getPageBase(),
-//                            task,
-//                            result);
-//                    if (resource != null) {
                     obj.asObjectable().beginSuper().beginResourceRef()
                             .oid(resourceTemplate.oid)
                             .type(ResourceType.COMPLEX_TYPE);
-//                        obj = resource.cloneComplex(CloneStrategy.REUSE);
-                        getPageBase().getModelInteractionService().expandConfigurationObject(obj, task, result);
-//                    }
+                    getPageBase().getModelInteractionService().expandConfigurationObject(obj, task, result);
 
                     result.computeStatus();
                     if (!result.isSuccess()) {
@@ -188,14 +214,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                     }
                 }
             }
-            onTemplateChosePerformed(obj, target);
+            onTemplateSelectionPerformed(obj, target);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }
     }
 
-    abstract protected void onTemplateChosePerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target);
+    abstract protected void onTemplateSelectionPerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target);
 
     protected LoadableDetachableModel<List<TemplateTile<ResourceTemplate>>> loadTileDescriptions() {
         return new LoadableDetachableModel<>() {
@@ -206,62 +232,71 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
                 Task loadResourceTemplateTask = getPageBase().createSimpleTask("load resource templates");
 
-                @NotNull List<PrismObject<ConnectorType>> connectors =
-                        WebModelServiceUtils.searchObjects(
-                                ConnectorType.class,
-                                searchModel.getObject().createObjectQuery(getPageBase()),
-                                loadResourceTemplateTask.getResult(),
-                                getPageBase());
+                if (TemplateType.ALL.equals(templateType.getObject())
+                        || TemplateType.CONNECTOR.equals(templateType.getObject())) {
+                    @NotNull List<PrismObject<ConnectorType>> connectors =
+                            WebModelServiceUtils.searchObjects(
+                                    ConnectorType.class,
+                                    searchModel.getObject().createObjectQuery(getPageBase()),
+                                    loadResourceTemplateTask.getResult(),
+                                    getPageBase());
 
-                if (CollectionUtils.isNotEmpty(connectors)) {
-                    connectors.forEach(connector -> {
-                        @NotNull ConnectorType connectorObject = connector.asObjectable();
-                        String title;
-                        if (connectorObject.getDisplayName() == null || connectorObject.getDisplayName().isEmpty()) {
-                            title = connectorObject.getName().getOrig();
-                        } else {
-                            title = connectorObject.getDisplayName().getOrig();
-                        }
-                        tiles.add(
-                                new TemplateTile(
-                                        GuiStyleConstants.CLASS_OBJECT_CONNECTOR_ICON,
-                                        title,
-                                        new ResourceTemplate(connector.getOid(), ConnectorType.COMPLEX_TYPE))
-                                        .description(getDescriptionForConnectorType(connectorObject)));
-                    });
+                    if (CollectionUtils.isNotEmpty(connectors)) {
+                        connectors.forEach(connector -> {
+                            @NotNull ConnectorType connectorObject = connector.asObjectable();
+                            String title;
+                            if (connectorObject.getDisplayName() == null || connectorObject.getDisplayName().isEmpty()) {
+                                title = connectorObject.getName().getOrig();
+                            } else {
+                                title = connectorObject.getDisplayName().getOrig();
+                            }
+                            tiles.add(
+                                    new TemplateTile(
+                                            GuiStyleConstants.CLASS_OBJECT_CONNECTOR_ICON,
+                                            title,
+                                            new ResourceTemplate(connector.getOid(), ConnectorType.COMPLEX_TYPE))
+                                            .description(getDescriptionForConnectorType(connectorObject))
+                                            .tag(connectorObject.getConnectorVersion()));
+                        });
+                    }
                 }
 
-                @NotNull List<PrismObject<ResourceType>> resources =
-                        WebModelServiceUtils.searchObjects(
-                                ResourceType.class,
-                                searchModel.getObject().createObjectQuery(
+                if (TemplateType.ALL.equals(templateType.getObject())
+                        || TemplateType.TEMPLATE.equals(templateType.getObject())) {
+                    @NotNull List<PrismObject<ResourceType>> resources =
+                            WebModelServiceUtils.searchObjects(
+                                    ResourceType.class,
+                                    searchModel.getObject().createObjectQuery(
 //                                        null,
-                                        getPageBase() //,
+                                            getPageBase() //,
 //                                        PrismContext.get()
 //                                                .queryFor(ResourceType.class)
 //                                                .item(ResourceType.F_TEMPLATE) //TODO uncomment after adding to repo
 //                                                .eq(true).build()
-                                ),
-                                loadResourceTemplateTask.getResult(),
-                                getPageBase());
+                                    ),
+                                    loadResourceTemplateTask.getResult(),
+                                    getPageBase());
 
-                resources.removeIf(resource -> !Boolean.TRUE.equals(resource.asObjectable().isTemplate())); //TODO remove after adding to repo
+                    resources.removeIf(resource -> !Boolean.TRUE.equals(resource.asObjectable().isTemplate())); //TODO remove after adding to repo
 
-                if (CollectionUtils.isNotEmpty(resources)) {
-                    resources.forEach(resource -> {
-                        String title = WebComponentUtil.getDisplayNameOrName(resource);
+                    if (CollectionUtils.isNotEmpty(resources)) {
+                        resources.forEach(resource -> {
+                            String title = WebComponentUtil.getDisplayNameOrName(resource);
 
-                        DisplayType display =
-                                GuiDisplayTypeUtil.getDisplayTypeForObject(resource, loadResourceTemplateTask.getResult(), getPageBase());
-                        tiles.add(
-                                new TemplateTile(
-                                        WebComponentUtil.getIconCssClass(display),
-                                        title,
-                                        new ResourceTemplate(resource.getOid(), ResourceType.COMPLEX_TYPE))
-                                        .description(resource.asObjectable().getDescription()));
-                    });
+                            DisplayType display =
+                                    GuiDisplayTypeUtil.getDisplayTypeForObject(resource, loadResourceTemplateTask.getResult(), getPageBase());
+                            tiles.add(
+                                    new TemplateTile(
+                                            WebComponentUtil.getIconCssClass(display),
+                                            title,
+                                            new ResourceTemplate(resource.getOid(), ResourceType.COMPLEX_TYPE))
+                                            .description(resource.asObjectable().getDescription())
+                                            .tag(getPageBase().createStringResource("CreateResourceTemplatePanel.template").getString()));
+                        });
+                    }
                 }
 
+                Collections.sort(tiles);
                 return tiles;
             }
         };
@@ -269,7 +304,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     private String getDescriptionForConnectorType(@NotNull ConnectorType connectorObject) {
         if (connectorObject.getDescription() == null) {
-            return connectorObject.getName() + " version: " + connectorObject.getConnectorVersion();
+            return connectorObject.getName().getOrig();
         }
         return connectorObject.getDescription();
     }

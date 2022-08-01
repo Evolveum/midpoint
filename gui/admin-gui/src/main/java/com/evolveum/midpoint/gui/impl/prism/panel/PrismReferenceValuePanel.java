@@ -115,7 +115,7 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
     }
 
 
-    private PrismReferenceWrapper<R> getParentWrapper() {
+    protected PrismReferenceWrapper<R> getParentWrapper() {
         return getModelObject().getParent();
     }
 

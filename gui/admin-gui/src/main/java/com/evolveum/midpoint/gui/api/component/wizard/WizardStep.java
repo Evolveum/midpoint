@@ -83,4 +83,9 @@ public interface WizardStep extends Serializable {
     default boolean onNextPerformed(AjaxRequestTarget target) {
         return true;
     }
+
+    default void applyState() {
+    }
+
+    default IModel<Boolean> isStepVisible() { return () -> true; }
 }
