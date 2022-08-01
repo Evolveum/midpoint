@@ -1228,8 +1228,35 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         A mapping that takes existing identity data and provides a value for the target item.
-                        It has a default strength of `strong`, and a default source of `identities/identity`
-                        (named "input") -- TODO are we ok with this?.
+
+                        It has a default strength of `strong`, and a default sources of `identities/identity`
+                        and `identities/defaultAuthoritativeSource`. (TODO: ok?)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdentityDataHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO (better name?)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="defaultAuthoritativeSource" type="tns:ObjectTemplateMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A mapping that takes existing identity data and provides a value for
+                        `identities/defaultAuthoritativeSource` property.
+
+                        It has a default strength of `strong`, and a default source of `identities/identity`.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1253,6 +1280,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         A single (alternative) identity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultAuthoritativeSource" type="tns:FocusIdentitySourceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Used by the default authoritative source selection and default item value selection mappings:
+
+                        If present, single-valued focus items are populated from the specified source.
+                        (Multivalued items are aggregated.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

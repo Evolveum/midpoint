@@ -39,4 +39,42 @@
             </expression>
         </mapping>
     </item>
+    <identity>
+        <defaultAuthoritativeSource>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.model.intest.TestIdentities
+                        import com.evolveum.midpoint.schema.util.FocusIdentitySourceTypeUtil
+                        import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil
+
+                        // If there's an information from 'multi' source, we'll take it.
+                        // Otherwise, we'll take the information from 'multi' that has
+                        // the (alphabetically) lowest identifier.
+
+                        if (identity == null) {
+                            return null
+                        }
+
+                        def sources = identity
+                                .collect { it.source }
+                                .findAll { it != null }
+
+                        def single = sources.find { it.resourceRef?.oid == TestIdentities.RESOURCE_SINGLE.oid }
+                        def multi = sources
+                                .findAll { it.resourceRef?.oid == TestIdentities.RESOURCE_MULTI.oid }
+
+                        if (single != null) {
+                            single.clone()
+                        } else if (!multi.isEmpty()) {
+                            multi.min { it.tag }
+                                .clone()
+                        } else {
+                            null
+                        }
+                    </code>
+                </script>
+            </expression>
+        </defaultAuthoritativeSource>
+    </identity>
 </objectTemplate>

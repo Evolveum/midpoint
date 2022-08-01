@@ -6,12 +6,12 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="157796ed-d4f2-429d-84f3-00ce4164263b"
+<resource oid="7c75e7ed-ff61-4358-8023-61d85e93dcd4"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>single</name>
+    <name>multi</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -30,7 +30,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>single</icfi:instanceId>
+            <icfi:instanceId>multi</icfi:instanceId>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
@@ -46,6 +46,16 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <expression>
+                        <script>
+                            <code>basic.getIdentifierValue(projection)</code>
+                        </script>
+                    </expression>
+                </tag>
+            </multiplicity>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
             </delineation>

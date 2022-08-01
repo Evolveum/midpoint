@@ -8408,6 +8408,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="identity" type="tns:IdentityDataHandlingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of handling of the identity data.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

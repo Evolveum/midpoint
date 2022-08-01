@@ -7,11 +7,9 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -19,16 +17,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the "multiple identities" feature. (Including smart correlation.)
@@ -53,8 +51,19 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
     private static final String ATTR_FAMILY_NAME = "familyName";
     private static final String ATTR_PERSONAL_NUMBER = "personalNumber";
 
-    private static final DummyTestResource RESOURCE_SINGLE = new DummyTestResource(
+    public static final DummyTestResource RESOURCE_SINGLE = new DummyTestResource(
             TEST_DIR, "resource-single.xml", "157796ed-d4f2-429d-84f3-00ce4164263b", "single",
+            controller -> {
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_GIVEN_NAME, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_FAMILY_NAME, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_PERSONAL_NUMBER, String.class, false, false);
+            });
+
+    public static final DummyTestResource RESOURCE_MULTI = new DummyTestResource(
+            TEST_DIR, "resource-multi.xml", "7c75e7ed-ff61-4358-8023-61d85e93dcd4", "multi",
             controller -> {
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         ATTR_GIVEN_NAME, String.class, false, false);
@@ -70,6 +79,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         addObject(OBJECT_TEMPLATE_PERSON, initTask, initResult);
         addObject(ARCHETYPE_PERSON, initTask, initResult);
         initAndTestDummyResource(RESOURCE_SINGLE, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_MULTI, initTask, initResult);
     }
 
     /**
@@ -148,10 +158,10 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Checks identity data related to an account being imported.
+     * Imports Bob's account from `single` (no conflict). Checks that identity data related to an account is correctly imported.
      */
     @Test
-    public void test120ImportAccountBob() throws Exception {
+    public void test120ImportAccountBobFromSingle() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -185,18 +195,119 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         // @formatter:on
     }
 
-    /** Simulates a "selection mapping". Currently it is very primitive - takes any value. */
-    public static Object selectIdentityValue(Collection<FocusIdentityType> identities, String propertyName) {
-        for (FocusIdentityType identityBean : emptyIfNull(identities)) {
-            if (FocusIdentityTypeUtil.isOwn(identityBean)) {
-                continue;
-            }
-            PrismProperty<?> property = identityBean.asPrismContainerValue().findProperty(
-                    ItemPath.create(FocusIdentityType.F_ITEMS, FocusIdentityItemsType.F_ORIGINAL, propertyName));
-            if (property != null && !property.isEmpty()) {
-                return property.getRealValue();
-            }
-        }
-        return null;
+    /**
+     * Imports Chuck's account (gradually) from two "multi" accounts and then a "single" account.
+     * Checks that inbounds are correctly processed, including setting the identities.
+     */
+    @Test
+    public void test130ImportAccountChuckFromVariousSources() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("first account of Chuck Brown is added");
+        DummyAccount account1 = RESOURCE_MULTI.controller.addAccount("10700020");
+        account1.addAttributeValue(ATTR_GIVEN_NAME, "Chuck");
+        account1.addAttributeValue(ATTR_FAMILY_NAME, "Brown");
+        account1.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
+
+        when("account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_MULTI.oid)
+                .withNameValue("10700020")
+                .traced()
+                .execute(result);
+
+        then("brown1 is added");
+        // @formatter:off
+        assertUserAfterByUsername("brown1")
+                .displayXml()
+                .identities()
+                    .own()
+                        .assertItem("givenName", "Chuck", "chuck")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444")
+                    .end()
+                    .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
+                        .assertItem("givenName", "Chuck", "chuck")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444");
+        // @formatter:on
+
+        when("second account of Chuck Brown is added");
+        DummyAccount account2 = RESOURCE_MULTI.controller.addAccount("10700010");
+        account2.addAttributeValue(ATTR_GIVEN_NAME, "Charles");
+        account2.addAttributeValue(ATTR_FAMILY_NAME, "Brown");
+        account2.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
+
+        and("second account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_MULTI.oid)
+                .withNameValue("10700010")
+                .traced()
+                .execute(result);
+
+        then("brown1 is (still) there, and updated");
+        // @formatter:off
+        assertUserAfterByUsername("brown1")
+                .displayXml()
+                .assertLiveLinks(2)
+                .assertGivenName("Charles")
+                .identities()
+                    .own()
+                        .assertItem("givenName", "Charles", "charles")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444")
+                    .end()
+                    .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
+                        .assertItem("givenName", "Chuck", "chuck")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444")
+                    .end()
+                    .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700010")
+                        .assertItem("givenName", "Charles", "charles")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444");
+        // @formatter:on
+
+        when("third account of Chuck Brown is added");
+        DummyAccount account3 = RESOURCE_SINGLE.controller.addAccount("brown");
+        account3.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
+        account3.addAttributeValue(ATTR_FAMILY_NAME, "Brown");
+        account3.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
+
+        and("third account is imported");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SINGLE.oid)
+                .withNameValue("brown")
+                .traced()
+                .execute(result);
+
+        then("brown1 is (still) there, and updated");
+        // @formatter:off
+        assertUserAfterByUsername("brown1")
+                .displayXml()
+                .assertLiveLinks(3)
+                .assertGivenName("Karl")
+                .identities()
+                    .own()
+                        .assertItem("givenName", "Karl", "karl")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444")
+                    .end()
+                    .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
+                        .assertItem("givenName", "Chuck", "chuck")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444")
+                    .end()
+                    .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700010")
+                        .assertItem("givenName", "Charles", "charles")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444")
+                    .end()
+                    .fromResource(RESOURCE_SINGLE.oid, ShadowKindType.ACCOUNT, "default", null)
+                        .assertItem("givenName", "Karl", "karl")
+                        .assertItem("familyName", "Brown", "brown")
+                        .assertItem("personalNumber", "1004444", "1004444");
+        // @formatter:on
     }
 }

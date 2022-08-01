@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,6 +40,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -348,14 +350,22 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             if (identityDefBean != null) {
                 IdentityItemConfiguration config = IdentityItemConfiguration.of(templateItemDefBean, identityDefBean);
                 mappings.add(
-                        new IdentitySelectionMappingEvaluationRequest(
-                                getOrCreateSelectionMapping(identityDefBean, ref, config),
+                        new TemplateMappingEvaluationRequest(
+                                getOrCreateItemSelectionMapping(identityDefBean, ref, config),
                                 objectTemplate));
+            }
+        }
+        IdentityDataHandlingType identityHandlingBean = objectTemplate.getIdentity();
+        if (identityHandlingBean != null) {
+            ObjectTemplateMappingType mapping = getAuthoritativeSourceMapping(identityHandlingBean);
+            if (mapping != null) {
+                mappings.add(
+                        new TemplateMappingEvaluationRequest(mapping, objectTemplate));
             }
         }
     }
 
-    private ObjectTemplateMappingType getOrCreateSelectionMapping(
+    private ObjectTemplateMappingType getOrCreateItemSelectionMapping(
             IdentityItemDefinitionType identityDefBean, ItemPathType ref, IdentityItemConfiguration config) {
         ObjectTemplateMappingType explicitMapping = identityDefBean.getSelection();
         ObjectTemplateMappingType selectionMapping;
@@ -364,20 +374,59 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         } else {
             QName identityItemName = config.getName();
             String code = String.format(
-                    "midpoint.selectIdentityItemValues(input, null, new javax.xml.namespace.QName('%s', '%s'))",
+                    "midpoint.selectIdentityItemValues("
+                            + "identity, defaultAuthoritativeSource, new javax.xml.namespace.QName('%s', '%s'))",
                     identityItemName.getNamespaceURI(), identityItemName.getLocalPart());
             selectionMapping = new ObjectTemplateMappingType()
                     .expression(new ExpressionType()
                             .expressionEvaluator(
                                     new ObjectFactory().createScript(
                                             new ScriptExpressionEvaluatorType()
-                                                    .relativityMode(TransformExpressionRelativityModeType.ABSOLUTE)
                                                     .code(code))));
         }
-        if (selectionMapping.getStrength() == null) {
-            selectionMapping.setStrength(MappingStrengthType.STRONG);
-        }
+        setDefaultStrong(selectionMapping);
+        setDefaultRelativityAbsolute(selectionMapping);
+        selectionMapping.getSource().add(new VariableBindingDefinitionType()
+                .path(new ItemPathType(SchemaConstants.PATH_IDENTITY)));
+        selectionMapping.getSource().add(new VariableBindingDefinitionType()
+                .path(new ItemPathType(SchemaConstants.PATH_DEFAULT_AUTHORITATIVE_SOURCE)));
         return setMappingTarget(selectionMapping, ref);
+    }
+
+    private void setDefaultStrong(ObjectTemplateMappingType mapping) {
+        if (mapping.getStrength() == null) {
+            mapping.setStrength(MappingStrengthType.STRONG);
+        }
+    }
+
+    private void setDefaultRelativityAbsolute(ObjectTemplateMappingType mapping) {
+        ExpressionType expression = mapping.getExpression();
+        if (expression == null) {
+            return;
+        }
+        for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
+            Object evaluatorValue = evaluator.getValue();
+            if (evaluatorValue instanceof TransformExpressionEvaluatorType) {
+                TransformExpressionEvaluatorType transform = (TransformExpressionEvaluatorType) evaluatorValue;
+                if (transform.getRelativityMode() == null) {
+                    transform.setRelativityMode(TransformExpressionRelativityModeType.ABSOLUTE);
+                }
+            }
+        }
+    }
+
+    private ObjectTemplateMappingType getAuthoritativeSourceMapping(IdentityDataHandlingType identityDataHandlingBean) {
+        ObjectTemplateMappingType mapping = identityDataHandlingBean.getDefaultAuthoritativeSource();
+        if (mapping != null) {
+            ObjectTemplateMappingType clone = mapping.clone();
+            clone.getSource().add(new VariableBindingDefinitionType()
+                    .path(new ItemPathType(SchemaConstants.PATH_IDENTITY)));
+            setDefaultStrong(clone);
+            setDefaultRelativityAbsolute(clone);
+            return setMappingTarget(clone, new ItemPathType(SchemaConstants.PATH_DEFAULT_AUTHORITATIVE_SOURCE));
+        } else {
+            return null;
+        }
     }
 
     private String getContextDescription(String parentContextDescription) {
