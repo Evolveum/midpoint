@@ -16,10 +16,7 @@ import java.util.List;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -88,13 +85,17 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         assertThatOperationResult(getWithIdentitiesResult).isSuccess();
 
         then("identities are complete and contain all the details");
-        assertThat(user2.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isFalse();
+        PrismContainer<Containerable> identitiesContainer = user2.asPrismObject().findContainer(FocusType.F_IDENTITIES);
+        assertThat(identitiesContainer.isIncomplete()).isFalse();
 
         List<FocusIdentityType> identities = user2.getIdentities().getIdentity();
         assertThat(identities).hasSize(2);
 
         // one of the identities will be checked thoroughly
         FocusIdentityType identity = identities.stream().filter(i -> i.getId().equals(1L)).findFirst().orElseThrow();
+        // Internally we skip this for m_focus_identity.fullObject, but this is only implementation detail
+        // and we don't want to propagate it up. Items are retrieved without any need for explicit retrieve option.
+        assertThat(identity.asPrismContainerValue().findContainer(FocusIdentityType.F_ITEMS).isIncomplete()).isFalse();
         FocusIdentitySourceType source = identity.getSource();
         ObjectReferenceType resourceRef = source.getResourceRef();
         assertThat(resourceRef).isNotNull()

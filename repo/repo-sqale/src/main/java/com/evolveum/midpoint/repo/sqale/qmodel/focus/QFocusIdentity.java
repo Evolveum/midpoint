@@ -35,8 +35,8 @@ public class QFocusIdentity<OR extends MFocus> extends QContainer<MFocusIdentity
 
     public static final String TABLE_NAME = "m_focus_identity";
 
-    public static final ColumnMetadata FULL_SOURCE =
-            ColumnMetadata.named("fullSource").ofType(Types.BINARY);
+    public static final ColumnMetadata FULL_OBJECT =
+            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata SOURCE_RESOURCE_REF_TARGET_OID =
             ColumnMetadata.named("sourceResourceRefTargetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata ITEMS_ORIGINAL =
@@ -46,7 +46,7 @@ public class QFocusIdentity<OR extends MFocus> extends QContainer<MFocusIdentity
 
     // attributes
 
-    public final ArrayPath<byte[], Byte> fullSource = createByteArray("fullSource", FULL_SOURCE);
+    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
     public final UuidPath sourceResourceRefTargetOid =
             createUuid("sourceResourceRefTargetOid", SOURCE_RESOURCE_REF_TARGET_OID);
     public final JsonbPath itemsOriginal = addMetadata(

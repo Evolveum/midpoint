@@ -9,9 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType.F_ITEMS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType.F_SOURCE;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +23,10 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityItemsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitySourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Mapping between {@link QFocusIdentity} and {@link FocusIdentityType}.
@@ -70,7 +72,6 @@ public class QFocusIdentityMapping<OR extends MFocus>
                         null,
                         QFocusMapping::getFocusMapping);
 
-        // TODO EXTENSION or ATTRIBUTES or something new here?
         addNestedMapping(F_ITEMS, FocusIdentityItemsType.class)
                 .addExtensionMapping(FocusIdentityItemsType.F_ORIGINAL,
                         MExtItemHolderType.EXTENSION, q -> q.itemsOriginal, repositoryContext)
@@ -99,11 +100,10 @@ public class QFocusIdentityMapping<OR extends MFocus>
     public MFocusIdentity insert(
             FocusIdentityType schemaObject, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         MFocusIdentity row = initRowObject(schemaObject, ownerRow);
+        row.fullObject = createFullObject(schemaObject);
 
         FocusIdentitySourceType source = schemaObject.getSource();
         if (source != null) {
-            row.fullSource = createFullObject(schemaObject.getSource());
-
             ObjectReferenceType resourceRef = source.getResourceRef();
             if (resourceRef != null) {
                 row.sourceResourceRefTargetOid = UUID.fromString(resourceRef.getOid());
@@ -121,17 +121,18 @@ public class QFocusIdentityMapping<OR extends MFocus>
     }
 
     @Override
-    public FocusIdentityType toSchemaObject(MFocusIdentity row) throws SchemaException {
-        FocusIdentityType identity = new FocusIdentityType();
-        identity.setId(row.cid);
-        byte[] fullSource = row.fullSource;
-        if (fullSource != null) {
-            identity.setSource(parseSchemaObject(
-                    Objects.requireNonNull(fullSource),
-                    "identity.source for " + row.ownerOid + "," + row.cid,
-                    FocusIdentitySourceType.class));
-        }
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        return List.of(F_ITEMS);
+    }
 
+    @Override
+    public FocusIdentityType toSchemaObject(MFocusIdentity row) throws SchemaException {
+        FocusIdentityType identity = parseSchemaObject(
+                row.fullObject,
+                "identity for " + row.ownerOid + "," + row.cid,
+                FocusIdentityType.class);
+
+        // beginItems() replaces incomplete container from fullObject, which is good here.
         FocusIdentityItemsType focusIdentityItems = identity.beginItems();
         if (row.itemsOriginal != null) {
             Map<String, Object> itemMap = Jsonb.toMap(row.itemsOriginal);
@@ -141,6 +142,7 @@ public class QFocusIdentityMapping<OR extends MFocus>
             Map<String, Object> itemMap = Jsonb.toMap(row.itemsNormalized);
             new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginNormalized());
         }
+
         return identity;
     }
 }

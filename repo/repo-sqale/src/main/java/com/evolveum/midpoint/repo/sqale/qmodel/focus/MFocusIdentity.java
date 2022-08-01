@@ -17,7 +17,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecution;
  */
 public class MFocusIdentity extends MContainer {
 
-    public byte[] fullSource; // serialized <source> element
+    public byte[] fullObject; // serialized container value, without items
     public UUID sourceResourceRefTargetOid; // target type and relation is implied/fixed
 
     // extension/attribute-like storage

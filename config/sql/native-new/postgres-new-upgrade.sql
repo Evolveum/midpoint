@@ -139,7 +139,7 @@ CREATE TABLE m_focus_identity (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     containerType ContainerType GENERATED ALWAYS AS ('FOCUS_IDENTITY') STORED
         CHECK (containerType = 'FOCUS_IDENTITY'),
-    fullSource BYTEA,
+    fullObject BYTEA,
     sourceResourceRefTargetOid UUID,
     itemsOriginal JSONB,
     itemsNormalized JSONB,
