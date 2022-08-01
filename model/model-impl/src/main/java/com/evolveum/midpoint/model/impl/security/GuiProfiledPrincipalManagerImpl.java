@@ -421,9 +421,21 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         // Maybe focus was also changed, we should probably reload it
         // TODO: Should recompute / compute be synchronized on principal?
 
+
+
         LOGGER.debug("Recomputing GUI profile for {}", principal);
-        var focus = principal.getFocus().asPrismObject();
-        securityContextManager.setTemporaryPrincipalOid(principal.getFocus().getOid());
+        var focusOid = principal.getFocus().getOid();
+        PrismObject<? extends FocusType> focus;
+        try {
+            focus = repositoryService.getObject(principal.getFocus().getClass(), focusOid, null, result);
+        } catch (ObjectNotFoundException e) {
+            throw new SystemException("Focus was deleted");
+        } catch (SchemaException e) {
+             throw new SystemException("Encountered schema exception", e);
+        }
+
+
+        securityContextManager.setTemporaryPrincipalOid(focusOid);
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);

@@ -117,7 +117,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                 PrismContainerWrapper<C> container = getModelObject();
                 if (container.getPath() != null
                         && virtualContainer.getPath() != null
-                        && container.getPath().equivalent(virtualContainer.getPath().getItemPath())) {
+                        && container.getPath().namedSegmentsOnly().equivalent(virtualContainer.getPath().getItemPath())) {
                     return getModel();
                 }
                 return super.createVirtualContainerModel(virtualContainer);

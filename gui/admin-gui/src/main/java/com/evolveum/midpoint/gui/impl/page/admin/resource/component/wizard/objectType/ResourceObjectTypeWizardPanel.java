@@ -6,30 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.*;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordInboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordOutboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.DefaultSettingStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionStepPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -112,6 +106,12 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     case ATTRIBUTE_MAPPING:
                         showTableForAttributes(target, getValueModel());
                         break;
+                    case SYNCHRONIZATION_CONFIG:
+                        showSynchronizationConfigWizard(target, getValueModel());
+                        break;
+                    case CREDENTIALS:
+                        showCredentialsWizard(target, getValueModel());
+                        break;
                 }
             }
 
@@ -120,6 +120,78 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 showTableFragment(target);
             }
         });
+    }
+
+    private void showSynchronizationConfigWizard(
+            AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createSynchronizationConfigSteps(valueModel))));
+    }
+
+    private List<WizardStep> createSynchronizationConfigSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new DefaultSettingStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(valueModel, target);
+            }
+        });
+
+        steps.add(new ReactionStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(valueModel, target);
+            }
+
+            @Override
+            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+                OperationResult result = onSaveResourcePerformed(target);
+                if (result != null && !result.isError()) {
+                    onExitPerformed(target);
+                }
+            }
+        });
+
+
+
+        return steps;
+    }
+
+    private void showCredentialsWizard(
+            AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createCredentialsSteps(valueModel))));
+    }
+
+    private List<WizardStep> createCredentialsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new PasswordInboundStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(valueModel, target);
+            }
+        });
+
+        steps.add(new PasswordOutboundStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(valueModel, target);
+            }
+
+            @Override
+            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+                OperationResult result = onSaveResourcePerformed(target);
+                if (result != null && !result.isError()) {
+                    onExitPerformed(target);
+                }
+            }
+        });
+
+
+
+        return steps;
     }
 
     private void showTableForAttributes(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
