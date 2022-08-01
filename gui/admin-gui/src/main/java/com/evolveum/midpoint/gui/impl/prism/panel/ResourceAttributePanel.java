@@ -138,7 +138,7 @@ public class ResourceAttributePanel extends ItemRefinedPanel<ResourceAttributeDe
             return false;
         }
 
-        ContainerPanelConfigurationType detailsPanel = new ContainerPanelConfigurationType(getPrismContext());
+        ContainerPanelConfigurationType detailsPanel = new ContainerPanelConfigurationType();
         detailsPanel.setPanelType("attributeDefinitionDetails");
 
         PrismContainerValueWrapper<ResourceAttributeDefinitionType> attrDef;

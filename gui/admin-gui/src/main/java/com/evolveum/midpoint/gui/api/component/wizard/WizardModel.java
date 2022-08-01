@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.io.IClusterable;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -21,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 public class WizardModel implements IClusterable {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String PARAM_STEP = "step";
+
+    private List<WizardListener> wizardListeners = new ArrayList<>();
 
     private WizardPanel panel;
 
@@ -31,8 +39,49 @@ public class WizardModel implements IClusterable {
         this.steps = steps;
     }
 
-    public void init() {
+    public void addWizardListener(@NotNull WizardListener listener) {
+        wizardListeners.add(listener);
+    }
+
+    public void removeWizardListener(@NotNull WizardListener listener) {
+        wizardListeners.remove(listener);
+    }
+
+    protected final void fireActiveStepChanged(final WizardStep step) {
+        wizardListeners.forEach(listener -> listener.onStepChanged(step));
+    }
+
+    protected final void fireWizardCancelled() {
+        wizardListeners.forEach(listener -> listener.onCancel());
+    }
+
+    protected final void fireWizardFinished() {
+        wizardListeners.forEach(listener -> listener.onFinish());
+    }
+
+    public void init(Page page) {
         steps.forEach(s -> s.init(this));
+
+        String stepId = getStepIdFromParams(page);
+        if (stepId != null) {
+            setActiveStepById(stepId);
+        }
+
+        fireActiveStepChanged(getActiveStep());
+    }
+
+    private String getStepIdFromParams(Page page) {
+        if (page == null) {
+            return null;
+        }
+
+        PageParameters params = page.getPageParameters();
+        if (params == null) {
+            return null;
+        }
+
+        StringValue step = params.get(PARAM_STEP);
+        return step != null ? step.toString() : null;
     }
 
     public Component getPanel() {
@@ -63,7 +112,7 @@ public class WizardModel implements IClusterable {
         for (int i = 0; i < steps.size(); i++) {
             WizardStep step = steps.get(i);
 
-            if (Objects.equals(id, step.getStepId())) {
+            if (Objects.equals(id, step.getStepId()) && BooleanUtils.isTrue(step.isStepVisible().getObject())) {
                 setActiveStepIndex(i);
                 break;
             }
@@ -72,6 +121,16 @@ public class WizardModel implements IClusterable {
 
     public int getActiveStepIndex() {
         return activeStepIndex;
+    }
+
+    public int getActiveStepVisibleIndex() {
+        int index = 0;
+        for (int i = 0; i < activeStepIndex; i++) {
+            if (BooleanUtils.isTrue(steps.get(i).isStepVisible().getObject())) {
+                index++;
+            }
+        }
+        return index;
     }
 
     private void setActiveStepIndex(int activeStepIndex) {
@@ -87,10 +146,14 @@ public class WizardModel implements IClusterable {
 
     public void next() {
         setActiveStepIndex(activeStepIndex + 1);
+
+        fireActiveStepChanged(getActiveStep());
     }
 
     public void previous() {
         setActiveStepIndex(activeStepIndex - 1);
+
+        fireActiveStepChanged(getActiveStep());
     }
 
     public WizardStep getNextPanel() {

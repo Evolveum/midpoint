@@ -474,4 +474,10 @@ export default class MidPointTheme {
             iconElement.className = 'fa fa-eye';
         }
     }
+
+    updatePageUrlParameter(paramName, paramValue) {
+        var queryParams = new URLSearchParams(window.location.search);
+        queryParams.set(paramName, paramValue);
+        history.replaceState(null, null, "?" + queryParams.toString());
+    }
 }

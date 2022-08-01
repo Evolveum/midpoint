@@ -162,7 +162,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
             @Override
             public boolean isVisible() {
-                return !isUseObjectClass();
+                return isIntentAndObjectClassPanelVisible() && !isUseObjectClass();
             }
         });
         add(intent);
@@ -221,7 +221,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
             @Override
             public boolean isVisible() {
-                return isUseObjectClass();
+                return isIntentAndObjectClassPanelVisible() && isUseObjectClass();
             }
         });
         add(objectClassPanel);
@@ -355,11 +355,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         return resourceContentSearch.getObject().getKind();
     }
 
-    private String getIntent() {
+    protected String getIntent() {
         return resourceContentSearch.getObject().getIntent();
     }
 
-    private QName getObjectClass() {
+    protected QName getObjectClass() {
         return resourceContentSearch.getObject().getObjectClass();
     }
 
@@ -373,6 +373,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
     private boolean isUseObjectClass() {
         return resourceContentSearch.getObject().isUseObjectClass();
+    }
+
+    protected boolean isIntentAndObjectClassPanelVisible() {
+        return true;
     }
 
 }

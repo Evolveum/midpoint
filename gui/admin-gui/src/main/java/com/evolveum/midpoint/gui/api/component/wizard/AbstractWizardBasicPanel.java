@@ -77,7 +77,11 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     protected void addCustomButtons(RepeatingView buttons) {
     }
 
-    protected abstract IModel<String> getSubTextModel();
+    protected IModel<String> getSubTextModel(){
+        return getPageBase().createStringResource(getClass().getSimpleName() + ".text");
+    };
 
-    protected abstract IModel<String> getTextModel();
+    protected IModel<String> getTextModel(){
+        return getPageBase().createStringResource(getClass().getSimpleName() + ".subText");
+    }
 }

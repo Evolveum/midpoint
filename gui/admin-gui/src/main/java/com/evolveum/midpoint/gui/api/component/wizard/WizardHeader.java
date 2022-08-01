@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class WizardHeader extends BasePanel {
+public class WizardHeader extends BasePanel implements WizardListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,12 +36,12 @@ public class WizardHeader extends BasePanel {
 
     private WizardModel model;
 
-    private int activeStepIndex = -1;
-
     public WizardHeader(String id, WizardModel model) {
         super(id);
 
         this.model = model;
+
+        model.addWizardListener(this);
 
         IModel<String> currentPanelTitle = () -> model.getActiveStep().getTitle().getObject();
         IModel<String> nextPanelTitle = () -> {
@@ -53,10 +53,8 @@ public class WizardHeader extends BasePanel {
     }
 
     @Override
-    protected void onBeforeRender() {
+    public void onStepChanged(WizardStep newStep) {
         addOrReplace(createHeaderContent(ID_CONTENT));
-
-        super.onBeforeRender();
     }
 
     private void initLayout(IModel<String> currentPanelTitle, IModel<String> nextPanelTitle) {

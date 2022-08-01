@@ -6,19 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.*;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferenceValuePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
@@ -50,5 +49,22 @@ public class VerticalFormPrismReferencePanel<R extends Referencable>
         };
         item.add(valuePanel);
         return valuePanel;
+    }
+
+    @Override
+    protected Component createHeaderPanel() {
+        return new VerticalFormPrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(VerticalFormPrismReferencePanel.this);
+            }
+
+            @Override
+            protected void createRequired(String id) {
+                WebMarkupContainer required = new WebMarkupContainer(id);
+                required.add(new VisibleBehaviour(() -> false));
+                add(required);
+            }
+        };
     }
 }

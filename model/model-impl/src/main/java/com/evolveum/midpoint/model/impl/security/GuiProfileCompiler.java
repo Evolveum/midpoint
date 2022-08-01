@@ -19,6 +19,8 @@ import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -95,11 +97,11 @@ public class GuiProfileCompiler {
         collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
-        if (compiledGuiProfile != null) {
+
             setupFocusPhoto(principal, compiledGuiProfile, result);
             setupLocale(principal, compiledGuiProfile);
             compiledGuiProfile.setDependencies(profileDependencies);
-        }
+
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
@@ -127,18 +129,17 @@ public class GuiProfileCompiler {
             }
         }
 
-        if (focusType instanceof UserType && ((UserType)focusType).getAdminGuiConfiguration() != null) {
+        if (focusType instanceof UserType && ((UserType) focusType).getAdminGuiConfiguration() != null) {
             // config from the user object should go last (to be applied as the last one)
-            adminGuiConfigurations.add(((UserType)focusType).getAdminGuiConfiguration());
+            adminGuiConfigurations.add(((UserType) focusType).getAdminGuiConfiguration());
         }
-
     }
 
     private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
         if (sourceCollection == null) {
             return;
         }
-        for (Authorization autz: sourceCollection) {
+        for (Authorization autz : sourceCollection) {
             if (authorizationTransformer == null) {
                 targetCollection.add(autz.clone());
             } else {
@@ -159,18 +160,20 @@ public class GuiProfileCompiler {
         if (systemConfiguration != null) {
             globalAdminGuiConfig = systemConfiguration.asObjectable().getAdminGuiConfiguration();
         }
-        // if there's no admin config at all, return null (to preserve original behavior)
+
         if (adminGuiConfigurations.isEmpty() && globalAdminGuiConfig == null) {
-            return null;
+            return new CompiledGuiProfile();
         }
 
         CompiledGuiProfile composite = new CompiledGuiProfile();
         if (globalAdminGuiConfig != null) {
             applyAdminGuiConfiguration(composite, globalAdminGuiConfig.cloneWithoutId(), task, result);
         }
-        for (AdminGuiConfigurationType adminGuiConfiguration: adminGuiConfigurations) {
+        for (AdminGuiConfigurationType adminGuiConfiguration : adminGuiConfigurations) {
             applyAdminGuiConfiguration(composite, adminGuiConfiguration.cloneWithoutId(), task, result);
         }
+
+        mergeDeprecatedRoleManagement(composite, systemConfiguration.asObjectable().getRoleManagement());
 
         return composite;
     }
@@ -231,7 +234,7 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.getDefaultExportSettings() != null) {
             composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
         }
-        if (adminGuiConfiguration.getDisplayFormats() != null){
+        if (adminGuiConfiguration.getDisplayFormats() != null) {
             composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().clone());
         }
 
@@ -241,7 +244,7 @@ public class GuiProfileCompiler {
             if (composite.getObjectForms() == null) {
                 composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());
             } else {
-                for (ObjectFormType objectForm: adminGuiConfiguration.getObjectForms().getObjectForm()) {
+                for (ObjectFormType objectForm : adminGuiConfiguration.getObjectForms().getObjectForm()) {
                     joinForms(composite.getObjectForms(), objectForm.clone());
                 }
             }
@@ -250,7 +253,7 @@ public class GuiProfileCompiler {
             if (composite.getObjectDetails() == null) {
                 composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().clone());
             } else {
-                for (GuiObjectDetailsPageType objectDetails: adminGuiConfiguration.getObjectDetails().getObjectDetailsPage()) {
+                for (GuiObjectDetailsPageType objectDetails : adminGuiConfiguration.getObjectDetails().getObjectDetailsPage()) {
                     joinObjectDetails(composite.getObjectDetails(), objectDetails);
                 }
             }
@@ -267,7 +270,7 @@ public class GuiProfileCompiler {
             if (composite.getUserDashboard() == null) {
                 composite.setUserDashboard(adminGuiConfiguration.getUserDashboard().clone());
             } else {
-                for (DashboardWidgetType widget: adminGuiConfiguration.getUserDashboard().getWidget()) {
+                for (DashboardWidgetType widget : adminGuiConfiguration.getUserDashboard().getWidget()) {
                     mergeWidget(composite, widget);
                 }
             }
@@ -279,10 +282,9 @@ public class GuiProfileCompiler {
             }
         }
 
-        for (UserInterfaceFeatureType feature: adminGuiConfiguration.getFeature()) {
+        for (UserInterfaceFeatureType feature : adminGuiConfiguration.getFeature()) {
             mergeFeature(composite, feature.clone());
         }
-
 
         if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
             composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
@@ -326,15 +328,98 @@ public class GuiProfileCompiler {
         }
     }
 
-    private void mergeAccessRequestConfiguration(CompiledGuiProfile composite, AccessRequestType accessRequest) {
-        if (composite.getAccessRequest() == null) {
-            composite.setAccessRequest(accessRequest.clone());
+    private void mergeDeprecatedRoleManagement(CompiledGuiProfile composite, RoleManagementConfigurationType roleManagement) {
+        if (roleManagement == null) {
             return;
         }
 
-        accessRequest.getTargetSelection();
-        accessRequest.getRoleCatalog();
-        accessRequest.getCheckout();
+        AccessRequestType ar = composite.getAccessRequest();
+        if (ar == null) {
+            ar = new AccessRequestType();
+            composite.setAccessRequest(ar);
+        }
+
+        if (ar.getDescription() == null) {
+            ar.setDescription(roleManagement.getDescription());
+        }
+
+        if (ar.getDocumentation() == null) {
+            ar.setDocumentation(roleManagement.getDocumentation());
+        }
+
+        mergeRoleManagementRelation(ar, roleManagement.getRelations());
+        mergeRoleManagementRoleCatalog(ar, roleManagement);
+    }
+
+    private void mergeRoleManagementRelation(AccessRequestType result, RelationsDefinitionType deprecated) {
+        if (result.getRelationSelection() != null || deprecated == null) {
+            return;
+        }
+
+        RelationSelectionType rs = new RelationSelectionType();
+        result.setRelationSelection(rs);
+
+        rs.setIncludeDefaultRelations(deprecated.isIncludeDefaultRelations());
+
+        deprecated.getRelation().stream().map(r -> r.clone()).forEach(r -> rs.getRelation().add(r));
+    }
+
+    private void mergeRoleManagementRoleCatalog(AccessRequestType result, RoleManagementConfigurationType deprecated) {
+        RoleCatalogType rc = result.getRoleCatalog();
+        if (rc == null) {
+            rc = new RoleCatalogType();
+            result.setRoleCatalog(rc);
+        }
+
+        if (rc.getRoleCatalogRef() == null && deprecated.getRoleCatalogRef() != null) {
+            rc.setRoleCatalogRef(deprecated.getRoleCatalogRef());
+        }
+
+        List<RoleCollectionViewType> collection = rc.getCollection();
+        if (collection.isEmpty() && deprecated.getRoleCatalogCollections() != null) {
+            ObjectCollectionsUseType ocus = deprecated.getRoleCatalogCollections();
+            ocus.getCollection().stream()
+                    .map(ocu -> mapObjectCollectionUse(ocu, false))
+                    .filter(p -> p != null)
+                    .forEach(rcv -> collection.add(rcv));
+        }
+
+        RoleCollectionViewType defaultCollection = mapObjectCollectionUse(deprecated.getDefaultCollection(), true);
+        if (defaultCollection != null) {
+            collection.add(defaultCollection);
+        }
+    }
+
+    private RoleCollectionViewType mapObjectCollectionUse(ObjectCollectionUseType ocu, boolean isDefault) {
+        String uri = ocu.getCollectionUri();
+        if (StringUtils.isEmpty(uri)) {
+            return null;
+        }
+
+        RoleCollectionViewType result = new RoleCollectionViewType();
+        result.setDefault(isDefault);
+        result.setCollectionUri(uri);
+
+        return result;
+    }
+
+    private void mergeAccessRequestConfiguration(CompiledGuiProfile composite, AccessRequestType accessRequest) {
+        if (composite.getAccessRequest() == null) {
+            composite.setAccessRequest(accessRequest.clone());
+        }
+
+        AccessRequestType ar = composite.getAccessRequest();
+        if (accessRequest.getTargetSelection() != null) {
+            ar.setTargetSelection(accessRequest.getTargetSelection().clone());
+        }
+
+        if (accessRequest.getRoleCatalog() != null) {
+            ar.setRoleCatalog(accessRequest.getRoleCatalog().clone());
+        }
+
+        if (accessRequest.getCheckout() != null) {
+            ar.setCheckout(accessRequest.getCheckout().clone());
+        }
     }
 
     private void applyConfigurableDashboard(CompiledGuiProfile composit, ConfigurableUserDashboardType configurableUserDashboard, Task task, OperationResult result) {
@@ -366,7 +451,8 @@ public class GuiProfileCompiler {
             compiledDashboard.setVisibility(visibility);
 
             composit.getConfigurableDashboards().add(compiledDashboard);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException e) {
             LOGGER.warn("Failed to resolve dashboard {}", configurableUserDashboard);
             // probably we should not fail here, just log warn and continue as if there is no dashboard specification
         }
@@ -424,7 +510,6 @@ public class GuiProfileCompiler {
         }
     }
 
-
     private CompiledObjectCollectionView findOrCreateMatchingView(CompiledGuiProfile composite, GuiObjectListViewType objectListViewType) {
         QName objectType = objectListViewType.getType();
         String viewIdentifier = collectionProcessor.determineViewIdentifier(objectListViewType);
@@ -448,7 +533,6 @@ public class GuiProfileCompiler {
         }
         return existingView;
     }
-
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
@@ -474,7 +558,7 @@ public class GuiProfileCompiler {
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
         AtomicBoolean merged = new AtomicBoolean(false);
         objectDetailsSet.getObjectDetailsPage().forEach(currentDetails -> {
-            if(isTheSameObjectType(currentDetails, newObjectDetails)){
+            if (isTheSameObjectType(currentDetails, newObjectDetails)) {
                 objectDetailsSet.getObjectDetailsPage().remove(currentDetails);
                 objectDetailsSet.getObjectDetailsPage().add(
                         adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(currentDetails, newObjectDetails));
@@ -512,12 +596,12 @@ public class GuiProfileCompiler {
         return oldConf.getConnectorRef().getOid().equals(newConf.getConnectorRef().getOid());
     }
 
-    private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){
-        if (!isTheSameObjectType(oldForm,newForm)) {
+    private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm) {
+        if (!isTheSameObjectType(oldForm, newForm)) {
             return false;
         }
         if (oldForm.isIncludeDefaultForms() != null &&
-                newForm.isIncludeDefaultForms() != null){
+                newForm.isIncludeDefaultForms() != null) {
             return true;
         }
         if (oldForm.getFormSpecification() == null && newForm.getFormSpecification() == null) {

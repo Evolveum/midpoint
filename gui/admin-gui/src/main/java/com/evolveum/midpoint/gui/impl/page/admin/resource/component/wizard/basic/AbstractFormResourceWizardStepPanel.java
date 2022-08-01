@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,7 +53,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(w -> checkMandatory(w))
                 .build();
-        VerticalFormPanel form = new VerticalFormPanel(ID_FORM, this.resourceModel.getObjectWrapperModel(), settings, getContainerConfiguration()) {
+        VerticalFormPanel form = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
             protected String getIcon() {
                 return AbstractFormResourceWizardStepPanel.this.getIcon();
@@ -67,13 +69,17 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
         add(form);
     }
 
+    protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
+        return this.resourceModel.getObjectWrapperModel();
+    }
+
     protected ItemVisibilityHandler getVisibilityHandler() {
         return null;
     }
 
     protected abstract String getIcon();
 
-    private ContainerPanelConfigurationType getContainerConfiguration() {
+    protected ContainerPanelConfigurationType getContainerConfiguration() {
         return WebComponentUtil.getContainerConfiguration(resourceModel.getObjectDetailsPageConfiguration().getObject(), getPanelType());
     }
 

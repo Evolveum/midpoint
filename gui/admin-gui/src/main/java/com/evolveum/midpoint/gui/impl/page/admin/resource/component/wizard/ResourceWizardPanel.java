@@ -7,40 +7,18 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectTypes.ResourceObjectTypeTableWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectTypes.ResourceObjectTypeWizardPanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lskublik
  */
 public class ResourceWizardPanel extends BasePanel {
 
-    //    private static final String ID_FRAGMENT = "fragment";
-//    private static final String ID_PREVIEW_FRAGMENT = "previewFragment";
-//    private static final String ID_PREVIEW = "preview";
-//    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-//    private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD_PANEL = "wizardPanel";
 
     private final ResourceDetailsModel resourceModel;
@@ -81,9 +59,7 @@ public class ResourceWizardPanel extends BasePanel {
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                ResourceWizardPreviewPanel preview = createWizardPreviewPanel();
-                ResourceWizardPanel.this.replace(preview);
-                target.add(preview);
+                exitToPreview(target);
             }
         };
         wizard.setOutputMarkupId(true);
@@ -97,27 +73,40 @@ public class ResourceWizardPanel extends BasePanel {
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSaveResourcePerformed(target);
         if (!result.isError()) {
-            ResourceWizardPreviewPanel preview = createWizardPreviewPanel();
-            ResourceWizardPanel.this.replace(preview);
-            target.add(preview);
+            exitToPreview(target);
         }
     }
 
-    private ResourceWizardPreviewPanel createWizardPreviewPanel() {
+    private PreviewResourceDataWizardPanel createPreviewResourceDataWizardPanel() {
+        return new PreviewResourceDataWizardPanel(ID_WIZARD_PANEL, getResourceModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                exitToPreview(target);
+            }
+        };
+    }
+
+    private void exitToPreview(AjaxRequestTarget target) {
         ResourceWizardPreviewPanel preview = new ResourceWizardPreviewPanel(ID_WIZARD_PANEL, getResourceModel()) {
             @Override
             protected void onResourceTileClick(ResourceWizardPreviewPanel.PreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
+                    case PREVIEW_DATA:
+                        PreviewResourceDataWizardPanel uncategorizedPanel = createPreviewResourceDataWizardPanel();
+                        ResourceWizardPanel.this.addOrReplace(uncategorizedPanel);
+                        target.add(uncategorizedPanel);
+                        break;
                     case CONFIGURE_OBJECT_TYPES:
                         ResourceObjectTypeWizardPanel objectTypeWizard = createObjectTypeWizard();
-                        ResourceWizardPanel.this.replace(objectTypeWizard);
+                        ResourceWizardPanel.this.addOrReplace(objectTypeWizard);
                         target.add(objectTypeWizard);
                         break;
                 }
             }
         };
         preview.setOutputMarkupId(true);
-        return preview;
+        ResourceWizardPanel.this.replace(preview);
+        target.add(preview);
     }
 
     protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {

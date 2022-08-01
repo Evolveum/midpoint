@@ -12,5 +12,12 @@ package com.evolveum.midpoint.gui.api.component.wizard;
  */
 public interface WizardListener {
 
-    void onStepChanged();
+    default void onStepChanged(WizardStep newStep) {
+    }
+
+    default void onCancel() {
+    }
+
+    default void onFinish() {
+    }
 }
