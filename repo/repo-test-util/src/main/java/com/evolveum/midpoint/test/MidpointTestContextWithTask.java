@@ -13,13 +13,13 @@ import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 /**
  * Value object carrying test context information like task, result and method name.
  * <p>
- * Static methods are used for creating the context and working with it via {@link ThreadLocal}.
+ * Static methods are used for creating the context and working with it.
+ * The context itself is a static and relies on the fact that integration tests ar
  * <b>It is important to to call {@link #destroy()} at the end (in some after-method).</b>
  */
 public final class MidpointTestContextWithTask implements MidpointTestContext {
 
-    private static final ThreadLocal<MidpointTestContextWithTask> TEST_CONTEXT_THREAD_LOCAL =
-            new ThreadLocal<>();
+    private static volatile MidpointTestContextWithTask testContext;
 
     /**
      * Actual test class - not abstract (where method may be implemented) but executed test class.
@@ -77,16 +77,28 @@ public final class MidpointTestContextWithTask implements MidpointTestContext {
         MidpointTestContextWithTask ctx =
                 new MidpointTestContextWithTask(testClass, methodName, task, result);
         Thread.currentThread().setName(ctx.getTestName());
-        TEST_CONTEXT_THREAD_LOCAL.set(ctx);
+        if (testContext != null) {
+            throw new IllegalStateException("There is a testContext already, use destroy() properly: " + testContext);
+        }
+        testContext = ctx;
         return ctx;
     }
 
     public static MidpointTestContextWithTask get() {
-        return TEST_CONTEXT_THREAD_LOCAL.get();
+        return testContext;
     }
 
     public static void destroy() {
         Thread.currentThread().setName(get().originalThreadName);
-        TEST_CONTEXT_THREAD_LOCAL.remove();
+        testContext = null;
+    }
+
+    /**
+     * Used in some script expressions, use text search to find it.
+     */
+    @SuppressWarnings("unused")
+    public static boolean isTestClassSimpleName(String simpleClassName) {
+        return testContext != null
+                && testContext.getTestClass().getSimpleName().equals(simpleClassName);
     }
 }
