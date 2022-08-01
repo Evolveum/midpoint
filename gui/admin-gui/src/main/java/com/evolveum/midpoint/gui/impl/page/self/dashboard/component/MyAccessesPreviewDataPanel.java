@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.PanelType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
+@PanelType(name = "myAccesses")
 //TODO TODO TODO
 public class MyAccessesPreviewDataPanel extends ContainerableListPanel<AssignmentType, SelectableBean<AssignmentType>> {
 

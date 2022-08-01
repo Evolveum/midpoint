@@ -312,6 +312,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="homePage" type="tns:HomePageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If the old or new design should be used. Temporary, will be removed in 4.5 when
+                            the old design will be fully replaced with the new one.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.4</a:since>
+                        <a:displayName>AdminGuiConfigurationType.useNewDesign</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -4279,6 +4293,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="preview" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    If the panel should be shown in preview mode.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -4313,5 +4336,58 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="HomePageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Definition for self dashabord. Which links, widgets, panels should be shown
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Type for which the dashboard is applicable to. Since there is a possibility
+                                    to log in to midPoint as User, Role, Service, ... this is to differentiate
+                                    for which type this configuration is applicable.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="widget" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Sub panel
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="default" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    If the panel is default.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
 </xsd:schema>

@@ -167,6 +167,46 @@
         </tracing>
     </internals>
     <adminGuiConfiguration>
+        <homePage>
+            <widget>
+                <display>
+                    <label>History</label>
+                    <cssClass>col-md-8</cssClass>
+                </display>
+                <panelType>history</panelType>
+            </widget>
+            <widget>
+                <display>
+                    <label>My Accesses</label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fe fe-assignment</cssClass>
+                    </icon>
+                </display>
+                <panelType>myAccesses</panelType>
+            </widget>
+            <widget>
+                <display>
+                    <label>My Requests</label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fe fe-case</cssClass>
+                    </icon>
+                </display>
+                <panelType>myRequests</panelType>
+            </widget>
+            <widget>
+                <display>
+                    <label>My Work Items</label>
+                    <cssClass>col-md-4</cssClass>
+                    <icon>
+                        <cssClass>fa fa-inbox</cssClass>
+                    </icon>
+                </display>
+                <panelType>myWorkItems</panelType>
+            </widget>
+
+        </homePage>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>
             <label>PageSelfDashboard.profile</label>

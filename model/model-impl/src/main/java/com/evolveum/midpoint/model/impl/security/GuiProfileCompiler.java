@@ -326,6 +326,12 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.getAccessRequest() != null) {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
+
+        // TODO merging from roles and others
+        // TODO select appropriate type to merge. e.g. if user is logged in, select user config
+        if (adminGuiConfiguration.getHomePage() != null) {
+            composite.setHomePage(adminGuiConfiguration.getHomePage());
+        }
     }
 
     private void mergeDeprecatedRoleManagement(CompiledGuiProfile composite, RoleManagementConfigurationType roleManagement) {

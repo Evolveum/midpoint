@@ -56,7 +56,7 @@ import java.util.List;
  */
 @PanelType(name = "history")
 @PanelInstance(identifier = "history", applicableForType = FocusType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = "fa fa-history", order = 60))
+        display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = GuiStyleConstants.CLASS_ICON_HISTORY, order = 60))
 public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 
     private static final long serialVersionUID = 1L;
@@ -77,7 +77,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     }
 
     protected void initLayout() {
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, null, getPanelConfiguration()) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -69,6 +69,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
     private byte[] jpegPhoto;
     private Locale locale;
+    private HomePageType homePage;
 
     private Set<String> dependencies = new HashSet<>();
 
@@ -543,5 +544,13 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public Set<String> getDependencies() {
         return dependencies;
+    }
+
+    public HomePageType getHomePage() {
+        return homePage;
+    }
+
+    public void setHomePage(HomePageType homePage) {
+        this.homePage = homePage;
     }
 }

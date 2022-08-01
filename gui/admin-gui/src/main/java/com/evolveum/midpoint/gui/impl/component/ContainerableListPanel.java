@@ -278,7 +278,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected Component createHeader(String headerId) {
-                if (dashboard) {
+                if (isDashboard()) {
                     return createWidgetHeader(headerId);
                 }
                 Component header = ContainerableListPanel.this.createHeader(headerId);
@@ -297,7 +297,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (dashboard) {
+                if (isDashboard()) {
                     return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createNavigationButtons(ID_BUTTON));
                 }
                 return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
@@ -347,13 +347,17 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isPagingVisible() {
-        return !dashboard;
+        return !isDashboard();
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
 
     protected boolean isHeaderVisible() {
         return true;
+    }
+
+    protected boolean isDashboard() {
+        return dashboard || (config != null && BooleanUtils.isTrue(config.isPreview()));
     }
 
     protected PageStorage getPageStorage(String storageKey) {

@@ -157,7 +157,7 @@ public class PageSelfDashboard extends PageSelf {
 
             @Override
             protected Component getMainComponent(String markupId) {
-                CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD) {
+                CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, null) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

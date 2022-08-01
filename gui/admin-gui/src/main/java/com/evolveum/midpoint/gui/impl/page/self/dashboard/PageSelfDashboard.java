@@ -13,11 +13,20 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -41,6 +50,8 @@ import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.LoadableDetachableModel;
 
 @PageDescriptor(
         urls = {
@@ -111,13 +122,14 @@ public class PageSelfDashboard extends PageSelf {
 
      private void initPreviewWidgets() {
          //TODO compile default config + prepare config to default roles.
-         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
-         configs.add(createPanelConfig(AssignmentType.COMPLEX_TYPE, createDisplayType("My Access", "col-md-4", GuiStyleConstants.EVO_ASSIGNMENT_ICON)));
-         configs.add(createPanelConfig(CaseType.COMPLEX_TYPE, createDisplayType("My Requests", "col-md-8", GuiStyleConstants.EVO_CASE_OBJECT_ICON)));
-         configs.add(createPanelConfig(CaseWorkItemType.COMPLEX_TYPE, createDisplayType("My Work Items", "col-md-6", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON)));
+//         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
+//         configs.add(createPanelConfig("myAccesses", AssignmentType.COMPLEX_TYPE, createDisplayType("My Access", "col-md-4", GuiStyleConstants.EVO_ASSIGNMENT_ICON)));
+//         configs.add(createPanelConfig("myRequests", CaseType.COMPLEX_TYPE, createDisplayType("My Requests", "col-md-8", GuiStyleConstants.EVO_CASE_OBJECT_ICON)));
+//         configs.add(createPanelConfig("myWorkItems", CaseWorkItemType.COMPLEX_TYPE, createDisplayType("My Work Items", "col-md-6", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON)));
 
 
-         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, () -> configs) {
+         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, () -> homePageType.getWidget()) {
 
              @Override
              protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
@@ -140,10 +152,11 @@ public class PageSelfDashboard extends PageSelf {
          return new DisplayType().label(label).cssClass(cssClass).beginIcon().cssClass(icon).end();
      }
 
-     private ContainerPanelConfigurationType createPanelConfig(QName type, DisplayType displayType) {
+     private ContainerPanelConfigurationType createPanelConfig(String panelType, QName type, DisplayType displayType) {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
         config.setDisplay(displayType);
         config.setType(type);
+        config.setPanelType(panelType);
         return config;
      }
 
@@ -151,40 +164,70 @@ public class PageSelfDashboard extends PageSelf {
         return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
     }
 
-        // TODO just a prototype, should be initialized using refrection? or factory?
-    private Component createWidget(String markupId, IModel<ContainerPanelConfigurationType> model) {
-        Class<?> type = WebComponentUtil.qnameToClass(PrismContext.get(), model.getObject().getType());
-        if (AssignmentType.class.equals(type)) {
-            return new MyAccessesPreviewDataPanel(markupId, null, model.getObject());
-        }
-
-        if (CaseType.class.equals(type)) {
-            return createMyRequestsPanel(markupId, model.getObject());
-        }
-
-        if (CaseWorkItemType.class.equals(type)) {
-            return createMyWorkItemsPanel(markupId, model.getObject());
-        }
-
-        return new WebMarkupContainer(markupId);
-    }
-
-    private Component createMyWorkItemsPanel(String markupId, ContainerPanelConfigurationType config) {
-        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD, config) {
-            private static final long serialVersionUID = 1L;
-
+    private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
+        return new LoadableDetachableModel<>() {
             @Override
-            protected ObjectFilter getCaseWorkItemsFilter() {
-                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                                AuthUtil.getPrincipalUser(),
-                                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
-                        .desc(F_CREATE_TIMESTAMP)
-                        .buildFilter();
+            protected PrismObject<UserType> load() {
+                MidPointPrincipal principal;
+                try {
+                    principal = SecurityUtil.getPrincipal();
+                } catch (SecurityViolationException e) {
+                    LOGGER.error("Cannot load logged in focus");
+                    return null;
+                }
+                return (PrismObject<UserType>) principal.getFocus().asPrismObject();
             }
         };
-        workItemsPanel.setOutputMarkupId(true);
-        return workItemsPanel;
     }
+
+        // TODO just a prototype, should be initialized using refrection? or factory?
+    private Component createWidget(String markupId, IModel<ContainerPanelConfigurationType> model) {
+        ContainerPanelConfigurationType config = model.getObject();
+        String panelType = config.getPanelType();
+        Class<? extends Panel> panelClass = findObjectPanel(panelType);
+
+        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this);
+
+        Panel panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
+        if (panel == null) {
+            return new WebMarkupContainer(markupId);
+        }
+
+        return panel;
+
+
+//        Class<?> type = WebComponentUtil.qnameToClass(PrismContext.get(), model.getObject().getType());
+//        if (AssignmentType.class.equals(type)) {
+//            return new MyAccessesPreviewDataPanel(markupId, null, model.getObject());
+//        }
+//
+//        if (CaseType.class.equals(type)) {
+//            return createMyRequestsPanel(markupId, model.getObject());
+//        }
+//
+//        if (CaseWorkItemType.class.equals(type)) {
+//            return createMyWorkItemsPanel(markupId, model.getObject());
+//        }
+//
+//        return new WebMarkupContainer(markupId);
+    }
+
+//    private Component createMyWorkItemsPanel(String markupId, ContainerPanelConfigurationType config) {
+//        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD, config) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected ObjectFilter getCaseWorkItemsFilter() {
+//                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+//                                AuthUtil.getPrincipalUser(),
+//                                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
+//                        .desc(F_CREATE_TIMESTAMP)
+//                        .buildFilter();
+//            }
+//        };
+//        workItemsPanel.setOutputMarkupId(true);
+//        return workItemsPanel;
+//    }
 
     private Component createMyRequestsPanel(String markupId, ContainerPanelConfigurationType config) {
         CasesTablePanel cases =  new CasesTablePanel(markupId, null, config) {

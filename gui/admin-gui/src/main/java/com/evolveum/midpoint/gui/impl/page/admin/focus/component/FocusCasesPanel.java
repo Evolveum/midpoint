@@ -37,7 +37,7 @@ public class FocusCasesPanel<F extends FocusType>
     }
 
     protected void initLayout() {
-        CasesTablePanel casesPanel = new CasesTablePanel(ID_TASK_TABLE) {
+        CasesTablePanel casesPanel = new CasesTablePanel(ID_TASK_TABLE, getPanelConfiguration()) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -29,6 +29,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
@@ -5479,6 +5480,19 @@ public final class WebComponentUtil {
                 return panel;
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+                return null;
+            }
+        }
+
+        if (ContainerableListPanel.class.isAssignableFrom(panelClass)) {
+            try {
+                ContainerableListPanel panel = (ContainerableListPanel) ConstructorUtils.invokeConstructor(panelClass, markupId, new ArrayList<>(), panelConfig);
+                panel.setDashboard(true);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+                return null;
             }
         }
 
