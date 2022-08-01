@@ -1309,6 +1309,11 @@ public interface MidpointFunctions {
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
+    <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+
     PrismContext getPrismContext();
 
     RelationRegistry getRelationRegistry();

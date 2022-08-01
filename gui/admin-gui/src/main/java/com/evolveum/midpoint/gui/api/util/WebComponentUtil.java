@@ -29,6 +29,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -2575,18 +2576,13 @@ public final class WebComponentUtil {
     }
 
     public static boolean isNewDesignEnabled() {
-        MidPointApplication app = MidPointApplication.get();
-        ModelInteractionService service = app.getModelInteractionService();
-        Task task = app.createSimpleTask("get compiledGui profile");
-        OperationResult result = task.getResult();
         try {
-            CompiledGuiProfile compiledGuiProfile = service.getCompiledGuiProfile(task, result);
-            return compiledGuiProfile.isUseNewDesign();
-        } catch (Throwable e) {
-            LOGGER.error("Cannot get compiled gui profile, {}", e.getMessage(), e);
+            CompiledGuiProfile profile = getCompiledGuiProfile();
+            return profile.isUseNewDesign();
+        } catch (Exception ex) {
+            //if somthing happen just return true, by default we want new design
+            return true;
         }
-        //if somthing happen just return true, by default we want new design
-        return true;
     }
 
     // shows the actual object that is passed via parameter (not its state in repository)
@@ -5562,5 +5558,32 @@ public final class WebComponentUtil {
         }
 
         comp.add(AttributeAppender.append("class", () -> !comp.isEnabledInHierarchy() ? "disabled" : null));
+    }
+
+    public static CompiledGuiProfile getCompiledGuiProfile(Page page) {
+        if (page instanceof PageAdminLTE) {
+            return ((PageAdminLTE) page).getCompiledGuiProfile();
+        }
+
+        return getCompiledGuiProfile();
+    }
+
+    public static CompiledGuiProfile getCompiledGuiProfile() {
+        MidPointApplication app = MidPointApplication.get();
+        ModelInteractionService service = app.getModelInteractionService();
+
+        Task task = app.createSimpleTask("get compiled gui profile");
+        OperationResult result = task.getResult();
+        try {
+            return service.getCompiledGuiProfile(task, result);
+        } catch (Throwable e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
+            if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
+                throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
+            } else {
+                // Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
+                return new CompiledGuiProfile();
+            }
+        }
     }
 }

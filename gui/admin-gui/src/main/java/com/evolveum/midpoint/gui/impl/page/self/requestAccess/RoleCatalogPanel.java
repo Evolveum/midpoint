@@ -44,8 +44,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
 import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -64,13 +64,16 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
+public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements AccessRequestStep {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String STEP_ID = "catalog";
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogPanel.class);
 
@@ -86,8 +89,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
 
-    public RoleCatalogPanel(IModel<RequestAccess> model) {
+    private PageBase page;
+
+    public RoleCatalogPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
+
+        this.page = page;
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     @Override
@@ -138,7 +150,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private ObjectQuery createQueryFromCollectionRef(ObjectReferenceType collectionRef) {
-        PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+        PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(collectionRef, page);
         ObjectCollectionType objectCollection = collection.asObjectable();
 
         try {
@@ -148,7 +160,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
             }
             ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
-            ObjectFilter filter = getPageBase().getQueryConverter().createObjectFilter(ot.getClassDefinition(), objectCollection.getFilter());
+            ObjectFilter filter = page.getQueryConverter().createObjectFilter(ot.getClassDefinition(), objectCollection.getFilter());
             return getPrismContext()
                     .queryFor(ot.getClassDefinition())
                     .filter(filter)
@@ -156,7 +168,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                     .build();
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
-            getPageBase().error("Couldn't create search filter, reason: " + ex.getMessage());
+            page.error("Couldn't create search filter, reason: " + ex.getMessage());
         }
 
         return null;
@@ -180,7 +192,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
         IModel<Search> searchModel = new LoadableModel<>(false) {
             @Override
             protected Search load() {
-                return SearchFactory.createSearch(RoleType.class, getPageBase());
+                return SearchFactory.createSearch(RoleType.class, page);
             }
         };
 
@@ -390,17 +402,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private RoleCatalogType getRoleCatalogConfiguration() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        if (profile == null) {
-            return null;
-        }
-
-        AccessRequestType accessRequest = profile.getAccessRequest();
-        if (accessRequest == null) {
-            return null;
-        }
-
-        return accessRequest.getRoleCatalog();
+        AccessRequestType config = getAccessRequestConfiguration(page);
+        return config != null ? config.getRoleCatalog() : null;
     }
 
     private ListGroupMenu<RoleCatalogQueryItem> loadRoleCatalogMenu() {
@@ -437,7 +440,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
 
                 ObjectReferenceType collectionRef = collection.getCollectionRef();
                 if (collectionRef != null) {
-                    PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, getPageBase());
+                    PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
 
                     rcq.collectionRef(collectionRef);
                     name = WebComponentUtil.getDisplayNameOrName(objectCollection, true);
@@ -515,12 +518,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
                 .asc(ObjectType.F_NAME)
                 .build();
 
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ROLE_CATALOG_MENU);
+        Task task = page.createSimpleTask(OPERATION_LOAD_ROLE_CATALOG_MENU);
         OperationResult result = task.getResult();
 
         List<ListGroupMenuItem<RoleCatalogQueryItem>> list = new ArrayList<>();
         try {
-            List<PrismObject<ObjectType>> objects = WebModelServiceUtils.searchObjects(ot.getClassDefinition(), query, result, getPageBase());
+            List<PrismObject<ObjectType>> objects = WebModelServiceUtils.searchObjects(ot.getClassDefinition(), query, result, page);
             for (PrismObject o : objects) {
                 String name = WebComponentUtil.getDisplayNameOrName(o, true);
                 ListGroupMenuItem<RoleCatalogQueryItem> menu = new ListGroupMenuItem<>(name);
@@ -579,8 +582,22 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> {
     }
 
     private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
-        PageBase page = getPageBase();
-        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(Model.of(object)) {
+        // todo this configuration has to go from menu -> item xml
+        ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+        c.identifier("some-panel");
+        c.type(RoleType.COMPLEX_TYPE);
+        c.path(new ItemPathType(ItemPath.create(".")));
+        c.panelType("formPanel");
+        VirtualContainersSpecificationType vcs =
+                c.beginContainer()
+                        .beginDisplay()
+                        .label("asdf")
+                        .end();
+        vcs.path(new ItemPathType(ItemPath.create(".")));
+        vcs.identifier("some-container");
+        vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_NAME))).end();
+
+        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(() -> Arrays.asList(c), Model.of(object)) {
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {

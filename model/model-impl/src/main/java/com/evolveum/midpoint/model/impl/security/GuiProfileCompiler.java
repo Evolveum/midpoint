@@ -97,11 +97,11 @@ public class GuiProfileCompiler {
         collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
-        if (compiledGuiProfile != null) {
+
             setupFocusPhoto(principal, compiledGuiProfile, result);
             setupLocale(principal, compiledGuiProfile);
             compiledGuiProfile.setDependencies(profileDependencies);
-        }
+
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
@@ -160,9 +160,9 @@ public class GuiProfileCompiler {
         if (systemConfiguration != null) {
             globalAdminGuiConfig = systemConfiguration.asObjectable().getAdminGuiConfiguration();
         }
-        // if there's no admin config at all, return null (to preserve original behavior)
+
         if (adminGuiConfigurations.isEmpty() && globalAdminGuiConfig == null) {
-            return null;
+            return new CompiledGuiProfile();
         }
 
         CompiledGuiProfile composite = new CompiledGuiProfile();

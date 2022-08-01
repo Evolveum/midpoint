@@ -20,12 +20,13 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,9 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
+public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implements AccessRequestStep {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String STEP_ID = "relation";
 
     private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
@@ -50,13 +53,22 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
     private static final String ID_LIST = "list";
     private static final String ID_TILE = "tile";
 
-    private IModel<List<Tile<QName>>> relations;
+    private PageBase page;
 
-    public RelationPanel(IModel<RequestAccess> model) {
+    private LoadableModel<List<Tile<QName>>> relations;
+
+    public RelationPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
+
+        this.page = page;
 
         initModels();
         initLayout();
+    }
+
+    @Override
+    public String getStepId() {
+        return STEP_ID;
     }
 
     private boolean canSkipStep() {
@@ -70,17 +82,27 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
     }
 
     @Override
-    protected void onBeforeRender() {
-        // todo doesn't work properly, header stays hidden on next step
-//        if (canSkipStep()) {
-//            // there's only one relation, we don't have to make user choose it, we'll take it and skip this step
-//            submitData();
-//            getWizard().next();
-//
-//            throw new RestartResponseException(getPage());
-//        }
+    protected void onInitialize() {
+        super.onInitialize();
 
-        super.onBeforeRender();
+        relations.reset();
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+
+        if (canSkipStep()) {
+            // no user input needed, we'll populate model with data
+            submitData();
+
+            wizard.next();
+        }
+    }
+
+    @Override
+    public IModel<Boolean> isStepVisible() {
+        return () -> !canSkipStep();
     }
 
     private void initModels() {
@@ -88,24 +110,19 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
             @Override
             protected List<Tile<QName>> load() {
-                RelationSelectionType config = getRelationConfiguration();
-                QName defaultRelation = null;
-                if (config != null) {
-                    defaultRelation = config.getDefaultRelation();
+                QName currentRelation = getModelObject().getRelation();
+                if (currentRelation == null) {
+                    currentRelation = getDefaultRelation();
+                    getModelObject().setRelation(currentRelation);
                 }
-
-                if (defaultRelation == null) {
-                    defaultRelation = SchemaConstants.ORG_DEFAULT;
-                }
-
-                getModelObject().setRelation(defaultRelation);
 
                 List<Tile<QName>> tiles = new ArrayList<>();
 
+                RelationSelectionType config = getRelationConfiguration();
                 List<QName> list = getAvailableRelationsList();
                 for (QName name : list) {
                     Tile<QName> tile = createTileForRelation(name);
-                    tile.setSelected(name.equals(defaultRelation));
+                    tile.setSelected(name.equals(currentRelation));
                     tile.setValue(name);
 
                     if (BooleanUtils.isFalse(config.isAllowOtherRelations()) && !tile.isSelected()) {
@@ -119,6 +136,16 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
                 return tiles;
             }
         };
+    }
+
+    private QName getDefaultRelation() {
+        RelationSelectionType config = getRelationConfiguration();
+        QName defaultRelation = null;
+        if (config != null) {
+            defaultRelation = config.getDefaultRelation();
+        }
+
+        return defaultRelation != null ? defaultRelation : SchemaConstants.ORG_DEFAULT;
     }
 
     @Override
@@ -206,20 +233,20 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
 
         FocusType focus;
         try {
-            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, getPageBase());
+            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, page);
             focus = prismFocus.asObjectable();
         } catch (Exception ex) {
-            getPageBase().error(getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
+            page.error(getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
             return new ArrayList<>();
         }
 
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
+        Task task = page.createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
         List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(
-                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
 
         if (CollectionUtils.isEmpty(assignableRelationsList)) {
-            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
         }
 
         return assignableRelationsList;
@@ -247,16 +274,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> {
     }
 
     private RelationSelectionType getRelationConfiguration() {
-        CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
-        if (profile == null) {
-            return null;
-        }
-
-        AccessRequestType accessRequest = profile.getAccessRequest();
-        if (accessRequest == null) {
-            return null;
-        }
-
-        return accessRequest.getRelationSelection();
+        AccessRequestType config = getAccessRequestConfiguration(page);
+        return config != null ? config.getRelationSelection() : null;
     }
 }
