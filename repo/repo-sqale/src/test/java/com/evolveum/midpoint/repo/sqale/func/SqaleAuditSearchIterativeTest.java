@@ -48,6 +48,7 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
 
     // default page size for iterative search, reset before each test
     private static final int ITERATION_PAGE_SIZE = 100;
+    private static final int COUNT_OF_CREATED_RECORDS = ITERATION_PAGE_SIZE * 2;
 
     private final long startTimestamp = System.currentTimeMillis();
 
@@ -70,7 +71,7 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
         long timestamp = startTimestamp;
         Random random = new Random();
         // we will create two full "pages" of data
-        for (int i = 1; i <= ITERATION_PAGE_SIZE * 2; i++) {
+        for (int i = 1; i <= COUNT_OF_CREATED_RECORDS; i++) {
             AuditEventRecord record = new AuditEventRecord();
             record.setParameter(paramString(i));
             record.setTimestamp(timestamp);
@@ -258,6 +259,34 @@ public class SqaleAuditSearchIterativeTest extends SqaleRepoBaseTest {
         for (int i = 1; i < limit; i++) {
             assertThat(processedItems.next().getParameter()).isEqualTo(paramString(i));
         }
+    }
+
+    @Test
+    public void test130SearchIterativeWithOffset() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("query with offset specified");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .offset(100)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+
+        then("result metadata is not null and reports partial result (because of the break)");
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.processedCount());
+        assertThat(metadata.isPartialResults()).isFalse();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                AUDIT_OP_PREFIX + AuditService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("specified amount of objects was processed");
+        assertThat(testHandler.processedCount()).isEqualTo(COUNT_OF_CREATED_RECORDS - 100);
     }
 
     @SafeVarargs
