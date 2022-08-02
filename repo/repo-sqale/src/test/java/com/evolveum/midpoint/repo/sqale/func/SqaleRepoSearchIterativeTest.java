@@ -51,6 +51,7 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
     // default page size for iterative search, reset before each test
     private static final int ITERATION_PAGE_SIZE = 100;
+    private static final int COUNT_OF_CREATED_USERS = ITERATION_PAGE_SIZE * 2 + 1;
 
     @BeforeClass
     public void initObjects() throws Exception {
@@ -355,6 +356,34 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
 
             assertThat(processed).isEqualTo(count(QUser.class)); // all users should be processed
         }
+    }
+
+    @Test
+    public void test135SearchIterativeWithOffset() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("query with offset specified");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .offset(100)
+                .build();
+
+        when("calling search iterative");
+        SearchResultMetadata metadata = searchObjectsIterative(query, operationResult);
+
+        then("result metadata is not null and not partial result");
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("specified amount of objects was processed");
+        assertThat(testHandler.getCounter()).isEqualTo(COUNT_OF_CREATED_USERS - 100);
     }
 
     @SafeVarargs
