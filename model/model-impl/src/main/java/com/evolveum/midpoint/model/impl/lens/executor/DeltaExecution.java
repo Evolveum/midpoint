@@ -140,6 +140,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException {
 
+        elementContext.resolveTemporaryContainerIds(delta);
+
         if (delta.getOid() == null) {
             delta.setOid(elementContext.getOid());
         }

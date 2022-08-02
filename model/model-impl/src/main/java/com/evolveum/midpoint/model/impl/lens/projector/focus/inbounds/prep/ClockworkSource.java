@@ -69,8 +69,7 @@ class ClockworkSource extends MSource {
         this.projectionContext = projectionContext;
         this.context = context;
         this.beans = context.beans;
-        this.identityManagementConfiguration =
-                projectionContext.getLensContext().getFocusContext().getIdentityManagementConfiguration();
+        this.identityManagementConfiguration = getFocusContext().getIdentityManagementConfiguration();
     }
 
     @Override
@@ -397,7 +396,7 @@ class ClockworkSource extends MSource {
                     () -> "Identity container without an ID: " + identity);
 
         } else {
-            id = (int) (Math.random() * 1_000_000_000.0); // TODO more deterministic approach (e.g. negative numbers)
+            id = focusContext.getTemporaryContainerId(SchemaConstants.PATH_IDENTITY);
             FocusIdentityType newIdentity = new FocusIdentityType()
                     .id(id)
                     .source(identitySource)

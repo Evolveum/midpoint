@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -69,6 +70,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * (primary, secondary, current, summary).
      */
     @NotNull protected final ElementState<O> state;
+
+    /** Keeps temporary PCV IDs to be applied on delta execution. */
+    private TemporaryContainerIdStore<O> temporaryContainerIdStore;
 
     /**
      * List of all executed deltas (in fact, {@link LensObjectDeltaOperation} objects).
@@ -853,6 +857,23 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
                 // display the GUI pages and maybe we can also salvage the operation.
                 result.recordWarning(e);
             }
+        }
+    }
+    //endregion
+
+    //region Misc
+
+    public int getTemporaryContainerId(@NotNull ItemPath itemPath) {
+        if (temporaryContainerIdStore == null) {
+            temporaryContainerIdStore = new TemporaryContainerIdStore<>();
+        }
+        return temporaryContainerIdStore.getTemporaryId(itemPath);
+    }
+
+    public void resolveTemporaryContainerIds(ObjectDelta<O> objectDelta) throws SchemaException {
+        if (temporaryContainerIdStore != null) {
+            temporaryContainerIdStore.resolveTemporaryIds(objectDelta);
+            temporaryContainerIdStore = null;
         }
     }
     //endregion
