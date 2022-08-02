@@ -968,6 +968,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
             // this is total requested size of the search
             Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
+            Integer offset = originalPaging != null ? originalPaging.getOffset() : null;
 
             List<? extends ObjectOrdering> providedOrdering = originalPaging != null
                     ? originalPaging.getOrderingInstructions()
@@ -990,6 +991,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
                     defaultIfNull(maxSize, Integer.MAX_VALUE));
             pagedQuery.getPaging().setMaxSize(pageSize);
+            pagedQuery.getPaging().setOffset(offset);
 
             PrismObject<T> lastProcessedObject = null;
             int handledObjectsTotal = 0;
@@ -1034,6 +1036,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                             .pagingCookie(lastProcessedObject != null
                                     ? lastProcessedObject.getOid() : null);
                 }
+                pagedQuery.getPaging().setOffset(null);
             }
         } finally {
             // This just counts the operation and adds zero/minimal time not to confuse user
