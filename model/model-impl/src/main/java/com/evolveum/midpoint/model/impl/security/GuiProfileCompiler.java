@@ -6,21 +6,16 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.*;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +63,7 @@ public class GuiProfileCompiler {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private CollectionProcessor collectionProcessor;
+    @Autowired PrismContext prismContext;
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 
     @Autowired private AssignmentCollector assignmentCollector;
@@ -96,7 +92,7 @@ public class GuiProfileCompiler {
         }
         collect(adminGuiConfigurations, profileDependencies, principal, authorizationTransformer, task, result);
 
-        CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, task, result);
+        CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, principal, task, result);
 
             setupFocusPhoto(principal, compiledGuiProfile, result);
             setupLocale(principal, compiledGuiProfile);
@@ -132,6 +128,8 @@ public class GuiProfileCompiler {
         if (focusType instanceof UserType && ((UserType) focusType).getAdminGuiConfiguration() != null) {
             // config from the user object should go last (to be applied as the last one)
             adminGuiConfigurations.add(((UserType) focusType).getAdminGuiConfiguration());
+        } else if (focusType instanceof AbstractRoleType && ((AbstractRoleType) focusType).getAdminGuiConfiguration() != null) {
+            adminGuiConfigurations.add(((AbstractRoleType) focusType).getAdminGuiConfiguration());
         }
     }
 
@@ -155,6 +153,13 @@ public class GuiProfileCompiler {
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
+        return compileFocusProfile(adminGuiConfigurations, systemConfiguration, null, task, result);
+    }
+
+    public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
+            PrismObject<SystemConfigurationType> systemConfiguration, GuiProfiledPrincipal principal, Task task, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
 
         AdminGuiConfigurationType globalAdminGuiConfig = null;
         if (systemConfiguration != null) {
@@ -167,10 +172,10 @@ public class GuiProfileCompiler {
 
         CompiledGuiProfile composite = new CompiledGuiProfile();
         if (globalAdminGuiConfig != null) {
-            applyAdminGuiConfiguration(composite, globalAdminGuiConfig.cloneWithoutId(), task, result);
+            applyAdminGuiConfiguration(composite, globalAdminGuiConfig.cloneWithoutId(), principal, task, result);
         }
         for (AdminGuiConfigurationType adminGuiConfiguration : adminGuiConfigurations) {
-            applyAdminGuiConfiguration(composite, adminGuiConfiguration.cloneWithoutId(), task, result);
+            applyAdminGuiConfiguration(composite, adminGuiConfiguration.cloneWithoutId(), principal, task, result);
         }
 
         mergeDeprecatedRoleManagement(composite, systemConfiguration.asObjectable().getRoleManagement());
@@ -211,7 +216,7 @@ public class GuiProfileCompiler {
         compiledGuiProfile.setLocale(locale);
     }
 
-    private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
+    private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, GuiProfiledPrincipal principal, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         if (adminGuiConfiguration == null) {
@@ -327,11 +332,62 @@ public class GuiProfileCompiler {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
 
-        // TODO merging from roles and others
-        // TODO select appropriate type to merge. e.g. if user is logged in, select user config
         if (adminGuiConfiguration.getHomePage() != null) {
-            composite.setHomePage(adminGuiConfiguration.getHomePage());
+            QName principalType = null;
+            if (principal != null) {
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(principal.getFocus().getClass()).getTypeName();
+            }
+            HomePageType configuredHomePage = getHomePageByFocusType(adminGuiConfiguration.getHomePage(), principalType);
+            if (composite.getHomePage() == null) {
+                composite.setHomePage(configuredHomePage);
+            } else {
+                composite.setHomePage(mergeHomePage(composite.getHomePage(), configuredHomePage));
+            }
         }
+    }
+
+    private HomePageType getHomePageByFocusType(List<HomePageType> homePageList, QName type) {
+        if (CollectionUtils.isEmpty(homePageList)) {
+            return null;
+        }
+        for (HomePageType homePageType : homePageList) {
+            if (homePageType.getType() == null && QNameUtil.match(UserType.COMPLEX_TYPE, type)) {   //todo UserType is default for no-type-specified home page?
+                return homePageType;
+            }
+            if (QNameUtil.match(homePageType.getType(), type)) {
+                return homePageType;
+            }
+        }
+        return null;
+    }
+
+    private HomePageType  mergeHomePage(HomePageType compositeHomePage, HomePageType homePage) {
+        if (homePage == null) {
+            return compositeHomePage;
+        }
+        if (compositeHomePage == null) {
+            return homePage;
+        }
+        if (compositeHomePage.getType() != null && homePage.getType() != null &&
+                !QNameUtil.match(compositeHomePage.getType(), homePage.getType())) {
+            return compositeHomePage;
+        }
+        if (StringUtils.isNotEmpty(compositeHomePage.getIdentifier()) && compositeHomePage.getIdentifier().equals(homePage.getIdentifier())) {
+            return compositeHomePage;
+        }
+        if (compositeHomePage.getType() == null) {
+            compositeHomePage.setType(homePage.getType());
+        }
+        mergeFeature(compositeHomePage, homePage, UserInterfaceElementVisibilityType.AUTOMATIC);
+
+        if (CollectionUtils.isNotEmpty(homePage.getWidget())) {
+            if (compositeHomePage.getWidget() == null) {
+                compositeHomePage.createWidgetList();
+            }
+            compositeHomePage.getWidget().addAll(adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(
+                    compositeHomePage.getWidget(), homePage.getWidget()));
+        }
+        return compositeHomePage;
     }
 
     private void mergeDeprecatedRoleManagement(CompiledGuiProfile composite, RoleManagementConfigurationType roleManagement) {
@@ -666,8 +722,33 @@ public class GuiProfileCompiler {
     }
 
     private <T extends UserInterfaceFeatureType> void mergeFeature(T compositeFeature, T newFeature, UserInterfaceElementVisibilityType defaultVisibility) {
+        if (compositeFeature == null) {
+            compositeFeature = newFeature;
+        }
+        if (compositeFeature.getIdentifier() != null && !compositeFeature.getIdentifier().equals(newFeature.getIdentifier())) {
+            return;
+        }
+        if (StringUtils.isNotEmpty(newFeature.getDescription())) {
+            compositeFeature.setDescription(newFeature.getDescription());
+        }
+        if (StringUtils.isNotEmpty(newFeature.getDocumentation())) {
+            compositeFeature.setDocumentation(newFeature.getDocumentation());
+        }
+        if (newFeature.getDisplay() != null) {
+            if (compositeFeature.getDisplay() == null) {
+                compositeFeature.setDisplay(newFeature.getDisplay());
+            } else {
+                MiscSchemaUtil.mergeDisplay(newFeature.getDisplay(), compositeFeature.getDisplay());
+                compositeFeature.setDisplay(newFeature.getDisplay());
+            }
+        }
+
         UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeFeature.getVisibility(), newFeature.getVisibility(), defaultVisibility);
         compositeFeature.setVisibility(newCompositeVisibility);
+
+        if (newFeature.getApplicableForOperation() != null) {
+            compositeFeature.setApplicableForOperation(newFeature.getApplicableForOperation());
+        }
     }
 
     private UserInterfaceElementVisibilityType mergeVisibility(

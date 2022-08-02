@@ -312,7 +312,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="homePage" type="tns:HomePageType" minOccurs="0">
+            <xsd:element name="homePage" type="tns:HomePageType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
