@@ -73,30 +73,6 @@ public class PageRequestAccess extends PageSelf {
         WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(createSteps()));
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
-
-//        List<ListGroupMenuItem> list = new ArrayList<>();
-//        ListGroupMenuItem allRoles = new ListGroupMenuItem("fa fa-fw fa-border-all", "All roles");
-//        allRoles.setActive(true);
-//        list.add(allRoles);
-//
-//        ListGroupMenuItem rolesOfTeamMate = new ListGroupMenuItem("fa fa-fw fa-users", "Roles of team mate");
-//        rolesOfTeamMate.setBadge("12");
-//        list.add(rolesOfTeamMate);
-//
-//        ListGroupMenuItem menu2 = new ListGroupMenuItem("fa fa-fw fa-users", "Roles of team mate");
-//        list.add(menu2);
-//
-//        ListGroupMenuItem o1 = new ListGroupMenuItem(null, "Option 1");
-//        menu2.getItems().add(o1);
-//        ListGroupMenuItem o2 = new ListGroupMenuItem(null, "Option 2");
-//        menu2.getItems().add(o2);
-//        ListGroupMenuItem o3 = new ListGroupMenuItem(null, "Option 3");
-//        menu2.getItems().add(o3);
-//        ListGroupMenuItem o31 = new ListGroupMenuItem(null, "Option 31");
-//        o3.getItems().add(o31);
-//
-//        ListGroupMenuPanel sample = new ListGroupMenuPanel("sample", Model.ofList(list));
-//        add(sample);
     }
 
     private List<WizardStep> createSteps() {

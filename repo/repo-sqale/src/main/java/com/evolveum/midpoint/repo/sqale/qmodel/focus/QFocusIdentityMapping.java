@@ -15,18 +15,18 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityItemsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentitySourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mapping between {@link QFocusIdentity} and {@link FocusIdentityType}.
@@ -132,17 +132,32 @@ public class QFocusIdentityMapping<OR extends MFocus>
                 "identity for " + row.ownerOid + "," + row.cid,
                 FocusIdentityType.class);
 
-        // beginItems() replaces incomplete container from fullObject, which is good here.
-        FocusIdentityItemsType focusIdentityItems = identity.beginItems();
-        if (row.itemsOriginal != null) {
-            Map<String, Object> itemMap = Jsonb.toMap(row.itemsOriginal);
-            new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginOriginal());
-        }
-        if (row.itemsNormalized != null) {
-            Map<String, Object> itemMap = Jsonb.toMap(row.itemsNormalized);
-            new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginNormalized());
+        // begin/setItems() replaces incomplete container from fullObject, which is the right thing here.
+        if (row.itemsOriginal != null || row.itemsNormalized != null) {
+            FocusIdentityItemsType focusIdentityItems = identity.beginItems();
+            if (row.itemsOriginal != null) {
+                Map<String, Object> itemMap = Jsonb.toMap(row.itemsOriginal);
+                new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginOriginal());
+            }
+            if (row.itemsNormalized != null) {
+                Map<String, Object> itemMap = Jsonb.toMap(row.itemsNormalized);
+                new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginNormalized());
+            }
+        } else {
+            identity.setItems(null);
         }
 
         return identity;
+    }
+
+    @Override
+    public void afterModify(SqaleUpdateContext<FocusIdentityType, QFocusIdentity<OR>, MFocusIdentity> updateContext)
+            throws SchemaException {
+        PrismContainer<FocusIdentityType> identityContainer =
+                updateContext.findValueOrItem(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
+        // row in context already knows its CID
+        PrismContainerValue<FocusIdentityType> pcv = identityContainer.findValue(updateContext.row().cid);
+        byte[] fullObject = createFullObject(pcv.asContainerable());
+        updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }
 }

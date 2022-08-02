@@ -370,8 +370,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         if (canSkipStep()) {
             // no user input needed, we'll populate model with data
             submitData();
-
-            wizard.next();
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -218,6 +218,19 @@ public class QAccessCertificationCaseMapping
         return row;
     }
 
+    private void storeWorkItems(
+            @NotNull MAccessCertificationCase caseRow,
+            @NotNull AccessCertificationCaseType schemaObject,
+            @NotNull JdbcSession jdbcSession) {
+
+        List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
+        if (!wis.isEmpty()) {
+            for (AccessCertificationWorkItemType wi : wis) {
+                QAccessCertificationWorkItemMapping.get().insert(wi, caseRow, jdbcSession);
+            }
+        }
+    }
+
     @Override
     public void afterModify(
             SqaleUpdateContext<AccessCertificationCaseType, QAccessCertificationCase, MAccessCertificationCase> updateContext)
@@ -230,19 +243,6 @@ public class QAccessCertificationCaseMapping
                 caseContainer.findValue(updateContext.row().cid);
         byte[] fullObject = createFullObject(caseContainerValue.asContainerable());
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
-    }
-
-    public void storeWorkItems(
-            @NotNull MAccessCertificationCase caseRow,
-            @NotNull AccessCertificationCaseType schemaObject,
-            @NotNull JdbcSession jdbcSession) throws SchemaException {
-
-        List<AccessCertificationWorkItemType> wis = schemaObject.getWorkItem();
-        if (!wis.isEmpty()) {
-            for (AccessCertificationWorkItemType wi : wis) {
-                QAccessCertificationWorkItemMapping.get().insert(wi, caseRow, jdbcSession);
-            }
-        }
     }
 
     @Override
