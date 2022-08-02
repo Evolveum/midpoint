@@ -1408,12 +1408,12 @@ public interface MidpointFunctions {
      *
      * @param identities a collection of identities where we search for the data
      * @param source specification of a source we are looking for; `null` means "any non-own sources"
-     * @param identityItemName item of which we collect the values
+     * @param itemPath item that should be provided
      *
      * @see FocusIdentityTypeUtil#matches(FocusIdentitySourceType, FocusIdentitySourceType)
      */
     Collection<PrismValue> selectIdentityItemValues(
             @Nullable Collection<FocusIdentityType> identities,
             @Nullable FocusIdentitySourceType source,
-            @NotNull QName identityItemName);
+            @NotNull ItemPath itemPath);
 }

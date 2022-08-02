@@ -11,6 +11,10 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,10 +27,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the "multiple identities" feature. (Including smart correlation.)
@@ -50,6 +50,10 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
     private static final String ATTR_GIVEN_NAME = "givenName";
     private static final String ATTR_FAMILY_NAME = "familyName";
     private static final String ATTR_PERSONAL_NUMBER = "personalNumber";
+
+    private static final String NS_ENT = "http://midpoint.evolveum.com/xml/ns/samples/enterprise";
+    private static final ItemName ENT_PERSONAL_NUMBER = new ItemName(NS_ENT, "personalNumber");
+    private static final ItemPath PATH_PERSONAL_NUMBER = ItemPath.create(ObjectType.F_EXTENSION, ENT_PERSONAL_NUMBER);
 
     public static final DummyTestResource RESOURCE_SINGLE = new DummyTestResource(
             TEST_DIR, "resource-single.xml", "157796ed-d4f2-429d-84f3-00ce4164263b", "single",
@@ -102,10 +106,10 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .identities()
                     .assertSingle()
-                    .own()
-                        .assertItem("givenName", "John", "john")
-                        .assertItem("familyName", "Smith", "smith")
-                        .assertItem("personalNumber", "1001234", "1001234");
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "john")
+                        .assertNormalizedItem("familyName", "smith")
+                        .assertNormalizedItem("personalNumber", "1001234");
         // @formatter:on
     }
 
@@ -126,10 +130,10 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .identities()
                     .assertSingle()
-                    .own()
-                        .assertItem("givenName", "Alice", "alice")
-                        .assertItem("familyName", "Green", "green")
-                        .assertItem("personalNumber", "1005678", "1005678");
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "alice")
+                        .assertNormalizedItem("familyName", "green")
+                        .assertNormalizedItem("personalNumber", "1005678");
         // @formatter:on
 
         when("Alice Green changed her name to Johnson");
@@ -150,10 +154,10 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .identities()
                     .assertSingle()
-                    .own()
-                        .assertItem("givenName", "Alice", "alice")
-                        .assertItem("familyName", "Johnson", "johnson")
-                        .assertItem("personalNumber", "1005678", "1005678");
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "alice")
+                        .assertNormalizedItem("familyName", "johnson")
+                        .assertNormalizedItem("personalNumber", "1005678");
         // @formatter:on
     }
 
@@ -175,7 +179,6 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_SINGLE.oid)
                 .withNameValue("bob")
-                .traced()
                 .execute(result);
 
         then("white1 is added");
@@ -183,15 +186,16 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         assertUserAfterByUsername("white1")
                 .displayXml()
                 .identities()
-                    .own()
-                        .assertItem("givenName", "Bob", "bob")
-                        .assertItem("familyName", "White", "white")
-                        .assertItem("personalNumber", "1003456", "1003456")
-                    .end()
                     .fromResource(RESOURCE_SINGLE.oid, ShadowKindType.ACCOUNT, "default", null)
-                        .assertItem("givenName", "Bob", "bob")
-                        .assertItem("familyName", "White", "white")
-                        .assertItem("personalNumber", "1003456", "1003456");
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Bob"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("White"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1003456")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "bob")
+                        .assertNormalizedItem("familyName", "white")
+                        .assertNormalizedItem("personalNumber", "1003456")
+                    .end();
         // @formatter:on
     }
 
@@ -214,23 +218,25 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_MULTI.oid)
                 .withNameValue("10700020")
-                .traced()
                 .execute(result);
 
         then("brown1 is added");
         // @formatter:off
         assertUserAfterByUsername("brown1")
                 .displayXml()
+                .assertLiveLinks(1)
+                .assertGivenName("Chuck")
                 .identities()
-                    .own()
-                        .assertItem("givenName", "Chuck", "chuck")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444")
-                    .end()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
-                        .assertItem("givenName", "Chuck", "chuck")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444");
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Chuck"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Brown"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "chuck")
+                        .assertNormalizedItem("familyName", "brown")
+                        .assertNormalizedItem("personalNumber", "1004444")
+                    .end();
         // @formatter:on
 
         when("second account of Chuck Brown is added");
@@ -243,7 +249,6 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_MULTI.oid)
                 .withNameValue("10700010")
-                .traced()
                 .execute(result);
 
         then("brown1 is (still) there, and updated");
@@ -253,20 +258,21 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .assertLiveLinks(2)
                 .assertGivenName("Charles")
                 .identities()
-                    .own()
-                        .assertItem("givenName", "Charles", "charles")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444")
-                    .end()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
-                        .assertItem("givenName", "Chuck", "chuck")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444")
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Chuck"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Brown"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700010")
-                        .assertItem("givenName", "Charles", "charles")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444");
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Charles"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Brown"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "chuck", "charles")
+                        .assertNormalizedItem("familyName", "brown")
+                        .assertNormalizedItem("personalNumber", "1004444")
+                    .end();
         // @formatter:on
 
         when("third account of Chuck Brown is added");
@@ -279,7 +285,6 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         importSingleAccountRequest()
                 .withResourceOid(RESOURCE_SINGLE.oid)
                 .withNameValue("brown")
-                .traced()
                 .execute(result);
 
         then("brown1 is (still) there, and updated");
@@ -289,25 +294,26 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .assertLiveLinks(3)
                 .assertGivenName("Karl")
                 .identities()
-                    .own()
-                        .assertItem("givenName", "Karl", "karl")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444")
-                    .end()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
-                        .assertItem("givenName", "Chuck", "chuck")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444")
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Chuck"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Brown"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700010")
-                        .assertItem("givenName", "Charles", "charles")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444")
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Charles"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Brown"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .fromResource(RESOURCE_SINGLE.oid, ShadowKindType.ACCOUNT, "default", null)
-                        .assertItem("givenName", "Karl", "karl")
-                        .assertItem("familyName", "Brown", "brown")
-                        .assertItem("personalNumber", "1004444", "1004444");
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Karl"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Brown"))
+                        .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "chuck", "charles", "karl")
+                        .assertNormalizedItem("familyName", "brown")
+                        .assertNormalizedItem("personalNumber", "1004444")
+                    .end();
         // @formatter:on
     }
 }

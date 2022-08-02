@@ -86,16 +86,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
         collectMappings();
         evaluateMappings();
         consolidateTriples();
-
-        normalizeChangedFocusIdentityData();
     }
-
-    /**
-     * Focus identity data produced by inbound mappings need to be normalized.
-     * Currently, this is applicable only to clockwork processing.
-     */
-    abstract void normalizeChangedFocusIdentityData()
-            throws ConfigurationException, SchemaException, ExpressionEvaluationException;
 
     /**
      * Collects the mappings - either from all projections (for clockwork) or from the input shadow (for pre-mappings).

@@ -7,23 +7,16 @@
 
 package com.evolveum.midpoint.model.impl.lens.identities;
 
-import static com.evolveum.midpoint.prism.PrismContainerValue.getId;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
-
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
@@ -33,17 +26,17 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.util.FocusIdentitiesTypeUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 /**
  * Manages `identities` container in focal objects.
@@ -53,10 +46,7 @@ import javax.xml.namespace.QName;
  *
  * PRELIMINARY/LIMITED IMPLEMENTATION.
  *
- * . Only single-valued items.
  * . Only `String` and `PolyString` types are supported.
- * . All correlation item names are in `common-3` namespace. This may be good or bad; reconsider eventually.
- * Maybe we should use original (extension) namespaces for items from extensions?
  */
 @Component
 public class IdentitiesManager {
@@ -66,7 +56,7 @@ public class IdentitiesManager {
     @Autowired private PrismContext prismContext;
 
     /**
-     * Updates "own identity" information in object being added.
+     * Updates normalized identity data on focus add.
      */
     public <O extends ObjectType> void applyOnElementAdd(
             @NotNull O objectToAdd,
@@ -82,11 +72,11 @@ public class IdentitiesManager {
         }
         FocusType focusToAdd = (FocusType) objectToAdd;
         FocusTypeUtil.addOrReplaceIdentity(focusToAdd,
-                computeOwnIdentity(focusToAdd, configuration));
+                computeNormalizedIdentityData(focusToAdd, configuration));
     }
 
     /**
-     * Adds necessary changes to "own identity" information to `delta` parameter.
+     * Updates normalized identity data on focus add (by adding necessary changes to the `delta` parameter.)
      */
     public <O extends ObjectType> void applyOnElementModify(
             O current, // we accept null values here but only for non-essential cases (i.e. no identity data to be updated)
@@ -106,20 +96,17 @@ public class IdentitiesManager {
         if (current == null) {
             throw new IllegalStateException("Current focal object is null: " + elementContext);
         }
-        FocusType expectedNewFocus = (FocusType) computeExpectedNewFocus(current, delta);
-        FocusIdentityType expectedOwnIdentity = computeOwnIdentity(expectedNewFocus, configuration);
-        delta.addModifications(
-                computeIdentityDeltas(expectedNewFocus, List.of(expectedOwnIdentity)));
-    }
+        FocusType expectedNew =
+                (FocusType) Objects.requireNonNull(
+                        elementContext.getObjectNew(),
+                        () -> String.format("Expected 'new' focal object is null: %s (it shouldn't be, as we are modifying it)",
+                                elementContext))
+                        .asObjectable();
 
-    @Nullable public IdentityManagementConfiguration getIdentityManagementConfiguration(@NotNull LensContext<?> context) {
-        LensFocusContext<?> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace("No focus context");
-            return null;
-        } else {
-            return focusContext.getIdentityManagementConfiguration();
-        }
+        delta.addModifications(
+                computeIdentityDeltas(
+                        expectedNew,
+                        computeNormalizedIdentityData(expectedNew, configuration)));
     }
 
     @Nullable private IdentityManagementConfiguration getIdentityManagementConfiguration(
@@ -132,84 +119,66 @@ public class IdentitiesManager {
         }
     }
 
-    /** If we were brave enough, we could probably use 'object new' from element context. But this is perhaps safer. */
-    private <O extends ObjectType> O computeExpectedNewFocus(O current, ObjectDelta<O> delta) throws SchemaException {
-        if (delta.isEmpty()) {
-            return current;
-        }
-        //noinspection unchecked
-        O clone = (O) current.clone();
-        //noinspection unchecked
-        delta.applyTo(
-                (PrismObject<O>) clone.asPrismObject());
-        return clone;
-    }
-
-    /** Computes "own" identity from scratch. */
-    private @NotNull FocusIdentityType computeOwnIdentity(
+    /**
+     * Computes "own" identity that contains all the normalized data.
+     * (Grouped together from the focal object and all identities.)
+     *
+     * This is the preliminary behavior. To be confirmed or changed later.
+     */
+    private @NotNull FocusIdentityType computeNormalizedIdentityData(
             @NotNull FocusType focus,
             @NotNull IdentityManagementConfiguration configuration) throws ConfigurationException, SchemaException {
-        IdentityItemsType original = new IdentityItemsType();
+        IdentityItemsType normalized = new IdentityItemsType();
         for (IdentityItemConfiguration itemConfig : configuration.getItems()) {
             ItemPath path = itemConfig.getPath();
-            Item<?, ?> item = focus.asPrismObject().findItem(path);
-            if (item != null) {
-                Item<?, ?> clone = item.clone();
-                ItemDefinition<?> definition = clone.getDefinition();
-                if (definition != null && !definition.isDynamic()) {
-                    MutableItemDefinition<?> definitionClone = definition.clone().toMutable();
-                    definitionClone.setDynamic(true);
-                    //noinspection unchecked,rawtypes
-                    ((Item) clone).setDefinition(definitionClone);
-                }
-                //noinspection unchecked
-                original.asPrismContainerValue().add(clone);
-            }
+            ItemDefinition<?> itemDef =
+                    MiscUtil.requireNonNull(
+                            focus.asPrismObject().getDefinition().findItemDefinition(path),
+                            () -> String.format("No definition of identity item '%s' in %s", path, focus));
+            Collection<PrismValue> allValues = collectAllValues(focus, path);
+            //noinspection unchecked
+            normalized.asPrismContainerValue().addAll(
+                    normalizeItemValues(itemDef, allValues, itemConfig));
         }
-        IdentityItemsType normalized = normalize(original, configuration);
-
         FocusIdentityType identity = new FocusIdentityType()
                 .items(new FocusIdentityItemsType()
-                        .original(original)
                         .normalized(normalized));
-        LOGGER.trace("Computed own identity:\n{}", identity.debugDumpLazily(1));
+        LOGGER.trace("Computed normalized identity:\n{}", identity.debugDumpLazily(1));
         return identity;
     }
 
-    private @NotNull IdentityItemsType normalize(
-            @NotNull IdentityItemsType original,
-            @NotNull IdentityManagementConfiguration configuration) throws SchemaException {
-
-        IdentityItemsType normalized = new IdentityItemsType();
-        for (Item<?, ?> originalItem : ((PrismContainerValue<?>) original.asPrismContainerValue()).getItems()) {
-            //noinspection unchecked
-            normalized.asPrismContainerValue().addAll(
-                    normalizeItem(originalItem, configuration));
-        }
-        return normalized;
+    private Collection<PrismValue> collectAllValues(@NotNull FocusType focus, @NotNull ItemPath path) {
+        List<PrismValue> allRealValues = new ArrayList<>();
+        allRealValues.addAll(
+                focus.asPrismContainerValue().getAllValues(path));
+        allRealValues.addAll(
+                focus.asPrismContainerValue().getAllValues(SchemaConstants.PATH_IDENTITY.append(FocusIdentityType.F_DATA, path)));
+        return allRealValues;
     }
 
     // TODO take configuration into account
-    private Collection<? extends Item<?, ?>> normalizeItem(
-            Item<?, ?> originalItem, IdentityManagementConfiguration configuration) {
-        if (originalItem.isEmpty()) {
+    private Collection<? extends Item<?, ?>> normalizeItemValues(
+            ItemDefinition<?> itemDef, Collection<PrismValue> prismValues, IdentityItemConfiguration itemConfig) {
+        if (prismValues.isEmpty()) {
             return List.of();
         }
-        ItemName itemName = originalItem.getElementName();
+        ItemName itemName = itemDef.getItemName();
         MutablePrismPropertyDefinition<String> normalizedItemDef =
-                prismContext.definitionFactory().createPropertyDefinition(itemName, DOMUtil.XSD_STRING);
+                prismContext.definitionFactory().createPropertyDefinition(itemName, DOMUtil.XSD_STRING); // TODO generalize
         normalizedItemDef.setDynamic(true);
+        normalizedItemDef.setMinOccurs(0);
+        normalizedItemDef.setMaxOccurs(-1);
         PrismProperty<String> normalizedItem =
                 prismContext.itemFactory().createProperty(
                         itemName,
                         normalizedItemDef);
-        for (PrismValue originalValue : originalItem.getValues()) {
+        for (PrismValue originalValue : prismValues) {
             Object originalRealValue = originalValue.getRealValue();
             if (originalRealValue != null) {
                 normalizedItem.addRealValue(
-                        normalizeValue(originalRealValue, null));
+                        normalizeValue(originalRealValue, itemConfig));
             } else {
-                LOGGER.warn("No real value in {} in {}", originalValue, originalItem);
+                LOGGER.warn("No real value in {} in {}", originalValue, itemDef);
             }
         }
         return List.of(normalizedItem);
@@ -234,177 +203,34 @@ public class IdentitiesManager {
 
     private Collection<? extends ItemDelta<?, ?>> computeIdentityDeltas(
             @NotNull FocusType expectedNewFocus,
-            @NotNull Collection<FocusIdentityType> identities)
+            @NotNull FocusIdentityType newIdentity)
             throws SchemaException {
 
-        FocusIdentitiesType identitiesInNewFocus = expectedNewFocus.getIdentities();
-        if (identitiesInNewFocus == null) {
-            LOGGER.trace("No identities in focus object -> adding values 'as they are':\n{}",
-                    DebugUtil.debugDumpLazily(identities, 1));
+        FocusIdentityType matching = FocusTypeUtil.getMatchingIdentity(expectedNewFocus, newIdentity.getSource());
+        if (matching == null) {
+            LOGGER.trace("No matching identity in focus object -> adding the value 'as is'");
             return prismContext.deltaFor(FocusType.class)
                     .item(SchemaConstants.PATH_IDENTITY)
-                    .addRealValues(identities)
+                    .add(newIdentity)
                     .asItemDeltas();
-        } else {
-            List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
-            for (FocusIdentityType identityBean : identities) {
-                addOrReplaceIdentityBean(identityBean, identitiesInNewFocus, itemDeltas);
-            }
-            return itemDeltas;
-        }
-    }
-
-    private void addOrReplaceIdentityBean(
-            @NotNull FocusIdentityType identityBean,
-            @NotNull FocusIdentitiesType currentIdentities,
-            @NotNull List<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
-        LOGGER.trace("Adding or replacing identity bean: {}", identityBean);
-        FocusIdentityType matching = FocusIdentitiesTypeUtil.getMatchingIdentity(currentIdentities, identityBean.getSource());
-        if (matching == null) {
-            LOGGER.trace("No matching identity bean -> adding this one:\n{}", identityBean.debugDumpLazily(1));
-            itemDeltas.add(
-                    prismContext.deltaFor(FocusType.class)
-                            .item(SchemaConstants.PATH_IDENTITY)
-                            .add(identityBean)
-                            .asItemDelta());
         } else {
             LOGGER.trace("Matching identity bean found -> computing a delta");
             //noinspection rawtypes
             Collection<? extends ItemDelta> differences =
                     matching.asPrismContainerValue().diff(
-                            identityBean.asPrismContainerValue(),
+                            newIdentity.asPrismContainerValue(),
                             EquivalenceStrategy.DATA);
             LOGGER.trace("Computed identity deltas:\n{}", DebugUtil.debugDumpLazily(differences, 1));
             //noinspection CastCanBeRemovedNarrowingVariableType,unchecked
-            itemDeltas.addAll((Collection<? extends ItemDelta<?, ?>>) differences);
+            return (Collection<? extends ItemDelta<?, ?>>) differences;
         }
     }
 
-    /**
-     * Computes deltas that synchronize `original` and `normalized` sections of identity data.
-     * To spare processing time, looks at `secondaryDelta` to know what has been changed.
-     */
-    public @NotNull Collection<? extends ItemDelta<?, ?>> computeNormalizationDeltas(
-            @Nullable FocusType objectNew,
-            @Nullable ObjectDelta<?> secondaryDelta,
-            @NotNull IdentityManagementConfiguration configuration) throws SchemaException {
-
-        LOGGER.trace("Normalizing focus identity data from inbound mapping output(s)");
-        if (objectNew == null) {
-            LOGGER.trace("No 'object new' -> nothing to normalize");
-            return List.of();
-        }
-        FocusIdentitiesType identitiesBean = objectNew.getIdentities();
-        if (identitiesBean == null) {
-            LOGGER.trace("No identities -> nothing to normalize");
-            return List.of();
-        }
-        if (ObjectDelta.isEmpty(secondaryDelta)) {
-            LOGGER.trace("No secondary delta -> nothing to normalize");
-            return List.of();
-        }
-
-        List<ItemDelta<?, ?>> normalizationDeltas = new ArrayList<>();
-
-        Set<Long> changedIds = getChangedIdentityIds(secondaryDelta);
-        boolean all = changedIds.contains(null); // just for sure
-
-        List<FocusIdentityType> identityList = identitiesBean.getIdentity();
-        for (FocusIdentityType identityBean : identityList) {
-            Long id = identityBean.getId();
-            if (id == null) {
-                LOGGER.warn("No-ID identity bean in {}: {}", objectNew, identitiesBean);
-                continue;
-            }
-            if (all || changedIds.contains(id)) {
-                LOGGER.trace("Going to normalize identity bean with ID {}", id);
-                computeNormalizationDeltas(identityBean, configuration, normalizationDeltas);
-            } else {
-                LOGGER.trace("No need to normalize identity bean with ID {}", id);
-            }
-        }
-
-        return normalizationDeltas;
-    }
-
-    private void computeNormalizationDeltas(
-            FocusIdentityType identityBean,
-            IdentityManagementConfiguration configuration,
-            List<ItemDelta<?, ?>> normalizationDeltas) throws SchemaException {
-
-        // We go through all items in given identity. (Not only those that have been changed.)
-
-        FocusIdentityItemsType bothItems = identityBean.getItems();
-        if (bothItems == null) {
-            LOGGER.trace("No items");
-            return;
-        }
-
-        IdentityItemsType original = bothItems.getOriginal();
-        IdentityItemsType oldNormalized = bothItems.getNormalized();
-        IdentityItemsType newNormalized = original != null ? normalize(original, configuration) : null;
-        ItemPath normalizedItemPath = bothItems.asPrismContainerValue().getPath().append(FocusIdentityItemsType.F_NORMALIZED);
-        Collection<? extends ItemDelta<?, ?>> deltas = computeDeltas(normalizedItemPath, oldNormalized, newNormalized);
-
-        LOGGER.trace("Computed identity deltas:\n{}", DebugUtil.debugDumpLazily(deltas, 1));
-        normalizationDeltas.addAll(deltas);
-    }
-
-    private Collection<? extends ItemDelta<?, ?>> computeDeltas(
-            ItemPath normalizedItemPath, IdentityItemsType oldNormalized, IdentityItemsType newNormalized)
-            throws SchemaException {
-        if (newNormalized == null) {
-            if (oldNormalized != null) {
-                return prismContext.deltaFor(FocusType.class)
-                        .item(normalizedItemPath)
-                        .replace()
-                        .asItemDeltas();
-            } else {
-                return List.of();
-            }
-        } else {
-            if (oldNormalized == null) {
-                return prismContext.deltaFor(FocusType.class)
-                        .item(normalizedItemPath)
-                        .replace(newNormalized)
-                        .asItemDeltas();
-            } else {
-                //noinspection unchecked
-                return (Collection<? extends ItemDelta<?, ?>>) oldNormalized.asPrismContainerValue().diff(
-                        newNormalized.asPrismContainerValue(),
-                        EquivalenceStrategy.DATA);
-            }
-        }
-    }
-
-    @NotNull private Set<Long> getChangedIdentityIds(ObjectDelta<?> secondaryDelta) {
-        stateCheck(secondaryDelta.isModify(), "Secondary delta is not a modify delta: %s", secondaryDelta);
-        Set<Long> changedIds = new HashSet<>();
-        for (ItemDelta<?, ?> modification : secondaryDelta.getModifications()) {
-            ItemPath modifiedItemPath = modification.getPath();
-            if (modifiedItemPath.startsWith(SchemaConstants.PATH_IDENTITY)) {
-                ItemPath rest = modifiedItemPath.rest(2);
-                if (rest.startsWithId()) {
-                    changedIds.add(rest.firstToId());
-                } else if (rest.isEmpty()) {
-                    for (PrismValue value : emptyIfNull(modification.getValuesToAdd())) {
-                        changedIds.add(getId(value));
-                    }
-                    for (PrismValue value : emptyIfNull(modification.getValuesToReplace())) {
-                        changedIds.add(getId(value));
-                    }
-                }
-            }
-        }
-        LOGGER.trace("Changed identity beans: {}", changedIds);
-        return changedIds;
-    }
-
-    /** See {@link MidpointFunctions#selectIdentityItemValues(Collection, FocusIdentitySourceType, QName)}. */
+    /** See {@link MidpointFunctions#selectIdentityItemValues(Collection, FocusIdentitySourceType, ItemPath)}. */
     public @NotNull Collection<PrismValue> selectIdentityItemValue(
             @Nullable Collection<FocusIdentityType> identities,
             @Nullable FocusIdentitySourceType source,
-            @NotNull QName identityItemName) {
+            @NotNull ItemPath itemPath) {
 
         Set<PrismValue> selected = new HashSet<>();
         for (FocusIdentityType identityBean : emptyIfNull(identities)) {
@@ -419,7 +245,7 @@ public class IdentitiesManager {
                 }
             }
             PrismProperty<?> property = identityBean.asPrismContainerValue().findProperty(
-                    ItemPath.create(FocusIdentityType.F_ITEMS, FocusIdentityItemsType.F_ORIGINAL, identityItemName));
+                    ItemPath.create(FocusIdentityType.F_DATA, itemPath));
             if (property != null) {
                 selected.addAll(property.getClonedValues());
             }

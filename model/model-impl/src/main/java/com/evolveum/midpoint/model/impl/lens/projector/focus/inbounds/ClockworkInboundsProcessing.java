@@ -139,33 +139,4 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
     @Nullable LensContext<?> getLensContextIfPresent() {
         return context;
     }
-
-    @Override
-    void normalizeChangedFocusIdentityData() throws ConfigurationException, SchemaException, ExpressionEvaluationException {
-        OperationResult identityUpdateResult = result.subresult(OP_NORMALIZE_CHANGED_FOCUS_IDENTITY_DATA)
-                .setMinor()
-                .build();
-        try {
-            IdentityManagementConfiguration configuration =
-                    beans.identitiesManager.getIdentityManagementConfiguration(context);
-            if (configuration == null) {
-                LOGGER.trace("No identity management configuration for {}; identity data will not be normalized", context);
-                identityUpdateResult.recordNotApplicable("No identity management configuration");
-                return;
-            }
-
-            LensFocusContext<F> focusContext = context.getFocusContextRequired();
-            focusContext.swallowToSecondaryDelta(
-                    beans.identitiesManager.computeNormalizationDeltas(
-                            asObjectable(focusContext.getObjectNew()),
-                            focusContext.getSecondaryDelta(),
-                            configuration));
-
-        } catch (Throwable t) {
-            identityUpdateResult.recordFatalError(t);
-            throw t;
-        } finally {
-            identityUpdateResult.close();
-        }
-    }
 }

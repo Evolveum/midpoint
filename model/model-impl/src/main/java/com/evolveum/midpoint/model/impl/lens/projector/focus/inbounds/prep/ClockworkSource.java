@@ -399,7 +399,8 @@ class ClockworkSource extends MSource {
             id = (int) (Math.random() * 1_000_000_000.0); // TODO more deterministic approach (e.g. negative numbers)
             FocusIdentityType newIdentity = new FocusIdentityType()
                     .id(id)
-                    .source(identitySource);
+                    .source(identitySource)
+                    .data(createNewFocus());
             focusContext.swallowToSecondaryDelta(
                     PrismContext.get().deltaFor(FocusType.class)
                             .item(SchemaConstants.PATH_IDENTITY)
@@ -410,8 +411,14 @@ class ClockworkSource extends MSource {
                 FocusType.F_IDENTITIES,
                 FocusIdentitiesType.F_IDENTITY,
                 id,
-                FocusIdentityType.F_ITEMS,
-                FocusIdentityItemsType.F_ORIGINAL,
-                identityItemConfiguration.getName());
+                FocusIdentityType.F_DATA,
+                targetItemPath);
+    }
+
+    // FIXME temporary code
+    private TemporaryUserType createNewFocus() throws SchemaException {
+        return new TemporaryUserType();
+//        return (FocusType) PrismContext.get().createObjectable(
+//                getFocusContext().getObjectTypeClass());
     }
 }

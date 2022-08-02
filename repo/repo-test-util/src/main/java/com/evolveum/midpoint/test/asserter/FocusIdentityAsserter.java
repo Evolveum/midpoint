@@ -10,6 +10,7 @@ package com.evolveum.midpoint.test.asserter;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -19,9 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemsType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TemporaryUserType;
+
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
+import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,23 +35,41 @@ public class FocusIdentityAsserter<RA> extends PrismContainerValueAsserter<Focus
         super(prismValue, returnAsserter, detail);
     }
 
-    public FocusIdentityAsserter<RA> assertItem(String name, String expectedOrig, String expectedNorm)
+    public FocusIdentityAsserter<RA> assertOriginalItem(ItemPath path, Object... expected)
             throws SchemaException {
-        assertThat(getOrigStringValue(name))
-                .as(() -> "Original value of '" + name + "'")
-                .isEqualTo(expectedOrig);
-        assertThat(getNormStringValue(name))
-                .as(() -> "Normalized value of '" + name + "'")
-                .isEqualTo(expectedNorm);
+        //noinspection unchecked
+        assertThat((Collection<Object>) getOrigValues(path))
+                .as(() -> "Normalized value of '" + path + "'")
+                .containsExactlyInAnyOrder(expected);
         return this;
     }
 
-    private String getOrigStringValue(String name) throws SchemaException {
-        return getValue(getOrig(), name, String.class);
+    public FocusIdentityAsserter<RA> assertNormalizedItem(String name, Object... expected)
+            throws SchemaException {
+        //noinspection unchecked
+        assertThat((Collection<Object>) getNormValues(name))
+                .as(() -> "Normalized value of '" + name + "'")
+                .containsExactlyInAnyOrder(expected);
+        return this;
     }
 
-    private String getNormStringValue(String name) throws SchemaException {
-        return getValue(getNorm(), name, String.class);
+    private Collection<?> getOrigValues(ItemPath path) throws SchemaException {
+        return
+                getRealValues(getData()
+                        .asPrismContainerValue()
+                        .findItem(path));
+    }
+
+    private @NotNull Collection<?> getRealValues(Item<?, ?> item) {
+        return item != null ? item.getRealValues() : List.of();
+    }
+
+    private Collection<?> getNormValues(String name) throws SchemaException {
+        return
+                getNorm()
+                        .asPrismContainerValue()
+                        .findItem(new ItemName(name))
+                        .getRealValues();
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -57,24 +79,23 @@ public class FocusIdentityAsserter<RA> extends PrismContainerValueAsserter<Focus
         return JavaTypeConverter.convert(type, item.getRealValue());
     }
 
-    @NotNull
-    private FocusIdentityType getIdentity() throws SchemaException {
+    private @NotNull FocusIdentityType getIdentity() throws SchemaException {
         return getRealValueRequired(FocusIdentityType.class);
     }
 
-    private IdentityItemsType getOrig() throws SchemaException {
+    private @NotNull TemporaryUserType getData() throws SchemaException {
         return MiscUtil.requireNonNull(
-                getItems().getOriginal(),
-                () -> new AssertionError("No 'items/original' in " + getDetails()));
+                getIdentity().getData(),
+                () -> new AssertionError("No 'data' in " + getDetails()));
     }
 
-    private IdentityItemsType getNorm() throws SchemaException {
+    private @NotNull IdentityItemsType getNorm() throws SchemaException {
         return MiscUtil.requireNonNull(
                 getItems().getNormalized(),
                 () -> new AssertionError("No 'items/normalized' in " + getDetails()));
     }
 
-    private FocusIdentityItemsType getItems() throws SchemaException {
+    private @NotNull FocusIdentityItemsType getItems() throws SchemaException {
         return MiscUtil.requireNonNull(
                 getIdentity().getItems(),
                 () -> new AssertionError("No 'items' in " + getDetails()));

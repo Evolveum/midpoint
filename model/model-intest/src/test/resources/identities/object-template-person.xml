@@ -7,6 +7,8 @@
 
 <objectTemplate
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ent="http://midpoint.evolveum.com/xml/ns/samples/enterprise"
         oid="c0d96ed0-bec7-4c6e-9a69-133b0301bdb8">
     <name>person</name>
     <iterationSpecification>
@@ -21,7 +23,7 @@
         <identity/>
     </item>
     <item>
-        <ref>extension/personalNumber</ref>
+        <ref>c:extension/ent:personalNumber</ref> <!-- here are namespaces to see if the default mapping is created correctly -->
         <identity/>
     </item>
     <item>
