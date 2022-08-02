@@ -1318,6 +1318,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="data" type="tns:FocusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The data itself.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:embeddedObject>true</a:embeddedObject>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="items" type="tns:FocusIdentityItemsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
