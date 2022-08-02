@@ -466,7 +466,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private void editItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         PageBase page = getPageBase();
 
-        ShoppingCartEditPanel panel = new ShoppingCartEditPanel(model) {
+        ShoppingCartEditPanel panel = new ShoppingCartEditPanel(model, getModel()) {
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {

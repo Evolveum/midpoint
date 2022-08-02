@@ -7,9 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -17,6 +21,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -41,17 +46,35 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     private Fragment footer;
 
-    public ShoppingCartEditPanel(IModel<ShoppingCartItem> model) {
+    private IModel<RequestAccess> requestAccess;
+
+    private IModel<List<QName>> relationChoices;
+
+    public ShoppingCartEditPanel(IModel<ShoppingCartItem> model, IModel<RequestAccess> requestAccess) {
         super(Popupable.ID_CONTENT, model);
 
+        this.requestAccess = requestAccess;
+
+        initModels();
         initLayout();
+    }
+
+    private void initModels() {
+        relationChoices = new LoadableModel<>(false) {
+
+            @Override
+            protected List<QName> load() {
+                return requestAccess.getObject().getAvailableRelations(getPageBase());
+            }
+        };
     }
 
     private void initLayout() {
         Form form = new MidpointForm(ID_FORM);
         add(form);
 
-        DropDownChoice relation = new DropDownChoice(ID_RELATION);
+        DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
+                WebComponentUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
         form.add(relation);
 
@@ -87,10 +110,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         form.add(administrativeStatus);
 
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
-        footer.add(new AjaxLink<>(ID_SAVE) {
+        footer.add(new AjaxSubmitLink(ID_SAVE) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 savePerformed(target, ShoppingCartEditPanel.this.getModel());
             }
         });
