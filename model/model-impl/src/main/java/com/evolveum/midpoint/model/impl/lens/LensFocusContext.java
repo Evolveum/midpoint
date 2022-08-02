@@ -149,10 +149,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     // preliminary version
-    public @Nullable IdentityManagementConfiguration getIdentityManagementConfiguration() {
-        return focusTemplate != null ?
-                IdentityManagementConfiguration.of(focusTemplate) :
-                null;
+    public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() {
+        return IdentityManagementConfiguration.of(focusTemplate);
     }
 
     public LifecycleStateModelType getLifecycleModel() {

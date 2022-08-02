@@ -62,7 +62,7 @@ public class IdentitiesManager {
             @NotNull O objectToAdd,
             @NotNull LensElementContext<O> elementContext) throws ConfigurationException, SchemaException {
         IdentityManagementConfiguration configuration = getIdentityManagementConfiguration(elementContext);
-        if (configuration == null) {
+        if (configuration == null || configuration.hasNoItems()) {
             LOGGER.trace("No identity management configuration for {}: identity data will not be updated", elementContext);
             return;
         }
@@ -84,7 +84,7 @@ public class IdentitiesManager {
             @NotNull Class<O> objectClass,
             @NotNull LensElementContext<O> elementContext) throws SchemaException, ConfigurationException {
         IdentityManagementConfiguration configuration = getIdentityManagementConfiguration(elementContext);
-        if (configuration == null) {
+        if (configuration == null || configuration.hasNoItems()) {
             LOGGER.trace("No identity management configuration for {}: identity data will not be updated", elementContext);
             return;
         }

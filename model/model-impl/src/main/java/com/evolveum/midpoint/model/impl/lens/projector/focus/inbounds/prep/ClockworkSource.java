@@ -57,6 +57,8 @@ class ClockworkSource extends MSource {
 
     @NotNull private final Context context;
 
+    @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
+
     ClockworkSource(
             PrismObject<ShadowType> currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
@@ -67,6 +69,8 @@ class ClockworkSource extends MSource {
         this.projectionContext = projectionContext;
         this.context = context;
         this.beans = context.beans;
+        this.identityManagementConfiguration =
+                projectionContext.getLensContext().getFocusContext().getIdentityManagementConfiguration();
     }
 
     @Override
@@ -357,10 +361,7 @@ class ClockworkSource extends MSource {
 
     @Override
     @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) throws ConfigurationException {
-        IdentityManagementConfiguration identityManagementConfiguration =
-                getFocusContext().getIdentityManagementConfiguration();
-        return identityManagementConfiguration != null ?
-                identityManagementConfiguration.getForPath(itemPath) : null;
+        return identityManagementConfiguration.getForPath(itemPath);
     }
 
     private @NotNull LensFocusContext<? extends ObjectType> getFocusContext() {
