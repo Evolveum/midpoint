@@ -165,6 +165,10 @@ public class SqaleRepoContext extends SqlRepoContext {
         return extItemCache.getExtensionItem(id);
     }
 
+    public @Nullable MExtItem getExtensionItem(MExtItem.Key extItemKey) {
+        return extItemCache.getExtensionItem(extItemKey);
+    }
+
     public void setFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearchConfig) {
         this.fullTextSearchConfig = fullTextSearchConfig;
     }

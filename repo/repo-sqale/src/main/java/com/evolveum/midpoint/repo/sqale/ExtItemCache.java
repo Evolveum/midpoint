@@ -118,10 +118,11 @@ public class ExtItemCache {
         return row;
     }
 
-    public @Nullable MExtItem getExtensionItem(Integer id) {
+    public synchronized @Nullable MExtItem getExtensionItem(Integer id) {
         if (jdbcSessionSupplier == null) {
             throw new IllegalStateException("Ext item cache was not initialized yet!");
         }
+
         MExtItem extItem = idToExtItem.get(id);
         if (extItem != null) {
             return extItem;
@@ -139,5 +140,17 @@ public class ExtItemCache {
             updateMaps(extItem);
         }
         return extItem;
+    }
+
+    /**
+     * Returns extension item from the local cache only.
+     * Use with care, because this is not multi-node safe.
+     */
+    public @Nullable MExtItem getExtensionItem(MExtItem.Key extItemKey) {
+        if (jdbcSessionSupplier == null) {
+            throw new IllegalStateException("Ext item cache was not initialized yet!");
+        }
+
+        return keyToExtItem.get(extItemKey);
     }
 }
