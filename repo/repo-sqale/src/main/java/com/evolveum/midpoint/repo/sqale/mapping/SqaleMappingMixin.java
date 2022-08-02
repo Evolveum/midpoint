@@ -169,7 +169,10 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return this;
     }
 
-    /** Method called from `SqaleUpdateContext.finishExecutionOwn()` for containers. */
+    /**
+     * Method called from `SqaleUpdateContext.finishExecutionOwn()` for containers.
+     * This can be handy when more than just column set is required, e.g. to refresh fullObject, etc.
+     */
     default void afterModify(SqaleUpdateContext<S, Q, R> updateContext) throws SchemaException {
         // nothing by default
     }

@@ -12,29 +12,37 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocusIdentity;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentity;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentityMapping;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.AlphabeticMethodExecutionRequired;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-// TEMPORARY CODE
+@AlphabeticMethodExecutionRequired
 public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
 
     public static final File TEST_DIR = new File("src/test/resources/identity");
 
     private static final File FILE_USER_WITH_IDENTITY_DATA = new File(TEST_DIR, "user-with-identity-data.xml");
+
+    private static Collection<SelectorOptions<GetOperationOptions>> getWithIdentitiesOptions;
 
     private String userOid;
 
@@ -45,6 +53,10 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         // TODO
 
         assertThatOperationResult(result).isSuccess();
+
+        getWithIdentitiesOptions = SchemaService.get().getOperationOptionsBuilder()
+                .item(FocusType.F_IDENTITIES).retrieve()
+                .build();
     }
 
     @Test
@@ -78,10 +90,9 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
     @Test
     public void test115GetUserWithRetrieveOptions() throws CommonException {
         when("user is obtained with retrieve options for identities");
-        Collection<SelectorOptions<GetOperationOptions>> getOptions = SchemaService.get()
-                .getOperationOptionsBuilder().item(FocusType.F_IDENTITIES).retrieve().build();
         OperationResult getWithIdentitiesResult = createOperationResult();
-        UserType user2 = repositoryService.getObject(UserType.class, userOid, getOptions, getWithIdentitiesResult).asObjectable();
+        UserType user2 = repositoryService.getObject(UserType.class, userOid,
+                getWithIdentitiesOptions, getWithIdentitiesResult).asObjectable();
         assertThatOperationResult(getWithIdentitiesResult).isSuccess();
 
         then("identities are complete and contain all the details");
@@ -112,9 +123,6 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
 
     @Test
     public void test200SearchUsingFuzzyMatching() throws CommonException {
-        when("user is obtained with retrieve options for identities");
-        Collection<SelectorOptions<GetOperationOptions>> getOptions = SchemaService.get()
-                .getOperationOptionsBuilder().item(FocusType.F_IDENTITIES).retrieve().build();
         OperationResult result = createOperationResult();
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory().createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
@@ -129,9 +137,79 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
                         familyNameQName)
                 .eq("green") // TODO was alice, do you want givenName query?
                 .build();
-        var ret = repositoryService.searchObjects(UserType.class, query, null, result); // TODO use options and assert?
+        var ret = repositoryService.searchObjects(UserType.class, query, null, result); // TODO use retrieve options and assert?
         assertThat(ret.size()).isEqualTo(1);
     }
 
-    // TODO modification test + hopefully updateGetOptions in QFocusMapping does the trick
+    @Test
+    public void test300ModifyAddIdentityContainer() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        given("delta adding focus identity value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY)
+                .add(new FocusIdentityType()
+                        .source(new FocusIdentitySourceType()
+                                .tag("test300")))
+                .asObjectDelta(userOid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("new focus identity row is added");
+        QFocusIdentity<?> fi = QFocusIdentityMapping.get().defaultAlias();
+        List<MFocusIdentity> fiRows = select(fi, fi.ownerOid.eq(UUID.fromString(userOid)));
+        assertThat(fiRows).hasSize(3);
+
+        and("getObject without identity options still has no identities");
+        UserType user = repositoryService.getObject(UserType.class, userOid, null, result)
+                .asObjectable();
+        assertThat(user.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isTrue();
+
+        and("getObject returns focus with three identities");
+        user = repositoryService.getObject(UserType.class, userOid, getWithIdentitiesOptions, result)
+                .asObjectable();
+        assertThat(user.getIdentities().getIdentity())
+                .filteredOn(i -> i.getSource() != null && "test300".equals(i.getSource().getTag()))
+                .singleElement()
+                .extracting(i -> i.getItems())
+                .isNull();
+    }
+
+    @Test
+    public void test310ModifyReplaceItemInIdentityContainer() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        given("delta adding focus identity value");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                // 3 is container ID for identity PCV added in test300
+                .item(UserType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY, 3L,
+                        FocusIdentityType.F_SOURCE, FocusIdentitySourceType.F_TAG)
+                .replace("test310")
+                .asObjectDelta(userOid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("getObject without identity options still has no identities");
+        UserType user = repositoryService.getObject(UserType.class, userOid, null, result)
+                .asObjectable();
+        assertThat(user.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()).isTrue();
+
+        and("getObject returns focus with three identities");
+        user = repositoryService.getObject(UserType.class, userOid, getWithIdentitiesOptions, result)
+                .asObjectable();
+        assertThat(user.getIdentities().getIdentity())
+                .filteredOn(i -> i.getSource() != null && "test310".equals(i.getSource().getTag()))
+                .singleElement()
+                .matches(i -> i.getId().equals(3L));
+    }
+
+    // TODO modification test inside items, check JSONB
 }
