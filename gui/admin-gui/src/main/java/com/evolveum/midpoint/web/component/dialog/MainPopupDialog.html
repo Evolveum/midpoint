@@ -6,7 +6,7 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="overlay" class="modal fade" tabindex="-1">
-        <div wicket:id="dialog" class="modal-dialog">
+        <form wicket:id="dialog" class="modal-dialog">
             <div class="modal-content">
                 <wicket:enclosure child="title">
                     <div class="modal-header">
@@ -16,6 +16,6 @@
                 <div class="modal-body" wicket:id="content"/>
                 <div class="modal-footer" wicket:id="footer"/>
             </div>
-        </div>
+        </form>
     </div>
 </wicket:panel>

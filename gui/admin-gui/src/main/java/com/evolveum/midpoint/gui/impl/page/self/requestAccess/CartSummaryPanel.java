@@ -84,9 +84,6 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private static final String ID_VALIDITY_INFO = "validityInfo";
     private static final String ID_COMMENT_INFO = "commentInfo";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
-    private static final String ID_CUSTOM_VALIDITY_INFO = "customValidityInfo";
-    private static final String ID_CUSTOM_VALIDITY_FROM = "customValidityFrom";
-    private static final String ID_CUSTOM_VALIDITY_TO = "customValidityTo";
     private static final String ID_FORM = "form";
     private static final String ID_MESSAGES = "messages";
 
@@ -158,35 +155,21 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             }
         };
 
-        IModel<Date> customFrom = Model.of((Date) null);
-        IModel<Date> customTo = Model.of((Date) null);
-
         MidpointForm form = new MidpointForm(ID_FORM);
         add(form);
 
-        WebMarkupContainer customValidity = new WebMarkupContainer(ID_CUSTOM_VALIDITY);
+        IModel<CustomValidity> customValidityModel = Model.of(new CustomValidity());
+
+        CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel);
         customValidity.add(new VisibleBehaviour(() -> RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(validityModel.getObject())));
         customValidity.setOutputMarkupId(true);
         customValidity.setOutputMarkupPlaceholderTag(true);
         form.add(customValidity);
 
-        Label customValidityInfo = new Label(ID_CUSTOM_VALIDITY_INFO);
-        customValidityInfo.add(new TooltipBehavior());
-        customValidity.add(customValidityInfo);
-
-        DateInput customValidFrom = new DateInput(ID_CUSTOM_VALIDITY_FROM, customFrom);
-        customValidFrom.setOutputMarkupId(true);
-        customValidity.add(customValidFrom);
-
-        DateInput customValidTo = new DateInput(ID_CUSTOM_VALIDITY_TO, customTo);
-        customValidTo.setOutputMarkupId(true);
-        customValidity.add(customValidTo);
-
-        form.add(new DateValidator(customValidFrom, customValidTo));
         form.add(new AbstractFormValidator() {
             @Override
             public FormComponent<?>[] getDependentFormComponents() {
-                return new FormComponent[] { customValidFrom, customValidTo };
+                return new FormComponent[] { customValidity.getFrom(), customValidity.getTo() };
             }
 
             @Override
@@ -195,8 +178,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                     return;
                 }
 
-                Date from = customValidFrom.getConvertedInput();
-                Date to = customValidTo.getConvertedInput();
+                Date from = customValidity.getFrom().getConvertedInput();
+                Date to = customValidity.getTo().getConvertedInput();
                 if (from == null && to == null) {
                     form.error(getString("CartSummaryPanel.validityEmpty"));
                 }
@@ -262,7 +245,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                submitPerformed(target, customFrom, customTo);
+                submitPerformed(target, customValidityModel);
             }
 
             @Override
@@ -278,7 +261,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     protected void openConflictPerformed(AjaxRequestTarget target) {
     }
 
-    private void submitPerformed(AjaxRequestTarget target, IModel<Date> customFrom, IModel<Date> customTo) {
+    private void submitPerformed(AjaxRequestTarget target, IModel<CustomValidity> customValidity) {
         RequestAccess access = getModelObject();
 
         if (!RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(access.getSelectedValidity())) {
@@ -286,8 +269,9 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             return;
         }
 
-        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(customFrom.getObject());
-        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(customTo.getObject());
+        CustomValidity cv = customValidity.getObject();
+        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
+        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
 
         access.setValidity(from, to);
 
