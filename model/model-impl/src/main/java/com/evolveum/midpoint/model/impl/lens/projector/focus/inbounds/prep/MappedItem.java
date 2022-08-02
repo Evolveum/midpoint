@@ -29,12 +29,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_FOCUS;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_USER;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
@@ -159,7 +162,10 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
 
             String contextDescription = "inbound expression for " + itemDescription + " in " + resource;
 
-            ItemPath declaredTargetPath = getPath(mappingBean.getTarget());
+            ItemPath declaredTargetPath =
+                    stripFocusVariable(
+                            getPath(mappingBean.getTarget()),
+                            contextDescription);
             if (ItemPath.isEmpty(declaredTargetPath)) {
                 throw new ConfigurationException("Empty target path in " + contextDescription);
             }
@@ -175,9 +181,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                     .contextDescription(contextDescription)
                     .defaultSource(defaultSource)
                     .targetContext(target.focusDefinition)
-                    .addVariableDefinition(ExpressionConstants.VAR_USER, target.focus, target.focusDefinition)
+                    .addVariableDefinition(VAR_USER, target.focus, target.focusDefinition)
                     .addVariableDefinition(ExpressionConstants.VAR_FOCUS, target.focus, target.focusDefinition)
-                    .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS)
+                    .addAliasRegistration(VAR_USER, ExpressionConstants.VAR_FOCUS)
                     .addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadowVariableValue, shadowVariableDef)
                     .addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadowVariableValue, shadowVariableDef)
                     .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowVariableValue, shadowVariableDef)
@@ -223,6 +229,24 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
             mappingsMap
                     .computeIfAbsent(realTargetPath, k -> new ArrayList<>())
                     .add(source.createInboundMappingInContext(mapping));
+        }
+    }
+
+    private ItemPath stripFocusVariable(ItemPath targetPath, String contextDescription) {
+        if (targetPath == null) {
+            return null;
+        }
+        QName variable = targetPath.firstToVariableNameOrNull();
+        if (variable == null) {
+            return targetPath;
+        }
+        if (VAR_USER.equals(variable.getLocalPart())
+                || VAR_FOCUS.equals(variable.getLocalPart())) {
+            return targetPath.rest();
+        } else {
+            throw new IllegalStateException(
+                    String.format("Unsupported variable in target path '%s' in %s. Only $focus and $user are allowed here.",
+                            targetPath, contextDescription));
         }
     }
 
