@@ -45,7 +45,7 @@ public class RelationDropDownChoice extends DropDownChoice<QName> {
     protected void onInitialize() {
         super.onInitialize();
 
-        setChoiceRenderer(WebComponentUtil.getRelationChoicesRenderer((PageBase) getPage()));
+        setChoiceRenderer(WebComponentUtil.getRelationChoicesRenderer());
 
         add(new EnableBehaviour(() -> isRelationDropDownEnabled()));
         add(new EmptyOnChangeAjaxFormUpdatingBehavior());

@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -27,6 +28,8 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
@@ -243,6 +246,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return null;
             }
         };
+        Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                .build();
+        provider.setOptions(options);
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
@@ -566,10 +573,29 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
         columns.add(new CheckBoxHeaderColumn());
-        columns.add(new IconColumn(null) {
+        columns.add(new RoundedIconColumn<>(null) {
+
             @Override
-            protected DisplayType getIconDisplayType(IModel rowModel) {
-                return new DisplayType();
+            protected IModel<AbstractResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
+                return new LoadableModel<>(false) {
+                    @Override
+                    protected AbstractResource load() {
+                        ObjectType object = model.getObject().getValue();
+                        if (object == null) {
+                            return null;
+                        }
+
+                        PrismObject obj = object.asPrismObject();
+                        FocusType focus = (FocusType) obj.asObjectable();
+                        byte[] photo = focus.getJpegPhoto();
+
+                        if (photo == null) {
+                            return null;
+                        }
+
+                        return new ByteArrayResource("image/jpeg", photo);
+                    }
+                };
             }
         });
         columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectTypeDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -132,11 +133,19 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
             WrapperContext ctx = new WrapperContext(task, result);
             ctx.setShowEmpty(true);
-            ctx.setDetailsPageTypeConfiguration(getObjectDetailsPageConfiguration().getObject());
+            ctx.setDetailsPageTypeConfiguration(getResourceDetailsPageConfiguration());
             configuration = getModelServiceLocator().createItemWrapper(connectorConfigurationType, ItemStatus.ADDED, ctx);
         }
 
         return configuration;
+    }
+
+    private List<ContainerPanelConfigurationType> getResourceDetailsPageConfiguration() {
+        GuiObjectDetailsPageType resourceDetailsPage = getObjectDetailsPageConfiguration().getObject(); //TODO shouldn't be resource details page type?
+        if (resourceDetailsPage == null) {
+            return Collections.emptyList();
+        }
+        return resourceDetailsPage.getPanel();
     }
 
     public LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> getConfigurationModel() {

@@ -16,6 +16,10 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -45,6 +49,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Page;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -57,6 +63,7 @@ public class RequestAccess implements Serializable {
     private static final String OPERATION_COMPUTE_CONFLICT = DOT_CLASS + "computeConflicts";
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_REQUEST_ASSIGNMENTS_SINGLE = DOT_CLASS + "requestAssignmentsSingle";
+    private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
 
     public static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
             new ValidityPredefinedValueType()
@@ -88,7 +95,7 @@ public class RequestAccess implements Serializable {
 
     private QName relation;
 
-    private QName defaultRelation = SchemaConstants.ORG_DEFAULT;
+    private QName defaultRelation;
 
     /**
      * Used as backing field for combobox model. It can contain different values - string keys (custom length label), predefined values
@@ -294,14 +301,10 @@ public class RequestAccess implements Serializable {
     }
 
     public QName getDefaultRelation() {
-        return defaultRelation;
-    }
-
-    public void setDefaultRelation(QName defaultRelation) {
         if (defaultRelation == null) {
-            defaultRelation = SchemaConstants.ORG_DEFAULT;
+            defaultRelation = findDefaultRelation();
         }
-        this.defaultRelation = defaultRelation;
+        return defaultRelation;
     }
 
     public long getWarningCount() {
@@ -647,5 +650,69 @@ public class RequestAccess implements Serializable {
         }
 
         markConflictsDirty();
+    }
+
+    public List<QName> getAvailableRelations(PageBase page) {
+        List<ObjectReferenceType> personsOfInterest = getPersonOfInterest();
+        if (personsOfInterest.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        ObjectReferenceType ref = personsOfInterest.get(0);
+
+        FocusType focus;
+        try {
+            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, page);
+            focus = prismFocus.asObjectable();
+        } catch (Exception ex) {
+            page.error(page.getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
+            return new ArrayList<>();
+        }
+
+        Task task = page.createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
+        OperationResult result = task.getResult();
+        List<QName> relations = WebComponentUtil.getAssignableRelationsList(
+                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
+
+        if (CollectionUtils.isEmpty(relations)) {
+            relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
+        }
+
+        RelationSelectionType config = getRelationConfiguration(page);
+        relations = relations.stream()
+                // filter out non default relations if configuration doesn't allow other relations
+                .filter(q -> !(config != null && BooleanUtils.isFalse(config.isAllowOtherRelations()) && q.equals(defaultRelation)))
+                .collect(Collectors.toList());
+
+        return relations;
+    }
+
+    private RelationSelectionType getRelationConfiguration(Page page) {
+        AccessRequestType config = getAccessRequestConfiguration(page);
+        return config != null ? config.getRelationSelection() : null;
+    }
+
+    public AccessRequestType getAccessRequestConfiguration(Page page) {
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile(page);
+        if (profile == null) {
+            return null;
+        }
+
+        return profile.getAccessRequest();
+    }
+
+    private QName findDefaultRelation() {
+        AccessRequestType ar = getAccessRequestConfiguration(null);
+        if (ar == null || ar.getRelationSelection() == null) {
+            return SchemaConstants.ORG_DEFAULT;
+        }
+
+        RelationSelectionType config = ar.getRelationSelection();
+        QName defaultRelation = null;
+        if (config != null) {
+            defaultRelation = config.getDefaultRelation();
+        }
+
+        return defaultRelation != null ? defaultRelation : SchemaConstants.ORG_DEFAULT;
     }
 }

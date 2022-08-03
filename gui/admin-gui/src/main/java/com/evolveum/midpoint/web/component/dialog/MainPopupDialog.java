@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -103,5 +105,10 @@ public class MainPopupDialog extends ModalDialog {
         }
 
         getDialogComponent().addOrReplace(footer);
+    }
+
+    @Override
+    protected WebMarkupContainer newDialog(String dialogId) {
+        return new MidpointForm<>(dialogId);
     }
 }

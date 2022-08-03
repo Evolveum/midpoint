@@ -96,6 +96,7 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
                             PrismObjectWrapperFactory factory = getPageBase().findObjectWrapperFactory(prism.getDefinition());
                             WrapperContext context = new WrapperContext(task, result);
                             context.setReadOnly(true);
+                            context.setDetailsPageTypeConfiguration(containers.getObject());
 
                             return factory.createObjectWrapper(prism, ItemStatus.NOT_CHANGED, context);
                         } catch (Exception ex) {
@@ -112,7 +113,7 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
                 item.add(container);
 
 //                SingleContainerPanel panel = new SingleContainerPanel(ID_PANEL,
-//                        PrismContainerWrapperModel.fromContainerWrapper(wrapper, ItemPath.create(RoleType.F_ACTIVATION)),
+//                        PrismContainerWrapperModel.fromContainerWrapper(wrapper, ItemPath.EMPTY_PATH),
 //                        ActivationType.COMPLEX_TYPE);
 //                item.add(panel);
             }

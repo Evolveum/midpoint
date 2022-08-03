@@ -89,7 +89,7 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     }
 
     protected IChoiceRenderer<QName> getRenderer() {
-        return WebComponentUtil.getRelationChoicesRenderer(getPageBase());
+        return WebComponentUtil.getRelationChoicesRenderer();
     }
 
     protected boolean isRelationDropDownEnabled() {

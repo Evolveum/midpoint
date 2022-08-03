@@ -18,7 +18,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-
 /**
  * @author lskublik
  */
@@ -171,8 +170,11 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        getWizard().next();
-        target.add(getWizard().getPanel());
+        WizardModel model = getWizard();
+        if (model.hasNext()) {
+            model.next();
+            target.add(model.getPanel());
+        }
 
         return false;
     }
@@ -181,10 +183,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     public boolean onBackPerformed(AjaxRequestTarget target) {
-        int index = getWizard().getActiveStepIndex();
-        if (index > 0) {
-            getWizard().previous();
-            target.add(getWizard().getPanel());
+        WizardModel model = getWizard();
+        if (model.hasPrevious()) {
+            model.previous();
+            target.add(model.getPanel());
         }
 
         return false;
