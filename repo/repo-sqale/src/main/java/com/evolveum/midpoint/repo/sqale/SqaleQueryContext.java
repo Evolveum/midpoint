@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Levenshtein;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Similarity;import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.ThresholdMatchingMethod;
 import com.evolveum.midpoint.repo.sqale.filtering.*;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
@@ -219,8 +220,20 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             ValueFilterValues<?, ?> values) throws QueryException {
         FuzzyMatchingMethod method = filter.getMatchingMethod();
         if (method instanceof Levenshtein) {
-            var levenstein = (Levenshtein) method;
-            return Expressions.booleanTemplate("levenshtein_less_equal({0}, '{1s}', {2} ) <= {2}", path, values.singleValue().toString(), levenstein.getThreshold());
+            var levenshtein = (Levenshtein) method;
+            var func = Expressions.numberTemplate(Integer.class,
+                    "levenshtein_less_equal({0}, '{1s}', {2} )",
+                    path, values.singleValue().toString(), levenshtein.getThreshold());
+            // Lower value means more similar
+
+            return levenshtein.isInclusive() ? func.loe(levenshtein.getThreshold()) : func.lt(levenshtein.getThreshold());
+        } else if (method instanceof Similarity) {
+            var spec = (Similarity) method;
+            var func = Expressions.numberTemplate(Float.class,
+                    "similarity({0}, '{1s}')",
+                    path, values.singleValue().toString());
+            // Higher value means more similar
+            return spec.isInclusive() ? func.goe(spec.getThreshold()) : func.gt(spec.getThreshold());
         }
         return super.processFuzzyFilter(filter, path, values);
     }
