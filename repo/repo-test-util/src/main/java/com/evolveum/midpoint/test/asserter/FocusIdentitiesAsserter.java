@@ -42,7 +42,7 @@ public class FocusIdentitiesAsserter<RA> extends PrismContainerValueAsserter<Foc
         return getIdentitiesBean().getIdentity().size();
     }
 
-    public FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> own() throws SchemaException {
+    public FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> withoutSource() throws SchemaException {
         //noinspection unchecked
         FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> asserter =
                 new FocusIdentityAsserter<>(

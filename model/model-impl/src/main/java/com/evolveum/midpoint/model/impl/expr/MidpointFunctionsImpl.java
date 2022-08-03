@@ -2191,7 +2191,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public Collection<PrismValue> selectIdentityItemValues(
             @Nullable Collection<FocusIdentityType> identities,
             @Nullable FocusIdentitySourceType source,
-            @NotNull QName identityItemName) {
-        return beans.identitiesManager.selectIdentityItemValue(identities, source, identityItemName);
+            @NotNull ItemPath itemPath) {
+        return beans.identitiesManager.selectIdentityItemValue(identities, source, itemPath);
     }
 }

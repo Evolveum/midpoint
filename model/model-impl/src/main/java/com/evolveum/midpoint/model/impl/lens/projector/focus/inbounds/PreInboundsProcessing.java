@@ -128,9 +128,4 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
         variables.put(ExpressionConstants.VAR_SYNCHRONIZATION_CONTEXT, ctx, SynchronizationContext.class);
         return variables;
     }
-
-    @Override
-    void normalizeChangedFocusIdentityData() {
-        // Not applicable here.
-    }
 }

@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.setMappingTarget;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -35,19 +47,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Function;
-
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.setMappingTarget;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
 
 /**
  * Evaluation of object template mappings.
@@ -372,11 +372,11 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         if (explicitMapping != null) {
             selectionMapping = explicitMapping.clone();
         } else {
-            QName identityItemName = config.getName();
             String code = String.format(
                     "midpoint.selectIdentityItemValues("
-                            + "identity, defaultAuthoritativeSource, new javax.xml.namespace.QName('%s', '%s'))",
-                    identityItemName.getNamespaceURI(), identityItemName.getLocalPart());
+                            + "identity, defaultAuthoritativeSource, prismContext.itemPathParser().asItemPath('%s'))",
+                    ref.getItemPath().toStringStandalone()
+                            .replace("'", "\\'"));
             selectionMapping = new ObjectTemplateMappingType()
                     .expression(new ExpressionType()
                             .expressionEvaluator(

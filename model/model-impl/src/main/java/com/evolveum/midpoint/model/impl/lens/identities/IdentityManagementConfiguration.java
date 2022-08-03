@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Wraps all the configuration related to management of `identities` container, correlation, and so on.
@@ -35,8 +36,11 @@ public class IdentityManagementConfiguration {
         this.objectTemplate = objectTemplate;
     }
 
-    public static IdentityManagementConfiguration of(@NotNull ObjectTemplateType objectTemplate) {
-        return new IdentityManagementConfiguration(objectTemplate);
+    public static IdentityManagementConfiguration of(@Nullable ObjectTemplateType objectTemplate) {
+        return new IdentityManagementConfiguration(
+                Objects.requireNonNullElseGet(
+                        objectTemplate,
+                        ObjectTemplateType::new));
     }
 
     public @NotNull Collection<IdentityItemConfiguration> getItems() throws ConfigurationException {
@@ -53,11 +57,19 @@ public class IdentityManagementConfiguration {
 
     public @Nullable IdentityItemConfiguration getForPath(@NotNull ItemPath path) throws ConfigurationException {
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
-            ItemPathType ref = itemDefBean.getRef();
-            if (ref != null && ref.getItemPath().equivalent(path)) {
-                return IdentityItemConfiguration.of(itemDefBean, itemDefBean.getIdentity());
+            IdentityItemDefinitionType identityBean = itemDefBean.getIdentity();
+            if (identityBean != null) {
+                ItemPathType ref = itemDefBean.getRef();
+                if (ref != null && ref.getItemPath().equivalent(path)) {
+                    return IdentityItemConfiguration.of(itemDefBean, identityBean);
+                }
             }
         }
         return null;
+    }
+
+    // TODO improve --- TODO what if empty config is legal?
+    public boolean hasNoItems() throws ConfigurationException {
+        return getItems().isEmpty();
     }
 }
