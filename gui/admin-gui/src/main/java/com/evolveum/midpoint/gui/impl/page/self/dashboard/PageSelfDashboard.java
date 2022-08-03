@@ -6,21 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,18 +33,14 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.MyAccessesPreviewDataPanel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -93,9 +88,8 @@ public class PageSelfDashboard extends PageSelf {
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL);
         dashboardSearchPanel.add(new VisibleBehaviour(() -> {
-//            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
-//            return WebComponentUtil.getElementVisibility(visibility, searchPanelActions);
-            return true;
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
+            return WebComponentUtil.getElementVisibility(visibility, searchPanelActions);
         }));
         add(dashboardSearchPanel);
 
@@ -110,9 +104,8 @@ public class PageSelfDashboard extends PageSelf {
         };
         linksPanel.setOutputMarkupId(true);
         linksPanel.add(new VisibleBehaviour(() -> {
-//            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-//            return WebComponentUtil.getElementVisibility(visibility);
-            return true;
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
+            return WebComponentUtil.getElementVisibility(visibility);
         }));
         add(linksPanel);
 
@@ -121,13 +114,6 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initPreviewWidgets() {
-         //TODO compile default config + prepare config to default roles.
-//         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
-//         configs.add(createPanelConfig("myAccesses", AssignmentType.COMPLEX_TYPE, createDisplayType("My Access", "col-md-4", GuiStyleConstants.EVO_ASSIGNMENT_ICON)));
-//         configs.add(createPanelConfig("myRequests", CaseType.COMPLEX_TYPE, createDisplayType("My Requests", "col-md-8", GuiStyleConstants.EVO_CASE_OBJECT_ICON)));
-//         configs.add(createPanelConfig("myWorkItems", CaseWorkItemType.COMPLEX_TYPE, createDisplayType("My Work Items", "col-md-6", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON)));
-
-
          HomePageType homePageType = getCompiledGuiProfile().getHomePage();
          ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, () -> homePageType.getWidget()) {
 
@@ -141,9 +127,8 @@ public class PageSelfDashboard extends PageSelf {
          };
          viewWidgetsPanel.setOutputMarkupId(true);
          viewWidgetsPanel.add(new VisibleBehaviour(() -> {
-//            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-//            return WebComponentUtil.getElementVisibility(visibility);
-             return true;
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
+            return homePageType != null && WebComponentUtil.getElementVisibility(visibility);
          }));
          add(viewWidgetsPanel);
      }
@@ -254,5 +239,26 @@ public class PageSelfDashboard extends PageSelf {
         return cases;
     }
 
+    private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId) {
+        CompiledGuiProfile compiledGuiProfile = getCompiledGuiProfile();
+        if (compiledGuiProfile.getUserDashboard() == null) {
+            return UserInterfaceElementVisibilityType.AUTOMATIC;
+        }
+        List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
+        if (CollectionUtils.isEmpty(widgetsList)) {
+            return UserInterfaceElementVisibilityType.VACANT;
+        }
+        HomePageType homePage = compiledGuiProfile.getHomePage();
+        List<ContainerPanelConfigurationType> containerPanelWidgets = homePage == null ? null : compiledGuiProfile.getHomePage().getWidget();
+        if (CollectionUtils.isEmpty(containerPanelWidgets)) {
+            return UserInterfaceElementVisibilityType.VACANT;
+        }
+        DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
+        if (widget == null || widget.getVisibility() == null) {
+            return UserInterfaceElementVisibilityType.HIDDEN;
+        } else {
+            return widget.getVisibility();
+        }
+    }
 
 }

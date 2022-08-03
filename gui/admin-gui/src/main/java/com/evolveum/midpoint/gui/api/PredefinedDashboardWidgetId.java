@@ -20,6 +20,7 @@ public enum PredefinedDashboardWidgetId {
     MY_WORKITEMS("myWorkItems"),
     MY_REQUESTS("myRequests"),
     MY_ASSIGNMENTS("myAssignments"),
+    PREVIEW_WIDGETS("previewWidgets"),
     MY_ACCOUNTS("myAccounts");
 
     private final QName qname;
