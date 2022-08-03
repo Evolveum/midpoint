@@ -30,6 +30,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BACK = "back";
     private static final String ID_EXIT = "exit";
+
+    private static final String ID_FINISH = "finish";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
 
@@ -82,6 +84,24 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(exit);
         add(exit);
 
+        AjaxSubmitButton finish = new AjaxSubmitButton(ID_FINISH) {
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                onFinishPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                updateFeedbackPanels(target);
+            }
+        };
+        finish.add(new VisibleBehaviour(() -> isFinishVisible()));
+        finish.setOutputMarkupId(true);
+        finish.setOutputMarkupPlaceholderTag(true);
+        WebComponentUtil.addDisabledClassBehavior(finish);
+        add(finish);
+
         AjaxSubmitButton next = new AjaxSubmitButton(ID_NEXT) {
 
             @Override
@@ -102,6 +122,15 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
         next.add(nextLabel);
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(() -> !isFinishVisible());
+    }
+
+    private boolean isFinishVisible() {
+      return getWizard().getNextPanel() == null;
     }
 
     private VisibleBehaviour getExitVisibility() {
@@ -146,6 +175,9 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         target.add(getWizard().getPanel());
 
         return false;
+    }
+
+    protected void onFinishPerformed(AjaxRequestTarget target) {
     }
 
     public boolean onBackPerformed(AjaxRequestTarget target) {

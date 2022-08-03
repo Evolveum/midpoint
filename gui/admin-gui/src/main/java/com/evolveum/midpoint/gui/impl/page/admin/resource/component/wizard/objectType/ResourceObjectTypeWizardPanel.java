@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordOutboundStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.DefaultSettingStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -75,7 +77,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 getResourceModel(),
                 createModelOfNewValue(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE))) {
             @Override
-            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+            protected void onFinishPerformed(AjaxRequestTarget target) {
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     showObjectTypePreviewFragment(getValueModel(), target);
@@ -118,6 +120,13 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
+                new Toast()
+                        .success()
+                        .title(getString("ResourceObjectTypeWizardPanel.createObjectType"))
+                        .icon("fas fa-circle-check")
+                        .autohide(true)
+                        .delay(5_000)
+                        .body(getString("ResourceObjectTypeWizardPanel.createObjectType.text")).show(target);
             }
         });
     }
@@ -126,36 +135,16 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createSynchronizationConfigSteps(valueModel))));
-    }
+                new SynchronizationConfigWizardPanel(getIdOfWizardPanel(), getResourceModel(), valueModel) {
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        showObjectTypePreviewFragment(getValueModel(), target);
+                    }
 
-    private List<WizardStep> createSynchronizationConfigSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        List<WizardStep> steps = new ArrayList<>();
-        steps.add(new DefaultSettingStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showObjectTypePreviewFragment(valueModel, target);
-            }
-        });
-
-        steps.add(new ReactionStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showObjectTypePreviewFragment(valueModel, target);
-            }
-
-            @Override
-            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
-                OperationResult result = onSaveResourcePerformed(target);
-                if (result != null && !result.isError()) {
-                    onExitPerformed(target);
-                }
-            }
-        });
-
-
-
-        return steps;
+                    @Override
+                    protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                        return ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                    }
+                });
     }
 
     private void showCredentialsWizard(
@@ -181,7 +170,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             }
 
             @Override
-            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+            protected void onFinishPerformed(AjaxRequestTarget target) {
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     onExitPerformed(target);

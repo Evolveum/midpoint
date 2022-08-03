@@ -28,7 +28,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
         this.valueModel = valueModel;
     }
 
-    enum ResourceObjectTypePreviewTileType implements TileEnum {
+    public enum ResourceObjectTypePreviewTileType implements TileEnum {
 
         PREVIEW_DATA("fa fa-magnifying-glass"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
@@ -49,6 +49,11 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
         public String getIcon() {
             return icon;
         }
+    }
+
+    @Override
+    protected IModel<String> getExitLabel() {
+        return getPageBase().createStringResource("ResourceObjectTypeWizardPreviewPanel.exit");
     }
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
