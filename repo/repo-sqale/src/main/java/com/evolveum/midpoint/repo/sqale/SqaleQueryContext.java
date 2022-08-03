@@ -10,19 +10,25 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Levenshtein;
 import com.evolveum.midpoint.repo.sqale.filtering.*;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -206,5 +212,16 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> nestedContext(SqaleNestedMapping<TS, TQ, TR> nestedMapping) {
         return new SqaleQueryContext(entityPath, mapping(), this, sqlQuery, nestedMapping);
+    }
+
+    @Override
+    public Predicate processFuzzyFilter(FuzzyStringMatchFilter<?> filter, Expression<?> path,
+            ValueFilterValues<?, ?> values) throws QueryException {
+        FuzzyMatchingMethod method = filter.getMatchingMethod();
+        if (method instanceof Levenshtein) {
+            var levenstein = (Levenshtein) method;
+            return Expressions.booleanTemplate("levenshtein_less_equal({0}, '{1s}', {2} ) <= {2}", path, values.singleValue().toString(), levenstein.getThreshold());
+        }
+        return super.processFuzzyFilter(filter, path, values);
     }
 }
