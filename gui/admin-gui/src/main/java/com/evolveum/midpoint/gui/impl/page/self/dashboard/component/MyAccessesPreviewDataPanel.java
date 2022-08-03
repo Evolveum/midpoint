@@ -72,52 +72,16 @@ public class MyAccessesPreviewDataPanel extends ContainerableListPanel<Assignmen
         return null;
     }
 
-    // TODO coppied from assignment table panel, unify
     @Override
     protected IColumn<SelectableBean<AssignmentType>, String> createIconColumn() {
-        return new CompositedIconColumn<>(Model.of("")) {
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<SelectableBean<AssignmentType>> rowModel) {
-                AssignmentType assignment = rowModel.getObject().getValue();
-//                LOGGER.trace("Create icon for AssignmentType: " + assignment);
-                PrismObject<? extends FocusType> object = loadTargetObject(assignment);
-                if (object != null) {
-                    return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
-                            new OperationResult("create_assignment_composited_icon"), getPageBase());
-                }
-                String displayType = WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
-                CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
-                iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
-                return iconBuilder.build();
-            }
-        };
+        return ColumnUtils.createAssignmentIconColumn(getPageBase());
     }
 
-    protected <F extends FocusType> PrismObject<F> loadTargetObject(AssignmentType assignmentType) {
-        if (assignmentType == null) {
-            return null;
-        }
-
-        ObjectReferenceType targetRef = assignmentType.getTargetRef();
-        if (targetRef == null || targetRef.getOid() == null) {
-            return null;
-        }
-
-        PrismObject<F> targetObject = targetRef.getObject();
-        if (targetObject == null) {
-            Task task = getPageBase().createSimpleTask("load assignment targets");
-            OperationResult result = task.getResult();
-            targetObject = WebModelServiceUtils.loadObject(targetRef, getPageBase(), task, result);
-            result.recomputeStatus();
-        }
-        return targetObject;
-    }
 
     //TODO default columns. what about other assignment tables? unify somehow
     @Override
     protected List<IColumn<SelectableBean<AssignmentType>, String>> createDefaultColumns() {
-        return ColumnUtils.getDefaultAssignmentsColumns();
+        return ColumnUtils.getDefaultAssignmentsColumns(getPageBase());
     }
 
     @Override

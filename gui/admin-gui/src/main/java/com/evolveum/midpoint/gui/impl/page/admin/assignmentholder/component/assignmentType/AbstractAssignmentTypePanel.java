@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -360,23 +362,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     private IColumn<PrismContainerValueWrapper<AssignmentType>, String> createAssignmentIconColumn() {
-        return new CompositedIconColumn<>(Model.of("")) {
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                AssignmentType assignment = rowModel.getObject().getRealValue();
-                LOGGER.trace("Create icon for AssignmentType: " + assignment);
-                PrismObject<? extends FocusType> object = loadTargetObject(assignment);
-                if (object != null) {
-                    return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
-                            new OperationResult("create_assignment_composited_icon"), getPageBase());
-                }
-                String displayType = WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
-                CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
-                iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
-                return iconBuilder.build();
-            }
-        };
+        return ColumnUtils.createAssignmentIconColumn(getPageBase());
     }
 
     protected <F extends FocusType> PrismObject<F> loadTargetObject(AssignmentType assignmentType) {

@@ -2127,6 +2127,18 @@ public final class WebComponentUtil {
                 pageBase.createStringResource(relation.getLocalPart()).getString();
     }
 
+    public static String getRelationLabelValue(AssignmentType assignment, PageBase pageBase) {
+        String relationDisplayName = null;
+        QName relation = null;
+        if (assignment != null || assignment.getTargetRef() != null) {
+            relation = assignment.getTargetRef().getRelation();
+            relationDisplayName = getRelationHeaderLabelKeyIfKnown(relation);
+        }
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                pageBase.createStringResource(relationDisplayName).getString() :
+                pageBase.createStringResource(relation.getLocalPart()).getString();
+    }
+
     private static QName getRelation(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) throws SchemaException {
         if (assignmentWrapper == null) {
             return null;
