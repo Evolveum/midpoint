@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.application.PanelType;
 
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -78,10 +80,9 @@ public class MyAccessesPreviewDataPanel extends ContainerableListPanel<Assignmen
     }
 
 
-    //TODO default columns. what about other assignment tables? unify somehow
     @Override
     protected List<IColumn<SelectableBean<AssignmentType>, String>> createDefaultColumns() {
-        return ColumnUtils.getDefaultAssignmentsColumns(getPageBase());
+        return ColumnUtils.getDefaultAssignmentsColumns(null, SelectableBeanImpl.F_VALUE, true, getPageBase());
     }
 
     @Override

@@ -34,10 +34,10 @@ public class AllAssignmentsPanel<AH extends AssignmentHolderType> extends Abstra
         super(id, model, config);
     }
 
-    @Override
-    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        return null;
-    }
+//    @Override
+//    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+//        return null;
+//    }
 
     @Override
     protected QName getAssignmentType() {

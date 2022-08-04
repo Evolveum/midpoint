@@ -136,7 +136,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
+//        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
 
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> additionalColumns = initColumns();
         if (additionalColumns != null) {
@@ -232,7 +232,9 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return !isAssignmentsLimitReached();
     }
 
-    protected abstract List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns();
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        return ColumnUtils.getDefaultAssignmentsColumns(getAssignmentType(), "realValue", false, getPageBase());
+    }
 
     private List<InlineMenuItem> getAssignmentMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();

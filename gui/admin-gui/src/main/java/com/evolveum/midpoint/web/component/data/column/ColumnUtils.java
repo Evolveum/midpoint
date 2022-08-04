@@ -13,6 +13,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -1118,25 +1121,26 @@ public class ColumnUtils {
         }
     }
 
-    public static <S extends SelectableRow<AssignmentType>> List<IColumn<S, String>> getDefaultAssignmentsColumns(PageBase pageBase) {
-        return getDefaultAssignmentsColumns(null, pageBase);
+    public static <S extends SelectableRow<AssignmentType>> List<IColumn<S, String>> getDefaultAssignmentsColumns(String realValuePath,
+            PageBase pageBase) {
+        return getDefaultAssignmentsColumns(null, realValuePath, false, pageBase);
     }
 
     public static <S extends SelectableRow<AssignmentType>> List<IColumn<S, String>> getDefaultAssignmentsColumns(
-            QName assignmentTargetRetype, PageBase pageBase) {
+            QName assignmentTargetRefType, String realValuePath, boolean showAllColumns, PageBase pageBase) {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<>("AssignmentType.activation.effectiveStatus",
-                        SelectableBeanImpl.F_VALUE + ".activation.effectiveStatus", null)
+                new ColumnTypeDto<>("AssignmentDataTablePanel.activationColumnName",
+                        realValuePath + ".activation.effectiveStatus", null)
 
         );
 
         List<IColumn<S, String>> assignmentColumns = new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
-        if (assignmentTargetRetype == null) {
+        if (assignmentTargetRefType == null && !showAllColumns) {
             return assignmentColumns;
         }
-        if (QNameUtil.matchAny(assignmentTargetRetype, Arrays.asList(RoleType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE,
-                ServiceType.COMPLEX_TYPE, AbstractRoleType.COMPLEX_TYPE))) {
+        if (showAllColumns || QNameUtil.matchAny(assignmentTargetRefType, Arrays.asList(RoleType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE,
+                ServiceType.COMPLEX_TYPE))) {
             assignmentColumns.add(new AbstractColumn<>(
                     createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
                 @Override
@@ -1156,6 +1160,41 @@ public class ColumnUtils {
             });
 
 
+        }
+        if (showAllColumns || QNameUtil.match(assignmentTargetRefType, RoleType.COMPLEX_TYPE)) {
+            assignmentColumns.add(new PropertyColumn<>(pageBase.createStringResource("AssignmentDataTablePanel.tenantColumnName"),
+                    AssignmentType.F_TENANT_REF.getLocalPart()) {
+                @Override
+                public IModel<String> getDataModel(IModel<S> rowModel) {
+                    AssignmentType assignment = unwrapSelectableRowModel(rowModel);
+                    if (assignment == null) {
+                        return Model.of("");
+                    }
+                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(assignment.getTenantRef(), true, pageBase));
+                }
+            });
+            assignmentColumns.add(new PropertyColumn<>(pageBase.createStringResource("AssignmentDataTablePanel.organizationColumnName"),
+                    AssignmentType.F_ORG_REF.getLocalPart()) {
+                @Override
+                public IModel<String> getDataModel(IModel<S> rowModel) {
+                    AssignmentType assignment = unwrapSelectableRowModel(rowModel);
+                    if (assignment == null) {
+                        return Model.of("");
+                    }
+                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(assignment.getOrgRef(), true, pageBase));
+                }
+            });
+        }
+        if (showAllColumns || QNameUtil.match(assignmentTargetRefType, ResourceType.COMPLEX_TYPE)) {
+            List<ColumnTypeDto<String>> constructionColumnsDefs = Arrays.asList(
+                    new ColumnTypeDto<>("ConstructionType.kind",
+                            realValuePath + "." + AssignmentType.F_CONSTRUCTION.getLocalPart() + "." + ConstructionType.F_KIND.getLocalPart(),
+                            null),
+                    new ColumnTypeDto<>("ConstructionType.intent",
+                            realValuePath + "." + AssignmentType.F_CONSTRUCTION.getLocalPart() + "." + ConstructionType.F_INTENT.getLocalPart(),
+                            null)
+            );
+            assignmentColumns.addAll(ColumnUtils.createColumns(constructionColumnsDefs));
         }
         return assignmentColumns;
     }

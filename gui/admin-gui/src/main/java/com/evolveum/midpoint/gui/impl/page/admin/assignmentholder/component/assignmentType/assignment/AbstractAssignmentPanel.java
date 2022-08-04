@@ -60,10 +60,10 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, (Supplier<PageBase> & Serializable) () -> getPageBase()));
     }
 
-    @Override
-    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        return null;
-    }
+//    @Override
+//    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+//        return null;
+//    }
 
     @Override
     protected String getStorageKey() {

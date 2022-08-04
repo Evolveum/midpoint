@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -56,7 +58,7 @@ public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderTyp
 //            }
 //        });
 
-        return ColumnUtils.getDefaultAssignmentsColumns(AbstractRoleType.COMPLEX_TYPE, getPageBase());
+        return ColumnUtils.getDefaultAssignmentsColumns(getAssignmentType(), "realValue", false, getPageBase());
     }
 
 }
