@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -104,7 +104,7 @@ public class QLookupTableMapping
             @NotNull JdbcSession session, boolean forceFull) throws SchemaException {
         LookupTableType base = super.toSchemaObjectInternal(rowTuple, entityPath, options, session, forceFull);
 
-        if (forceFull || SelectorOptions.hasToLoadPath(F_ROW, options)) {
+        if (forceFull || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ROW, options)) {
             @Nullable GetOperationOptions rowOptions = findLookupTableGetOption(options);
             appendLookupTableRows(rowTuple.get(0, UUID.class), base, rowOptions, session);
         }

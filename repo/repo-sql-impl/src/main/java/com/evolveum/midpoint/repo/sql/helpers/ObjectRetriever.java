@@ -1,16 +1,16 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
-
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -517,7 +517,7 @@ public class ObjectRetriever {
         }
         attachDiagDataIfRequested(prismObject, fullObject, options);
         if (prismObject.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
-            if (SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, options)) {
+            if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(FocusType.F_JPEG_PHOTO, options)) {
                 Query query = session.getNamedQuery("get.focusPhoto");
                 query.setParameter("oid", prismObject.getOid());
                 byte[] photo = (byte[]) query.uniqueResult();
@@ -549,8 +549,8 @@ public class ObjectRetriever {
         } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
             certificationCaseHelper.updateLoadedCampaign(prismObject, options, session);
         } else if (TaskType.class.equals(prismObject.getCompileTimeClass())) {
-            if (SelectorOptions.hasToLoadPath(TaskType.F_RESULT, options)) {
-                Query query = session.getNamedQuery("get.taskResult");
+            if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_RESULT, options)) {
+                Query<?> query = session.getNamedQuery("get.taskResult");
                 query.setParameter("oid", prismObject.getOid());
                 byte[] opResult = (byte[]) query.uniqueResult();
                 if (opResult != null) {
@@ -593,7 +593,8 @@ public class ObjectRetriever {
 
         RObject rObject = null;
         for (ItemDefinition<?> itemDefinition : getIndexOnlyExtensionItems(prismObject)) {
-            if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getItemName()),
+            if (SelectorOptions.hasToIncludePath(
+                    ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getItemName()),
                     retrieveOptions, false)) {
                 LOGGER.trace("We have to load index-only extension item {}", itemDefinition);
                 if (rObject == null) {
@@ -639,7 +640,8 @@ public class ObjectRetriever {
         Class<T> compileTimeClass = prismObject.getCompileTimeClass();
         LOGGER.trace("Object class: {}", compileTimeClass);
         if (ShadowType.class.equals(compileTimeClass)) {
-            boolean getAllAttributes = SelectorOptions.hasToLoadPath(ShadowType.F_ATTRIBUTES, retrieveOptions, false);
+            boolean getAllAttributes =
+                    SelectorOptions.hasToFetchPathNotRetrievedByDefault(ShadowType.F_ATTRIBUTES, retrieveOptions);
             LOGGER.trace("getAllAttributes = {}", getAllAttributes);
             if (getAllAttributes) {
                 if (rObject == null) {
@@ -1031,7 +1033,7 @@ public class ObjectRetriever {
 
         Class<? extends Containerable> type = request.getType();
 //        if (!ObjectType.class.isAssignableFrom(type)) {
-            // TODO add this branch too, perhaps not here
+        // TODO add this branch too, perhaps not here
 //        }
 
         Session session = null;

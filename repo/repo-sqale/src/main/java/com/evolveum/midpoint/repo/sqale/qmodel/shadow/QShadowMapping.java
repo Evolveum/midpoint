@@ -165,7 +165,7 @@ public class QShadowMapping
             return shadowType;
         }
 
-        if (SelectorOptions.hasToLoadPath(F_ATTRIBUTES, retrieveOptions)) {
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
             addIndexOnlyAttributes(shadowType, row, entityPath);
         }
         return shadowType;
@@ -207,7 +207,7 @@ public class QShadowMapping
             Collection<SelectorOptions<GetOperationOptions>> options) {
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
         boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
-        if (isRaw || SelectorOptions.hasToLoadPath(F_ATTRIBUTES, retrieveOptions)) {
+        if (isRaw || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
             return new Path[] { entity.oid, entity.fullObject, entity.attributes };
         }
         return new Path[] { entity.oid, entity.fullObject };

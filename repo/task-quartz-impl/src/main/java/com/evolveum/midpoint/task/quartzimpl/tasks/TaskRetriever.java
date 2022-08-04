@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -54,7 +54,6 @@ public class TaskRetriever {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskRetriever.class);
     private static final String CLASS_DOT = TaskRetriever.class.getName() + ".";
-    private static final String OP_GET_PARENT_AND_ROOT = CLASS_DOT + "getParentAndRoot";
     private static final String OP_GET_TASK_SAFELY = CLASS_DOT + ".getTaskSafely";
 
     @Autowired private LocalScheduler localScheduler;
@@ -124,12 +123,12 @@ public class TaskRetriever {
 
             addTransientTaskInformation(task,
                     csi,
-                    SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options),
-                    SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options),
-                    SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options),
+                    SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NEXT_RUN_START_TIMESTAMP, options),
+                    SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NEXT_RETRY_TIMESTAMP, options),
+                    SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NODE_AS_OBSERVED, options),
                     result);
 
-            if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK_REF, options)) {
+            if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_SUBTASK_REF, options)) {
                 fillInSubtasks(task, csi, options, result);
             }
             updateFromTaskInMemory(task);
@@ -251,9 +250,12 @@ public class TaskRetriever {
     // task is Task or TaskType
     private void fillInSubtasks(Object task, ClusterStatusInformation csi,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
-        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
-        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
+        boolean retrieveNextRunStartTime =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
+        boolean retrieveRetryTime =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
+        boolean retrieveNodeAsObserved =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NODE_AS_OBSERVED, options);
 
         for (Object subtask : getSubtasks(task, result)) {
             if (isPersistent(subtask)) {
@@ -301,10 +303,14 @@ public class TaskRetriever {
             throw e;
         }
 
-        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
-        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
-        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
-        boolean loadSubtasks = SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK_REF, options);
+        boolean retrieveNextRunStartTime =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
+        boolean retrieveRetryTime =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
+        boolean retrieveNodeAsObserved =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NODE_AS_OBSERVED, options);
+        boolean loadSubtasks =
+                SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_SUBTASK_REF, options);
 
         List<PrismObject<TaskType>> tasks = new ArrayList<>();
         for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
@@ -382,7 +388,7 @@ public class TaskRetriever {
             throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
         }
         PrismObject<TaskType> taskPrism = list.get(0);
-        if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK_REF, options)) {
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_SUBTASK_REF, options)) {
             // returns null if noFetch is set
             ClusterStatusInformation csi = clusterStatusInformationRetriever
                     .getClusterStatusInformation(options, TaskType.class, true, result);

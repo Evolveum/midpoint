@@ -124,7 +124,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
             return new Path[] { entity.oid, entity.fullObject, entity.photo };
         }
 
@@ -210,11 +210,11 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                     focusPrismObject.findOrCreateProperty(F_JPEG_PHOTO);
             resultProperty.setRealValue(photo);
             resultProperty.setIncomplete(false);
-        } else if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+        } else if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
             PrismUtil.setPropertyNullAndComplete(focus.asPrismObject(), F_JPEG_PHOTO);
         }
 
-        if (SelectorOptions.hasToLoadPath(F_IDENTITIES, options)) {
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_IDENTITIES, options)) {
             loadFocusIdentities(focus, jdbcSession);
         }
 
