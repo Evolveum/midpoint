@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 
 @PageDescriptor(
         urls = {
@@ -120,8 +121,8 @@ public class PageSelfDashboard extends PageSelf {
              @Override
              protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
                  Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel());
-                 //TODO use model!
-                 widget.add(AttributeAppender.append("class", item.getModelObject().getDisplay().getCssClass()));
+                 widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                 widget.add(AttributeAppender.append("class", getWidgetCssClassModel(item.getModelObject())));
                  item.add(widget);
              }
          };
@@ -131,6 +132,13 @@ public class PageSelfDashboard extends PageSelf {
             return homePageType != null && WebComponentUtil.getElementVisibility(visibility);
          }));
          add(viewWidgetsPanel);
+     }
+
+     private IModel<String> getWidgetCssClassModel(ContainerPanelConfigurationType panelConfig) {
+        if (panelConfig == null || panelConfig.getDisplay() == null) {
+            return Model.of();
+        }
+        return Model.of(panelConfig.getDisplay().getCssClass());
      }
 
      private DisplayType createDisplayType(String label, String cssClass, String icon) {
@@ -165,7 +173,6 @@ public class PageSelfDashboard extends PageSelf {
         };
     }
 
-        // TODO just a prototype, should be initialized using refrection? or factory?
     private Component createWidget(String markupId, IModel<ContainerPanelConfigurationType> model) {
         ContainerPanelConfigurationType config = model.getObject();
         String panelType = config.getPanelType();

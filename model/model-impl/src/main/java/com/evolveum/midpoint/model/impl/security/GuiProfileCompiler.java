@@ -335,7 +335,7 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration.getHomePage() != null) {
             QName principalType = null;
             if (principal != null) {
-                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(principal.getFocus().getClass()).getTypeName();
+                principalType = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(principal.getFocus().getClass()).getTypeName();
             }
             HomePageType configuredHomePage = getHomePageByFocusType(adminGuiConfiguration.getHomePage(), principalType);
             if (composite.getHomePage() == null) {
@@ -384,8 +384,10 @@ public class GuiProfileCompiler {
             if (compositeHomePage.getWidget() == null) {
                 compositeHomePage.createWidgetList();
             }
-            compositeHomePage.getWidget().addAll(adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(
-                    compositeHomePage.getWidget(), homePage.getWidget()));
+            List<ContainerPanelConfigurationType> mergedWidgets = adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(
+                    compositeHomePage.getWidget(), homePage.getWidget());
+            compositeHomePage.getWidget().clear();
+            compositeHomePage.getWidget().addAll(mergedWidgets);
         }
         return compositeHomePage;
     }

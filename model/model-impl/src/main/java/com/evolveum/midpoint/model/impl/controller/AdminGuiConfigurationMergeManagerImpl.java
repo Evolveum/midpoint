@@ -222,7 +222,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
     private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
         for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
-            if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
+            if (defaultPanel.getIdentifier() != null && defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
                 mergePanels(defaultPanel, configuredPanel);
                 return;
             }
