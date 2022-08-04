@@ -11,74 +11,22 @@
     <iterationSpecification>
         <maxIterations>9999</maxIterations>
     </iterationSpecification>
-    <mapping>
-        <strength>strong</strength>
-        <source>
-            <path>assignment</path>
-        </source>
-        <expression>
-            <script>
-                <relativityMode>absolute</relativityMode>
-                <code>
-                    mylib.execute('getPersonalDataItem', [assignments: assignment, itemName: 'givenName'])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>givenName</path>
-        </target>
-    </mapping>
-    <mapping>
-        <strength>strong</strength>
-        <source>
-            <path>assignment</path>
-        </source>
-        <expression>
-            <script>
-                <relativityMode>absolute</relativityMode>
-                <code>
-                    mylib.execute('getPersonalDataItem', [assignments: assignment, itemName: 'familyName'])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>familyName</path>
-        </target>
-    </mapping>
-    <mapping>
-        <strength>strong</strength>
-        <source>
-            <path>assignment</path>
-        </source>
-        <expression>
-            <script>
-                <relativityMode>absolute</relativityMode>
-                <code>
-                    mylib.execute('getPersonalDataItem', [assignments: assignment, itemName: 'dateOfBirth'])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>extension/dateOfBirth</path>
-        </target>
-    </mapping>
-    <mapping>
-        <strength>strong</strength>
-        <source>
-            <path>assignment</path>
-        </source>
-        <expression>
-            <script>
-                <relativityMode>absolute</relativityMode>
-                <code>
-                    mylib.execute('getPersonalDataItem', [assignments: assignment, itemName: 'nationalId'])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>extension/nationalId</path>
-        </target>
-    </mapping>
+    <item>
+        <ref>givenName</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>extension/dateOfBirth</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>extension/nationalId</ref>
+        <identity/>
+    </item>
     <mapping>
         <strength>strong</strength>
         <source>
@@ -114,4 +62,76 @@
             <path>name</path>
         </target>
     </mapping>
+    <identity>
+        <correlators>
+            <composite>
+                <items>
+                    <authority>principal</authority>
+                    <name>name-date-id</name>
+                    <documentation>
+                        If key attributes (family name, date of birth, national ID) exactly match,
+                        we are immediately done. We ignore given name here.
+                    </documentation>
+                    <item>
+                        <path>familyName</path>
+                    </item>
+                    <item>
+                        <path>extension/dateOfBirth</path>
+                    </item>
+                    <item>
+                        <path>extension/nationalId</path>
+                    </item>
+                </items>
+                <items>
+                    <authority>nonAuthoritative</authority>
+                    <name>names-date</name>
+                    <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
+                    <item>
+                        <path>givenName</path>
+                    </item>
+                    <item>
+                        <path>familyName</path>
+                    </item>
+                    <item>
+                        <path>extension/dateOfBirth</path>
+                    </item>
+                </items>
+                <items>
+                    <authority>nonAuthoritative</authority>
+                    <name>id</name>
+                    <documentation>If national ID matches, we present an option to the operator.</documentation>
+                    <item>
+                        <path>extension/nationalId</path>
+                    </item>
+                </items>
+            </composite>
+        </correlators>
+        <defaultAuthoritativeSource>
+            <expression>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
+
+                        // Here would be some very smart code evaluating specified business rules aimed to pick
+                        // the most accurate and precise data.
+                        //
+                        // However, currently we simply take the assignment with the "lowest" ID (i.e. tag).
+
+                        if (identity == null) {
+                            return null
+                        }
+
+                        identity
+                                .collect { it.source }
+                                .findAll { it != null }
+                                .min { it.tag }
+                                ?.clone()
+                    </code>
+                </script>
+            </expression>
+        </defaultAuthoritativeSource>
+    </identity>
+
 </objectTemplate>
