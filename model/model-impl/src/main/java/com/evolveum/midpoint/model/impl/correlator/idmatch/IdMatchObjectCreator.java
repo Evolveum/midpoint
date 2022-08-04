@@ -153,7 +153,6 @@ class IdMatchObjectCreator {
             CorrelationItem correlationItem = CorrelationItem.create(
                     entry.getValue(),
                     correlatorContext,
-                    shadow,
                     preFocus);
             LOGGER.trace("Created correlation item: {}", correlationItem);
             correlationItems.add(correlationItem);

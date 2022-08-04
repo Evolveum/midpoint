@@ -8,13 +8,11 @@
 package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
@@ -23,8 +21,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.schema.route.ItemRoute;
-import com.evolveum.midpoint.schema.route.ItemRouteSegment;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -46,17 +42,9 @@ class CorrelationItems {
 
     @NotNull private final List<CorrelationItem> items;
 
-    @NotNull private final Set<String> allTargetQualifiers;
-
-    @NotNull private final CorrelatorContext<?> correlatorContext;
-
-    private CorrelationItems(
-            @NotNull List<CorrelationItem> items,
-            @NotNull CorrelatorContext<?> correlatorContext) {
+    private CorrelationItems(@NotNull List<CorrelationItem> items) {
         this.items = items;
-        this.correlatorContext = correlatorContext;
-        this.allTargetQualifiers = computeAllTargetQualifiers();
-        LOGGER.trace("CorrelationItems created with target qualifiers {}:\n{}", allTargetQualifiers, items);
+        LOGGER.trace("CorrelationItems created:\n{}", items);
     }
 
     public static @NotNull CorrelationItems create(
@@ -69,7 +57,7 @@ class CorrelationItems {
                     CorrelationItem.create(itemBean, correlatorContext, correlationContext));
         }
         stateCheck(!items.isEmpty(), "No correlation items in %s", correlatorContext);
-        return new CorrelationItems(items, correlatorContext);
+        return new CorrelationItems(items);
     }
 
     public boolean isEmpty() {
@@ -84,32 +72,7 @@ class CorrelationItems {
         return items;
     }
 
-    private Set<String> computeAllTargetQualifiers() {
-        return Sets.union(
-                correlatorContext.getTargetPlaces().keySet(),
-                items.stream()
-                        .flatMap(item -> item.getTargetQualifiers().stream())
-                        .collect(Collectors.toSet()));
-    }
-
-    /**
-     * Creates a list of queries to be executed - either against focus/identity data, or legacy ones.
-     */
-    List<ObjectQuery> createQueries(
-            @NotNull Class<? extends ObjectType> focusType,
-            @Nullable String archetypeOid)
-            throws SchemaException {
-        return isIdentityConfigurationPresent() ?
-                List.of(createIdentityQuery(focusType, archetypeOid)) :
-                createLegacyQueries(focusType, archetypeOid);
-    }
-
-    private boolean isIdentityConfigurationPresent() {
-        return items.stream()
-                .anyMatch(CorrelationItem::hasIdentityConfiguration);
-    }
-
-    private ObjectQuery createIdentityQuery(
+    ObjectQuery createIdentityQuery(
             @NotNull Class<? extends ObjectType> focusType,
             @Nullable String archetypeOid) throws SchemaException {
 
@@ -124,7 +87,7 @@ class CorrelationItems {
         S_FilterExit currentEnd = null;
         for (int i = 0; i < items.size(); i++) {
             CorrelationItem correlationItem = items.get(i);
-            currentEnd = correlationItem.addClauseToQueryBuilder(nextStart, focusDef);
+            currentEnd = correlationItem.addClauseToQueryBuilder(nextStart);
             if (i < items.size() - 1) {
                 nextStart = currentEnd.and();
             } else {
@@ -138,85 +101,9 @@ class CorrelationItems {
         // Finally, we add a condition for archetype (if needed)
         S_FilterExit end =
                 archetypeOid != null ?
-                        addArchetypeClause(currentEnd, archetypeOid) :
+                        currentEnd.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid) :
                         currentEnd;
 
         return end.build();
-    }
-
-    /**
-     * LEGACY VARIANT:
-     *
-     * Creates a list of queries to be executed. There should be a single query for each target.
-     *
-     * Each query is either a simple conjunction, or an "exists" blocks - if the targets are contained e.g. in an assignment.
-     */
-    private List<ObjectQuery> createLegacyQueries(
-            @NotNull Class<? extends ObjectType> focusType,
-            @Nullable String archetypeOid)
-            throws SchemaException {
-
-        List<ObjectQuery> queries = new ArrayList<>();
-
-        for (@NotNull String targetQualifier : allTargetQualifiers) {
-
-            Set<String> unsupported = items.stream()
-                    .filter(item -> !item.supportsTarget(targetQualifier))
-                    .map(CorrelationItem::getName)
-                    .collect(Collectors.toSet());
-            if (!unsupported.isEmpty()) {
-                LOGGER.debug("Correlation item(s) {} does not support target '{}', skipping querying for this target",
-                        unsupported, targetQualifier);
-                continue;
-            }
-
-            S_FilterEntry start = PrismContext.get().queryFor(focusType);
-            // First, we create either simple .block() or .exist(segment-path).block()
-            S_FilterEntry blockStart = openTheBlock(start, targetQualifier);
-            // Then we add clauses corresponding to the items, and close the block
-            S_FilterExit beforeArchetypeClause =
-                    addItemClausesAndCloseTheBlock(blockStart, targetQualifier);
-            // Finally, we add a condition for archetype (if needed)
-            S_FilterExit end =
-                    archetypeOid != null ?
-                            addArchetypeClause(beforeArchetypeClause, archetypeOid) :
-                            beforeArchetypeClause;
-
-            queries.add(end.build());
-        }
-        return queries;
-    }
-
-    private S_FilterEntry openTheBlock(S_FilterEntry start, @NotNull String targetQualifier) {
-        ItemRoute placeRoute = correlatorContext.getTargetPlaceRoute(targetQualifier);
-        if (placeRoute.isEmpty()) {
-            return start.block();
-        } else if (placeRoute.size() == 1) {
-            // Very simplified processing: assumes single segment, ignores filtering conditions!
-            ItemRouteSegment segment = placeRoute.get(0);
-            return start.exists(segment.getPath()).block();
-        } else {
-            throw new UnsupportedOperationException("Multi-segment routes are not supported yet: " + placeRoute);
-        }
-    }
-
-    private S_FilterExit addArchetypeClause(S_FilterExit before, String archetypeOid) {
-        return before.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid);
-    }
-
-    private @NotNull S_FilterExit addItemClausesAndCloseTheBlock(S_FilterEntry nextStart, @NotNull String targetQualifier)
-            throws SchemaException {
-        S_FilterExit currentEnd = null;
-        for (int i = 0; i < items.size(); i++) {
-            CorrelationItem correlationItem = items.get(i);
-            currentEnd = correlationItem.addLegacyClauseToQueryBuilder(nextStart, targetQualifier);
-            if (i < items.size() - 1) {
-                nextStart = currentEnd.and();
-            } else {
-                // We shouldn't modify the builder if we are at the end.
-                // (The builder API does not mention it, but the state of the objects are modified on each operation.)
-            }
-        }
-        return Objects.requireNonNull(currentEnd).endBlock();
     }
 }

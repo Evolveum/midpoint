@@ -17,8 +17,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * Utilities for handling correlation item definitions.
  */
@@ -35,10 +33,6 @@ public class CorrelationItemDefinitionUtil {
         if (nameFromPath != null) {
             return nameFromPath;
         }
-        String nameFromSource = getNameFromSource(definitionBean.getSource());
-        if (nameFromSource != null) {
-            return nameFromSource;
-        }
         throw new IllegalArgumentException("Item definition with no name " + definitionBean);
     }
 
@@ -50,35 +44,6 @@ public class CorrelationItemDefinitionUtil {
         if (lastName != null) {
             return lastName.getLocalPart();
         }
-        return null;
-    }
-
-    private static @Nullable String getNameFromSource(CorrelationItemSourceDefinitionType source) {
-        if (source == null) {
-            return null;
-        }
-
-        ItemPathType itemPathBean = source.getPath();
-        if (itemPathBean != null) {
-            ItemName lastName = itemPathBean.getItemPath().lastName();
-            return lastName != null ? lastName.getLocalPart() : null;
-        }
-
-        ItemRouteType route = source.getRoute();
-        if (route != null) {
-            List<ItemRouteSegmentType> segments = route.getSegment();
-            if (segments.isEmpty()) {
-                return null;
-            }
-            ItemRouteSegmentType lastSegment = segments.get(segments.size() - 1);
-            ItemPathType pathBean = lastSegment.getPath();
-            if (pathBean == null) {
-                return null;
-            }
-            ItemName lastName = pathBean.getItemPath().lastName();
-            return lastName != null ? lastName.getLocalPart() : null;
-        }
-
         return null;
     }
 

@@ -11,19 +11,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.SourceObjectType;
-import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -40,67 +38,53 @@ import org.jetbrains.annotations.Nullable;
 public class CorrelationItemSource {
 
     /**
-     * The complete route related to {@link #sourceObject}.
-     * Does _not_ contain the variable reference ($focus, $projection, etc).
+     * TODO
      */
-    @NotNull private final ItemRoute route;
+    @NotNull private final ItemPath itemPath;
 
-    /** The source object from which the item(s) are selected by the {@link #route}. */
+    /** The source object from which the item(s) are selected by the {@link #itemPath}. */
     @NotNull private final ObjectType sourceObject;
 
-    /** Do we reference the focus or the projection? */
-    @NotNull private final SourceObjectType sourceObjectType;
-
     private CorrelationItemSource(
-            @NotNull ItemRoute route,
-            @NotNull ObjectType sourceObject,
-            @NotNull SourceObjectType sourceObjectType) {
-        this.route = route;
+            @NotNull ItemPath itemPath,
+            @NotNull ObjectType sourceObject) {
+        this.itemPath = itemPath;
         this.sourceObject = sourceObject;
-        this.sourceObjectType = sourceObjectType;
     }
 
     /**
      * Creates the source part of {@link CorrelationItem} from the definition (item bean) and the whole context.
      *
-     * @param resourceObject Must be full resource object.
      */
     public static CorrelationItemSource create(
             @NotNull CorrelationItemDefinitionType itemDefinitionBean,
             @NotNull CorrelatorContext<?> correlatorContext,
-            @NotNull ShadowType resourceObject,
             @NotNull ObjectType preFocus) throws ConfigurationException {
-        ItemRoute localRoute = CorrelationItemRouteFinder.findForSource(itemDefinitionBean, correlatorContext);
-        ItemRoute fullRoute = correlatorContext.getSourcePlaceRoute().append(localRoute);
-
-        SourceObjectType sourceObjectType;
-        ItemRoute route;
-        if (fullRoute.startsWithVariable()) {
-            sourceObjectType = SourceObjectType.fromVariable(fullRoute.variableName());
-            route = fullRoute.rest();
-        } else {
-            sourceObjectType = SourceObjectType.FOCUS;
-            route = fullRoute;
-        }
-        return new CorrelationItemSource(
-                route,
-                getSourceObject(sourceObjectType, resourceObject, preFocus),
-                sourceObjectType);
+        ItemPath itemPath = findForSource(itemDefinitionBean, correlatorContext);
+        return new CorrelationItemSource(itemPath, preFocus);
     }
 
-    @Experimental
-    private static @NotNull ObjectType getSourceObject(
-            @NotNull SourceObjectType type,
-            @NotNull ShadowType resourceObject,
-            @NotNull ObjectType preFocus) {
-        switch (type) {
-            case FOCUS:
-                return preFocus;
-            case PROJECTION:
-                return resourceObject;
-            default:
-                throw new AssertionError(type);
+    /**
+     * TODO
+     *
+     * The path is taken either from the local item definition bean, or from referenced named item definition.
+     */
+    private static ItemPath findForSource(
+            @NotNull CorrelationItemDefinitionType itemBean,
+            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
+        if (itemBean instanceof ItemCorrelationType) {
+            String ref = ((ItemCorrelationType) itemBean).getRef();
+            if (ref != null) {
+                itemBean = correlatorContext.getNamedItemDefinition(ref);
+            }
         }
+
+        ItemPathType pathBean = itemBean.getPath();
+        if (pathBean != null) {
+            return pathBean.getItemPath();
+        }
+
+        throw new ConfigurationException("Neither ref nor path present in " + itemBean);
     }
 
     /**
@@ -112,16 +96,22 @@ public class CorrelationItemSource {
         return single != null ? single.getRealValue() : null;
     }
 
-    private PrismValue getSinglePrismValue() throws SchemaException {
-        List<PrismValue> resolved = route.resolveFor(sourceObject);
+    private PrismValue getSinglePrismValue() {
+        List<? extends PrismValue> prismValues = getPrismValues();
         return MiscUtil.extractSingleton(
-                resolved,
-                () -> new UnsupportedOperationException("Multiple values of " + route + " are not supported: " + resolved));
+                prismValues,
+                () -> new UnsupportedOperationException("Multiple values of " + itemPath + " are not supported: " + prismValues));
+    }
+
+    @NotNull
+    private List<? extends PrismValue> getPrismValues() {
+        Item<?, ?> item = sourceObject.asPrismObject().findItem(itemPath);
+        return item != null ? item.getValues() : List.of();
     }
 
     /** Shouldn't return `null` values. */
     public @NotNull Collection<?> getRealValues() throws SchemaException {
-        return route.resolveFor(sourceObject).stream()
+        return getPrismValues().stream()
                 .map(PrismValue::getRealValue)
                 .collect(Collectors.toList());
     }
@@ -150,9 +140,9 @@ public class CorrelationItemSource {
     @Override
     public String toString() {
         return "CorrelationItemSource{" +
-                "route=" + route +
+                "route=" + itemPath +
                 ", sourceObject=" + sourceObject +
-                ", sourceObjectType=" + sourceObjectType +
+                ", sourceObjectType=" + SourceObjectType.FOCUS +
                 '}';
     }
 }

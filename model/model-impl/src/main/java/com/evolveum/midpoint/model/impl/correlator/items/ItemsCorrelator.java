@@ -121,29 +121,19 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         @NotNull private List<F> findCandidates(
                 CorrelationItems correlationItems, OperationResult result)
-                throws SchemaException, ConfigurationException {
+                throws SchemaException {
 
-            List<ObjectQuery> queries = createQueries(correlationItems);
-            if (queries == null) {
-                return List.of();
-            }
-
-            List<F> candidates = new ArrayList<>();
-            for (ObjectQuery query : queries) {
-                executeQuery(query, candidates, result);
-            }
-            return candidates;
+            ObjectQuery query = createQuery(correlationItems);
+            return query != null ? executeQuery(query, result) : List.of();
         }
 
         /** Returns `null` if we cannot use the definitions here. */
-        private @Nullable List<ObjectQuery> createQueries(CorrelationItems correlationItems)
+        private @Nullable ObjectQuery createQuery(CorrelationItems correlationItems)
                 throws SchemaException {
             if (areItemsApplicable(correlationItems)) {
-                List<ObjectQuery> queries = correlationItems.createQueries(
+                return correlationItems.createIdentityQuery(
                         correlationContext.getFocusType(),
                         correlationContext.getArchetypeOid());
-                LOGGER.debug("Correlation items specification resulted in {} queries", queries.size());
-                return queries;
             } else {
                 return null;
             }
@@ -162,22 +152,13 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         }
 
         private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner)
-                throws SchemaException, ConfigurationException {
-
-            List<ObjectQuery> queries = createQueries(correlationItems);
-            if (queries == null) {
-                return false;
-            }
-
-            for (ObjectQuery query : queries) {
-                if (candidateOwnerMatches(query, candidateOwner)) {
-                    return true;
-                }
-            }
-            return false;
+                throws SchemaException {
+            ObjectQuery query = createQuery(correlationItems);
+            return query != null && candidateOwnerMatches(query, candidateOwner);
         }
 
-        private void executeQuery(ObjectQuery query, List<F> candidates, OperationResult gResult) throws SchemaException {
+        private List<F> executeQuery(ObjectQuery query, OperationResult gResult) throws SchemaException {
+            List<F> candidates = new ArrayList<>();
             LOGGER.trace("Using the following query to find owner candidates:\n{}", query.debugDumpLazily(1));
             // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)
             //noinspection unchecked
@@ -188,6 +169,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                     null,
                     true,
                     gResult);
+            return candidates;
         }
 
         private boolean addToCandidates(F object, List<F> candidates) {

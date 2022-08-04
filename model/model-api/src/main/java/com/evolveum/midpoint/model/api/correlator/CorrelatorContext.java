@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -26,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.PRIMARY_CORRELATION_ITEM_TARGET;
 
 /**
  * Overall context in which the correlator works.
@@ -57,9 +53,6 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     @Nullable private final SystemConfigurationType systemConfiguration;
 
     // TODO
-    @NotNull private final Lazy<Map<String, ItemRoute>> targetPlacesLazy = Lazy.from(this::computeTargetPlaces);
-
-    // TODO
     @NotNull private final Lazy<Map<String, CorrelationItemDefinitionType>> itemDefinitionsLazy =
             Lazy.from(this::createItemDefinitionsMap);
 
@@ -84,52 +77,6 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
 
     public @NotNull CorrelatorConfiguration getConfiguration() {
         return configuration;
-    }
-
-    /**
-     * Returns the path to the "source place" in the object being correlated.
-     */
-    public @NotNull ItemRoute getSourcePlaceRoute() {
-        CorrelationPlacesDefinitionType placesDefinition = getPlacesDefinition();
-        CorrelationItemSourceDefinitionType source = placesDefinition != null ? placesDefinition.getSource() : null;
-        if (source == null) {
-            return ItemRoute.EMPTY;
-        } else {
-            return ItemRoute.fromBeans(
-                    source.getPath(),
-                    source.getRoute());
-        }
-    }
-
-    public @NotNull Map<String, ItemRoute> getTargetPlaces() {
-        return targetPlacesLazy.get();
-    }
-
-    public @NotNull ItemRoute getTargetPlaceRoute(@Nullable String qualifier) {
-        return Objects.requireNonNullElse(
-                getTargetPlaces().get(qualifier),
-                ItemRoute.EMPTY);
-    }
-
-    private @NotNull Map<String, ItemRoute> computeTargetPlaces() {
-        CorrelationPlacesDefinitionType placesDefinition = getPlacesDefinition();
-        if (placesDefinition == null) {
-            return Map.of();
-        }
-        Map<String, ItemRoute> map = new HashMap<>();
-        for (CorrelationItemTargetDefinitionType targetBean : placesDefinition.getTarget()) {
-            map.put(
-                    Objects.requireNonNullElse(targetBean.getQualifier(), PRIMARY_CORRELATION_ITEM_TARGET),
-                    ItemRoute.fromBeans(
-                            targetBean.getPath(),
-                            targetBean.getRoute()));
-        }
-        return map;
-    }
-
-    private @Nullable CorrelationPlacesDefinitionType getPlacesDefinition() {
-        return configurationBean.getDefinitions() != null ?
-                configurationBean.getDefinitions().getPlaces() : null;
     }
 
     /**

@@ -331,28 +331,11 @@ public class CorrelatorContextCreator {
         if (definitions == null) {
             return;
         }
-        CorrelationPlacesDefinitionType places = definitions.getPlaces();
-        if (places != null) {
-            mergePlaces(places);
-        }
         CorrelationItemsDefinitionType items = definitions.getItems();
         if (items != null) {
             for (CorrelationItemDefinitionType item : items.getItem()) {
                 mergeItem(item);
             }
-        }
-    }
-
-    private void mergePlaces(@NotNull CorrelationPlacesDefinitionType newPlaces) {
-        CorrelatorDefinitionsType definitions = createOrFindMergedDefinitions();
-        CorrelationPlacesDefinitionType places = definitions.getPlaces();
-        if (places == null) {
-            definitions.setPlaces(newPlaces.cloneWithoutId());
-        } else {
-            if (places.getSource() == null && newPlaces.getSource() != null) {
-                places.setSource(newPlaces.getSource().clone());
-            }
-            mergeTargetDefinitions(places.getTarget(), newPlaces.getTarget());
         }
     }
 
@@ -365,21 +348,6 @@ public class CorrelatorContextCreator {
         CorrelatorDefinitionsType newDefinitions = new CorrelatorDefinitionsType();
         merged.setDefinitions(newDefinitions);
         return newDefinitions;
-    }
-
-    private void mergeTargetDefinitions(
-            List<CorrelationItemTargetDefinitionType> currentTargets,
-            List<CorrelationItemTargetDefinitionType> newTargets) {
-        for (CorrelationItemTargetDefinitionType newTarget : newTargets) {
-            if (!containsQualifier(currentTargets, newTarget.getQualifier())) {
-                currentTargets.add(newTarget.clone());
-            }
-        }
-    }
-
-    private boolean containsQualifier(List<CorrelationItemTargetDefinitionType> targets, String qualifier) {
-        // TODO null vs #primary# equality
-        return targets.stream().anyMatch(t -> Objects.equals(qualifier, t.getQualifier()));
     }
 
     private void mergeItem(@NotNull CorrelationItemDefinitionType newItem) throws ConfigurationException {
@@ -402,10 +370,6 @@ public class CorrelatorContextCreator {
         if (existingItem.getPath() == null && newItem.getPath() != null) {
             existingItem.setPath(newItem.getPath().clone());
         }
-        if (existingItem.getSource() == null && newItem.getSource() != null) {
-            existingItem.setSource(newItem.getSource().clone());
-        }
-        mergeTargetDefinitions(existingItem.getTarget(), newItem.getTarget());
     }
 
     private CorrelationItemDefinitionType findItem(

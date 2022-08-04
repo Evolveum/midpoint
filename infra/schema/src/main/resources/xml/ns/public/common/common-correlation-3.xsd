@@ -369,48 +369,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="places" type="tns:CorrelationPlacesDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="items" type="tns:CorrelationItemsDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationPlacesDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Where to find correlation items - i.e. items that are used for correlation.
-                See the definition of correlation item for a description of source, and primary and secondary targets.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="source" type="tns:CorrelationItemSourceDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Where the source items reside (in pre-focus or shadow object).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="target" type="tns:CorrelationItemTargetDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Where the primary targets are (in focus objects).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -445,6 +407,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Shared definition of a correlation item.
+
+                TODO consider removal
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -456,7 +420,7 @@
             <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name by which this definition is referenced. If not present, the last segment of the source
+                        Name by which this definition is referenced. If not present, the last segment of the path
                         is used to derive the name.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -466,87 +430,12 @@
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Short alternative to source/target definitions. If present, default source and target
-                        with this path are created. Should not be used along with source and/or target definitions.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="source" type="tns:CorrelationItemSourceDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="target" type="tns:CorrelationItemTargetDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
                         TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationItemSourceOrTargetDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:choice>
-                <xsd:element name="path" type="t:ItemPathType" minOccurs="0"/>
-                <xsd:element name="route" type="c:ItemRouteType" minOccurs="0"/>
-            </xsd:choice>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationItemSourceDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:CorrelationItemSourceOrTargetDefinitionType">
-                <xsd:sequence>
-                    <!-- ? -->
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationItemTargetDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:CorrelationItemSourceOrTargetDefinitionType">
-                <xsd:sequence>
-                    <!-- restriction for presentation / search use ? -->
-                    <xsd:element name="qualifier" type="xsd:string" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="CorrelatorAuthorityLevelType">

@@ -358,7 +358,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         CorrelationProperty property = findProperty(properties, "givenName");
         assertThat(property.getSourceRealStringValues()).as("real string values").containsExactly("John");
         assertThat(property.getDefinition()).as("definition").isNotNull();
-        assertThat(property.getPrimaryTargetRoute()).as("primary target route").hasToString("givenName");
+        assertThat(property.getPrimaryTargetPath()).as("primary target path").hasToString("givenName");
     }
 
     @SuppressWarnings("SameParameterValue")

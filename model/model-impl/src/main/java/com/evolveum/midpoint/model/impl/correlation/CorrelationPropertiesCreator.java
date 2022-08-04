@@ -71,7 +71,6 @@ class CorrelationPropertiesCreator {
             CorrelationItem correlationItem = CorrelationItem.create(
                     entry.getValue(),
                     correlatorContext,
-                    fullCorrelationContext.shadow,
                     preFocus);
             LOGGER.trace("Created correlation item: {}", correlationItem);
             correlationItems.add(correlationItem);

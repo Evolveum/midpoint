@@ -91,27 +91,6 @@
             </mappingsEvaluation>
             <correlation>
                 <correlators>
-                    <definitions>
-                        <places>
-                            <source>
-                                <path>source-2</path> <!-- should override source-1 in parent -->
-                            </source>
-                            <target>
-                                <path>target-2</path> <!-- should override target-1 in parent -->
-                                <qualifier>qualifier-1</qualifier>
-                            </target>
-                        </places>
-                        <items>
-                            <item>
-                                <name>test-item-1</name>
-                                <path>item-2</path> <!-- should override item-1 in parent -->
-                                <target>
-                                    <path>item-2-target-2</path> <!-- should override item-1-target-1 in parent -->
-                                    <qualifier>qualifier-1</qualifier>
-                                </target>
-                            </item>
-                        </items>
-                    </definitions>
                     <items> <!-- overriding authority for this one -->
                         <authority>authoritative</authority>
                         <name>empNo</name>
