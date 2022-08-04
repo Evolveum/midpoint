@@ -70,18 +70,6 @@
                 <inbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$shadow/attributes/ri:firstName</path>
-                    </source>
-                    <source>
-                        <path>$shadow/attributes/ri:lastName</path>
-                    </source>
-                    <source>
-                        <path>$shadow/attributes/ri:born</path>
-                    </source>
-                    <source>
-                        <path>$shadow/attributes/ri:nationalId</path>
-                    </source>
-                    <source>
                         <path>$shadow/attributes/ri:studyProgram</path>
                     </source>
                     <expression>
@@ -90,12 +78,8 @@
                                 params = new HashMap()
                                 params.put('subtype', 'sis')
                                 params.put('sourceId', input)
-                                params.put('givenName', firstName)
-                                params.put('familyName', lastName)
-                                params.put('dateOfBirth', born)
-                                params.put('nationalId', nationalId)
                                 params.put('targetName', 'program-' + studyProgram)
-                                idmatch.execute('createAssignment', params)
+                                mylib.execute('createAssignment', params)
                             </code>
                         </script>
                     </expression>
@@ -116,6 +100,51 @@
                     </target>
                 </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:firstName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:lastName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:born</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>extension/dateOfBirth</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:nationalId</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.testing.story.correlation.IdMatchTestUtil.normalizeNationalId
+
+                                normalizeNationalId(input)
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>extension/nationalId</path>
+                    </target>
+                </inbound>
+            </attribute>
             <mappingsEvaluation>
                 <inbound>
                     <defaultEvaluationPhases>
@@ -126,58 +155,6 @@
             </mappingsEvaluation>
             <correlation>
                 <correlators>
-                    <definitions>
-                        <items>
-                            <item>
-                                <source>
-                                    <path>assignment/extension/givenName</path>
-                                </source>
-                                <target>
-                                    <path>givenName</path>
-                                </target>
-                                <target>
-                                    <qualifier>systems</qualifier>
-                                    <path>assignment/extension/givenName</path>
-                                </target>
-                            </item>
-                            <item>
-                                <source>
-                                    <path>assignment/extension/familyName</path>
-                                </source>
-                                <target>
-                                    <path>familyName</path>
-                                </target>
-                                <target>
-                                    <qualifier>systems</qualifier>
-                                    <path>assignment/extension/familyName</path>
-                                </target>
-                            </item>
-                            <item>
-                                <source>
-                                    <path>assignment/extension/dateOfBirth</path>
-                                </source>
-                                <target>
-                                    <path>extension/dateOfBirth</path>
-                                </target>
-                                <target>
-                                    <qualifier>systems</qualifier>
-                                    <path>assignment/extension/dateOfBirth</path>
-                                </target>
-                            </item>
-                            <item>
-                                <source>
-                                    <path>assignment/extension/nationalId</path>
-                                </source>
-                                <target>
-                                    <path>extension/nationalId</path>
-                                </target>
-                                <target>
-                                    <qualifier>systems</qualifier>
-                                    <path>assignment/extension/nationalId</path>
-                                </target>
-                            </item>
-                        </items>
-                    </definitions>
                     <idMatch>
                         <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
                         <!-- URL and credentials are ignored when dummy ID Match Service implementation is used.

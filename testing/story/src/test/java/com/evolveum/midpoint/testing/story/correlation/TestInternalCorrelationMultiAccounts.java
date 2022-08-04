@@ -244,10 +244,10 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
-        when();
+        when("import is run");
         TASK_IMPORT_SIS.rerun(result);
 
-        then();
+        then("task should complete successfully, with 1 transition to disputed");
         // @formatter:off
         TASK_IMPORT_SIS.assertAfter()
                 .assertClosed()
@@ -266,6 +266,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                         .assertTransitions(2)
                     .end();
 
+        and("Mary should be unchanged");
         assertUser(findUserByUsernameFullRequired("smith1"), "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
@@ -276,6 +277,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .end()
                 .assertLinks(1, 0);
 
+        and("John should be unchanged");
         assertUser(findUserByUsernameFullRequired("smith2"), "John after")
                 .display()
                 .assertFullName("John Smith") // unchanged
@@ -287,6 +289,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .assertLinks(2, 0);
         // @formatter:on
 
+        and("there should be a new shadow with DISPUTED state");
         PrismObject<ShadowType> newShadow = getShadow("4", result);
 
         assertShadow(newShadow, "after")
@@ -294,12 +297,14 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .assertSynchronizationSituation(DISPUTED)
                 .assertPotentialOwnerOptions(2);
 
+        and("there should be a correlation case for the account");
         CaseType correlationCase = correlationCaseManager.findCorrelationCase(newShadow.asObjectable(), false, result);
         assertThat(correlationCase).as("case").isNotNull();
 
         // @formatter:off
         assertCase(correlationCase, "correlation case")
                 .display()
+                .displayXml()
                 .assertOpen()
                 .workItems()
                     .assertWorkItems(1);

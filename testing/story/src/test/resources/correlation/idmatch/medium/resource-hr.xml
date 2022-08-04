@@ -85,6 +85,15 @@
                 <ref>ri:NATIDENT</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.testing.story.correlation.IdMatchTestUtil.normalizeNationalId
+
+                                normalizeNationalId(input)
+                            </code>
+                        </script>
+                    </expression>
                     <target>
                         <path>extension/nationalId</path>
                     </target>
