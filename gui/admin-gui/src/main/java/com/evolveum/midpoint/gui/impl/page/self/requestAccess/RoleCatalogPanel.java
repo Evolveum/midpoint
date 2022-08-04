@@ -91,6 +91,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private PageBase page;
 
+    private IModel<Search> searchModel;
+
+    private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
+
     public RoleCatalogPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
 
@@ -106,6 +110,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     protected void onInitialize() {
         super.onInitialize();
 
+        initModels();
         initLayout();
     }
 
@@ -186,17 +191,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 .build();
     }
 
-    private void initLayout() {
-        setOutputMarkupId(true);
-
-        IModel<Search> searchModel = new LoadableModel<>(false) {
+    private void initModels() {
+        searchModel = new LoadableModel<>(false) {
             @Override
             protected Search load() {
                 return SearchFactory.createSearch(RoleType.class, page);
             }
         };
 
-        IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel = new LoadableModel<>(false) {
+        menuModel = new LoadableModel<>(false) {
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
                 ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
@@ -205,6 +208,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return menu;
             }
         };
+    }
+
+    private void initLayout() {
+        setOutputMarkupId(true);
 
         ObjectDataProvider provider = new ObjectDataProvider(this, searchModel) {
 
@@ -222,10 +229,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     return createQueryFromOrgRef(item.orgRef(), item.scopeOne());
                 }
 
-                if (item.collectionRef() != null) {
-                    return createQueryFromCollectionRef(item.collectionRef());
-                } else if (item.collectionUri() != null) {
-                    return createQueryFromCollectionUri(item.collectionUri());
+                RoleCollectionViewType collection = item.collection();
+                if (collection == null) {
+                    return null;
+                }
+
+                if (collection.getCollectionRef() != null) {
+                    return createQueryFromCollectionRef(collection.getCollectionRef());
+                } else if (collection.getCollectionUri() != null) {
+                    return createQueryFromCollectionUri(collection.getCollectionUri());
                 }
 
                 return null;
@@ -437,12 +449,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             try {
                 String name = null;
                 RoleCatalogQueryItem rcq = new RoleCatalogQueryItem();
+                rcq.collection(collection);
 
                 ObjectReferenceType collectionRef = collection.getCollectionRef();
                 if (collectionRef != null) {
                     PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
 
-                    rcq.collectionRef(collectionRef);
                     name = WebComponentUtil.getDisplayNameOrName(objectCollection, true);
                 }
 
@@ -450,7 +462,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 if (StringUtils.isNotEmpty(collectionUri)) {
                     AssignmentViewType view = AssignmentViewType.getViewByUri(collectionUri);
                     if (view != null) {
-                        rcq.collectionUri(collectionUri);
                         name = getString(view);
                     }
                 }
@@ -581,8 +592,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return columns;
     }
 
-    private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
-        // todo this configuration has to go from menu -> item xml
+    // todo  create default container panel configuration
+    private ContainerPanelConfigurationType createDefaultContainerPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
         c.identifier("some-panel");
         c.type(RoleType.COMPLEX_TYPE);
@@ -597,7 +608,30 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         vcs.identifier("some-container");
         vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_NAME))).end();
 
-        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(() -> Arrays.asList(c), Model.of(object)) {
+        return c;
+    }
+
+    private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
+        ContainerPanelConfigurationType config;
+
+        ListGroupMenuItem<RoleCatalogQueryItem> selectedMenu = menuModel.getObject().getActiveMenu();
+
+        RoleCatalogQueryItem item = selectedMenu != null ? selectedMenu.getValue() : null;
+        if (item == null || item.collection() == null) {
+            config = createDefaultContainerPanelConfiguration();
+        } else {
+            RoleCollectionViewType view = item.collection();
+            config = view.getDetails() != null ? view.getDetails() : createDefaultContainerPanelConfiguration();
+        }
+
+        List<ContainerPanelConfigurationType> finalConfig = new ArrayList<>();
+        if (!config.getPanel().isEmpty()) {
+            finalConfig.addAll(config.getPanel());
+        } else {
+            finalConfig.add(config);
+        }
+
+        CatalogItemDetailsPanel panel = new CatalogItemDetailsPanel(() -> finalConfig, Model.of(object)) {
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
