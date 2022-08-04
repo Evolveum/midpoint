@@ -36,22 +36,4 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- FIXME TEMPORARY CODE -->
-    <xsd:complexType name="TemporaryUserTypeExtensionType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:extension ref="c:TemporaryUserType"/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="personalNumber" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
 </xsd:schema>

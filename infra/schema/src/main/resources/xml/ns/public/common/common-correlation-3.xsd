@@ -1347,25 +1347,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TemporaryUserType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Temporary data structure just to continue the development of the smart correlation.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.6</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="tns:extension" minOccurs="0"/>
-            <xsd:element name="givenName" type="t:PolyStringType" minOccurs="0"/>
-            <xsd:element name="familyName" type="t:PolyStringType" minOccurs="0"/>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="FocusIdentitySourceType">
         <xsd:annotation>
             <xsd:documentation>

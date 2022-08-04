@@ -20,8 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemsType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TemporaryUserType;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 
 import java.io.File;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -67,6 +68,11 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
 
     private static final ItemPath PATH_DATE_OF_BIRTH = ItemPath.create(UserType.F_EXTENSION, "dateOfBirth"); // TODO NS URI
     private static final ItemPath PATH_NATIONAL_ID = ItemPath.create(UserType.F_EXTENSION, "nationalId"); // TODO NS URI
+
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipIfNotNativeRepository();
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
