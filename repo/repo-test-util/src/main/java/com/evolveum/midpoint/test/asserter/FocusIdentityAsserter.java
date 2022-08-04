@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityItemsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemsType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TemporaryUserType;
@@ -83,7 +83,7 @@ public class FocusIdentityAsserter<RA> extends PrismContainerValueAsserter<Focus
         return getRealValueRequired(FocusIdentityType.class);
     }
 
-    private @NotNull TemporaryUserType getData() throws SchemaException {
+    private @NotNull FocusType getData() throws SchemaException {
         return MiscUtil.requireNonNull(
                 getIdentity().getData(),
                 () -> new AssertionError("No 'data' in " + getDetails()));

@@ -268,6 +268,7 @@ class ClockworkSource extends MSource {
         }
     }
 
+    @Override
     void resolveInputEntitlements(
             ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> associationAPrioriDelta,
             Item<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> currentAssociation) {
@@ -306,6 +307,7 @@ class ClockworkSource extends MSource {
         }
     }
 
+    @Override
     void getEntitlementVariableProducer(
             @NotNull Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables) {
 
@@ -415,10 +417,8 @@ class ClockworkSource extends MSource {
                 targetItemPath);
     }
 
-    // FIXME temporary code
-    private TemporaryUserType createNewFocus() throws SchemaException {
-        return new TemporaryUserType();
-//        return (FocusType) PrismContext.get().createObjectable(
-//                getFocusContext().getObjectTypeClass());
+    private FocusType createNewFocus() throws SchemaException {
+        return (FocusType) PrismContext.get().createObjectable(
+                getFocusContext().getObjectTypeClass());
     }
 }

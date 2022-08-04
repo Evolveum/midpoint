@@ -18,6 +18,10 @@
                 <tag>10704444</tag>
                 <shadowRef oid="a5a216fd-7a38-49e3-a782-381e10b68406"/>
             </source>
+            <data xsi:type="UserType">
+                <givenName>Alice</givenName>
+                <familyName>Green</familyName>
+            </data>
             <items>
                 <original>
                     <givenName xsi:type="xsd:string">Alice</givenName>
@@ -35,6 +39,10 @@
             </items>
         </identity>
         <identity id="2">
+            <data xsi:type="UserType">
+                <givenName>Alice</givenName>
+                <familyName>Black</familyName>
+            </data>
             <items>
                 <original>
                     <givenName xsi:type="xsd:string">Alice</givenName>
