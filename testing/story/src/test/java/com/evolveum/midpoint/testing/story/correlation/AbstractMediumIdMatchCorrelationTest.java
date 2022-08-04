@@ -19,6 +19,10 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -32,9 +36,6 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
     public static final File TEST_DIR = new File(AbstractCorrelationTest.TEST_DIR, "idmatch/medium");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-
-    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY_MYLIB =
-            new TestResource<>(TEST_DIR, "function-library-mylib.xml", "fea7be76-a57d-435e-b874-b0f8b4ca39c9");
 
     private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
             new TestResource<>(TEST_DIR, "object-template-user.xml", "bf275746-f2ce-4ae3-9e91-0c40e26422b7");
@@ -63,7 +64,6 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
         super.initSystem(initTask, initResult);
 
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
-        addObject(FUNCTION_LIBRARY_MYLIB, initTask, initResult);
 
         RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
         RESOURCE_HR.initializeAndTest(this, initTask, initResult);
@@ -102,20 +102,29 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
                 .rootActivityState()
                     .progress()
                         .assertCommitted(1, 0, 0);
-        // @formatter:on
 
-        johnOid = assertUserAfterByUsername("smith1")
+        johnOid = assertUserAfter(findUserByUsernameFullRequired("smith1"))
                 .assertGivenName("John")
                 .assertFamilyName("Smith")
-                .assertLinks(1, 0)
-                .assertExtensionValue("sisId", "1")
-                .assertExtensionValue("sisGivenName", "John")
-                .assertExtensionValue("sisFamilyName", "Smith")
-                .assertExtensionValue("sisDateOfBirth", "2004-02-06")
-                .assertExtensionValue("sisNationalId", "040206/1328")
                 .assertExtensionValue("dateOfBirth", "2004-02-06")
                 .assertExtensionValue("nationalId", "040206/1328")
+                .assertLinks(1, 0)
+                .identities()
+                    .fromResource(RESOURCE_SIS.oid, ACCOUNT, INTENT_DEFAULT, null)
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("John"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Smith"))
+                        .assertOriginalItem(PATH_DATE_OF_BIRTH, "2004-02-06")
+                        .assertOriginalItem(PATH_NATIONAL_ID, "040206/1328")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "john")
+                        .assertNormalizedItem("familyName", "smith")
+                        .assertNormalizedItem("dateOfBirth", "20040206")
+                        .assertNormalizedItem("nationalId", "0402061328")
+                    .end()
+                .end()
                 .getOid();
+        // @formatter:on
     }
 
     /**
@@ -158,22 +167,34 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
         resolveCase(aCase, johnOid, task, result);
 
         then("John should be updated");
-        assertUserAfterByUsername("smith1")
+        // @formatter:off
+        assertUserAfter(findUserByUsernameFullRequired("smith1"))
                 .assertGivenName("John")
                 .assertFamilyName("Smith")
-                .assertLinks(2, 0)
-                .assertExtensionValue("hrId", "A1001")
-                .assertExtensionValue("hrGivenName", "John")
-                .assertExtensionValue("hrFamilyName", "Smith")
-                .assertExtensionValue("hrDateOfBirth", "2004-02-06")
-                .assertExtensionValue("hrNationalId", "040206/132x")
-                .assertExtensionValue("sisId", "1")
-                .assertExtensionValue("sisGivenName", "John")
-                .assertExtensionValue("sisFamilyName", "Smith")
-                .assertExtensionValue("sisDateOfBirth", "2004-02-06")
-                .assertExtensionValue("sisNationalId", "040206/1328")
                 .assertExtensionValue("dateOfBirth", "2004-02-06")
-                .assertExtensionValue("nationalId", "040206/1328");
+                .assertExtensionValue("nationalId", "040206/1328")
+                .assertLinks(2, 0)
+                .identities()
+                    .fromResource(RESOURCE_SIS.oid, ACCOUNT, INTENT_DEFAULT, null)
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("John"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Smith"))
+                        .assertOriginalItem(PATH_DATE_OF_BIRTH, "2004-02-06")
+                        .assertOriginalItem(PATH_NATIONAL_ID, "040206/1328")
+                    .end()
+                    .fromResource(RESOURCE_HR.oid, ACCOUNT, INTENT_DEFAULT, null)
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("John"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Smith"))
+                        .assertOriginalItem(PATH_DATE_OF_BIRTH, "2004-02-06")
+                        .assertOriginalItem(PATH_NATIONAL_ID, "040206/132x")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "john")
+                        .assertNormalizedItem("familyName", "smith")
+                        .assertNormalizedItem("dateOfBirth", "20040206")
+                        .assertNormalizedItem("nationalId", "0402061328", "040206132x")
+                    .end()
+                .end();
+        // @formatter:on
     }
 
     /**
@@ -216,26 +237,39 @@ public abstract class AbstractMediumIdMatchCorrelationTest extends AbstractIdMat
         resolveCase(aCase, johnOid, task, result);
 
         then("John should be updated");
-        assertUserAfterByUsername("smith1")
+        // @formatter:off
+        assertUserAfter(findUserByUsernameFullRequired("smith1"))
                 .assertGivenName("John")
                 .assertFamilyName("Smith")
-                .assertLinks(3, 0)
-                .assertExtensionValue("externalId", "X1")
-                .assertExtensionValue("externalGivenName", "John")
-                .assertExtensionValue("externalFamilyName", "Smith")
-                .assertExtensionValue("externalDateOfBirth", "2004-02-26")
-                .assertExtensionValue("externalNationalId", "040206/132x")
-                .assertExtensionValue("hrId", "A1001")
-                .assertExtensionValue("hrGivenName", "John")
-                .assertExtensionValue("hrFamilyName", "Smith")
-                .assertExtensionValue("hrDateOfBirth", "2004-02-06")
-                .assertExtensionValue("hrNationalId", "040206/132x")
-                .assertExtensionValue("sisId", "1")
-                .assertExtensionValue("sisGivenName", "John")
-                .assertExtensionValue("sisFamilyName", "Smith")
-                .assertExtensionValue("sisDateOfBirth", "2004-02-06")
-                .assertExtensionValue("sisNationalId", "040206/1328")
                 .assertExtensionValue("dateOfBirth", "2004-02-06")
-                .assertExtensionValue("nationalId", "040206/1328");
+                .assertExtensionValue("nationalId", "040206/1328")
+                .assertLinks(3, 0)
+                .identities()
+                    .fromResource(RESOURCE_SIS.oid, ACCOUNT, INTENT_DEFAULT, null)
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("John"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Smith"))
+                        .assertOriginalItem(PATH_DATE_OF_BIRTH, "2004-02-06")
+                        .assertOriginalItem(PATH_NATIONAL_ID, "040206/1328")
+                    .end()
+                    .fromResource(RESOURCE_HR.oid, ACCOUNT, INTENT_DEFAULT, null)
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("John"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Smith"))
+                        .assertOriginalItem(PATH_DATE_OF_BIRTH, "2004-02-06")
+                        .assertOriginalItem(PATH_NATIONAL_ID, "040206/132x")
+                    .end()
+                    .fromResource(RESOURCE_EXTERNAL.oid, ACCOUNT, INTENT_DEFAULT, null)
+                        .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("John"))
+                        .assertOriginalItem(UserType.F_FAMILY_NAME, createPolyString("Smith"))
+                        .assertOriginalItem(PATH_DATE_OF_BIRTH, "2004-02-26")
+                        .assertOriginalItem(PATH_NATIONAL_ID, "040206/132x")
+                    .end()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName", "john")
+                        .assertNormalizedItem("familyName", "smith")
+                        .assertNormalizedItem("dateOfBirth", "20040206", "20040226")
+                        .assertNormalizedItem("nationalId", "0402061328", "040206132x")
+                    .end()
+                .end();
+        // @formatter:on
     }
 }

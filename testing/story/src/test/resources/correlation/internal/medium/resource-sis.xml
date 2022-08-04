@@ -5,24 +5,24 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<c:resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
             oid="83de4034-775a-4ead-829b-a4041620d4c2">
 
-    <c:name>SIS</c:name>
+    <name>SIS</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:equal>
-                <q:path>c:connectorType</q:path>
+                <q:path>connectorType</q:path>
                 <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
-    <c:connectorConfiguration>
+    <connectorConfiguration>
         <icfc:configurationProperties
                 xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
             <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-sis.csv -->
@@ -31,7 +31,7 @@
             <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
             <icfccsvfile:uniqueAttribute>sisId</icfccsvfile:uniqueAttribute>
         </icfc:configurationProperties>
-    </c:connectorConfiguration>
+    </connectorConfiguration>
 
     <schemaHandling>
         <objectType>
@@ -40,7 +40,7 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
-                <c:ref>ri:firstName</c:ref>
+                <ref>ri:firstName</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -49,7 +49,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:lastName</c:ref>
+                <ref>ri:lastName</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -58,7 +58,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:born</c:ref>
+                <ref>ri:born</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -67,7 +67,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:nationalId</c:ref>
+                <ref>ri:nationalId</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -118,4 +118,4 @@
             </synchronization>
         </objectType>
     </schemaHandling>
-</c:resource>
+</resource>

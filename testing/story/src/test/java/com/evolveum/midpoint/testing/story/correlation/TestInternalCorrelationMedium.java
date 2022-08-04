@@ -18,7 +18,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvResource;
@@ -65,9 +64,6 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
             "27fb5306-48fc-452b-8300-b041326a1f1f", 30000);
 
     private String johnOid;
-
-    private static final ItemPath PATH_DATE_OF_BIRTH = ItemPath.create(UserType.F_EXTENSION, "dateOfBirth"); // TODO NS URI
-    private static final ItemPath PATH_NATIONAL_ID = ItemPath.create(UserType.F_EXTENSION, "nationalId"); // TODO NS URI
 
     @BeforeMethod
     public void onNativeOnly() {
