@@ -108,7 +108,7 @@ public class BasicResourceWizardPanel extends BasePanel {
             }
 
             @Override
-            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+            protected void onFinishPerformed(AjaxRequestTarget target) {
                 BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
             }
         });
@@ -123,14 +123,14 @@ public class BasicResourceWizardPanel extends BasePanel {
                 steps.add(new PartialConfigurationStepPanel(getResourceModel()));
                 steps.add(new DiscoveryStepPanel(getResourceModel()) {
                     @Override
-                    protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+                    protected void onFinishPerformed(AjaxRequestTarget target) {
                         BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });
             } else {
                 steps.add(new ConfigurationStepPanel(getResourceModel()) {
                     @Override
-                    protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+                    protected void onFinishPerformed(AjaxRequestTarget target) {
                         BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });
@@ -139,7 +139,7 @@ public class BasicResourceWizardPanel extends BasePanel {
             if (capabilities.getSchema() != null) {
                 steps.add(new SelectObjectClassesStepPanel(getResourceModel()) {
                     @Override
-                    protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+                    protected void onFinishPerformed(AjaxRequestTarget target) {
                         BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });

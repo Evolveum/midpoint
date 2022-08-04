@@ -56,7 +56,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         AjaxIconButton exit = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-right-from-bracket"),
-                getPageBase().createStringResource("ResourceWizard.exit")) {
+                getExitLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onExitPerformed(target);
@@ -68,6 +68,10 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
         addCustomButtons(buttons);
         add(buttons);
+    }
+
+    protected IModel<String> getExitLabel() {
+        return getPageBase().createStringResource("WizardPanel.exit");
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {

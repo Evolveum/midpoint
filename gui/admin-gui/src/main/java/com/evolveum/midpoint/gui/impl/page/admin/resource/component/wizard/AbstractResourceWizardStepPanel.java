@@ -34,16 +34,7 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
         return super.getNextLabelModel();
     }
 
-    @Override
-    public boolean onNextPerformed(AjaxRequestTarget target) {
-        if (getWizard().getNextPanel() == null) {
-            onFinishWizardPerformed(target);
-            return false;
-        }
-        return super.onNextPerformed(target);
-    }
-
-    protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+    protected void onFinishPerformed(AjaxRequestTarget target) {
     }
 
     @Override

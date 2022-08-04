@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -110,9 +111,16 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
 
             @Override
-            protected void onFinishWizardPerformed(AjaxRequestTarget target) {
+            protected void onFinishPerformed(AjaxRequestTarget target) {
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
+                    new Toast()
+                            .success()
+                            .title(getString("AttributeMappingsTableWizardPanel.createObjectType"))
+                            .icon("fas fa-circle-check")
+                            .autohide(true)
+                            .delay(5_000)
+                            .body(getString("AttributeMappingsTableWizardPanel.createObjectType.text")).show(target);
                     onExitPerformed(target);
                 }
             }
