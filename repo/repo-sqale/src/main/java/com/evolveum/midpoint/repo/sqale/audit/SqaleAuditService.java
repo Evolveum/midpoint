@@ -634,6 +634,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
             // this is total requested size of the search
             Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
+            Integer offset = originalPaging != null ? originalPaging.getOffset() : null;
 
             List<? extends ObjectOrdering> providedOrdering = originalPaging != null
                     ? originalPaging.getOrderingInstructions()
@@ -657,6 +658,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                     repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
                     defaultIfNull(maxSize, Integer.MAX_VALUE));
             pagedQuery.getPaging().setMaxSize(pageSize);
+            pagedQuery.getPaging().setOffset(offset);
 
             AuditEventRecordType lastProcessedObject = null;
             int handledObjectsTotal = 0;
@@ -701,6 +703,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                             .pagingCookie(lastProcessedObject != null
                                     ? lastProcessedObject.getRepoId().toString() : null);
                 }
+                pagedQuery.getPaging().setOffset(null);
             }
         } finally {
             // This just counts the operation and adds zero/minimal time not to confuse user

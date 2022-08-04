@@ -12,19 +12,27 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
@@ -62,6 +70,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
     private static final String DOT_CLASS = ResourceContentPanel.class.getName() + ".";
 
+    private static final String ID_TOP_TABLE_BUTTONS = "topButtons";
     private static final String ID_INTENT = "intent";
     private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
     private static final String ID_OBJECT_CLASS = "objectClass";
@@ -117,6 +126,24 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
     protected void initLayout() {
         setOutputMarkupId(true);
+
+        RepeatingView topButtons = new RepeatingView(ID_TOP_TABLE_BUTTONS);
+        topButtons.setOutputMarkupId(true);
+        topButtons.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        add(topButtons);
+
+        AjaxIconButton synchConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+//                SynchronizationConfigWizardPanel synchPanel = new SynchronizationConfigWizardPanel()
+            }
+        };
+        synchConfButton.showTitleAsLabel(true);
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-default btn-lg"));
+        topButtons.add(synchConfButton);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -282,6 +309,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         };
         add(resourceSearch);
 
+    }
+
+    private boolean isTopTableButtonsVisible() {
+        return true;
     }
 
     private List<QName> createObjectClassChoices(IModel<PrismObjectWrapper<ResourceType>> model) {

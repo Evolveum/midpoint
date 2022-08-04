@@ -63,7 +63,7 @@ public class WrapperContext {
      @Experimental
     private Map<String, LookupTableType> lookupTableCache = new HashMap();
 
-     private GuiObjectDetailsPageType detailsPageTypeConfiguration;
+     private List<ContainerPanelConfigurationType> detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
     public WrapperContext(Task task, OperationResult result) {
@@ -215,7 +215,7 @@ public class WrapperContext {
         if (detailsPageTypeConfiguration == null) {
             return virtualContainers;
         }
-        List<ContainerPanelConfigurationType> containerPanelConfigurationTypes = detailsPageTypeConfiguration.getPanel();
+        List<ContainerPanelConfigurationType> containerPanelConfigurationTypes = detailsPageTypeConfiguration;
         if (containerPanelConfigurationTypes.isEmpty()) {
             return virtualContainers;
         }
@@ -246,11 +246,7 @@ public class WrapperContext {
         return null;
     }
 
-    public GuiObjectDetailsPageType getDetailsPageTypeConfiguration() {
-        return detailsPageTypeConfiguration;
-    }
-
-    public void setDetailsPageTypeConfiguration(GuiObjectDetailsPageType detailsPageTypeConfiguration) {
+    public void setDetailsPageTypeConfiguration(List<ContainerPanelConfigurationType> detailsPageTypeConfiguration) {
         this.detailsPageTypeConfiguration = detailsPageTypeConfiguration;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-20222 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -70,7 +70,13 @@ public class DerbyController {
     }
 
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(jdbcUrl, "", "");
+        try {
+            return DriverManager.getConnection(jdbcUrl, "", "");
+        } catch (Exception e) {
+            // Adding more info for the occasional problem with TestDBTable on k8s:
+            throw new SQLException("DerbyController.getConnection error: " + e + "\n"
+                    + "Current state: " + this, e);
+        }
     }
 
     public void startCleanServer() throws Exception {
@@ -117,5 +123,18 @@ public class DerbyController {
     public void stop() throws Exception {
         LOGGER.info("Stopping Derby embedded network server");
         server.shutdown();
+    }
+
+    @Override
+    public String toString() {
+        return "DerbyController{" +
+                "server=" + server +
+                ", listenHostname='" + listenHostname + '\'' +
+                ", listenPort=" + listenPort +
+                ", jdbcUrl='" + jdbcUrl + '\'' +
+                ", dbName='" + dbName + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                '}';
     }
 }

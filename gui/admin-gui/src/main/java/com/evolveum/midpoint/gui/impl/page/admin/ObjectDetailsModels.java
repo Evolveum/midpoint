@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -70,7 +71,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 OperationResult result = task.getResult();
                 WrapperContext ctx = new WrapperContext(task, result);
                 ctx.setCreateIfEmpty(true);
-                ctx.setDetailsPageTypeConfiguration(detailsPageConfigurationModel.getObject());
+                ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
                 if (isReadonly()) {
                     ctx.setReadOnly(isReadonly());
                 }
@@ -110,6 +111,13 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         };
     }
 
+    private List<ContainerPanelConfigurationType> getPanelConfigurations() {
+        GuiObjectDetailsPageType detailsPage = detailsPageConfigurationModel.getObject();
+        if (detailsPage == null) {
+            return Collections.emptyList();
+        }
+        return detailsPage.getPanel();
+    }
     private void loadParentOrgs(PrismObject<O> object) {
         Task task = getModelServiceLocator().createSimpleTask(OPERATION_LOAD_PARENT_ORG);
         OperationResult subResult = task.getResult();

@@ -4601,8 +4601,8 @@ public final class WebComponentUtil {
         return sortedList;
     }
 
-    public static IChoiceRenderer<QName> getRelationChoicesRenderer(PageBase pageBase) {
-        return new IChoiceRenderer<QName>() {
+    public static IChoiceRenderer<QName> getRelationChoicesRenderer() {
+        return new IChoiceRenderer<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -4621,8 +4621,9 @@ public final class WebComponentUtil {
                     DisplayType display = def.getDisplay();
                     if (display != null) {
                         PolyStringType label = display.getLabel();
+
                         if (PolyStringUtils.isNotEmpty(label)) {
-                            return pageBase.createStringResource(label).getString();
+                            return getTranslatedPolyString(label);
                         }
                     }
                 }

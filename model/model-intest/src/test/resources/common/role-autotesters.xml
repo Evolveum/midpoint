@@ -17,7 +17,7 @@
         <condition>
             <expression>
                 <script>
-                    <code>com.evolveum.midpoint.tools.testng.CurrentTestResultHolder.isTestClassSimpleName("TestMappingAutoInbound")</code>
+                    <code>com.evolveum.midpoint.test.MidpointTestContextWithTask.isTestClassSimpleName("TestMappingAutoInbound")</code>
                 </script>
             </expression>
         </condition>
