@@ -5,10 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.api.identities;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemDefinitionType;
@@ -21,7 +23,10 @@ import java.io.Serializable;
 
 public class IdentityItemConfiguration implements Serializable {
 
+    /** Beware, the name may be unqualified! */
     @NotNull private final QName name;
+
+    /** Beware, the path segments may be unqualified! */
     @NotNull private final ItemPath path;
 
     private IdentityItemConfiguration(@NotNull QName name, @NotNull ItemPath path) {
@@ -50,6 +55,15 @@ public class IdentityItemConfiguration implements Serializable {
 
     public @NotNull QName getName() {
         return name;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public @NotNull String getLocalName() {
+        return name.getLocalPart();
+    }
+
+    public @NotNull ItemName getDefaultSearchItemName() {
+        return new ItemName(SchemaConstants.NS_IDENTITY, getLocalName());
     }
 
     public @NotNull ItemPath getPath() {

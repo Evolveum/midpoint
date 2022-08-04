@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.correlation;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -105,25 +107,43 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
             CommunicationException, ConfigurationException, ObjectNotFoundException {
-        Class<? extends FocusType> focusType = candidateOwner.getClass();
+        FocusType preFocus = computePreFocus(
+                shadowedResourceObject, resource, synchronizationPolicy, candidateOwner.getClass(), task, result);
+        FullCorrelationContext fullContext = new FullCorrelationContext(
+                shadowedResourceObject,
+                resource,
+                synchronizationPolicy.getObjectTypeDefinition(),
+                synchronizationPolicy,
+                determineObjectTemplate(synchronizationPolicy, preFocus, result),
+                asObjectable(systemObjectCache.getSystemConfiguration(result)));
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
+        return correlatorFactoryRegistry
+                .instantiateCorrelator(correlatorContext, task, result)
+                .checkCandidateOwner(correlationContext, candidateOwner, result);
+    }
+
+    @NotNull
+    private FocusType computePreFocus(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull Class<? extends FocusType> focusClass,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
         SimplePreInboundsContextImpl<?> preInboundsContext = new SimplePreInboundsContextImpl<>(
                 shadowedResourceObject,
                 resource,
-                PrismContext.get().createObjectable(focusType),
+                PrismContext.get().createObjectable(focusClass),
                 ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task,
                 synchronizationPolicy.getObjectTypeDefinition(),
                 beans);
         new PreMappingsEvaluation<>(preInboundsContext, beans)
                 .evaluate(result);
-        FocusType preFocus = preInboundsContext.getPreFocus();
-
-        FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
-        CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
-        return correlatorFactoryRegistry
-                .instantiateCorrelator(correlatorContext, task, result)
-                .checkCandidateOwner(correlationContext, candidateOwner, result);
+        return preInboundsContext.getPreFocus();
     }
 
     private @NotNull FullCorrelationContext getFullCorrelationContext(
@@ -132,12 +152,15 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        return getFullCorrelationContext(
-                CorrelatorUtil.getShadowFromCorrelationCase(aCase),
-                task, result);
+        ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
+        beans.provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
+        return getFullCorrelationContext(shadow, task, result);
     }
 
-    private @NotNull FullCorrelationContext getFullCorrelationContext(ShadowType shadow, Task task, OperationResult result)
+    private @NotNull FullCorrelationContext getFullCorrelationContext(
+            @NotNull ShadowType shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         String resourceOid = ShadowUtil.getResourceOidRequired(shadow);
@@ -149,19 +172,21 @@ public class CorrelationServiceImpl implements CorrelationService {
 
         stateCheck(ShadowUtil.isClassified(kind, intent), "Shadow %s is not classified: %s/%s", shadow, kind, intent);
 
-        SynchronizationPolicy policy = SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource);
-        if (policy == null) {
-            throw new IllegalStateException(
-                    "No " + kind + "/" + intent + " (kind/intent) type and synchronization definition in " + resource
-                            + " (for " + shadow + ")");
-        } else {
-            return new FullCorrelationContext(
-                    shadow,
-                    resource,
-                    policy.getObjectTypeDefinition(),
-                    policy,
-                    asObjectable(systemObjectCache.getSystemConfiguration(result)));
-        }
+        SynchronizationPolicy policy =
+                MiscUtil.requireNonNull(
+                        SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource),
+                        () -> new IllegalStateException(
+                                String.format("No %s/%s (kind/intent) type and synchronization definition in %s (for %s)",
+                                        kind, intent, resource, shadow)));
+
+        FocusType preFocus = computePreFocus(shadow, resource, policy, policy.getFocusClass(), task, result);
+        return new FullCorrelationContext(
+                shadow,
+                resource,
+                policy.getObjectTypeDefinition(),
+                policy,
+                determineObjectTemplate(policy, preFocus, result),
+                asObjectable(systemObjectCache.getSystemConfiguration(result)));
     }
 
     @Override
@@ -190,6 +215,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                                 fullContext.synchronizationPolicy.getFocusClass()),
                 fullContext.resource,
                 fullContext.resourceObjectDefinition,
+                fullContext.objectTemplate,
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 task);
     }
@@ -219,9 +245,11 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Override
     public @NotNull CorrelatorContext<?> createRootCorrelatorContext(
             @NotNull SynchronizationPolicy synchronizationPolicy,
+            @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException {
         return CorrelatorContextCreator.createRootContext(
                 synchronizationPolicy.getCorrelationDefinition(),
+                objectTemplate,
                 systemConfiguration);
     }
 
@@ -239,5 +267,30 @@ public class CorrelationServiceImpl implements CorrelationService {
         } catch (ObjectAlreadyExistsException | SchemaException e) {
             throw SystemException.unexpected(e, "when clearing shadow correlation state");
         }
+    }
+
+    /**
+     * Determines object template from pre-focus or from archetype reference.
+     *
+     * In the future we may allow explicit configuration of the template ref in the `correlation` section.
+     */
+    @Override
+    public ObjectTemplateType determineObjectTemplate(
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull FocusType preFocus,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        ArchetypePolicyType policy;
+        String explicitArchetypeOid = synchronizationPolicy.getArchetypeOid();
+        if (explicitArchetypeOid != null) {
+            policy = beans.archetypeManager.getPolicyForArchetype(explicitArchetypeOid, result);
+        } else {
+            policy = beans.archetypeManager.determineArchetypePolicy(preFocus, result);
+        }
+        LOGGER.trace("Determined archetype policy: {} (explicit archetype OID is: {})", policy, explicitArchetypeOid);
+        String oid = policy != null ? getOid(policy.getObjectTemplateRef()) : null;
+        LOGGER.trace("Determined archetype OID: {}", oid);
+        return oid != null ?
+                beans.archetypeManager.getExpandedObjectTemplate(oid, result) : null;
     }
 }

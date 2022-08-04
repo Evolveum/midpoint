@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +26,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -130,15 +132,15 @@ public class IdentitiesManager {
             @NotNull IdentityManagementConfiguration configuration) throws ConfigurationException, SchemaException {
         IdentityItemsType normalized = new IdentityItemsType();
         for (IdentityItemConfiguration itemConfig : configuration.getItems()) {
-            ItemPath path = itemConfig.getPath();
-            ItemDefinition<?> itemDef =
+            ItemPath originalItemPath = itemConfig.getPath();
+            ItemDefinition<?> originalItemDef =
                     MiscUtil.requireNonNull(
-                            focus.asPrismObject().getDefinition().findItemDefinition(path),
-                            () -> String.format("No definition of identity item '%s' in %s", path, focus));
-            Collection<PrismValue> allValues = collectAllValues(focus, path);
+                            focus.asPrismObject().getDefinition().findItemDefinition(originalItemPath),
+                            () -> String.format("No definition of identity item '%s' in %s", originalItemPath, focus));
+            Collection<PrismValue> allValues = collectAllValues(focus, originalItemPath);
             //noinspection unchecked
             normalized.asPrismContainerValue().addAll(
-                    normalizeItemValues(itemDef, allValues, itemConfig));
+                    normalizeItemValues(originalItemDef, allValues, itemConfig));
         }
         FocusIdentityType identity = new FocusIdentityType()
                 .items(new FocusIdentityItemsType()
@@ -158,33 +160,27 @@ public class IdentitiesManager {
 
     // TODO take configuration into account
     private Collection<? extends Item<?, ?>> normalizeItemValues(
-            ItemDefinition<?> itemDef, Collection<PrismValue> prismValues, IdentityItemConfiguration itemConfig) {
+            ItemDefinition<?> originalItemDef, Collection<PrismValue> prismValues, IdentityItemConfiguration itemConfig) {
         if (prismValues.isEmpty()) {
             return List.of();
         }
-        ItemName itemName = itemDef.getItemName();
-        MutablePrismPropertyDefinition<String> normalizedItemDef =
-                prismContext.definitionFactory().createPropertyDefinition(itemName, DOMUtil.XSD_STRING); // TODO generalize
-        normalizedItemDef.setDynamic(true);
-        normalizedItemDef.setMinOccurs(0);
-        normalizedItemDef.setMaxOccurs(-1);
         PrismProperty<String> normalizedItem =
                 prismContext.itemFactory().createProperty(
-                        itemName,
-                        normalizedItemDef);
+                        itemConfig.getDefaultSearchItemName(),
+                        getNormalizedItemDefinition(itemConfig));
         for (PrismValue originalValue : prismValues) {
             Object originalRealValue = originalValue.getRealValue();
             if (originalRealValue != null) {
                 normalizedItem.addRealValue(
                         normalizeValue(originalRealValue, itemConfig));
             } else {
-                LOGGER.warn("No real value in {} in {}", originalValue, itemDef);
+                LOGGER.warn("No real value in {} in {}", originalValue, originalItemDef);
             }
         }
         return List.of(normalizedItem);
     }
 
-    private @NotNull String normalizeValue(
+    public static @NotNull String normalizeValue(
             @NotNull Object originalRealValue,
             @Nullable IdentityItemConfiguration itemConfiguration) {
         String stringValue;
@@ -198,7 +194,7 @@ public class IdentitiesManager {
                             originalRealValue, itemConfiguration, originalRealValue.getClass()));
         }
         // TODO normalize according to the configuration
-        return prismContext.getDefaultPolyStringNormalizer().normalize(stringValue);
+        return PrismContext.get().getDefaultPolyStringNormalizer().normalize(stringValue);
     }
 
     private Collection<? extends ItemDelta<?, ?>> computeIdentityDeltas(
@@ -251,5 +247,24 @@ public class IdentitiesManager {
             }
         }
         return selected;
+    }
+
+    public static @NotNull PrismPropertyDefinition<String> getNormalizedItemDefinition(
+            @NotNull IdentityItemConfiguration itemConfig) {
+        // FIXME (not always String)
+        MutablePrismPropertyDefinition<String> definition = PrismContext.get().definitionFactory()
+                .createPropertyDefinition(
+                        itemConfig.getDefaultSearchItemName(),
+                        DOMUtil.XSD_STRING);
+        definition.setMinOccurs(0);
+        definition.setMaxOccurs(-1);
+        definition.setDynamic(true);
+        return definition;
+    }
+
+    // TODO what about other variants?
+    public static @NotNull ItemPath getNormalizedItemPath(
+            @NotNull IdentityItemConfiguration identityItemConfiguration) {
+        return ItemPath.create(SchemaConstants.PATH_IDENTITY_SEARCH_ITEMS, identityItemConfiguration.getDefaultSearchItemName());
     }
 }

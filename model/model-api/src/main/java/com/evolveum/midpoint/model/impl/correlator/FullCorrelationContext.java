@@ -34,6 +34,7 @@ public class FullCorrelationContext {
     @NotNull public final ResourceType resource;
     @NotNull public final ResourceObjectDefinition resourceObjectDefinition;
     @NotNull public final SynchronizationPolicy synchronizationPolicy;
+    @Nullable public final ObjectTemplateType objectTemplate;
     @Nullable public final SystemConfigurationType systemConfiguration;
 
     public FullCorrelationContext(
@@ -41,11 +42,13 @@ public class FullCorrelationContext {
             @NotNull ResourceType resource,
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull SynchronizationPolicy synchronizationPolicy,
+            @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration) {
         this.shadow = shadow;
         this.resource = resource;
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.synchronizationPolicy = synchronizationPolicy;
+        this.objectTemplate = objectTemplate;
         this.systemConfiguration = systemConfiguration;
     }
 

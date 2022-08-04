@@ -50,6 +50,7 @@ public class CorrelatorUtil {
         return variables;
     }
 
+    /** We assume to get the "full" shadow, i.e. shadowed resource object. */
     public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(

@@ -39,12 +39,10 @@ public abstract class AbstractAsserter<RA> {
     }
 
     public AbstractAsserter(String details) {
-        super();
         this.details = details;
     }
 
     public AbstractAsserter(RA returnAsserter, String details) {
-        super();
         this.returnAsserter = returnAsserter;
         this.details = details;
     }

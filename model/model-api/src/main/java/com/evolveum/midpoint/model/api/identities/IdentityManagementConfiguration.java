@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.api.identities;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -36,7 +36,7 @@ public class IdentityManagementConfiguration {
         this.objectTemplate = objectTemplate;
     }
 
-    public static IdentityManagementConfiguration of(@Nullable ObjectTemplateType objectTemplate) {
+    public static @NotNull IdentityManagementConfiguration of(@Nullable ObjectTemplateType objectTemplate) {
         return new IdentityManagementConfiguration(
                 Objects.requireNonNullElseGet(
                         objectTemplate,
@@ -71,5 +71,12 @@ public class IdentityManagementConfiguration {
     // TODO improve --- TODO what if empty config is legal?
     public boolean hasNoItems() throws ConfigurationException {
         return getItems().isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return "IdentityManagementConfiguration{" +
+                "objectTemplate=" + objectTemplate +
+                '}';
     }
 }

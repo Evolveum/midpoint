@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.impl.lens.identities.IdentityItemConfiguration;
+import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

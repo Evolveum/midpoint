@@ -1250,6 +1250,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Correlators for this kind of focus objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="defaultAuthoritativeSource" type="tns:ObjectTemplateMappingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

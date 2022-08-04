@@ -5,148 +5,29 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                oid="297208c0-7928-49e7-8990-131a20fc2dd8">
+<objectTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="297208c0-7928-49e7-8990-131a20fc2dd8">
     <name>object-template-user</name>
     <iterationSpecification>
         <maxIterations>9999</maxIterations>
     </iterationSpecification>
-    <mapping>
-        <name>selecting givenName</name>
-        <strength>strong</strength>
-        <source>
-            <path>extension/sisId</path>
-        </source>
-        <source>
-            <path>extension/hrId</path>
-        </source>
-        <source>
-            <path>extension/sisGivenName</path>
-        </source>
-        <source>
-            <path>extension/hrGivenName</path>
-        </source>
-        <source>
-            <path>extension/externalGivenName</path>
-        </source>
-        <expression>
-            <script>
-                <code>
-                    mylib.execute('selectPersonalDataItem', [
-                            sisId: sisId,
-                            hrId: hrId,
-                            sisValue: sisGivenName,
-                            hrValue: hrGivenName,
-                            externalValue: externalGivenName])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>givenName</path>
-        </target>
-    </mapping>
-    <mapping>
-        <name>selecting familyName</name>
-        <strength>strong</strength>
-        <source>
-            <path>extension/sisId</path>
-        </source>
-        <source>
-            <path>extension/hrId</path>
-        </source>
-        <source>
-            <path>extension/sisFamilyName</path>
-        </source>
-        <source>
-            <path>extension/hrFamilyName</path>
-        </source>
-        <source>
-            <path>extension/externalFamilyName</path>
-        </source>
-        <expression>
-            <script>
-                <code>
-                    mylib.execute('selectPersonalDataItem', [
-                            sisId: sisId,
-                            hrId: hrId,
-                            sisValue: sisFamilyName,
-                            hrValue: hrFamilyName,
-                            externalValue: externalFamilyName])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>familyName</path>
-        </target>
-    </mapping>
-    <mapping>
-        <name>selecting dateOfBirth</name>
-        <strength>strong</strength>
-        <source>
-            <path>extension/sisId</path>
-        </source>
-        <source>
-            <path>extension/hrId</path>
-        </source>
-        <source>
-            <path>extension/sisDateOfBirth</path>
-        </source>
-        <source>
-            <path>extension/hrDateOfBirth</path>
-        </source>
-        <source>
-            <path>extension/externalDateOfBirth</path>
-        </source>
-        <expression>
-            <script>
-                <code>
-                    mylib.execute('selectPersonalDataItem', [
-                            sisId: sisId,
-                            hrId: hrId,
-                            sisValue: sisDateOfBirth,
-                            hrValue: hrDateOfBirth,
-                            externalValue: externalDateOfBirth])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>extension/dateOfBirth</path>
-        </target>
-    </mapping>
-    <mapping>
-        <name>selecting nationalId</name>
-        <strength>strong</strength>
-        <source>
-            <path>extension/sisId</path>
-        </source>
-        <source>
-            <path>extension/hrId</path>
-        </source>
-        <source>
-            <path>extension/sisNationalId</path>
-        </source>
-        <source>
-            <path>extension/hrNationalId</path>
-        </source>
-        <source>
-            <path>extension/externalNationalId</path>
-        </source>
-        <expression>
-            <script>
-                <code>
-                    mylib.execute('selectPersonalDataItem', [
-                            sisId: sisId,
-                            hrId: hrId,
-                            sisValue: sisNationalId,
-                            hrValue: hrNationalId,
-                            externalValue: externalNationalId])
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>extension/nationalId</path>
-        </target>
-    </mapping>
+    <item>
+        <ref>givenName</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>extension/dateOfBirth</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>extension/nationalId</ref>
+        <identity/>
+    </item>
     <mapping>
         <strength>strong</strength>
         <source>
@@ -182,4 +63,84 @@
             <path>name</path>
         </target>
     </mapping>
+    <identity>
+        <correlators>
+            <composite>
+                <items>
+                    <authority>principal</authority>
+                    <name>name-date-id</name>
+                    <documentation>
+                        If key attributes (family name, date of birth, national ID) exactly match,
+                        we are immediately done. We ignore given name here.
+                    </documentation>
+                    <item>
+                        <path>familyName</path>
+                    </item>
+                    <item>
+                        <path>extension/dateOfBirth</path>
+                    </item>
+                    <item>
+                        <path>extension/nationalId</path>
+                    </item>
+                </items>
+                <items>
+                    <authority>nonAuthoritative</authority>
+                    <name>names-date</name>
+                    <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
+                    <item>
+                        <path>givenName</path>
+                    </item>
+                    <item>
+                        <path>familyName</path>
+                    </item>
+                    <item>
+                        <path>extension/dateOfBirth</path>
+                    </item>
+                </items>
+                <items>
+                    <authority>nonAuthoritative</authority>
+                    <name>id</name>
+                    <documentation>If national ID matches, we present an option to the operator.</documentation>
+                    <item>
+                        <path>extension/nationalId</path>
+                    </item>
+                </items>
+            </composite>
+        </correlators>
+        <defaultAuthoritativeSource>
+            <expression>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
+
+                        // The order of authoritativeness is: SIS, HR, external
+
+                        if (identity == null) {
+                            return null
+                        }
+
+                        def sources = identity
+                                .collect { it.source }
+                                .findAll { it != null }
+
+                        def sis = sources.find { it.resourceRef?.oid == RESOURCE_SIS.oid }
+                        def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR.oid }
+                        def external = sources.find { it.resourceRef?.oid == RESOURCE_EXTERNAL.oid }
+
+                        if (sis != null) {
+                            sis.clone()
+                        } else if (hr != null) {
+                            hr.clone()
+                        } else if (external != null) {
+                            external.clone()
+                        } else {
+                            null // takes all values (should be "none"
+                        }
+                    </code>
+                </script>
+            </expression>
+        </defaultAuthoritativeSource>
+    </identity>
 </objectTemplate>

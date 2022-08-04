@@ -7,10 +7,9 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik

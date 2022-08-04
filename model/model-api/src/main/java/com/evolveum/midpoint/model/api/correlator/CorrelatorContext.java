@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
@@ -49,6 +50,9 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     /** Complete correlation definition. Used to access things outside of specific correlator configuration. */
     @Nullable private final CorrelationDefinitionType correlationDefinitionBean;
 
+    /** TODO */
+    @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
+
     /** System configuration, used to look for correlator configurations. */
     @Nullable private final SystemConfigurationType systemConfiguration;
 
@@ -63,12 +67,14 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
             @NotNull CorrelatorConfiguration configuration,
             @NotNull AbstractCorrelatorType originalConfigurationBean,
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull IdentityManagementConfiguration identityManagementConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
         //noinspection unchecked
         this.configurationBean = (C) configuration.getConfigurationBean();
         this.configuration = configuration;
         this.originalConfigurationBean = originalConfigurationBean;
         this.correlationDefinitionBean = correlationDefinitionBean;
+        this.identityManagementConfiguration = identityManagementConfiguration;
         this.systemConfiguration = systemConfiguration;
     }
 
@@ -171,6 +177,10 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
 
     public @Nullable SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
+    }
+
+    public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() {
+        return identityManagementConfiguration;
     }
 
     @Override

@@ -40,20 +40,11 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
-                <c:ref>ri:sisId</c:ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>extension/sisId</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
                 <c:ref>ri:firstName</c:ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisGivenName</path>
+                        <path>givenName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -62,7 +53,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisFamilyName</path>
+                        <path>familyName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -71,7 +62,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisDateOfBirth</path>
+                        <path>extension/dateOfBirth</path>
                     </target>
                 </inbound>
             </attribute>
@@ -80,7 +71,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisNationalId</path>
+                        <path>extension/nationalId</path>
                     </target>
                 </inbound>
             </attribute>
@@ -92,39 +83,7 @@
                     </defaultEvaluationPhases>
                 </inbound>
             </mappingsEvaluation>
-            <correlation>
-                <correlators>
-                    <using>combined-correlator</using>
-                    <definitions>
-                        <items>
-                            <item>
-                                <name>givenName</name>
-                                <source>
-                                    <path>extension/sisGivenName</path>
-                                </source>
-                            </item>
-                            <item>
-                                <name>familyName</name>
-                                <source>
-                                    <path>extension/sisFamilyName</path>
-                                </source>
-                            </item>
-                            <item>
-                                <name>dateOfBirth</name>
-                                <source>
-                                    <path>extension/sisDateOfBirth</path>
-                                </source>
-                            </item>
-                            <item>
-                                <name>nationalId</name>
-                                <source>
-                                    <path>extension/sisNationalId</path>
-                                </source>
-                            </item>
-                        </items>
-                    </definitions>
-                </correlators>
-            </correlation>
+            <correlation><!-- Do we need anything here? --></correlation>
             <synchronization>
                 <reaction>
                     <situation>linked</situation>

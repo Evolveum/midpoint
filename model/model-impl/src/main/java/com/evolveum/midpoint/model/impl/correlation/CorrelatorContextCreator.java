@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlation;
 
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
@@ -83,6 +84,9 @@ public class CorrelatorContextCreator {
     /** The correlation definition. We just pass this to the context. */
     @Nullable private final CorrelationDefinitionType correlationDefinitionBean;
 
+    /** TODO */
+    @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
+
     /** The system configuration. We use it to look for global correlator definitions. */
     @Nullable private final SystemConfigurationType systemConfiguration;
 
@@ -102,11 +106,13 @@ public class CorrelatorContextCreator {
             @NotNull CorrelatorConfiguration originalConfiguration,
             @Nullable AbstractCorrelatorType parentOriginalConfigurationBean,
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull IdentityManagementConfiguration identityManagementConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
         this.originalConfiguration = originalConfiguration;
         this.originalConfigurationBean = originalConfiguration.getConfigurationBean();
         this.parentOriginalConfigurationBean = parentOriginalConfigurationBean;
         this.correlationDefinitionBean = correlationDefinitionBean;
+        this.identityManagementConfiguration = identityManagementConfiguration;
         this.systemConfiguration = systemConfiguration;
     }
 
@@ -114,34 +120,54 @@ public class CorrelatorContextCreator {
             throws ConfigurationException, SchemaException {
         return createRootContext(
                 fullContext.getCorrelationDefinitionBean(),
+                fullContext.objectTemplate,
                 fullContext.systemConfiguration);
     }
 
     static CorrelatorContext<?> createRootContext(
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
+            @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
-        CorrelatorConfiguration originalConfiguration =
-                getConfiguration(
-                        correlationDefinitionBean.getCorrelators());
+        CompositeCorrelatorType correlators;
+        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean.getCorrelators();
+        if (specificCorrelators != null) {
+            correlators = specificCorrelators;
+        } else {
+            correlators = getTemplateCorrelators(objectTemplate);
+        }
         return new CorrelatorContextCreator(
-                originalConfiguration,
+                getConfiguration(correlators),
                 null,
                 correlationDefinitionBean,
+                IdentityManagementConfiguration.of(objectTemplate),
                 systemConfiguration)
                 .create();
+    }
+
+    private static CompositeCorrelatorType getTemplateCorrelators(ObjectTemplateType objectTemplate) {
+        if (objectTemplate == null) {
+            return null;
+        }
+        IdentityDataHandlingType identityHandling = objectTemplate.getIdentity();
+        if (identityHandling == null) {
+            return null;
+        }
+        return identityHandling.getCorrelators();
     }
 
     public static CorrelatorContext<?> createChildContext(
             @NotNull CorrelatorConfiguration childConfiguration,
             @NotNull AbstractCorrelatorType parentOriginalConfigurationBean,
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull IdentityManagementConfiguration identityManagementConfiguration,
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
         return new CorrelatorContextCreator(
                 childConfiguration,
                 parentOriginalConfigurationBean,
                 correlationDefinitionBean,
+                identityManagementConfiguration,
                 systemConfiguration)
                 .create();
     }
@@ -153,6 +179,7 @@ public class CorrelatorContextCreator {
                     originalConfiguration,
                     originalConfigurationBean,
                     correlationDefinitionBean,
+                    identityManagementConfiguration,
                     systemConfiguration);
         }
 
@@ -162,6 +189,7 @@ public class CorrelatorContextCreator {
                 new CorrelatorConfiguration.TypedCorrelationConfiguration(merged),
                 originalConfigurationBean,
                 correlationDefinitionBean,
+                identityManagementConfiguration,
                 systemConfiguration);
     }
 

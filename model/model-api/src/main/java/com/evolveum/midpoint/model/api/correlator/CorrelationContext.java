@@ -81,6 +81,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
             @NotNull FocusType preFocus,
             @NotNull ResourceType resource,
             @NotNull ResourceObjectDefinition objectDefinition,
+            @Nullable ObjectTemplateType currentObjectTemplate, // TODO remove?
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task) {
         this.resourceObject = resourceObject;

@@ -102,7 +102,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         and("smith1 is added");
         // @formatter:off
-        assertUserAfterByUsername("smith1")
+        assertUserAfter(findUserByUsernameFullRequired("smith1"))
                 .displayXml()
                 .identities()
                     .assertSingle()
@@ -126,7 +126,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         then("green1 is added");
         // @formatter:off
-        assertUserAfterByUsername("green1")
+        assertUserAfter(findUserByUsernameFullRequired("green1"))
                 .displayXml()
                 .identities()
                     .assertSingle()
@@ -150,7 +150,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         and("johnson1 is there");
         // @formatter:off
-        assertUserAfterByUsername("johnson1")
+        assertUserAfter(findUserByUsernameFullRequired("johnson1"))
                 .displayXml()
                 .identities()
                     .assertSingle()
@@ -183,7 +183,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         then("white1 is added");
         // @formatter:off
-        assertUserAfterByUsername("white1")
+        assertUserAfter(findUserByUsernameFullRequired("white1"))
                 .displayXml()
                 .identities()
                     .fromResource(RESOURCE_SINGLE.oid, ShadowKindType.ACCOUNT, "default", null)
@@ -222,7 +222,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         then("brown1 is added");
         // @formatter:off
-        assertUserAfterByUsername("brown1")
+        assertUserAfter(findUserByUsernameFullRequired("brown1"))
                 .displayXml()
                 .assertLiveLinks(1)
                 .assertGivenName("Chuck")
@@ -253,7 +253,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         then("brown1 is (still) there, and updated");
         // @formatter:off
-        assertUserAfterByUsername("brown1")
+        assertUserAfter(findUserByUsernameFullRequired("brown1"))
                 .displayXml()
                 .assertLiveLinks(2)
                 .assertGivenName("Charles")
@@ -289,7 +289,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
         then("brown1 is (still) there, and updated");
         // @formatter:off
-        assertUserAfterByUsername("brown1")
+        assertUserAfter(findUserByUsernameFullRequired("brown1"))
                 .displayXml()
                 .assertLiveLinks(3)
                 .assertGivenName("Karl")

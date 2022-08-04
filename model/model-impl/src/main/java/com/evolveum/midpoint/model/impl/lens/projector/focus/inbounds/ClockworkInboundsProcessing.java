@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
@@ -19,9 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.ClockworkShadowInboundsPreparation;
 import com.evolveum.midpoint.prism.PrismObject;

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
 import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
@@ -138,8 +139,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                             CorrelatorConfiguration.typed(configBean),
                             configBean,
                             null,
-                            systemConfiguration
-                    );
+                            IdentityManagementConfiguration.of(null),
+                            systemConfiguration);
             Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
                     correlatorContext, task, result);
             correlatorMap.put(configBean.getName(), correlator);
@@ -168,7 +169,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         Correlator correlator = Objects.requireNonNull(
                 correlatorMap.get(correlatorName), () -> "unknown correlator " + correlatorName);
 
-        UserType preFocus = new UserType(prismContext);
+        UserType preFocus = new UserType();
         MatchingUtil.copyAttributes(preFocus, account.getShadow());
 
         CorrelationContext context = new CorrelationContext(
@@ -176,6 +177,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 preFocus,
                 RESOURCE_DETERMINISTIC.getResource().asObjectable(),
                 resourceObjectTypeDefinition,
+                null,
                 systemConfiguration, task);
 
         then("correlating account #" + account.getNumber());
