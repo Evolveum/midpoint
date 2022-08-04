@@ -147,27 +147,10 @@ public class QAccessCertificationCampaignMapping
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
         AccessCertificationCampaignType base = super.toSchemaObjectInternal(rowTuple, entityPath, options, jdbcSession, forceFull);
-//        if (forceFull || SelectorOptions.hasToLoadPath(F_CASE, options)) { // TODO see the question in hasToLoadPath method
-        if (forceFull || shouldLoadCases(options)) {
+        if (forceFull || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_CASE, options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
         return base;
-    }
-
-    private boolean shouldLoadCases(Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (options == null) {
-            return false;
-        }
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (option.getOptions() == null || !RetrieveOption.INCLUDE.equals(option.getOptions().getRetrieve())) {
-                continue;
-            }
-            var path = option.getSelector() != null ? option.getSelector().getPath() : null;
-            if (path == null || path.isEmpty() || F_CASE.isSubPathOrEquivalent(path)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void loadCases(AccessCertificationCampaignType base, Collection<SelectorOptions<GetOperationOptions>> options,

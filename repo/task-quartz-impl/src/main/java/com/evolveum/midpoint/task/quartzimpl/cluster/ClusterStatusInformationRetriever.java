@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import static com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation.isFresh;
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.execution.LocalExecutionManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.remote.RestConnector;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,7 +43,6 @@ public class ClusterStatusInformationRetriever {
 
     private final AtomicReference<ClusterStatusInformation> lastClusterStatusInformation = new AtomicReference<>();
 
-    @Autowired private TaskManagerConfiguration configuration;
     @Autowired private LocalExecutionManager localExecutionManager;
     @Autowired private ClusterManager clusterManager;
     @Autowired private RestConnector restConnector;
@@ -149,7 +146,7 @@ public class ClusterStatusInformationRetriever {
     // TODO better place?
     @SuppressWarnings("SameParameterValue")
     public ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options,
-            Class<? extends ObjectType> objectClass, boolean allowCached, OperationResult result) throws SchemaException {
+            Class<? extends ObjectType> objectClass, boolean allowCached, OperationResult result) {
         boolean noFetch = GetOperationOptions.isNoFetch(SelectorOptions.findRootOptions(options));
         boolean retrieveStatus;
 
@@ -157,7 +154,7 @@ public class ClusterStatusInformationRetriever {
             retrieveStatus = false;
         } else {
             if (objectClass.equals(TaskType.class)) {
-                retrieveStatus = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
+                retrieveStatus = SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_NODE_AS_OBSERVED, options);
             } else if (objectClass.equals(NodeType.class)) {
                 retrieveStatus = true; // implement some determination algorithm if needed
             } else {
@@ -171,5 +168,4 @@ public class ClusterStatusInformationRetriever {
             return null;
         }
     }
-
 }
