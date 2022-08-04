@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -473,12 +470,12 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     private ContainerPanelConfigurationType getBasicShadowPanelConfiguration(ShadowType shadowType) {
-        GuiShadowDetailsPageType detailsPageType = findShadowDetailsPageConfiguration(shadowType);
-        if (detailsPageType == null) {
+        List<ContainerPanelConfigurationType> panelConfigs = findShadowDetailsPageConfiguration(shadowType);
+        if (panelConfigs.isEmpty()) {
             return null;
         }
 
-        List<ContainerPanelConfigurationType> basicPanelConfig = detailsPageType.getPanel().stream().filter(p -> p.getIdentifier().equals("shadowBasic")).collect(Collectors.toList());
+        List<ContainerPanelConfigurationType> basicPanelConfig = panelConfigs.stream().filter(p -> p.getIdentifier().equals("shadowBasic")).collect(Collectors.toList());
         if (basicPanelConfig.size() == 1) {
             return basicPanelConfig.get(0);
         }
@@ -487,8 +484,12 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return null;
     }
 
-    private GuiShadowDetailsPageType findShadowDetailsPageConfiguration(ShadowType shadowType) {
-        return getPageBase().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowCoordinates(shadowType));
+    private List<ContainerPanelConfigurationType> findShadowDetailsPageConfiguration(ShadowType shadowType) {
+        GuiShadowDetailsPageType shadowDetailsPage = getPageBase().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowCoordinates(shadowType));
+        if (shadowDetailsPage == null) {
+            return Collections.emptyList();
+        }
+        return shadowDetailsPage.getPanel();
     }
 
     private ResourceShadowCoordinates createResourceShadowCoordinates(ShadowType shadow) {

@@ -258,10 +258,4 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     protected IModel<String> getNextLabelModel() {
         return getPageBase().createStringResource("SelectObjectClassesStepPanel.nextLabel");
     }
-
-    @Override
-    public boolean onNextPerformed(AjaxRequestTarget target) {
-        onFinishWizardPerformed(target);
-        return false;
-    }
 }

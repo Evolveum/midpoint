@@ -17,6 +17,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +28,13 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Levenshtein;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.NaryLogicalFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.NotFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.*;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
@@ -545,5 +549,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * Before-query hook, empty by default, called *before* the JDBC transaction starts.
      */
     public void beforeQuery() {
+    }
+
+    public Predicate processFuzzyFilter(FuzzyStringMatchFilter<?> filter, Expression<?> path,
+            ValueFilterValues<?, ?> values) throws QueryException {
+        throw new QueryException("Unsupported filter " + filter.toString());
     }
 }

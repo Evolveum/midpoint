@@ -118,12 +118,7 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
 
     protected  Predicate fuzzyStringPredicate(FuzzyStringMatchFilter<?> filter, Expression<?> path,
             ValueFilterValues<?, ?> values) throws QueryException {
-        FuzzyMatchingMethod method = filter.getMatchingMethod();
-        if (method instanceof Levenshtein) {
-            var levenstein = (Levenshtein) method;
-            return Expressions.booleanTemplate("levenshtein_less_equal({0}, '{1s}', {2} ) <= {2}", path, values.singleValue().toString(), levenstein.getThreshold());
-        }
-        throw new QueryException("Unsupported filter " + filter.toString());
+        return context.processFuzzyFilter(filter, path, values);
     }
 
     /**

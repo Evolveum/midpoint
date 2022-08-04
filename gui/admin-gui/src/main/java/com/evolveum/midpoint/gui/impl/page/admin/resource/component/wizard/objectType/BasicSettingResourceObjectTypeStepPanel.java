@@ -39,7 +39,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 @PanelInstance(identifier = "basicResourceObjectTypeWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.basicResourceObjectTypeWizard", icon = "fa fa-circle"))
+        display = @PanelDisplay(label = "PageResource.wizard.step.objectType.basicSettings", icon = "fa fa-circle"))
 public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType> {
     private static final List<ItemName> VISIBLE_ITEMS = List.of(
             F_DISPLAY_NAME,
@@ -66,17 +66,17 @@ public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormRe
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.basicSettings");
+        return createStringResource("PageResource.wizard.step.objectType.basicSettings");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.basicSettings.text");
+        return createStringResource("PageResource.wizard.objectType.basicSettings.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.basicSettings.subText");
+        return createStringResource("PageResource.wizard.objectType.basicSettings.subText");
     }
 
     @Override
