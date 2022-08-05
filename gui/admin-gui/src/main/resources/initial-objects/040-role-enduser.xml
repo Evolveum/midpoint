@@ -268,4 +268,13 @@
             </owner>
         </object>
     </authorization>
+    <adminGuiConfiguration>
+        <homePage>
+            <type>UserType</type>
+            <widget>
+                <identifier>myWorkItems</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+        </homePage>
+    </adminGuiConfiguration>
 </role>

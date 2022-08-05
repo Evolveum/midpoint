@@ -13,9 +13,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -1217,4 +1214,25 @@ public class ColumnUtils {
             }
         };
     }
+
+    public static <S extends SelectableRow<AssignmentType>> String loadValuesForAssignmentNameColumn(IModel<S> rowModel, Collection<String> evaluatedExpressionValues,
+            boolean useEvaluatedValues, PageBase pageBase) {
+        if (useEvaluatedValues) {
+            if (CollectionUtils.isEmpty(evaluatedExpressionValues)) {
+                return "";
+            }
+            if (evaluatedExpressionValues.size() == 1) {
+                return evaluatedExpressionValues.iterator().next();
+            }
+            return String.join(", ", evaluatedExpressionValues);
+        }
+        String name = AssignmentsUtil.getName(unwrapSelectableRowModel(rowModel), pageBase);
+        LOGGER.trace("Name for AssignmentType: " + name);
+        if (StringUtils.isBlank(name)) {
+            return createStringResource("AssignmentPanel.noName").getString();
+        }
+
+        return name;
+    }
+
 }

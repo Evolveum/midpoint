@@ -105,7 +105,7 @@ public class PageSelfDashboard extends PageSelf {
         };
         linksPanel.setOutputMarkupId(true);
         linksPanel.add(new VisibleBehaviour(() -> {
-            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
             return WebComponentUtil.getElementVisibility(visibility);
         }));
         add(linksPanel);

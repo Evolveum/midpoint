@@ -10,10 +10,17 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelType;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -67,6 +74,32 @@ public class MyAccessesPreviewDataPanel extends ContainerableListPanel<Assignmen
     @Override
     protected AssignmentType getRowRealValue(SelectableBean<AssignmentType> rowModelObject) {
         return rowModelObject.getValue();
+    }
+
+    @Override
+    protected IColumn<SelectableBean<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+        displayModel = displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel;
+
+        return new AjaxLinkColumn<>(displayModel, RepoAssignmentListProvider.TARGET_NAME_STRING, null) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> createLinkModel(IModel<SelectableBean<AssignmentType>> rowModel) {
+                return new LoadableModel<>() {
+                    @Override
+                    protected String load() {
+                        Collection<String> evaluatedValues = loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
+                        return ColumnUtils.loadValuesForAssignmentNameColumn(rowModel, evaluatedValues,
+                                expression != null || itemPath != null, getPageBase());
+                    }
+                };
+            }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<AssignmentType>> rowModel) {
+                return false;
+            }
+        };
     }
 
     @Override

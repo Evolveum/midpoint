@@ -168,42 +168,74 @@
     </internals>
     <adminGuiConfiguration>
         <homePage>
+            <type>UserType</type>
             <widget>
+                <identifier>myHistory</identifier>
                 <display>
-                    <label>History</label>
-                    <cssClass>col-md-8</cssClass>
+                    <label>
+                        <orig>History</orig>
+                        <translation>
+                            <key>PageSelfDashboard.history</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fa fa-history</cssClass>
+                    </icon>
                 </display>
                 <panelType>history</panelType>
+                <preview>true</preview>
             </widget>
             <widget>
+                <identifier>myAccesses</identifier>
                 <display>
-                    <label>My Accesses</label>
+                    <label>
+                        <orig>My accesses</orig>
+                        <translation>
+                            <key>PageSelfDashboard.myAccesses</key>
+                        </translation>
+                    </label>
                     <cssClass>col-md-6</cssClass>
                     <icon>
                         <cssClass>fe fe-assignment</cssClass>
                     </icon>
                 </display>
                 <panelType>myAccesses</panelType>
+                <preview>true</preview>
             </widget>
             <widget>
+                <identifier>myRequests</identifier>
                 <display>
-                    <label>My Requests</label>
+                    <label>
+                        <orig>My requests</orig>
+                        <translation>
+                            <key>PageSelfDashboard.myRequests</key>
+                        </translation>
+                    </label>
                     <cssClass>col-md-6</cssClass>
                     <icon>
                         <cssClass>fe fe-case</cssClass>
                     </icon>
                 </display>
-                <panelType>myRequests</panelType>
+                <panelType>focusCases</panelType>
+                <preview>true</preview>
             </widget>
             <widget>
+                <identifier>myWorkItems</identifier>
                 <display>
-                    <label>My Work Items</label>
-                    <cssClass>col-md-4</cssClass>
+                    <label>
+                        <orig>My work items</orig>
+                        <translation>
+                            <key>PageSelfDashboard.workItems</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
                     <icon>
                         <cssClass>fa fa-inbox</cssClass>
                     </icon>
                 </display>
                 <panelType>myWorkItems</panelType>
+                <preview>true</preview>
             </widget>
 
         </homePage>
