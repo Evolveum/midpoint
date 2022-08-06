@@ -618,21 +618,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return columns;
     }
 
-    // todo  create default container panel configuration
     private ContainerPanelConfigurationType createDefaultContainerPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
-        c.identifier("some-panel");
+        c.identifier("sample-panel");
         c.type(RoleType.COMPLEX_TYPE);
-        c.path(new ItemPathType(ItemPath.create(".")));
         c.panelType("formPanel");
         VirtualContainersSpecificationType vcs =
                 c.beginContainer()
                         .beginDisplay()
-                        .label("asdf")
+                        .label("RoleCatalogPanel.details")
                         .end();
-        vcs.path(new ItemPathType(ItemPath.create(".")));
-        vcs.identifier("some-container");
-        vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_NAME))).end();
+        vcs.identifier("sample-container");
+        vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_DESCRIPTION))).end();
 
         return c;
     }

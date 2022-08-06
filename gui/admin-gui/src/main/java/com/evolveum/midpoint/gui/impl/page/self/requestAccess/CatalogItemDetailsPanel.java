@@ -111,11 +111,6 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
 
                 SingleContainerPanel container = new SingleContainerPanel(ID_PANEL, wrapper, item.getModelObject());
                 item.add(container);
-
-//                SingleContainerPanel panel = new SingleContainerPanel(ID_PANEL,
-//                        PrismContainerWrapperModel.fromContainerWrapper(wrapper, ItemPath.EMPTY_PATH),
-//                        ActivationType.COMPLEX_TYPE);
-//                item.add(panel);
             }
         };
         add(panels);
