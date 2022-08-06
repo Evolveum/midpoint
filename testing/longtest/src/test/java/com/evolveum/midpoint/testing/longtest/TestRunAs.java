@@ -1,10 +1,10 @@
-package com.evolveum.midpoint.testing.longtest;
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+package com.evolveum.midpoint.testing.longtest;
 
 import java.io.File;
 import java.util.HashMap;
@@ -105,15 +105,13 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test100AssignAccountDummyToBarbossa() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assignAccountToUser(USER_BARBOSSA_OID, RESOURCE_DUMMY_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -134,15 +132,13 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test109UnassignAccountDummyFromBarbossa() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         unassignAccountFromUser(USER_BARBOSSA_OID, RESOURCE_DUMMY_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -155,16 +151,14 @@ public class TestRunAs extends AbstractLongTest {
 
     @Test
     public void test200CleanupPlain() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -191,46 +185,41 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test210BarbossaSetOrganizationPlain() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
-        // WHEN
         when();
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
-        // THEN
         then();
         assertSuccess(result);
 
-        long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
-        display("Run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncremenet);
+        long readCountIncrement = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
+        display("Run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncrement);
         baselineRunTime = endMillis - starMillis + BASELINE_RUN_TIME_TOLERANCE;
-        baselineRepoReadCountIncrement = readCountIncremenet;
+        baselineRepoReadCountIncrement = readCountIncrement;
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
         display("User after", userAfter);
 
         assertUserOrgs(userAfter, ORG_PIRATES, USER_ADMINISTRATOR_USERNAME);
-
     }
 
     @Test
     public void test300CleanupRunAs() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -257,19 +246,17 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test310BarbossaSetOrganizationRunAs() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
-        // WHEN
         when();
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -279,7 +266,7 @@ public class TestRunAs extends AbstractLongTest {
         long percentRuntimeIncrease = (runTimeMillis - baselineRunTime) * 100 / baselineRunTime;
         long readCountIncrease = readCountIncrement - baselineRepoReadCountIncrement;
         displayValue("Increase over baseline",
-                "  run time: " + (runTimeMillis - baselineRunTime) + " (" + percentRuntimeIncrease + "%) \n" +
+                "  run time: " + (runTimeMillis - baselineRunTime) + " (" + percentRuntimeIncrease + "%)\n" +
                         "  repo read: " + readCountIncrease);
 
         if (readCountIncrease > 2) {
@@ -293,17 +280,15 @@ public class TestRunAs extends AbstractLongTest {
         display("User after", userAfter);
 
         assertUserOrgs(userAfter, ORG_PIRATES, USER_ROBOT_USERNAME);
-
     }
 
     private void warmUp() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
-        // WHEN
         when();
         long firstTime = warmUpRound(0, task, result);
         long lastTime = 0;
@@ -313,7 +298,6 @@ public class TestRunAs extends AbstractLongTest {
             sumTime += lastTime;
         }
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -325,22 +309,19 @@ public class TestRunAs extends AbstractLongTest {
 
         PrismAsserts.assertNoItem(userAfter, UserType.F_ORGANIZATION);
         PrismAsserts.assertNoItem(userAfter, UserType.F_ORGANIZATIONAL_UNIT);
-
     }
 
     private long warmUpRound(int round, Task task, OperationResult result) throws Exception {
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
-        // WHEN
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
-        // THEN
         assertSuccess(result);
 
-        long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
-        display("Warm up round " + round + " run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncremenet);
+        long readCountIncrement = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
+        display("Warm up round " + round + " run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncrement);
 
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
@@ -348,6 +329,7 @@ public class TestRunAs extends AbstractLongTest {
         return endMillis - starMillis;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertUserOrgs(PrismObject<UserType> user, String organization, String principalUsername) {
         PrismAsserts.assertPropertyValue(user, UserType.F_ORGANIZATION, createPolyString(organization));
         PrismAsserts.assertPropertyValue(user, UserType.F_ORGANIZATIONAL_UNIT, expectedOrgUnits(organization, principalUsername));
@@ -360,5 +342,4 @@ public class TestRunAs extends AbstractLongTest {
         }
         return out;
     }
-
 }
