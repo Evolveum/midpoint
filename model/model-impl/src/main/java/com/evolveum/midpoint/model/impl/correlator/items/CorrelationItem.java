@@ -227,6 +227,7 @@ public class CorrelationItem {
                 "name=" + name +
                 ", itemPath=" + itemPath +
                 ", source=" + source +
+                ", identityConfig=" + identityItemConfiguration +
                 '}';
     }
 

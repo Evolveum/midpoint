@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 /**
- * Tests expression correlator, including creation and resolution of manual correlation cases.
+ * Tests expression correlator.
  *
  * Scenario:
  *
@@ -47,7 +47,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * - accounts: dynamically created - one for each test
  *
  * Correlators returns various combinations for users for individual accounts (see the individual tests).
- * Manual cases are sometimes created, and sometimes also resolved.
+ *
+ * Originally we tested creation of manual cases here; but this is now disabled, as this functionality
+ * has been removed from the correlator.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -126,7 +128,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
     }
 
     /**
-     * The correlation code returns X and Y. Because manual case is not created automatically, no case should be there.
+     * The correlation code returns X and Y.
      */
     @Test
     public void test120OwnersXY() throws Exception {
@@ -148,8 +150,10 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     /**
      * The correlation code returns X and Y. Correlation case is requested to be created.
+     *
+     * THIS TEST IS DISABLED: the explicit case-creation functionality has been removed, at least for now.
      */
-    @Test
+    @Test(enabled = false)
     public void test130OwnersXYWithCase() throws Exception {
         given();
         Task task = getTestTask();
@@ -170,8 +174,10 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     /**
      * The correlation code returns empty list but a custom potential matches.
+     *
+     * THIS TEST IS DISABLED: the explicit case-creation functionality has been removed, at least for now.
      */
-    @Test
+    @Test(enabled = false)
     public void test140CustomPotentialMatches() throws Exception {
         given();
         Task task = getTestTask();

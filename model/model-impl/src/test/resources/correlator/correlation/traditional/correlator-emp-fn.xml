@@ -9,16 +9,16 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>emp-fn-opt</name>
-    <description>Correlates solely on the basis of employeeNumber and familyName (except for single candidate).</description>
-    <filter>
+    <name>emp-fn</name>
+    <description>Correlates solely on the basis of employeeNumber and familyName.</description>
+    <ownerFilter>
         <q:equal>
             <q:path>employeeNumber</q:path>
             <expression>
                 <path>$projection/attributes/ri:employeeNumber</path>
             </expression>
         </q:equal>
-    </filter>
+    </ownerFilter>
     <confirmation>
         <script>
             <code>
@@ -29,5 +29,5 @@
             </code>
         </script>
     </confirmation>
-    <useConfirmationForSingleCandidate>false</useConfirmationForSingleCandidate>
+    <useConfirmationForSingleCandidate>true</useConfirmationForSingleCandidate>
 </filterCorrelator>

@@ -123,17 +123,17 @@ public class CorrelationServiceImpl implements CorrelationService {
                 .checkCandidateOwner(correlationContext, candidateOwner, result);
     }
 
-    @NotNull
-    private FocusType computePreFocus(
+    @Override
+    public <F extends FocusType> @NotNull F computePreFocus(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
             @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull Class<? extends FocusType> focusClass,
+            @NotNull Class<F> focusClass,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        SimplePreInboundsContextImpl<?> preInboundsContext = new SimplePreInboundsContextImpl<>(
+        SimplePreInboundsContextImpl<F> preInboundsContext = new SimplePreInboundsContextImpl<>(
                 shadowedResourceObject,
                 resource,
                 PrismContext.get().createObjectable(focusClass),

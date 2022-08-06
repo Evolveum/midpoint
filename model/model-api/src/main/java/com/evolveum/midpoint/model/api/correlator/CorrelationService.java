@@ -132,6 +132,17 @@ public interface CorrelationService {
             @NotNull OperationResult result)
                     throws SchemaException, ConfigurationException, ObjectNotFoundException;
 
+    /** TODO Maybe temporary. Maybe visible for testing? */
+    @NotNull <F extends FocusType> F computePreFocus(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull Class<F> focusClass,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     @FunctionalInterface
     interface CaseCloser {
         /** Closes the case in repository. */

@@ -415,8 +415,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void importObjectsFromFileNotRaw(File file, Task task, OperationResult result) throws FileNotFoundException {
         ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
-        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType(prismContext);
+        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
         modelOptions.setRaw(false);
+        options.setModelExecutionOptions(modelOptions);
+        importObjectFromFile(file, options, task, result);
+    }
+
+    protected void importObjectsFromFileRaw(File file, Task task, OperationResult result) throws FileNotFoundException {
+        ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
+        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
+        modelOptions.setRaw(true);
         options.setModelExecutionOptions(modelOptions);
         importObjectFromFile(file, options, task, result);
     }

@@ -1139,13 +1139,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Correlators for this kind of focus objects.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="defaultAuthoritativeSource" type="tns:ObjectTemplateMappingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1353,4 +1346,288 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="SystemConfigurationCorrelationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Global settings related to correlation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.5</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Globally-defined correlators.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectTemplateCorrelationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object-template-related settings related to correlation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Correlator(s) for this object template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemIndexingDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="indexedItemName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local item name in the 'indexed items' container.
+                        Normally, it is derived from the item name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="normalization" type="tns:IndexedItemNormalizationDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="IndexedItemNormalizationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the index. It is appended to the item name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="indexedNormalizedItemName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Overrides the generated name for the indexed item (original item name + normalization name).
+                        Should not be normally needed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="steps" type="tns:NormalizationStepsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How the indexed value is computed? The default is using system-defined polystring normalization method.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="NormalizationStepsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+
+                Default is "polystring".
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="none" type="tns:NoOpNormalizationStepType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="polyString" type="tns:PolyStringNormalizationStepType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="prefix" type="tns:PrefixNormalizationStepType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="custom" type="tns:CustomNormalizationStepType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractNormalizationStepsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO nulls go last
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="documentation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO (or ref?)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="NoOpNormalizationStepType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractNormalizationStepsType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PolyStringNormalizationStepType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractNormalizationStepsType">
+                <xsd:sequence>
+                    <xsd:element name="configuration" type="t:PolyStringNormalizerConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of PolyString normalizer. NOT IMPLEMENTED YET.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrefixNormalizationStepType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractNormalizationStepsType">
+                <xsd:sequence>
+                    <xsd:element name="length" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomNormalizationStepType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO; NOT IMPLEMENTED YET
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractNormalizationStepsType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 </xsd:schema>

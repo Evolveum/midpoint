@@ -22,7 +22,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- this is to auto-create pre-focus objects in TestCorrelators -->
             <xsd:element name="dateOfBirth" type="xsd:string" minOccurs="0"/>
             <xsd:element name="nationalId" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>

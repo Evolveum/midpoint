@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="4a7f6b3e-64cc-4cd9-b5ba-64ecc47d7d10"
+<resource oid="a849873e-e8e1-44e7-8836-13cb9146aa38"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -31,7 +31,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>correlation</icfi:instanceId>
+            <icfi:instanceId>correlation-items</icfi:instanceId>
         </icfc:configurationProperties>
     </connectorConfiguration>
 
@@ -56,23 +56,43 @@
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
+                <inbound>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:familyName</ref>
+                <inbound>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:dateOfBirth</ref>
+                <inbound>
+                    <target>
+                        <path>extension/dateOfBirth</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:nationalId</ref>
+                <inbound>
+                    <target>
+                        <path>extension/nationalId</path>
+                    </target>
+                </inbound>
             </attribute>
+            <mappingsEvaluation>
+                <inbound>
+                    <defaultEvaluationPhases>
+                        <phase>beforeCorrelation</phase>
+                    </defaultEvaluationPhases>
+                </inbound>
+            </mappingsEvaluation>
         </objectType>
     </schemaHandling>
-    <synchronization>
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-        </objectSynchronization>
-    </synchronization>
 </resource>

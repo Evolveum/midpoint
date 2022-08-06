@@ -33,7 +33,7 @@ public abstract class SchemaConstants {
     // NAMESPACES
 
     public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
-    public static final String NS_IDENTITY = "http://midpoint.evolveum.com/xml/ns/public/common/identity-3";
+    public static final String NS_IDENTITY = "http://midpoint.evolveum.com/xml/ns/public/common/identity-3"; // TODO
     public static final String PREFIX_NS_ORG = "org";
     public static final String NS_QUERY = PrismConstants.NS_QUERY;
     public static final String NS_TYPES = PrismConstants.NS_TYPES;

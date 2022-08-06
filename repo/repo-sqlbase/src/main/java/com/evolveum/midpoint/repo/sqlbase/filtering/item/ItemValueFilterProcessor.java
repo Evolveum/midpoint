@@ -9,15 +9,11 @@ package com.evolveum.midpoint.repo.sqlbase.filtering.item;
 import static com.evolveum.midpoint.prism.PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
 
 import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.Expressions;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
-import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Levenshtein;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;

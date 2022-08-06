@@ -64,6 +64,43 @@
         </target>
     </mapping>
     <identity>
+        <defaultAuthoritativeSource>
+            <expression>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
+
+                        // The order of authoritativeness is: SIS, HR, external
+
+                        if (identity == null) {
+                            return null
+                        }
+
+                        def sources = identity
+                                .collect { it.source }
+                                .findAll { it != null }
+
+                        def sis = sources.find { it.resourceRef?.oid == RESOURCE_SIS.oid }
+                        def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR.oid }
+                        def external = sources.find { it.resourceRef?.oid == RESOURCE_EXTERNAL.oid }
+
+                        if (sis != null) {
+                            sis.clone()
+                        } else if (hr != null) {
+                            hr.clone()
+                        } else if (external != null) {
+                            external.clone()
+                        } else {
+                            null // takes all values (should be "none"
+                        }
+                    </code>
+                </script>
+            </expression>
+        </defaultAuthoritativeSource>
+    </identity>
+    <correlation>
         <correlators>
             <composite>
                 <items>
@@ -107,40 +144,5 @@
                 </items>
             </composite>
         </correlators>
-        <defaultAuthoritativeSource>
-            <expression>
-                <script>
-                    <code>
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
-
-                        // The order of authoritativeness is: SIS, HR, external
-
-                        if (identity == null) {
-                            return null
-                        }
-
-                        def sources = identity
-                                .collect { it.source }
-                                .findAll { it != null }
-
-                        def sis = sources.find { it.resourceRef?.oid == RESOURCE_SIS.oid }
-                        def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR.oid }
-                        def external = sources.find { it.resourceRef?.oid == RESOURCE_EXTERNAL.oid }
-
-                        if (sis != null) {
-                            sis.clone()
-                        } else if (hr != null) {
-                            hr.clone()
-                        } else if (external != null) {
-                            external.clone()
-                        } else {
-                            null // takes all values (should be "none"
-                        }
-                    </code>
-                </script>
-            </expression>
-        </defaultAuthoritativeSource>
-    </identity>
+    </correlation>
 </objectTemplate>

@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:test="http://midpoint.evolveum.com/xml/ns/test/correlation"
+        xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/identity-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <user oid="38c36ca8-b5a5-43c9-ba3c-eb1b699c6c8d" xsi:type="UserType">
+        <name>smith1</name>
+        <extension>
+            <test:dateOfBirth>2004-02-06</test:dateOfBirth>
+            <test:nationalId>040206/1111</test:nationalId>
+        </extension>
+        <identities>
+            <identity>
+                <items>
+                    <normalized>
+                        <i:givenName xsi:type="xsd:string">john</i:givenName>
+                        <i:givenName xsi:type="xsd:string">ian</i:givenName>
+                        <i:familyName xsi:type="xsd:string">smith</i:familyName>
+                        <i:dateOfBirth xsi:type="xsd:string">20040206</i:dateOfBirth>
+                        <i:nationalId xsi:type="xsd:string">0402061111</i:nationalId>
+                    </normalized>
+                </items>
+            </identity>
+        </identities>
+        <givenName>John</givenName>
+        <familyName>Smith</familyName>
+    </user>
+    <user xsi:type="UserType">
+        <name>smith2</name>
+        <extension>
+            <test:dateOfBirth>2006-07-13</test:dateOfBirth>
+            <test:nationalId>065713/2222</test:nationalId>
+        </extension>
+        <identities>
+            <identity>
+                <items>
+                    <normalized>
+                        <i:givenName xsi:type="xsd:string">mary</i:givenName>
+                        <i:familyName xsi:type="xsd:string">smith</i:familyName>
+                        <i:dateOfBirth xsi:type="xsd:string">20060713</i:dateOfBirth>
+                        <i:nationalId xsi:type="xsd:string">0657132222</i:nationalId>
+                    </normalized>
+                </items>
+            </identity>
+        </identities>
+        <givenName>Mary</givenName>
+        <familyName>Smith</familyName>
+    </user>
+</objects>

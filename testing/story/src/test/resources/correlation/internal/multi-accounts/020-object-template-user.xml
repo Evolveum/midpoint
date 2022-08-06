@@ -63,6 +63,34 @@
         </target>
     </mapping>
     <identity>
+        <defaultAuthoritativeSource>
+            <expression>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
+                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
+
+                        // Here would be some very smart code evaluating specified business rules aimed to pick
+                        // the most accurate and precise data.
+                        //
+                        // However, currently we simply take the assignment with the "lowest" ID (i.e. tag).
+
+                        if (identity == null) {
+                            return null
+                        }
+
+                        identity
+                                .collect { it.source }
+                                .findAll { it != null }
+                                .min { it.tag }
+                                ?.clone()
+                    </code>
+                </script>
+            </expression>
+        </defaultAuthoritativeSource>
+    </identity>
+    <correlation>
         <correlators>
             <composite>
                 <items>
@@ -106,32 +134,5 @@
                 </items>
             </composite>
         </correlators>
-        <defaultAuthoritativeSource>
-            <expression>
-                <script>
-                    <code>
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
-                        import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
-
-                        // Here would be some very smart code evaluating specified business rules aimed to pick
-                        // the most accurate and precise data.
-                        //
-                        // However, currently we simply take the assignment with the "lowest" ID (i.e. tag).
-
-                        if (identity == null) {
-                            return null
-                        }
-
-                        identity
-                                .collect { it.source }
-                                .findAll { it != null }
-                                .min { it.tag }
-                                ?.clone()
-                    </code>
-                </script>
-            </expression>
-        </defaultAuthoritativeSource>
-    </identity>
-
+    </correlation>
 </objectTemplate>

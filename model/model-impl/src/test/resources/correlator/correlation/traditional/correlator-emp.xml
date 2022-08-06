@@ -11,15 +11,12 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>emp</name>
     <description>Correlates solely on the basis of employeeNumber. Requests manual action if it cannot decide.</description>
-    <filter>
+    <ownerFilter>
         <q:equal>
             <q:path>employeeNumber</q:path>
             <expression>
                 <path>$projection/attributes/ri:employeeNumber</path>
             </expression>
         </q:equal>
-    </filter>
-    <manual>
-        <enabled>whenMoreCandidates</enabled>
-    </manual>
+    </ownerFilter>
 </filterCorrelator>

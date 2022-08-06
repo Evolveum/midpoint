@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguratio
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
+import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -134,7 +135,7 @@ public class CorrelatorContextCreator {
         if (specificCorrelators != null) {
             correlators = specificCorrelators;
         } else {
-            correlators = getTemplateCorrelators(objectTemplate);
+            correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate);
         }
         return new CorrelatorContextCreator(
                 getConfiguration(correlators),
@@ -143,17 +144,6 @@ public class CorrelatorContextCreator {
                 IdentityManagementConfiguration.of(objectTemplate),
                 systemConfiguration)
                 .create();
-    }
-
-    private static CompositeCorrelatorType getTemplateCorrelators(ObjectTemplateType objectTemplate) {
-        if (objectTemplate == null) {
-            return null;
-        }
-        IdentityDataHandlingType identityHandling = objectTemplate.getIdentity();
-        if (identityHandling == null) {
-            return null;
-        }
-        return identityHandling.getCorrelators();
     }
 
     public static CorrelatorContext<?> createChildContext(

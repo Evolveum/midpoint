@@ -21,7 +21,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.api.correlator.SourceObjectType;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -140,9 +139,8 @@ public class CorrelationItemSource {
     @Override
     public String toString() {
         return "CorrelationItemSource{" +
-                "route=" + itemPath +
+                "path=" + itemPath +
                 ", sourceObject=" + sourceObject +
-                ", sourceObjectType=" + SourceObjectType.FOCUS +
                 '}';
     }
 }
