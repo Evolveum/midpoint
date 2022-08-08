@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.util.string.Strings;
 
@@ -205,7 +204,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
                 ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
-                selectFirstMenu(menu);
+                menu.activateFirstAvailableItem();
 
                 return menu;
             }
@@ -279,7 +278,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
-                        CatalogTile t = new CatalogTile(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, WebComponentUtil.getName(object.getValue()));
+                        CatalogTile t = new CatalogTile(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, WebComponentUtil.getName(object.getValue()));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -334,7 +333,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                             protected DisplayType createDisplayType(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
                                 return new DisplayType()
                                         .icon(new IconType()
-                                        .cssClass(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON));
+                                                .cssClass(StringUtils.joinWith(" ", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "fa-2x")));
                             }
                         };
                     }
@@ -500,31 +499,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref) {
         return loadMenuFromOrgTree(ref, 1, 3);
-    }
-
-    private void selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu) {
-        for (ListGroupMenuItem item : menu.getItems()) {
-            boolean selected = selectFirstMenu(menu, item);
-            if (selected) {
-                break;
-            }
-        }
-    }
-
-    private boolean selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu, ListGroupMenuItem<RoleCatalogQueryItem> item) {
-        if (item.getItems().isEmpty()) {
-            menu.activateItem(item);
-            return true;
-        }
-
-        for (ListGroupMenuItem child : item.getItems()) {
-            boolean selected = selectFirstMenu(menu, child);
-            if (selected) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref, int currentLevel, int maxLevel) {

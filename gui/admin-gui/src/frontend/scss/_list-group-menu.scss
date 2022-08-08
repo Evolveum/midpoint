@@ -125,6 +125,10 @@ $list-group-item-padding-sm-x: 1rem;
       border-top-width: $list-group-border-width;
     }
   }
+
+  &.open > .item-link > .chevron {
+    transform: rotate(270deg);
+  }
 }
 
 .list-group-submenu {

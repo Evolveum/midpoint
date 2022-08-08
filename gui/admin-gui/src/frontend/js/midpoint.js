@@ -7,7 +7,6 @@
 
 import MidPointTheme from './midpoint-theme';
 import MidPointAceEditor from "./ace-editor";
-import "./list-group-menu";
 
 window.MidPointTheme = new MidPointTheme();
 window.MidPointAceEditor = new MidPointAceEditor();
