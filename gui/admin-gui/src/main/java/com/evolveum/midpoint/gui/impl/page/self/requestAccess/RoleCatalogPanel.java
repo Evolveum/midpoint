@@ -149,7 +149,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private ObjectQuery createQueryFromOrgRef(ObjectReferenceType ref, boolean scopeOne) {
         return getPrismContext()
-                .queryFor(OrgType.class)
+                .queryFor(RoleType.class)
                 .isInScopeOf(ref.getOid(), scopeOne ? OrgFilter.Scope.ONE_LEVEL : OrgFilter.Scope.SUBTREE)
                 .asc(ObjectType.F_NAME)
                 .build();
@@ -194,6 +194,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private void initModels() {
         searchModel = new LoadableModel<>(false) {
+
             @Override
             protected Search load() {
                 return SearchFactory.createSearch(RoleType.class, page);
@@ -201,6 +202,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         };
 
         menuModel = new LoadableModel<>(false) {
+
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
                 ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
@@ -605,7 +607,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         .label("RoleCatalogPanel.details")
                         .end();
         vcs.identifier("sample-container");
-        vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_DESCRIPTION))).end();
+        vcs.beginItem().path(new ItemPathType(ItemPath.create(ObjectType.F_DESCRIPTION))).end();
 
         return c;
     }

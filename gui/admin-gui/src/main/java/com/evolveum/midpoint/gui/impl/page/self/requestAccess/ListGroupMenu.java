@@ -41,7 +41,7 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
     }
 
     public void activateFirstAvailableItem() {
-        for (ListGroupMenuItem i : items) {
+        for (ListGroupMenuItem i : getItems()) {
             if (activateFirstAvailableItem(i)) {
                 i.setOpen(true);
                 break;
@@ -84,12 +84,18 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
         return null;
     }
 
-    private ListGroupMenuItem getActiveMenu(ListGroupMenuItem<T> parent) {
-        if (parent.isActive()) {
-            return parent;
+    private ListGroupMenuItem getActiveMenu(ListGroupMenuItem<T> item) {
+        if (item.isActive()) {
+            return item;
         }
 
-        return parent.getItems().stream().filter(i -> i.isActive()).findFirst().orElse(null);
-    }
+        for (ListGroupMenuItem i : item.getItems()) {
+            ListGroupMenuItem active = getActiveMenu(i);
+            if (active != null) {
+                return active;
+            }
+        }
 
+        return null;
+    }
 }

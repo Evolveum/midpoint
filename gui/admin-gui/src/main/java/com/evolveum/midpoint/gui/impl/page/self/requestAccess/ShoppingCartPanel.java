@@ -63,10 +63,11 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
         getModelObject().computeConflicts(page);
     }
 
-    // todo this doesn't work properly first time loading conflict numbers - model is evaluated before computeConflicts...
     @Override
     public IModel<List<Badge>> getTitleBadges() {
         return () -> {
+            getModelObject().computeConflicts(page);
+
             List<Badge> badges = new ArrayList<>();
 
             long warnings = getModelObject().getWarningCount();
