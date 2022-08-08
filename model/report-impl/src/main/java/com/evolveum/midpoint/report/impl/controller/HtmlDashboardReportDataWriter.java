@@ -1,29 +1,27 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import java.util.*;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.Function;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 /**
  * Creates and manipulates exported reports in HTML format for dashboard reports.
  */
 public class HtmlDashboardReportDataWriter
-        extends HtmlReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow>  implements DashboardReportDataWriter{
+        extends HtmlReportDataWriter<ExportedDashboardReportDataRow, ExportedDashboardReportHeaderRow> implements DashboardReportDataWriter {
 
     private static final String BASIC_WIDGET_ROW_KEY = "BaseWidgetID";
 
@@ -129,7 +127,7 @@ public class HtmlDashboardReportDataWriter
     }
 
     @Override
-    public String completizeReport(String aggregatedData) {
+    public String completeReport(String aggregatedData) {
         CommonHtmlSupport support = getDefaultSupport();
         String cssStyle = support.getCssStyle();
 
@@ -152,7 +150,7 @@ public class HtmlDashboardReportDataWriter
     }
 
     @Override
-    public String completizeReport() {
+    public String completeReport() {
         CommonHtmlSupport support = getDefaultSupport();
         String cssStyle = support.getCssStyle();
 
@@ -183,7 +181,8 @@ public class HtmlDashboardReportDataWriter
     }
 
     @Override
-    @NotNull public Map<String, String> getWidgetsData() {
+    @NotNull
+    public Map<String, String> getWidgetsData() {
         return widgetsData;
     }
 
