@@ -344,6 +344,13 @@ public class GuiProfileCompiler {
                 composite.setHomePage(mergeHomePage(composite.getHomePage(), configuredHomePage));
             }
         }
+        if (composite.getHomePage() != null && composite.getHomePage().getWidget() != null) {
+            List<ContainerPanelConfigurationType> sorted = new ArrayList<>();
+            sorted.addAll(composite.getHomePage().getWidget());
+            MiscSchemaUtil.sortFeaturesPanels(sorted);
+            composite.getHomePage().getWidget().clear();
+            composite.getHomePage().getWidget().addAll(sorted);
+        }
     }
 
     private HomePageType getHomePageByFocusType(List<HomePageType> homePageList, QName type) {

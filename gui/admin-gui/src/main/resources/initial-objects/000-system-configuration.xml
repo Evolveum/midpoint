@@ -183,11 +183,6 @@
                         <cssClass>fa fa-history</cssClass>
                     </icon>
                 </display>
-                <listView>
-                    <paging>
-                        <maxSize>10</maxSize>
-                    </paging>
-                </listView>
                 <panelType>history</panelType>
                 <preview>true</preview>
             </widget>
@@ -205,11 +200,6 @@
                         <cssClass>fe fe-assignment</cssClass>
                     </icon>
                 </display>
-                <listView>
-                    <paging>
-                        <maxSize>10</maxSize>
-                    </paging>
-                </listView>
                 <panelType>myAccesses</panelType>
                 <preview>true</preview>
             </widget>
@@ -227,11 +217,6 @@
                         <cssClass>fe fe-case</cssClass>
                     </icon>
                 </display>
-                <listView>
-                    <paging>
-                        <maxSize>10</maxSize>
-                    </paging>
-                </listView>
                 <panelType>focusCases</panelType>
                 <preview>true</preview>
             </widget>
@@ -249,15 +234,26 @@
                         <cssClass>fa fa-inbox</cssClass>
                     </icon>
                 </display>
-                <listView>
-                    <paging>
-                        <maxSize>10</maxSize>
-                    </paging>
-                </listView>
                 <panelType>myWorkItems</panelType>
                 <preview>true</preview>
             </widget>
-
+            <widget>
+                <identifier>myAccounts</identifier>
+                <display>
+                    <label>
+                        <orig>My accounts</orig>
+                        <translation>
+                            <key>PageDashboard.accounts</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fa fa-male</cssClass>
+                    </icon>
+                </display>
+                <panelType>projections</panelType>
+                <preview>true</preview>
+            </widget>
         </homePage>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>
