@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -198,5 +199,9 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     @Override
     public Collection<ObjectDelta<? extends ObjectType>> collectDeltas(OperationResult result) throws SchemaException {
         return super.collectDeltas(result);
+    }
+
+    public PageResource getPageResource() {
+        return (PageResource) super.getPageBase();
     }
 }
