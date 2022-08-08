@@ -171,6 +171,10 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         String icon = DEFAULT_RELATION_ICON;
         String label = name.getLocalPart();
 
+        if (config == null) {
+            return createTile(icon, label, name);
+        }
+
         for (RelationDefinitionType rel : config.getRelation()) {
             if (!name.equals(rel.getRef())) {
                 continue;
@@ -191,8 +195,12 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
             break;
         }
 
+        return createTile(icon, label, name);
+    }
+
+    private Tile<QName> createTile(String icon, String label, QName value) {
         Tile tile = new Tile(icon, label);
-        tile.setValue(name);
+        tile.setValue(value);
 
         return tile;
     }

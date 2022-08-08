@@ -1,0 +1,172 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ *
+ * TODO: work in progress, it doesn't wait yet for Oracle being completely up.
+ */
+
+def verbose = params.VERBOSE ?: '0'
+
+def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:oracle:thin:@localhost:1521:XE' +
+    ' -Dmidpoint.repository.jdbcPassword=password' +
+    ' -Dmidpoint.repository.jdbcUsername=midtest' +
+    ' -Dmidpoint.repository.database=oracle' +
+    ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
+
+podTemplate(
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'db',
+                        image: params.DB_IMAGE ?: 'container-registry.oracle.com/database/express:21.3.0-xe',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                                envVar(key: 'ORACLE_CHARACTERSET', value: 'AL32UTF8'),
+                                envVar(key: 'ORACLE_PWD', value: 'password'),
+                                // TODO is separate mount for data necessary?
+                        ],
+                        // TODO needed? ports: [portMapping(name: 'oracle', containerPort: 1521)]
+                ),
+                /*
+                containerTemplate(name: 'maven',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+                */
+        ]
+) {
+    node(POD_LABEL) {
+        //try {
+            /*
+            stage("checkout") {
+                git branch: params.BRANCH ?: 'master',
+                        url: 'https://github.com/Evolveum/midpoint.git'
+            }
+            */
+            stage("db-init") {
+                container('db') {
+                    sh """#!/bin/bash -ex
+                        id
+                        ps xau
+                        printenv | grep -i ora | sort
+
+                        ls -l "\$ORACLE_HOME"
+                        cat "\$ORACLE_HOME/network/admin/tnsnames.ora"
+
+                        su oracle << EOF_SU
+#sqlplus /nolog << EOF
+#conn sys/oracle as sysdba
+sqlplus -S system/password@localhost << EOF
+SELECT SYS_CONTEXT('USERENV','SERVER_HOST') FROM dual;
+SELECT SYS_CONTEXT('USERENV','CURRENT_SCHEMA') FROM dual;
+select * from dual;
+EOF
+
+#sqlplus -S midpoint/password@localhost/XEPDB1 <<< "@/vagrant/tmp/oracle-4.5-all.sql"
+# importing midPoint cleanup procedure for tests
+#sqlplus -S midpoint/password@localhost/XEPDB1 <<< "@/vagrant/tmp/oracle.sql"
+
+EOF_SU
+                    """
+                }
+            }
+            /*
+            stage("build-with-tests") {
+                container('maven') {
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            env | sort
+                            mvn --version
+                            df -h
+                        fi
+
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist clean install ${dbprops}
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+            stage("tests-extra") {
+                container('maven') {
+                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing ${dbprops} \
+                            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+            stage("collect-test-results") {
+                container('maven') {
+                    // If we get here it's success, test results can change it to UNSTABLE.
+                    currentBuild.result = 'SUCCESS'
+
+                    step([
+                            $class: 'Publisher',
+                            reportFilenamePattern: '**/testng-results.xml'
+                    ])
+                }
+            }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
+        } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
+            try {
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            } catch (Exception e) {
+                println 'Could not send email: ' + e
+            }
+            */
+        //}
+    }
+}
