@@ -37,7 +37,7 @@ public class FocusIdentityAsserter<RA> extends PrismContainerValueAsserter<Focus
             throws SchemaException {
         //noinspection unchecked
         assertThat((Collection<Object>) getOrigValues(path))
-                .as(() -> "Normalized value of '" + path + "'")
+                .as(() -> "Original value of '" + path + "'")
                 .containsExactlyInAnyOrder(expected);
         return this;
     }
