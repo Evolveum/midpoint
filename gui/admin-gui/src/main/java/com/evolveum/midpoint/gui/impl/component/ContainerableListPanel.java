@@ -228,7 +228,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     }
                 }
                 if (storage != null) {
-
                     storage.setSearch(search);
                 }
                 return search;
@@ -340,7 +339,16 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 itemTable.setCurrentPage(pageStorage);
             }
         }
+        if (isDashboard()) {
+            Integer maxSize = getViewPagingMaxSize();
+            itemTable.setItemsPerPage(maxSize != null ? maxSize.intValue() : UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
+        }
         return itemTable;
+    }
+
+    private Integer getViewPagingMaxSize() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
     }
 
     protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
@@ -934,7 +942,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     //TODO TODO TODO what about other buttons? e.g. request access?
     private List<Component> createNavigationButtons(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-
         buttonsList.add(createViewAllButton(idButton));
         return buttonsList;
     }
@@ -946,9 +953,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO redirect
+                PageBase page = ContainerableListPanel.this.getPageBase();
+
             }
         };
+        viewAll.add(new VisibleBehaviour(() -> isDashboard()));
         viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
@@ -962,6 +971,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         } else if (isCollectionViewPanelForWidget()) {
             String widgetName = getWidgetNameOfCollection();
             return WebComponentUtil.getObjectListPageStorageKey(widgetName);
+        } else if (isDashboard()) {
+            return WebComponentUtil.getObjectListPageStorageKey(config.getIdentifier());
         }
 
         return WebComponentUtil.getObjectListPageStorageKey(getDefaultType().getSimpleName());
