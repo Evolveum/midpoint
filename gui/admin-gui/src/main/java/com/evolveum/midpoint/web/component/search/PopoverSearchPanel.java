@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.gui.impl.component.search.Popover;
-import com.evolveum.midpoint.web.component.data.TableConfigurationPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
 import org.apache.wicket.Component;
