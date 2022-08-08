@@ -10,7 +10,6 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>emp-fn</name>
-    <description>Correlates solely on the basis of employeeNumber and familyName.</description>
     <ownerFilter>
         <q:equal>
             <q:path>employeeNumber</q:path>

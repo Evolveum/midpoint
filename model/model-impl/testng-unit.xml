@@ -26,9 +26,8 @@
         <classes>
             <class name="com.evolveum.midpoint.model.impl.sync.SynchronizationSituationTest"/>
             <class name="com.evolveum.midpoint.model.impl.sync.TestSynchronizationService"/>
-            <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestTraditionalCorrelators"/>
+            <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators"/>
             <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestExpressionCorrelator"/>
-            <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestItemsCorrelator"/>
         </classes>
     </test>
     <test name="Lens" preserve-order="true" parallel="false" verbose="10">

@@ -7,7 +7,7 @@
 
 <objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 oid="204f3615-bcd7-430d-93ec-c36f1db1dccd">
-    <name>object-template-user</name>
+    <name>default-indexing</name>
     <item>
         <ref>givenName</ref>
         <identity/>

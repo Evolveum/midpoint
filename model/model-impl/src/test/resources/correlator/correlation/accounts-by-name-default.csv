@@ -1,0 +1,4 @@
+uid  | correlator      | employeeNumber | givenName | familyName | dateOfBirth | nationalId | test    | _note
+1    | by-name-default |                | John      | Smith      |             |            | smith1  | There is a user John Smith
+2    | by-name-default |                | Ian       | Smith      |             |            | smith1  | John Smith has an alternative name of "Ian"
+3    | by-name-default |                | Peter     | Smith      |             |            | _none   | No such user exists

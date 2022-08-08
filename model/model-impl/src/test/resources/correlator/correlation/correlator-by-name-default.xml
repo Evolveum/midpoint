@@ -7,7 +7,7 @@
 
 <itemsCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>by-name</name>
+    <name>by-name-default</name>
     <item>
         <path>givenName</path>
     </item>

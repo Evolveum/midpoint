@@ -18,15 +18,9 @@
         </extension>
         <identities>
             <identity>
-                <items>
-                    <normalized>
-                        <i:givenName xsi:type="xsd:string">john</i:givenName>
-                        <i:givenName xsi:type="xsd:string">ian</i:givenName>
-                        <i:familyName xsi:type="xsd:string">smith</i:familyName>
-                        <i:dateOfBirth xsi:type="xsd:string">20040206</i:dateOfBirth>
-                        <i:nationalId xsi:type="xsd:string">0402061111</i:nationalId>
-                    </normalized>
-                </items>
+                <data xsi:type="UserType">
+                    <givenName>Ian</givenName> <!-- an alternative -->
+                </data>
             </identity>
         </identities>
         <givenName>John</givenName>
@@ -38,18 +32,6 @@
             <test:dateOfBirth>2006-07-13</test:dateOfBirth>
             <test:nationalId>065713/2222</test:nationalId>
         </extension>
-        <identities>
-            <identity>
-                <items>
-                    <normalized>
-                        <i:givenName xsi:type="xsd:string">mary</i:givenName>
-                        <i:familyName xsi:type="xsd:string">smith</i:familyName>
-                        <i:dateOfBirth xsi:type="xsd:string">20060713</i:dateOfBirth>
-                        <i:nationalId xsi:type="xsd:string">0657132222</i:nationalId>
-                    </normalized>
-                </items>
-            </identity>
-        </identities>
         <givenName>Mary</givenName>
         <familyName>Smith</familyName>
     </user>
