@@ -15,13 +15,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -100,18 +105,20 @@ public class CorrelatorContextCreator {
         this.systemConfiguration = systemConfiguration;
     }
 
-    static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext)
+    static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext, ModelBeans beans)
             throws ConfigurationException, SchemaException {
         return createRootContext(
                 fullContext.getCorrelationDefinitionBean(),
                 fullContext.objectTemplate,
-                fullContext.systemConfiguration);
+                fullContext.systemConfiguration,
+                beans);
     }
 
     static CorrelatorContext<?> createRootContext(
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @Nullable ObjectTemplateType objectTemplate,
-            @Nullable SystemConfigurationType systemConfiguration)
+            @Nullable SystemConfigurationType systemConfiguration,
+            @NotNull ModelBeans beans)
             throws ConfigurationException, SchemaException {
         CompositeCorrelatorType correlators;
         CompositeCorrelatorType specificCorrelators = correlationDefinitionBean.getCorrelators();
@@ -123,8 +130,8 @@ public class CorrelatorContextCreator {
         return new CorrelatorContextCreator(
                 getConfiguration(correlators),
                 correlationDefinitionBean,
-                IdentityManagementConfiguration.of(objectTemplate),
-                IndexingConfiguration.of(objectTemplate),
+                IdentitiesManager.createIdentityConfiguration(objectTemplate),
+                IndexingConfigurationImpl.of(objectTemplate, beans),
                 systemConfiguration)
                 .create();
     }

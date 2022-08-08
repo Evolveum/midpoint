@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;

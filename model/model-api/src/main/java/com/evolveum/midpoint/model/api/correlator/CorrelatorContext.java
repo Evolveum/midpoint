@@ -10,11 +10,13 @@ package com.evolveum.midpoint.model.api.correlator;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;

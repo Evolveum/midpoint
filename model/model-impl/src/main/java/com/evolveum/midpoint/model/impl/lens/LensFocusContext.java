@@ -8,9 +8,12 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
-import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
+import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -153,7 +156,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // preliminary version
     public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() throws ConfigurationException {
         if (identityManagementConfiguration == null) {
-            identityManagementConfiguration = IdentityManagementConfiguration.of(focusTemplate);
+            identityManagementConfiguration = IdentitiesManager.createIdentityConfiguration(focusTemplate);
         }
         return identityManagementConfiguration;
     }
@@ -161,7 +164,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // preliminary version
     public @NotNull IndexingConfiguration getIndexingConfiguration() throws ConfigurationException {
         if (indexingConfiguration == null) {
-            indexingConfiguration = IndexingConfiguration.of(focusTemplate);
+            indexingConfiguration = IndexingConfigurationImpl.of(focusTemplate, getLensContext().getModelBeans());
         }
         return indexingConfiguration;
     }

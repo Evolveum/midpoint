@@ -1,0 +1,3 @@
+uid  | givenName | familyName | nationalId    | test    | _note
+1    | John      | Smith      | 040206///1111 | smith1  | There is a user John Smith, ID 040206/1111 (national ID has custom normalization)
+2    | john      | Smith      | 04.02.06.1111 | smith1  | Given name is matched as poly string norm.

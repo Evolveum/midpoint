@@ -9,9 +9,11 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +24,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
@@ -75,7 +75,10 @@ class CorrelationItems implements DebugDumpable {
 
     ObjectQuery createIdentityQuery(
             @NotNull Class<? extends ObjectType> focusType,
-            @Nullable String archetypeOid) throws SchemaException {
+            @Nullable String archetypeOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
         assert !items.isEmpty();
 
@@ -83,7 +86,7 @@ class CorrelationItems implements DebugDumpable {
         S_FilterExit currentEnd = null;
         for (int i = 0; i < items.size(); i++) {
             CorrelationItem correlationItem = items.get(i);
-            currentEnd = correlationItem.addClauseToQueryBuilder(nextStart);
+            currentEnd = correlationItem.addClauseToQueryBuilder(nextStart, task, result);
             if (i < items.size() - 1) {
                 nextStart = currentEnd.and();
             } else {

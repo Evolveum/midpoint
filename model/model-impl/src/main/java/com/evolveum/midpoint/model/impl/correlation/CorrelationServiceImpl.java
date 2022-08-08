@@ -66,7 +66,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
         CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
         return correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
@@ -116,7 +116,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 synchronizationPolicy,
                 determineObjectTemplate(synchronizationPolicy, preFocus, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
         CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
         return correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
@@ -197,7 +197,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
         return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result);
     }
 
@@ -237,7 +237,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         FullCorrelationContext fullCorrelationContext = getFullCorrelationContext(aCase, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullCorrelationContext);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullCorrelationContext, beans);
         return new CorrelationPropertiesCreator(correlatorContext, fullCorrelationContext, aCase)
                 .createProperties();
     }
@@ -250,7 +250,8 @@ public class CorrelationServiceImpl implements CorrelationService {
         return CorrelatorContextCreator.createRootContext(
                 synchronizationPolicy.getCorrelationDefinition(),
                 objectTemplate,
-                systemConfiguration);
+                systemConfiguration,
+                beans);
     }
 
     @Override

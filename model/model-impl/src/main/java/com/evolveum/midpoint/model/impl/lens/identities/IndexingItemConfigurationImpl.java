@@ -5,8 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.identities;
+package com.evolveum.midpoint.model.impl.lens.identities;
 
+import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
+import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -25,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IndexingItemConfiguration implements Serializable {
+public class IndexingItemConfigurationImpl implements Serializable, IndexingItemConfiguration {
 
     @NotNull private final String name;
 
@@ -35,7 +38,7 @@ public class IndexingItemConfiguration implements Serializable {
     // contain at least one element
     @NotNull private final Collection<Normalization> normalizations;
 
-    private IndexingItemConfiguration(
+    private IndexingItemConfigurationImpl(
             @NotNull String name,
             @NotNull ItemPath path,
             @NotNull Collection<Normalization> normalizations) {
@@ -47,27 +50,32 @@ public class IndexingItemConfiguration implements Serializable {
 
     @NotNull public static IndexingItemConfiguration of(
             @NotNull ItemRefinedDefinitionType itemDefBean,
-            @NotNull ItemIndexingDefinitionType indexingDefBean) throws ConfigurationException {
+            @NotNull ItemIndexingDefinitionType indexingDefBean,
+            @NotNull ModelBeans modelBeans)
+            throws ConfigurationException {
         ItemPath path = MiscUtil.configNonNull(
                         itemDefBean.getRef(),
                         () -> "No 'ref' in " + itemDefBean)
                 .getItemPath();
         String explicitName = indexingDefBean.getIndexedItemName();
         String indexedItemName = explicitName != null ? explicitName : deriveName(path, itemDefBean);
-        Collection<Normalization> normalizations = createNormalizations(indexedItemName, indexingDefBean);
-        return new IndexingItemConfiguration(indexedItemName, path, normalizations);
+        Collection<Normalization> normalizations = createNormalizations(indexedItemName, indexingDefBean, modelBeans);
+        return new IndexingItemConfigurationImpl(indexedItemName, path, normalizations);
     }
 
     private static Collection<Normalization> createNormalizations(
-            @NotNull String indexedItemName, @NotNull ItemIndexingDefinitionType indexingDefBean) {
+            @NotNull String indexedItemName,
+            @NotNull ItemIndexingDefinitionType indexingDefBean,
+            @NotNull ModelBeans modelBeans) {
         List<Normalization> normalizations = new ArrayList<>();
         for (IndexedItemNormalizationDefinitionType normalizationBean : indexingDefBean.getNormalization()) {
             normalizations.add(
-                    Normalization.create(indexedItemName, normalizationBean));
+                    NormalizationImpl.create(indexedItemName, normalizationBean, modelBeans));
         }
         if (normalizations.isEmpty()) {
             normalizations.add(
-                    Normalization.create(indexedItemName, new IndexedItemNormalizationDefinitionType()._default(true)));
+                    NormalizationImpl.create(
+                            indexedItemName, new IndexedItemNormalizationDefinitionType()._default(true), modelBeans));
         }
         return normalizations;
     }
@@ -79,22 +87,27 @@ public class IndexingItemConfiguration implements Serializable {
                 () -> "No name in path '" + path + "' in " + itemDefBean).getLocalPart();
     }
 
+    @Override
     public @NotNull String getName() {
         return name;
     }
 
+    @Override
     public @NotNull ItemName getQualifiedName() {
         return new ItemName(SchemaConstants.NS_IDENTITY, getName());
     }
 
+    @Override
     public @NotNull ItemPath getPath() {
         return path;
     }
 
+    @Override
     public @NotNull Collection<Normalization> getNormalizations() {
         return normalizations;
     }
 
+    @Override
     public Normalization findNormalization(@Nullable String index) throws ConfigurationException {
         if (index == null) {
             return getDefaultNormalization();
@@ -109,7 +122,8 @@ public class IndexingItemConfiguration implements Serializable {
         }
     }
 
-    private Normalization getDefaultNormalization() throws ConfigurationException {
+    @Override
+    public Normalization getDefaultNormalization() throws ConfigurationException {
         if (normalizations.size() == 1) {
             return normalizations.iterator().next();
         } else {

@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.identities;
 
-import com.evolveum.midpoint.model.api.identities.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.identities.Normalization;
+import com.evolveum.midpoint.model.api.indexing.Normalization;
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -33,7 +35,11 @@ class Normalizer {
 
     Item<?, ?> createNormalizedItem(
             @NotNull ItemDefinition<?> originalItemDef,
-            @NotNull Collection<PrismValue> originalValues) {
+            @NotNull Collection<PrismValue> originalValues,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         PrismProperty<String> normalizedItem =
                 prismContext.itemFactory().createProperty(
                         normalization.getIndexItemName(),
@@ -42,7 +48,7 @@ class Normalizer {
             Object originalRealValue = originalValue.getRealValue();
             if (originalRealValue != null) {
                 normalizedItem.addRealValue(
-                        normalizeValue(originalRealValue, normalization));
+                        normalizeValue(originalRealValue, normalization, task, result));
             } else {
                 LOGGER.warn("No real value in {} in {}", originalValue, originalItemDef);
             }

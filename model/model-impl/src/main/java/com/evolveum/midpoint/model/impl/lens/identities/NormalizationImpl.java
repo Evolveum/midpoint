@@ -5,15 +5,20 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.identities;
+package com.evolveum.midpoint.model.impl.lens.identities;
 
+import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IndexedItemNormalizationDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,15 +26,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-// TODO move to a proper place?
-public class Normalization {
+public class NormalizationImpl implements Normalization {
 
     @NotNull private final String name;
     @NotNull private final String normalizedItemLocalName;
     @NotNull private final IndexedItemNormalizationDefinitionType bean;
     @NotNull private final Collection<NormalizationStep<?>> steps;
 
-    private Normalization(
+    private NormalizationImpl(
             @NotNull String name,
             @NotNull String normalizedItemLocalName,
             @NotNull IndexedItemNormalizationDefinitionType bean,
@@ -41,12 +45,14 @@ public class Normalization {
     }
 
     public static Normalization create(
-            @NotNull String indexedItemName, @NotNull IndexedItemNormalizationDefinitionType normalizationBean) {
-        Collection<NormalizationStep<?>> parsedSteps = NormalizationStep.parse(normalizationBean.getSteps());
+            @NotNull String indexedItemName,
+            @NotNull IndexedItemNormalizationDefinitionType normalizationBean,
+            @NotNull ModelBeans beans) {
+        Collection<NormalizationStep<?>> parsedSteps = NormalizationStep.parse(normalizationBean.getSteps(), beans);
         String normalizationName = getNormalizationName(normalizationBean, parsedSteps);
         String normalizedItemLocalName =
                 getNormalizedItemLocalName(indexedItemName, normalizationName, normalizationBean);
-        return new Normalization(normalizationName, normalizedItemLocalName, normalizationBean, parsedSteps);
+        return new NormalizationImpl(normalizationName, normalizedItemLocalName, normalizationBean, parsedSteps);
     }
 
     private static @NotNull String getNormalizationName(
@@ -76,22 +82,27 @@ public class Normalization {
                 .collect(Collectors.joining("."));
     }
 
+    @Override
     public @NotNull String getName() {
         return name;
     }
 
+    @Override
     public boolean isDefault() {
         return Boolean.TRUE.equals(bean.isDefault());
     }
 
+    @Override
     public ItemName getIndexItemName() {
         return new ItemName(SchemaConstants.NS_IDENTITY, normalizedItemLocalName);
     }
 
+    @Override
     public ItemPath getIndexItemPath() {
         return SchemaConstants.PATH_IDENTITY_SEARCH_ITEMS.append(getIndexItemName());
     }
 
+    @Override
     public @NotNull PrismPropertyDefinition<String> getIndexItemDefinition() {
         // FIXME (not always String)
         MutablePrismPropertyDefinition<String> definition = PrismContext.get().definitionFactory()
@@ -102,9 +113,12 @@ public class Normalization {
         return definition;
     }
 
-    public String normalize(String input) {
+    @Override
+    public @NotNull String normalize(@NotNull String input, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         for (NormalizationStep<?> step : steps) {
-            input = step.execute(input);
+            input = step.execute(input, task, result);
         }
         return input;
     }

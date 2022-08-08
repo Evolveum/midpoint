@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="dc393b43-e125-4ebf-987d-366c57120e96">
+    <name>complex</name>
+    <item>
+        <ref>givenName</ref>
+        <identity/> <!-- to check that it is indexed by default -->
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <indexing>
+            <normalization>
+                <name>norm</name>
+                <default>true</default>
+            </normalization>
+            <normalization>
+                <name>orig</name>
+                <steps>
+                    <none/>
+                </steps>
+            </normalization>
+            <normalization>
+                <steps>
+                    <polyString>
+                        <order>1</order>
+                    </polyString>
+                    <prefix>
+                        <order>2</order>
+                        <length>3</length>
+                    </prefix>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+    <item>
+        <ref>extension/nationalId</ref>
+        <indexing>
+            <normalization>
+                <name>digits</name>
+                <steps>
+                    <custom>
+                        <expression>
+                            <script>
+                                <code>
+                                    // Removes everything except for digits
+                                    basic.stringify(input).replaceAll("[^\\d]", "")
+                                </code>
+                            </script>
+                        </expression>
+                    </custom>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+</objectTemplate>

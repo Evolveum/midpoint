@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
@@ -348,10 +347,9 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             }
             IdentityItemDefinitionType identityDefBean = templateItemDefBean.getIdentity();
             if (identityDefBean != null) {
-                IdentityItemConfiguration config = IdentityItemConfiguration.of(templateItemDefBean, identityDefBean);
                 mappings.add(
                         new TemplateMappingEvaluationRequest(
-                                getOrCreateItemSelectionMapping(identityDefBean, ref, config),
+                                getOrCreateItemSelectionMapping(identityDefBean, ref),
                                 objectTemplate));
             }
         }
@@ -366,7 +364,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private ObjectTemplateMappingType getOrCreateItemSelectionMapping(
-            IdentityItemDefinitionType identityDefBean, ItemPathType ref, IdentityItemConfiguration config) {
+            IdentityItemDefinitionType identityDefBean, ItemPathType ref) {
         ObjectTemplateMappingType explicitMapping = identityDefBean.getSelection();
         ObjectTemplateMappingType selectionMapping;
         if (explicitMapping != null) {

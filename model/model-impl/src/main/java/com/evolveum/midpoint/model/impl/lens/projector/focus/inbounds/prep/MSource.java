@@ -7,8 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingInContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
@@ -25,13 +32,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
  * The resource object being processed plus the necessary surroundings,

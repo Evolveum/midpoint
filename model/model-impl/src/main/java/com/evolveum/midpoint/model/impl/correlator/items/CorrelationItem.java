@@ -12,16 +12,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.identities.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.identities.Normalization;
+import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
+import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
+import com.evolveum.midpoint.model.api.indexing.Normalization;
 import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,8 +35,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
@@ -212,12 +215,15 @@ public class CorrelationItem implements DebugDumpable {
         return property != null ? property.getDefinition() : null;
     }
 
-    S_FilterExit addClauseToQueryBuilder(S_FilterEntry builder) throws SchemaException {
+    S_FilterExit addClauseToQueryBuilder(
+            S_FilterEntry builder, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         Object valueToFind = getValueToFind();
         if (indexingItemConfiguration != null) {
             assert normalization != null;
             ItemPath normalizedItemPath = normalization.getIndexItemPath();
-            Object normalizedValue = IndexingManager.normalizeValue(valueToFind, normalization);
+            Object normalizedValue = IndexingManager.normalizeValue(valueToFind, normalization, task, result);
             LOGGER.trace("Will look for normalized value '{}' in '{}' (of '{}')", normalizedValue, normalizedItemPath, itemPath);
             ItemDefinition<?> normalizedItemDefinition = normalization.getIndexItemDefinition();
             return builder

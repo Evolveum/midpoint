@@ -13,6 +13,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -56,5 +61,10 @@ public class IdentitiesManager {
             }
         }
         return selected;
+    }
+
+    public static IdentityManagementConfiguration createIdentityConfiguration(ObjectTemplateType objectTemplate)
+            throws ConfigurationException {
+        return IdentityManagementConfigurationImpl.of(objectTemplate);
     }
 }

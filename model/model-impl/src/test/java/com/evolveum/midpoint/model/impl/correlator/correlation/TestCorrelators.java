@@ -12,12 +12,13 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlator.*;
-import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -73,9 +74,14 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_ORIGINAL_INDEXING = new TestResource<>(
             TEST_DIR, "user-template-original-indexing.xml", "c3c93da0-d17e-4926-8208-8441ba745381");
 
+    /** Names, date of birth, and national ID are indexed using their original value. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_COMPLEX = new TestResource<>(
+            TEST_DIR, "user-template-complex.xml", "dc393b43-e125-4ebf-987d-366c57120e96");
+
     // TODO
     private static final File FILE_USERS_TRADITIONAL = new File(TEST_DIR, "users-traditional.xml");
     private static final File FILE_USERS_ITEMS = new File(TEST_DIR, "users-items.xml");
+    private static final File FILE_USERS_COMPLEX = new File(TEST_DIR, "users-complex.xml");
 
     private static final File FILE_ACCOUNTS_EMP = new File(TEST_DIR, "accounts-emp.csv");
     private static final TestCorrelator CORRELATOR_EMP = new TestCorrelator(new File(TEST_DIR, "correlator-emp.xml"));
@@ -107,6 +113,13 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                     new File(TEST_DIR, "correlator-by-name-original.xml"),
                     USER_TEMPLATE_ORIGINAL_INDEXING);
 
+    private static final File FILE_ACCOUNTS_COMPLEX = new File(TEST_DIR, "accounts-complex.csv");
+    private static final TestCorrelator CORRELATOR_COMPLEX =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-complex.xml"),
+                    USER_TEMPLATE_COMPLEX);
+
+    @Autowired private ModelBeans modelBeans;
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private CorrelationCaseManager correlationCaseManager;
     @Autowired private CorrelationService correlationService;
@@ -189,6 +202,24 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     public void test210CorrelateByNameOriginal() throws Exception {
         skipIfNotNativeRepository();
         executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
+    }
+
+    @Test
+    public void test220CorrelateComplex() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_COMPLEX, FILE_USERS_COMPLEX, FILE_ACCOUNTS_COMPLEX);
+
+        // Just for completeness, let us check the normalizations
+        // @formatter:off
+        assertUserAfter(findUserByUsernameFullRequired("smith1"))
+                .identities()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName.polyStringNorm", "john", "ian")
+                        .assertNormalizedItem("familyName.norm", "smith")
+                        .assertNormalizedItem("familyName.orig", "Smith")
+                        .assertNormalizedItem("familyName.polyStringNorm.prefix.3", "smi")
+                        .assertNormalizedItem("nationalId.digits", "0402061111");
+        // @formatter:on
     }
 
     @NotNull
@@ -334,8 +365,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         CorrelatorConfiguration.typed(configBean),
                         configBean,
                         null,
-                        IdentityManagementConfiguration.of(correlator.getUserTemplate()),
-                        IndexingConfiguration.of(correlator.getUserTemplate()),
+                        IdentitiesManager.createIdentityConfiguration(correlator.getUserTemplate()),
+                        IndexingConfigurationImpl.of(correlator.getUserTemplate(), modelBeans),
                         systemConfiguration);
         correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
                 correlatorContext, task, result);

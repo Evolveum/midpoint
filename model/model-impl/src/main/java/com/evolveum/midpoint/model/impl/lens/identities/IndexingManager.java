@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.lens.identities;
 
-import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
-import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
-import com.evolveum.midpoint.model.api.identities.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.identities.Normalization;
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
+import com.evolveum.midpoint.model.api.indexing.Normalization;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
@@ -20,11 +19,12 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -55,7 +55,10 @@ public class IndexingManager {
     /** Updates normalized (indexed) identity data on focus add. */
     public <O extends ObjectType> void updateIndexDataOnElementAdd(
             @NotNull O objectToAdd,
-            @NotNull LensElementContext<O> elementContext) throws ConfigurationException, SchemaException {
+            @NotNull LensElementContext<O> elementContext,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ObjectNotFoundException {
         IndexingConfiguration configuration = getIndexingConfiguration(elementContext);
         if (configuration == null || configuration.hasNoItems()) {
             LOGGER.trace("No indexing configuration for {}: index data will not be updated", elementContext);
@@ -67,7 +70,7 @@ public class IndexingManager {
         }
         FocusType focusToAdd = (FocusType) objectToAdd;
         FocusTypeUtil.addOrReplaceIdentity(focusToAdd,
-                computeIndexData(focusToAdd, configuration));
+                computeIndexData(focusToAdd, configuration, task, result));
     }
 
     /**
@@ -78,7 +81,10 @@ public class IndexingManager {
             O current, // we accept null values here but only for non-essential cases (i.e. no index data to be updated)
             @NotNull ObjectDelta<O> delta,
             @NotNull Class<O> objectClass,
-            @NotNull LensElementContext<O> elementContext) throws SchemaException, ConfigurationException {
+            @NotNull LensElementContext<O> elementContext,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ObjectNotFoundException {
         IndexingConfiguration configuration = getIndexingConfiguration(elementContext);
         if (configuration == null || configuration.hasNoItems()) {
             LOGGER.trace("No indexing configuration for {}: index data will not be updated", elementContext);
@@ -103,7 +109,7 @@ public class IndexingManager {
         delta.addModifications(
                 computeIndexingDeltas(
                         expectedNew,
-                        computeIndexData(expectedNew, configuration)));
+                        computeIndexData(expectedNew, configuration, task, result)));
     }
 
 
@@ -126,7 +132,10 @@ public class IndexingManager {
      */
     private @NotNull FocusIdentityType computeIndexData(
             @NotNull FocusType focus,
-            @NotNull IndexingConfiguration configuration) throws ConfigurationException, SchemaException {
+            @NotNull IndexingConfiguration configuration,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ObjectNotFoundException {
         IdentityItemsType normalized = new IdentityItemsType();
         for (IndexingItemConfiguration itemConfig : configuration.getItems()) {
             ItemPath originalItemPath = itemConfig.getPath();
@@ -137,7 +146,7 @@ public class IndexingManager {
                             () -> String.format("No prism definition of indexed item '%s' in %s", originalItemPath, focus));
             //noinspection unchecked
             normalized.asPrismContainerValue().addAll(
-                    normalizeItemValues(originalItemDef, allValues, itemConfig));
+                    normalizeItemValues(originalItemDef, allValues, itemConfig, task, result));
         }
         FocusIdentityType identity = new FocusIdentityType()
                 .items(new FocusIdentityItemsType()
@@ -158,7 +167,10 @@ public class IndexingManager {
     private Collection<? extends Item<?, ?>> normalizeItemValues(
             @NotNull ItemDefinition<?> originalItemDef,
             @NotNull Collection<PrismValue> originalValues,
-            @NotNull IndexingItemConfiguration config) {
+            @NotNull IndexingItemConfiguration config,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         if (originalValues.isEmpty()) {
             return List.of();
         }
@@ -166,14 +178,18 @@ public class IndexingManager {
         for (Normalization normalization : config.getNormalizations()) {
             Normalizer normalizer = new Normalizer(normalization);
             normalizedItems.add(
-                    normalizer.createNormalizedItem(originalItemDef, originalValues));
+                    normalizer.createNormalizedItem(originalItemDef, originalValues, task, result));
         }
         return normalizedItems;
     }
 
     public static @NotNull String normalizeValue(
             @NotNull Object originalRealValue,
-            @NotNull Normalization normalization) {
+            @NotNull Normalization normalization,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         String stringValue;
         if (originalRealValue instanceof PolyString) {
             stringValue = ((PolyString) originalRealValue).getOrig();
@@ -184,7 +200,7 @@ public class IndexingManager {
                     String.format("Only string or polystring identity items are supported yet: '%s' of %s is %s",
                             originalRealValue, normalization, originalRealValue.getClass()));
         }
-        return normalization.normalize(stringValue);
+        return normalization.normalize(stringValue, task, result);
     }
 
     private Collection<? extends ItemDelta<?, ?>> computeIndexingDeltas(

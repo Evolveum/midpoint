@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
 
@@ -261,6 +262,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Limit for clicks.
      */
     private int clickLimit;
+
+    private transient ModelBeans modelBeans;
 
     public LensContext() {
         this(null);
@@ -1957,6 +1960,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 .filter(ctx -> ctx.matches(construction, resourceOid))
                 .filter(ctx -> !ctx.isCompleted())
                 .forEach(LensProjectionContext::setBroken);
+    }
+
+    public @NotNull ModelBeans getModelBeans() {
+        if (modelBeans == null) {
+            modelBeans = SpringApplicationContextHolder.getBean(ModelBeans.class);
+        }
+        return modelBeans;
     }
 
     public enum ExportType {

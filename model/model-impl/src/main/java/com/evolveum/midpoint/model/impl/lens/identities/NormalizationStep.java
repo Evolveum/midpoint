@@ -5,12 +5,24 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.identities;
+package com.evolveum.midpoint.model.impl.lens.identities;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
@@ -35,7 +47,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         this.bean = bean;
     }
 
-    public static List<NormalizationStep<?>> parse(NormalizationStepsType steps) {
+    public static List<NormalizationStep<?>> parse(NormalizationStepsType steps, @NotNull ModelBeans modelBeans) {
         List<AbstractNormalizationStepType> beans = new ArrayList<>();
         if (steps == null) {
             beans.add(new PolyStringNormalizationStepType());
@@ -50,15 +62,16 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
                         Comparator.comparing(
                                 AbstractNormalizationStepType::getOrder,
                                 Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(bean -> parse(bean))
+                .map(bean -> parse(bean, modelBeans))
                 .collect(Collectors.toList());
     }
 
-    public static @NotNull NormalizationStep<?> parse(@NotNull AbstractNormalizationStepType bean) {
+    public static @NotNull NormalizationStep<?> parse(
+            @NotNull AbstractNormalizationStepType bean, @NotNull ModelBeans modelBeans) {
         if (bean instanceof NoOpNormalizationStepType) {
             return new NoOp((NoOpNormalizationStepType) bean);
         } else if (bean instanceof CustomNormalizationStepType) {
-            return new Custom((CustomNormalizationStepType) bean);
+            return new Custom((CustomNormalizationStepType) bean, modelBeans.expressionFactory);
         } else if (bean instanceof PolyStringNormalizationStepType) {
             return new PolyString((PolyStringNormalizationStepType) bean);
         } else if (bean instanceof PrefixNormalizationStepType) {
@@ -70,7 +83,9 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
 
     abstract String asSuffix();
 
-    abstract String execute(String input);
+    abstract @NotNull String execute(@NotNull String input, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
 
     public static class NoOp extends NormalizationStep<NoOpNormalizationStepType> {
 
@@ -79,7 +94,8 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         }
 
         @Override
-        String execute(String input) {
+        @NotNull
+        String execute(@NotNull String input, Task task, OperationResult result) {
             return input;
         }
 
@@ -109,7 +125,8 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         }
 
         @Override
-        String execute(String input) {
+        @NotNull
+        String execute(@NotNull String input, Task task, OperationResult result) {
             return normalizer.normalize(input);
         }
 
@@ -131,7 +148,8 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         }
 
         @Override
-        String execute(String input) {
+        @NotNull
+        String execute(@NotNull String input, Task task, OperationResult result) {
             return input.length() > length ? input.substring(0, length) : input;
         }
 
@@ -143,13 +161,44 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
 
     public static class Custom extends NormalizationStep<CustomNormalizationStepType> {
 
-        public Custom(@NotNull CustomNormalizationStepType bean) {
+        @NotNull private final ExpressionFactory expressionFactory;
+
+        public Custom(
+                @NotNull CustomNormalizationStepType bean,
+                @NotNull ExpressionFactory expressionFactory) {
             super(bean);
+            this.expressionFactory = expressionFactory;
         }
 
         @Override
-        String execute(String input) {
-            throw new UnsupportedOperationException("Custom normalizer is not supported yet");
+        @NotNull
+        String execute(@NotNull String input, Task task, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            VariablesMap variablesMap = new VariablesMap();
+            variablesMap.put(ExpressionConstants.VAR_INPUT, new TypedValue<>(input, String.class));
+            PrismPropertyDefinition<String> outputDefinition =
+                    PrismContext.get().definitionFactory().createPropertyDefinition(
+                            ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
+            PrismValue output = ExpressionUtil.evaluateExpression(
+                    variablesMap,
+                    outputDefinition,
+                    bean.getExpression(),
+                    MiscSchemaUtil.getExpressionProfile(),
+                    expressionFactory,
+                    "normalization expression",
+                    task,
+                    result);
+            if (output == null) {
+                throw new UnsupportedOperationException(
+                        "Normalization expression cannot return null value; for input: '" + input + "'");
+            }
+            String realValue = output.getRealValue();
+            if (realValue == null) {
+                throw new UnsupportedOperationException(
+                        "Normalization expression cannot return null value; for input: '" + input + "'");
+            }
+            return realValue;
         }
 
         @Override

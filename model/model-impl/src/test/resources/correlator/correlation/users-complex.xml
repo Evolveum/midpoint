@@ -11,7 +11,6 @@
     <user xsi:type="UserType">
         <name>smith1</name>
         <extension>
-            <test:dateOfBirth>2004-02-06</test:dateOfBirth>
             <test:nationalId>040206/1111</test:nationalId>
         </extension>
         <identities>
@@ -22,15 +21,6 @@
             </identity>
         </identities>
         <givenName>John</givenName>
-        <familyName>Smith</familyName>
-    </user>
-    <user xsi:type="UserType">
-        <name>smith2</name>
-        <extension>
-            <test:dateOfBirth>2006-07-13</test:dateOfBirth>
-            <test:nationalId>065713/2222</test:nationalId>
-        </extension>
-        <givenName>Mary</givenName>
         <familyName>Smith</familyName>
     </user>
 </objects>

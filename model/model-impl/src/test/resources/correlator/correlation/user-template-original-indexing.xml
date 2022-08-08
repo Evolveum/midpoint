@@ -28,24 +28,4 @@
             </normalization>
         </indexing>
     </item>
-    <item>
-        <ref>extension/dateOfBirth</ref>
-        <indexing>
-            <normalization>
-                <steps>
-                    <none/>
-                </steps>
-            </normalization>
-        </indexing>
-    </item>
-    <item>
-        <ref>extension/nationalId</ref>
-        <indexing>
-            <normalization>
-                <steps>
-                    <none/>
-                </steps>
-            </normalization>
-        </indexing>
-    </item>
 </objectTemplate>

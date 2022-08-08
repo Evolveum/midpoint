@@ -5,8 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.identities;
+package com.evolveum.midpoint.model.impl.lens.identities;
 
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -24,31 +27,32 @@ import java.util.Collection;
  *
  * PRELIMINARY VERSION - e.g. no support for object template inclusion, etc
  */
-public class IndexingConfiguration {
+public class IndexingConfigurationImpl implements IndexingConfiguration {
 
     @NotNull private final ObjectTemplateType objectTemplate;
     @NotNull private final PathKeyedMap<IndexingItemConfiguration> itemsMap;
 
-    private IndexingConfiguration(ObjectTemplateType objectTemplate) throws ConfigurationException {
+    private IndexingConfigurationImpl(ObjectTemplateType objectTemplate, @NotNull ModelBeans beans) throws ConfigurationException {
         this.objectTemplate = objectTemplate != null ? objectTemplate : new ObjectTemplateType();
-        this.itemsMap = extractItemsConfiguration(this.objectTemplate);
+        this.itemsMap = extractItemsConfiguration(this.objectTemplate, beans);
     }
 
-    public static @NotNull IndexingConfiguration of(@Nullable ObjectTemplateType objectTemplate) throws ConfigurationException {
-        return new IndexingConfiguration(objectTemplate);
+    public static @NotNull IndexingConfiguration of(@Nullable ObjectTemplateType objectTemplate, @NotNull ModelBeans beans) throws ConfigurationException {
+        return new IndexingConfigurationImpl(objectTemplate, beans);
     }
 
-    private static PathKeyedMap<IndexingItemConfiguration> extractItemsConfiguration(@NotNull ObjectTemplateType objectTemplate)
+    private static PathKeyedMap<IndexingItemConfiguration> extractItemsConfiguration(
+            @NotNull ObjectTemplateType objectTemplate, @NotNull ModelBeans beans)
             throws ConfigurationException {
         PathKeyedMap<IndexingItemConfiguration> itemConfigurationMap = new PathKeyedMap<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
             ItemIndexingDefinitionType itemIndexingDefBean = itemDefBean.getIndexing();
             IndexingItemConfiguration itemConfiguration;
             if (itemIndexingDefBean != null) {
-                itemConfiguration = IndexingItemConfiguration.of(itemDefBean, itemIndexingDefBean);
+                itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, itemIndexingDefBean, beans);
             } else if (itemDefBean.getIdentity() != null) {
                 // "Identity" items are indexed by default (TODO how can that be turned off?)
-                itemConfiguration = IndexingItemConfiguration.of(itemDefBean, new ItemIndexingDefinitionType());
+                itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, new ItemIndexingDefinitionType(), beans);
             } else {
                 continue;
             }
@@ -57,15 +61,18 @@ public class IndexingConfiguration {
         return itemConfigurationMap;
     }
 
+    @Override
     public @NotNull Collection<IndexingItemConfiguration> getItems() throws ConfigurationException {
         return itemsMap.values();
     }
 
+    @Override
     public @Nullable IndexingItemConfiguration getForPath(@NotNull ItemPath path) {
         return itemsMap.get(path);
     }
 
     // TODO improve --- TODO what if empty config is legal?
+    @Override
     public boolean hasNoItems() {
         return itemsMap.values().isEmpty();
     }
@@ -74,7 +81,7 @@ public class IndexingConfiguration {
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "objectTemplate=" + objectTemplate +
-                ", items: " + itemsMap.size() +
+                ", items: " + itemsMap.keySet() +
                 '}';
     }
 }

@@ -61,9 +61,10 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
-            throws ConfigurationException, SchemaException {
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         return new Correlation<>(correlationContext)
-                .checkCandidateOwner(candidateOwner);
+                .checkCandidateOwner(candidateOwner, result);
     }
 
     private class Correlation<F extends FocusType> {
@@ -87,7 +88,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         }
 
         private @NotNull List<F> findCandidates(OperationResult result)
-                throws SchemaException, ConfigurationException {
+                throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
 
             CorrelationItems correlationItems = createCorrelationItems();
             List<F> allCandidates = findCandidates(correlationItems, result);
@@ -99,10 +101,12 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return allCandidates;
         }
 
-        boolean checkCandidateOwner(F candidateOwner) throws SchemaException, ConfigurationException {
+        boolean checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
+                throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
 
             CorrelationItems correlationItems = createCorrelationItems();
-            boolean matches = checkCandidateOwner(correlationItems, candidateOwner);
+            boolean matches = checkCandidateOwner(correlationItems, candidateOwner, result);
 
             LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
                     candidateOwner, resourceObject, correlationItems.size(), contextDescription, matches);
@@ -120,18 +124,22 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         @NotNull private List<F> findCandidates(
                 CorrelationItems correlationItems, OperationResult result)
-                throws SchemaException {
-            ObjectQuery query = createQuery(correlationItems);
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            ObjectQuery query = createQuery(correlationItems, result);
             return query != null ? executeQuery(query, result) : List.of();
         }
 
         /** Returns `null` if we cannot use the definitions here. */
-        private @Nullable ObjectQuery createQuery(CorrelationItems correlationItems)
-                throws SchemaException {
+        private @Nullable ObjectQuery createQuery(CorrelationItems correlationItems, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
             if (areItemsApplicable(correlationItems)) {
                 return correlationItems.createIdentityQuery(
                         correlationContext.getFocusType(),
-                        correlationContext.getArchetypeOid());
+                        correlationContext.getArchetypeOid(),
+                        correlationContext.getTask(),
+                        result);
             } else {
                 return null;
             }
@@ -176,9 +184,10 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return true;
         }
 
-        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner)
-                throws SchemaException {
-            ObjectQuery query = createQuery(correlationItems);
+        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            ObjectQuery query = createQuery(correlationItems, result);
             return query != null && candidateOwnerMatches(query, candidateOwner);
         }
 
