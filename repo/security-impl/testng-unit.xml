@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
+<suite name="unit" parallel="none">
      <test name="security" preserve-order="false" enabled="true">
         <classes>
             <!-- Just a template, not used... -->

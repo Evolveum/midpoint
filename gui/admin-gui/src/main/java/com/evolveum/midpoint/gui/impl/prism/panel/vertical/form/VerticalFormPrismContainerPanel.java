@@ -11,7 +11,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
@@ -24,19 +29,60 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";
+    private static final String ID_CONTAINER = "container";
 
     public VerticalFormPrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
+    protected void initLayout() {
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.setOutputMarkupId(true);
+        add(container);
+
+        //ugly hack TODO FIME - prism context is lost during serialization/deserialization.. find better way how to do it.
+        if (getModelObject() != null) {
+            getModelObject().revive(getPrismContext());
+        }
+
+        Component headerPanel = createHeaderPanel();
+        headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
+        container.add(headerPanel);
+
+        Component valuesPanel = createValuesPanel();
+        container.add(valuesPanel);
+
+    }
+
     @Override
     protected Component createHeaderPanel() {
-        return new VerticalFormContainerHeaderPanel(ID_HEADER, getTitleModel()) {
+        VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getModel()) {
             @Override
             protected String getIcon() {
                 return VerticalFormPrismContainerPanel.this.getIcon();
             }
+
+            @Override
+            protected IModel<String> getTitleModel() {
+                return VerticalFormPrismContainerPanel.this.getTitleModel();
+            }
+
+            @Override
+            protected void onExpandClick(AjaxRequestTarget target) {
+                PrismContainerWrapper<C> wrapper = VerticalFormPrismContainerPanel.this.getModelObject();
+                boolean expandedValue = !wrapper.isExpanded();
+                wrapper.setExpanded(expandedValue);
+                wrapper.getValues().forEach(v -> v.setExpanded(expandedValue));
+                target.add(VerticalFormPrismContainerPanel.this.get(ID_CONTAINER));
+            }
+
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(VerticalFormPrismContainerPanel.this.get(ID_CONTAINER));
+            }
         };
+        header.setOutputMarkupId(true);
+        return header;
     }
 
     protected IModel<String> getTitleModel() {
@@ -50,7 +96,9 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+        item.getModel().getObject().setExpanded(true);
         VerticalFormDefaultContainerablePanel<C> panel = new VerticalFormDefaultContainerablePanel<C>("value", item.getModel(), settings);
+        panel.setOutputMarkupId(true);
         item.add(panel);
         return panel;
     }

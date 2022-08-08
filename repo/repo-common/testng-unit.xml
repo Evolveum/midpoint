@@ -7,6 +7,6 @@
   -->
 
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
+<suite name="unit" parallel="none">
     <!-- No unit tests, see integration test suite XML. -->
 </suite>

@@ -9,17 +9,19 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTilePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,13 +36,12 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class VerticalFormContainerHeaderPanel extends BasePanel<String> {
+public abstract class VerticalFormContainerHeaderPanel<C extends Containerable> extends PrismContainerHeaderPanel<C, PrismContainerWrapper<C>> {
 
     private static final String ID_ICON = "icon";
-    private static final String ID_TITLE = "title";
 
-    public VerticalFormContainerHeaderPanel(String id, IModel<String> titleModel) {
-        super(id, titleModel);
+    public VerticalFormContainerHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
+        super(id, model);
     }
 
     @Override
@@ -55,10 +56,34 @@ public abstract class VerticalFormContainerHeaderPanel extends BasePanel<String>
         icon.add(AttributeAppender.append("class", () -> getIcon()));
         add(icon);
 
-        add(new Label(ID_TITLE, getModel()));
+        add(new AjaxEventBehavior("onClick") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                onExpandClick(target);
+            }
+        });
+    }
+
+    @Override
+    protected boolean isHelpTextVisible() {
+        return false;
+    }
+
+    @Override
+    protected Component createTitle(IModel<String> label) {
+        IModel<String> titleModel = getTitleModel();
+        if (titleModel == null) {
+            titleModel = label;
+        }
+        return super.createTitle(titleModel);
     }
 
     protected String getIcon() {
         return "";
+    }
+
+    protected IModel<String> getTitleModel() {
+        return null;
     }
 }
