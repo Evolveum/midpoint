@@ -1,32 +1,30 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.activity;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.report.impl.activity.ExportDashboardActivitySupport.DashboardWidgetHolder;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
+import com.evolveum.midpoint.report.impl.activity.ExportDashboardActivitySupport.DashboardWidgetHolder;
 import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Activity execution specifics for classical report export.
@@ -44,7 +42,7 @@ public final class ClassicDashboardReportExportActivityRun
     @NotNull private final ReportServiceImpl reportService;
 
     /**
-     * Data writer which completize context of report.
+     * Data writer which complete context of report.
      */
     private ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter;
 
@@ -184,7 +182,7 @@ public final class ClassicDashboardReportExportActivityRun
     }
 
     @Override
-    public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
+    public void afterRun(OperationResult result) throws CommonException {
         support.saveReportFile(dataWriter, result);
     }
 

@@ -1,31 +1,32 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 /**
  * Creates and manipulates exported reports in CSV format.
  */
-public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> implements DashboardReportDataWriter {
+public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow>
+        implements DashboardReportDataWriter {
 
     @NotNull private final CommonCsvSupport support;
 
@@ -114,7 +115,18 @@ public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReport
     }
 
     @Override
-    @NotNull public Map<String, String> getWidgetsData() {
+    @NotNull
+    public Map<String, String> getWidgetsData() {
         return widgetsData;
+    }
+
+    @Override
+    public @NotNull Charset getEncoding() {
+        String encoding = support.getEncoding();
+        try {
+            return encoding != null ? Charset.forName(encoding) : super.getEncoding();
+        } catch (Exception e) {
+            return super.getEncoding();
+        }
     }
 }
