@@ -275,6 +275,19 @@
                 <identifier>myWorkItems</identifier>
                 <visibility>hidden</visibility>
             </widget>
+            <widget>
+                <identifier>myHistory</identifier>
+                <visibility>hidden</visibility>
+            </widget>
         </homePage>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>UserType</type>
+                <panel>
+                    <identifier>history</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
 </role>

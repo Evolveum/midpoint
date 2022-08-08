@@ -186,64 +186,6 @@ public class PageSelfDashboard extends PageSelf {
         }
 
         return panel;
-
-
-//        Class<?> type = WebComponentUtil.qnameToClass(PrismContext.get(), model.getObject().getType());
-//        if (AssignmentType.class.equals(type)) {
-//            return new MyAccessesPreviewDataPanel(markupId, null, model.getObject());
-//        }
-//
-//        if (CaseType.class.equals(type)) {
-//            return createMyRequestsPanel(markupId, model.getObject());
-//        }
-//
-//        if (CaseWorkItemType.class.equals(type)) {
-//            return createMyWorkItemsPanel(markupId, model.getObject());
-//        }
-//
-//        return new WebMarkupContainer(markupId);
-    }
-
-//    private Component createMyWorkItemsPanel(String markupId, ContainerPanelConfigurationType config) {
-//        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD, config) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected ObjectFilter getCaseWorkItemsFilter() {
-//                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-//                                AuthUtil.getPrincipalUser(),
-//                                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
-//                        .desc(F_CREATE_TIMESTAMP)
-//                        .buildFilter();
-//            }
-//        };
-//        workItemsPanel.setOutputMarkupId(true);
-//        return workItemsPanel;
-//    }
-
-    private Component createMyRequestsPanel(String markupId, ContainerPanelConfigurationType config) {
-        CasesTablePanel cases =  new CasesTablePanel(markupId, null, config) {
-
-            @Override
-            protected ObjectFilter getCasesFilter() {
-                return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
-                                AuthUtil.getPrincipalUser().getOid())
-                        .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-                        .buildFilter();
-            }
-
-            @Override
-            protected boolean isDashboard() {
-                return true;
-            }
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
-            }
-        };
-        cases.setDashboard(true);
-        return cases;
     }
 
     private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId) {
