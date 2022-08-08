@@ -6,11 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false" verbose="10" >
+<suite name="unit" parallel="none" verbose="10" >
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
     </listeners>
-    <test name="provisioning-ucf" parallel="false" verbose="10">
+    <test name="provisioning-ucf" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.provisioning.ucf.impl.connid.TestUcfDummy" />
             <class name="com.evolveum.midpoint.provisioning.ucf.impl.connid.TestUcfDummyMulti" />

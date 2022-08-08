@@ -6,6 +6,6 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false" verbose="1">
+<suite name="unit" parallel="none" verbose="1">
     <!-- use only integration suite for this module -->
 </suite>
