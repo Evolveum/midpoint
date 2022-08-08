@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -36,7 +37,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 /**
  * Collection of correlation items (for given correlation or correlation-like operation.)
  */
-class CorrelationItems {
+class CorrelationItems implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItems.class);
 
@@ -44,7 +45,7 @@ class CorrelationItems {
 
     private CorrelationItems(@NotNull List<CorrelationItem> items) {
         this.items = items;
-        LOGGER.trace("CorrelationItems created:\n{}", items);
+        LOGGER.trace("CorrelationItems created:\n{}", DebugUtil.debugDumpLazily(items, 1));
     }
 
     public static @NotNull CorrelationItems create(
@@ -79,11 +80,6 @@ class CorrelationItems {
         assert !items.isEmpty();
 
         S_FilterEntry nextStart = PrismContext.get().queryFor(focusType);
-        PrismObjectDefinition<?> focusDef =
-                MiscUtil.requireNonNull(
-                        PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusType),
-                        () -> "No definition for " + focusType);
-
         S_FilterExit currentEnd = null;
         for (int i = 0; i < items.size(); i++) {
             CorrelationItem correlationItem = items.get(i);
@@ -105,5 +101,12 @@ class CorrelationItems {
                         currentEnd;
 
         return end.build();
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
+        return sb.toString();
     }
 }

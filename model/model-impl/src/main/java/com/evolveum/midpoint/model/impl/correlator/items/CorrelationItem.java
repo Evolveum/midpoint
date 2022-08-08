@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,51 +20,54 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
- * Instance of a correlation item: covering both source and target side.
- *
- * The source side contains the complete data (definitions + values), whereas the target side contains the definitions,
- * and _optionally_ the values. Depending on whether we are going to correlate, or displaying correlation candidates.
+ * Instance of a correlation item
  *
  * TODO finish!
  *
  * TODO what's the relation to {@link CorrelationProperty}?
  */
-public class CorrelationItem {
+public class CorrelationItem implements DebugDumpable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationItem.class);
 
     @NotNull private final String name;
 
     @NotNull private final ItemPath itemPath;
 
-    /**
-     * The source item definition + content (in pre-focus or in shadow). Provides the right-hand side of correlation queries.
-     */
-    @NotNull private final CorrelationItemSource source;
-
     // TODO
     @Nullable private final IdentityItemConfiguration identityItemConfiguration;
+
+    // TODO
+    @NotNull private final List<? extends PrismValue> prismValues;
 
     private CorrelationItem(
             @NotNull String name,
             @NotNull ItemPath itemPath,
             @Nullable IdentityItemConfiguration identityItemConfiguration,
-            @NotNull CorrelationItemSource source) {
+            @NotNull List<? extends PrismValue> prismValues) {
         this.name = name;
         this.itemPath = itemPath;
         this.identityItemConfiguration = identityItemConfiguration;
-        this.source = source;
+        this.prismValues = prismValues;
     }
 
     public static CorrelationItem create(
@@ -71,17 +75,12 @@ public class CorrelationItem {
             @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
             @NotNull CorrelationContext correlationContext)
             throws ConfigurationException {
-
-        String name = getName(itemBean);
         ItemPath path = getPath(itemBean, correlatorContext);
         return new CorrelationItem(
-                name,
+                getName(itemBean),
                 path,
                 getIdentityItemConfiguration(itemBean, correlatorContext),
-                CorrelationItemSource.create(
-                        itemBean,
-                        correlatorContext,
-                        correlationContext.getPreFocus()));
+                getPrismValues(correlationContext.getPreFocus(), path));
     }
 
     public static CorrelationItem create(
@@ -89,14 +88,12 @@ public class CorrelationItem {
             @NotNull CorrelatorContext<?> correlatorContext,
             @NotNull ObjectType preFocus)
             throws ConfigurationException {
-
-        String name = getName(itemBean);
         ItemPath path = getPath(itemBean, correlatorContext);
         return new CorrelationItem(
-                name,
+                getName(itemBean),
                 path,
                 getIdentityItemConfiguration(itemBean, correlatorContext),
-                CorrelationItemSource.create(itemBean, correlatorContext, preFocus));
+                getPrismValues(preFocus, path));
     }
 
     private static IdentityItemConfiguration getIdentityItemConfiguration(
@@ -130,7 +127,7 @@ public class CorrelationItem {
             }
         }
         throw new IllegalStateException(
-                "Couldn't determine name for correlation item: no name, ref, path, nor source path in " + itemBean);
+                "Couldn't determine name for correlation item: no name, ref, nor path in " + itemBean);
     }
 
     // Temporary code
@@ -152,10 +149,58 @@ public class CorrelationItem {
         }
     }
 
+    private static @NotNull List<? extends PrismValue> getPrismValues(@NotNull ObjectType preFocus, @NotNull ItemPath itemPath) {
+        Item<?, ?> item = preFocus.asPrismObject().findItem(itemPath);
+        return item != null ? item.getValues() : List.of();
+    }
+
     private @NotNull Object getValueToFind() throws SchemaException {
         return MiscUtil.requireNonNull(
-                source.getRealValue(),
+                getRealValue(),
                 () -> new UnsupportedOperationException("Correlation on null item values is not yet supported"));
+    }
+
+    /**
+     * Returns the source value that should be used for the correlation.
+     * We assume there is a single one.
+     */
+    public Object getRealValue() throws SchemaException {
+        PrismValue single = getSinglePrismValue();
+        return single != null ? single.getRealValue() : null;
+    }
+
+    private PrismValue getSinglePrismValue() {
+        return MiscUtil.extractSingleton(
+                prismValues,
+                () -> new UnsupportedOperationException("Multiple values of " + itemPath + " are not supported: " + prismValues));
+    }
+
+    /** Shouldn't return `null` values. */
+    public @NotNull Collection<?> getRealValues() throws SchemaException {
+        return prismValues.stream()
+                .map(PrismValue::getRealValue)
+                .collect(Collectors.toList());
+    }
+
+    public @Nullable PrismProperty<?> getProperty() throws SchemaException {
+        PrismValue single = getSinglePrismValue();
+        if (single == null) {
+            return null;
+        }
+        Itemable parent = single.getParent();
+        if (parent == null) {
+            throw new IllegalStateException("Parent-less source value: " + single + " in " + this);
+        } else if (parent instanceof PrismProperty) {
+            return (PrismProperty<?>) parent;
+        } else {
+            throw new UnsupportedOperationException("Non-property sources are not supported: " + single + " in " + this);
+        }
+    }
+
+    public @Nullable ItemDefinition<?> getDefinition() throws SchemaException {
+        // Very temporary implementation
+        PrismProperty<?> property = getProperty();
+        return property != null ? property.getDefinition() : null;
     }
 
     S_FilterExit addClauseToQueryBuilder(S_FilterEntry builder) throws SchemaException {
@@ -173,7 +218,9 @@ public class CorrelationItem {
             throws SchemaException {
         assert identityItemConfiguration != null;
         ItemPath normalizedItemPath = IdentitiesManager.getNormalizedItemPath(identityItemConfiguration);
-        Object normalizedValue = IdentitiesManager.normalizeValue(getValueToFind(), identityItemConfiguration);
+        Object valueToFind = getValueToFind();
+        Object normalizedValue = IdentitiesManager.normalizeValue(valueToFind, identityItemConfiguration);
+        LOGGER.trace("Will look for normalized value '{}' in '{}' (of '{}')", normalizedValue, normalizedItemPath, itemPath);
         ItemDefinition<?> normalizedItemDefinition = IdentitiesManager.getNormalizedItemDefinition(identityItemConfiguration);
         return builder
                 .item(normalizedItemPath, normalizedItemDefinition)
@@ -185,10 +232,11 @@ public class CorrelationItem {
      * Adds a "plain" clause to the current query builder.
      */
     private S_FilterExit addPlainClauseToQueryBuilder(S_FilterEntry builder) throws SchemaException {
-        stateCheck(!itemPath.isEmpty(), "Cannot use item without itemPath in new-style queries: %s", name);
+        Object valueToFind = getValueToFind();
+        LOGGER.trace("Will look for value '{}' of '{}'", valueToFind, itemPath);
         return builder
                 .item(itemPath)
-                .eq(getValueToFind());
+                .eq(valueToFind);
         // TODO matching rule
     }
 
@@ -198,7 +246,7 @@ public class CorrelationItem {
      * Temporary implementation: We can, if it's non-null. (In future we might configure the behavior in such cases.)
      */
     public boolean isApplicable() throws SchemaException {
-        return source.getRealValue() != null;
+        return getRealValue() != null;
     }
 
     /**
@@ -206,9 +254,11 @@ public class CorrelationItem {
      * The property will be named after correlation item, not after the source property.
      *
      * It may be empty. But must not be multi-valued.
+     *
+     * TODO
      */
     public @Nullable PrismProperty<?> getRenamedSourceProperty() throws SchemaException {
-        var property = source.getProperty();
+        var property = getProperty();
         if (property == null || name.equals(property.getElementName().getLocalPart())) {
             return property;
         }
@@ -226,17 +276,27 @@ public class CorrelationItem {
         return "CorrelationItem{" +
                 "name=" + name +
                 ", itemPath=" + itemPath +
-                ", source=" + source +
                 ", identityConfig=" + identityItemConfiguration +
                 '}';
     }
 
     // Temporary
-    public @NotNull CorrelationProperty getSourceCorrelationPropertyDefinition() throws SchemaException {
+    public @NotNull CorrelationProperty asCorrelationProperty() throws SchemaException {
         return CorrelationProperty.create(
                 name,
                 itemPath,
-                source.getRealValues(),
-                source.getDefinition());
+                getRealValues(),
+                getDefinition());
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "name", name, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "itemPath", String.valueOf(itemPath), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(
+                sb, "identityItemConfiguration", String.valueOf(identityItemConfiguration), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "values", prismValues, indent + 1);
+        return sb.toString();
     }
 }

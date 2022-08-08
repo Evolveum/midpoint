@@ -83,7 +83,7 @@ class CorrelationPropertiesCreator {
         List<CorrelationProperty> definitions = new ArrayList<>();
         for (CorrelationItem correlationItem : correlationItems) {
             definitions.add(
-                    correlationItem.getSourceCorrelationPropertyDefinition());
+                    correlationItem.asCorrelationProperty());
         }
         return definitions;
     }

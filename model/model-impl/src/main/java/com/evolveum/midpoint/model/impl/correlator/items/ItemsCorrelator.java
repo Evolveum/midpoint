@@ -90,7 +90,6 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 throws SchemaException, ConfigurationException {
 
             CorrelationItems correlationItems = createCorrelationItems();
-
             List<F> allCandidates = findCandidates(correlationItems, result);
 
             LOGGER.debug("Found {} owner candidates for {} using {} correlation item(s) in {}: {}",
@@ -101,8 +100,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         }
 
         boolean checkCandidateOwner(F candidateOwner) throws SchemaException, ConfigurationException {
-            CorrelationItems correlationItems = createCorrelationItems();
 
+            CorrelationItems correlationItems = createCorrelationItems();
             boolean matches = checkCandidateOwner(correlationItems, candidateOwner);
 
             LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
@@ -122,7 +121,6 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         @NotNull private List<F> findCandidates(
                 CorrelationItems correlationItems, OperationResult result)
                 throws SchemaException {
-
             ObjectQuery query = createQuery(correlationItems);
             return query != null ? executeQuery(query, result) : List.of();
         }
@@ -149,12 +147,6 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 }
             }
             return true;
-        }
-
-        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner)
-                throws SchemaException {
-            ObjectQuery query = createQuery(correlationItems);
-            return query != null && candidateOwnerMatches(query, candidateOwner);
         }
 
         private List<F> executeQuery(ObjectQuery query, OperationResult gResult) throws SchemaException {
@@ -184,12 +176,19 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return true;
         }
 
+        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner)
+                throws SchemaException {
+            ObjectQuery query = createQuery(correlationItems);
+            return query != null && candidateOwnerMatches(query, candidateOwner);
+        }
+
         private boolean candidateOwnerMatches(ObjectQuery query, F candidateOwner) throws SchemaException {
             LOGGER.trace("Checking the following query:\n{}\nregarding the candidate:\n{}",
                     query.debugDumpLazily(1),
                     candidateOwner.debugDumpLazily(1));
             ObjectFilter filter = query.getFilter();
-            return filter == null || filter.match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
+            return filter == null
+                    || filter.match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
         }
     }
 }
