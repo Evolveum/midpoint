@@ -149,7 +149,7 @@ class IdMatchObjectCreator {
 
     private List<CorrelationItem> getExplicitCorrelationItems() throws ConfigurationException {
         List<CorrelationItem> correlationItems = new ArrayList<>();
-        for (Map.Entry<String, CorrelationItemDefinitionType> entry : correlatorContext.getItemDefinitionsMap().entrySet()) {
+        for (Map.Entry<String, ItemCorrelationType> entry : correlatorContext.getItemDefinitionsMap().entrySet()) {
             CorrelationItem correlationItem = CorrelationItem.create(
                     entry.getValue(),
                     correlatorContext,

@@ -144,9 +144,9 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull OperationResult result) throws SchemaException, ConfigurationException {
         CorrelatorContext<?> childContext = CorrelatorContextCreator.createChildContext(
                 childConfiguration,
-                correlatorContext.getOriginalConfigurationBean(),
                 correlatorContext.getCorrelationDefinitionBean(),
                 correlatorContext.getIdentityManagementConfiguration(),
+                correlatorContext.getIndexingConfiguration(),
                 correlatorContext.getSystemConfiguration());
         return beans.correlatorFactoryRegistry
                 .instantiateCorrelator(childContext, task, result);

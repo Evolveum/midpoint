@@ -341,99 +341,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-
-            <xsd:element name="definitions" type="tns:CorrelatorDefinitionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.definitions</a:displayName>
-                        <a:displayOrder>5</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelatorDefinitionsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="items" type="tns:CorrelationItemsDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationItemsDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Shared (referencable) definitions of correlation items.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="item" type="tns:CorrelationItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Collection of definitions of individual correlation items.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="CorrelationItemDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Shared definition of a correlation item.
-
-                TODO consider removal
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name by which this definition is referenced. If not present, the last segment of the path
-                        is used to derive the name.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -548,19 +455,32 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="c:CorrelationItemDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="ref" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Points to a shared item definition in "items" part of "definitions".
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name by which this definition is referenced. If not present, the last segment of the path
+                        is used to derive the name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="index" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What index to use when matching this item? If none is specified, the default one is used. (TODO)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="itemCorrelation" type="tns:ItemCorrelationType"/>
 
@@ -1442,6 +1362,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="indexedNormalizedItemName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1475,28 +1402,28 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="none" type="tns:NoOpNormalizationStepType" minOccurs="0">
+            <xsd:element name="none" type="tns:NoOpNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="polyString" type="tns:PolyStringNormalizationStepType" minOccurs="0">
+            <xsd:element name="polyString" type="tns:PolyStringNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="prefix" type="tns:PrefixNormalizationStepType" minOccurs="0">
+            <xsd:element name="prefix" type="tns:PrefixNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="custom" type="tns:CustomNormalizationStepType" minOccurs="0">
+            <xsd:element name="custom" type="tns:CustomNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -1507,7 +1434,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractNormalizationStepsType">
+    <xsd:complexType name="AbstractNormalizationStepType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -1549,7 +1476,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractNormalizationStepsType"/>
+            <xsd:extension base="tns:AbstractNormalizationStepType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -1565,7 +1492,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractNormalizationStepsType">
+            <xsd:extension base="tns:AbstractNormalizationStepType">
                 <xsd:sequence>
                     <xsd:element name="configuration" type="t:PolyStringNormalizerConfigurationType" minOccurs="0">
                         <xsd:annotation>
@@ -1591,7 +1518,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractNormalizationStepsType">
+            <xsd:extension base="tns:AbstractNormalizationStepType">
                 <xsd:sequence>
                     <xsd:element name="length" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
@@ -1617,7 +1544,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractNormalizationStepsType">
+            <xsd:extension base="tns:AbstractNormalizationStepType">
                 <xsd:sequence>
                     <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>

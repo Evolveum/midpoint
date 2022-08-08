@@ -107,9 +107,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .identities()
                     .assertSingle()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "john")
-                        .assertNormalizedItem("familyName", "smith")
-                        .assertNormalizedItem("personalNumber", "1001234");
+                        .assertNormalizedItem("givenName.polyStringNorm", "john")
+                        .assertNormalizedItem("familyName.polyStringNorm", "smith")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1001234");
         // @formatter:on
     }
 
@@ -131,9 +131,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .identities()
                     .assertSingle()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "alice")
-                        .assertNormalizedItem("familyName", "green")
-                        .assertNormalizedItem("personalNumber", "1005678");
+                        .assertNormalizedItem("givenName.polyStringNorm", "alice")
+                        .assertNormalizedItem("familyName.polyStringNorm", "green")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1005678");
         // @formatter:on
 
         when("Alice Green changed her name to Johnson");
@@ -155,9 +155,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                 .identities()
                     .assertSingle()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "alice")
-                        .assertNormalizedItem("familyName", "johnson")
-                        .assertNormalizedItem("personalNumber", "1005678");
+                        .assertNormalizedItem("givenName.polyStringNorm", "alice")
+                        .assertNormalizedItem("familyName.polyStringNorm", "johnson")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1005678");
         // @formatter:on
     }
 
@@ -192,9 +192,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertOriginalItem(PATH_PERSONAL_NUMBER, "1003456")
                     .end()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "bob")
-                        .assertNormalizedItem("familyName", "white")
-                        .assertNormalizedItem("personalNumber", "1003456")
+                        .assertNormalizedItem("givenName.polyStringNorm", "bob")
+                        .assertNormalizedItem("familyName.polyStringNorm", "white")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1003456")
                     .end();
         // @formatter:on
     }
@@ -233,9 +233,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "chuck")
-                        .assertNormalizedItem("familyName", "brown")
-                        .assertNormalizedItem("personalNumber", "1004444")
+                        .assertNormalizedItem("givenName.polyStringNorm", "chuck")
+                        .assertNormalizedItem("familyName.polyStringNorm", "brown")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1004444")
                     .end();
         // @formatter:on
 
@@ -269,9 +269,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "chuck", "charles")
-                        .assertNormalizedItem("familyName", "brown")
-                        .assertNormalizedItem("personalNumber", "1004444")
+                        .assertNormalizedItem("givenName.polyStringNorm", "chuck", "charles")
+                        .assertNormalizedItem("familyName.polyStringNorm", "brown")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1004444")
                     .end();
         // @formatter:on
 
@@ -310,9 +310,9 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .withoutSource()
-                        .assertNormalizedItem("givenName", "chuck", "charles", "karl")
-                        .assertNormalizedItem("familyName", "brown")
-                        .assertNormalizedItem("personalNumber", "1004444")
+                        .assertNormalizedItem("givenName.polyStringNorm", "chuck", "charles", "karl")
+                        .assertNormalizedItem("familyName.polyStringNorm", "brown")
+                        .assertNormalizedItem("personalNumber.polyStringNorm", "1004444")
                     .end();
         // @formatter:on
     }

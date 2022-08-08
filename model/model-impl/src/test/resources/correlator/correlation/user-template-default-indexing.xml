@@ -10,18 +10,10 @@
     <name>default-indexing</name>
     <item>
         <ref>givenName</ref>
-        <identity/>
+        <indexing/>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
-    </item>
-    <item>
-        <ref>extension/dateOfBirth</ref>
-        <identity/>
-    </item>
-    <item>
-        <ref>extension/nationalId</ref>
-        <identity/>
+        <indexing/>
     </item>
 </objectTemplate>

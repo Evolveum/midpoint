@@ -55,7 +55,7 @@ class CorrelationItems implements DebugDumpable {
         List<CorrelationItem> items = new ArrayList<>();
         for (ItemCorrelationType itemBean : correlatorContext.getConfigurationBean().getItem()) {
             items.add(
-                    CorrelationItem.create(itemBean, correlatorContext, correlationContext));
+                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus()));
         }
         stateCheck(!items.isEmpty(), "No correlation items in %s", correlatorContext);
         return new CorrelationItems(items);

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
 import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.prism.*;
@@ -59,6 +60,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     /** Object template relevant for the focus object. */
     private transient ObjectTemplateType focusTemplate;
+
+    private transient IdentityManagementConfiguration identityManagementConfiguration; // TODO
+    private transient IndexingConfiguration indexingConfiguration; // TODO
 
     private boolean primaryDeltaExecuted;
 
@@ -147,8 +151,19 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     // preliminary version
-    public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() {
-        return IdentityManagementConfiguration.of(focusTemplate);
+    public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() throws ConfigurationException {
+        if (identityManagementConfiguration == null) {
+            identityManagementConfiguration = IdentityManagementConfiguration.of(focusTemplate);
+        }
+        return identityManagementConfiguration;
+    }
+
+    // preliminary version
+    public @NotNull IndexingConfiguration getIndexingConfiguration() throws ConfigurationException {
+        if (indexingConfiguration == null) {
+            indexingConfiguration = IndexingConfiguration.of(focusTemplate);
+        }
+        return indexingConfiguration;
     }
 
     public LifecycleStateModelType getLifecycleModel() {

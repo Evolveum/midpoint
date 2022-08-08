@@ -13,6 +13,7 @@ import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
@@ -64,8 +65,13 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             TEST_DIR, "resource-dummy-correlation.xml",
             "4a7f6b3e-64cc-4cd9-b5ba-64ecc47d7d10", "correlation", CorrelatorTestUtil::createAttributeDefinitions);
 
+    /** Names, date of birth, and national ID are indexed using the default (i.e., polystring norm) algorithm. */
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_DEFAULT_INDEXING = new TestResource<>(
             TEST_DIR, "user-template-default-indexing.xml", "204f3615-bcd7-430d-93ec-c36f1db1dccd");
+
+    /** Names, date of birth, and national ID are indexed using their original value. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_ORIGINAL_INDEXING = new TestResource<>(
+            TEST_DIR, "user-template-original-indexing.xml", "c3c93da0-d17e-4926-8208-8441ba745381");
 
     // TODO
     private static final File FILE_USERS_TRADITIONAL = new File(TEST_DIR, "users-traditional.xml");
@@ -94,6 +100,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             new TestCorrelator(
                     new File(TEST_DIR, "correlator-by-name-default.xml"),
                     USER_TEMPLATE_DEFAULT_INDEXING);
+
+    private static final File FILE_ACCOUNTS_BY_NAME_ORIGINAL = new File(TEST_DIR, "accounts-by-name-original.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_ORIGINAL =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-by-name-original.xml"),
+                    USER_TEMPLATE_ORIGINAL_INDEXING);
 
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private CorrelationCaseManager correlationCaseManager;
@@ -171,6 +183,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     public void test200CorrelateByNameDefault() throws Exception {
         skipIfNotNativeRepository();
         executeTest(CORRELATOR_BY_NAME_DEFAULT, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_DEFAULT);
+    }
+
+    @Test
+    public void test210CorrelateByNameOriginal() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
     }
 
     @NotNull
@@ -266,6 +284,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             deleteUsers(result);
             importObjectsFromFileNotRaw(usersFile, task, result);
             currentlyUsedUsersFile = usersFile;
+
+            displayAllUsersFull();
         }
 
         and("accounts are loaded");
@@ -315,6 +335,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         configBean,
                         null,
                         IdentityManagementConfiguration.of(correlator.getUserTemplate()),
+                        IndexingConfiguration.of(correlator.getUserTemplate()),
                         systemConfiguration);
         correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
                 correlatorContext, task, result);

@@ -12,14 +12,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.identities.IndexingItemConfiguration;
+import com.evolveum.midpoint.model.api.identities.Normalization;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
-import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,9 +34,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -53,8 +53,12 @@ public class CorrelationItem implements DebugDumpable {
 
     @NotNull private final ItemPath itemPath;
 
+    /** Null iff {@link #indexingItemConfiguration} is null. */
+    @Nullable private final Normalization normalization;
+
     // TODO
     @Nullable private final IdentityItemConfiguration identityItemConfiguration;
+    @Nullable private final IndexingItemConfiguration indexingItemConfiguration;
 
     // TODO
     @NotNull private final List<? extends PrismValue> prismValues;
@@ -62,43 +66,53 @@ public class CorrelationItem implements DebugDumpable {
     private CorrelationItem(
             @NotNull String name,
             @NotNull ItemPath itemPath,
+            @Nullable Normalization normalization,
             @Nullable IdentityItemConfiguration identityItemConfiguration,
+            @Nullable IndexingItemConfiguration indexingItemConfiguration,
             @NotNull List<? extends PrismValue> prismValues) {
         this.name = name;
         this.itemPath = itemPath;
+        this.normalization = normalization;
         this.identityItemConfiguration = identityItemConfiguration;
+        this.indexingItemConfiguration = indexingItemConfiguration;
         this.prismValues = prismValues;
     }
 
     public static CorrelationItem create(
             @NotNull ItemCorrelationType itemBean,
-            @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
-            @NotNull CorrelationContext correlationContext)
-            throws ConfigurationException {
-        ItemPath path = getPath(itemBean, correlatorContext);
-        return new CorrelationItem(
-                getName(itemBean),
-                path,
-                getIdentityItemConfiguration(itemBean, correlatorContext),
-                getPrismValues(correlationContext.getPreFocus(), path));
-    }
-
-    public static CorrelationItem create(
-            @NotNull CorrelationItemDefinitionType itemBean,
             @NotNull CorrelatorContext<?> correlatorContext,
             @NotNull ObjectType preFocus)
             throws ConfigurationException {
-        ItemPath path = getPath(itemBean, correlatorContext);
+        ItemPath path = getPath(itemBean);
+        IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
         return new CorrelationItem(
                 getName(itemBean),
                 path,
+                getNormalization(indexingConfig, itemBean.getIndex(), path),
                 getIdentityItemConfiguration(itemBean, correlatorContext),
+                indexingConfig,
                 getPrismValues(preFocus, path));
     }
 
-    private static IdentityItemConfiguration getIdentityItemConfiguration(
-            @NotNull CorrelationItemDefinitionType itemBean, @NotNull CorrelatorContext<?> correlatorContext)
+    private static Normalization getNormalization(IndexingItemConfiguration indexingConfig, String index, ItemPath path)
             throws ConfigurationException {
+        if (indexingConfig == null) {
+            if (index != null) {
+                throw new ConfigurationException(
+                        String.format("Index '%s' cannot be used, because no indexing configuration is available for '%s'",
+                                index, path));
+            }
+            return null;
+        } else {
+            return MiscUtil.requireNonNull(
+                    indexingConfig.findNormalization(index),
+                    () -> new ConfigurationException(
+                            String.format("Index '%s' was not found in indexing configuration for '%s'", index, path)));
+        }
+    }
+
+    private static IdentityItemConfiguration getIdentityItemConfiguration(
+            @NotNull ItemCorrelationType itemBean, @NotNull CorrelatorContext<?> correlatorContext) {
         ItemPathType itemPathBean = itemBean.getPath();
         if (itemPathBean != null) {
             return correlatorContext.getIdentityManagementConfiguration().getForPath(itemPathBean.getItemPath());
@@ -107,17 +121,21 @@ public class CorrelationItem implements DebugDumpable {
         }
     }
 
+    private static IndexingItemConfiguration getIndexingItemConfiguration(
+            @NotNull ItemCorrelationType itemBean, @NotNull CorrelatorContext<?> correlatorContext) {
+        ItemPathType itemPathBean = itemBean.getPath();
+        if (itemPathBean != null) {
+            return correlatorContext.getIndexingConfiguration().getForPath(itemPathBean.getItemPath());
+        } else {
+            return null;
+        }
+    }
+
     // Temporary code
-    private static @NotNull String getName(CorrelationItemDefinitionType itemBean) {
+    private static @NotNull String getName(ItemCorrelationType itemBean) {
         String explicitName = itemBean.getName();
         if (explicitName != null) {
             return explicitName;
-        }
-        if (itemBean instanceof ItemCorrelationType) {
-            String ref = ((ItemCorrelationType) itemBean).getRef();
-            if (ref != null) {
-                return ref;
-            }
         }
         ItemPathType pathBean = itemBean.getPath();
         if (pathBean != null) {
@@ -127,20 +145,11 @@ public class CorrelationItem implements DebugDumpable {
             }
         }
         throw new IllegalStateException(
-                "Couldn't determine name for correlation item: no name, ref, nor path in " + itemBean);
+                "Couldn't determine name for correlation item: no name nor path in " + itemBean);
     }
 
     // Temporary code
-    private static @NotNull ItemPath getPath(
-            @NotNull CorrelationItemDefinitionType itemBean,
-            @NotNull CorrelatorContext<?> correlatorContext) throws ConfigurationException {
-        if (itemBean instanceof ItemCorrelationType) {
-            String ref = ((ItemCorrelationType) itemBean).getRef();
-            if (ref != null) {
-                itemBean = correlatorContext.getNamedItemDefinition(ref);
-            }
-        }
-
+    private static @NotNull ItemPath getPath(@NotNull ItemCorrelationType itemBean) throws ConfigurationException {
         ItemPathType specifiedPath = itemBean.getPath();
         if (specifiedPath != null) {
             return specifiedPath.getItemPath();
@@ -204,40 +213,24 @@ public class CorrelationItem implements DebugDumpable {
     }
 
     S_FilterExit addClauseToQueryBuilder(S_FilterEntry builder) throws SchemaException {
-        if (identityItemConfiguration != null) {
-            return addIdentityClauseToQueryBuilder(builder);
+        Object valueToFind = getValueToFind();
+        if (indexingItemConfiguration != null) {
+            assert normalization != null;
+            ItemPath normalizedItemPath = normalization.getIndexItemPath();
+            Object normalizedValue = IndexingManager.normalizeValue(valueToFind, normalization);
+            LOGGER.trace("Will look for normalized value '{}' in '{}' (of '{}')", normalizedValue, normalizedItemPath, itemPath);
+            ItemDefinition<?> normalizedItemDefinition = normalization.getIndexItemDefinition();
+            return builder
+                    .item(normalizedItemPath, normalizedItemDefinition)
+                    .eq(normalizedValue);
+            // TODO matching rule
         } else {
-            return addPlainClauseToQueryBuilder(builder);
+            LOGGER.trace("Will look for value '{}' of '{}'", valueToFind, itemPath);
+            return builder
+                    .item(itemPath)
+                    .eq(valueToFind);
+            // TODO matching rule
         }
-    }
-
-    /**
-     * Adds a "identity-based" clause to the current query builder.
-     */
-    private S_FilterExit addIdentityClauseToQueryBuilder(S_FilterEntry builder)
-            throws SchemaException {
-        assert identityItemConfiguration != null;
-        ItemPath normalizedItemPath = IdentitiesManager.getNormalizedItemPath(identityItemConfiguration);
-        Object valueToFind = getValueToFind();
-        Object normalizedValue = IdentitiesManager.normalizeValue(valueToFind, identityItemConfiguration);
-        LOGGER.trace("Will look for normalized value '{}' in '{}' (of '{}')", normalizedValue, normalizedItemPath, itemPath);
-        ItemDefinition<?> normalizedItemDefinition = IdentitiesManager.getNormalizedItemDefinition(identityItemConfiguration);
-        return builder
-                .item(normalizedItemPath, normalizedItemDefinition)
-                .eq(normalizedValue);
-        // TODO matching rule
-    }
-
-    /**
-     * Adds a "plain" clause to the current query builder.
-     */
-    private S_FilterExit addPlainClauseToQueryBuilder(S_FilterEntry builder) throws SchemaException {
-        Object valueToFind = getValueToFind();
-        LOGGER.trace("Will look for value '{}' of '{}'", valueToFind, itemPath);
-        return builder
-                .item(itemPath)
-                .eq(valueToFind);
-        // TODO matching rule
     }
 
     /**

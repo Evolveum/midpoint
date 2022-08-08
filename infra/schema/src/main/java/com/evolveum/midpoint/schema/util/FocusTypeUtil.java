@@ -178,6 +178,7 @@ public class FocusTypeUtil {
         return identities != null ? FocusIdentitiesTypeUtil.getMatchingIdentity(identities, source) : null;
     }
 
+    // TODO reconsider this method placement
     public static void addOrReplaceIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
         deleteCompatibleIdentity(focus, identity);
         addIdentity(focus, identity);

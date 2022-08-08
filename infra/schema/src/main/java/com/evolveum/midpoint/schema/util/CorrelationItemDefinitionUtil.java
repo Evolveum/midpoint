@@ -25,7 +25,7 @@ public class CorrelationItemDefinitionUtil {
     /**
      * Returns the name under which we will reference this item definition (using "ref" elements).
      */
-    public static @NotNull String getName(@NotNull CorrelationItemDefinitionType definitionBean) {
+    public static @NotNull String getName(@NotNull ItemCorrelationType definitionBean) {
         if (definitionBean.getName() != null) {
             return definitionBean.getName();
         }

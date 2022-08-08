@@ -50,9 +50,6 @@ class TypeSpecificMergersConfigurator {
                         AbstractCorrelatorType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractCorrelatorType.F_NAME))),
                 entry(
-                        CorrelationItemDefinitionType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(CorrelationItemDefinitionType.F_NAME))),
-                entry(
                         SynchronizationReactionType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SynchronizationReactionType.F_NAME))),
                 entry(

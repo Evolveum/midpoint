@@ -7,24 +7,22 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+import com.evolveum.midpoint.model.api.identities.IndexingConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Overall context in which the correlator works.
@@ -49,18 +47,18 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     /** TODO */
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
 
+    /** TODO */
+    @NotNull private final IndexingConfiguration indexingConfiguration;
+
     /** System configuration, used to look for correlator configurations. */
     @Nullable private final SystemConfigurationType systemConfiguration;
-
-    // TODO
-    @NotNull private final Lazy<Map<String, CorrelationItemDefinitionType>> itemDefinitionsLazy =
-            Lazy.from(this::createItemDefinitionsMap);
 
     public CorrelatorContext(
             @NotNull CorrelatorConfiguration configuration,
             @NotNull AbstractCorrelatorType originalConfigurationBean,
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
             @NotNull IdentityManagementConfiguration identityManagementConfiguration,
+            @NotNull IndexingConfiguration indexingConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
         //noinspection unchecked
         this.configurationBean = (C) configuration.getConfigurationBean();
@@ -68,6 +66,7 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         this.originalConfigurationBean = originalConfigurationBean;
         this.correlationDefinitionBean = correlationDefinitionBean;
         this.identityManagementConfiguration = identityManagementConfiguration;
+        this.indexingConfiguration = indexingConfiguration;
         this.systemConfiguration = systemConfiguration;
     }
 
@@ -80,38 +79,10 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     }
 
     /**
-     * Returns the named item definition.
+     * TODO
      */
-    public @NotNull CorrelationItemDefinitionType getNamedItemDefinition(String ref) throws ConfigurationException {
-        return MiscUtil.requireNonNull(
-                itemDefinitionsLazy.get().get(ref),
-                () -> new ConfigurationException("No item named '" + ref + "' exists"));
-    }
-
-    /**
-     * Returns all relevant named item definitions - from this context and all its parents.
-     */
-    public @NotNull Map<String, CorrelationItemDefinitionType> getItemDefinitionsMap() {
-        return itemDefinitionsLazy.get();
-    }
-
-    private @NotNull Map<String, CorrelationItemDefinitionType> createItemDefinitionsMap() {
-        Map<String, CorrelationItemDefinitionType> defMap = new HashMap<>();
-        getLocalItemsDefinitionCollection().forEach(
-                def -> {
-                    String name = CorrelationItemDefinitionUtil.getName(def);
-                    if (!defMap.containsKey(name)) {
-                        defMap.put(name, def);
-                    }
-                }
-        );
-        return defMap;
-    }
-
-    private List<CorrelationItemDefinitionType> getLocalItemsDefinitionCollection() {
-        CorrelatorDefinitionsType definitions = configurationBean.getDefinitions();
-        return definitions != null && definitions.getItems() != null ?
-                definitions.getItems().getItem() : List.of();
+    public @NotNull Map<String, ItemCorrelationType> getItemDefinitionsMap() {
+        return new HashMap<>(); // TODO extract from the object template
     }
 
     public @NotNull AbstractCorrelatorType getOriginalConfigurationBean() {
@@ -128,6 +99,10 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
 
     public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() {
         return identityManagementConfiguration;
+    }
+
+    public @NotNull IndexingConfiguration getIndexingConfiguration() {
+        return indexingConfiguration;
     }
 
     @Override

@@ -4789,14 +4789,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        displayAllUsers(null);
+    }
+
+    protected void displayAllUsersFull() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        displayAllUsers(createRetrieveCollection());
+    }
+
+    private void displayAllUsers(Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         Task task = createPlainTask("displayAllUsers");
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = (object, parentResult) -> {
             display("User", object);
             return true;
         };
-        modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+        modelService.searchObjectsIterative(UserType.class, null, handler, options, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }

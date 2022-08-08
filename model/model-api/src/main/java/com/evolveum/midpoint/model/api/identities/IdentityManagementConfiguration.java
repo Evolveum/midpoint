@@ -8,20 +8,16 @@
 package com.evolveum.midpoint.model.api.identities;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Wraps all the configuration related to management of `identities` container, correlation, and so on.
@@ -31,52 +27,44 @@ import java.util.Objects;
 public class IdentityManagementConfiguration {
 
     @NotNull private final ObjectTemplateType objectTemplate;
+    @NotNull private final PathKeyedMap<IdentityItemConfiguration> itemsMap;
 
-    private IdentityManagementConfiguration(@NotNull ObjectTemplateType objectTemplate) {
-        this.objectTemplate = objectTemplate;
+    private IdentityManagementConfiguration(ObjectTemplateType objectTemplate) throws ConfigurationException {
+        this.objectTemplate = objectTemplate != null ? objectTemplate : new ObjectTemplateType();
+        this.itemsMap = extractItemsConfiguration(this.objectTemplate);
     }
 
-    public static @NotNull IdentityManagementConfiguration of(@Nullable ObjectTemplateType objectTemplate) {
-        return new IdentityManagementConfiguration(
-                Objects.requireNonNullElseGet(
-                        objectTemplate,
-                        ObjectTemplateType::new));
-    }
-
-    public @NotNull Collection<IdentityItemConfiguration> getItems() throws ConfigurationException {
-        List<IdentityItemConfiguration> itemConfigurationList = new ArrayList<>();
+    private static PathKeyedMap<IdentityItemConfiguration> extractItemsConfiguration(@NotNull ObjectTemplateType objectTemplate)
+            throws ConfigurationException {
+        PathKeyedMap<IdentityItemConfiguration> itemConfigurationMap = new PathKeyedMap<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
             IdentityItemDefinitionType identityDefBean = itemDefBean.getIdentity();
             if (identityDefBean != null) {
-                itemConfigurationList.add(
-                        IdentityItemConfiguration.of(itemDefBean, identityDefBean));
+                IdentityItemConfiguration configuration = IdentityItemConfiguration.of(itemDefBean, identityDefBean);
+                itemConfigurationMap.put(configuration.getPath(), configuration);
             }
         }
-        return itemConfigurationList;
+        return itemConfigurationMap;
     }
 
-    public @Nullable IdentityItemConfiguration getForPath(@NotNull ItemPath path) throws ConfigurationException {
-        for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
-            IdentityItemDefinitionType identityBean = itemDefBean.getIdentity();
-            if (identityBean != null) {
-                ItemPathType ref = itemDefBean.getRef();
-                if (ref != null && ref.getItemPath().equivalent(path)) {
-                    return IdentityItemConfiguration.of(itemDefBean, identityBean);
-                }
-            }
-        }
-        return null;
+    public static @NotNull IdentityManagementConfiguration of(@Nullable ObjectTemplateType objectTemplate)
+            throws ConfigurationException {
+        return new IdentityManagementConfiguration(objectTemplate);
     }
 
-    // TODO improve --- TODO what if empty config is legal?
-    public boolean hasNoItems() throws ConfigurationException {
-        return getItems().isEmpty();
+    public @NotNull Collection<IdentityItemConfiguration> getItems() {
+        return itemsMap.values();
+    }
+
+    public @Nullable IdentityItemConfiguration getForPath(@NotNull ItemPath path) {
+        return itemsMap.get(path);
     }
 
     @Override
     public String toString() {
-        return "IdentityManagementConfiguration{" +
+        return getClass().getSimpleName() + "{" +
                 "objectTemplate=" + objectTemplate +
+                ", items: " + itemsMap.size() +
                 '}';
     }
 }

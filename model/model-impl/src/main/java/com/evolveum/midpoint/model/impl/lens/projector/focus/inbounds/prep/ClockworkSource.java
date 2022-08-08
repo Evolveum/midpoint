@@ -64,7 +64,7 @@ class ClockworkSource extends MSource {
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
             ResourceObjectDefinition resourceObjectDefinition,
             @NotNull LensProjectionContext projectionContext,
-            @NotNull Context context) {
+            @NotNull Context context) throws ConfigurationException {
         super(asObjectable(currentShadow), aPrioriDelta, resourceObjectDefinition);
         this.projectionContext = projectionContext;
         this.context = context;
