@@ -7,20 +7,18 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.IResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -33,9 +31,9 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
     private static final String ID_CSS_ICON = "cssIcon";
     private static final String ID_IMAGE = "image";
 
-    private IModel<AbstractResource> preferredImage;
+    private IModel<IResource> preferredImage;
 
-    public RoundedImagePanel(String id, IModel<DisplayType> model, IModel<AbstractResource> preferredImage) {
+    public RoundedImagePanel(String id, IModel<DisplayType> model, IModel<IResource> preferredImage) {
         super(id, model);
 
         this.preferredImage = preferredImage;
@@ -72,6 +70,10 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
     }
 
     private boolean isCssIconVisible() {
+        if (preferredImage != null && preferredImage.getObject() != null) {
+            return false;
+        }
+
         return StringUtils.isNotEmpty(getCssIcon());
     }
 }

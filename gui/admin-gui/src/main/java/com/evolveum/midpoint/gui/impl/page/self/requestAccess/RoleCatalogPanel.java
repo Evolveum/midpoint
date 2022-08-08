@@ -11,10 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,9 +25,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
+import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.util.string.Strings;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
@@ -52,6 +49,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -61,7 +60,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -280,9 +279,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
-                        // todo improve
-                        CatalogTile t = new CatalogTile("fas fa-building", WebComponentUtil.getName(object.getValue()));
-                        t.setLogo("fas fa-utensils fa-2x");
+                        CatalogTile t = new CatalogTile(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, WebComponentUtil.getName(object.getValue()));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -326,6 +323,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                                             .count() == 0;
                                 }));
                                 return details;
+                            }
+
+                            @Override
+                            protected IModel<IResource> createPreferredImage(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                return createImage(() -> model.getObject().getValue().getValue());
+                            }
+
+                            @Override
+                            protected DisplayType createDisplayType(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                return new DisplayType()
+                                        .icon(new IconType()
+                                        .cssClass(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON));
                             }
                         };
                     }
@@ -569,6 +578,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return list;
     }
 
+    private IModel<IResource> createImage(IModel<ObjectType> model) {
+        return new LoadableModel<>(false) {
+            @Override
+            protected IResource load() {
+                ObjectType object = model.getObject();
+
+                return WebComponentUtil.createJpegPhotoResource((FocusType) object);
+            }
+        };
+    }
+
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
@@ -576,26 +596,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         columns.add(new RoundedIconColumn<>(null) {
 
             @Override
-            protected IModel<AbstractResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
-                return new LoadableModel<>(false) {
-                    @Override
-                    protected AbstractResource load() {
-                        ObjectType object = model.getObject().getValue();
-                        if (object == null) {
-                            return null;
-                        }
-
-                        PrismObject obj = object.asPrismObject();
-                        FocusType focus = (FocusType) obj.asObjectable();
-                        byte[] photo = focus.getJpegPhoto();
-
-                        if (photo == null) {
-                            return null;
-                        }
-
-                        return new ByteArrayResource("image/jpeg", photo);
-                    }
-                };
+            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
+                return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
             }
         });
         columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
