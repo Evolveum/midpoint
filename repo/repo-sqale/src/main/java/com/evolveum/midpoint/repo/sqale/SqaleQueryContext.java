@@ -210,13 +210,15 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> nestedContext(SqaleNestedMapping<TS, TQ, TR> nestedMapping) {
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> nestedContext(
+            SqaleNestedMapping<TS, TQ, TR> nestedMapping) {
         return new SqaleQueryContext(entityPath, mapping(), this, sqlQuery, nestedMapping);
     }
 
     @Override
-    public Predicate processFuzzyFilter(FuzzyStringMatchFilter<?> filter, Expression<?> path,
-            ValueFilterValues<?, ?> values) throws QueryException {
+    public Predicate processFuzzyFilter(
+            FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
+            throws QueryException {
         FuzzyMatchingMethod method = filter.getMatchingMethod();
         if (method instanceof Levenshtein) {
             var levenshtein = (Levenshtein) method;
@@ -224,7 +226,6 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
                     "levenshtein_less_equal({0}, '{1s}', {2})",
                     path, String.valueOf(values.singleValue()), levenshtein.getThreshold());
             // Lower value means more similar
-
             return levenshtein.isInclusive() ? func.loe(levenshtein.getThreshold()) : func.lt(levenshtein.getThreshold());
         } else if (method instanceof Similarity) {
             var spec = (Similarity) method;
@@ -234,6 +235,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             // Higher value means more similar
             return spec.isInclusive() ? func.goe(spec.getThreshold()) : func.gt(spec.getThreshold());
         }
+
         return super.processFuzzyFilter(filter, path, values);
     }
 }

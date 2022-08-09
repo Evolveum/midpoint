@@ -54,18 +54,8 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
         checkComponentTag(tag, "li");
     }
 
-//    @Override
-//    public void renderHead(IHeaderResponse response) {
-//        super.renderHead(response);
-//
-//        response.render(OnDomReadyHeaderItem.forScript("$(document).ready(function() { console.log('menu item', $('#"+getLink().getMarkupId()+"')); $('#"+getLink().getMarkupId()+"').listGroupMenu(); });"));
-//    }
-//
-//    private AjaxLink getLink() {
-//        return (AjaxLink) get(ID_LINK);
-//    }
-
     private void initLayout() {
+        add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
         AjaxLink link = new AjaxLink<>(ID_LINK) {
 
             @Override
@@ -101,7 +91,7 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
         link.add(chevron);
 
         WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS_CONTAINER);
-        itemsContainer.add(AttributeAppender.append("style", () -> !getModelObject().isActive() ? "display: none;" : null));
+        itemsContainer.add(AttributeAppender.append("style", () -> !getModelObject().isOpen() ? "display: none;" : null));
         itemsContainer.add(new VisibleBehaviour(() -> !getModelObject().getItems().isEmpty()));
         add(itemsContainer);
 

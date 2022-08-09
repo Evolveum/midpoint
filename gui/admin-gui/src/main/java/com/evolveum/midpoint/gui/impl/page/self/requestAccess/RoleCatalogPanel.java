@@ -11,10 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,10 +24,10 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
+import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.util.string.Strings;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
@@ -52,6 +48,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -61,7 +59,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -151,7 +149,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private ObjectQuery createQueryFromOrgRef(ObjectReferenceType ref, boolean scopeOne) {
         return getPrismContext()
-                .queryFor(OrgType.class)
+                .queryFor(RoleType.class)
                 .isInScopeOf(ref.getOid(), scopeOne ? OrgFilter.Scope.ONE_LEVEL : OrgFilter.Scope.SUBTREE)
                 .asc(ObjectType.F_NAME)
                 .build();
@@ -196,6 +194,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private void initModels() {
         searchModel = new LoadableModel<>(false) {
+
             @Override
             protected Search load() {
                 return SearchFactory.createSearch(RoleType.class, page);
@@ -203,10 +202,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         };
 
         menuModel = new LoadableModel<>(false) {
+
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
                 ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
-                selectFirstMenu(menu);
+                menu.activateFirstAvailableItem();
 
                 return menu;
             }
@@ -280,9 +280,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
-                        // todo improve
-                        CatalogTile t = new CatalogTile("fas fa-building", WebComponentUtil.getName(object.getValue()));
-                        t.setLogo("fas fa-utensils fa-2x");
+                        CatalogTile t = new CatalogTile(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, WebComponentUtil.getName(object.getValue()));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -326,6 +324,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                                             .count() == 0;
                                 }));
                                 return details;
+                            }
+
+                            @Override
+                            protected IModel<IResource> createPreferredImage(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                return createImage(() -> model.getObject().getValue().getValue());
+                            }
+
+                            @Override
+                            protected DisplayType createDisplayType(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                return new DisplayType()
+                                        .icon(new IconType()
+                                                .cssClass(StringUtils.joinWith(" ", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "fa-2x")));
                             }
                         };
                     }
@@ -493,31 +503,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return loadMenuFromOrgTree(ref, 1, 3);
     }
 
-    private void selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu) {
-        for (ListGroupMenuItem item : menu.getItems()) {
-            boolean selected = selectFirstMenu(menu, item);
-            if (selected) {
-                break;
-            }
-        }
-    }
-
-    private boolean selectFirstMenu(ListGroupMenu<RoleCatalogQueryItem> menu, ListGroupMenuItem<RoleCatalogQueryItem> item) {
-        if (item.getItems().isEmpty()) {
-            menu.activateItem(item);
-            return true;
-        }
-
-        for (ListGroupMenuItem child : item.getItems()) {
-            boolean selected = selectFirstMenu(menu, child);
-            if (selected) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref, int currentLevel, int maxLevel) {
         if (ref == null) {
             return new ArrayList<>();
@@ -569,6 +554,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return list;
     }
 
+    private IModel<IResource> createImage(IModel<ObjectType> model) {
+        return new LoadableModel<>(false) {
+            @Override
+            protected IResource load() {
+                ObjectType object = model.getObject();
+
+                return WebComponentUtil.createJpegPhotoResource((FocusType) object);
+            }
+        };
+    }
+
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
@@ -576,26 +572,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         columns.add(new RoundedIconColumn<>(null) {
 
             @Override
-            protected IModel<AbstractResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
-                return new LoadableModel<>(false) {
-                    @Override
-                    protected AbstractResource load() {
-                        ObjectType object = model.getObject().getValue();
-                        if (object == null) {
-                            return null;
-                        }
-
-                        PrismObject obj = object.asPrismObject();
-                        FocusType focus = (FocusType) obj.asObjectable();
-                        byte[] photo = focus.getJpegPhoto();
-
-                        if (photo == null) {
-                            return null;
-                        }
-
-                        return new ByteArrayResource("image/jpeg", photo);
-                    }
-                };
+            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
+                return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
             }
         });
         columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
@@ -618,21 +596,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return columns;
     }
 
-    // todo  create default container panel configuration
     private ContainerPanelConfigurationType createDefaultContainerPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
-        c.identifier("some-panel");
+        c.identifier("sample-panel");
         c.type(RoleType.COMPLEX_TYPE);
-        c.path(new ItemPathType(ItemPath.create(".")));
         c.panelType("formPanel");
         VirtualContainersSpecificationType vcs =
                 c.beginContainer()
                         .beginDisplay()
-                        .label("asdf")
+                        .label("RoleCatalogPanel.details")
                         .end();
-        vcs.path(new ItemPathType(ItemPath.create(".")));
-        vcs.identifier("some-container");
-        vcs.beginItem().path(new ItemPathType(ItemPath.create(RoleType.F_NAME))).end();
+        vcs.identifier("sample-container");
+        vcs.beginItem().path(new ItemPathType(ItemPath.create(ObjectType.F_DESCRIPTION))).end();
 
         return c;
     }

@@ -6,7 +6,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -24,6 +25,10 @@
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>concepts</artifactId>
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>

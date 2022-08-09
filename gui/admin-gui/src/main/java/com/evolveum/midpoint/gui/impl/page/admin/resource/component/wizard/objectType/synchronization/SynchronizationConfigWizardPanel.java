@@ -45,7 +45,9 @@ public class SynchronizationConfigWizardPanel extends AbstractResourceWizardPane
     }
 
     protected void initLayout() {
-        add(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createSynchronizationConfigSteps(getValueModel()))));
+        add(createWizardFragment(new WizardPanel(
+                getIdOfWizardPanel(),
+                new WizardModel(createSynchronizationConfigSteps(getValueModel())))));
     }
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
@@ -54,12 +56,14 @@ public class SynchronizationConfigWizardPanel extends AbstractResourceWizardPane
 
     private List<WizardStep> createSynchronizationConfigSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new DefaultSettingStepPanel(getResourceModel(), valueModel) {
+        DefaultSettingStepPanel settingPanel = new DefaultSettingStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 SynchronizationConfigWizardPanel.this.onExitPerformed(target);
             }
-        });
+        };
+        settingPanel.setOutputMarkupId(true);
+        steps.add(settingPanel);
 
         steps.add(new ReactionStepPanel(getResourceModel(), valueModel) {
             @Override

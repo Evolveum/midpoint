@@ -6,15 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
-    <test name="Startup Tests" parallel="false" preserve-order="true" verbose="10">
+<suite name="unit" parallel="none">
+    <test name="Startup Tests" parallel="none" preserve-order="true" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest"/>
             <class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest"/>
             <class name="com.evolveum.midpoint.repo.sql.SchemaTest"/>
         </classes>
     </test>
-    <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+    <test name="Query Add Tests" parallel="none" preserve-order="true" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest"/>
             <class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>
@@ -46,13 +46,13 @@
             <class name="com.evolveum.midpoint.repo.sql.OrgPhotoTest"/>
         </classes>
     </test>
-    <test name="Utils Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+    <test name="Utils Tests" parallel="none" preserve-order="true" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.RAnyConverterStaticTest"/>
             <class name="com.evolveum.midpoint.repo.sql.RUtilTest"/>
         </classes>
     </test>
-    <test name="Audit Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+    <test name="Audit Tests" parallel="none" preserve-order="true" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.AuditTest"/>
             <class name="com.evolveum.midpoint.repo.sql.AuditSearchTest"/>

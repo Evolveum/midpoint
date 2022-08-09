@@ -29,9 +29,9 @@ public class ContainerValueWrapperFromObjectWrapperModel<T extends Containerable
     private static final Trace LOGGER = TraceManager.getTrace(ContainerValueWrapperFromObjectWrapperModel.class);
 
     private final ItemPath path;
-    private final IModel<PrismContainerWrapper<T>> parent;
+    private final IModel<? extends PrismContainerWrapper<T>> parent;
 
-    public ContainerValueWrapperFromObjectWrapperModel(IModel<PrismContainerWrapper<T>> model, ItemPath path) {
+    public ContainerValueWrapperFromObjectWrapperModel(IModel<? extends PrismContainerWrapper<T>> model, ItemPath path) {
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
         this.parent = model;

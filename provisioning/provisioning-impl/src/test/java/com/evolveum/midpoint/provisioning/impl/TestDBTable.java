@@ -13,8 +13,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,7 +20,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -40,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -155,7 +153,7 @@ public class TestDBTable extends AbstractIntegrationTest {
         // Check database content
 
         Connection conn = derbyController.getConnection();
-        // Check if it empty
+        // Check if empty
         Statement stmt = conn.createStatement();
         stmt.execute("select * from users");
         ResultSet rs = stmt.getResultSet();

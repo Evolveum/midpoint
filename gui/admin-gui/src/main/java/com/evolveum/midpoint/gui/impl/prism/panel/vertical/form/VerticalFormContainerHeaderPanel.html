@@ -10,10 +10,43 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <span>
-        <i wicket:id="icon"></i>
-        <span class="pl-1" wicket:id="title"/>
-    </span>
+    <div class="row">
+        <span>
+            <i wicket:id="icon"></i>
+            <span wicket:id="label"/>
+        </span>
+
+        <span wicket:id="required" class="text-danger" style="font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
+        <wicket:enclosure child="help">
+            <button class="btn btn-tool">
+                <i wicket:id="help"/>
+            </button>
+        </wicket:enclosure>
+        <wicket:enclosure child="deprecated">
+            <button class="btn btn-tool">
+                <i wicket:id="deprecated"/>
+            </button>
+        </wicket:enclosure>
+        <wicket:enclosure child="experimental">
+            <button class="btn btn-tool">
+                <i wicket:id="experimental"/>
+            </button>
+        </wicket:enclosure>
+
+        <button wicket:id="add" class="btn btn-tool text-primary" trigger="hover">
+            <i class="fa fa-plus-circle pr-1"></i>
+            <wicket:message key="ItemHeaderPanel.addValue"/>
+        </button>
+
+        <button wicket:id="remove" class="btn btn-tool text-danger" trigger="hover">
+            <i class="fa fa-eraser pr-1"></i>
+            <wicket:message key="ItemHeaderPanel.removeAll"/>
+        </button>
+
+        <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                class="btn btn-tool text-body ml-auto" trigger="hover">
+        </button>
+    </div>
 </wicket:panel>
 </body>
 </html>
