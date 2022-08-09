@@ -91,12 +91,7 @@
             </mappingsEvaluation>
             <correlation>
                 <correlators>
-                    <items> <!-- overriding authority for this one -->
-                        <authority>authoritative</authority>
-                        <name>empNo</name>
-                    </items>
                     <items> <!-- this is a new one -->
-                        <authority>nonAuthoritative</authority>
                         <item>
                             <path>givenName</path>
                         </item>

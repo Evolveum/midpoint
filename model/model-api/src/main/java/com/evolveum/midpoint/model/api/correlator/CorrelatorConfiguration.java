@@ -10,10 +10,13 @@ package com.evolveum.midpoint.model.api.correlator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationConfidenceThresholdsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NoOpCorrelatorType;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +36,26 @@ import java.util.stream.Stream;
  */
 public abstract class CorrelatorConfiguration {
 
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelatorConfiguration.class);
+
+    private static final double DEFAULT_TOP = 1.0; // TODO inherit this from outer to inner correlators
+    private static final double DEFAULT_CANDIDATE = 0.0; // TODO inherit this from outer to inner correlators
+
     @NotNull final AbstractCorrelatorType configurationBean;
+
+    @NotNull private final Set<String> ignoreIfMatchedBy;
+
+    /**
+     * Correlators that are direct children of the same composite are organized into layers according to their dependencies
+     * - see {@link #ignoreIfMatchedBy}.
+     *
+     * Value of -1 means "not yet computed".
+     */
+    private int dependencyLayer = -1;
 
     CorrelatorConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
         this.configurationBean = configurationBean;
+        this.ignoreIfMatchedBy = Set.copyOf(configurationBean.getIgnoreIfMatchedBy());
     }
 
     /** Returns empty correlator configuration - one that matches no owner. */
@@ -62,11 +81,20 @@ public abstract class CorrelatorConfiguration {
 
     @Override
     public String toString() {
-        return String.format("%s (order %d; %s%s)", getDebugName(), getOrder(), getAuthority(), getDisabledFlag());
+        return String.format("%s (tier %d, order %d, layer %d%s%s)",
+                getDebugName(), getTier(), getOrder(), getDependencyLayer(), getParentsInfo(), getDisabledFlag());
+    }
+
+    private String getParentsInfo() {
+        if (ignoreIfMatchedBy.isEmpty()) {
+            return "";
+        } else {
+            return ", parents: " + String.join(", ", ignoreIfMatchedBy);
+        }
     }
 
     private String getDisabledFlag() {
-        return isEnabled() ? "" : " DISABLED";
+        return isEnabled() ? "" : "; DISABLED";
     }
 
     /**
@@ -74,7 +102,7 @@ public abstract class CorrelatorConfiguration {
      *
      * Disabled configurations are skipped here. (This may change in the future if we will need to work with them somehow.)
      */
-    public static @NotNull Collection<CorrelatorConfiguration> getConfigurations(
+    public static @NotNull Collection<CorrelatorConfiguration> getChildConfigurations(
             @NotNull CompositeCorrelatorType correlatorsBean) {
         List<CorrelatorConfiguration> configurations =
                 Stream.of(
@@ -109,14 +137,6 @@ public abstract class CorrelatorConfiguration {
                 .collect(Collectors.toList());
     }
 
-    public static List<CorrelatorConfiguration> getConfigurationsSorted(@NotNull CompositeCorrelatorType correlatorsBean) {
-        List<CorrelatorConfiguration> configurations = new ArrayList<>(getConfigurations(correlatorsBean));
-        configurations.sort(
-                Comparator.comparing(CorrelatorConfiguration::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(CorrelatorConfiguration::getAuthority));
-        return configurations;
-    }
-
     public static @NotNull List<CorrelatorConfiguration> getConfigurationsDeeply(CompositeCorrelatorType composite) {
         List<CorrelatorConfiguration> allConfigurations = new ArrayList<>();
         addConfigurationsDeeplyInternal(allConfigurations, composite);
@@ -126,7 +146,7 @@ public abstract class CorrelatorConfiguration {
     private static void addConfigurationsDeeplyInternal(
             @NotNull List<CorrelatorConfiguration> allConfigurations,
             @NotNull CompositeCorrelatorType composite) {
-        Collection<CorrelatorConfiguration> directChildren = getConfigurations(composite);
+        Collection<CorrelatorConfiguration> directChildren = getChildConfigurations(composite);
         for (CorrelatorConfiguration directChild : directChildren) {
             allConfigurations.add(directChild);
             AbstractCorrelatorType directChildBean = directChild.getConfigurationBean();
@@ -142,7 +162,8 @@ public abstract class CorrelatorConfiguration {
                 .collect(Collectors.joining(", "));
     }
 
-    private @NotNull String identify() {
+    @NotNull
+    public String identify() {
         return CorrelationItemDefinitionUtil.identify(
                 getConfigurationBean());
     }
@@ -155,14 +176,104 @@ public abstract class CorrelatorConfiguration {
         return configurationBean;
     }
 
-    @Experimental
-    public @NotNull CorrelatorAuthorityLevelType getAuthority() {
-        return Objects.requireNonNullElse(
-                configurationBean.getAuthority(),
-                CorrelatorAuthorityLevelType.AUTHORITATIVE);
+    public Integer getTier() {
+        return configurationBean.getTier();
+    }
+
+    public int getDependencyLayer() {
+        return dependencyLayer;
+    }
+
+    private boolean hasDependencyLayer() {
+        return dependencyLayer >= 0;
+    }
+
+    private void setDependencyLayer(int dependencyLayer) {
+        this.dependencyLayer = dependencyLayer;
+    }
+
+    public static void computeDependencyLayers(Collection<CorrelatorConfiguration> configurations) throws ConfigurationException {
+        Map<String, Integer> layersMap = new HashMap<>();
+        for (CorrelatorConfiguration configuration : configurations) {
+            configuration.setDependencyLayer(-1);
+            String name = configuration.getName();
+            if (name != null) {
+                if (layersMap.put(name, configuration.getDependencyLayer()) != null) {
+                    throw new IllegalArgumentException("Multiple child correlators named '" + name + "'");
+                }
+            }
+        }
+        for (;;) {
+            boolean anyComputed = false;
+            boolean anyMissing = false;
+            for (CorrelatorConfiguration configuration : configurations) {
+                if (!configuration.hasDependencyLayer()) {
+                    anyMissing = true;
+                    configuration.computeDependencyLayer(layersMap);
+                    if (configuration.hasDependencyLayer()) {
+                        anyComputed = true;
+                    }
+                }
+            }
+            if (!anyComputed) {
+                if (!anyMissing) {
+                    return;
+                } else {
+                    throw new ConfigurationException("Couldn't compute dependency layers of correlator configurations. "
+                            + "Are there any cycles? " + configurations);
+                }
+            }
+        }
+    }
+
+    private void computeDependencyLayer(Map<String, Integer> layersMap) throws ConfigurationException {
+        Set<String> parents = getIgnoreIfMatchedBy();
+        int maxParentLayer = -1;
+        for (String thisParent : parents) {
+            int thisParentLayer =
+                    MiscUtil.configNonNull(
+                            layersMap.get(thisParent),
+                            () -> String.format("Unknown correlator '%s'. Known ones are: %s", thisParent, layersMap.keySet()));
+            if (thisParentLayer < 0) {
+                LOGGER.trace("Cannot compute dependency layer of {} because of '{}'", this, thisParent);
+                return; // cannot compute now
+            } else {
+                maxParentLayer = Math.max(maxParentLayer, thisParentLayer);
+            }
+        }
+        int newDependencyLayer = maxParentLayer + 1;
+        setDependencyLayer(newDependencyLayer);
+        layersMap.put(getName(), newDependencyLayer);
+        LOGGER.trace("Computed dependency layer of {} as {}", this, newDependencyLayer);
+    }
+
+    public @NotNull Set<String> getIgnoreIfMatchedBy() {
+        return ignoreIfMatchedBy;
     }
 
     public abstract boolean isUntyped();
+
+    public @Nullable String getName() {
+        return getConfigurationBean().getName();
+    }
+
+    public double getTopThreshold() {
+        CorrelationConfidenceThresholdsDefinitionType thresholds = configurationBean.getThresholds();
+        Double top = thresholds != null ? thresholds.getTop() : null;
+        return Objects.requireNonNullElse(top, DEFAULT_TOP);
+    }
+
+    public double getOwnerThreshold() {
+        CorrelationConfidenceThresholdsDefinitionType thresholds = configurationBean.getThresholds();
+        Double owner = thresholds != null ? thresholds.getOwner() : null;
+        return Objects.requireNonNullElseGet(owner, this::getTopThreshold);
+    }
+
+    public double getCandidateThreshold() {
+        CorrelationConfidenceThresholdsDefinitionType thresholds = configurationBean.getThresholds();
+        Double candidate = thresholds != null ? thresholds.getCandidate() : null;
+        return Objects.requireNonNullElse(candidate, DEFAULT_CANDIDATE);
+    }
 
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {
         public TypedCorrelationConfiguration(@NotNull AbstractCorrelatorType configurationBean) {

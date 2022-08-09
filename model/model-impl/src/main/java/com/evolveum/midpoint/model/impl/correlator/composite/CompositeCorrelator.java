@@ -7,7 +7,22 @@
 
 package com.evolveum.midpoint.model.impl.correlator.composite;
 
+import static com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration.getChildConfigurations;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import com.evolveum.midpoint.model.api.correlator.*;
+
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult.OwnersInfo;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
@@ -20,12 +35,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.Objects;
 
 /**
  * Composite correlator that evaluates its components (child correlators) and builds up the result
@@ -49,7 +58,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return new Correlation(correlationContext)
+        return new Correlation<>(correlationContext)
                 .execute(result);
     }
 
@@ -62,226 +71,188 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 + " mode. Please disable this mode for this particular resource or object type.");
     }
 
-    @NotNull private CompositeCorrelatorType getConfiguration() {
-        return correlatorContext.getConfigurationBean();
-    }
-
-    private class Correlation {
+    private class Correlation<F extends FocusType> {
 
         @NotNull private final CorrelationContext correlationContext;
         @NotNull private final Task task;
         @NotNull private final String contextDescription; // TODO
 
-        @NotNull private final List<CorrelationResult> authoritativeResults = new ArrayList<>();
-        @NotNull private final List<CorrelationResult> nonAuthoritativeResults = new ArrayList<>();
+        @NotNull private final Collection<CorrelatorConfiguration> childConfigurations;
+        @NotNull private final Set<Integer> tiers;
+
+        /** What candidate owners were matched by what correlators (only with non-null names). */
+        @NotNull private final HashMultimap<String, String> candidateOwnersMatchedBy = HashMultimap.create();
+
+        @NotNull private final Set<String> evaluatedCorrelators = new HashSet<>();
+
+        @NotNull private final CandidateOwnerMap<F> candidateOwnerMap = new CandidateOwnerMap<>();
+
+        private CorrelationResult errorResult;
 
         Correlation(@NotNull CorrelationContext correlationContext) {
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
+            this.childConfigurations = getChildConfigurations(correlatorContext.getConfigurationBean());
+            Supplier<TreeSet<Integer>> treeSetSupplier = () -> new TreeSet<>(
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+            this.tiers = childConfigurations.stream()
+                    .map(CorrelatorConfiguration::getTier)
+                    .collect(
+                            Collectors.toCollection(treeSetSupplier));
+            LOGGER.trace("Tiers: {}", tiers);
         }
 
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
-            List<CorrelatorConfiguration> childConfigurations =
-                    CorrelatorConfiguration.getConfigurationsSorted(getConfiguration());
+            CorrelatorConfiguration.computeDependencyLayers(childConfigurations);
 
-            checkIfAuthoritativeAfterNotAuthoritative(childConfigurations);
+            CorrelationResult overallResult = null;
+            int tierNumber = 1;
+            for (Integer tier : tiers) {
+                List<CorrelatorConfiguration> childConfigurations = getConfigurationsInTierSorted(tier);
+                LOGGER.trace("Processing tier #{}/{} with ID '{}': {} child correlator(s)",
+                        tierNumber, tiers.size(), tier, childConfigurations.size());
 
-            for (CorrelatorConfiguration childConfiguration : childConfigurations) {
-                CorrelationResult authoritativeResult = checkPreliminaryAuthoritativeResult(childConfiguration);
-                if (authoritativeResult != null) {
-                    return authoritativeResult;
+                for (CorrelatorConfiguration childConfiguration : childConfigurations) {
+                    invokeChildCorrelator(childConfiguration, result);
+                    if (errorResult != null) {
+                        LOGGER.trace("Got an error result in tier {}, finishing:\n{}",
+                                tier, errorResult.debugDumpLazily(1));
+                        return errorResult;
+                    }
                 }
 
-                CorrelationResult childResult = invokeChildCorrelator(childConfiguration, result);
-
-                CorrelationResult immediateResult = categorizeChildResult(childConfiguration, childResult);
-                if (immediateResult != null) {
-                    return immediateResult;
-                }
-            }
-
-            return determineOverallResult();
-        }
-
-        /**
-         * If we have an authoritative result by the time we reach first non-authoritative correlator,
-         * we can stop.
-         */
-        private @Nullable CorrelationResult checkPreliminaryAuthoritativeResult(CorrelatorConfiguration childConfiguration) {
-            if (childConfiguration.getAuthority() == CorrelatorAuthorityLevelType.NON_AUTHORITATIVE) {
-                CorrelationResult authoritativeResult = getAuthoritativeResult();
-                if (authoritativeResult != null) {
-                    LOGGER.trace("Reached non-authoritative child '{}' while having authoritative result, finishing.",
-                            childConfiguration);
-                    return authoritativeResult;
+                overallResult = determineOverallResult();
+                if (overallResult.isExistingOwner()) {
+                    LOGGER.trace("Reached 'existing owner' answer in tier {}, finishing:\n{}",
+                            tier, overallResult.debugDumpLazily(1));
+                    return overallResult;
                 }
             }
-            return null;
+            stateCheck(overallResult != null, "No tiers?");
+            LOGGER.trace("Finishing after last tier was evaluated:\n{}", overallResult.debugDumpLazily(1));
+            return overallResult;
         }
 
-        @NotNull
-        private CorrelationResult invokeChildCorrelator(CorrelatorConfiguration childConfiguration, OperationResult result)
+        private List<CorrelatorConfiguration> getConfigurationsInTierSorted(Integer tier) {
+            return childConfigurations.stream()
+                    .filter(c -> Objects.equals(c.getTier(), tier))
+                    .sorted(
+                            Comparator.comparing(
+                                            CorrelatorConfiguration::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                                    .thenComparing(
+                                            CorrelatorConfiguration::getDependencyLayer))
+                    .collect(Collectors.toList());
+        }
+
+        private void invokeChildCorrelator(CorrelatorConfiguration childConfiguration, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
+
             LOGGER.trace("Going to invoke child correlator '{}'", childConfiguration);
             CorrelationResult childResult = instantiateChild(childConfiguration, task, result)
                     .correlate(correlationContext, result);
             LOGGER.trace("Child correlator '{}' provided the following result:\n{}",
                     childConfiguration, childResult.debugDumpLazily(1));
-            return childResult;
-        }
 
-        private @Nullable CorrelationResult categorizeChildResult(
-                CorrelatorConfiguration childConfiguration, CorrelationResult childResult) {
             if (childResult.isError()) {
                 LOGGER.trace("Child correlator '{}' finished with an error, exiting: {}",
                         childConfiguration, childResult.getErrorMessage());
-                return childResult;
+                errorResult = childResult;
+                return;
             }
 
-            CorrelatorAuthorityLevelType childAuthority = childConfiguration.getAuthority();
-            if (childAuthority == CorrelatorAuthorityLevelType.PRINCIPAL) {
-                if (childResult.isExistingOwner()) {
-                    LOGGER.trace("Principal child evaluator '{}' returned the owner, finishing with:\n{}",
-                            childConfiguration, childResult.debugDumpLazily(1));
-                    return childResult;
-                } else {
-                    authoritativeResults.add(childResult);
+            String childCorrelatorName = childConfiguration.getName();
+            if (childCorrelatorName != null) {
+                evaluatedCorrelators.add(childCorrelatorName);
+            }
+
+            CandidateOwnerMap<?> childCandidateOwnerMap =
+                    MiscUtil.requireNonNull(
+                            childResult.getCandidateOwnerMap(),
+                            () -> new IllegalStateException(
+                                    String.format("No candidate owner map obtained from the child correlator: %s",
+                                            childConfiguration.identify())));
+
+            Set<String> ignoreIfMatchedBy = childConfiguration.getIgnoreIfMatchedBy();
+            Set<String> parentsNotEvaluatedYet = Sets.difference(ignoreIfMatchedBy, evaluatedCorrelators);
+            if (!parentsNotEvaluatedYet.isEmpty()) {
+                throw new ConfigurationException(
+                        String.format("Correlator %s depends on %s that has not executed yet. Please check the "
+                                + "distribution into tiers and the ordering.", childConfiguration, parentsNotEvaluatedYet));
+            }
+
+            for (CandidateOwner<?> candidateOwner : childCandidateOwnerMap.values()) {
+                LOGGER.trace("Considering candidate owner {}", candidateOwner);
+                String candidateOwnerOid = candidateOwner.getOid();
+                if (childCorrelatorName != null) {
+                    candidateOwnersMatchedBy.put(candidateOwnerOid, childCorrelatorName);
                 }
-            } else if (childAuthority == CorrelatorAuthorityLevelType.AUTHORITATIVE) {
-                authoritativeResults.add(childResult);
-            } else {
-                nonAuthoritativeResults.add(childResult);
-            }
-            return null;
-        }
-
-        private @NotNull CorrelationResult determineOverallResult() throws SchemaException {
-            CorrelationResult authoritativeResult = getAuthoritativeResult();
-            if (authoritativeResult != null) {
-                return authoritativeResult;
-            }
-
-            OwnersInfo ownersInfo = createUnifiedOwnerInfo();
-            List<ResourceObjectOwnerOptionType> options = ownersInfo.optionsBean.getOption();
-            if (options.size() > 1) {
-                return CorrelationResult.uncertain(ownersInfo);
-            } else {
-                assert options.size() == 1;
-                assert OwnerOptionIdentifier.fromStringValue(options.get(0).getIdentifier())
-                        .isNewOwner();
-                return CorrelationResult.noOwner();
-            }
-        }
-
-        private @Nullable CorrelationResult getAuthoritativeResult() {
-            Collection<ObjectType> authoritativeCandidates = getAuthoritativeCandidates();
-            if (authoritativeCandidates.size() == 1) {
-                return CorrelationResult.existingOwner(authoritativeCandidates.iterator().next(), null);
-            } else {
-                return null;
-            }
-        }
-
-        /** Taking candidates from all authoritative children. */
-        private Collection<ObjectType> getAuthoritativeCandidates() {
-            Map<String, ObjectType> candidateOwners = new HashMap<>(); // by OID
-            for (CorrelationResult authoritativeResult : authoritativeResults) {
-                if (authoritativeResult.isUncertain()) {
-                    LOGGER.trace("Uncertain authoritative result. This should not occur. We'll continue by including "
-                            + "non-authoritative answers as well. The result:\n{}",
-                            authoritativeResult.debugDumpLazily(1));
-                    return Set.of(); // causing continuing with all answers
-                } else if (authoritativeResult.isExistingOwner()) {
-                    ObjectType existingOwner = authoritativeResult.getOwnerRequired();
-                    candidateOwners.put(existingOwner.getOid(), existingOwner);
-                } else if (authoritativeResult.isNoOwner()) {
-                    // continuing
+                Set<String> ignoredBecause =
+                        Sets.intersection(ignoreIfMatchedBy, candidateOwnersMatchedBy.get(candidateOwnerOid));
+                if (!ignoredBecause.isEmpty()) {
+                    LOGGER.trace("Ignoring this candidate because of {}", ignoredBecause);
                 } else {
-                    throw new IllegalStateException("Unexpected result: " + authoritativeResult);
+                    //noinspection unchecked
+                    Double currentWeight = candidateOwnerMap.add((CandidateOwner<F>) candidateOwner);
+                    LOGGER.trace("Added to the candidate owners map, current weight: {}", currentWeight);
                 }
             }
-            LOGGER.trace("getAuthoritativeCandidates found: {}", candidateOwners);
-            return candidateOwners.values();
         }
 
-        /**
-         * Taking options from all results (authoritative + non-authoritative)
-         *
-         * Limitations:
-         *
-         * 1. Assumes identifiers are comparable (or even that they are OID-based).
-         * 2. Ignores the confidence
-         */
-        private @NotNull OwnersInfo createUnifiedOwnerInfo() {
-            OwnersInfo ownersInfo = new OwnersInfo(
-                    new ResourceObjectOwnerOptionsType(), new ObjectSet<>());
-            addOptions(ownersInfo, authoritativeResults);
-            addOptions(ownersInfo, nonAuthoritativeResults);
-            addNoneIfNeeded(ownersInfo.optionsBean.getOption());
-            return ownersInfo;
-        }
+        private @NotNull CorrelationResult determineOverallResult() {
 
-        private void addNoneIfNeeded(List<ResourceObjectOwnerOptionType> options) {
-            if (options.stream().noneMatch(
-                    o -> o.getCandidateOwnerRef() == null)) {
-                options.add(
+            double ownerThreshold = correlatorContext.getConfiguration().getOwnerThreshold();
+            var owners =
+                    candidateOwnerMap.selectWithConfidenceAtLeast(
+                            ownerThreshold);
+            double candidateThreshold = correlatorContext.getConfiguration().getCandidateThreshold();
+            var eligibleCandidates =
+                    candidateOwnerMap.selectWithConfidenceAtLeast(
+                            candidateThreshold);
+
+            LOGGER.trace("Determining overall result with owner threshold of {}, candidate threshold of {}, "
+                            + "owners: {}, eligible candidates: {}, all candidates:\n{}",
+                    ownerThreshold, candidateThreshold, owners.size(), eligibleCandidates.size(),
+                    DebugUtil.toStringCollectionLazy(candidateOwnerMap.values(), 1));
+
+            ResourceObjectOwnerOptionsType optionsBean = new ResourceObjectOwnerOptionsType();
+            for (CandidateOwner<F> eligibleCandidate : eligibleCandidates) {
+                optionsBean.getOption().add(
+                        new ResourceObjectOwnerOptionType()
+                                .identifier(
+                                        OwnerOptionIdentifier.forExistingOwner(eligibleCandidate.getOid()).getStringValue())
+                                .candidateOwnerRef(
+                                        ObjectTypeUtil.createObjectRef(((CandidateOwner<?>) eligibleCandidate).getObject()))
+                                .confidence(
+                                        eligibleCandidate.getConfidence()));
+            }
+            if (owners.size() != 1) {
+                optionsBean.getOption().add(
                         new ResourceObjectOwnerOptionType()
                                 .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
             }
-        }
 
-        private void addOptions(OwnersInfo aggregate, List<CorrelationResult> results) {
-            for (CorrelationResult result : results) {
-                if (result.isUncertain()) {
-                    for (ResourceObjectOwnerOptionType option : result.getOwnerOptionsRequired().getOption()) {
-                        addOption(aggregate.optionsBean, option);
-                    }
-                } else if (result.isExistingOwner()) {
-                    addExistingOwnerOption(aggregate.optionsBean, result.getOwnerRequired());
-                }
-                aggregate.allOwnerCandidates.addAll(
-                        result.getAllOwnerCandidates());
+            ObjectSet<ObjectType> allOwnerCandidates = new ObjectSet<>();
+            for (CandidateOwner<F> eligibleCandidate : eligibleCandidates) {
+                allOwnerCandidates.add(
+                        eligibleCandidate.getObject());
             }
-        }
 
-        private void addExistingOwnerOption(@NotNull ResourceObjectOwnerOptionsType aggregate, @NotNull ObjectType owner) {
-            addOption(
-                    aggregate,
-                    new ResourceObjectOwnerOptionType()
-                            .identifier(
-                                    OwnerOptionIdentifier.forExistingOwner(owner.getOid()).getStringValue())
-                            .candidateOwnerRef(
-                                    ObjectTypeUtil.createObjectRef(owner)));
+            OwnersInfo ownersInfo = new OwnersInfo(
+                    CandidateOwnerMap.from(eligibleCandidates),
+                    optionsBean,
+                    allOwnerCandidates);
 
-        }
-
-        private void addOption(@NotNull ResourceObjectOwnerOptionsType aggregate, @NotNull ResourceObjectOwnerOptionType option) {
-            for (ResourceObjectOwnerOptionType existingOption : aggregate.getOption()) {
-                Objects.requireNonNull(existingOption.getIdentifier(), () -> "No identifier in " + existingOption);
-                Objects.requireNonNull(option.getIdentifier(), () -> "No identifier in " + option);
-                if (existingOption.getIdentifier().equals(option.getIdentifier())) {
-                    return; // the option is already there
-                }
-            }
-            aggregate.getOption().add(
-                    option.cloneWithoutId());
-        }
-
-        private void checkIfAuthoritativeAfterNotAuthoritative(List<CorrelatorConfiguration> allChildren) {
-            CorrelatorConfiguration firstNonAuth = null;
-            for (CorrelatorConfiguration current : allChildren) {
-                if (firstNonAuth == null && current.getAuthority() == CorrelatorAuthorityLevelType.NON_AUTHORITATIVE) {
-                    firstNonAuth = current;
-                }
-                if (firstNonAuth != null && current.getAuthority() != CorrelatorAuthorityLevelType.NON_AUTHORITATIVE) {
-                    LOGGER.warn("Authoritative/principal correlator configuration {} after non-authoritative one: {}",
-                            current, firstNonAuth);
-                }
+            if (owners.size() == 1) {
+                return CorrelationResult.existingOwner(owners.iterator().next().getObject(), ownersInfo);
+            } else if (eligibleCandidates.isEmpty()) {
+                return CorrelationResult.noOwner();
+            } else {
+                return CorrelationResult.uncertain(ownersInfo);
             }
         }
     }

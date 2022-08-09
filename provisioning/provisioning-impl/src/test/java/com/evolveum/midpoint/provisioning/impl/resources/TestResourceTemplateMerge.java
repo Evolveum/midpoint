@@ -614,7 +614,6 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                         .collect(Collectors.toList()),
                 () -> new AssertionError("multiple empNo correlators"),
                 () -> new AssertionError("no empNo correlator"));
-        assertThat(empNo.getAuthority()).isEqualTo(AUTHORITATIVE); // overridden in types-1
         // Use of toString() is a hack (it's hard to compare paths using equals())
         assertThat(empNo.getItem().get(0).getPath().getItemPath().toString()).as("empNo path")
                 .isEqualTo(prismContext.toUniformPath(UserType.F_EMPLOYEE_NUMBER).toString());
@@ -624,7 +623,6 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                         .collect(Collectors.toList()),
                 () -> new AssertionError("multiple unnamed correlators"),
                 () -> new AssertionError("no unnamed correlator"));
-        assertThat(unnamedCorrelator.getAuthority()).isEqualTo(NON_AUTHORITATIVE);
         assertThat(unnamedCorrelator.getItem()).hasSize(2);
 
         and("default inbound mappings phases are merged");

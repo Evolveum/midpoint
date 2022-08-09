@@ -298,7 +298,6 @@ public class SynchronizationPolicyFactory {
         }
         correlators.getItems().add(
                 new ItemsCorrelatorType()
-                        .authority(attributeCorrelationDefBean.getAuthority())
                         .confidence(CloneUtil.clone(attributeCorrelationDefBean.getConfidence()))
                         .item(new ItemCorrelationType()
                                 .path(itemPathBean.clone())));

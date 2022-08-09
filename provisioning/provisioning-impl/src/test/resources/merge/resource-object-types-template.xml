@@ -144,7 +144,6 @@
             <correlation>
                 <correlators>
                     <items>
-                        <authority>principal</authority>
                         <name>empNo</name>
                         <item>
                             <path>employeeNumber</path>

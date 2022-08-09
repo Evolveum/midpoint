@@ -45,6 +45,9 @@ public class CorrelationResult implements Serializable, DebugDumpable {
      */
     @Nullable private final ObjectType owner;
 
+    /** TODO */
+    @Nullable private final CandidateOwnerMap<?> candidateOwnerMap;
+
     /**
      * Options for the owner. Typically present when {@link CorrelationSituationType#UNCERTAIN} but (as an auxiliary information)
      * may be present also for {@link CorrelationSituationType#EXISTING_OWNER}.
@@ -73,11 +76,13 @@ public class CorrelationResult implements Serializable, DebugDumpable {
     private CorrelationResult(
             @NotNull CorrelationSituationType situation,
             @Nullable ObjectType owner,
+            @Nullable CandidateOwnerMap<?> candidateOwnerMap,
             @Nullable ResourceObjectOwnerOptionsType ownerOptions,
             @NotNull List<? extends ObjectType> allOwnerCandidates,
             @Nullable ErrorDetails errorDetails) {
         this.situation = situation;
         this.owner = owner;
+        this.candidateOwnerMap = candidateOwnerMap;
         this.ownerOptions = ownerOptions;
         this.allOwnerCandidates = allOwnerCandidates;
         this.errorDetails = errorDetails;
@@ -87,6 +92,7 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return new CorrelationResult(
                 EXISTING_OWNER,
                 owner,
+                ownersInfo != null ? ownersInfo.candidateOwnerMap : null,
                 ownersInfo != null ? ownersInfo.optionsBean : null,
                 ownersInfo != null ? ownersInfo.allOwnerCandidates.asList() : List.of(owner),
                 null);
@@ -96,6 +102,7 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return new CorrelationResult(
                 NO_OWNER,
                 null,
+                new CandidateOwnerMap<>(),
                 null,
                 List.of(),
                 null);
@@ -105,17 +112,19 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         return new CorrelationResult(
                 UNCERTAIN,
                 null,
+                ownersInfo.candidateOwnerMap,
                 ownersInfo.optionsBean,
                 ownersInfo.allOwnerCandidates.asList(),
                 null);
     }
 
     public static CorrelationResult error(@NotNull Throwable t) {
-        return new CorrelationResult(ERROR, null, null, List.of(), ErrorDetails.forThrowable(t));
+        return new CorrelationResult(
+                ERROR, null, null, null, List.of(), ErrorDetails.forThrowable(t));
     }
 
     public static CorrelationResult error(@NotNull ErrorDetails details) {
-        return new CorrelationResult(ERROR, null, null, List.of(), details);
+        return new CorrelationResult(ERROR, null, null, null, List.of(), details);
     }
 
     public @NotNull CorrelationSituationType getSituation() {
@@ -128,6 +137,10 @@ public class CorrelationResult implements Serializable, DebugDumpable {
 
     public @NotNull ObjectType getOwnerRequired() {
         return Objects.requireNonNull(owner, "No existing owner");
+    }
+
+    public @Nullable CandidateOwnerMap<?> getCandidateOwnerMap() {
+        return candidateOwnerMap;
     }
 
     public @Nullable ResourceObjectOwnerOptionsType getOwnerOptions() {
@@ -166,6 +179,7 @@ public class CorrelationResult implements Serializable, DebugDumpable {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "owner", String.valueOf(owner), indent + 1);
         }
+        // TODO candidate owners map
         if (ownerOptions != null) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "ownerOptions", ownerOptions, indent + 1);
@@ -298,12 +312,14 @@ public class CorrelationResult implements Serializable, DebugDumpable {
 
     /** Helper class: Aggregates {@link ResourceObjectOwnerOptionsType} (i.e. references) and full candidate owners. */
     public static class OwnersInfo {
+        @Nullable public final CandidateOwnerMap<?> candidateOwnerMap;
         @NotNull public final ResourceObjectOwnerOptionsType optionsBean;
         @NotNull public final ObjectSet<ObjectType> allOwnerCandidates;
 
         public OwnersInfo(
-                @NotNull ResourceObjectOwnerOptionsType optionsBean,
+                @Nullable CandidateOwnerMap<?> candidateOwnerMap, @NotNull ResourceObjectOwnerOptionsType optionsBean,
                 @NotNull Collection<? extends ObjectType> allOwnerCandidates) {
+            this.candidateOwnerMap = candidateOwnerMap;
             this.optionsBean = optionsBean;
             this.allOwnerCandidates = new ObjectSet<>(allOwnerCandidates);
         }

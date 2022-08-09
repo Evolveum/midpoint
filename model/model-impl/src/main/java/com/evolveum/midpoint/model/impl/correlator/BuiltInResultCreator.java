@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.correlator.CandidateOwnerMap;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult.OwnersInfo;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
@@ -75,15 +76,16 @@ public class BuiltInResultCreator {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType();
+        CandidateOwnerMap<F> candidateOwnerMap = new CandidateOwnerMap<>();
         for (F candidate : candidates) {
+            Double confidence = determineConfidence(candidate, correlatorContext, task, result);
             options.getOption().add(
-                    createOwnerOption(
-                            candidate,
-                            determineConfidence(candidate, correlatorContext, task, result)));
+                    createOwnerOption(candidate, confidence));
+            candidateOwnerMap.put(candidate, confidence);
         }
         options.getOption().add(
                 createOwnerOption(null, null));
-        return new OwnersInfo(options, candidates);
+        return new OwnersInfo(candidateOwnerMap, options, candidates);
     }
 
     private <F extends FocusType> Double determineConfidence(

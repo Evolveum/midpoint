@@ -49,7 +49,6 @@ public class CorrelatorContextCreator {
     /** What items are allowed in the configuration that contains `using` clause - i.e. that points to another config. */
     private static final Collection<ItemName> ALLOWED_ITEMS_FOR_USING = List.of(
             AbstractCorrelatorType.F_USING,
-            AbstractCorrelatorType.F_AUTHORITY,
             AbstractCorrelatorType.F_ORDER,
             AbstractCorrelatorType.F_DISPLAY_NAME,
             AbstractCorrelatorType.F_DESCRIPTION,
@@ -58,7 +57,6 @@ public class CorrelatorContextCreator {
     /** These items are _not_ merged when extending the correlators. */
     private static final Collection<ItemName> NOT_MERGED_WHEN_EXTENDING = List.of(
             AbstractCorrelatorType.F_USING, // forbidden anyway
-            AbstractCorrelatorType.F_AUTHORITY,
             AbstractCorrelatorType.F_ORDER,
             AbstractCorrelatorType.F_NAME,
             AbstractCorrelatorType.F_DISPLAY_NAME,
@@ -290,7 +288,7 @@ public class CorrelatorContextCreator {
             return CorrelatorConfiguration.none();
         }
 
-        Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getConfigurations(composite);
+        Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getChildConfigurations(composite);
 
         if (configurations.isEmpty()) {
             if (composite.getExtending() == null && composite.getUsing() == null) {
@@ -299,21 +297,10 @@ public class CorrelatorContextCreator {
         }
 
         if (configurations.size() == 1) {
-            CorrelatorConfiguration configuration = configurations.iterator().next();
-            if (canBeStandalone(configuration)) {
-                return configuration;
-            }
+            return configurations.iterator().next();
         }
 
         // This is the default composite correlator.
         return new CorrelatorConfiguration.TypedCorrelationConfiguration(composite);
-    }
-
-    /**
-     * Currently, a configuration that is not non-authoritative can be run as standalone - without wrapping
-     * in composite correlator.
-     */
-    private static boolean canBeStandalone(CorrelatorConfiguration configuration) {
-        return configuration.getAuthority() != CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
     }
 }

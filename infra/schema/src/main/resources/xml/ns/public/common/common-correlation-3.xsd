@@ -200,27 +200,69 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="order" type="xsd:int" minOccurs="0">
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Order in which this correlator is to be evaluated. (Related to other correlators.)
-                        Smaller numbers go first. Entries with no order go last.
+                        Name of the correlator. Should be unique in the given context (object type definition,
+                        resource, or system-wide).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.order</a:displayName>
+                        <a:displayName>AbstractCorrelatorType.name</a:displayName>
                         <a:displayOrder>10</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="authority" type="tns:CorrelatorAuthorityLevelType" minOccurs="0">
+            <xsd:element ref="tns:displayName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.displayName</a:displayName>
+                        <a:displayOrder>20</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element ref="tns:description" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.description</a:displayName>
+                        <a:displayOrder>30</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element ref="tns:documentation" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.documentation</a:displayName>
+                        <a:displayOrder>40</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="tier" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Tier this correlator belongs to. All correlators in a given tier are evaluated together.
+                        Only if they provide no decisive result (i.e. one above "owner" threshold), the next tier is evaluated.
+                        Smaller numbers go first. Entries with no tier number present the last tier.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.authority</a:displayName>
-                        <a:displayOrder>15</a:displayOrder>
+                        <a:displayName>AbstractCorrelatorType.order</a:displayName>
+                        <a:displayOrder>50</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order in which this correlator is to be evaluated. (Related to other correlators in the given tier.)
+                        Smaller numbers go first. Entries with no order go last.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractCorrelatorType.order</a:displayName>
+                        <a:displayOrder>60</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -234,7 +276,7 @@
                         <xsd:appinfo>
                             <a:since>4.6</a:since>
                             <a:displayName>AbstractCorrelatorType.confidence</a:displayName>
-                            <a:displayOrder>20</a:displayOrder>
+                            <a:displayOrder>70</a:displayOrder>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -246,7 +288,7 @@
                         <xsd:appinfo>
                             <a:since>4.6</a:since>
                             <a:displayName>AbstractCorrelatorType.thresholds</a:displayName>
-                            <a:displayOrder>20</a:displayOrder>
+                            <a:displayOrder>70</a:displayOrder>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -270,7 +312,7 @@
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
                         <a:displayName>AbstractCorrelatorType.ignoreIfMatchedBy</a:displayName>
-                        <a:displayOrder>20</a:displayOrder>
+                        <a:displayOrder>80</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -282,7 +324,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.enabled</a:displayName>
-                        <a:displayOrder>30</a:displayOrder>
+                        <a:displayOrder>90</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -296,7 +338,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.ref</a:displayName>
-                        <a:displayOrder>50</a:displayOrder>
+                        <a:displayOrder>100</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -309,47 +351,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AbstractCorrelatorType.ref</a:displayName>
-                        <a:displayOrder>50</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the correlator. Should be unique in the given context (object type definition,
-                        resource, or system-wide).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.name</a:displayName>
-                        <a:displayOrder>100</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element ref="tns:displayName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.displayName</a:displayName>
                         <a:displayOrder>110</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element ref="tns:description" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.description</a:displayName>
-                        <a:displayOrder>120</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element ref="tns:documentation" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.documentation</a:displayName>
-                        <a:displayOrder>130</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1023,17 +1025,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="authority" type="tns:CorrelatorAuthorityLevelType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        An authority - if this attribute creates its own correlation rule.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.authority</a:displayName>
-                        <a:displayOrder>15</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="confidence" type="tns:CorrelationConfidenceDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

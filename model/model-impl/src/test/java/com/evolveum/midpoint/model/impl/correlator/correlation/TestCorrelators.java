@@ -212,7 +212,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test230CorrelateComplex() throws Exception {
         skipIfNotNativeRepository();
         executeTest(CORRELATOR_COMPLEX, FILE_USERS_ITEMS, FILE_ACCOUNTS_COMPLEX);

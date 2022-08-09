@@ -82,6 +82,11 @@ public class CorrelationItemDefinitionUtil {
                         .append(configBean.getExtending())
                         .append("', ");
             }
+            if (configBean.getTier() != null) {
+                sb.append("tier ")
+                        .append(configBean.getTier())
+                        .append(", ");
+            }
             if (configBean.getOrder() != null) {
                 sb.append("order ")
                         .append(configBean.getOrder())
@@ -89,11 +94,6 @@ public class CorrelationItemDefinitionUtil {
             }
             if (Boolean.FALSE.equals(configBean.isEnabled())) {
                 sb.append("disabled, ");
-            }
-            if (configBean.getAuthority() != null) {
-                sb.append("authority: ")
-                        .append(configBean.getAuthority())
-                        .append(", ");
             }
             sb.append("having ")
                     .append(configBean.asPrismContainerValue().size())
