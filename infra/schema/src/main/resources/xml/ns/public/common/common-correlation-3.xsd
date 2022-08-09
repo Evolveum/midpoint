@@ -14,6 +14,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
         elementFormDefault="qualified"
         jaxb:extensionBindingPrefixes="xjc"
