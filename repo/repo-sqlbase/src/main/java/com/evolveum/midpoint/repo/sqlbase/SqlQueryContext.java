@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -544,8 +544,13 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     public void beforeQuery() {
     }
 
-    public Predicate processFuzzyFilter(FuzzyStringMatchFilter<?> filter, Expression<?> path,
-            ValueFilterValues<?, ?> values) throws QueryException {
+    /**
+     * Produces predicate for fuzzy filter with pre-provided expression for the left side.
+     * This does not care about single/multi-value definition which must be treated above this method.
+     */
+    public Predicate processFuzzyFilter(
+            FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
+            throws QueryException {
         throw new QueryException("Unsupported filter " + filter.toString());
     }
 }
