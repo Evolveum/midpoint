@@ -147,6 +147,22 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return () -> getString("RoleCatalogPanel.title");
     }
 
+    private ObjectQuery createFalseQuery() {
+        return getPrismContext()
+                .queryFor(RoleType.class)
+                .none()
+                .build();
+    }
+
+    private ObjectQuery createQueryForRequestableRoles() {
+        return getPrismContext()
+                .queryFor(AbstractRoleType.class)
+                .item(RoleType.F_REQUESTABLE)
+                .eq(true)
+                .asc(ObjectType.F_NAME)
+                .build();
+    }
+
     private ObjectQuery createQueryFromOrgRef(ObjectReferenceType ref, boolean scopeOne) {
         return getPrismContext()
                 .queryFor(RoleType.class)
@@ -225,7 +241,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 RoleCatalogQueryItem item = active != null ? active.getValue() : null;
 
                 if (item == null) {
-                    return null;
+                    if (menu.isEmpty()) {
+                        return createQueryForRequestableRoles();
+                    }
+
+                    return createFalseQuery();
                 }
 
                 if (item.orgRef() != null) {
@@ -234,7 +254,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                 RoleCollectionViewType collection = item.collection();
                 if (collection == null) {
-                    return null;
+                    return createFalseQuery();
                 }
 
                 if (collection.getCollectionRef() != null) {
@@ -243,7 +263,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     return createQueryFromCollectionUri(collection.getCollectionUri());
                 }
 
-                return null;
+                return createFalseQuery();
             }
         };
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()

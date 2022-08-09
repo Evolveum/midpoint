@@ -86,13 +86,13 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
                 () -> getModelObject().isActive() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
         chevron.add(new VisibleBehaviour(() -> {
             ListGroupMenuItem item = getModelObject();
-            return StringUtils.isEmpty(item.getBadge()) && !item.getItems().isEmpty();
+            return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
         }));
         link.add(chevron);
 
         WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS_CONTAINER);
         itemsContainer.add(AttributeAppender.append("style", () -> !getModelObject().isOpen() ? "display: none;" : null));
-        itemsContainer.add(new VisibleBehaviour(() -> !getModelObject().getItems().isEmpty()));
+        itemsContainer.add(new VisibleBehaviour(() -> !getModelObject().isEmpty()));
         add(itemsContainer);
 
         ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {

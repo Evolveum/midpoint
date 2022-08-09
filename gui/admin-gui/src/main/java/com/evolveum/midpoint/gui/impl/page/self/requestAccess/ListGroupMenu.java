@@ -30,7 +30,7 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
     }
 
     public void onItemClickPerformed(ListGroupMenuItem item) {
-        if (item.getItems().isEmpty()) {
+        if (item.isEmpty()) {
             getItems().forEach(i -> deactivateItem(i));
             item.setActive(true);
 
@@ -97,5 +97,9 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
         }
 
         return null;
+    }
+
+    public boolean isEmpty() {
+        return getItems().isEmpty();
     }
 }

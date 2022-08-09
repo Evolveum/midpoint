@@ -123,7 +123,7 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
     }
 
     public boolean isOpen() {
-        if (getItems().isEmpty()) {
+        if (isEmpty()) {
             return false;
         }
 
@@ -131,10 +131,14 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
     }
 
     public void setOpen(boolean open) {
-        if (getItems().isEmpty()) {
+        if (isEmpty()) {
             return;
         }
 
         this.open = open;
+    }
+
+    public boolean isEmpty() {
+        return getItems().isEmpty();
     }
 }
