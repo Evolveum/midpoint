@@ -11,9 +11,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.tile.*;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -39,10 +45,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -67,6 +69,10 @@ import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2Choice;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -80,6 +86,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
+    private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
+
+    private static final int MULTISELECT_PAGE_SIZE = 10;
 
     private static final ViewToggle DEFAULT_VIEW = ViewToggle.TILE;
 
@@ -89,6 +98,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
+    private static final String ID_CONTAINER="container";
+    private static final String ID_SELECT = "select";
 
     private PageBase page;
 
@@ -232,6 +243,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private void initLayout() {
         setOutputMarkupId(true);
 
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.setOutputMarkupId(true);
+        add(container);
+
         ObjectDataProvider provider = new ObjectDataProvider(this, searchModel) {
 
             @Override
@@ -370,7 +385,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         return searchModel;
                     }
                 };
-        add(tilesTable);
+        container.add(tilesTable);
 
         IModel<List<Toggle<ViewToggle>>> items = new LoadableModel<>(false) {
 
@@ -416,10 +431,34 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     return;
                 }
 
-                target.add(tilesTable);
+                target.add(container);
             }
         };
         add(menu);
+
+        IModel<ObjectReferenceType> selectModel = Model.of((ObjectReferenceType) null);
+
+        Select2Choice select = new Select2Choice(ID_SELECT, selectModel, new ObjectReferenceProvider(this));
+        select.add(new VisibleBehaviour(() -> {
+            ListGroupMenuItem<RoleCatalogQueryItem> item = menuModel.getObject().getActiveMenu();
+            if (item == null) {
+                return false;
+            }
+
+            RoleCatalogQueryItem rcv = item.getValue();
+            return rcv.rolesOfTeammate();
+        }));
+        select.getSettings()
+                .setMinimumInputLength(2);
+        select.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // todo implement
+                System.out.println("asdf");
+            }
+        });
+        container.add(select);
     }
 
     // todo use configuration getAllowedViews from RoleCatalogType
@@ -458,7 +497,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private ListGroupMenu<RoleCatalogQueryItem> loadRoleCatalogMenu() {
         RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
         if (roleCatalog == null) {
-            return new ListGroupMenu<>();
+            roleCatalog = new RoleCatalogType();
         }
 
         ListGroupMenu<RoleCatalogQueryItem> menu = new ListGroupMenu<>();
@@ -475,6 +514,16 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         List<ListGroupMenuItem<RoleCatalogQueryItem>> items = createMenuFromRoleCollections(collections);
         if (items != null) {
             menu.getItems().addAll(items);
+        }
+
+        if (BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate())) {
+            ListGroupMenuItem rolesOfTeamMate = new ListGroupMenuItem("RoleCatalogPanel.rolesOfTeammate");
+            rolesOfTeamMate.setIconCss("fa-solid fa-user-group");
+            RoleCatalogQueryItem rcq = new RoleCatalogQueryItem();
+            rcq.rolesOfTeammate(true);
+            rolesOfTeamMate.setValue(rcq);
+
+            menu.getItems().add(rolesOfTeamMate);
         }
 
         return menu;
@@ -550,6 +599,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             for (PrismObject o : objects) {
                 String name = WebComponentUtil.getDisplayNameOrName(o, true);
                 ListGroupMenuItem<RoleCatalogQueryItem> menu = new ListGroupMenuItem<>(name);
+                menu.setIconCss(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
                 menu.setValue(new RoleCatalogQueryItem()
                         .orgRef(new ObjectReferenceType().oid(o.getOid()).type(o.getDefinition().getTypeName()))
                         .scopeOne(currentLevel < maxLevel));
@@ -718,5 +768,61 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return new VisibleEnableBehaviour(() -> !getModelObject().getShoppingCartAssignments().isEmpty());
+    }
+
+    public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {
+
+        private static final long serialVersionUID = 1L;
+
+        private RoleCatalogPanel panel;
+
+        public ObjectReferenceProvider(RoleCatalogPanel panel) {
+            this.panel = panel;
+        }
+
+        @Override
+        public String getDisplayValue(ObjectReferenceType ref) {
+            return WebComponentUtil.getDisplayNameOrName(ref);
+        }
+
+        @Override
+        public String getIdValue(ObjectReferenceType ref) {
+            return ref != null ? ref.getOid() : null;
+        }
+
+        @Override
+        public void query(String text, int page, Response<ObjectReferenceType> response) {
+            ObjectFilter substring = panel.getPrismContext().queryFor(UserType.class)
+                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+
+            ObjectQuery query = panel.getPrismContext()
+                    .queryFor(UserType.class)
+                    .filter(substring)
+                    .asc(UserType.F_NAME)
+                    .maxSize(MULTISELECT_PAGE_SIZE).offset(page * MULTISELECT_PAGE_SIZE).build();
+
+            Task task = panel.page.createSimpleTask(OPERATION_LOAD_USERS);
+            OperationResult result = task.getResult();
+
+            try {
+                List<PrismObject<UserType>> objects = WebModelServiceUtils.searchObjects(UserType.class, query, result, panel.page);
+
+                response.addAll(objects.stream()
+                        .map(o -> new ObjectReferenceType()
+                                .oid(o.getOid())
+                                .type(UserType.COMPLEX_TYPE)
+                                .targetName(WebComponentUtil.getDisplayNameOrName(o))).collect(Collectors.toList()));
+            } catch (Exception ex) {
+                LOGGER.debug("Couldn't search users for multiselect", ex);
+            }
+        }
+
+        @Override
+        public Collection<ObjectReferenceType> toChoices(Collection<String> collection) {
+            return collection.stream()
+                    .map(oid -> new ObjectReferenceType()
+                            .oid(oid)
+                            .type(UserType.COMPLEX_TYPE)).collect(Collectors.toList());
+        }
     }
 }

@@ -458,6 +458,7 @@
 
             </xsd:element>
             <xsd:element name="allowedViews" type="tns:RoleCatalogViewType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="showRolesOfTeammate" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>

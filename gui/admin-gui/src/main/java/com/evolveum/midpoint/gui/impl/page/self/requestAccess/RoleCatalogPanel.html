@@ -15,7 +15,32 @@
         <wicket:remove>
             <!-- todo mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout -->
         </wicket:remove>
-        <div class="col-sm-12 col-md-7 col-lg-8 col-xxl-10 mt-2 role-catalog-tiles-table" wicket:id="tilesTable"/>
+
+        <div class="col-sm-12 col-md-7 col-lg-8 col-xxl-10" wicket:id="container">
+            <wicket:enclosure child="select">
+                <div class="card w-100">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fa-solid fa-user-group mr-1"></i>
+                            <wicket:message key="PersonOfInterestPanel.userSelection"/>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <select wicket:id="select"  class="form-control flex-grow-1"></select>
+                            <div class="input-group-append">
+                                <a class="btn btn-default" type="button" >
+                                    <i class="fa-solid fa-arrow-pointer mr-1"></i>
+                                    <wicket:message key="PersonOfInterestPanel.selectManually"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </wicket:enclosure>
+
+            <div class="mt-2 role-catalog-tiles-table" wicket:id="tilesTable"/>
+        </div>
     </div>
 </wicket:panel>
 
