@@ -46,7 +46,13 @@ public class CorrelationResult implements Serializable, DebugDumpable {
     @Nullable private final ObjectType owner;
 
     /**
-     * Options for the owner. Non-null if and only if {@link #situation} is {@link CorrelationSituationType#UNCERTAIN}.
+     * Options for the owner. Typically present when {@link CorrelationSituationType#UNCERTAIN} but (as an auxiliary information)
+     * may be present also for {@link CorrelationSituationType#EXISTING_OWNER}.
+     *
+     * Currently we never put here the candidates with the confidence values below "candidate" level.
+     * This may change in the future.
+     *
+     * May not be supported when the result is fetched from the shadow.
      */
     @Nullable private final ResourceObjectOwnerOptionsType ownerOptions;
 
@@ -54,6 +60,8 @@ public class CorrelationResult implements Serializable, DebugDumpable {
      * All owner candidates matching given criteria. (Constrained by the limits of candidates.)
      *
      * May not be supported by all correlators. (Required for: query, expression, item.)
+     *
+     * May not be supported when the result is fetched from the shadow.
      */
     @NotNull private final List<? extends ObjectType> allOwnerCandidates;
 
@@ -75,12 +83,12 @@ public class CorrelationResult implements Serializable, DebugDumpable {
         this.errorDetails = errorDetails;
     }
 
-    public static CorrelationResult existingOwner(@NotNull ObjectType owner) {
+    public static CorrelationResult existingOwner(@NotNull ObjectType owner, @Nullable OwnersInfo ownersInfo) {
         return new CorrelationResult(
                 EXISTING_OWNER,
                 owner,
-                null,
-                List.of(owner),
+                ownersInfo != null ? ownersInfo.optionsBean : null,
+                ownersInfo != null ? ownersInfo.allOwnerCandidates.asList() : List.of(owner),
                 null);
     }
 
@@ -93,13 +101,13 @@ public class CorrelationResult implements Serializable, DebugDumpable {
                 null);
     }
 
-    public static CorrelationResult uncertain(
-            @NotNull ResourceObjectOwnerOptionsType ownerOptions, List<? extends ObjectType> allOwnerCandidates) {
-        return new CorrelationResult(UNCERTAIN, null, ownerOptions, allOwnerCandidates, null);
-    }
-
     public static CorrelationResult uncertain(@NotNull OwnersInfo ownersInfo) {
-        return uncertain(ownersInfo.optionsBean, ownersInfo.allOwnerCandidates.asList());
+        return new CorrelationResult(
+                UNCERTAIN,
+                null,
+                ownersInfo.optionsBean,
+                ownersInfo.allOwnerCandidates.asList(),
+                null);
     }
 
     public static CorrelationResult error(@NotNull Throwable t) {
@@ -140,12 +148,6 @@ public class CorrelationResult implements Serializable, DebugDumpable {
 
     public boolean isExistingOwner() {
         return situation == EXISTING_OWNER;
-    }
-
-    /** Returns true if the correlation result points to the given owner OID. */
-    public boolean isExistingOwner(@NotNull String oid) {
-        return isExistingOwner()
-                && oid.equals(getOwnerRequired().getOid());
     }
 
     public boolean isNoOwner() {

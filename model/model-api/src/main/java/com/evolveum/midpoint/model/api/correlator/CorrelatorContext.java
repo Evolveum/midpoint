@@ -125,4 +125,12 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
             return e.getMessage();
         }
     }
+
+    // TODO improve
+    @Override
+    public String toString() {
+        return "CorrelatorContext{" +
+                "configurationBean=" + configurationBean +
+                '}';
+    }
 }

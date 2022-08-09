@@ -5,21 +5,75 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<itemsCorrelator
+<compositeCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <thresholds>
+        <top>2.0</top>
+        <owner>1.0</owner>
+        <candidate>0.2</candidate>
+    </thresholds>
     <name>complex</name>
-
-    <item>
-        <path>givenName</path>
-        <!-- case-insensitive (poly string norm) -->
-    </item>
-    <item>
-        <path>familyName</path>
-        <search>
-            <index>orig</index> <!-- just for testing -->
-        </search>
-    </item>
-    <item>
-        <path>extension/nationalId</path>
-    </item>
-</itemsCorrelator>
+    <items>
+        <authority>principal</authority> <!-- temporary -->
+        <confidence>
+            <value>2.0</value>
+        </confidence>
+        <name>all</name>
+        <item>
+            <path>givenName</path>
+        </item>
+        <item>
+            <path>familyName</path>
+            <search>
+                <index>orig</index> <!-- just for testing -->
+            </search>
+        </item>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+    </items>
+    <items>
+        <authority>nonAuthoritative</authority> <!-- temporary -->
+        <confidence>
+            <value>0.5</value>
+        </confidence>
+        <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+        <name>fullName</name>
+        <item>
+            <path>givenName</path>
+        </item>
+        <item>
+            <path>familyName</path>
+        </item>
+    </items>
+    <items>
+        <authority>nonAuthoritative</authority> <!-- temporary -->
+        <confidence>
+            <value>0.25</value>
+        </confidence>
+        <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+        <item>
+            <path>familyName</path>
+        </item>
+    </items>
+    <items>
+        <authority>nonAuthoritative</authority> <!-- temporary -->
+        <confidence>
+            <value>0.75</value>
+        </confidence>
+        <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+    </items>
+    <items>
+        <authority>nonAuthoritative</authority> <!-- temporary -->
+        <confidence>
+            <value>0.1</value>
+        </confidence>
+        <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+        <item>
+            <path>givenName</path>
+        </item>
+    </items>
+</compositeCorrelator>

@@ -45,7 +45,7 @@ public class TestingAccount implements DebugDumpable {
         this.shadow = shadow.asObjectable();
     }
 
-    public String getTestString() {
+    protected String getTestString() {
         try {
             return ShadowUtil.getAttributeValue(shadow, ATTR_TEST_QNAME);
         } catch (SchemaException e) {

@@ -4070,7 +4070,6 @@
                             <xsd:documentation>
                                 Kind of a shadow. This means the type of shadow use.
                                 E.g. an account, entitlement, etc.
-                                If not specified defaults to "generic".
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.kind</a:displayName>

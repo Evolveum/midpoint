@@ -15,7 +15,6 @@ import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
@@ -43,8 +42,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 
@@ -81,7 +79,6 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     // TODO
     private static final File FILE_USERS_TRADITIONAL = new File(TEST_DIR, "users-traditional.xml");
     private static final File FILE_USERS_ITEMS = new File(TEST_DIR, "users-items.xml");
-    private static final File FILE_USERS_COMPLEX = new File(TEST_DIR, "users-complex.xml");
 
     private static final File FILE_ACCOUNTS_EMP = new File(TEST_DIR, "accounts-emp.csv");
     private static final TestCorrelator CORRELATOR_EMP = new TestCorrelator(new File(TEST_DIR, "correlator-emp.xml"));
@@ -127,7 +124,6 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
     @Autowired private ModelBeans modelBeans;
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
-    @Autowired private CorrelationCaseManager correlationCaseManager;
     @Autowired private CorrelationService correlationService;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
 
@@ -210,16 +206,16 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
     }
 
-    @Test(enabled = false)
+    @Test(enabled = false) // There is an issue with fuzzy searching over multi-valued "extension-like" properties
     public void test220CorrelateByNameFuzzy() throws Exception {
         skipIfNotNativeRepository();
         executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test230CorrelateComplex() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_COMPLEX, FILE_USERS_COMPLEX, FILE_ACCOUNTS_COMPLEX);
+        executeTest(CORRELATOR_COMPLEX, FILE_USERS_ITEMS, FILE_ACCOUNTS_COMPLEX);
 
         // Just for completeness, let us check the normalizations
         // @formatter:off
@@ -267,8 +263,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationTestingAccount account, OperationResult result)
-            throws SchemaException {
+            CorrelationResult correlationResult, CorrelationTestingAccount account)
+            throws CommonException {
 
         displayDumpable("Correlation result", correlationResult);
 
@@ -283,13 +279,32 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
         }
 
-        CaseType correlationCase = correlationCaseManager.findCorrelationCase(account.getShadow(), false, result);
-        if (account.shouldCorrelationCaseExist()) {
-            assertThat(correlationCase).as("correlation case").isNotNull();
-            displayDumpable("Correlation case", correlationCase);
-        } else {
-            assertThat(correlationCase).as("correlation case").isNull();
+        Set<CandidateOwner> expectedOwnerOptions = account.getCandidateOwners();
+        if (expectedOwnerOptions != null) {
+            Set<CandidateOwner> realOwnerOptions = getRealOwnerOptions(correlationResult);
+            assertThat(realOwnerOptions)
+                    .as("owner options")
+                    .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
         }
+    }
+
+    private @NotNull Set<CandidateOwner> getRealOwnerOptions(CorrelationResult correlationResult)
+            throws SchemaException, ObjectNotFoundException {
+        ResourceObjectOwnerOptionsType options = correlationResult.getOwnerOptions();
+        if (options == null) {
+            return Set.of();
+        }
+        Set<CandidateOwner> candidateOwnerSet = new HashSet<>();
+        for (ResourceObjectOwnerOptionType option : options.getOption()) {
+            ObjectReferenceType ownerRef = option.getCandidateOwnerRef();
+            if (ownerRef != null) {
+                candidateOwnerSet.add(
+                        new CandidateOwner(
+                                getUserFromRepo(ownerRef.getOid()).getName().getOrig(),
+                                option.getConfidence()));
+            }
+        }
+        return candidateOwnerSet;
     }
 
     private void executeTest(TestCorrelator correlator, File usersFile, File accountsFile)
@@ -354,7 +369,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             CorrelationResult correlationResult = correlator.instance.correlate(context, result);
 
             then(prefix + "correlation result is OK");
-            assertCorrelationResult(correlationResult, account, result);
+            assertCorrelationResult(correlationResult, account);
         }
     }
 

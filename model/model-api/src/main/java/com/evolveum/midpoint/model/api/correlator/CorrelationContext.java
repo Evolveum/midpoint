@@ -70,12 +70,6 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
      */
     private AbstractCorrelatorStateType correlatorState;
 
-    /**
-     * User scripts can request manual correlation here.
-     * TODO adapt / remove
-     */
-    @NotNull private final ManualCorrelationContext manualCorrelationContext = new ManualCorrelationContext();
-
     public CorrelationContext(
             @NotNull ShadowType resourceObject,
             @NotNull FocusType preFocus,
@@ -131,31 +125,6 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         this.correlatorState = correlatorState;
     }
 
-    public @NotNull ManualCorrelationContext getManualCorrelationContext() {
-        return manualCorrelationContext;
-    }
-
-    /**
-     * Instructs the correlator that the manual correlation should be carried out. If there's only one option,
-     * an error should be signalled.
-     */
-    @SuppressWarnings("unused") // called from scripts
-    public void requestManualCorrelation() {
-        manualCorrelationContext.setRequested(true);
-    }
-
-    /**
-     * Instructs the correlator that the manual correlation should be carried out. Provides explicit list of potential matches
-     * to display.
-     *
-     * If there's only one option, an error should be signalled.
-     */
-    @SuppressWarnings("unused") // called from scripts
-    public void requestManualCorrelation(List<ResourceObjectOwnerOptionType> potentialMatches) {
-        manualCorrelationContext.setRequested(true);
-        manualCorrelationContext.setPotentialMatches(potentialMatches);
-    }
-
     public @NotNull Task getTask() {
         return task;
     }
@@ -177,8 +146,7 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "correlatorState", correlatorState, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "manualCorrelationContext", manualCorrelationContext, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "correlatorState", correlatorState, indent + 1);
         return sb.toString();
     }
 

@@ -8,17 +8,16 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -226,20 +225,32 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="confidence" type="tns:CorrelationConfidenceDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how this correlator - if matching - increases the overall confidence of its results.
-
-                        NOT IMPLEMENTED YET
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.6</a:since>
-                        <a:displayName>AbstractCorrelatorType.confidence</a:displayName>
-                        <a:displayOrder>20</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="confidence" type="tns:CorrelationConfidenceDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Defines how this correlator - if matching - increases the overall confidence of its results.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.6</a:since>
+                            <a:displayName>AbstractCorrelatorType.confidence</a:displayName>
+                            <a:displayOrder>20</a:displayOrder>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="thresholds" type="tns:CorrelationConfidenceThresholdsDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.6</a:since>
+                            <a:displayName>AbstractCorrelatorType.thresholds</a:displayName>
+                            <a:displayOrder>20</a:displayOrder>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
 
             <xsd:element name="ignoreIfMatchedBy" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -953,11 +964,50 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression providing the confidence value if a rule does match.
-                        TODO what are the parameters? (E.g. Levenshtein distance for this item?)
+                        TODO what are the parameters? (E.g. Levenshtein distance for the items?)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:choice>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationConfidenceThresholdsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="top" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value that means absolute certainty. No confidence value should be above this one.
+
+                        TODO decide on this one
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="owner" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value (inclusive) that marks the candidate as "the chosen" one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="candidate" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value (inclusive) that marks the candidate as the considered one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 

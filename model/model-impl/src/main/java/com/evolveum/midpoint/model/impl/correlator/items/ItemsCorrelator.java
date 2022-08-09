@@ -13,15 +13,15 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -31,8 +31,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A "user-friendly" correlator based on a list of items that need to be matched between the source
@@ -84,7 +82,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 ConfigurationException, ObjectNotFoundException {
 
             List<F> candidates = findCandidates(result);
-            return beans.builtInResultCreator.createCorrelationResult(candidates, correlationContext);
+            return beans.builtInResultCreator.createCorrelationResult(
+                    candidates, correlatorContext, correlationContext.getTask(), result);
         }
 
         private @NotNull List<F> findCandidates(OperationResult result)

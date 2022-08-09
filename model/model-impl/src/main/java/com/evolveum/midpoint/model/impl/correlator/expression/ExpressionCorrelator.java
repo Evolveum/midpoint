@@ -95,7 +95,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
-            return beans.builtInResultCreator.createCorrelationResult(candidateOwners, correlationContext);
+            return beans.builtInResultCreator.createCorrelationResult(candidateOwners, correlatorContext, task, result);
         }
 
         private @NotNull ObjectSet<F> findCandidatesUsingExpressions(OperationResult result)

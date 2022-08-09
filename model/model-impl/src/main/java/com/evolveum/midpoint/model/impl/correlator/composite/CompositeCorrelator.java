@@ -181,7 +181,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
         private @Nullable CorrelationResult getAuthoritativeResult() {
             Collection<ObjectType> authoritativeCandidates = getAuthoritativeCandidates();
             if (authoritativeCandidates.size() == 1) {
-                return CorrelationResult.existingOwner(authoritativeCandidates.iterator().next());
+                return CorrelationResult.existingOwner(authoritativeCandidates.iterator().next(), null);
             } else {
                 return null;
             }

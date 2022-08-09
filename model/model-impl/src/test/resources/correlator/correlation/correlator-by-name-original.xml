@@ -7,6 +7,14 @@
 
 <itemsCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <confidence>
+        <!-- just testing the dynamic confidence values -->
+        <expression>
+            <script>
+                <code>1.0</code>
+            </script>
+        </expression>
+    </confidence>
     <name>by-name-original</name>
     <item>
         <path>givenName</path>
