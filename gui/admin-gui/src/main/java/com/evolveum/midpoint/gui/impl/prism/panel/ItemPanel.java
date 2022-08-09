@@ -59,7 +59,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         setOutputMarkupId(true);
     }
 
-    private void initLayout() {
+    protected void initLayout() {
 
         //ugly hack TODO FIME - prism context is lost during serialization/deserialization.. find better way how to do it.
         if (getModelObject() != null) {

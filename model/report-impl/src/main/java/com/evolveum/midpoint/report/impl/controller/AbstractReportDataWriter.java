@@ -1,21 +1,21 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Creates and manipulates exported reports.
  */
-public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> implements ReportDataWriter<ED, EH> {
+public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow>
+        implements ReportDataWriter<ED, EH> {
 
     /**
      * Header row to be put into resulting CSV file.
@@ -76,12 +76,12 @@ public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow,
     public abstract boolean shouldWriteHeader();
 
     @Override
-    public String completizeReport(String aggregatedData) {
+    public String completeReport(String aggregatedData) {
         return aggregatedData;
     }
 
     @Override
-    public String completizeReport() {
-        return completizeReport(getStringData());
+    public String completeReport() {
+        return completeReport(getStringData());
     }
 }

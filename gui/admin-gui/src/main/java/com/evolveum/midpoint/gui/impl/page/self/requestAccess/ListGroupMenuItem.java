@@ -32,6 +32,8 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
 
     private boolean disabled;
 
+    private boolean open;
+
     private T value;
 
     private IModel<List<ListGroupMenuItem<T>>> items = Model.ofList(new ArrayList<>());
@@ -118,5 +120,21 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
 
     public void setItemsModel(@NotNull IModel<List<ListGroupMenuItem<T>>> items) {
         this.items = items;
+    }
+
+    public boolean isOpen() {
+        if (getItems().isEmpty()) {
+            return false;
+        }
+
+        return open;
+    }
+
+    public void setOpen(boolean open) {
+        if (getItems().isEmpty()) {
+            return;
+        }
+
+        this.open = open;
     }
 }

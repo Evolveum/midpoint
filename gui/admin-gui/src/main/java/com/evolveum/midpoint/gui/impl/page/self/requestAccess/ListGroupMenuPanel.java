@@ -39,13 +39,6 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
     }
 
     @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(OnDomReadyHeaderItem.forScript("$(document).ready(function() { console.log('menu item', $('#"+getMarkupId()+"')); $('#"+getMarkupId()+"').listGroupMenu(); });"));
-    }
-
-    @Override
     protected void onComponentTag(ComponentTag tag) {
         super.onComponentTag(tag);
 
@@ -54,7 +47,6 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
 
     private void initLayout() {
         add(AttributeAppender.append("class", "list-group-menu"));
-        add(AttributeAppender.append("data-widget", "list-group-menu"));
         setOutputMarkupId(true);
 
         ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
@@ -75,8 +67,8 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
     }
 
     protected void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<T> item) {
-        getModelObject().activateItem(item);
+        getModelObject().onItemClickPerformed(item);
 
-//        target.add(this);
+        target.add(this);
     }
 }

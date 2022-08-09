@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import java.io.Serializable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -15,10 +17,13 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.resource.IResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import java.io.Serializable;
+import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -33,6 +38,7 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
     private static final String ID_DETAILS = "details";
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
+    private static final String ID_INFO = "info";
 
     public CatalogTilePanel(String id, IModel<CatalogTile<T>> model) {
         super(id, model);
@@ -45,9 +51,8 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 
-        WebMarkupContainer logo = new WebMarkupContainer(ID_LOGO);
-        logo.add(AttributeAppender.append("class", () -> getModelObject().getLogo()));
-        add(logo);
+        RoundedImagePanel logo1 = new RoundedImagePanel(ID_LOGO, () -> createDisplayType(getModel()), createPreferredImage(getModel()));
+        add(logo1);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         add(description);
@@ -60,6 +65,12 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
             String title = getModelObject().getTitle();
             return title != null ? getString(title, null, title) : null;
         }));
+
+        Label info = new Label(ID_INFO);
+        info.add(AttributeAppender.append("title", () -> getModelObject().getInfo()));
+        info.add(new TooltipBehavior());
+        info.add(new VisibleBehaviour(() -> getModelObject().getInfo() != null));
+        add(info);
 
         add(new AjaxEventBehavior("click") {
 
@@ -107,5 +118,13 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
     protected void onClick(AjaxRequestTarget target) {
         getModelObject().toggle();
         target.add(this);
+    }
+
+    protected DisplayType createDisplayType(IModel<CatalogTile<T>> model) {
+        return null;
+    }
+
+    protected IModel<IResource> createPreferredImage(IModel<CatalogTile<T>> model) {
+        return null;
     }
 }

@@ -14,9 +14,9 @@ import java.io.Serializable;
  */
 public class CatalogTile<T extends Serializable> extends Tile<T> {
 
-    private String logo;
-
     private String description;
+
+    private String info;
 
     public CatalogTile() {
         this(null, null);
@@ -26,19 +26,19 @@ public class CatalogTile<T extends Serializable> extends Tile<T> {
         super(icon, title);
     }
 
-    public String getLogo() {
-        return logo;
-    }
-
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
     }
 }

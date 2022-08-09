@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.test.util;
 
 import java.net.InetAddress;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 import org.apache.derby.drda.NetworkServerControl;
+import org.testng.TestException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,10 +70,14 @@ public class DerbyController {
     public Connection getConnection() throws SQLException {
         try {
             return DriverManager.getConnection(jdbcUrl, "", "");
-        } catch (Exception e) {
-            // Adding more info for the occasional problem with TestDBTable on k8s:
-            throw new SQLException("DerbyController.getConnection error: " + e + "\n"
-                    + "Current state: " + this, e);
+        } catch (SQLTransientException e) {
+            try {
+                // Let's try one more time after a second.
+                Thread.sleep(1000L);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return DriverManager.getConnection(jdbcUrl, "", "");
         }
     }
 
@@ -109,32 +111,30 @@ public class DerbyController {
         System.setProperty("derby.stream.error.file", "target/derby.log");
         server.start(null);
         boolean dbServerOk = false;
+        int maxPings = 600; // times 100 ms lower => 1 min max
         do {
             try {
                 Thread.sleep(100);
                 server.ping();
                 dbServerOk = true;
+                // There is slight possibility that getConnection() still times out if called immediately.
+                Thread.sleep(50);
+                return; // OK, started, let's go out of the method
             } catch (Exception e) {
                 LOGGER.debug("Derby embedded network server not ready yet...");
             }
-        } while (!dbServerOk);
+
+            maxPings -= 1;
+        } while (!dbServerOk && maxPings > 0);
+
+        // Negative scenario, we ran out of maxPings attempts.
+        LOGGER.warn("Derby DB did not start on time, trying to shut it down.");
+        stop();
+        throw new TestException("Derby DB did not start on time");
     }
 
     public void stop() throws Exception {
         LOGGER.info("Stopping Derby embedded network server");
         server.shutdown();
-    }
-
-    @Override
-    public String toString() {
-        return "DerbyController{" +
-                "server=" + server +
-                ", listenHostname='" + listenHostname + '\'' +
-                ", listenPort=" + listenPort +
-                ", jdbcUrl='" + jdbcUrl + '\'' +
-                ", dbName='" + dbName + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                '}';
     }
 }
