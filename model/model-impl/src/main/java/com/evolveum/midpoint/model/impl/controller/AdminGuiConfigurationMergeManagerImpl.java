@@ -20,7 +20,11 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Controller;
 
@@ -34,6 +38,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @Controller
 public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurationMergeManager {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AdminGuiConfigurationMergeManagerImpl.class);
 
     @Override
     public List<ContainerPanelConfigurationType> mergeContainerPanelConfigurationType(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
@@ -222,7 +228,11 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
     private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
         for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
-            if (defaultPanel.getIdentifier() != null && defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
+            if (StringUtils.isEmpty(defaultPanel.getIdentifier())) {
+                LOGGER.trace("Unable to merge container panel configuration, identifier shouldn't be empty, {}", defaultPanel);
+                continue;
+            }
+            if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
                 mergePanels(defaultPanel, configuredPanel);
                 return;
             }
