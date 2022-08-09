@@ -206,7 +206,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
     }
 
-    @Test(enabled = false) // There is an issue with fuzzy searching over multi-valued "extension-like" properties
+    @Test
     public void test220CorrelateByNameFuzzy() throws Exception {
         skipIfNotNativeRepository();
         executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);

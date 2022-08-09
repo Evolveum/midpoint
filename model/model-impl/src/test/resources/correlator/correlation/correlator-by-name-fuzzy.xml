@@ -23,7 +23,7 @@
         <search>
             <fuzzy>
                 <similarity>
-                    <threshold>0.6</threshold>
+                    <threshold>0.5</threshold>
                 </similarity>
             </fuzzy>
         </search>
