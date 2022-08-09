@@ -127,7 +127,7 @@ public class NormalizationImpl implements Normalization {
     public String toString() {
         return "Normalization{" +
                 "name='" + name + '\'' +
-                ",default='" + isDefault() + '\'' +
+                (isDefault() ? ",default" : "") +
                 '}';
     }
 }

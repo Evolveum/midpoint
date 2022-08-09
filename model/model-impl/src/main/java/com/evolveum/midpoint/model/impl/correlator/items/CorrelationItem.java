@@ -9,18 +9,22 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.Normalization;
 import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
 
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +41,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -60,8 +62,10 @@ public class CorrelationItem implements DebugDumpable {
     @Nullable private final Normalization normalization;
 
     // TODO
-    @Nullable private final IdentityItemConfiguration identityItemConfiguration;
     @Nullable private final IndexingItemConfiguration indexingItemConfiguration;
+
+    /** Note we ignore "index" from this configuration. It is already processed into {@link #normalization} field. */
+    @NotNull private final ItemSearchDefinitionType searchDefinitionBean;
 
     // TODO
     @NotNull private final List<? extends PrismValue> prismValues;
@@ -70,13 +74,13 @@ public class CorrelationItem implements DebugDumpable {
             @NotNull String name,
             @NotNull ItemPath itemPath,
             @Nullable Normalization normalization,
-            @Nullable IdentityItemConfiguration identityItemConfiguration,
+            @Nullable ItemSearchDefinitionType searchDefinitionBean,
             @Nullable IndexingItemConfiguration indexingItemConfiguration,
             @NotNull List<? extends PrismValue> prismValues) {
         this.name = name;
         this.itemPath = itemPath;
         this.normalization = normalization;
-        this.identityItemConfiguration = identityItemConfiguration;
+        this.searchDefinitionBean = searchDefinitionBean != null ? searchDefinitionBean : new ItemSearchDefinitionType();
         this.indexingItemConfiguration = indexingItemConfiguration;
         this.prismValues = prismValues;
     }
@@ -88,13 +92,19 @@ public class CorrelationItem implements DebugDumpable {
             throws ConfigurationException {
         ItemPath path = getPath(itemBean);
         IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
+        String explicitIndexName = getExplicitIndexName(itemBean);
         return new CorrelationItem(
                 getName(itemBean),
                 path,
-                getNormalization(indexingConfig, itemBean.getIndex(), path),
-                getIdentityItemConfiguration(itemBean, correlatorContext),
+                getNormalization(indexingConfig, explicitIndexName, path),
+                itemBean.getSearch(),
                 indexingConfig,
                 getPrismValues(preFocus, path));
+    }
+
+    private static String getExplicitIndexName(ItemCorrelationType itemBean) {
+        ItemSearchDefinitionType searchSpec = itemBean.getSearch();
+        return searchSpec != null ? searchSpec.getIndex() : null;
     }
 
     private static Normalization getNormalization(IndexingItemConfiguration indexingConfig, String index, ItemPath path)
@@ -111,16 +121,6 @@ public class CorrelationItem implements DebugDumpable {
                     indexingConfig.findNormalization(index),
                     () -> new ConfigurationException(
                             String.format("Index '%s' was not found in indexing configuration for '%s'", index, path)));
-        }
-    }
-
-    private static IdentityItemConfiguration getIdentityItemConfiguration(
-            @NotNull ItemCorrelationType itemBean, @NotNull CorrelatorContext<?> correlatorContext) {
-        ItemPathType itemPathBean = itemBean.getPath();
-        if (itemPathBean != null) {
-            return correlatorContext.getIdentityManagementConfiguration().getForPath(itemPathBean.getItemPath());
-        } else {
-            return null;
         }
     }
 
@@ -223,20 +223,54 @@ public class CorrelationItem implements DebugDumpable {
         if (indexingItemConfiguration != null) {
             assert normalization != null;
             ItemPath normalizedItemPath = normalization.getIndexItemPath();
-            Object normalizedValue = IndexingManager.normalizeValue(valueToFind, normalization, task, result);
+            String normalizedValue = IndexingManager.normalizeValue(valueToFind, normalization, task, result);
             LOGGER.trace("Will look for normalized value '{}' in '{}' (of '{}')", normalizedValue, normalizedItemPath, itemPath);
             ItemDefinition<?> normalizedItemDefinition = normalization.getIndexItemDefinition();
-            return builder
-                    .item(normalizedItemPath, normalizedItemDefinition)
-                    .eq(normalizedValue);
-            // TODO matching rule
+
+            FuzzySearchDefinitionType fuzzyDef = searchDefinitionBean.getFuzzy();
+            if (fuzzyDef != null) {
+                return builder
+                        .item(normalizedItemPath, normalizedItemDefinition)
+                        .fuzzyString(normalizedValue, getFuzzyMatchingMethod(fuzzyDef));
+            } else {
+                return builder
+                        .item(normalizedItemPath, normalizedItemDefinition)
+                        .eq(normalizedValue)
+                        .matching(getMatchingRuleName());
+            }
         } else {
             LOGGER.trace("Will look for value '{}' of '{}'", valueToFind, itemPath);
             return builder
                     .item(itemPath)
-                    .eq(valueToFind);
-            // TODO matching rule
+                    .eq(valueToFind)
+                    .matching(getMatchingRuleName());
         }
+    }
+
+    private FuzzyMatchingMethod getFuzzyMatchingMethod(FuzzySearchDefinitionType fuzzyDef) throws ConfigurationException {
+        LevenshteinDistanceSearchDefinitionType levenshtein = fuzzyDef.getLevenshtein();
+        if (levenshtein != null) {
+            return new FuzzyStringMatchFilter.Levenshtein(
+                    MiscUtil.configNonNull(
+                            levenshtein.getThreshold(),
+                            () -> "Please specify Levenshtein edit distance threshold"),
+                    true);
+        }
+        TrigramSimilaritySearchDefinitionType similarity = fuzzyDef.getSimilarity();
+        if (similarity != null) {
+            return new FuzzyStringMatchFilter.Similarity(
+                    MiscUtil.configNonNull(
+                            similarity.getThreshold(),
+                            () -> "Please specify trigram similarity threshold"),
+                    !Boolean.FALSE.equals(similarity.isInclusive()));
+        }
+        throw new ConfigurationException("Please specify Levenshtein or trigram similarity fuzzy string matching method");
+    }
+
+    private QName getMatchingRuleName() {
+        return Objects.requireNonNullElse(
+                searchDefinitionBean.getMatchingRule(),
+                PrismConstants.DEFAULT_MATCHING_RULE_NAME);
     }
 
     /**
@@ -275,7 +309,8 @@ public class CorrelationItem implements DebugDumpable {
         return "CorrelationItem{" +
                 "name=" + name +
                 ", itemPath=" + itemPath +
-                ", identityConfig=" + identityItemConfiguration +
+                ", normalization=" + normalization +
+                ", indexing=" + indexingItemConfiguration +
                 '}';
     }
 
@@ -293,8 +328,9 @@ public class CorrelationItem implements DebugDumpable {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "name", name, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "itemPath", String.valueOf(itemPath), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "normalization", String.valueOf(normalization), indent + 1);
         DebugUtil.debugDumpWithLabelLn(
-                sb, "identityItemConfiguration", String.valueOf(identityItemConfiguration), indent + 1);
+                sb, "indexingItemConfiguration", String.valueOf(indexingItemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "values", prismValues, indent + 1);
         return sb.toString();
     }

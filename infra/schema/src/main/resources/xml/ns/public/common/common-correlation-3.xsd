@@ -13,6 +13,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -473,10 +474,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="index" type="xsd:string" minOccurs="0">
+            <xsd:element name="search" type="tns:ItemSearchDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What index to use when matching this item? If none is specified, the default one is used. (TODO)
+                        How to search for the item values?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1556,5 +1557,130 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemSearchDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies how to search for the item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="index" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What index to use when matching this item? If none is specified, then:
+                        If the item is indexed, the default index is used. If it is not, the original value is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0" default="mr:default">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            What matching rule to use?
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="fuzzy" type="tns:FuzzySearchDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specification of the fuzzy search to be used.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="FuzzySearchDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the fuzzy search algorithm to use for searching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="levenshtein" type="tns:LevenshteinDistanceSearchDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Search using Levenshtein edit distance.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="similarity" type="tns:TrigramSimilaritySearchDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Search using trigram similarity.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="LevenshteinDistanceSearchDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the use of Levenshtein edit distance for searching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="threshold" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Upper limit on the edit distance to be matched. (Inclusive.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="TrigramSimilaritySearchDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the use of trigram similarity for searching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="threshold" type="xsd:float" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Lower limit on the similarity to be matched.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inclusive" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the value of "threshold" meant to be inclusive?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 </xsd:schema>

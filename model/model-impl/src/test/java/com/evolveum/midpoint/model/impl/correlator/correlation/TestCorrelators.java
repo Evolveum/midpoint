@@ -113,6 +113,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                     new File(TEST_DIR, "correlator-by-name-original.xml"),
                     USER_TEMPLATE_ORIGINAL_INDEXING);
 
+    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY = new File(TEST_DIR, "accounts-by-name-fuzzy.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-by-name-fuzzy.xml"),
+                    USER_TEMPLATE_DEFAULT_INDEXING);
+
     private static final File FILE_ACCOUNTS_COMPLEX = new File(TEST_DIR, "accounts-complex.csv");
     private static final TestCorrelator CORRELATOR_COMPLEX =
             new TestCorrelator(
@@ -204,8 +210,14 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
     }
 
+    @Test(enabled = false)
+    public void test220CorrelateByNameFuzzy() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
+    }
+
     @Test
-    public void test220CorrelateComplex() throws Exception {
+    public void test230CorrelateComplex() throws Exception {
         skipIfNotNativeRepository();
         executeTest(CORRELATOR_COMPLEX, FILE_USERS_COMPLEX, FILE_ACCOUNTS_COMPLEX);
 
@@ -217,7 +229,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         .assertNormalizedItem("givenName.polyStringNorm", "john", "ian")
                         .assertNormalizedItem("familyName.norm", "smith")
                         .assertNormalizedItem("familyName.orig", "Smith")
-                        .assertNormalizedItem("familyName.polyStringNorm.prefix.3", "smi")
+                        .assertNormalizedItem("familyName.polyStringNorm.prefix3", "smi")
                         .assertNormalizedItem("nationalId.digits", "0402061111");
         // @formatter:on
     }

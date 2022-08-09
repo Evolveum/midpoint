@@ -1,0 +1,10 @@
+# Users: John Smith, Mary Smith
+# Normalization: poly string norm
+# Search: given name with levenshtein(1), family name with similarity(0.6, inclusive) - out of reality; just to test the algorithm
+
+uid  | givenName | familyName | test    | _note
+1    | John      | Smith      | smith1  | Exact match
+2    | Yohn      | Smith      | smith1  | John/Yohn have Levenshtein distance of 1
+3    | Yoohn     | Smith      | _none   | Here the distance is 2
+4    | john      | smits      | smith1  | Exact match on given name (because of normalization), similarity of 0.6667 on family name
+5    | john      | smath      | _none   | Similarity of 0.33334 on family name (below threshold)

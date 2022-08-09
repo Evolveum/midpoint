@@ -155,7 +155,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
 
         @Override
         String asSuffix() {
-            return NAME_PREFIX + "." + length;
+            return NAME_PREFIX + length;
         }
     }
 

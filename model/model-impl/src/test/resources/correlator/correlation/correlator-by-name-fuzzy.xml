@@ -7,19 +7,25 @@
 
 <itemsCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>complex</name>
-
+    <name>by-name-levenshtein</name>
     <item>
         <path>givenName</path>
-        <!-- case-insensitive (poly string norm) -->
+        <search>
+            <fuzzy>
+                <levenshtein>
+                    <threshold>1</threshold>
+                </levenshtein>
+            </fuzzy>
+        </search>
     </item>
     <item>
         <path>familyName</path>
         <search>
-            <index>orig</index> <!-- just for testing -->
+            <fuzzy>
+                <similarity>
+                    <threshold>0.6</threshold>
+                </similarity>
+            </fuzzy>
         </search>
-    </item>
-    <item>
-        <path>extension/nationalId</path>
     </item>
 </itemsCorrelator>

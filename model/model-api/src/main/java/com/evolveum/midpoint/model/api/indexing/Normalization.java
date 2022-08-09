@@ -31,5 +31,7 @@ public interface Normalization {
 
     @NotNull PrismPropertyDefinition<String> getIndexItemDefinition();
 
-    @NotNull String normalize(@NotNull String input, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    @NotNull String normalize(@NotNull String input, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }
