@@ -94,7 +94,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         // FIXME: Implement proper
-        var firstChild = overridden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path));
+        var firstChild = findLocalItemDefinition(path.firstToQName(), ItemDefinition.class, false);
         if (firstChild == null) {
             return null;
         }
