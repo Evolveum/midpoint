@@ -91,6 +91,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
 
+    public static final ItemPath TARGET_REF_OBJ = ItemPath.create(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE);
     private static final ItemPath TARGET_REF_EXTENSION = ItemPath.create(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_EXTENSION);
 
     private IModel<PrismContainerWrapper<AssignmentType>> model;
