@@ -124,8 +124,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (StringUtils.isEmpty(dslQuery)) {
                 return null;
             }
-            return ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes())
-                    .parseFilter(getTypeClass(), dslQuery);
+            var parser = ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes());
+            PrismContainerDefinition<?> containerDef = null; // FIXME: Find way to provide PCD.
+            if (containerDef == null) {
+                return parser.parseFilter(getTypeClass(), dslQuery);
+            }
+            return parser.parseFilter(containerDef, dslQuery);
         }
 
         return null;
