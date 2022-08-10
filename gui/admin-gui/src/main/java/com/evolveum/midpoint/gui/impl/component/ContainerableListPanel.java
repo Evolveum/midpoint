@@ -67,6 +67,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -520,11 +521,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null);
     }
 
+    protected PrismContainerDefinition<C> getContainerDefinitionForColumns() {
+        return getPageBase().getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(getType());
+    }
+
     private boolean noItemDefinitionFor(ItemPath columnPath, GuiObjectColumnType customColumn) {
         if (columnPath != null) {
-            ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-                    .findContainerDefinitionByCompileTimeClass(getType())
-                    .findItemDefinition(columnPath);
+            ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(columnPath);
             if (itemDefinition == null) { // TODO check  && expression == null) {
                 LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
                 return true;
@@ -666,6 +670,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
             if (columnItem != null) {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
+            } else {
+                // TODO: Is this correct?
+                variablesMap.put(ExpressionConstants.VAR_INPUT, new TypedValue<>(null, Item.class));
             }
             return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
@@ -1139,6 +1146,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         WebComponentUtil.clearProviderCache(getDataProvider());
     }
 
+    @Override
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return PageBase.createStringResourceStatic(resourceKey, objects);
     }
