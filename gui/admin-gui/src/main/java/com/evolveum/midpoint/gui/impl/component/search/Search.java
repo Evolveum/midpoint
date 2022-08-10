@@ -479,5 +479,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         containerDefinitionOverride = typeDefinitionForSearch;
     }
 
+    public PrismContainerDefinition<C> getContainerDefinitionOverride() {
+        return containerDefinitionOverride;
+    }
+
 
 }

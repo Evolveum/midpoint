@@ -446,7 +446,12 @@ public class ObjectQueryUtil {
                     // AND with "true", just skip it
                 } else {
                     ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
-                    if (simplifiedSubfilter instanceof NoneFilter) {
+                    if (simplifiedSubfilter instanceof AndFilter) {
+                        // Unwrap AND filter to parent and
+                        for (ObjectFilter condition : ((AndFilter) simplifiedSubfilter).getConditions()) {
+                            simplifiedFilter.addCondition(condition);
+                        }
+                    } else if (simplifiedSubfilter instanceof NoneFilter) {
                         return FilterCreationUtil.createNone(prismContext);
                     } else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
                         // skip
