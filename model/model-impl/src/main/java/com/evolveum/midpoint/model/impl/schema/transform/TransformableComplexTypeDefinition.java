@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -96,7 +97,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     @Override
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         // FIXME: Implement proper
-        var firstChild = overriden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path));
+        var firstChild = findLocalItemDefinition(path.firstToQName(), ItemDefinition.class, false);
         if (firstChild == null) {
             return null;
         }
@@ -104,7 +105,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         if (rest.isEmpty()) {
             return clazz.cast(firstChild);
         }
-        return firstChild.findItemDefinition(path, clazz);
+        return (ID) firstChild.findItemDefinition(path.rest(), clazz);
 
     }
 
