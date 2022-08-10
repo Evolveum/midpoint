@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -71,7 +71,7 @@ public class ContainerTableUpdateContext<S extends Containerable, Q extends QCon
 
     @Override
     public <P extends Path<T>, T> void set(P path, Expression<T> value) {
-        throw new UnsupportedOperationException("not needed, not supported");
+        update.set(path, value);
     }
 
     @Override

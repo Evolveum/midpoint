@@ -66,6 +66,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.testng.Assert;
 import org.testng.ITestResult;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.w3c.dom.Element;
@@ -4239,6 +4240,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void dumpResourceCapabilities(@NotNull ResourceType resource) throws SchemaException {
         for (CapabilityType capability : ResourceTypeUtil.getEnabledCapabilities(resource)) {
             System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    protected boolean isNativeRepository() {
+        return repositoryService.isNative();
+    }
+
+    protected void skipIfNotNativeRepository() {
+        if (!isNativeRepository()) {
+            throw new SkipException("Not running on the native repository");
         }
     }
 }

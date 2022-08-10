@@ -35,7 +35,7 @@ public class ObjectTemplateIncludeProcessor {
      */
     @FunctionalInterface
     public interface TemplateProcessor {
-        void process(ObjectTemplateType includedTemplate);
+        void process(ObjectTemplateType includedTemplate) throws ConfigurationException;
     }
 
     public void processThisAndIncludedTemplates(ObjectTemplateType objectTemplate, String contextDesc, Task task,

@@ -62,7 +62,10 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
         // If the extension is single value (and we know it now), we should proceed with deletion of
         // multivalue variant and vice-versa. This variants may be introduced during raw import
         // or changes in multiplicity of extension definition or resource definition.
-        context.deleteItem(reverseCardinality(extItemInfo.item));
+        String extItemId = reverseCardinality(extItemInfo.item);
+        if (extItemId != null) {
+            context.deleteItem(extItemId);
+        }
 
         if (realValues == null || realValues.isEmpty()) {
             context.deleteItem(extItemInfo.getId());
@@ -74,16 +77,17 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
     }
 
     private String reverseCardinality(MExtItem extItem) {
-        var reverseCardinality = MExtItemCardinality.SCALAR.equals(extItem.cardinality)
+        MExtItemCardinality reverseCardinality = MExtItemCardinality.SCALAR.equals(extItem.cardinality)
                 ? MExtItemCardinality.ARRAY
                 : MExtItemCardinality.SCALAR;
-        var reverseKey = new MExtItem.Key();
+        MExtItem.Key reverseKey = new MExtItem.Key();
         reverseKey.cardinality = reverseCardinality;
         reverseKey.itemName = extItem.itemName;
         reverseKey.valueType = extItem.valueType;
         reverseKey.holderType = extItem.holderType;
-        // FIXME: Use search rather (do not create additional MExtItem)
-        var reverseItem = context.repositoryContext().resolveExtensionItem(reverseKey);
-        return String.valueOf(reverseItem.id);
+        // It's OK to look for the reverse item in local cache only; if this is even an issue
+        // it must have occurred during audit import or what - and we had both versions before MP started.
+        MExtItem reverseItem = context.repositoryContext().getExtensionItem(reverseKey);
+        return reverseItem != null ? String.valueOf(reverseItem.id) : null;
     }
 }

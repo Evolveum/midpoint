@@ -278,6 +278,11 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>com.evolveum.commons</groupId>
+                <artifactId>concepts</artifactId>
+                <version>${prism.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-api</artifactId>
                 <version>${prism.version}</version>

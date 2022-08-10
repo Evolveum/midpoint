@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -54,7 +54,7 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
      * Implemented for searchable containers that do not use fullObject for their recreation.
      */
     @Override
-    public S toSchemaObject(R row) {
+    public S toSchemaObject(R row) throws SchemaException {
         throw new UnsupportedOperationException(
                 "Container search not supported for schema type " + schemaType());
     }
@@ -69,12 +69,6 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     public R newRowObject(OR ownerRow) {
         throw new UnsupportedOperationException(
                 "Container bean creation for owner row called on abstract container mapping");
-    }
-
-    @Override
-    public R newRowObject() {
-        //noinspection unchecked
-        return (R) new MContainer();
     }
 
     /**

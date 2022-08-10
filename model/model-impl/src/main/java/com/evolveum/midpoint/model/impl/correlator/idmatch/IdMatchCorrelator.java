@@ -39,6 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * A correlator based on an external service providing ID Match API.
  * (https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API)
+ *
+ * TODO scaling of the confidence values
  */
 class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
 
@@ -82,7 +84,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         configCheck(configurationBean.getFollowOn() != null,
                 "No 'follow on' correlator configured in %s", configurationBean);
         Collection<CorrelatorConfiguration> followOnConfigs =
-                CorrelatorConfiguration.getConfigurations(configurationBean.getFollowOn());
+                CorrelatorConfiguration.getChildConfigurations(configurationBean.getFollowOn());
         configCheck(followOnConfigs.size() == 1, "Not a single 'follow on' correlator configured: %s",
                 followOnConfigs);
         return followOnConfigs.iterator().next();
@@ -208,6 +210,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ResourceObjectOwnerOptionsType options = new ResourceObjectOwnerOptionsType();
+            CandidateOwnerMap<ObjectType> candidateOwnerMap = new CandidateOwnerMap<>();
             ObjectSet<ObjectType> allCandidates = new ObjectSet<>();
             boolean newIdentityOptionPresent = false;
             for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
@@ -220,6 +223,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     options.getOption().add(potentialOwner.potentialOwnerBean);
                     if (potentialOwner.candidateOwner != null) {
                         allCandidates.add(potentialOwner.candidateOwner);
+                        candidateOwnerMap.put(potentialOwner.candidateOwner, potentialOwner.potentialOwnerBean.getConfidence());
                     }
                 }
             }
@@ -227,7 +231,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 options.getOption().add(
                         createPotentialMatchBeanForNewIdentity());
             }
-            return new OwnersInfo(options, allCandidates);
+            return new OwnersInfo(candidateOwnerMap, options, allCandidates);
         }
 
         /** We need to return both {@link ResourceObjectOwnerOptionType} and the full owner object. */

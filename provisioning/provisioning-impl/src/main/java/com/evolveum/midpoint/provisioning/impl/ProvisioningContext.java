@@ -1,26 +1,34 @@
 /*
- * Copyright (c) 2015-2017 Evolveum and contributors
+ * Copyright (C) 2015-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.schema.processor.*;
+import java.util.*;
+import java.util.function.Supplier;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -33,14 +41,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * Context for provisioning operations. Contains key information like resolved resource,
@@ -167,7 +167,8 @@ public class ProvisioningContext {
         this.propagation = value;
     }
 
-    @NotNull public ResourceType getResource() {
+    @NotNull
+    public ResourceType getResource() {
         return resource;
     }
 
@@ -391,14 +392,14 @@ public class ProvisioningContext {
             return contextFactory.getResourceManager()
                     .getConfiguredConnectorInstance(resource.asPrismObject(), operationCapabilityClass, false, result);
         } catch (ObjectNotFoundException | SchemaException e) {
-            result.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
+            result.recordPartialError("Could not get connector instance " + getDesc() + ": " + e.getMessage(), e);
             // Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
             // ObjectNotFoundException exception. If we do that then the consistency code will interpret that as if the resource object
             // (shadow) is missing. But that's wrong. We do not have connector therefore we do not know anything about the shadow. We cannot
             // throw ObjectNotFoundException here.
             throw new ConfigurationException(e.getMessage(), e);
         } catch (CommunicationException | ConfigurationException | RuntimeException e) {
-            result.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
+            result.recordPartialError("Could not get connector instance " + getDesc() + ": " + e.getMessage(), e);
             throw e;
         } finally {
             result.close();
@@ -421,7 +422,7 @@ public class ProvisioningContext {
 
     @Override
     public String toString() {
-        return "ProvisioningContext("+getDesc()+")";
+        return "ProvisioningContext(" + getDesc() + ")";
     }
 
     public ItemPath path(Object... components) {
@@ -481,8 +482,8 @@ public class ProvisioningContext {
     }
 
     public void validateSchema(ShadowType shadow)
-        throws ObjectNotFoundException,
-                SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException,
+            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (ResourceTypeUtil.isValidateSchema(resource)) {
             ShadowUtil.validateAttributeSchema(shadow, getObjectDefinition());
         }
@@ -493,11 +494,11 @@ public class ProvisioningContext {
     }
 
     public boolean isFetchingRequested(ItemPath path) {
-        return SelectorOptions.hasToLoadPath(path, getOperationOptions, false);
+        return SelectorOptions.hasToIncludePath(path, getOperationOptions, false);
     }
 
     public boolean isFetchingNotDisabled(ItemPath path) {
-        return SelectorOptions.hasToLoadPath(path, getOperationOptions, true);
+        return SelectorOptions.hasToIncludePath(path, getOperationOptions, true);
     }
 
     /**

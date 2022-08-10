@@ -13,8 +13,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -404,5 +406,20 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         assertNotNull("No password in "+desc(), password);
         IntegrationTestTools.assertHasProtectedString("Password for "+desc(), password.getValue(), storageType, getProtector());
         return this;
+    }
+
+    public FocusIdentitiesAsserter<FocusAsserter<F, RA>> identities() {
+        //noinspection unchecked
+        FocusIdentitiesAsserter<FocusAsserter<F, RA>> asserter =
+                new FocusIdentitiesAsserter<>(
+                        (PrismContainerValue<FocusIdentitiesType>)
+                                MiscUtil.requireNonNull(
+                                                getObjectable().getIdentities(),
+                                                () -> new AssertionError("No identities in " + getObjectable()))
+                                        .asPrismContainerValue(),
+                        this,
+                        getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

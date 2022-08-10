@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
@@ -46,6 +48,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  * Component that can efficiently determine archetypes for objects.
  * It is backed by caches, therefore this is supposed to be a low-overhead service that can be
  * used in many places.
+ *
+ * As a secondary responsibility, this class handles the resolution of object templates.
  *
  * [NOTE]
  * ====
@@ -77,6 +81,7 @@ public class ArchetypeManager implements Cache {
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private ArchetypeDeterminer archetypeDeterminer;
     @Autowired private ArchetypePolicyMerger archetypePolicyMerger;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
 
     private final Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
 
@@ -234,6 +239,14 @@ public class ArchetypeManager implements Cache {
                 getPolicyForArchetype(structuralArchetype, result));
 
         return mergedPolicy;
+    }
+
+    /** A convenience variant of {@link #getPolicyForArchetype(ArchetypeType, OperationResult)}. */
+    public @Nullable ArchetypePolicyType getPolicyForArchetype(@NotNull String archetypeOid, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return getPolicyForArchetype(
+                getArchetype(archetypeOid, result),
+                result);
     }
 
     /**
@@ -396,5 +409,21 @@ public class ArchetypeManager implements Cache {
         if (LOGGER_CONTENT.isInfoEnabled()) {
             archetypePolicyCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached archetype policy: {}: {}", k, v));
         }
+    }
+
+    /**
+     * Returns the "expanded" object template, i.e. the one with "include" instructions resolved.
+     *
+     * Note that the handling of dangling references is graceful just like in the case of archetypes,
+     * see the note in the class-level javadoc. However, if the `oid` parameter cannot be resolved,
+     * the respective exception is thrown.
+     *
+     * FIXME implement the expansion function
+     */
+    public @NotNull ObjectTemplateType getExpandedObjectTemplate(@NotNull String oid, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return cacheRepositoryService
+                .getObject(ObjectTemplateType.class, oid, null, result)
+                .asObjectable();
     }
 }

@@ -614,7 +614,6 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                         .collect(Collectors.toList()),
                 () -> new AssertionError("multiple empNo correlators"),
                 () -> new AssertionError("no empNo correlator"));
-        assertThat(empNo.getAuthority()).isEqualTo(AUTHORITATIVE); // overridden in types-1
         // Use of toString() is a hack (it's hard to compare paths using equals())
         assertThat(empNo.getItem().get(0).getPath().getItemPath().toString()).as("empNo path")
                 .isEqualTo(prismContext.toUniformPath(UserType.F_EMPLOYEE_NUMBER).toString());
@@ -624,34 +623,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                         .collect(Collectors.toList()),
                 () -> new AssertionError("multiple unnamed correlators"),
                 () -> new AssertionError("no unnamed correlator"));
-        assertThat(unnamedCorrelator.getAuthority()).isEqualTo(NON_AUTHORITATIVE);
         assertThat(unnamedCorrelator.getItem()).hasSize(2);
-
-        and("'items' in correlation definitions are correctly merged");
-        List<CorrelationItemDefinitionType> items =
-                correlationDefinitionBean.getCorrelators().getDefinitions().getItems().getItem();
-        assertThat(items).hasSize(1);
-        CorrelationItemDefinitionType item = items.get(0);
-        assertThat(item.getName()).isEqualTo("test-item-1");
-        assertThat(item.getPath().toString()).isEqualTo("item-2"); // overridden in types-1
-
-        and("'places' in correlation definitions are correctly merged");
-        List<CorrelationItemTargetDefinitionType> targets = item.getTarget();
-        assertThat(targets).as("targets").hasSize(1); // should be merged on qualifier-1
-        CorrelationItemTargetDefinitionType target = targets.get(0);
-        assertThat(target.getQualifier()).isEqualTo("qualifier-1");
-        assertThat(target.getPath().toString()).isEqualTo("item-2-target-2");
-
-        CorrelationItemSourceDefinitionType sourcePlace =
-                correlationDefinitionBean.getCorrelators().getDefinitions().getPlaces().getSource();
-        assertThat(sourcePlace.getPath().toString()).isEqualTo("source-2"); // overridden in types-1
-
-        List<CorrelationItemTargetDefinitionType> targetPlaces =
-                correlationDefinitionBean.getCorrelators().getDefinitions().getPlaces().getTarget();
-        assertThat(targetPlaces).hasSize(1);
-        CorrelationItemTargetDefinitionType targetPlace = targetPlaces.get(0);
-        assertThat(targetPlace.getQualifier()).isEqualTo("qualifier-1"); // merging based on this key
-        assertThat(targetPlace.getPath().toString()).isEqualTo("target-2"); // overridden in types-1
 
         and("default inbound mappings phases are merged");
         // This is a bit counter-intuitive, but according to the general merging algorithm.

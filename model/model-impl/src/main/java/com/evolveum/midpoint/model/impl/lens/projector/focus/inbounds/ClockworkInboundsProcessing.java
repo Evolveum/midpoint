@@ -45,6 +45,9 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkInboundsProcessing.class);
 
+    private static final String OP_NORMALIZE_CHANGED_FOCUS_IDENTITY_DATA =
+            ClockworkInboundsProcessing.class.getName() + ".normalizeChangedFocusIdentityData";
+
     @NotNull private final LensContext<F> context;
 
     public ClockworkInboundsProcessing(
@@ -59,7 +62,7 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
     /**
      * Collects all the mappings from all the projects, sorted by target property.
      *
-     * Motivation: we need to evaluate them together, e.g. in case that there are several mappings
+     * Original motivation (is it still valid?): we need to evaluate them together, e.g. in case that there are several mappings
      * from several projections targeting the same property.
      */
     void collectMappings()
@@ -88,6 +91,7 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
                         projectionContext,
                         context,
                         mappingsMap,
+                        itemDefinitionMap,
                         new ClockworkContext(context, env, result, beans),
                         objectCurrentOrNew,
                         getFocusDefinition(objectCurrentOrNew))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -31,9 +31,10 @@ public class NestedMappingResolver<S extends Containerable, Q extends FlexibleRe
     }
 
     /** Returns the same context and nested mapping. */
+    @SuppressWarnings("unchecked")
     @Override
     public ResolutionResult<Q, R> resolve(SqlQueryContext<?, Q, R> context) {
-        context = ( (SqaleQueryContext<?,Q,R>) context).nestedContext(mapping);
+        context = ((SqaleQueryContext<?, Q, R>) context).nestedContext(mapping);
         return new ResolutionResult<>(context, mapping);
     }
 

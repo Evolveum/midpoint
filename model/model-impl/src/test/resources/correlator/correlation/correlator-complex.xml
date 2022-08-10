@@ -1,0 +1,79 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<compositeCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>complex</name>
+    <thresholds>
+        <top>2.0</top>
+        <owner>1.0</owner>
+        <candidate>0.2</candidate>
+    </thresholds>
+    <items>
+        <name>all</name>
+        <tier>1</tier>
+        <confidence>
+            <value>2.0</value>
+        </confidence>
+        <item>
+            <path>givenName</path>
+        </item>
+        <item>
+            <path>familyName</path>
+            <search>
+                <index>orig</index> <!-- just for testing -->
+            </search>
+        </item>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+    </items>
+    <items>
+        <name>fullName</name>
+        <confidence>
+            <value>0.5</value>
+        </confidence>
+        <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+        <item>
+            <path>givenName</path>
+        </item>
+        <item>
+            <path>familyName</path>
+        </item>
+    </items>
+    <items>
+        <name>familyName</name>
+        <confidence>
+            <value>0.25</value>
+        </confidence>
+        <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+        <item>
+            <path>familyName</path>
+        </item>
+    </items>
+    <items>
+        <name>nationalId</name>
+        <confidence>
+            <value>0.75</value>
+        </confidence>
+        <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+    </items>
+    <items>
+        <!-- just for the testing, not to be used in real life! -->
+        <name>givenName</name>
+        <confidence>
+            <value>0.1</value>
+        </confidence>
+        <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+        <item>
+            <path>givenName</path>
+        </item>
+    </items>
+</compositeCorrelator>

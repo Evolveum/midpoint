@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  *
  * @param <R> type of this container row
- * @param <OR> type of the owner row
+ * @param <OR> type of the immediate owner row (can be object or container)
  */
 @SuppressWarnings("unused")
 public class QContainer<R extends MContainer, OR> extends FlexibleRelationalPathBase<R>

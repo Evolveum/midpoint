@@ -1,0 +1,6 @@
+# Uses employeeNumber as owner OID. Contains <ownerRef> element, i.e. returns object reference(s)
+
+uid  | correlator | employeeNumber                       | givenName | familyName | dateOfBirth | nationalId | test       | _note
+110  | owner-ref  | 0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2 |           |            |             |            | ismith     | That is ismith's OID
+111  | owner-ref  |                                      |           |            |             |            | _none      | Will return no reference
+112  | owner-ref  | *                                    |           |            |             |            | _uncertain | Will return two OIDs

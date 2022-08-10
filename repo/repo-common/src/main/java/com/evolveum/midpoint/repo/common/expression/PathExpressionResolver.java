@@ -28,13 +28,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
 import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.resolveReference;
 
 /**
  * Resolves expression paths (e.g. $immediateRole/jpegPhoto).
  *
- * Factored out from ExpressionUtil.
+ * Factored out from {@link ExpressionUtil}.
  */
 class PathExpressionResolver {
 
@@ -66,20 +67,31 @@ class PathExpressionResolver {
     private final TypedValue<?> defaultContext;
 
     /**
+     * Whether we don't need the "type" part of {@link TypedValue} (i.e. the real value is all that matters to us).
+     * It is necessary e.g. when highly dynamic data (e.g. `identities`) are processed.
+     */
+    private final boolean skipTypeDetermination;
+
+    /**
      * Whether to normalize container values that are to be deleted, i.e. convert them from id-only to full data (MID-4863).
      * TODO reconsider this, see MID-7057.
      */
     private final boolean normalizeValuesToDelete;
 
     @NotNull private final ObjectResolver objectResolver;
-    @NotNull private final PrismContext prismContext;
 
     @NotNull private final String shortDesc;
     @NotNull private final Task task;
 
-    PathExpressionResolver(@NotNull ItemPath path, @NotNull VariablesMap variables, boolean normalizeValuesToDelete,
-            TypedValue<?> defaultContext, @NotNull ObjectResolver objectResolver, @NotNull PrismContext prismContext,
-            @NotNull String shortDesc, @NotNull Task task) {
+    PathExpressionResolver(
+            @NotNull ItemPath path,
+            @NotNull VariablesMap variables,
+            boolean normalizeValuesToDelete,
+            TypedValue<?> defaultContext,
+            boolean skipTypeDetermination,
+            @NotNull ObjectResolver objectResolver,
+            @NotNull String shortDesc,
+            @NotNull Task task) {
         this.path = path;
         if (path.startsWithVariable()) {
             this.variableName = path.firstToVariableNameOrNull().getLocalPart();
@@ -91,8 +103,8 @@ class PathExpressionResolver {
         this.variables = variables;
         this.normalizeValuesToDelete = normalizeValuesToDelete;
         this.defaultContext = defaultContext;
+        this.skipTypeDetermination = skipTypeDetermination;
         this.objectResolver = objectResolver;
-        this.prismContext = prismContext;
         this.shortDesc = shortDesc;
         this.task = task;
     }
@@ -161,6 +173,9 @@ class PathExpressionResolver {
 
     @NotNull
     private TypedValue<?> determineNullTypedValue(TypedValue<?> root) {
+        if (skipTypeDetermination) {
+            return new TypedValue<>(null, Object.class);
+        }
         // Even if the result value is going to be null, we still need a definition. Here we try to determine that from root definition.
         if (root.getDefinition() == null) {
             throw new IllegalArgumentException("Root item has no definition for path "+path+". Root="+root);
@@ -172,7 +187,7 @@ class PathExpressionResolver {
             resultDefinition = subItemDefinition;
         } else {
             // this must be something dynamic, e.g. assignment extension. Just assume string here. Not completely correct. But what can we do?
-            resultDefinition = prismContext.definitionFactory()
+            resultDefinition = PrismContext.get().definitionFactory()
                     .createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
         }
         return new TypedValue<>(null, resultDefinition);
@@ -216,32 +231,33 @@ class PathExpressionResolver {
                 return determineTypedValue(object.asPrismObject(), true, result);
             }
         }
-        ItemDefinition<?> def = determineItemDefinition(rootContainer.getDefinition(), relativePath);
-        if (def == null) {
-            throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootContainer+", value: "+value);
+        return convertToTypedValue(value, rootContainer, rootContainer::getDefinition);
+    }
+
+    private @NotNull TypedValue<Object> convertToTypedValue(
+            Object value, Object root, Supplier<PrismContainerDefinition<?>> rootDefinitionSupplier) {
+        if (skipTypeDetermination) {
+            return new TypedValue<>(value, Object.class);
+        } else {
+            ItemDefinition<?> def = determineItemDefinition(rootDefinitionSupplier.get(), relativePath);
+            if (def == null) {
+                throw new IllegalArgumentException("Cannot determine definition for '" + relativePath + "' from " + root + ", value: " + value);
+            }
+            return new TypedValue<>(value, def);
         }
-        return new TypedValue<>(value, def);
     }
 
     private TypedValue<?> determineTypedValue(PrismContainerValue<?> rootContainerValue) {
         Item<PrismValue, ItemDefinition<?>> value = rootContainerValue.findItem(relativePath);
-        ItemDefinition<?> def = determineItemDefinition(rootContainerValue.getDefinition(), relativePath);
-        if (def == null) {
-            throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootContainerValue+", value: "+value);
-        }
-        return new TypedValue<>(value, def);
+        return convertToTypedValue(value, rootContainerValue, rootContainerValue::getDefinition);
     }
 
     private TypedValue<?> determineTypedValue(ItemDeltaItem<?, ?> rootIdi) throws SchemaException {
         ItemDeltaItem<PrismValue, ItemDefinition<?>> value = rootIdi.findIdi(relativePath);
-        ItemDefinition<?> def = determineItemDefinition((PrismContainerDefinition<?>)rootIdi.getDefinition(), relativePath);
-        if (def == null) {
-            throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootIdi+", value: "+value);
-        }
-        return new TypedValue<>(value, def);
+        return convertToTypedValue(value, rootIdi, () -> (PrismContainerDefinition<?>) rootIdi.getDefinition());
     }
 
-    private <T,O extends ObjectType> TypedValue<T> determineTypedValueOdo(String name, TypedValue<?> root)
+    private <O extends ObjectType> TypedValue<?> determineTypedValueOdo(String name, TypedValue<?> root)
             throws SchemaException {
         //noinspection unchecked
         ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
@@ -253,25 +269,29 @@ class PathExpressionResolver {
                 // Those may not have a definition. In that case just assume strings.
                 // In fact, this is a HACK. All such schemas should have a definition.
                 // Otherwise there may be problems with parameter types for caching compiles scripts and so on.
-                return prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+                return PrismContext.get().definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
             }
             return null;
         };
         ItemDeltaItem<PrismValue, ItemDefinition<?>> subValue = rootOdo.findIdi(relativePath, resolver);
-        PrismObjectDefinition<O> rootDefinition;
-        if (root.getDefinition() == null) {
-            rootDefinition = rootOdo.getDefinition();
-            if (rootDefinition == null) {
-                throw new IllegalArgumentException("Found ODO without a definition while processing variable '"+name+"': "+rootOdo);
-            }
+        if (skipTypeDetermination) {
+            return new TypedValue<>(subValue, Object.class);
         } else {
-            rootDefinition = root.getDefinition();
+            PrismObjectDefinition<O> rootDefinition;
+            if (root.getDefinition() == null) {
+                rootDefinition = rootOdo.getDefinition();
+                if (rootDefinition == null) {
+                    throw new IllegalArgumentException("Found ODO without a definition while processing variable '" + name + "': " + rootOdo);
+                }
+            } else {
+                rootDefinition = root.getDefinition();
+            }
+            ItemDefinition<?> itemDefinition = determineItemDefinition(rootDefinition, relativePath);
+            if (itemDefinition == null) {
+                throw new IllegalArgumentException("Cannot determine definition for '" + relativePath + "' from " + rootOdo + ", value: " + subValue);
+            }
+            return new TypedValue<>(subValue, itemDefinition);
         }
-        ItemDefinition<?> itemDefinition = determineItemDefinition(rootDefinition, relativePath);
-        if (itemDefinition == null) {
-            throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootOdo+", value: "+subValue);
-        }
-        return new TypedValue<>(subValue, itemDefinition);
     }
 
     private ItemDefinition<?> determineItemDefinition(PrismContainerDefinition<?> containerDefinition, ItemPath relativePath) {

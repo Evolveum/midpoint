@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains some of the information necessary to evaluate a mapping. It is used when mappings are collected e.g. from
@@ -49,7 +52,17 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         return mapping;
     }
 
-    public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(
+    public @NotNull List<VariableBindingDefinitionType> getSources() {
+        return mapping.getSource();
+    }
+
+    public @Nullable VariableBindingDefinitionType getTarget() {
+        return mapping.getTarget();
+    }
+
+    public <V extends PrismValue,
+            D extends ItemDefinition<?>,
+            AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(
             ObjectDeltaObject<AH> focusOdo) throws SchemaException {
         return null;
     }

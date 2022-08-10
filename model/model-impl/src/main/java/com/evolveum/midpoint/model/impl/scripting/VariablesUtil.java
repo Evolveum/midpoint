@@ -113,7 +113,15 @@ public class VariablesUtil {
             throw new IllegalArgumentException("Path expression: expected ItemPathType but got " + expressionEvaluator.getValue());
         }
         ItemPath itemPath = ctx.prismContext.toPath((ItemPathType) expressionEvaluator.getValue());
-        return ExpressionUtil.resolvePathGetTypedValue(itemPath, createVariables(resultingVariables), false, null, ctx.objectResolver, ctx.prismContext, shortDesc, ctx.task, result);
+        return ExpressionUtil.resolvePathGetTypedValue(
+                itemPath,
+                createVariables(resultingVariables),
+                false,
+                null,
+                ctx.objectResolver,
+                shortDesc,
+                ctx.task,
+                result);
     }
 
     private static VariablesMap createVariables(VariablesMap variableMap) {

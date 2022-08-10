@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,10 +27,7 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.NaryLogicalFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.NotFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.*;
 import com.evolveum.midpoint.repo.sqlbase.mapping.*;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
@@ -545,5 +542,15 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * Before-query hook, empty by default, called *before* the JDBC transaction starts.
      */
     public void beforeQuery() {
+    }
+
+    /**
+     * Produces predicate for fuzzy filter with pre-provided expression for the left side.
+     * This does not care about single/multi-value definition which must be treated above this method.
+     */
+    public Predicate processFuzzyFilter(
+            FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
+            throws QueryException {
+        throw new QueryException("Unsupported filter " + filter.toString());
     }
 }

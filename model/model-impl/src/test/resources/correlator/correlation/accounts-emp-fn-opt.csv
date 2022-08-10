@@ -1,0 +1,9 @@
+# Searches by employeeNumber, confirms using familyName (except for single candidate).
+
+uid | correlator | employeeNumber | givenName | familyName | dateOfBirth | nationalId | test       | _note
+1   | emp-fn-opt | 9481           |           | Smith      |             |            | ismith     | User with emp# 9481 exists.
+2   | emp-fn-opt | 7220           |           | Smith      |             |            | msmith     | User with emp# 7220 exists.
+3   | emp-fn-opt | 7220           |           | SmithXXXX  |             |            | msmith     | User with emp# 7220 exists. The family name mismatch is ignored, as this is a sole candidate.
+4   | emp-fn-opt | 4899           |           | Smith      |             |            | _none      | User with this employee number does not exist.
+5   | emp-fn-opt | 1003           |           | Gold       |             |            | _uncertain | There are three users with # 1003 (and this family name).
+6   | emp-fn-opt | 1003           |           | Green      |             |            | agreen     | There are four users with # 1003 but only one is named Green.

@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
+/**
+ * A {@link Context} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
+ */
 public class PreContext extends Context {
 
     @NotNull final PreInboundsContext<?> ctx;

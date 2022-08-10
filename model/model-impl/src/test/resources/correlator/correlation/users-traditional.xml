@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <user oid="0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2" xsi:type="UserType">
+        <name>ismith</name>
+        <givenName>Ian</givenName>
+        <familyName>Smith</familyName>
+        <employeeNumber>9481</employeeNumber>
+    </user>
+    <user xsi:type="UserType">
+        <name>msmith</name>
+        <givenName>Mary</givenName>
+        <familyName>Smith</familyName>
+        <employeeNumber>7220</employeeNumber>
+    </user>
+    <!-- no 4899 -->
+    <user xsi:type="UserType">
+        <name>pgold</name>
+        <givenName>Peter</givenName>
+        <familyName>Gold</familyName>
+        <employeeNumber>1003</employeeNumber> <!-- wrong -->
+    </user>
+    <user xsi:type="UserType">
+        <name>cgold</name>
+        <givenName>Christopher</givenName>
+        <familyName>Gold</familyName>
+        <employeeNumber>1003</employeeNumber> <!-- wrong -->
+    </user>
+    <user xsi:type="UserType">
+        <name>agold</name>
+        <givenName>Ann</givenName>
+        <familyName>Gold</familyName>
+        <employeeNumber>1003</employeeNumber> <!-- wrong -->
+    </user>
+    <user xsi:type="UserType">
+        <name>agreen</name>
+        <givenName>Alice</givenName>
+        <familyName>Green</familyName>
+        <employeeNumber>1003</employeeNumber> <!-- wrong (but familyName helps here) -->
+    </user>
+</objects>

@@ -15,19 +15,19 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.schema.route.ItemRoute;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.PRIMARY_CORRELATION_ITEM_TARGET;
 
 /**
  * Contains information about a correlation property that is to be (e.g.) displayed in the correlation case view.
@@ -42,28 +42,32 @@ public class CorrelationProperty implements Serializable, DebugDumpable {
     /** The "technical" name. */
     @NotNull private final String name;
 
-    @NotNull private final Collection<?> sourceRealValues;
-    @NotNull private final Map<String, ItemRoute> targetRouteMap;
+    /** Path within the focus object. */
+    @NotNull private final ItemPath itemPath;
 
+    /** Definition in the focus object. */
     @Nullable private final ItemDefinition<?> definition;
+
+    /** Value(s) in the object to be correlated. */
+    @NotNull private final Collection<?> sourceRealValues;
 
     private CorrelationProperty(
             @NotNull String name,
-            @NotNull Collection<?> sourceRealValues,
-            @NotNull Map<String, ItemRoute> targetRouteMap,
-            @Nullable ItemDefinition<?> definition) {
+            @NotNull ItemPath itemPath,
+            @Nullable ItemDefinition<?> definition,
+            @NotNull Collection<?> sourceRealValues) {
         this.name = name;
-        this.sourceRealValues = sourceRealValues;
-        this.targetRouteMap = targetRouteMap;
+        this.itemPath = itemPath;
         this.definition = definition;
+        this.sourceRealValues = sourceRealValues;
     }
 
     public static CorrelationProperty create(
             @NotNull String name,
+            @NotNull ItemPath itemPath,
             @NotNull Collection<?> sourceRealValues,
-            @NotNull Map<String, ItemRoute> targetRouteMap,
             @Nullable ItemDefinition<?> definition) {
-        return new CorrelationProperty(name, sourceRealValues, targetRouteMap, definition);
+        return new CorrelationProperty(name, itemPath, definition, sourceRealValues);
     }
 
     public static CorrelationProperty createSimple(
@@ -72,11 +76,7 @@ public class CorrelationProperty implements Serializable, DebugDumpable {
             @Nullable PrismPropertyDefinition<?> definition) {
         ItemName lastName =
                 MiscUtil.requireNonNull(path.lastName(), () -> new IllegalArgumentException("Path has no last name: " + path));
-        return new CorrelationProperty(
-                lastName.getLocalPart(),
-                sourceRealValues,
-                Map.of(PRIMARY_CORRELATION_ITEM_TARGET, ItemRoute.fromPath(path)),
-                definition);
+        return new CorrelationProperty(lastName.getLocalPart(), path, definition, sourceRealValues);
     }
 
     public @NotNull Set<String> getSourceRealStringValues() {
@@ -86,17 +86,12 @@ public class CorrelationProperty implements Serializable, DebugDumpable {
                 .collect(Collectors.toSet());
     }
 
-    public @NotNull ItemRoute getPrimaryTargetRoute() {
-        return MiscUtil.requireNonNull(
-                targetRouteMap.get(ModelPublicConstants.PRIMARY_CORRELATION_ITEM_TARGET),
-                () -> new IllegalStateException("No primary target defined"));
+    public @NotNull ItemPath getPrimaryTargetPath() {
+        return itemPath;
     }
 
-    public @NotNull List<ItemRoute> getSecondaryTargetRoutes() {
-        return targetRouteMap.entrySet().stream()
-                .filter(e -> !ModelPublicConstants.PRIMARY_CORRELATION_ITEM_TARGET.equals(e.getKey()))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+    public @NotNull ItemPath getSecondaryTargetPath() {
+        return SchemaConstants.PATH_IDENTITY.append(FocusIdentityType.F_DATA, itemPath);
     }
 
     public @Nullable ItemDefinition<?> getDefinition() {
@@ -127,18 +122,18 @@ public class CorrelationProperty implements Serializable, DebugDumpable {
         mergedValue.addAll(newRealValues);
         return new CorrelationProperty(
                 name,
-                mergedValue,
-                targetRouteMap,
-                definition != null ? definition : newDefinition);
+                itemPath,
+                definition != null ? definition : newDefinition,
+                mergedValue);
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "name", name, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "sourceRealValues", sourceRealValues, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "targetRouteMap", targetRouteMap, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "definition", String.valueOf(definition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "itemPath", String.valueOf(itemPath), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "definition", String.valueOf(definition), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "sourceRealValues", sourceRealValues, indent + 1);
         return sb.toString();
     }
 }

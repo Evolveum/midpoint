@@ -42,12 +42,6 @@
                 <ref>ri:HR_ID</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <target>
-                        <path>extension/hrId</path>
-                    </target>
-                </inbound>
-                <inbound>
-                    <strength>strong</strength>
                     <expression>
                         <path>$shadow/correlation/correlatorState/referenceId</path>
                     </expression>
@@ -65,7 +59,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrGivenName</path>
+                        <path>givenName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -74,7 +68,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrFamilyName</path>
+                        <path>familyName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -83,7 +77,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrDateOfBirth</path>
+                        <path>extension/dateOfBirth</path>
                     </target>
                 </inbound>
             </attribute>
@@ -91,8 +85,17 @@
                 <ref>ri:NATIDENT</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.testing.story.correlation.IdMatchTestUtil.normalizeNationalId
+
+                                normalizeNationalId(input)
+                            </code>
+                        </script>
+                    </expression>
                     <target>
-                        <path>extension/hrNationalId</path>
+                        <path>extension/nationalId</path>
                     </target>
                 </inbound>
             </attribute>
@@ -104,73 +107,46 @@
                     </defaultEvaluationPhases>
                 </inbound>
             </mappingsEvaluation>
-        </objectType>
-    </schemaHandling>
-    <!-- intentionally keeping the legacy variant, to test also this style of configuration -->
-    <synchronization>
-        <objectSynchronization>
-            <enabled>true</enabled>
-            <kind>account</kind>
-            <intent>default</intent>
-            <correlationDefinition>
+            <correlation>
                 <correlators>
                     <idMatch>
                         <extending>idmatch</extending>
-                        <definitions>
-                            <items>
-                                <item>
-                                    <name>givenName</name>
-                                    <source>
-                                        <path>extension/hrGivenName</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>familyName</name>
-                                    <source>
-                                        <path>extension/hrFamilyName</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>dateOfBirth</name>
-                                    <source>
-                                        <path>extension/hrDateOfBirth</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>nationalId</name>
-                                    <source>
-                                        <path>extension/hrNationalId</path>
-                                    </source>
-                                </item>
-                            </items>
-                        </definitions>
                         <sorIdentifierPrefix>hr-</sorIdentifierPrefix>
                     </idMatch>
                 </correlators>
-                <cases/>
-            </correlationDefinition>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
+            </correlation>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
 </resource>

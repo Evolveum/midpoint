@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +26,7 @@ public class PreShadowInboundsPreparation<F extends FocusType> extends ShadowInb
 
     public PreShadowInboundsPreparation(
             @NotNull PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap,
+            @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
             @NotNull PreContext context,
             @Nullable PrismObject<F> focus,
             @NotNull PrismObjectDefinition<F> focusDefinition)
@@ -31,7 +34,7 @@ public class PreShadowInboundsPreparation<F extends FocusType> extends ShadowInb
         super(
                 mappingsMap,
                 new PreSource(context.ctx),
-                new PreTarget<>(focus, focusDefinition),
+                new PreTarget<>(focus, focusDefinition, itemDefinitionMap),
                 context);
     }
 

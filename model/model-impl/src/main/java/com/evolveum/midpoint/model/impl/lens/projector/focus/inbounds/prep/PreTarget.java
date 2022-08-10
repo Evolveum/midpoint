@@ -7,16 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
 
 class PreTarget<F extends FocusType> extends Target<F> {
 
-    PreTarget(PrismObject<F> focus, @NotNull PrismObjectDefinition<F> focusDefinition) {
-        super(focus, focusDefinition);
+    PreTarget(
+            PrismObject<F> focus,
+            @NotNull PrismObjectDefinition<F> focusDefinition,
+            @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap) {
+        super(focus, focusDefinition, itemDefinitionMap);
     }
 
     @Override

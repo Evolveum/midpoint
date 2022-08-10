@@ -481,4 +481,9 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     public UserAsserter<RA> assertPolyStringProperty(QName propName, String expectedOrig) {
         return (UserAsserter<RA>) super.assertPolyStringProperty(propName, expectedOrig);
     }
+
+    @Override
+    public UserAsserter<RA> assertExtensionValue(String localName, Object realValue) {
+        return (UserAsserter<RA>) super.assertExtensionValue(localName, realValue);
+    }
 }

@@ -40,7 +40,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     @ProcessorMethod
     <AH extends AssignmentHolderType> void processTemplateBeforeAssignments(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, BEFORE_ASSIGNMENTS, now, task, result);
@@ -51,7 +51,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     @ProcessorMethod
     <AH extends AssignmentHolderType> void processTemplateAfterAssignments(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, AFTER_ASSIGNMENTS, now, task, result);
@@ -62,7 +62,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     @ProcessorMethod
     public <AH extends AssignmentHolderType> void processTemplateAfterProjections(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, AFTER_PROJECTIONS, now, task, result);

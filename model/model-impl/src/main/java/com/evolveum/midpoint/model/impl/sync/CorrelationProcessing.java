@@ -86,12 +86,14 @@ class CorrelationProcessing<F extends FocusType> {
                 syncCtx.getPreFocus(),
                 syncCtx.getResource(),
                 syncCtx.getObjectDefinitionRequired(),
+                syncCtx.getObjectTemplateForCorrelation(),
                 syncCtx.getSystemConfiguration(),
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
                 beans.correlationService.createRootCorrelatorContext(
                         syncCtx.getSynchronizationPolicyRequired(),
+                        syncCtx.getObjectTemplateForCorrelation(),
                         syncCtx.getSystemConfigurationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
@@ -134,7 +136,8 @@ class CorrelationProcessing<F extends FocusType> {
         if (situation == CorrelationSituationType.EXISTING_OWNER && shadow.getCorrelation().getResultingOwner() != null) {
             ObjectType owner = resolveExistingOwner(shadow.getCorrelation().getResultingOwner(), result);
             if (owner != null) {
-                return CorrelationResult.existingOwner(owner);
+                // We are not interested in other candidates here.
+                return CorrelationResult.existingOwner(owner, null);
             } else {
                 // Something is wrong. Let us try the correlation (again).
                 // TODO perhaps we should clear the correlation state from the shadow

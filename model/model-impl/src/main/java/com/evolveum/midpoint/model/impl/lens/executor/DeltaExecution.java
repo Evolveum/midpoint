@@ -140,6 +140,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException {
 
+        elementContext.resolveTemporaryContainerIds(delta);
+
         if (delta.getOid() == null) {
             delta.setOid(elementContext.getOid());
         }
@@ -369,7 +371,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private void addTrace(LensObjectDeltaOperation<E> objectDeltaOp, OperationResult result) throws SchemaException {
         if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
-            TraceType trace = new ModelExecuteDeltaTraceType(b.prismContext)
+            TraceType trace = new ModelExecuteDeltaTraceType()
                     .delta(objectDeltaOp.clone().toLensObjectDeltaOperationType()); // todo kill operation result?
             result.addTrace(trace);
         }
@@ -436,6 +438,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     createOwnerResolver(result), task, result);
 
             b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
+            b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
 
             String oid;
             if (objectBeanToAdd instanceof TaskType) {
@@ -538,6 +541,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 b.metadataManager.applyMetadataModify(delta, objectClass, elementContext,
                         b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }
+            b.indexingManager.updateIndexDataOnElementModify(
+                    asObjectable(baseObject), delta, objectClass, elementContext, task, result);
 
             if (delta.isEmpty()) {
                 // Nothing to do

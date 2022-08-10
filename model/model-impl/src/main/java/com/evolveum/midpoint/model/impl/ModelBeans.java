@@ -15,6 +15,9 @@ import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
 import com.evolveum.midpoint.provisioning.api.SynchronizationSorterEvaluator;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.correlator.BuiltInResultCreator;
@@ -106,6 +109,8 @@ public class ModelBeans {
     @Autowired public SecurityEnforcer securityEnforcer;
     @Autowired public SecurityContextManager securityContextManager;
     @Autowired public OperationalDataManager metadataManager;
+    @Autowired public IdentitiesManager identitiesManager;
+    @Autowired public IndexingManager indexingManager;
     @Autowired public TaskManager taskManager;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired(required = false) public CaseManager caseManager; // not available e.g. during tests
@@ -135,4 +140,5 @@ public class ModelBeans {
     @Autowired public SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     @Autowired public SynchronizationActionFactory synchronizationActionFactory;
     @Autowired public ProjectionContextKeyFactory projectionContextKeyFactory;
+    @Autowired public ArchetypeManager archetypeManager;
 }

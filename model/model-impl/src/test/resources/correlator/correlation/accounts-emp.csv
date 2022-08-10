@@ -1,0 +1,8 @@
+# Correlates solely on the basis of employeeNumber.
+uid  | correlator | employeeNumber | givenName | familyName      | dateOfBirth | nationalId | test        | _note
+1    | emp        | 9481           |           |                 |             |            | ismith      | User with emp# 9481 exists.
+2    | emp        | 7220           |           |                 |             |            | msmith      | User with emp# 7220 exists.
+3    | emp        | 7220           |           |                 |             |            | msmith      | User with emp# 7220 exists.
+4    | emp        | 4899           |           |                 |             |            | _none       | User with this employee number does not exist.
+5    | emp        | 1003           |           |                 |             |            | _uncertain  | There are four users with # 1003.
+6    | emp        | 1003           |           |                 |             |            | _uncertain  | There are four users with # 1003.

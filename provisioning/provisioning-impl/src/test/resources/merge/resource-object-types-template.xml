@@ -143,29 +143,7 @@
             </mappingsEvaluation>
             <correlation>
                 <correlators>
-                    <definitions>
-                        <places>
-                            <source>
-                                <path>source-1</path>
-                            </source>
-                            <target>
-                                <path>target-1</path>
-                                <qualifier>qualifier-1</qualifier>
-                            </target>
-                        </places>
-                        <items>
-                            <item>
-                                <name>test-item-1</name>
-                                <path>item-1</path>
-                                <target>
-                                    <path>item-1-target-1</path>
-                                    <qualifier>qualifier-1</qualifier>
-                                </target>
-                            </item>
-                        </items>
-                    </definitions>
                     <items>
-                        <authority>principal</authority>
                         <name>empNo</name>
                         <item>
                             <path>employeeNumber</path>

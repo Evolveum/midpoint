@@ -164,18 +164,20 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
 
     protected abstract void finishExecutionOwn() throws SchemaException, RepositoryException;
 
+    public final <O> O findValueOrItem(@NotNull Object... path) {
+        return findValueOrItem(ItemPath.create(path));
+    }
+
     public <O> O findValueOrItem(@NotNull ItemPath path) {
         if (parentContext == null) {
-            throw new UnsupportedOperationException(
-                    "findItem() is unsupported on non-root update context");
+            throw new AssertionError("findItem() has special implementation for root update context");
         }
         return parentContext.findValueOrItem(path);
     }
 
     public boolean isOverwrittenId(Long id) {
         if (parentContext == null) {
-            throw new UnsupportedOperationException(
-                    "findItem() is unsupported on non-root update context");
+            throw new AssertionError("isOverwrittenId() has special implementation for root update context");
         }
         return parentContext.isOverwrittenId(id);
     }

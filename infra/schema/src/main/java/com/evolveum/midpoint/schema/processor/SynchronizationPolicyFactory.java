@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
 
 import java.util.ArrayList;
@@ -15,6 +16,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -113,9 +118,7 @@ public class SynchronizationPolicyFactory {
                         () -> UserType.COMPLEX_TYPE);
 
         CorrelationDefinitionType correlationDefinitionBean =
-                first(
-                        typeDef.getCorrelationDefinitionBean(),
-                        () -> getCorrelationDefinitionBean(synchronizationBean));
+                mergeCorrelationDefinition(typeDef, synchronizationBean, resource);
 
         boolean synchronizationEnabled = isSynchronizationEnabled(providedSynchronizationBean, typeDef);
 
@@ -230,6 +233,113 @@ public class SynchronizationPolicyFactory {
 
     private static boolean isEnabled(CorrelationCasesDefinitionType cases) {
         return cases != null && !Boolean.FALSE.equals(cases.isEnabled());
+    }
+
+    /**
+     * "Compiles" the correlation definition from all available information:
+     *
+     * . attribute-level "correlation" configuration snippets
+     * . legacy correlation/confirmation expressions/filters
+     */
+    private static CorrelationDefinitionType mergeCorrelationDefinition(
+            @NotNull ResourceObjectTypeDefinition typeDef,
+            @NotNull ObjectSynchronizationType synchronizationBean,
+            @NotNull ResourceType resource) throws ConfigurationException {
+
+        return addCorrelationDefinitionsFromAttributes(
+                typeDef,
+                first(
+                        typeDef.getCorrelationDefinitionBean(),
+                        () -> getCorrelationDefinitionBean(synchronizationBean)),
+                resource);
+    }
+
+    private static CorrelationDefinitionType addCorrelationDefinitionsFromAttributes(
+            @NotNull ResourceObjectTypeDefinition typeDef,
+            @NotNull CorrelationDefinitionType explicitDefinition,
+            @NotNull ResourceType resource) throws ConfigurationException {
+        CorrelationDefinitionType cloned = null;
+        for (ResourceAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
+            ItemCorrelationDefinitionType correlationDefBean = attributeDefinition.getCorrelationDefinitionBean();
+            if (correlationDefBean != null) {
+                if (cloned == null) {
+                    cloned = explicitDefinition.clone();
+                }
+                addCorrelationDefinitionFromAttribute(cloned, attributeDefinition, correlationDefBean, typeDef, resource);
+            }
+        }
+        return cloned != null ? cloned : explicitDefinition;
+    }
+
+    private static void addCorrelationDefinitionFromAttribute(
+            @NotNull CorrelationDefinitionType overallCorrelationDefBean,
+            @NotNull ResourceAttributeDefinition<?> attributeDefinition,
+            @NotNull ItemCorrelationDefinitionType attributeCorrelationDefBean,
+            @NotNull ResourceObjectTypeDefinition typeDef,
+            @NotNull ResourceType resource) throws ConfigurationException {
+        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
+        configCheck(!inboundMappingBeans.isEmpty(),
+                "Attribute-level correlation requires an inbound mapping; for %s in %s (%s)",
+                attributeDefinition, typeDef, resource);
+        ItemPathType itemPathBean = determineItemPathBean(attributeDefinition, attributeCorrelationDefBean);
+        configCheck(itemPathBean != null,
+                "Item corresponding to correlation attribute %s couldn't be determined in %s (%s). You must specify"
+                        + " it either explicitly, or provide exactly one inbound mapping with a proper target",
+                attributeDefinition, typeDef, resource);
+        if (!attributeCorrelationDefBean.getRules().isEmpty()) {
+            throw new UnsupportedOperationException(
+                    String.format("Explicit specification of rules is not supported yet: in %s in %s (%s)",
+                            attributeDefinition, typeDef, resource));
+        }
+        CompositeCorrelatorType correlators = overallCorrelationDefBean.getCorrelators();
+        if (correlators == null) {
+            correlators = new CompositeCorrelatorType();
+            overallCorrelationDefBean.setCorrelators(correlators);
+        }
+        correlators.getItems().add(
+                new ItemsCorrelatorType()
+                        .confidence(CloneUtil.clone(attributeCorrelationDefBean.getConfidence()))
+                        .item(new ItemCorrelationType()
+                                .path(itemPathBean.clone())));
+    }
+
+    private static ItemPathType determineItemPathBean(
+            ResourceAttributeDefinition<?> attributeDefinition, ItemCorrelationDefinitionType attributeCorrelationDefBean) {
+        ItemPathType explicitItemPath = attributeCorrelationDefBean.getItem();
+        if (explicitItemPath != null) {
+            return explicitItemPath;
+        } else {
+            return guessCorrelationItemPath(attributeDefinition);
+        }
+    }
+
+    /**
+     * Tries to determine correlation item path from the inbound mapping target.
+     */
+    private static ItemPathType guessCorrelationItemPath(ResourceAttributeDefinition<?> attributeDefinition) {
+        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
+        if (inboundMappingBeans.size() != 1) {
+            return null;
+        }
+        VariableBindingDefinitionType target = inboundMappingBeans.get(0).getTarget();
+        ItemPathType itemPathType = target != null ? target.getPath() : null;
+        if (itemPathType == null) {
+            return null;
+        }
+        ItemPath itemPath = itemPathType.getItemPath();
+        QName variableName = itemPath.firstToVariableNameOrNull();
+        if (variableName == null) {
+            return itemPathType;
+        }
+        String localPart = variableName.getLocalPart();
+        if (ExpressionConstants.VAR_FOCUS.equals(localPart)
+                || ExpressionConstants.VAR_USER.equals(localPart)) {
+            return new ItemPathType(itemPath.rest());
+        } else {
+            LOGGER.warn("Mapping target variable name '{}' is not supported for determination of correlation item path in {}",
+                    variableName, attributeDefinition);
+            return null;
+        }
     }
 
     private static @NotNull CorrelationDefinitionType getCorrelationDefinitionBean(

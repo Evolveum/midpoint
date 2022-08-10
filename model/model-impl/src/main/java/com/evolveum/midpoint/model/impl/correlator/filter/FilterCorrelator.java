@@ -108,7 +108,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             ObjectSet<F> confirmedCandidates = confirmCandidates(candidates, result);
             // TODO selection expression
 
-            return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlationContext);
+            return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlatorContext, task, result);
         }
 
         boolean checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)

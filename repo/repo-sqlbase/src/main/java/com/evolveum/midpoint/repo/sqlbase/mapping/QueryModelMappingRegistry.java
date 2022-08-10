@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -95,12 +95,11 @@ public class QueryModelMappingRegistry {
     /**
      * Seals the configuration of the registry.
      */
-    public QueryModelMappingRegistry seal() {
+    public void seal() {
         // Perhaps harmless... but anyway, why would you do it again? What else have you messed up? :-)
         Preconditions.checkState(!sealed, "QueryModelMappingRegistry instance is sealed!");
 
         sealed = true;
-        return this;
     }
 
     public <S, Q extends FlexibleRelationalPathBase<R>, R, QM extends QueryTableMapping<S, Q, R>>

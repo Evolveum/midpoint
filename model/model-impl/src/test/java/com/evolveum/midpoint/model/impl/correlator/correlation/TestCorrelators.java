@@ -7,22 +7,34 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
+import com.evolveum.concepts.func.FailableConsumer;
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
-import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
+import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,10 +42,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 
@@ -42,45 +51,84 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Isolated testing of individual correlators.
  *
- * The tests are based on {@link #FILE_ACCOUNTS} with source data plus expected correlation results.
+ * The tests are based on "accounts file" with source data plus expected correlation results.
  * See the description in the file itself.
- *
- * Correlation cases: tests if they are created (or not), but does not check their content.
- * This is done in {@link TestExpressionCorrelator}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
-    protected static final File TEST_DIR =
-            new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/correlation/correlators");
+    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/correlation");
 
-    private static final DummyTestResource RESOURCE_DETERMINISTIC = new DummyTestResource(
+    private static final DummyTestResource RESOURCE_DUMMY_CORRELATION = new DummyTestResource(
             TEST_DIR, "resource-dummy-correlation.xml",
             "4a7f6b3e-64cc-4cd9-b5ba-64ecc47d7d10", "correlation", CorrelatorTestUtil::createAttributeDefinitions);
 
-    /**
-     * Contains data for executing the tests. Please see comments in the file itself.
-     */
-    private static final File FILE_ACCOUNTS = new File(TEST_DIR, "accounts.csv");
+    /** Names, date of birth, and national ID are indexed using the default (i.e., polystring norm) algorithm. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_DEFAULT_INDEXING = new TestResource<>(
+            TEST_DIR, "user-template-default-indexing.xml", "204f3615-bcd7-430d-93ec-c36f1db1dccd");
 
-    /**
-     * Users against which we correlate the accounts.
-     */
-    private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
+    /** Names, date of birth, and national ID are indexed using their original value. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_ORIGINAL_INDEXING = new TestResource<>(
+            TEST_DIR, "user-template-original-indexing.xml", "c3c93da0-d17e-4926-8208-8441ba745381");
 
-    private static final File[] CORRELATOR_FILES = {
-            new File(TEST_DIR, "correlator-emp.xml"),
-            new File(TEST_DIR, "correlator-emp-fn.xml"),
-            new File(TEST_DIR, "correlator-emp-fn-opt.xml"),
-            new File(TEST_DIR, "correlator-owner.xml"),
-            new File(TEST_DIR, "correlator-owner-ref.xml"),
-            new File(TEST_DIR, "correlator-id-match.xml")
-    };
+    /** Names, date of birth, and national ID are indexed using their original value. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_COMPLEX = new TestResource<>(
+            TEST_DIR, "user-template-complex.xml", "dc393b43-e125-4ebf-987d-366c57120e96");
 
+    // TODO
+    private static final File FILE_USERS_TRADITIONAL = new File(TEST_DIR, "users-traditional.xml");
+    private static final File FILE_USERS_ITEMS = new File(TEST_DIR, "users-items.xml");
+
+    private static final File FILE_ACCOUNTS_EMP = new File(TEST_DIR, "accounts-emp.csv");
+    private static final TestCorrelator CORRELATOR_EMP = new TestCorrelator(new File(TEST_DIR, "correlator-emp.xml"));
+
+    private static final File FILE_ACCOUNTS_EMP_FN = new File(TEST_DIR, "accounts-emp-fn.csv");
+    private static final TestCorrelator CORRELATOR_EMP_FN = new TestCorrelator(new File(TEST_DIR, "correlator-emp-fn.xml"));
+
+    private static final File FILE_ACCOUNTS_EMP_FN_OPT = new File(TEST_DIR, "accounts-emp-fn-opt.csv");
+    private static final TestCorrelator CORRELATOR_EMP_FN_OPT = new TestCorrelator(new File(TEST_DIR, "correlator-emp-fn-opt.xml"));
+
+    private static final File FILE_ACCOUNTS_OWNER = new File(TEST_DIR, "accounts-owner.csv");
+    private static final TestCorrelator CORRELATOR_OWNER = new TestCorrelator(new File(TEST_DIR, "correlator-owner.xml"));
+
+    private static final File FILE_ACCOUNTS_OWNER_REF = new File(TEST_DIR, "accounts-owner-ref.csv");
+    private static final TestCorrelator CORRELATOR_OWNER_REF = new TestCorrelator(new File(TEST_DIR, "correlator-owner-ref.xml"));
+
+    private static final File FILE_ACCOUNTS_ID_MATCH = new File(TEST_DIR, "accounts-id-match.csv");
+    private static final TestCorrelator CORRELATOR_ID_MATCH = new TestCorrelator(new File(TEST_DIR, "correlator-id-match.xml"));
+
+    private static final File FILE_ACCOUNTS_BY_NAME_DEFAULT = new File(TEST_DIR, "accounts-by-name-default.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_DEFAULT =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-by-name-default.xml"),
+                    USER_TEMPLATE_DEFAULT_INDEXING);
+
+    private static final File FILE_ACCOUNTS_BY_NAME_ORIGINAL = new File(TEST_DIR, "accounts-by-name-original.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_ORIGINAL =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-by-name-original.xml"),
+                    USER_TEMPLATE_ORIGINAL_INDEXING);
+
+    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY = new File(TEST_DIR, "accounts-by-name-fuzzy.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-by-name-fuzzy.xml"),
+                    USER_TEMPLATE_DEFAULT_INDEXING);
+
+    private static final File FILE_ACCOUNTS_COMPLEX = new File(TEST_DIR, "accounts-complex.csv");
+    private static final TestCorrelator CORRELATOR_COMPLEX =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-complex.xml"),
+                    USER_TEMPLATE_COMPLEX);
+
+    @Autowired private ModelBeans modelBeans;
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
+    @Autowired private CorrelationService correlationService;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
-    @Autowired private CorrelationCaseManager correlationCaseManager;
+
+    /** Used by the `id-match` correlator instead of real ID Match Service. */
+    private final DummyIdMatchServiceImpl dummyIdMatchService = new DummyIdMatchServiceImpl();
 
     /** Used for correlation context construction. */
     private ResourceObjectTypeDefinition resourceObjectTypeDefinition;
@@ -88,14 +136,10 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     /** Used for correlation context construction. */
     private SystemConfigurationType systemConfiguration;
 
-    /** Used by the `id-match` correlator instead of real ID Match Service. */
-    private final DummyIdMatchServiceImpl dummyIdMatchService = new DummyIdMatchServiceImpl();
+    /** To avoid useless deleting + reloading the users. */
+    private File currentlyUsedUsersFile;
 
-    /** Correlator instances for configurations loaded from {@link #CORRELATOR_FILES}. */
-    private final Map<String, Correlator> correlatorMap = new HashMap<>();
-
-    /** Fetched testing accounts. */
-    private List<CorrelationTestingAccount> allAccounts;
+    private String currentlyUsedTemplateOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -103,90 +147,124 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
         this.systemConfiguration = getSystemConfiguration();
 
-        initDummyResource(RESOURCE_DETERMINISTIC, initTask, initResult);
-
-        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
-        CorrelatorTestUtil.addAccountsFromCsvFile(this, FILE_ACCOUNTS, RESOURCE_DETERMINISTIC);
-        allAccounts = CorrelatorTestUtil.getAllAccounts(
-                this, RESOURCE_DETERMINISTIC, CorrelationTestingAccount::new, initTask, initResult);
-
-        initDummyIdMatchService();
-        instantiateCorrelators(initTask, initResult);
-
+        initDummyResource(RESOURCE_DUMMY_CORRELATION, initTask, initResult);
         resourceObjectTypeDefinition =
                 findObjectTypeDefinitionRequired(
-                        RESOURCE_DETERMINISTIC.controller.getRefinedSchema(),
+                        RESOURCE_DUMMY_CORRELATION.controller.getRefinedSchema(),
                         ShadowKindType.ACCOUNT,
                         SchemaConstants.INTENT_DEFAULT);
     }
 
-    /**
-     * We need specific records in our ID Match service.
-     */
-    private void initDummyIdMatchService() throws SchemaException {
-        ShadowType ian200 = CorrelatorTestUtil.findAccount(allAccounts, 200).getShadow();
-        dummyIdMatchService.addRecord("200", ian200.getAttributes(), "9481", null);
-        idMatchCorrelatorFactory.setServiceOverride(dummyIdMatchService);
-    }
-
-    private void instantiateCorrelators(Task task, OperationResult result) throws CommonException, IOException {
-        for (File correlatorFile : CORRELATOR_FILES) {
-            AbstractCorrelatorType configBean = prismContext.parserFor(correlatorFile)
-                    .parseRealValue(AbstractCorrelatorType.class);
-            CorrelatorContext<?> correlatorContext =
-                    new CorrelatorContext<>(
-                            CorrelatorConfiguration.typed(configBean),
-                            configBean,
-                            null,
-                            systemConfiguration
-                    );
-            Correlator correlator = correlatorFactoryRegistry.instantiateCorrelator(
-                    correlatorContext, task, result);
-            correlatorMap.put(configBean.getName(), correlator);
-        }
-    }
-
-    /**
-     * Sequentially processes all accounts, pushing them to correlator and checking its response.
-     */
     @Test
-    public void test100ProcessAccounts() throws CommonException {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        for (CorrelationTestingAccount account : allAccounts) {
-            processAccount(account, task, result);
-        }
+    public void test100CorrelateOnEmployeeNumber() throws Exception {
+        executeTest(CORRELATOR_EMP, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_EMP);
     }
 
-    private void processAccount(CorrelationTestingAccount account, Task task, OperationResult result)
+    @Test
+    public void test110CorrelateOnEmployeeNumberConfirmingByFamilyName() throws Exception {
+        executeTest(CORRELATOR_EMP_FN, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_EMP_FN);
+    }
+
+    @Test
+    public void test120CorrelateOnEmployeeNumberConfirmingByFamilyNameExceptForSingleResult() throws Exception {
+        executeTest(CORRELATOR_EMP_FN_OPT, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_EMP_FN_OPT);
+    }
+
+    @Test
+    public void test150CorrelateUsingEmployeeNumberAsOwnerOidWithFullObject() throws Exception {
+        executeTest(CORRELATOR_OWNER, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER);
+    }
+
+    @Test
+    public void test160CorrelateUsingEmployeeNumberAsOwnerOidWithReference() throws Exception {
+        executeTest(CORRELATOR_OWNER_REF, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER_REF);
+    }
+
+    @Test
+    public void test190CorrelateUsingIdMatchService() throws Exception {
+        executeTest(
+                CORRELATOR_ID_MATCH,
+                FILE_USERS_TRADITIONAL,
+                FILE_ACCOUNTS_ID_MATCH,
+                accounts -> {
+                    // We need a specific record in our ID Match service.
+                    ShadowType ian1 = CorrelatorTestUtil.findAccount(accounts, 1).getShadow();
+                    dummyIdMatchService.addRecord("1", ian1.getAttributes(), "9481", null);
+                    idMatchCorrelatorFactory.setServiceOverride(dummyIdMatchService);
+                });
+    }
+
+    @Test
+    public void test200CorrelateByNameDefault() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_BY_NAME_DEFAULT, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_DEFAULT);
+    }
+
+    @Test
+    public void test210CorrelateByNameOriginal() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
+    }
+
+    @Test
+    public void test220CorrelateByNameFuzzy() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
+    }
+
+    @Test
+    public void test230CorrelateComplex() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(CORRELATOR_COMPLEX, FILE_USERS_ITEMS, FILE_ACCOUNTS_COMPLEX);
+
+        // Just for completeness, let us check the normalizations
+        // @formatter:off
+        assertUserAfter(findUserByUsernameFullRequired("smith1"))
+                .identities()
+                    .withoutSource()
+                        .assertNormalizedItem("givenName.polyStringNorm", "john", "ian")
+                        .assertNormalizedItem("familyName.norm", "smith")
+                        .assertNormalizedItem("familyName.orig", "Smith")
+                        .assertNormalizedItem("familyName.polyStringNorm.prefix3", "smi")
+                        .assertNormalizedItem("nationalId.digits", "0402061111");
+        // @formatter:on
+    }
+
+    @NotNull
+    private CorrelationContext createCorrelationContext(
+            CorrelationTestingAccount account, TestCorrelator correlator, Task task, OperationResult result)
             throws CommonException {
-        when("correlating account #" + account.getNumber());
+        ResourceType resource = RESOURCE_DUMMY_CORRELATION.getResource().asObjectable();
 
-        String correlatorName = Objects.requireNonNull(
-                account.getCorrelator(), "no correlator specified");
-        Correlator correlator = Objects.requireNonNull(
-                correlatorMap.get(correlatorName), () -> "unknown correlator " + correlatorName);
+        SynchronizationPolicy synchronizationPolicy =
+                Objects.requireNonNull(
+                        SynchronizationPolicyFactory.forKindAndIntent(
+                                ShadowKindType.ACCOUNT,
+                                SchemaConstants.INTENT_DEFAULT,
+                                resource),
+                        "no synchronization policy");
 
-        UserType preFocus = new UserType(prismContext);
-        MatchingUtil.copyAttributes(preFocus, account.getShadow());
+        UserType preFocus =
+                correlationService.computePreFocus(
+                        account.getShadow(),
+                        resource,
+                        synchronizationPolicy,
+                        UserType.class,
+                        task,
+                        result);
 
-        CorrelationContext context = new CorrelationContext(
+        return new CorrelationContext(
                 account.getShadow(),
                 preFocus,
-                RESOURCE_DETERMINISTIC.getResource().asObjectable(),
+                resource,
                 resourceObjectTypeDefinition,
+                correlator.getUserTemplate(),
                 systemConfiguration, task);
-
-        then("correlating account #" + account.getNumber());
-
-        CorrelationResult correlationResult = correlator.correlate(context, result);
-        assertCorrelationResult(correlationResult, account, result);
     }
 
     private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationTestingAccount account, OperationResult result)
-            throws SchemaException {
+            CorrelationResult correlationResult, CorrelationTestingAccount account)
+            throws CommonException {
 
         displayDumpable("Correlation result", correlationResult);
 
@@ -201,12 +279,143 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
         }
 
-        CaseType correlationCase = correlationCaseManager.findCorrelationCase(account.getShadow(), false, result);
-        if (account.shouldCorrelationCaseExist()) {
-            assertThat(correlationCase).as("correlation case").isNotNull();
-            displayDumpable("Correlation case", correlationCase);
-        } else {
-            assertThat(correlationCase).as("correlation case").isNull();
+        Set<CandidateOwner> expectedOwnerOptions = account.getCandidateOwners();
+        if (expectedOwnerOptions != null) {
+            Set<CandidateOwner> realOwnerOptions = getRealOwnerOptions(correlationResult);
+            assertThat(realOwnerOptions)
+                    .as("owner options")
+                    .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
+        }
+    }
+
+    private @NotNull Set<CandidateOwner> getRealOwnerOptions(CorrelationResult correlationResult)
+            throws SchemaException, ObjectNotFoundException {
+        ResourceObjectOwnerOptionsType options = correlationResult.getOwnerOptions();
+        if (options == null) {
+            return Set.of();
+        }
+        Set<CandidateOwner> candidateOwnerSet = new HashSet<>();
+        for (ResourceObjectOwnerOptionType option : options.getOption()) {
+            ObjectReferenceType ownerRef = option.getCandidateOwnerRef();
+            if (ownerRef != null) {
+                candidateOwnerSet.add(
+                        new CandidateOwner(
+                                getUserFromRepo(ownerRef.getOid()).getName().getOrig(),
+                                option.getConfidence()));
+            }
+        }
+        return candidateOwnerSet;
+    }
+
+    private void executeTest(TestCorrelator correlator, File usersFile, File accountsFile)
+            throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
+            InterruptedException, ObjectAlreadyExistsException {
+        executeTest(correlator, usersFile, accountsFile, null);
+    }
+
+    private void executeTest(
+            TestCorrelator correlator,
+            File usersFile,
+            File accountsFile,
+            FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
+            throws CommonException, IOException, ConflictException, SchemaViolationException,
+            InterruptedException, ObjectAlreadyExistsException, EncryptionException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("object template is set up");
+        TestResource<ObjectTemplateType> userTemplateResource = correlator.userTemplateResource;
+        String userTemplateOid = userTemplateResource != null ? userTemplateResource.oid : null;
+        if (!Objects.equals(userTemplateOid, currentlyUsedTemplateOid)) {
+            if (userTemplateResource != null && userTemplateResource.getObject() == null) {
+                repoAdd(userTemplateResource, result);
+                userTemplateResource.reload(result);
+            }
+            System.out.println("Setting user template OID (in system config) to be " + userTemplateOid);
+            setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid, result);
+            currentlyUsedTemplateOid = userTemplateOid;
+            currentlyUsedUsersFile = null; // We need to invalidate the users, as the stored form depends on the template
+        }
+
+        and("users are there");
+        if (!usersFile.equals(currentlyUsedUsersFile)) {
+            deleteUsers(result);
+            importObjectsFromFileNotRaw(usersFile, task, result);
+            currentlyUsedUsersFile = usersFile;
+
+            displayAllUsersFull();
+        }
+
+        and("accounts are loaded");
+        RESOURCE_DUMMY_CORRELATION.controller.getDummyResource().clear();
+        CorrelatorTestUtil.addAccountsFromCsvFile(this, accountsFile, RESOURCE_DUMMY_CORRELATION);
+        var accounts = CorrelatorTestUtil.getAllAccounts(
+                this, RESOURCE_DUMMY_CORRELATION, CorrelationTestingAccount::new, task, result);
+
+        if (additionalInitializer != null) {
+            additionalInitializer.accept(accounts);
+        }
+
+        and("correlator is initialized");
+        initializeCorrelator(correlator, task, result);
+
+        for (CorrelationTestingAccount account : accounts) {
+            String prefix = "correlating account #" + account.getNumber() + ": ";
+
+            given(prefix + "correlation context is created");
+            CorrelationContext context = createCorrelationContext(account, correlator, task, result);
+
+            when(prefix + "correlation is done");
+            CorrelationResult correlationResult = correlator.instance.correlate(context, result);
+
+            then(prefix + "correlation result is OK");
+            assertCorrelationResult(correlationResult, account);
+        }
+    }
+
+    private void deleteUsers(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, null, result);
+        for (PrismObject<UserType> user : users) {
+            String oid = user.getOid();
+            if (!USER_ADMINISTRATOR_OID.equals(oid)) {
+                repositoryService.deleteObject(UserType.class, oid, result);
+            }
+        }
+    }
+
+    private void initializeCorrelator(TestCorrelator correlator, Task task, OperationResult result)
+            throws CommonException, IOException {
+        AbstractCorrelatorType configBean = prismContext.parserFor(correlator.file)
+                .parseRealValue(AbstractCorrelatorType.class);
+        CorrelatorContext<?> correlatorContext =
+                new CorrelatorContext<>(
+                        CorrelatorConfiguration.typed(configBean),
+                        configBean,
+                        null,
+                        IdentitiesManager.createIdentityConfiguration(correlator.getUserTemplate()),
+                        IndexingConfigurationImpl.of(correlator.getUserTemplate(), modelBeans),
+                        systemConfiguration);
+        correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
+                correlatorContext, task, result);
+    }
+
+    /** Definition of the correlator and its instance. */
+    static class TestCorrelator {
+        @NotNull private final File file;
+        @Nullable private final TestResource<ObjectTemplateType> userTemplateResource; // loaded on startup
+        private Correlator instance; // set on initialization
+
+        TestCorrelator(@NotNull File file) {
+            this(file, null);
+        }
+
+        TestCorrelator(@NotNull File file, @Nullable TestResource<ObjectTemplateType> userTemplateResource) {
+            this.file = file;
+            this.userTemplateResource = userTemplateResource;
+        }
+
+        ObjectTemplateType getUserTemplate() {
+            return userTemplateResource != null ? userTemplateResource.getObjectable() : null;
         }
     }
 }

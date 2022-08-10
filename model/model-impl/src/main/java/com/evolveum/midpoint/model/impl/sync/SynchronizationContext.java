@@ -104,6 +104,12 @@ public abstract class SynchronizationContext<F extends FocusType>
      */
     private F preFocus;
 
+    /**
+     * Correlation configuration can be present also in the object template.
+     * Therefore, here we provide the one (if applicable).
+     */
+    private ObjectTemplateType objectTemplateForCorrelation;
+
     /** Owner that was found to be linked (in repo) to the shadow being synchronized. */
     private F linkedOwner;
 
@@ -170,7 +176,7 @@ public abstract class SynchronizationContext<F extends FocusType>
             situation = sorterResult.getSynchronizationSituation();
             LOGGER.trace("Setting correlated owner in synchronization context: {}", sorterResult.getOwner());
             //noinspection unchecked
-            this.correlatedOwner = (F) sorterResult.getOwner();
+            setCorrelatedOwner((F) sorterResult.getOwner());
         } else {
             this.forceClassificationUpdate = false;
         }
@@ -286,6 +292,14 @@ public abstract class SynchronizationContext<F extends FocusType>
     public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
         //noinspection unchecked
         return (PrismObject<F>) preFocus.asPrismObject();
+    }
+
+    public ObjectTemplateType getObjectTemplateForCorrelation() {
+        return objectTemplateForCorrelation;
+    }
+
+    public void setObjectTemplateForCorrelation(ObjectTemplateType objectTemplateForCorrelation) {
+        this.objectTemplateForCorrelation = objectTemplateForCorrelation;
     }
 
     public F getLinkedOwner() {

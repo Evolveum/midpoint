@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -413,8 +415,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void importObjectsFromFileNotRaw(File file, Task task, OperationResult result) throws FileNotFoundException {
         ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
-        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType(prismContext);
+        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
         modelOptions.setRaw(false);
+        options.setModelExecutionOptions(modelOptions);
+        importObjectFromFile(file, options, task, result);
+    }
+
+    protected void importObjectsFromFileRaw(File file, Task task, OperationResult result) throws FileNotFoundException {
+        ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
+        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
+        modelOptions.setRaw(true);
         options.setModelExecutionOptions(modelOptions);
         importObjectFromFile(file, options, task, result);
     }
@@ -1762,12 +1772,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         executeChanges(userDelta, null, task, result);
     }
 
+    protected PrismObject<UserType> getUserFull(String userOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return getUser(userOid, createRetrieveCollection());
+    }
+
     protected PrismObject<UserType> getUser(String userOid)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return getUser(userOid, null);
+    }
+
+    protected PrismObject<UserType> getUser(String userOid, Collection<SelectorOptions<GetOperationOptions>> options)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("getUser");
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
+        PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, options, task, result);
         result.computeStatus();
         TestUtil.assertSuccess("getObject(User) result not success", result);
         return user;
@@ -1777,12 +1799,34 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return repositoryService.getObject(UserType.class, userOid, null, new OperationResult("dummy"));
     }
 
+    protected <O extends ObjectType> PrismObject<O> findObjectByNameFullRequired(Class<O> type, String name)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return findObjectByNameRequired(type, name, createRetrieveCollection());
+    }
+
     protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return findObjectByName(type, name, null);
+    }
+
+    protected <O extends ObjectType> PrismObject<O> findObjectByNameRequired(
+            Class<O> type, String name, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return MiscUtil.requireNonNull(
+                findObjectByName(type, name, options),
+                () -> new AssertionError("Object of type " + type.getSimpleName() + " named '" + name + "' does not exist"));
+    }
+
+    protected <O extends ObjectType> PrismObject<O> findObjectByName(
+            Class<O> type, String name, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Task task = createPlainTask("findObjectByName");
         OperationResult result = task.getResult();
-        List<PrismObject<O>> objects = modelService.searchObjects(type, createNameQuery(name), null, task, result);
+        List<PrismObject<O>> objects = modelService.searchObjects(type, createNameQuery(name), options, task, result);
         if (objects.isEmpty()) {
             return null;
         }
@@ -1792,6 +1836,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectQuery createNameQuery(String name) throws SchemaException {
         return ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
+    }
+
+    protected PrismObject<UserType> findUserByUsernameFullRequired(String username)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return findObjectByNameFullRequired(UserType.class, username);
     }
 
     protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -4739,14 +4789,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        displayAllUsers(null);
+    }
+
+    protected void displayAllUsersFull() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        displayAllUsers(createRetrieveCollection());
+    }
+
+    private void displayAllUsers(Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         Task task = createPlainTask("displayAllUsers");
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = (object, parentResult) -> {
             display("User", object);
             return true;
         };
-        modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+        modelService.searchObjectsIterative(UserType.class, null, handler, options, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
@@ -5889,6 +5951,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return null;
     }
 
+    protected UserAsserter<Void> assertUserAfter(PrismObject<UserType> user)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return assertUser(user, "after")
+                .display();
+    }
+
     protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertUser(oid, "after")
                 .display();
@@ -6728,23 +6797,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <X> X traced(TracedFunctionCall<X> tracedCall)
             throws CommonException, PreconditionViolationException, IOException {
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        return traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    protected void traced(TracedProcedureCall tracedCall)
+            throws CommonException, PreconditionViolationException {
+        traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    public void traced(TracingProfileType profile, TracedProcedureCall tracedCall)
+            throws CommonException, PreconditionViolationException {
+        setGlobalTracingOverride(profile);
         try {
-            return tracedCall.execute();
+            tracedCall.execute();
         } finally {
             unsetGlobalTracingOverride();
         }
     }
 
-    protected void traced(TracedProcedureCall tracedCall) throws CommonException, PreconditionViolationException {
-        traced(createModelLoggingTracingProfile(), tracedCall);
-    }
-
-    protected void traced(TracingProfileType profile, TracedProcedureCall tracedCall)
-            throws CommonException, PreconditionViolationException {
+    public <X> X traced(TracingProfileType profile, TracedFunctionCall<X> tracedCall)
+            throws CommonException, PreconditionViolationException, IOException {
         setGlobalTracingOverride(profile);
         try {
-            tracedCall.execute();
+            return tracedCall.execute();
         } finally {
             unsetGlobalTracingOverride();
         }

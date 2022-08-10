@@ -128,20 +128,19 @@ public class TestIdMatchCorrelationMultiAccountsReal extends AbstractMultiAccoun
     }
 
     private @NotNull ItemPath getConfigurationPath() {
-        ObjectSynchronizationType objectSynchronizationBean = RESOURCE_SIS.getObjectable()
-                .getSynchronization()
-                .getObjectSynchronization()
+        ResourceObjectTypeDefinitionType definitionBean = RESOURCE_SIS.getObjectable()
+                .getSchemaHandling()
+                .getObjectType()
                 .get(0);
-        long synchronizationId = objectSynchronizationBean.getId();
-        long idMatchId = objectSynchronizationBean
-                .getCorrelationDefinition()
+        long idMatchId = definitionBean
+                .getCorrelation()
                 .getCorrelators()
                 .getIdMatch().get(0).getId();
         return ItemPath.create(
-                ResourceType.F_SYNCHRONIZATION,
-                SynchronizationType.F_OBJECT_SYNCHRONIZATION,
-                synchronizationId,
-                ObjectSynchronizationType.F_CORRELATION_DEFINITION,
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                definitionBean.getId(),
+                ResourceObjectTypeDefinitionType.F_CORRELATION,
                 CorrelationDefinitionType.F_CORRELATORS,
                 CompositeCorrelatorType.F_ID_MATCH,
                 idMatchId);

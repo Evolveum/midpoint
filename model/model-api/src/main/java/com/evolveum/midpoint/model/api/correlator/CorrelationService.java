@@ -70,6 +70,7 @@ public interface CorrelationService {
      */
     @NotNull CorrelatorContext<?> createRootCorrelatorContext(
             @NotNull SynchronizationPolicy synchronizationPolicy,
+            @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException;
 
     /**
@@ -119,6 +120,24 @@ public interface CorrelationService {
             @NotNull ResourceType resource,
             @NotNull SynchronizationPolicy synchronizationPolicy,
             @NotNull FocusType candidateOwner,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /** TEMPORARY!!! */
+    ObjectTemplateType determineObjectTemplate(
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull FocusType preFocus,
+            @NotNull OperationResult result)
+                    throws SchemaException, ConfigurationException, ObjectNotFoundException;
+
+    /** TODO Maybe temporary. Maybe visible for testing? */
+    @NotNull <F extends FocusType> F computePreFocus(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull Class<F> focusClass,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

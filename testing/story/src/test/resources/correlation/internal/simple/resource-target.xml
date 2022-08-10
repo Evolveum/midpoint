@@ -137,10 +137,13 @@
                     <name>composite</name>
                     <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
                     <filter>
-                        <order>10</order>
-                        <authority>authoritative</authority>
                         <name>employee number</name>
                         <documentation>Matching on employeeNumber (rule #1).</documentation>
+                        <tier>1</tier>
+                        <order>10</order>
+                        <confidence>
+                            <value>1.0</value>
+                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>employeeNumber</q:path>
@@ -156,10 +159,13 @@
                         </ownerFilter>
                     </filter>
                     <filter>
-                        <order>20</order>
-                        <authority>authoritative</authority>
                         <name>email address</name>
                         <documentation>Matching on emailAddress (rule #2).</documentation>
+                        <tier>1</tier>
+                        <order>20</order>
+                        <confidence>
+                            <value>1.0</value>
+                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>emailAddress</q:path>
@@ -175,10 +181,12 @@
                         </ownerFilter>
                     </filter>
                     <filter>
-                        <order>30</order>
-                        <authority>nonAuthoritative</authority>
                         <name>family name</name>
                         <documentation>Non-authoritative matching on familyName (rule #3).</documentation>
+                        <order>30</order>
+                        <confidence>
+                            <value>0.1</value>
+                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>familyName</q:path>
@@ -194,10 +202,12 @@
                         </ownerFilter>
                     </filter>
                     <filter>
-                        <order>40</order>
-                        <authority>nonAuthoritative</authority>
                         <name>telephone number</name>
                         <documentation>Non-authoritative matching on telephoneNumber (rule #4).</documentation>
+                        <order>40</order>
+                        <confidence>
+                            <value>0.1</value>
+                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>telephoneNumber</q:path>
