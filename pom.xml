@@ -1670,7 +1670,7 @@
         <pluginRepository>
             <id>evolveum</id>
             <name>Evolveum</name>
-            <url>https://nexus.evolveum.com/nexus/content/groups/public</url>
+            <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
         </pluginRepository>
     </pluginRepositories>
 
