@@ -200,7 +200,7 @@
                         <cssClass>fe fe-assignment</cssClass>
                     </icon>
                 </display>
-                <panelType>myAccesses</panelType>
+                <panelType>allAssignments</panelType>
                 <preview>true</preview>
             </widget>
             <widget>

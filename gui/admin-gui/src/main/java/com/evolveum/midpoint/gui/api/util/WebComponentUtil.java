@@ -30,6 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.menu.PageTypes;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
@@ -1269,7 +1270,8 @@ public final class WebComponentUtil {
             localizationService = MidPointApplication.get().getLocalizationService();
         }
         String translatedValue = localizationService.translate(value, getCurrentLocale(), true);
-        if (StringUtils.isNotEmpty(translatedValue)) {
+        String translationKey = value.getTranslation() != null ? value.getTranslation().getKey() : null;
+        if (StringUtils.isNotEmpty(translatedValue) && !translatedValue.equals(translationKey)) {
             return translatedValue;
         }
         return value.getOrig();
@@ -2645,6 +2647,22 @@ public final class WebComponentUtil {
         if (page != null) {
             ((PageBase) component.getPage()).navigateToNext(page, parameters);
         } else if (failIfUnsupported) {
+            throw new SystemException("Cannot determine details page for " + objectClass);
+        }
+    }
+
+    public static void dispatchToListPage(Class<? extends Containerable> objectClass, String collectionViewId, Component component, boolean failIfUnsupported) {
+        QName type = WebComponentUtil.containerClassToQName(PrismContext.get(), objectClass);
+        PageTypes pageTypes = PageTypes.getPageTypesByType(type);
+        if (pageTypes != null) {
+            Class<? extends PageBase> listPage = pageTypes.getListClass();
+            PageParameters pageParameters = new PageParameters();
+            pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, collectionViewId);
+            if (listPage != null) {
+                ((PageBase) component.getPage()).navigateToNext(listPage, pageParameters);
+            }
+        }
+        if (failIfUnsupported) {
             throw new SystemException("Cannot determine details page for " + objectClass);
         }
     }

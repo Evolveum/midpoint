@@ -107,15 +107,6 @@ public class PageOrgs extends PageAdmin {
             protected List<IColumn<SelectableBean<OrgType>, String>> createDefaultColumns() {
                 return ColumnUtils.getDefaultOrgColumns(getPageBase());
             }
-
-            @Override
-            protected List<ItemPath> getFixedSearchItems() {
-                List<ItemPath> fixedSearchItems = new ArrayList<>();
-                fixedSearchItems.add(ObjectType.F_NAME);
-                fixedSearchItems.add(AbstractRoleType.F_DISPLAY_NAME);
-                fixedSearchItems.add(OrgType.F_PARENT_ORG_REF);
-                return fixedSearchItems;
-            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);

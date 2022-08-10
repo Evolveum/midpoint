@@ -6,14 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.menu.PageTypes;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -423,25 +428,27 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private List<IColumn<PO, String>> createColumns() {
         List<IColumn<PO, String>> columns = collectColumns();
 
-        List<InlineMenuItem> menuItems = createInlineMenu();
-        if (menuItems == null) {
-            menuItems = new ArrayList<>();
-        }
-        addCustomActions(menuItems, this::getSelectedRealObjects);
+        if (!isDashboard()) {
+            List<InlineMenuItem> menuItems = createInlineMenu();
+            if (menuItems == null) {
+                menuItems = new ArrayList<>();
+            }
+            addCustomActions(menuItems, this::getSelectedRealObjects);
 
-        if (!menuItems.isEmpty()) {
-            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
-                @Override
-                public String getCssClass() {
-                    return "inline-menu-column";
-                }
+            if (!menuItems.isEmpty()) {
+                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
+                    @Override
+                    public String getCssClass() {
+                        return "inline-menu-column";
+                    }
 
-                @Override
-                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
-                    return isMenuItemVisible(rowModel);
-                }
-            };
-            columns.add(actionsColumn);
+                    @Override
+                    protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                        return isMenuItemVisible(rowModel);
+                    }
+                };
+                columns.add(actionsColumn);
+            }
         }
         return columns;
     }
@@ -953,14 +960,38 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                PageBase page = ContainerableListPanel.this.getPageBase();
-
+                viewAllActionPerformed(target);
             }
         };
         viewAll.add(new VisibleBehaviour(() -> isDashboard()));
         viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
+    }
+
+    protected void viewAllActionPerformed(AjaxRequestTarget target) {
+        FocusType principal = getPageBase().getPrincipalFocus();
+        String widgetPanelType = config != null ? config.getPanelType() : null;
+        QName principalFocusType = WebComponentUtil.classToQName(PrismContext.get(), principal.getClass());
+        if (widgetPanelType != null) {
+            ContainerPanelConfigurationType panelConfig = getPageBase().getCompiledGuiProfile().findPrincipalFocusDetailsPanel(
+                    principalFocusType, widgetPanelType);
+            if (panelConfig != null) {
+                ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(getStorageKey());
+                if (pageStorage == null) {
+                    getPageBase().getSessionStorage().setObjectDetailsStorage(getStorageKey(), panelConfig);
+                } else {
+                    pageStorage.setDefaultConfiguration(panelConfig);
+                }
+                WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), ContainerableListPanel.this);
+                return;
+            }
+        }
+
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        if (view != null) {
+            WebComponentUtil.dispatchToListPage(getType(), view.getViewIdentifier(), ContainerableListPanel.this, false);
+        }
     }
 
     protected String getStorageKey() {
