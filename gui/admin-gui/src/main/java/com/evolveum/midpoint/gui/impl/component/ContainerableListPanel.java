@@ -493,9 +493,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns) {
-        IColumn<PO, String> checkboxColumn = createCheckboxColumn();
-        if (checkboxColumn != null) {
-            columns.add(checkboxColumn);
+        if (!isDashboard()) {
+            IColumn<PO, String> checkboxColumn = createCheckboxColumn();
+            if (checkboxColumn != null) {
+                columns.add(checkboxColumn);
+            }
         }
 
         IColumn<PO, String> iconColumn = createIconColumn();

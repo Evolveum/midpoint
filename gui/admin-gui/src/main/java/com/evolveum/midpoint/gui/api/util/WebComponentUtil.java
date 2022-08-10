@@ -3923,6 +3923,13 @@ public final class WebComponentUtil {
         return displayType.getIcon().getColor();
     }
 
+    public static String getHelp(DisplayType displayType) {
+        if (displayType == null || displayType.getHelp() == null) {
+            return "";
+        }
+        return getTranslatedPolyString(displayType.getHelp());
+    }
+
     public static String getDisplayTypeTitle(DisplayType displayType) {
         if (displayType == null || displayType.getTooltip() == null) {
             return "";

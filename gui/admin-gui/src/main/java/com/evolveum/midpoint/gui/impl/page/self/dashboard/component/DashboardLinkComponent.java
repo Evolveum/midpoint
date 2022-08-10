@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.self.dashboard;
+package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -27,7 +27,7 @@ public class DashboardLinkComponent extends BasePanel<RichHyperlinkType> {
     private static final String ICON_DEFAULT_CSS_CLASS = "fa fa-angle-double-right";
 
 
-    DashboardLinkComponent(String id, IModel<RichHyperlinkType> linkModel) {
+    public DashboardLinkComponent(String id, IModel<RichHyperlinkType> linkModel) {
         super(id, linkModel);
     }
 

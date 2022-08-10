@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardLinkComponent;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardSearchPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
