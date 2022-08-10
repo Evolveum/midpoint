@@ -62,14 +62,14 @@ public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> exten
         return ResourceType.COMPLEX_TYPE;
     }
 
-//    @Override
-//    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-//        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-//
-//        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getContainerModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-//        columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-//        return columns;
-//    }
+    @Override
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getContainerModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+        return columns;
+    }
 
     @Override
     protected ObjectQuery getCustomizeQuery() {

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -128,7 +129,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-//        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), AssignmentType.F_ACTIVATION, getPageBase()));
 
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> additionalColumns = initColumns();
         if (additionalColumns != null) {
@@ -206,9 +207,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return !isAssignmentsLimitReached();
     }
 
-    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        return ColumnUtils.getDefaultAssignmentsColumns(getAssignmentType(), "realValue", false, getPageBase());
-    }
+    protected abstract List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns();
 
     private List<InlineMenuItem> getAssignmentMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();

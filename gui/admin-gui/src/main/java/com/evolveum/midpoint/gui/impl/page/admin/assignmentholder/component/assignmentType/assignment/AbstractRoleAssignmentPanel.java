@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -38,27 +39,27 @@ public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderTyp
     }
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-//        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-//
-//        columns.add(new AbstractColumn<>(
-//                createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
-//            @Override
-//            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
-//                item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(assignmentModel.getObject(), getPageBase())));
-//            }
-//        });
-//
-//        columns.add(new AbstractColumn<>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
-//                    final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-//                item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
-//            }
-//        });
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        return ColumnUtils.getDefaultAssignmentsColumns(getAssignmentType(), "realValue", false, getPageBase());
+        columns.add(new AbstractColumn<>(
+                createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
+                item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(assignmentModel.getObject(), getPageBase())));
+            }
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
+                    final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, AssignmentsUtil.getIdentifierLabelModel(rowModel.getObject().getRealValue(), getPageBase())));
+            }
+        });
+
+        return columns;
     }
 
 }

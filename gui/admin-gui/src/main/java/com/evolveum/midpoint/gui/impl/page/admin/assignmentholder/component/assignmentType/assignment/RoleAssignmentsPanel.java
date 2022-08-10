@@ -34,14 +34,14 @@ public class RoleAssignmentsPanel<AH extends AssignmentHolderType> extends Abstr
         super(id, model, config);
     }
 
-//    @Override
-//    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-//        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = super.initColumns();
-//
-//        columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getContainerModel(), AssignmentType.F_TENANT_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-//        columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getContainerModel(), AssignmentType.F_ORG_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-//        return columns;
-//    }
+    @Override
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = super.initColumns();
+
+        columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getContainerModel(), AssignmentType.F_TENANT_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+        columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getContainerModel(), AssignmentType.F_ORG_REF, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+        return columns;
+    }
 
     @Override
     protected QName getAssignmentType() {

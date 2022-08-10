@@ -1123,6 +1123,7 @@ public class ColumnUtils {
         return getDefaultAssignmentsColumns(null, realValuePath, false, pageBase);
     }
 
+    //attempt to gather assignment columns creation in one place. not finished (e.g.  for construction, inducements...), not sure if needed at all
     public static <S extends SelectableRow<AssignmentType>> List<IColumn<S, String>> getDefaultAssignmentsColumns(
             QName assignmentTargetRefType, String realValuePath, boolean showAllColumns, PageBase pageBase) {
 
