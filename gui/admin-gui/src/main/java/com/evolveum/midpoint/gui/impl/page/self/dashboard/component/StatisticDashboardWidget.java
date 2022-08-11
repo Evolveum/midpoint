@@ -8,10 +8,17 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -29,6 +36,7 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "labelId";
     private static final String ID_DESCRIPTION = "descriptionId";
+    private static final String ID_STATISTIC_DATA = "statisticData";
     private static final String ICON_DEFAULT_CSS_CLASS = "fa fa-angle-double-right";
 
     public StatisticDashboardWidget(String id, IModel<ContainerPanelConfigurationType> model) {
@@ -85,6 +93,9 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
         });
         description.setEnabled(false);
         linkItem.add(description);
+
+        Label statisticData = new Label(ID_STATISTIC_DATA, getCollectionViewCountLabelModel());
+        linkItem.add(statisticData);
     }
 
     private IModel<String> getIconClassModel() {
@@ -96,6 +107,36 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
             }
             return "info-box-icon " + getIconColor() + cssClass;
         };
+    }
+
+    private IModel<String> getCollectionViewCountLabelModel() {
+        return () -> {
+            CompiledObjectCollectionView view = getObjectCollectionView();
+            if (view == null) {
+                return "";
+            }
+            ObjectFilter filter = view.getFilter();
+            Class<? extends Containerable> type = (Class<? extends Containerable>) WebComponentUtil.qnameToClass(getPrismContext(), view.getContainerType());
+            ObjectQuery query = getPrismContext().queryFor(type)
+                    .build();
+            if (filter != null) {
+                query.addFilter(filter);
+            }
+            return "" + WebModelServiceUtils.countContainers(type, query, null, getPageBase());
+        };
+    }
+
+    private CompiledObjectCollectionView getObjectCollectionView() {
+        ContainerPanelConfigurationType config = getModelObject();
+        GuiObjectListViewType view = config.getListView();
+        if (view == null) {
+            return null;
+        }
+        String viewIdentifier = view.getIdentifier();
+        if (StringUtils.isEmpty(viewIdentifier)) {
+            return null;
+        }
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(view.getType(), viewIdentifier);
     }
 
     private String getIconColor() {
