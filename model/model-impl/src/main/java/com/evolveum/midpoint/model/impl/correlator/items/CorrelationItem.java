@@ -254,7 +254,7 @@ public class CorrelationItem implements DebugDumpable {
                     MiscUtil.configNonNull(
                             levenshtein.getThreshold(),
                             () -> "Please specify Levenshtein edit distance threshold"),
-                    true);
+                    !Boolean.FALSE.equals(levenshtein.isInclusive()));
         }
         TrigramSimilaritySearchDefinitionType similarity = fuzzyDef.getSimilarity();
         if (similarity != null) {

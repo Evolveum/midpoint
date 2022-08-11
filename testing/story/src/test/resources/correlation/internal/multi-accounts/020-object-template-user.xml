@@ -125,7 +125,7 @@
                         <path>extension/dateOfBirth</path>
                     </item>
                     <composition>
-                        <weight>0.1</weight>
+                        <weight>0.4</weight>
                     </composition>
                 </items>
                 <items>
@@ -135,7 +135,7 @@
                         <path>extension/nationalId</path>
                     </item>
                     <composition>
-                        <weight>0.1</weight>
+                        <weight>0.4</weight>
                     </composition>
                 </items>
             </composite>
