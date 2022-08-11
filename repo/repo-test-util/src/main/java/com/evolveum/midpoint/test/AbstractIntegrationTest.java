@@ -4250,7 +4250,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void skipIfNotNativeRepository() {
         if (!isNativeRepository()) {
-            throw new SkipException("Not running on the native repository");
+            throw new SkipException("Skipping the test designed for the native repository only.");
         }
     }
 }
