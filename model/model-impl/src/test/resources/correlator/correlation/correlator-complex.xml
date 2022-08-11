@@ -8,17 +8,11 @@
 <compositeCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>complex</name>
-    <thresholds>
-        <top>2.0</top>
-        <owner>1.0</owner>
-        <candidate>0.2</candidate>
-    </thresholds>
+    <scaling>
+        <scale>1.0</scale>
+    </scaling>
     <items>
         <name>all</name>
-        <tier>1</tier>
-        <confidence>
-            <value>2.0</value>
-        </confidence>
         <item>
             <path>givenName</path>
         </item>
@@ -31,49 +25,52 @@
         <item>
             <path>extension/nationalId</path>
         </item>
+        <composition>
+            <tier>1</tier>
+        </composition>
     </items>
     <items>
         <name>fullName</name>
-        <confidence>
-            <value>0.5</value>
-        </confidence>
-        <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
         <item>
             <path>givenName</path>
         </item>
         <item>
             <path>familyName</path>
         </item>
+        <composition>
+            <weight>0.5</weight>
+            <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+        </composition>
     </items>
     <items>
         <name>familyName</name>
-        <confidence>
-            <value>0.25</value>
-        </confidence>
-        <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
         <item>
             <path>familyName</path>
         </item>
+        <composition>
+            <weight>0.25</weight>
+            <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+        </composition>
     </items>
     <items>
         <name>nationalId</name>
-        <confidence>
-            <value>0.75</value>
-        </confidence>
-        <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
         <item>
             <path>extension/nationalId</path>
         </item>
+        <composition>
+            <weight>0.75</weight>
+            <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+        </composition>
     </items>
     <items>
         <!-- just for the testing, not to be used in real life! -->
         <name>givenName</name>
-        <confidence>
-            <value>0.1</value>
-        </confidence>
-        <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
         <item>
             <path>givenName</path>
         </item>
+        <composition>
+            <weight>0.1</weight>
+            <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+        </composition>
     </items>
 </compositeCorrelator>

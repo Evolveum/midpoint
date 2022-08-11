@@ -7,26 +7,33 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Objects;
 
-class CandidateOwner {
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
+
+class TestCandidateOwner {
 
     @NotNull private final String name;
-    @Nullable private final Double confidence;
+    private final double confidence;
 
-    CandidateOwner(@NotNull String name, @Nullable Double confidence) {
+    TestCandidateOwner(@NotNull String name, double confidence) {
         this.name = name;
         this.confidence = confidence;
+    }
+
+    public static TestCandidateOwner of(CandidateOwner candidateOwner) {
+        return new TestCandidateOwner(
+                candidateOwner.getObject().getName().getOrig(),
+                candidateOwner.getConfidence());
     }
 
     @NotNull String getName() {
         return name;
     }
 
-    @Nullable Double getConfidence() {
+    double getConfidence() {
         return confidence;
     }
 
@@ -38,9 +45,9 @@ class CandidateOwner {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CandidateOwner that = (CandidateOwner) o;
+        TestCandidateOwner that = (TestCandidateOwner) o;
         return name.equals(that.name)
-                && Objects.equals(confidence, that.confidence);
+                && confidence == that.confidence;
     }
 
     @Override
@@ -50,7 +57,7 @@ class CandidateOwner {
 
     @Override
     public String toString() {
-        return "CandidateOwner{" +
+        return "TestCandidateOwner{" +
                 "name='" + name + '\'' +
                 ", confidence=" + confidence +
                 '}';

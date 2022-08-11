@@ -7,55 +7,44 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_CONFIGURATION_PROPERTIES;
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_RESULTS_HANDLER_CONFIGURATION;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.AUTHORITATIVE;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.CLOCKWORK;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import static com.evolveum.midpoint.test.IntegrationTestTools.DUMMY_CONNECTOR_TYPE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.CLOCKWORK;
 import static com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import javax.xml.namespace.QName;
 
 public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTest {
 
@@ -606,7 +595,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("there are two 'items' correlators");
         CorrelationDefinitionType correlationDefinitionBean = Objects.requireNonNull(accountDef.getCorrelationDefinitionBean());
-        List<ItemsCorrelatorType> itemsCorrelators = correlationDefinitionBean.getCorrelators().getItems();
+        List<ItemsSubCorrelatorType> itemsCorrelators = correlationDefinitionBean.getCorrelators().getItems();
         assertThat(itemsCorrelators).as("items correlators").hasSize(2);
         ItemsCorrelatorType empNo = MiscUtil.extractSingletonRequired(
                 itemsCorrelators.stream()

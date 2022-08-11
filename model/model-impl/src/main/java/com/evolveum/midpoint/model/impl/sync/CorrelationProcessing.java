@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import com.evolveum.midpoint.model.api.correlator.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -54,10 +54,7 @@ class CorrelationProcessing<F extends FocusType> {
 
     @NotNull private final ModelBeans beans;
 
-    /** Shadow being correlated. It is a full shadow. */
-    @NotNull private final ShadowType shadow;
-
-    /** Context of the whole correlation. Used when called the root correlator. */
+    /** Context of the whole correlation. Used when calling the root correlator. */
     @NotNull private final CorrelationContext correlationContext;
 
     /** [Instantiation] context of the root correlator. */
@@ -80,9 +77,8 @@ class CorrelationProcessing<F extends FocusType> {
         this.syncCtx = syncCtx;
         this.task = syncCtx.getTask();
         this.beans = beans;
-        this.shadow = syncCtx.getShadowedResourceObject();
         this.correlationContext = new CorrelationContext(
-                shadow,
+                syncCtx.getShadowedResourceObject(),
                 syncCtx.getPreFocus(),
                 syncCtx.getResource(),
                 syncCtx.getObjectDefinitionRequired(),
@@ -98,11 +94,11 @@ class CorrelationProcessing<F extends FocusType> {
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }
 
-    @NotNull public CorrelationResult correlate(OperationResult parentResult) throws CommonException {
+    @NotNull public CompleteCorrelationResult correlate(OperationResult parentResult) throws CommonException {
 
         assert syncCtx.getLinkedOwner() == null;
 
-        CorrelationResult existing = getResultFromExistingState(parentResult);
+        CompleteCorrelationResult existing = getResultFromExistingState(parentResult);
         if (existing != null) {
             LOGGER.debug("Result determined from existing correlation state in shadow: {}", existing.getSituation());
             return existing;
@@ -111,7 +107,7 @@ class CorrelationProcessing<F extends FocusType> {
         OperationResult result = parentResult.subresult(OP_CORRELATE)
                 .build();
         try {
-            CorrelationResult correlationResult = correlateInRootCorrelator(result);
+            CompleteCorrelationResult correlationResult = correlateInRootCorrelator(result);
             applyResultToShadow(correlationResult);
 
             if (correlationResult.isDone()) {
@@ -127,7 +123,7 @@ class CorrelationProcessing<F extends FocusType> {
         }
     }
 
-    private CorrelationResult getResultFromExistingState(OperationResult result) throws SchemaException {
+    private CompleteCorrelationResult getResultFromExistingState(OperationResult result) throws SchemaException {
         ShadowType shadow = syncCtx.getShadowedResourceObject();
         if (shadow.getCorrelation() == null) {
             return null;
@@ -137,14 +133,14 @@ class CorrelationProcessing<F extends FocusType> {
             ObjectType owner = resolveExistingOwner(shadow.getCorrelation().getResultingOwner(), result);
             if (owner != null) {
                 // We are not interested in other candidates here.
-                return CorrelationResult.existingOwner(owner, null);
+                return CompleteCorrelationResult.existingOwner(owner, null);
             } else {
                 // Something is wrong. Let us try the correlation (again).
                 // TODO perhaps we should clear the correlation state from the shadow
                 return null;
             }
         } else if (situation == CorrelationSituationType.NO_OWNER) {
-            return CorrelationResult.noOwner();
+            return CompleteCorrelationResult.noOwner();
         } else {
             // We need to do the correlation
             return null;
@@ -175,17 +171,15 @@ class CorrelationProcessing<F extends FocusType> {
                 .update(correlationContext, result);
     }
 
-    private @NotNull CorrelationResult correlateInRootCorrelator(OperationResult result) {
+    private @NotNull CompleteCorrelationResult correlateInRootCorrelator(OperationResult result) {
 
-        CorrelationResult correlationResult;
-
+        CompleteCorrelationResult correlationResult;
         try {
-            correlationResult = instantiateRootCorrelator(result)
-                    .correlate(correlationContext, result);
+            correlationResult = beans.correlationService.correlate(rootCorrelatorContext, correlationContext, result);
         } catch (Exception e) { // Other kinds of Throwable are intentionally passed upwards
             // The exception will be (probably) rethrown, so the stack trace is not strictly necessary here.
             LoggingUtils.logException(LOGGER, "Correlation ended with an exception", e);
-            correlationResult = CorrelationResult.error(e);
+            correlationResult = CompleteCorrelationResult.error(e);
         }
 
         LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
@@ -209,7 +203,7 @@ class CorrelationProcessing<F extends FocusType> {
         // TODO record case close if needed
     }
 
-    private void applyResultToShadow(CorrelationResult correlationResult) throws SchemaException {
+    private void applyResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {
         S_ItemEntry builder = PrismContext.get().deltaFor(ShadowType.class);
         if (getShadowCorrelationStartTimestamp() == null) {
             builder = builder

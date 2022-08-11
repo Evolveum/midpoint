@@ -1,6 +1,6 @@
 # Uses employeeNumber as owner OID. Contains <owner> element, i.e. returns the full candidate owner object(s).
 
-uid  | correlator | employeeNumber                       | givenName | familyName | dateOfBirth | nationalId | test       | _note
-100  | owner      | 0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2 |           |            |             |            | ismith     | That is ismith's OID
-101  | owner      |                                      |           |            |             |            | _none      | Will return no reference
-102  | owner      | *                                    |           |            |             |            | _uncertain | Will return two OIDs
+uid  | correlator | employeeNumber                       | expCandidates                | expResult   | _note
+100  | owner      | 0025b4fd-e4d5-4055-8e65-6eb9a6c56fb2 | ismith:1.0                   | ismith      | That is ismith's OID
+101  | owner      |                                      |                              | _none       | Will return no reference
+102  | owner      | *                                    | ismith:1.0;administrator:1.0 | _uncertain  | Will return two OIDs

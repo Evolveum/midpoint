@@ -99,7 +99,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, "[]");
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, NO_OWNER, null);
@@ -120,7 +120,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, ownersCode(USER_X));
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, EXISTING_OWNER, USER_X.oid);
@@ -141,7 +141,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, ownersCode(USER_X, USER_Y));
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
@@ -165,7 +165,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
                 requestCaseCode() + ownersCode(USER_X, USER_Y));
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
@@ -196,7 +196,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, customCode);
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
@@ -232,7 +232,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
     }
 
     private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationSituationType expectedSituation, String expectedOid) {
+            CompleteCorrelationResult correlationResult, CorrelationSituationType expectedSituation, String expectedOid) {
         displayDumpable("correlation result", correlationResult);
         assertThat(correlationResult.getSituation()).as("correlation result status").isEqualTo(expectedSituation);
         ObjectType owner = correlationResult.getOwner();
@@ -240,7 +240,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         assertThat(oid).as("correlated owner OID").isEqualTo(expectedOid);
     }
 
-    private CorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
+    private CompleteCorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
         ShadowType shadow = getAccountByName(accountName, task, result);
         return correlationService.correlate(shadow, null, task, result);
     }

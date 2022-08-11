@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
+import com.evolveum.midpoint.model.api.correlator.CompleteCorrelationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.lang3.Validate;
@@ -20,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionExecutor;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -337,7 +337,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        CorrelationResult correlationResult =
+        CompleteCorrelationResult correlationResult =
                 new CorrelationProcessing<>(syncCtx, beans)
                         .correlate(result);
 
