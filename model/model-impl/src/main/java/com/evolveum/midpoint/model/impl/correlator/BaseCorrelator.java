@@ -11,10 +11,18 @@ import com.evolveum.midpoint.model.api.correlator.*;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -22,8 +30,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 
+import java.util.Collection;
+import java.util.Objects;
+
 /**
- * Abstract superclass for non-trivial built-in correlators.
+ * Abstract superclass for built-in correlators.
  *
  * @param <CCB> correlator configuration bean
  */
@@ -95,7 +106,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             SecurityViolationException, ObjectNotFoundException;
 
     @Override
-    public boolean checkCandidateOwner(
+    public double checkCandidateOwner(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult parentResult)
@@ -109,13 +120,13 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                     candidateOwner.debugDumpLazily(1),
                     correlationContext.debugDumpLazily(1));
 
-            boolean matches = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
+            double confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
 
-            logger.trace("Result: {}", matches);
+            logger.trace("Determined candidate owner confidence: {}", confidence);
 
-            result.addArbitraryObjectAsReturn("matches", matches);
+            result.addArbitraryObjectAsReturn("confidence", confidence);
 
-            return matches;
+            return confidence;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -124,7 +135,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         }
     }
 
-    protected abstract boolean checkCandidateOwnerInternal(
+    protected abstract double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -150,5 +161,63 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                 correlatorContext.getSystemConfiguration());
         return beans.correlatorFactoryRegistry
                 .instantiateCorrelator(childContext, task, result);
+    }
+
+    protected CorrelationResult createCorrelationResult(
+            @NotNull Collection<? extends ObjectType> candidates, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return CorrelationResult.of(
+                createCandidateOwnersMap(candidates, task, result));
+    }
+
+    private CandidateOwnersMap createCandidateOwnersMap(
+            @NotNull Collection<? extends ObjectType> candidates, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
+        for (ObjectType candidate : candidates) {
+            candidateOwnersMap.put(
+                    candidate,
+                    null, // no external IDs for the clients of this method
+                    determineConfidence(candidate, task, result));
+        }
+        return candidateOwnersMap;
+    }
+
+    protected double determineConfidence(ObjectType candidate, Task task, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        CorrelationConfidenceDefinitionType confidenceDef = correlatorContext.getConfigurationBean().getConfidence();
+        if (confidenceDef == null) {
+            return 1.0;
+        }
+        ExpressionType expressionBean = confidenceDef.getExpression();
+        if (expressionBean == null) {
+            return 1.0;
+        }
+        VariablesMap variablesMap = new VariablesMap();
+        variablesMap.put(ExpressionConstants.VAR_CANDIDATE, new TypedValue<>(candidate, String.class));
+        PrismPropertyDefinition<Double> outputDefinition =
+                PrismContext.get().definitionFactory().createPropertyDefinition(
+                        ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
+        PrismValue output = ExpressionUtil.evaluateExpression(
+                variablesMap,
+                outputDefinition,
+                expressionBean,
+                MiscSchemaUtil.getExpressionProfile(),
+                beans.expressionFactory,
+                "confidence expression for " + candidate,
+                task,
+                result);
+        if (output == null) {
+            return 1.0;
+        } else {
+            return Objects.requireNonNullElse(
+                    JavaTypeConverter.convert(
+                            Double.class,
+                            output.getRealValue()),
+                    1.0);
+        }
     }
 }

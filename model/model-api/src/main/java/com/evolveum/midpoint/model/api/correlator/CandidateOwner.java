@@ -15,20 +15,35 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 /**
+ * A candidate owner along with its confidence value (a number between 0 and 1, inclusive).
+ *
  * Equals/hashCode contract: looks after {@link #oid} and {@link #confidence} only.
+ *
+ * @see CandidateOwnersMap
  */
-public class CandidateOwner<O extends ObjectType> implements Serializable {
+public class CandidateOwner implements Serializable {
 
     @NotNull private final String oid;
-    @NotNull private final O object;
-    private Double confidence;
+    @NotNull private final ObjectType object;
+    private final double confidence;
 
-    CandidateOwner(@NotNull O object, Double confidence) {
+    /**
+     * ID of the candidate in the external system, e.g. ID Match.
+     */
+    @Nullable private final String externalId;
+
+    public CandidateOwner(@NotNull ObjectType object, @Nullable String externalId, double confidence) {
         this.oid = MiscUtil.requireNonNull(
                 object.getOid(),
                 () -> new IllegalArgumentException("No oid of " + object));
         this.object = object;
+        this.externalId = externalId;
+        argCheck(confidence >= 0 && confidence <= 1, "Invalid confidence value: %s", confidence);
         this.confidence = confidence;
     }
 
@@ -36,38 +51,25 @@ public class CandidateOwner<O extends ObjectType> implements Serializable {
         return oid;
     }
 
-    public @NotNull O getObject() {
+    public @NotNull ObjectType getObject() {
         return object;
     }
 
-    public Double getConfidence() {
+    public double getConfidence() {
         return confidence;
+    }
+
+    public @Nullable String getExternalId() {
+        return externalId;
     }
 
     @Override
     public String toString() {
         return "CandidateOwner{" +
                 "object=" + object +
+                (externalId != null ? ", externalId=" + externalId : "") +
                 ", confidence=" + confidence +
                 '}';
-    }
-
-    Double addMatching(CandidateOwner<O> another) {
-        assert oid.equals(another.getOid());
-        Double anotherConfidence = another.getConfidence();
-        if (anotherConfidence != null) {
-            if (confidence == null) {
-                confidence = anotherConfidence;
-            } else {
-                confidence += anotherConfidence;
-            }
-        }
-        return confidence;
-    }
-
-    public boolean isAtLeast(double threshold) {
-        return threshold <= 0
-                || confidence != null && confidence >= threshold;
     }
 
     @Override
@@ -78,8 +80,9 @@ public class CandidateOwner<O extends ObjectType> implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CandidateOwner<?> that = (CandidateOwner<?>) o;
-        return oid.equals(that.oid) && Objects.equals(confidence, that.confidence);
+        CandidateOwner that = (CandidateOwner) o;
+        return oid.equals(that.oid)
+                && confidence == that.confidence;
     }
 
     @Override

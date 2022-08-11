@@ -139,11 +139,6 @@
                     <filter>
                         <name>employee number</name>
                         <documentation>Matching on employeeNumber (rule #1).</documentation>
-                        <tier>1</tier>
-                        <order>10</order>
-                        <confidence>
-                            <value>1.0</value>
-                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>employeeNumber</q:path>
@@ -157,15 +152,14 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <tier>1</tier>
+                            <order>10</order>
+                        </composition>
                     </filter>
                     <filter>
                         <name>email address</name>
                         <documentation>Matching on emailAddress (rule #2).</documentation>
-                        <tier>1</tier>
-                        <order>20</order>
-                        <confidence>
-                            <value>1.0</value>
-                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>emailAddress</q:path>
@@ -179,14 +173,14 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <tier>1</tier>
+                            <order>20</order>
+                        </composition>
                     </filter>
                     <filter>
                         <name>family name</name>
                         <documentation>Non-authoritative matching on familyName (rule #3).</documentation>
-                        <order>30</order>
-                        <confidence>
-                            <value>0.1</value>
-                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>familyName</q:path>
@@ -200,14 +194,14 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <order>30</order> <!-- actually, this is just the order within the second (unnumbered) tier -->
+                            <weight>0.1</weight>
+                        </composition>
                     </filter>
                     <filter>
                         <name>telephone number</name>
                         <documentation>Non-authoritative matching on telephoneNumber (rule #4).</documentation>
-                        <order>40</order>
-                        <confidence>
-                            <value>0.1</value>
-                        </confidence>
                         <ownerFilter>
                             <q:equal>
                                 <q:path>telephoneNumber</q:path>
@@ -221,6 +215,10 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <order>40</order> <!-- actually, this is just the order within the second (unnumbered) tier -->
+                            <weight>0.1</weight>
+                        </composition>
                     </filter>
                 </correlators>
             </correlation>

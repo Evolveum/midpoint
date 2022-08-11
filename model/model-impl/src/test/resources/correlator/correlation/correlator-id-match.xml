@@ -6,26 +6,12 @@
   -->
 
 <idMatchCorrelator
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>id-match</name>
     <description>
         Correlates using dummy ID Match service plus a filter that uses returned referenceId.
         This is the expected style of use.
     </description>
     <!-- No url nor credentials. A dummy service is used instead. -->
-    <followOn>
-        <filter>
-            <ownerFilter>
-                <q:equal>
-                    <q:path>employeeNumber</q:path>
-                    <expression>
-                        <!-- This is the reference ID determined by the ID Match service -->
-                        <path>$correlatorState/referenceId</path>
-                    </expression>
-                </q:equal>
-            </ownerFilter>
-        </filter>
-    </followOn>
+    <referenceIdProperty>employeeNumber</referenceIdProperty>
 </idMatchCorrelator>

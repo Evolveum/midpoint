@@ -297,7 +297,7 @@ public class SynchronizationPolicyFactory {
             overallCorrelationDefBean.setCorrelators(correlators);
         }
         correlators.getItems().add(
-                new ItemsCorrelatorType()
+                new ItemsSubCorrelatorType()
                         .confidence(CloneUtil.clone(attributeCorrelationDefBean.getConfidence()))
                         .item(new ItemCorrelationType()
                                 .path(itemPathBean.clone())));
@@ -358,10 +358,10 @@ public class SynchronizationPolicyFactory {
         }
     }
 
-    private static @NotNull FilterCorrelatorType createFilterCorrelator(
+    private static @NotNull FilterSubCorrelatorType createFilterCorrelator(
             List<ConditionalSearchFilterType> correlationFilters, ExpressionType confirmation) {
-        FilterCorrelatorType filterCorrelator =
-                new FilterCorrelatorType()
+        FilterSubCorrelatorType filterCorrelator =
+                new FilterSubCorrelatorType()
                         .confirmation(
                                 CloneUtil.clone(confirmation));
         filterCorrelator.getOwnerFilter().addAll(

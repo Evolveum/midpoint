@@ -41,15 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Creates {@link CorrelatorContext} instances.
  *
- * TODO double check handling of PCV IDs when merging
- *  (fortunately, the object is not stored anywhere, so conflicts are most probably harmless)
+ * TODO rework merging!!!
  */
 public class CorrelatorContextCreator {
 
     /** What items are allowed in the configuration that contains `using` clause - i.e. that points to another config. */
     private static final Collection<ItemName> ALLOWED_ITEMS_FOR_USING = List.of(
             AbstractCorrelatorType.F_USING,
-            AbstractCorrelatorType.F_ORDER,
             AbstractCorrelatorType.F_DISPLAY_NAME,
             AbstractCorrelatorType.F_DESCRIPTION,
             AbstractCorrelatorType.F_DOCUMENTATION);
@@ -57,7 +55,6 @@ public class CorrelatorContextCreator {
     /** These items are _not_ merged when extending the correlators. */
     private static final Collection<ItemName> NOT_MERGED_WHEN_EXTENDING = List.of(
             AbstractCorrelatorType.F_USING, // forbidden anyway
-            AbstractCorrelatorType.F_ORDER,
             AbstractCorrelatorType.F_NAME,
             AbstractCorrelatorType.F_DISPLAY_NAME,
             AbstractCorrelatorType.F_DESCRIPTION,
@@ -77,7 +74,7 @@ public class CorrelatorContextCreator {
     @NotNull private final AbstractCorrelatorType originalConfigurationBean;
 
     /** The correlation definition. We just pass this to the context. */
-    @Nullable private final CorrelationDefinitionType correlationDefinitionBean;
+    @NotNull private final CorrelationDefinitionType correlationDefinitionBean;
 
     /** TODO */
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
@@ -91,7 +88,7 @@ public class CorrelatorContextCreator {
 
     private CorrelatorContextCreator(
             @NotNull CorrelatorConfiguration originalConfiguration,
-            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @NotNull IdentityManagementConfiguration identityManagementConfiguration,
             @NotNull IndexingConfiguration indexingConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
@@ -136,7 +133,7 @@ public class CorrelatorContextCreator {
 
     public static CorrelatorContext<?> createChildContext(
             @NotNull CorrelatorConfiguration childConfiguration,
-            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @NotNull IdentityManagementConfiguration identityManagementConfiguration,
             @NotNull IndexingConfiguration indexingConfiguration,
             @Nullable SystemConfigurationType systemConfiguration)

@@ -114,18 +114,7 @@
                 <url>http://localhost:9090/match/api/1</url>
                 <username>administrator</username>
                 <password><t:clearValue>5ecr3t</t:clearValue></password>
-                <followOn>
-                    <filter>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>extension/referenceId</q:path>
-                                <expression>
-                                    <path>$correlatorState/referenceId</path>
-                                </expression>
-                            </q:equal>
-                        </ownerFilter>
-                    </filter>
-                </followOn>
+                <referenceIdProperty>extension/referenceId</referenceIdProperty>
             </idMatch>
         </correlators>
     </correlation>

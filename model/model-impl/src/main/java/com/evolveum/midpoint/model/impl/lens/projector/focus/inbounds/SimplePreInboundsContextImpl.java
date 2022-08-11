@@ -110,6 +110,14 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
     }
 
     @Override
+    public String toString() {
+        return "SimplePreInboundsContext for " +
+                shadowedResourceObject +
+                " on " + resource.getName() +
+                " of " + objectTypeDefinition.getTypeIdentification();
+    }
+
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);

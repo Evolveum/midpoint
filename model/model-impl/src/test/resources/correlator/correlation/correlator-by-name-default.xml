@@ -7,9 +7,6 @@
 
 <itemsCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <confidence>
-        <value>1.0</value>
-    </confidence>
     <name>by-name-default</name>
     <item>
         <path>givenName</path>

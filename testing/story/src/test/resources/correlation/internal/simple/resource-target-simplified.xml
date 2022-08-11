@@ -136,38 +136,36 @@
                 <correlators>
                     <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
                     <items>
-                        <tier>1</tier>
-                        <confidence>
-                            <value>1.0</value>
-                        </confidence>
                         <item>
                             <path>employeeNumber</path>
                         </item>
+                        <composition>
+                            <tier>1</tier>
+                        </composition>
                     </items>
                     <items>
-                        <tier>1</tier>
-                        <confidence>
-                            <value>1.0</value>
-                        </confidence>
                         <item>
                             <path>emailAddress</path>
                         </item>
+                        <composition>
+                            <tier>1</tier>
+                        </composition>
                     </items>
                     <items>
-                        <confidence>
-                            <value>0.1</value>
-                        </confidence>
                         <item>
                             <path>familyName</path>
                         </item>
+                        <composition>
+                            <weight>0.1</weight>
+                        </composition>
                     </items>
                     <items>
-                        <confidence>
-                            <value>0.1</value>
-                        </confidence>
                         <item>
                             <path>telephoneNumber</path>
                         </item>
+                        <composition>
+                            <weight>0.1</weight>
+                        </composition>
                     </items>
                 </correlators>
             </correlation>

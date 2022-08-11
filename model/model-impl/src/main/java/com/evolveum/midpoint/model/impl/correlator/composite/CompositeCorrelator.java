@@ -8,43 +8,41 @@
 package com.evolveum.midpoint.model.impl.correlator.composite;
 
 import static com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration.getChildConfigurations;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.correlator.*;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult.OwnersInfo;
+import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectSet;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorScalingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Composite correlator that evaluates its components (child correlators) and builds up the result
- * according to their results.
+ * Composite correlator that evaluates its components (child correlators) and builds up the result according to their results.
  *
  * PRELIMINARY IMPLEMENTATION!
  *
  * TODO ignore identifiers in owner options
  */
 class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
+
+    private static final double DEFAULT_SCALE = 1.0;
 
     private static final Trace LOGGER = TraceManager.getTrace(CompositeCorrelator.class);
 
@@ -58,12 +56,12 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        return new Correlation<>(correlationContext)
+        return new Correlation(correlationContext)
                 .execute(result);
     }
 
     @Override
-    protected boolean checkCandidateOwnerInternal(
+    protected double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) {
@@ -71,23 +69,30 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 + " mode. Please disable this mode for this particular resource or object type.");
     }
 
-    private class Correlation<F extends FocusType> {
+    private class Correlation {
 
         @NotNull private final CorrelationContext correlationContext;
         @NotNull private final Task task;
         @NotNull private final String contextDescription; // TODO
 
         @NotNull private final Collection<CorrelatorConfiguration> childConfigurations;
+
         @NotNull private final Set<Integer> tiers;
+
+        private final double ownerThreshold = correlatorContext.getOwnerThreshold();
+        private final double scale = getScale();
 
         /** What candidate owners were matched by what correlators (only with non-null names). */
         @NotNull private final HashMultimap<String, String> candidateOwnersMatchedBy = HashMultimap.create();
 
+        /** Current confidence values - scaled to [0,1]. Keyed by candidate OID. */
+        @NotNull private final Map<String, Double> currentConfidences = new HashMap<>();
+
+        @NotNull private final ObjectSet<ObjectType> allCandidates = new ObjectSet<>();
+
+        @NotNull private final Map<String, String> externalIds = new HashMap<>();
+
         @NotNull private final Set<String> evaluatedCorrelators = new HashSet<>();
-
-        @NotNull private final CandidateOwnerMap<F> candidateOwnerMap = new CandidateOwnerMap<>();
-
-        private CorrelationResult errorResult;
 
         Correlation(@NotNull CorrelationContext correlationContext) {
             this.correlationContext = correlationContext;
@@ -109,32 +114,48 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
 
             CorrelatorConfiguration.computeDependencyLayers(childConfigurations);
 
-            CorrelationResult overallResult = null;
+            LOGGER.trace("Starting composite correlator computation with scale = {}, owner threshold = {}",
+                    scale, ownerThreshold);
+
             int tierNumber = 1;
             for (Integer tier : tiers) {
                 List<CorrelatorConfiguration> childConfigurations = getConfigurationsInTierSorted(tier);
-                LOGGER.trace("Processing tier #{}/{} with ID '{}': {} child correlator(s)",
+                LOGGER.trace("Processing tier #{}/{} with ID '{}': {} correlator(s)",
                         tierNumber, tiers.size(), tier, childConfigurations.size());
 
                 for (CorrelatorConfiguration childConfiguration : childConfigurations) {
                     invokeChildCorrelator(childConfiguration, result);
-                    if (errorResult != null) {
-                        LOGGER.trace("Got an error result in tier {}, finishing:\n{}",
-                                tier, errorResult.debugDumpLazily(1));
-                        return errorResult;
-                    }
                 }
 
-                overallResult = determineOverallResult();
-                if (overallResult.isExistingOwner()) {
+                Collection<String> certainOwners = getCertainOwners();
+                if (certainOwners.size() == 1) {
+                    CorrelationResult correlationResult = createCorrelationResult();
                     LOGGER.trace("Reached 'existing owner' answer in tier {}, finishing:\n{}",
-                            tier, overallResult.debugDumpLazily(1));
-                    return overallResult;
+                            tier, correlationResult.debugDumpLazily(1));
+                    return correlationResult;
                 }
             }
-            stateCheck(overallResult != null, "No tiers?");
-            LOGGER.trace("Finishing after last tier was evaluated:\n{}", overallResult.debugDumpLazily(1));
-            return overallResult;
+            CorrelationResult correlationResult = createCorrelationResult();
+            LOGGER.trace("Finishing after last tier was evaluated:\n{}", correlationResult.debugDumpLazily(1));
+            return correlationResult;
+        }
+
+        private CorrelationResult createCorrelationResult() {
+            CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
+            currentConfidences.forEach(
+                    (oid, confidence) ->
+                            candidateOwnersMap.put(
+                                    allCandidates.get(oid),
+                                    externalIds.get(oid),
+                                    confidence));
+            return CorrelationResult.of(candidateOwnersMap);
+        }
+
+        private Collection<String> getCertainOwners() {
+            return currentConfidences.entrySet().stream()
+                    .filter(e -> e.getValue() >= ownerThreshold)
+                    .map(e -> e.getKey())
+                    .collect(Collectors.toSet());
         }
 
         private List<CorrelatorConfiguration> getConfigurationsInTierSorted(Integer tier) {
@@ -153,26 +174,20 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 ConfigurationException, ObjectNotFoundException {
 
             LOGGER.trace("Going to invoke child correlator '{}'", childConfiguration);
-            CorrelationResult childResult = instantiateChild(childConfiguration, task, result)
-                    .correlate(correlationContext, result);
+            CorrelationResult childResult =
+                    instantiateChild(childConfiguration, task, result)
+                            .correlate(correlationContext, result);
             LOGGER.trace("Child correlator '{}' provided the following result:\n{}",
                     childConfiguration, childResult.debugDumpLazily(1));
-
-            if (childResult.isError()) {
-                LOGGER.trace("Child correlator '{}' finished with an error, exiting: {}",
-                        childConfiguration, childResult.getErrorMessage());
-                errorResult = childResult;
-                return;
-            }
 
             String childCorrelatorName = childConfiguration.getName();
             if (childCorrelatorName != null) {
                 evaluatedCorrelators.add(childCorrelatorName);
             }
 
-            CandidateOwnerMap<?> childCandidateOwnerMap =
+            CandidateOwnersMap childCandidateOwnersMap =
                     MiscUtil.requireNonNull(
-                            childResult.getCandidateOwnerMap(),
+                            childResult.getCandidateOwnersMap(),
                             () -> new IllegalStateException(
                                     String.format("No candidate owner map obtained from the child correlator: %s",
                                             childConfiguration.identify())));
@@ -185,9 +200,25 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                                 + "distribution into tiers and the ordering.", childConfiguration, parentsNotEvaluatedYet));
             }
 
-            for (CandidateOwner<?> candidateOwner : childCandidateOwnerMap.values()) {
-                LOGGER.trace("Considering candidate owner {}", candidateOwner);
+            double weight = childConfiguration.getWeight();
+            for (CandidateOwner candidateOwner : childCandidateOwnersMap.values()) {
                 String candidateOwnerOid = candidateOwner.getOid();
+
+                LOGGER.trace("Considering candidate owner {}", candidateOwner);
+
+                allCandidates.add(candidateOwner.getObject());
+
+                String externalId = candidateOwner.getExternalId();
+                if (externalId != null) {
+                    LOGGER.trace("Registering external ID: {}", externalId);
+                    String existing = externalIds.put(candidateOwnerOid, externalId);
+                    if (existing != null && !existing.equals(externalId)) {
+                        throw new UnsupportedOperationException(
+                                String.format(
+                                        "Multiple external IDs are not supported: %s for %s", existing, candidateOwner));
+                    }
+                }
+
                 if (childCorrelatorName != null) {
                     candidateOwnersMatchedBy.put(candidateOwnerOid, childCorrelatorName);
                 }
@@ -196,64 +227,25 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 if (!ignoredBecause.isEmpty()) {
                     LOGGER.trace("Ignoring this candidate because of {}", ignoredBecause);
                 } else {
-                    //noinspection unchecked
-                    Double currentWeight = candidateOwnerMap.add((CandidateOwner<F>) candidateOwner);
-                    LOGGER.trace("Added to the candidate owners map, current weight: {}", currentWeight);
+                    double currentConfidence = increaseConfidence(candidateOwner, weight);
+                    LOGGER.trace("Added to the candidate owners map, current confidence: {}", currentConfidence);
                 }
             }
         }
 
-        private @NotNull CorrelationResult determineOverallResult() {
+        private double increaseConfidence(CandidateOwner candidateOwner, double weight) {
+            return currentConfidences.compute(
+                    candidateOwner.getOid(),
+                    (oid, confidenceBefore) ->
+                            Math.min(
+                                    or0(confidenceBefore) + candidateOwner.getConfidence() * weight / scale,
+                                    1.0));
+        }
 
-            double ownerThreshold = correlatorContext.getConfiguration().getOwnerThreshold();
-            var owners =
-                    candidateOwnerMap.selectWithConfidenceAtLeast(
-                            ownerThreshold);
-            double candidateThreshold = correlatorContext.getConfiguration().getCandidateThreshold();
-            var eligibleCandidates =
-                    candidateOwnerMap.selectWithConfidenceAtLeast(
-                            candidateThreshold);
-
-            LOGGER.trace("Determining overall result with owner threshold of {}, candidate threshold of {}, "
-                            + "owners: {}, eligible candidates: {}, all candidates:\n{}",
-                    ownerThreshold, candidateThreshold, owners.size(), eligibleCandidates.size(),
-                    DebugUtil.toStringCollectionLazy(candidateOwnerMap.values(), 1));
-
-            ResourceObjectOwnerOptionsType optionsBean = new ResourceObjectOwnerOptionsType();
-            for (CandidateOwner<F> eligibleCandidate : eligibleCandidates) {
-                optionsBean.getOption().add(
-                        new ResourceObjectOwnerOptionType()
-                                .identifier(
-                                        OwnerOptionIdentifier.forExistingOwner(eligibleCandidate.getOid()).getStringValue())
-                                .candidateOwnerRef(
-                                        ObjectTypeUtil.createObjectRef(((CandidateOwner<?>) eligibleCandidate).getObject()))
-                                .confidence(
-                                        eligibleCandidate.getConfidence()));
-            }
-            if (owners.size() != 1) {
-                optionsBean.getOption().add(
-                        new ResourceObjectOwnerOptionType()
-                                .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
-            }
-
-            ObjectSet<ObjectType> allOwnerCandidates = new ObjectSet<>();
-            for (CandidateOwner<F> eligibleCandidate : eligibleCandidates) {
-                allOwnerCandidates.add(
-                        eligibleCandidate.getObject());
-            }
-
-            OwnersInfo ownersInfo = new OwnersInfo(
-                    CandidateOwnerMap.from(eligibleCandidates),
-                    optionsBean,
-                    allOwnerCandidates);
-
-            if (owners.size() == 1) {
-                return CorrelationResult.existingOwner(owners.iterator().next().getObject(), ownersInfo);
-            } else if (eligibleCandidates.isEmpty()) {
-                return CorrelationResult.noOwner();
-            } else {
-                return CorrelationResult.uncertain(ownersInfo);
-            }
+        public double getScale() {
+            CompositeCorrelatorScalingDefinitionType scaling = configurationBean.getScaling();
+            Double scale = scaling != null ? scaling.getScale() : null;
+            return Objects.requireNonNullElse(scale, DEFAULT_SCALE);
         }
     }
 }

@@ -82,15 +82,18 @@ public class CorrelationItemDefinitionUtil {
                         .append(configBean.getExtending())
                         .append("', ");
             }
-            if (configBean.getTier() != null) {
-                sb.append("tier ")
-                        .append(configBean.getTier())
-                        .append(", ");
-            }
-            if (configBean.getOrder() != null) {
-                sb.append("order ")
-                        .append(configBean.getOrder())
-                        .append(", ");
+            CorrelatorCompositionDefinitionType composition = getComposition(configBean);
+            if (composition != null) {
+                if (composition.getTier() != null) {
+                    sb.append("tier ")
+                            .append(composition.getTier())
+                            .append(", ");
+                }
+                if (composition.getOrder() != null) {
+                    sb.append("order ")
+                            .append(composition.getOrder())
+                            .append(", ");
+                }
             }
             if (Boolean.FALSE.equals(configBean.isEnabled())) {
                 sb.append("disabled, ");
@@ -98,7 +101,24 @@ public class CorrelationItemDefinitionUtil {
             sb.append("having ")
                     .append(configBean.asPrismContainerValue().size())
                     .append(" item(s)");
+            // TODO specific items, if the correlator is "items" one
             return sb.toString();
+        }
+    }
+
+    public static @Nullable CorrelatorCompositionDefinitionType getComposition(AbstractCorrelatorType bean) {
+        if (bean instanceof ItemsSubCorrelatorType) {
+            return ((ItemsSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof FilterSubCorrelatorType) {
+            return ((FilterSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof ExpressionSubCorrelatorType) {
+            return ((ExpressionSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof IdMatchSubCorrelatorType) {
+            return ((IdMatchSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof CompositeSubCorrelatorType) {
+            return ((CompositeSubCorrelatorType) bean).getComposition();
+        } else {
+            return null;
         }
     }
 }

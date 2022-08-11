@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,7 +56,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
     }
 
     @Override
-    protected boolean checkCandidateOwnerInternal(
+    protected double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -69,21 +70,21 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         @NotNull private final ShadowType resourceObject;
         @NotNull private final CorrelationContext correlationContext;
+        @NotNull private final Task task;
         @NotNull private final String contextDescription;
 
         Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
+            this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
         public CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-
             List<F> candidates = findCandidates(result);
-            return beans.builtInResultCreator.createCorrelationResult(
-                    candidates, correlatorContext, correlationContext.getTask(), result);
+            return createCorrelationResult(candidates, task, result);
         }
 
         private @NotNull List<F> findCandidates(OperationResult result)
@@ -100,7 +101,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return allCandidates;
         }
 
-        boolean checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
+        double checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
@@ -110,7 +111,11 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
                     candidateOwner, resourceObject, correlationItems.size(), contextDescription, matches);
 
-            return matches;
+            if (matches) {
+                return determineConfidence(candidateOwner, task, result);
+            } else {
+                return 0;
+            }
         }
 
         private @NotNull CorrelationItems createCorrelationItems() throws ConfigurationException {

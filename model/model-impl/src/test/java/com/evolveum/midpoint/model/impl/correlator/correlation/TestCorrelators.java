@@ -51,8 +51,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Isolated testing of individual correlators.
  *
- * The tests are based on "accounts file" with source data plus expected correlation results.
- * See the description in the file itself.
+ * The tests are based on "accounts file" with source data plus expected correlation results. The requirements are:
+ *
+ * . The `uid` has to be a pure integer. The accounts are processed in the order of their `uid`.
+ * . The `expCandidates` column describes the expected candidates as returned from the correlator.
+ * . The `expResult` column describes the result from the correlation service:
+ * .. `_none` means that no matching
+ * .. `_uncertain` means that the correlator couldn't decide
+ * .. a name is a name of a specific user
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -236,13 +242,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             throws CommonException {
         ResourceType resource = RESOURCE_DUMMY_CORRELATION.getResource().asObjectable();
 
-        SynchronizationPolicy synchronizationPolicy =
-                Objects.requireNonNull(
-                        SynchronizationPolicyFactory.forKindAndIntent(
-                                ShadowKindType.ACCOUNT,
-                                SchemaConstants.INTENT_DEFAULT,
-                                resource),
-                        "no synchronization policy");
+        SynchronizationPolicy synchronizationPolicy = getSynchronizationPolicy();
 
         UserType preFocus =
                 correlationService.computePreFocus(
@@ -262,47 +262,56 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 systemConfiguration, task);
     }
 
+    private @NotNull SynchronizationPolicy getSynchronizationPolicy() throws SchemaException, ConfigurationException {
+        return Objects.requireNonNull(
+                SynchronizationPolicyFactory.forKindAndIntent(
+                        ShadowKindType.ACCOUNT,
+                        SchemaConstants.INTENT_DEFAULT,
+                        RESOURCE_DUMMY_CORRELATION.getResource().asObjectable()),
+                "no synchronization policy");
+    }
+
     private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationTestingAccount account)
-            throws CommonException {
-
+            CorrelationResult correlationResult, CorrelationTestingAccount account) {
         displayDumpable("Correlation result", correlationResult);
+        assertCandidateOwnersMap(
+                account.getCandidateOwners(false),
+                correlationResult.getCandidateOwnersMap());
+    }
 
-        assertThat(correlationResult.getSituation())
+    private void assertCompleteCorrelationResult(
+            CompleteCorrelationResult completeResult, CorrelationTestingAccount account) {
+
+        displayDumpable("Correlation result", completeResult);
+
+        assertThat(completeResult.getSituation())
                 .as("correlation result status")
                 .isEqualTo(account.getExpectedCorrelationSituation());
 
-        if (correlationResult.getSituation() == CorrelationSituationType.EXISTING_OWNER) {
-            ObjectType realOwner = correlationResult.getOwner();
+        if (completeResult.getSituation() == CorrelationSituationType.EXISTING_OWNER) {
+            ObjectType realOwner = completeResult.getOwner();
             assertThat(realOwner).as("correlated owner").isNotNull();
             String expectedOwnerName = account.getExpectedOwnerName();
             assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
         }
 
-        Set<CandidateOwner> expectedOwnerOptions = account.getCandidateOwners();
-        if (expectedOwnerOptions != null) {
-            Set<CandidateOwner> realOwnerOptions = getRealOwnerOptions(correlationResult);
-            assertThat(realOwnerOptions)
-                    .as("owner options")
-                    .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
-        }
+        assertCandidateOwnersMap(
+                account.getCandidateOwners(true),
+                completeResult.getCandidateOwnersMap());
     }
 
-    private @NotNull Set<CandidateOwner> getRealOwnerOptions(CorrelationResult correlationResult)
-            throws SchemaException, ObjectNotFoundException {
-        ResourceObjectOwnerOptionsType options = correlationResult.getOwnerOptions();
-        if (options == null) {
-            return Set.of();
-        }
-        Set<CandidateOwner> candidateOwnerSet = new HashSet<>();
-        for (ResourceObjectOwnerOptionType option : options.getOption()) {
-            ObjectReferenceType ownerRef = option.getCandidateOwnerRef();
-            if (ownerRef != null) {
-                candidateOwnerSet.add(
-                        new CandidateOwner(
-                                getUserFromRepo(ownerRef.getOid()).getName().getOrig(),
-                                option.getConfidence()));
-            }
+    private void assertCandidateOwnersMap(Set<TestCandidateOwner> expectedOwnerOptions, CandidateOwnersMap completeResult) {
+        Set<TestCandidateOwner> realOwnerOptions = getRealOwnerOptions(completeResult);
+        assertThat(realOwnerOptions)
+                .as("owner options")
+                .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
+    }
+
+    private @NotNull Set<TestCandidateOwner> getRealOwnerOptions(@NotNull CandidateOwnersMap candidateOwnersMap) {
+        Set<TestCandidateOwner> candidateOwnerSet = new HashSet<>();
+        for (CandidateOwner candidateOwner : candidateOwnersMap.values()) {
+            candidateOwnerSet.add(
+                    TestCandidateOwner.of(candidateOwner));
         }
         return candidateOwnerSet;
     }
@@ -363,13 +372,23 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             String prefix = "correlating account #" + account.getNumber() + ": ";
 
             given(prefix + "correlation context is created");
-            CorrelationContext context = createCorrelationContext(account, correlator, task, result);
+            CorrelationContext correlationContext = createCorrelationContext(account, correlator, task, result);
 
-            when(prefix + "correlation is done");
-            CorrelationResult correlationResult = correlator.instance.correlate(context, result);
+            when(prefix + "correlation is done (using a correlator)");
+            CorrelationResult correlationResult = correlator.instance.correlate(correlationContext, result);
 
             then(prefix + "correlation result is OK");
             assertCorrelationResult(correlationResult, account);
+
+            when(prefix + "correlation is done (using CorrelationService)");
+            CompleteCorrelationResult completeCorrelationResult =
+                    correlationService.correlate(
+                            correlator.correlatorContext,
+                            correlationContext,
+                            result);
+
+            then(prefix + "correlation result is OK");
+            assertCompleteCorrelationResult(completeCorrelationResult, account);
         }
     }
 
@@ -387,22 +406,23 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             throws CommonException, IOException {
         AbstractCorrelatorType configBean = prismContext.parserFor(correlator.file)
                 .parseRealValue(AbstractCorrelatorType.class);
-        CorrelatorContext<?> correlatorContext =
+        correlator.correlatorContext =
                 new CorrelatorContext<>(
                         CorrelatorConfiguration.typed(configBean),
                         configBean,
-                        null,
+                        getSynchronizationPolicy().getCorrelationDefinition(), // it is OK that there's no correlator info here
                         IdentitiesManager.createIdentityConfiguration(correlator.getUserTemplate()),
                         IndexingConfigurationImpl.of(correlator.getUserTemplate(), modelBeans),
                         systemConfiguration);
         correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
-                correlatorContext, task, result);
+                correlator.correlatorContext, task, result);
     }
 
     /** Definition of the correlator and its instance. */
     static class TestCorrelator {
         @NotNull private final File file;
         @Nullable private final TestResource<ObjectTemplateType> userTemplateResource; // loaded on startup
+        private CorrelatorContext<?> correlatorContext;
         private Correlator instance; // set on initialization
 
         TestCorrelator(@NotNull File file) {

@@ -93,6 +93,12 @@
                     </defaultEvaluationPhases>
                 </inbound>
             </mappingsEvaluation>
+            <correlation>
+                <!-- correlators are taken from the test files (correlator-xxx.xml) -->
+                <thresholds>
+                    <candidate>0.25</candidate> <!-- required by correlator-complex.xml -->
+                </thresholds>
+            </correlation>
         </objectType>
     </schemaHandling>
 </resource>

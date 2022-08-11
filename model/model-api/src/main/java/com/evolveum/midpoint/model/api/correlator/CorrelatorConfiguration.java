@@ -14,16 +14,12 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationConfidenceThresholdsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NoOpCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -31,15 +27,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.getComposition;
+
 /**
  * Wrapper for both typed (bean-only) and untyped (bean + item name) correlator configuration.
  */
 public abstract class CorrelatorConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelatorConfiguration.class);
+    private static final Double DEFAULT_WEIGHT = 1.0;
 
-    private static final double DEFAULT_TOP = 1.0; // TODO inherit this from outer to inner correlators
-    private static final double DEFAULT_CANDIDATE = 0.0; // TODO inherit this from outer to inner correlators
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelatorConfiguration.class);
 
     @NotNull final AbstractCorrelatorType configurationBean;
 
@@ -55,7 +52,12 @@ public abstract class CorrelatorConfiguration {
 
     CorrelatorConfiguration(@NotNull AbstractCorrelatorType configurationBean) {
         this.configurationBean = configurationBean;
-        this.ignoreIfMatchedBy = Set.copyOf(configurationBean.getIgnoreIfMatchedBy());
+        CorrelatorCompositionDefinitionType composition = getComposition(configurationBean);
+        if (composition != null) {
+            this.ignoreIfMatchedBy = Set.copyOf(composition.getIgnoreIfMatchedBy());
+        } else {
+            this.ignoreIfMatchedBy = Set.of();
+        }
     }
 
     /** Returns empty correlator configuration - one that matches no owner. */
@@ -65,7 +67,8 @@ public abstract class CorrelatorConfiguration {
     }
 
     public @Nullable Integer getOrder() {
-        return configurationBean.getOrder();
+        CorrelatorCompositionDefinitionType composition = getComposition(configurationBean);
+        return composition != null ? composition.getOrder() : null;
     }
 
     public boolean isEnabled() {
@@ -81,8 +84,8 @@ public abstract class CorrelatorConfiguration {
 
     @Override
     public String toString() {
-        return String.format("%s (tier %d, order %d, layer %d%s%s)",
-                getDebugName(), getTier(), getOrder(), getDependencyLayer(), getParentsInfo(), getDisabledFlag());
+        return String.format("%s (tier %d, order %d, layer %d, weight %.1f%s%s)",
+                getDebugName(), getTier(), getOrder(), getDependencyLayer(), getWeight(), getParentsInfo(), getDisabledFlag());
     }
 
     private String getParentsInfo() {
@@ -177,7 +180,14 @@ public abstract class CorrelatorConfiguration {
     }
 
     public Integer getTier() {
-        return configurationBean.getTier();
+        CorrelatorCompositionDefinitionType composition = getComposition(configurationBean);
+        return composition != null ? composition.getTier() : null;
+    }
+
+    public double getWeight() {
+        CorrelatorCompositionDefinitionType composition = getComposition(configurationBean);
+        Double weight = composition != null ? composition.getWeight() : null;
+        return Objects.requireNonNullElse(weight, DEFAULT_WEIGHT);
     }
 
     public int getDependencyLayer() {
@@ -255,24 +265,6 @@ public abstract class CorrelatorConfiguration {
 
     public @Nullable String getName() {
         return getConfigurationBean().getName();
-    }
-
-    public double getTopThreshold() {
-        CorrelationConfidenceThresholdsDefinitionType thresholds = configurationBean.getThresholds();
-        Double top = thresholds != null ? thresholds.getTop() : null;
-        return Objects.requireNonNullElse(top, DEFAULT_TOP);
-    }
-
-    public double getOwnerThreshold() {
-        CorrelationConfidenceThresholdsDefinitionType thresholds = configurationBean.getThresholds();
-        Double owner = thresholds != null ? thresholds.getOwner() : null;
-        return Objects.requireNonNullElseGet(owner, this::getTopThreshold);
-    }
-
-    public double getCandidateThreshold() {
-        CorrelationConfidenceThresholdsDefinitionType thresholds = configurationBean.getThresholds();
-        Double candidate = thresholds != null ? thresholds.getCandidate() : null;
-        return Objects.requireNonNullElse(candidate, DEFAULT_CANDIDATE);
     }
 
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {

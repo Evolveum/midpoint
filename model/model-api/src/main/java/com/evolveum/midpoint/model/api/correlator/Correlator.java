@@ -29,7 +29,7 @@ public interface Correlator {
      *
      * We assume that the correlator is already configured. See {@link CorrelatorFactory}.
      *
-     * @param correlationContext Additional information about the overall context for correlation (e.g. type of focal objects)
+     * @param correlationContext Additional information about the overall context for correlation (e.g. type of focal object`s)
      * @param result Operation result where the method should record its operation
      */
     @NotNull CorrelationResult correlate(
@@ -45,8 +45,10 @@ public interface Correlator {
      *
      * @param correlationContext Additional information about the overall context for correlation.
      * @param result Operation result where the method should record its operation
+     *
+     * @return The confidence value of the match.
      */
-    boolean checkCandidateOwner(
+    double checkCandidateOwner(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
