@@ -1802,7 +1802,14 @@
             <xsd:element name="threshold" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Upper limit on the edit distance to be matched. (Inclusive.)
+                        Upper limit on the edit distance to be matched.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inclusive" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the value of "threshold" meant to be inclusive?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

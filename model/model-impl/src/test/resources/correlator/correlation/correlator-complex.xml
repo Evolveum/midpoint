@@ -12,7 +12,7 @@
         <scale>1.0</scale>
     </scaling>
     <items>
-        <name>all</name>
+        <name>full</name>
         <item>
             <path>givenName</path>
         </item>
@@ -30,7 +30,7 @@
         </composition>
     </items>
     <items>
-        <name>fullName</name>
+        <name>both-names</name>
         <item>
             <path>givenName</path>
         </item>
@@ -39,7 +39,7 @@
         </item>
         <composition>
             <weight>0.5</weight>
-            <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+            <ignoreIfMatchedBy>full</ignoreIfMatchedBy>
         </composition>
     </items>
     <items>
@@ -49,17 +49,7 @@
         </item>
         <composition>
             <weight>0.25</weight>
-            <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
-        </composition>
-    </items>
-    <items>
-        <name>nationalId</name>
-        <item>
-            <path>extension/nationalId</path>
-        </item>
-        <composition>
-            <weight>0.75</weight>
-            <ignoreIfMatchedBy>all</ignoreIfMatchedBy>
+            <ignoreIfMatchedBy>both-names</ignoreIfMatchedBy>
         </composition>
     </items>
     <items>
@@ -70,7 +60,17 @@
         </item>
         <composition>
             <weight>0.1</weight>
-            <ignoreIfMatchedBy>fullName</ignoreIfMatchedBy>
+            <ignoreIfMatchedBy>both-names</ignoreIfMatchedBy>
+        </composition>
+    </items>
+    <items>
+        <name>nationalId</name>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+        <composition>
+            <weight>0.75</weight>
+            <ignoreIfMatchedBy>full</ignoreIfMatchedBy>
         </composition>
     </items>
 </compositeCorrelator>

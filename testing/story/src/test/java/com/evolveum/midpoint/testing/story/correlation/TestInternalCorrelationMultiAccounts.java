@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -175,7 +177,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
      * and the third one should be correlated to existing owner.
      */
     @Test
-    public void test110ImportJohnSlightlyModified() throws CommonException, IOException {
+    public void test110ImportJohnSlightlyModified() throws CommonException, IOException, PreconditionViolationException {
         given();
         OperationResult result = getTestOperationResult();
 
@@ -184,24 +186,26 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         RESOURCE_SIS.appendLine("3,Ian,Smith,2004-02-06,040206-1328,math");
 
         when();
-        TASK_IMPORT_SIS.rerun(result);
+        var taskOid = importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("3")
+                .execute(result);
 
         then();
         // @formatter:off
-        TASK_IMPORT_SIS.assertAfter()
+        assertTask(taskOid, "after")
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
                     .progress()
-                        .assertCommitted(3, 0, 0)
+                        .assertCommitted(1, 0, 0)
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        // two existing accounts (Ian, Mary)
-                        .assertTransition(LINKED, LINKED, LINKED, null, 2, 0, 0)
                         // account #3 - it is unlinked because the owner exists (but account is not linked yet)
                         .assertTransition(null, UNLINKED, LINKED, null, 1, 0, 0)
-                        .assertTransitions(2)
+                        .assertTransitions(1)
                     .end();
 
         assertUser(findUserByUsernameFullRequired("smith1"), "Mary after")
@@ -232,7 +236,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
      * A case should be created.
      */
     @Test
-    public void test120ImportJohnSingleAmbiguity() throws CommonException, IOException {
+    public void test120ImportJohnSingleAmbiguity() throws CommonException, IOException, PreconditionViolationException {
         given();
         OperationResult result = getTestOperationResult();
 
@@ -245,25 +249,27 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         dummyTransport.clearMessages();
 
         when("import is run");
-        TASK_IMPORT_SIS.rerun(result);
+        var taskOid = importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("4")
+                .execute(result);
 
         then("task should complete successfully, with 1 transition to disputed");
         // @formatter:off
-        TASK_IMPORT_SIS.assertAfter()
+        assertTask(taskOid, "after")
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
                     .display()
                     .progress()
-                        .assertCommitted(4, 0, 0)
+                        .assertCommitted(1, 0, 0)
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        // three existing accounts (Ian, Mary, Jan)
-                        .assertTransition(LINKED, LINKED, LINKED, null, 3, 0, 0)
                         // newly added account
                         .assertTransition(null, DISPUTED, DISPUTED, null, 1, 0, 0)
-                        .assertTransitions(2)
+                        .assertTransitions(1)
                     .end();
 
         and("Mary should be unchanged");
@@ -381,7 +387,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
     }
 
     /**
-     * Reimport manually resolved ambiguity introduced in previous tests.
+     * Reimport manually resolved ambiguity introduced in previous tests. (By running the whole import task.)
      * It should be no-op, because the account was already imported.
      */
     @Test
@@ -417,32 +423,34 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
      * A new (different) case should be created.
      */
     @Test
-    public void test150ImportJohnTwoOptions() throws CommonException, IOException {
+    public void test150ImportJohnTwoOptions() throws CommonException, IOException, PreconditionViolationException {
         OperationResult result = getTestOperationResult();
 
         given("different national ID, same name and date of birth. (To be consulted with operator.)");
         RESOURCE_SIS.appendLine("6,John,Smith,2004-02-06,040206/8824,sw-eng-doctoral");
 
         when("the task is executed");
-        TASK_IMPORT_SIS.rerun(result);
+        var taskOid = importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("6")
+                .execute(result);
 
         then("a case should be created");
         // @formatter:off
-        TASK_IMPORT_SIS.assertAfter()
+        assertTask(taskOid, "after")
                 .assertClosed()
                 .assertSuccess()
                 .rootActivityState()
                     .display()
                     .progress()
-                        .assertCommitted(5, 0, 0)
+                        .assertCommitted(1, 0, 0)
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        // four existing accounts (1-4)
-                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0)
                         // newly added account
                         .assertTransition(null, DISPUTED, DISPUTED, null, 1, 0, 0)
-                        .assertTransitions(2)
+                        .assertTransitions(1)
                     .end();
         // @formatter:on
 
@@ -526,7 +534,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
      * Here we import an account that matches only the national ID. We resolve it on the spot.
      */
     @Test
-    public void test170ImportMatchingNationalIdOnly() throws CommonException, IOException {
+    public void test170ImportMatchingNationalIdOnly() throws CommonException, IOException, PreconditionViolationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -534,12 +542,11 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         RESOURCE_SIS.appendLine("7,Jim,Sanchez,2004-02-06,040206/8824,math");
 
         when("the task is executed");
-        TASK_IMPORT_SIS.rerun(result);
-
-        then("task is OK");
-        TASK_IMPORT_SIS.assertAfter()
-                .assertClosed()
-                .assertSuccess();
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("7")
+                .execute(result);
 
         and("shadow is disputed with 2 options");
         PrismObject<ShadowType> newShadow = getShadow("7", result);

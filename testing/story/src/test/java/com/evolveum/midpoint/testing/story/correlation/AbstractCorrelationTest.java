@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -56,6 +58,8 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
 
     static final ItemPath PATH_DATE_OF_BIRTH = ItemPath.create(UserType.F_EXTENSION, EXT_DATE_OF_BIRTH);
     static final ItemPath PATH_NATIONAL_ID = ItemPath.create(UserType.F_EXTENSION, EXT_NATIONAL_ID);
+
+    static final ItemName SIS_ID_NAME = new ItemName(NS_RI, "sisId");
 
     @Autowired CorrelationService correlationService;
     @Autowired CorrelationCaseManager correlationCaseManager;

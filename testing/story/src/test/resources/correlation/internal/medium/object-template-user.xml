@@ -93,7 +93,7 @@
                         } else if (external != null) {
                             external.clone()
                         } else {
-                            null // takes all values (should be "none"
+                            null // takes all values (should be "none")
                         }
                     </code>
                 </script>
