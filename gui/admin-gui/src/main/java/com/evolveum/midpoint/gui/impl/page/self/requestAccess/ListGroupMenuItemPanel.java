@@ -9,15 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -33,10 +28,6 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
     private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "link";
-    private static final String ID_ICON = "icon";
-    private static final String ID_LABEL = "label";
-    private static final String ID_BADGE = "badge";
-    private static final String ID_CHEVRON = "chevron";
     private static final String ID_ITEMS_CONTAINER = "itemsContainer";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
@@ -56,39 +47,15 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
 
     private void initLayout() {
         add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
-        AjaxLink link = new AjaxLink<>(ID_LINK) {
+
+        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel()) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                onClickPerformed(target, ListGroupMenuItemPanel.this.getModelObject());
+            protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
+                ListGroupMenuItemPanel.this.onClickPerformed(target, item);
             }
         };
-        link.add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
-        link.add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
-        link.setOutputMarkupId(true);
         add(link);
-
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class",
-                () -> StringUtils.isNotEmpty(getModelObject().getIconCss()) ? getModelObject().getIconCss() : "far fa-fw fa-circle"));
-        link.add(icon);
-
-        Label label = new Label(ID_LABEL, () -> getModelObject().getLabel());
-        link.add(label);
-
-        Label badge = new Label(ID_BADGE, () -> getModelObject().getBadge());
-        badge.add(AttributeAppender.replace("class", () -> getModelObject().getBadgeCss()));
-        badge.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getBadge())));
-        link.add(badge);
-
-        WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
-        chevron.add(AttributeAppender.append("class",
-                () -> getModelObject().isActive() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
-        chevron.add(new VisibleBehaviour(() -> {
-            ListGroupMenuItem item = getModelObject();
-            return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
-        }));
-        link.add(chevron);
 
         WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS_CONTAINER);
         itemsContainer.add(AttributeAppender.append("style", () -> !getModelObject().isOpen() ? "display: none;" : null));
@@ -99,6 +66,15 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
 
             @Override
             protected void populateItem(ListItem<ListGroupMenuItem<T>> item) {
+                ListGroupMenuItem dto = item.getModelObject();
+
+                if (dto instanceof CustomListGroupMenuItem) {
+                    CustomListGroupMenuItem<T> custom = (CustomListGroupMenuItem) dto;
+                    item.add(custom.createMenuItemPanel(
+                            ID_ITEM, item.getModel(), (target, i) -> ListGroupMenuItemPanel.this.onClickPerformed(target, i)));
+                    return;
+                }
+
                 item.add(new ListGroupMenuItemPanel(ID_ITEM, item.getModel()) {
 
                     @Override

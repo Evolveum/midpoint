@@ -53,6 +53,15 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
 
             @Override
             protected void populateItem(ListItem<ListGroupMenuItem<T>> item) {
+                ListGroupMenuItem dto = item.getModelObject();
+
+                if (dto instanceof CustomListGroupMenuItem) {
+                    CustomListGroupMenuItem<T> custom = (CustomListGroupMenuItem) dto;
+                    item.add(custom.createMenuItemPanel(
+                            ID_ITEM, item.getModel(), (target, i) -> ListGroupMenuPanel.this.onMenuClickPerformed(target, i)));
+                    return;
+                }
+
                 ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel()) {
 
                     @Override
