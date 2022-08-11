@@ -24,7 +24,7 @@ public enum StaticObjectCollection {
 
     ALL_ORGS(SchemaConstants.OBJECT_COLLECTION_ALL_ORGS_QNAME, OrgType.class),
 
-    ALL_USERS(SchemaConstants.OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME, AbstractRoleType.class),
+    USER_ASSIGNMENTS(SchemaConstants.OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME, AbstractRoleType.class),
 
     ROLE_CATALOG_VIEW(SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_QNAME, AbstractRoleType.class);
 
