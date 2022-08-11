@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -97,6 +99,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
+    private IModel<ObjectReferenceType> teammateModel;
+
+    private IModel<RoleCatalogQuery> queryModel;
+
     public RoleCatalogPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
 
@@ -148,40 +154,58 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return () -> getString("RoleCatalogPanel.title");
     }
 
-    private ObjectQuery createFalseQuery() {
-        return getPrismContext()
+    private void updateFalseQuery(RoleCatalogQuery query) {
+        ObjectQuery oq = getPrismContext()
                 .queryFor(RoleType.class)
                 .none()
                 .build();
+
+        query.setQuery(oq);
+        query.setType(RoleType.class);
     }
 
-    private ObjectQuery createQueryForRequestableRoles() {
-        return getPrismContext()
+    private void updateQueryForRequestableRoles(RoleCatalogQuery query) {
+        ObjectQuery oq = getPrismContext()
                 .queryFor(AbstractRoleType.class)
                 .item(RoleType.F_REQUESTABLE)
                 .eq(true)
                 .asc(ObjectType.F_NAME)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(AbstractRoleType.class);
     }
 
-    private ObjectQuery createQueryFromOrgRef(ObjectReferenceType ref, boolean scopeOne) {
-        return getPrismContext()
+    private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref, boolean scopeOne) {
+        ObjectQuery oq = getPrismContext()
                 .queryFor(RoleType.class)
                 .isInScopeOf(ref.getOid(), scopeOne ? OrgFilter.Scope.ONE_LEVEL : OrgFilter.Scope.SUBTREE)
                 .asc(ObjectType.F_NAME)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(AbstractRoleType.class);
     }
 
-    private ObjectQuery createQueryForRolesOfTeammate() {
-        return getPrismContext().queryFor(RoleType.class)
+    private void updateQueryForRolesOfTeammate(RoleCatalogQuery query, String userOid) {
+        if (userOid == null) {
+            updateFalseQuery(query);
+            return;
+        }
+
+        ObjectQuery oq = getPrismContext().queryFor(RoleType.class)
                 .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                .id(SystemObjectsType.USER_ADMINISTRATOR.value())
+                .id(userOid)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(AbstractRoleType.class);
     }
 
-    private ObjectQuery createQueryFromCollectionRef(ObjectReferenceType collectionRef) {
+    private void updateQueryFromCollectionRef(RoleCatalogQuery query, ObjectReferenceType collectionRef) {
         if (collectionRef == null) {
-            return createFalseQuery();
+            updateFalseQuery(query);
+            return;
         }
 
         PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(collectionRef, page);
@@ -195,32 +219,43 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
             ObjectFilter filter = page.getQueryConverter().createObjectFilter(ot.getClassDefinition(), objectCollection.getFilter());
-            return getPrismContext()
+            ObjectQuery oq = getPrismContext()
                     .queryFor(ot.getClassDefinition())
                     .filter(filter)
                     .asc(ObjectType.F_NAME)
                     .build();
+
+            query.setQuery(oq);
+            query.setType(ot.getClassDefinition());
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
             page.error("Couldn't create search filter, reason: " + ex.getMessage());
         }
 
-        return createFalseQuery();
+        updateFalseQuery(query);
     }
 
-    private ObjectQuery createQueryFromCollectionIdentifier(String collectionIdentifier) {
+    private void updateQueryFromCollectionIdentifier(RoleCatalogQuery query, String collectionIdentifier) {
         StaticObjectCollection collection = StaticObjectCollection.findCollection(collectionIdentifier);
         if (collection == null) {
-            return createFalseQuery();
+            updateFalseQuery(query);
+            return;
         }
 
-        return getPrismContext()
+        ObjectQuery oq = getPrismContext()
                 .queryFor(collection.getType())
                 .asc(ObjectType.F_NAME)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(collection.getType());
     }
 
     private void initModels() {
+        teammateModel = Model.of((ObjectReferenceType) null);
+
+        queryModel = Model.of(new RoleCatalogQuery(RoleType.class));
+
         searchModel = new LoadableModel<>(false) {
 
             @Override
@@ -248,38 +283,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                ListGroupMenu menu = menuModel.getObject();
-                ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
-                RoleCatalogQueryItem item = active != null ? active.getValue() : null;
-
-                if (item == null) {
-                    if (menu.isEmpty()) {
-                        return createQueryForRequestableRoles();
-                    }
-
-                    return createFalseQuery();
-                }
-
-                if (item.rolesOfTeammate()) {
-                    return createQueryForRolesOfTeammate();
-                }
-
-                if (item.orgRef() != null) {
-                    return createQueryFromOrgRef(item.orgRef(), item.scopeOne());
-                }
-
-                RoleCollectionViewType collection = item.collection();
-                if (collection == null) {
-                    return createFalseQuery();
-                }
-
-                if (collection.getCollectionRef() != null) {
-                    return createQueryFromCollectionRef(collection.getCollectionRef());
-                } else if (collection.getCollectionIdentifier() != null) {
-                    return createQueryFromCollectionIdentifier(collection.getCollectionIdentifier());
-                }
-
-                return createFalseQuery();
+                return queryModel.getObject().getQuery();
             }
         };
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
@@ -316,7 +320,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
-                        CatalogTile t = new CatalogTile(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, WebComponentUtil.getName(object.getValue()));
+                        ObjectType obj = object.getValue();
+                        String icon = WebComponentUtil.createDefaultColoredIcon(obj.asPrismContainerValue().getTypeName());
+
+                        CatalogTile t = new CatalogTile(icon, WebComponentUtil.getName(object.getValue()));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -369,9 +376,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                             @Override
                             protected DisplayType createDisplayType(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                ObjectType obj = model.getObject().getValue().getValue();
+                                String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+
                                 return new DisplayType()
                                         .icon(new IconType()
-                                                .cssClass(StringUtils.joinWith(" ", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "fa-2x")));
+                                                .cssClass(StringUtils.joinWith(" ", icon, "fa-2x")));
                             }
                         };
                     }
@@ -432,10 +442,67 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     return;
                 }
 
-                target.add(tilesTable);
+                RoleCatalogPanel.this.onMenuClickPerformed(target, item);
             }
         };
         add(menu);
+    }
+
+    private void updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        RoleCatalogQuery query = queryModel.getObject();
+
+        RoleCatalogQueryItem rcq = item != null ? item.getValue() : null;
+
+        if (rcq == null) {
+            if (menuModel.getObject().isEmpty()) {
+                updateQueryForRequestableRoles(query);
+                return;
+            }
+
+            updateFalseQuery(query);
+            return;
+        }
+
+        if (rcq.rolesOfTeammate()) {
+            ObjectReferenceType userRef = teammateModel.getObject();
+            String userOid = userRef != null ? userRef.getOid() : null;
+            updateQueryForRolesOfTeammate(query, userOid);
+            return;
+        }
+
+        if (rcq.orgRef() != null) {
+            updateQueryFromOrgRef(query, rcq.orgRef(), rcq.scopeOne());
+            return;
+        }
+
+        RoleCollectionViewType collection = rcq.collection();
+        if (collection == null) {
+            updateFalseQuery(query);
+            return;
+        }
+
+        if (collection.getCollectionRef() != null) {
+            updateQueryFromCollectionRef(query, collection.getCollectionRef());
+            return;
+        } else if (collection.getCollectionIdentifier() != null) {
+            updateQueryFromCollectionIdentifier(query, collection.getCollectionIdentifier());
+            return;
+        }
+
+        updateFalseQuery(query);
+    }
+
+    private void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        updateQueryModel(item);
+
+        RoleCatalogQuery query = queryModel.getObject();
+
+        Search search = searchModel.getObject();
+        if (!Objects.equals(search.getTypeClass(), query.getType())) {
+            searchModel.setObject(SearchFactory.createSearch(query.getType(), page));
+        }
+
+        target.add(get(ID_TILES));
     }
 
     // todo use configuration getAllowedViews from RoleCatalogType
@@ -500,7 +567,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 Component createMenuItemPanel(String id, IModel<ListGroupMenuItem<RoleCatalogQueryItem>> model,
                         SerializableBiConsumer<AjaxRequestTarget, ListGroupMenuItem<RoleCatalogQueryItem>> onClickHandler) {
 
-                    return new RoleOfTeammateMenuPanel<>(id, model) {
+                    return new RoleOfTeammateMenuPanel<>(id, model, teammateModel) {
 
                         @Override
                         protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
@@ -509,12 +576,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                         @Override
                         protected void onManualSelectionPerformed(AjaxRequestTarget target) {
-                            // todo implement
+                            RoleCatalogPanel.this.onManualSelectionPerformed(target, getModelObject());
                         }
 
                         @Override
                         protected void onSelectionUpdate(AjaxRequestTarget target, ObjectReferenceType newSelection) {
-                            // todo implement
+                            onMenuClickPerformed(target, getModelObject());
                         }
                     };
                 }
@@ -528,6 +595,34 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         }
 
         return menu;
+    }
+
+    private void onManualSelectionPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
+                List.of(UserType.COMPLEX_TYPE), false, page) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
+                ObjectReferenceType ref = null;
+                if (user != null) {
+                    ref = new ObjectReferenceType()
+                            .oid(user.getOid())
+                            .type(UserType.COMPLEX_TYPE)
+                            .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
+                }
+
+                teammateModel.setObject(ref);
+
+                onMenuClickPerformed(target, item);
+
+                target.add(RoleCatalogPanel.this.get(ID_MENU));
+
+                page.hideMainPopup(target);
+            }
+        };
+        page.showMainPopup(panel, target);
     }
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> createMenuFromRoleCollections(List<RoleCollectionViewType> collections) {
@@ -558,6 +653,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 }
 
                 ListGroupMenuItem<RoleCatalogQueryItem> item = new ListGroupMenuItem<>(name);
+                item.setIconCss(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
                 item.setValue(rcq);
 
                 items.add(item);
