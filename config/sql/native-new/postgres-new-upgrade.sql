@@ -153,6 +153,11 @@ CREATE INDEX m_focus_identity_itemsOriginal_idx ON m_focus_identity USING gin(it
 CREATE INDEX m_focus_identity_itemsNormalized_idx ON m_focus_identity USING gin(itemsNormalized);
 $aa$);
 
+-- resource templates
+call apply_change(10, $aa$
+ALTER TABLE m_resource ADD template BOOLEAN;
+$aa$);
+
 -- SCHEMA-COMMIT 4.6: commit TODO
 
 -- WRITE CHANGES ABOVE ^^
