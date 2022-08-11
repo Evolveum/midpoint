@@ -73,7 +73,10 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
                 () -> StringUtils.isNotEmpty(getModelObject().getIconCss()) ? getModelObject().getIconCss() : "far fa-fw fa-circle"));
         link.add(icon);
 
-        Label label = new Label(ID_LABEL, () -> getModelObject().getLabel());
+        Label label = new Label(ID_LABEL, () -> {
+            String key = getModelObject().getLabel();
+            return getString(key, null, key);
+        });
         link.add(label);
 
         Label badge = new Label(ID_BADGE, () -> getModelObject().getBadge());
