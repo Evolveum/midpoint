@@ -274,8 +274,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                 if (collection.getCollectionRef() != null) {
                     return createQueryFromCollectionRef(collection.getCollectionRef());
-                } else if (collection.getCollectionUri() != null) {
-                    return createQueryFromCollectionUri(collection.getCollectionUri());
+                } else if (collection.getCollectionIdentifier() != null) {
+                    return createQueryFromCollectionUri(collection.getCollectionIdentifier());
                 }
 
                 return createFalseQuery();
@@ -544,7 +544,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     name = WebComponentUtil.getDisplayNameOrName(objectCollection, true);
                 }
 
-                String collectionUri = collection.getCollectionUri();
+                String collectionUri = collection.getCollectionIdentifier();
                 if (StringUtils.isNotEmpty(collectionUri)) {
                     AssignmentViewType view = AssignmentViewType.getViewByUri(collectionUri);
                     if (view != null) {

@@ -24,8 +24,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -165,17 +167,31 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         listContainer.add(list);
     }
 
-    private Tile<QName> createTileForRelation(QName name) {
-        RelationSelectionType config = getRelationConfiguration();
+    private String getDefaultRelationIcon(QName name) {
+        if (SchemaConstants.ORG_DEFAULT.equals(name)) {
+            return "fa-solid fa-user";
+        } else if (SchemaConstants.ORG_MANAGER.equals(name)) {
+            return "fa-solid fa-user-tie";
+        } else if (SchemaConstants.ORG_APPROVER.equals(name)) {
+            return "fa-solid fa-clipboard-check";
+        } else if (SchemaConstants.ORG_OWNER.equals(name)) {
+            return "fa-solid fa-crown";
+        }
 
-        String icon = DEFAULT_RELATION_ICON;
+        return DEFAULT_RELATION_ICON;
+    }
+
+    private Tile<QName> createTileForRelation(QName name) {
+        List<RelationDefinitionType> relations = getRelationConfiguration();
+
+        String icon = getDefaultRelationIcon(name);
         String label = name.getLocalPart();
 
-        if (config == null) {
+        if (relations == null) {
             return createTile(icon, label, name);
         }
 
-        for (RelationDefinitionType rel : config.getRelation()) {
+        for (RelationDefinitionType rel : relations) {
             if (!name.equals(rel.getRef())) {
                 continue;
             }
@@ -226,8 +242,18 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         getModelObject().setRelation(selected.getValue());
     }
 
-    private RelationSelectionType getRelationConfiguration() {
-        AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getRelationSelection() : null;
+    private List<RelationDefinitionType> getRelationConfiguration() {
+        SystemConfigurationType sys = MidPointApplication.get().getSystemConfigurationIfAvailable();
+        if (sys == null) {
+            return null;
+        }
+
+        RoleManagementConfigurationType roleManagement = sys.getRoleManagement();
+        if (roleManagement == null) {
+            return null;
+        }
+
+        RelationsDefinitionType relations = roleManagement.getRelations();
+        return relations != null ? relations.getRelation() : null;
     }
 }
