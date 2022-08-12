@@ -122,6 +122,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     @Override
+    protected void onBeforeRender() {
+        ListGroupMenu menu = menuModel.getObject();
+        if (menu.getActiveMenu() == null) {
+            menu.activateFirstAvailableItem();
+            updateQueryModel(menu.getActiveMenu());
+        }
+
+        super.onBeforeRender();
+    }
+
+    @Override
     public IModel<List<Badge>> getTitleBadges() {
         return () -> {
             String text;
@@ -270,13 +281,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
-                ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
-                if (menu.getActiveMenu() == null) {
-                    menu.activateFirstAvailableItem();
-                    updateQueryModel(menu.getActiveMenu());
-                }
-
-                return menu;
+                return loadRoleCatalogMenu();
             }
         };
     }
@@ -467,11 +472,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         RoleCatalogQueryItem rcq = item != null ? item.getValue() : null;
 
         if (rcq == null) {
-            if (menuModel.getObject().isEmpty()) {
-                updateQueryForRequestableRoles(query);
-                return;
-            }
-
             updateFalseQuery(query);
             return;
         }
