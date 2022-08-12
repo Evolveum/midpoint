@@ -48,7 +48,7 @@ podTemplate(
             stage("build") {
                 container('maven') {
                     if (params.CLEAN_M2_REPOSITORY) {
-                        sh "rm -rf ~/.m2/repository"
+                        sh "rm -rf ~/.m2/repository/*"
                     }
 
                     sh """#!/bin/bash -ex
