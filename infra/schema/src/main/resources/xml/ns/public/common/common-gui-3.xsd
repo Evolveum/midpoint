@@ -3782,7 +3782,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="target" type="tns:TargetType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies the target (page/panel/url) for redirect action.
@@ -3797,7 +3797,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TargetType">
+    <xsd:complexType name="RedirectionTargetType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines the target (page/panel/url) to be redirected to
