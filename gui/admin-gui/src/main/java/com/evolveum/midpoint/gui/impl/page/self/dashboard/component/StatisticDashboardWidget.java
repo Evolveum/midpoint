@@ -9,29 +9,39 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelType;
 
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 
-import javax.servlet.ServletContext;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @PanelType(name = "statisticWidget")
 public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurationType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(StatisticDashboardWidget.class);
     private static final String ID_IMAGE = "imageId";
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "labelId";
@@ -56,25 +66,9 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
 
             @Override
             public void onClick() {
-                // TODO Auto-generated method stub
-
+                redirectActionPerformed();
             }
 
-            @Override
-            protected void onComponentTag(ComponentTag tag) {
-                super.onComponentTag(tag);
-
-                String rootContext = "";
-                ContainerPanelConfigurationType panel = StatisticDashboardWidget.this.getModelObject();
-                if (!isExternalLink()) {
-                    ServletContext servletContext = MidPointApplication.get().getServletContext();
-                    if (servletContext != null) {
-                        rootContext = servletContext.getContextPath();
-                    }
-                }
-                //todo later
-//                tag.put("href", rootContext + (panel.getTargetUrl() == null ? "#" : panel.getTargetUrl()));
-            }
         };
         add(linkItem);
 
@@ -96,6 +90,74 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
 
         Label statisticData = new Label(ID_STATISTIC_DATA, getCollectionViewCountLabelModel());
         linkItem.add(statisticData);
+    }
+
+    private void redirectActionPerformed() {
+        List<GuiActionType> actionList = getModelObject().getAction();
+        if (CollectionUtils.isEmpty(actionList)) {
+            return;
+        }
+        Optional<GuiActionType> actionWithRedirection = actionList.stream().filter(this::isRedirectionTargetNotEmpty).findFirst();
+        if (actionWithRedirection.isEmpty()) {
+            return;
+        }
+        RedirectionTargetType redirectionTarget = actionWithRedirection.get().getTarget();
+        String url = redirectionTarget.getTargetUrl();
+        String pageClass = redirectionTarget.getPageClass();
+        String panelType = redirectionTarget.getPanelType();
+        if (StringUtils.isNotEmpty(url) && new UrlValidator().isValid(url)) {
+            throw new RedirectToUrlException(url);
+        } else if (!StringUtils.isAllEmpty(pageClass, panelType)) {
+            redirectToPanel(pageClass, panelType);
+        }
+    }
+
+    private boolean isRedirectionTargetNotEmpty(GuiActionType action) {
+        if (action == null || action.getTarget() == null) {
+            return false;
+        }
+        return !StringUtils.isAllEmpty(action.getTarget().getTargetUrl(), action.getTarget().getPageClass(), action.getTarget().getPanelType());
+    }
+
+    private void redirectToPanel(String pageClass, String panelType) {
+        if (StringUtils.isNotEmpty(pageClass)) {
+            try {
+                Class<?> clazz = Class.forName(pageClass);
+                ContainerPanelConfigurationType config = null;
+                if (hasContainerPanelConfigurationField(clazz)) {
+                    Class<? extends Panel> panel = getPageBase().findObjectPanel(panelType);
+                    //todo get subPanels from ContainerPanelConfigurationType? or get details page panels? and redirect exactly on panelType
+                }
+                if (config == null) {
+                    config = new ContainerPanelConfigurationType();
+                    config.setPanelType(panelType);
+                }
+                Constructor<?> constructor = clazz.getConstructor();
+                Object pageInstance = constructor.newInstance();
+                if (pageInstance instanceof AbstractPageObjectDetails) {
+                    String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
+                    ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(storageKey);
+                    if (pageStorage == null) {
+                        getPageBase().getSessionStorage().setObjectDetailsStorage(storageKey, config);
+                    } else {
+                        pageStorage.setDefaultConfiguration(config);
+                    }
+                } else if (pageInstance instanceof WebPage) {
+                    getPageBase().navigateToNext((WebPage) pageInstance);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+            }
+        }
+    }
+
+    private boolean hasContainerPanelConfigurationField(Class<?> clazz) {
+        return Arrays.stream(clazz.getFields()).anyMatch(this::isContainerPanelConfigurationField);
+    }
+
+    private boolean isContainerPanelConfigurationField(Field f) {
+        return f.getType().equals(ContainerPanelConfigurationType.class);
     }
 
     private IModel<String> getIconClassModel() {
