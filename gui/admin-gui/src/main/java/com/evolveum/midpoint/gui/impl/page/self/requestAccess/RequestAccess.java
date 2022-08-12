@@ -681,7 +681,7 @@ public class RequestAccess implements Serializable {
         RelationSelectionType config = getRelationConfiguration(page);
         relations = relations.stream()
                 // filter out non default relations if configuration doesn't allow other relations
-                .filter(q -> !(config != null && BooleanUtils.isFalse(config.isAllowOtherRelations()) && q.equals(defaultRelation)))
+                .filter(q -> BooleanUtils.isNotFalse(config.isAllowOtherRelations()) || defaultRelation == null || q.equals(defaultRelation))
                 .collect(Collectors.toList());
 
         return relations;
@@ -689,7 +689,7 @@ public class RequestAccess implements Serializable {
 
     private RelationSelectionType getRelationConfiguration(Page page) {
         AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getRelationSelection() : null;
+        return config != null ? config.getRelationSelection() : new RelationSelectionType();
     }
 
     public AccessRequestType getAccessRequestConfiguration(Page page) {
