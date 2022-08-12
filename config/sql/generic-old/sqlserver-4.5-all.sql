@@ -681,6 +681,7 @@ CREATE TABLE m_resource (
   name_norm                  NVARCHAR(255) COLLATE database_default,
   name_orig                  NVARCHAR(255) COLLATE database_default,
   o16_lastAvailabilityStatus INT,
+  template                   BIT,
   oid                        NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -1236,7 +1237,7 @@ CREATE UNIQUE INDEX uc_connector_type_version_host
 
 
 BEGIN TRANSACTION
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.6');
 COMMIT;
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
