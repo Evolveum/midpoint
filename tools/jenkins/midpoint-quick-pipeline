@@ -47,6 +47,10 @@ podTemplate(
             }
             stage("build") {
                 container('maven') {
+                    if (params.CLEAN_M2_REPOSITORY) {
+                        sh "rm -rf ~/.m2/repository"
+                    }
+
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then
@@ -54,10 +58,6 @@ podTemplate(
                             env | sort
                             mvn --version
                         fi
-
-                        if (params.CLEAN_M2_REPOSITORY) {
-                            sh "rm -rf ~/.m2/repository"
-                        }
 
                         mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
 
