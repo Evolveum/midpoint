@@ -3782,9 +3782,67 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="target" type="tns:TargetType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies the target (page/panel/url) for redirect action.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiActionType.target</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO later: expression, reference to java class, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="TargetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the target (page/panel/url) to be redirected to
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="pageClass" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the Java class to reference the page to be redirected to.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TargetType.pageClass</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="panelType" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Unique identifier used to reference a panel to be redirected to.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TargetType.panelType</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="targetUrl" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                URL of the target link.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TargetType.targetUrl</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
@@ -4298,6 +4356,17 @@
                             <xsd:documentation>
                                 <p>
                                     If the panel should be shown in preview mode.
+                                </p>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="action" type="tns:GuiActionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    List of actions for this panel. Actions are special things that can be done
+                                    with particular object or list of objects. Action can also specify a target place (page/panel/url)
+                                    to redirect from this panel.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
