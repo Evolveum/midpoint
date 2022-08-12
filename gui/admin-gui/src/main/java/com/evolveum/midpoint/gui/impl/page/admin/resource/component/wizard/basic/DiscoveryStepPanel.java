@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -69,11 +72,22 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
                     if (suggestionDef.getAllowedValues() != null && !suggestionDef.getAllowedValues().isEmpty()) {
                         item.toMutable().setAllowedValues(
                                 (Collection<? extends DisplayableValue<Object>>) suggestionDef.getAllowedValues());
+                        if (suggestionDef.getAllowedValues().size() == 1
+                                && item.isEmpty()) {
+                            item.getValues().iterator().next().setRealValue(
+                                    suggestionDef.getAllowedValues().iterator().next().getValue());
+                        }
                     }
                     if (suggestionDef.getSuggestedValues() != null && !suggestionDef.getSuggestedValues().isEmpty()) {
                         item.toMutable().setSuggestedValues(
                                 (Collection<? extends DisplayableValue<Object>>) suggestionDef.getSuggestedValues());
+                        if (suggestionDef.getSuggestedValues().size() == 1
+                                && item.isEmpty()) {
+                            item.getValues().iterator().next().setRealValue(
+                                    suggestionDef.getSuggestedValues().iterator().next().getValue());
+                        }
                     }
+                    item.toMutable().toMutable().setEmphasized(true);
                 }
             }
         } catch (SchemaException e) {
@@ -115,5 +129,21 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
             }
             return ItemVisibility.AUTO;
         };
+    }
+
+    @Override
+    protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
+        IModel<? extends PrismContainerWrapper> model = super.getContainerFormModel();
+        PrismContainerWrapper container = null;
+        try {
+            container =model.getObject().findContainer(
+                    ItemPath.create("connectorConfiguration", "configurationProperties"));
+        } catch (SchemaException e) {
+            //ignore it
+        }
+        if (container != null) {
+            container.setShowEmpty(false, true);
+        }
+        return model;
     }
 }

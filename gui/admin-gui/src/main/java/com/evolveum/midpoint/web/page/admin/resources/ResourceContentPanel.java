@@ -13,6 +13,8 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -76,6 +78,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     private static final String ID_TABLE = "table";
     private static final String ID_LABEL = "label";
 
+    private static final String ID_TASK_BUTTONS_CONTAINER = "taskButtonsContainer";
     private static final String ID_IMPORT = "import";
     private static final String ID_RECONCILIATION = "reconciliation";
     private static final String ID_LIVE_SYNC = "liveSync";
@@ -267,11 +270,35 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
             }
         });
 
-        initButton(ID_IMPORT, "Import", " fa-download", SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
-        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
-        initButton(ID_LIVE_SYNC, "Live Sync", " fa-sync-alt", SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
+        WebMarkupContainer taskButtonsContainer = new WebMarkupContainer(ID_TASK_BUTTONS_CONTAINER);
+        taskButtonsContainer.setOutputMarkupId(true);
+        taskButtonsContainer.add(new VisibleBehaviour(() -> isTaskButtonsContainerVisible()));
+        add(taskButtonsContainer);
+
+        initButton(
+                ID_IMPORT,
+                "Import",
+                " fa-download",
+                SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+                taskButtonsContainer);
+        initButton(
+                ID_RECONCILIATION,
+                "Reconciliation",
+                " fa-link",
+                SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
+                taskButtonsContainer);
+        initButton(
+                ID_LIVE_SYNC,
+                "Live Sync",
+                " fa-sync-alt",
+                SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
+                taskButtonsContainer);
 
         initCustomLayout();
+    }
+
+    protected boolean isTaskButtonsContainerVisible() {
+        return true;
     }
 
     private CompiledShadowCollectionView findContainerPanelConfig() {
@@ -289,7 +316,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     protected abstract void initShadowStatistics(WebMarkupContainer totals);
 
-    private void initButton(String id, String label, String icon, String archetypeOid) {
+    private void initButton(String id, String label, String icon, String archetypeOid, WebMarkupContainer taskButtonsContainer) {
 
         ObjectQuery existingTasksQuery = getExistingTasksQuery(archetypeOid);
         OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
@@ -341,7 +368,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 return "pull-left";
             }
         };
-        add(button);
+        taskButtonsContainer.add(button);
 
     }
 

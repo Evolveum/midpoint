@@ -5383,6 +5383,9 @@ public final class WebComponentUtil {
                 if (val.getValue() instanceof Enum) {
                     return pageBase.createStringResource((Enum<?>) val.getValue()).getString();
                 }
+                if (val.getLabel() == null) {
+                    return pageBase.createStringResource(String.valueOf(val.getValue())).getString();
+                }
                 return pageBase.createStringResource(val.getLabel()).getString();
             }
 

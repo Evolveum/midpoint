@@ -36,6 +36,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -82,6 +83,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private static final String ID_OBJECT_CLASS = "objectClass";
     private static final String ID_MAIN_FORM = "mainForm";
 
+    private static final String ID_RESOURCE_CHOICE_CONTAINER_SEARCH = "resourceChoiceContainer";
     private static final String ID_REPO_SEARCH = "repositorySearch";
     private static final String ID_RESOURCE_SEARCH = "resourceSearch";
 
@@ -90,16 +92,23 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private ShadowKindType kind;
 
     private boolean useObjectClass;
-    private boolean isRepoSearch = true;
+    private boolean isRepoSearch;
 
     private IModel<ResourceContentSearchDto> resourceContentSearch;
 
     public ResourceContentPanel(String id, final ShadowKindType kind,
             final ResourceDetailsModel model, ContainerPanelConfigurationType config) {
+        this(id, kind, model, config, true);
+    }
+
+    public ResourceContentPanel(String id, final ShadowKindType kind,
+            final ResourceDetailsModel model, ContainerPanelConfigurationType config,
+            boolean isRepoSearch) {
         super(id, model, config);
 
         this.kind = kind;
         this.resourceContentSearch = createContentSearchModel(kind);
+        this.isRepoSearch = isRepoSearch;
         //TODO config
     }
 
@@ -249,6 +258,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         });
         add(objectClassPanel);
 
+        WebMarkupContainer resourceChoiceContainer = new WebMarkupContainer(ID_RESOURCE_CHOICE_CONTAINER_SEARCH);
+        resourceChoiceContainer.setOutputMarkupId(true);
+        resourceChoiceContainer.add(new VisibleBehaviour( () -> isSourceChoiceVisible()));
+        add(resourceChoiceContainer);
+
         AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
                 new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
             private static final long serialVersionUID = 1L;
@@ -264,7 +278,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 mainForm.addOrReplace(initRepoContent(ResourceContentPanel.this.getObjectWrapperModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this);
-                target.add(getParent().get(ID_RESOURCE_SEARCH)
+                target.add(getParent().get(getPageBase().createComponentPath(ID_RESOURCE_CHOICE_CONTAINER_SEARCH, ID_RESOURCE_SEARCH))
                         .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
             }
 
@@ -274,7 +288,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (!getModelObject().booleanValue()) {add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));}
             }
         };
-        add(repoSearch);
+        resourceChoiceContainer.add(repoSearch);
 
         AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
                 new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
@@ -290,7 +304,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 mainForm.addOrReplace(initResourceContent(ResourceContentPanel.this.getObjectWrapperModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this.add(AttributeModifier.append("class", " active")));
-                target.add(getParent().get(ID_REPO_SEARCH)
+                target.add(getParent().get(getPageBase().createComponentPath(ID_RESOURCE_CHOICE_CONTAINER_SEARCH, ID_REPO_SEARCH))
                         .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
             }
 
@@ -301,8 +315,12 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (getModelObject().booleanValue()) {add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));}
             }
         };
-        add(resourceSearch);
+        resourceChoiceContainer.add(resourceSearch);
 
+    }
+
+    protected boolean isSourceChoiceVisible() {
+        return true;
     }
 
     private void initAttributeMappingButton(RepeatingView topButtons) {
@@ -398,7 +416,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         return new ContainerValueWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), foundValue.getPath());
     }
 
-    private boolean isTopTableButtonsVisible() {
+    protected boolean isTopTableButtonsVisible() {
         return true;
     }
 
@@ -435,10 +453,19 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     return getObjectDetailsModels().getRefinedSchema();
                 }
             }
+
+            @Override
+            protected boolean isTaskButtonsContainerVisible() {
+                return ResourceContentPanel.this.isTaskButtonsContainerVisible();
+            }
         };
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
+    }
+
+    protected boolean isTaskButtonsContainerVisible() {
+        return true;
     }
 
     private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObjectWrapper<ResourceType>> model) {
@@ -453,6 +480,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 } catch (SchemaException | ConfigurationException e) {
                     return getObjectDetailsModels().getRefinedSchema();
                 }
+            }
+
+            @Override
+            protected boolean isTaskButtonsContainerVisible() {
+                return ResourceContentPanel.this.isTaskButtonsContainerVisible();
             }
         };
         repositoryContent.setOutputMarkupId(true);

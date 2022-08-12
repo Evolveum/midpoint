@@ -49,8 +49,8 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
 
     private IModel<Search> searchModel;
 
-    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn<O, String>> columns) {
-        this(id, provider, columns, null);
+    public TileTablePanel(String id, ISortableDataProvider provider) {
+        this(id, provider, List.of(), null);
     }
 
     public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn<O, String>> columns, IModel<ViewToggle> viewToggle) {

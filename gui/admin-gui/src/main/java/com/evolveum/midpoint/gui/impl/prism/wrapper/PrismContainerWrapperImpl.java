@@ -62,6 +62,14 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public void setShowEmpty(boolean isShowEmpty, boolean recursive) {
+        super.setShowEmpty(isShowEmpty, recursive);
+        if (recursive) {
+            getValues().forEach(v -> v.setShowEmpty(isShowEmpty));
+        }
+    }
+
+    @Override
     public Class<C> getCompileTimeClass() {
         return getItemDefinition().getCompileTimeClass();
     }

@@ -48,7 +48,8 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         ResourceContentPanel table = new ResourceContentPanel(
                 ID_TABLE, resourceObjectType.getObject().getRealValue().getKind(),
                 getResourceModel(),
-                getConfiguration()) {
+                getConfiguration(),
+                false) {
             @Override
             protected boolean isIntentAndObjectClassPanelVisible() {
                 return false;
@@ -62,6 +63,21 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             @Override
             protected QName getObjectClass() {
                 return resourceObjectType.getObject().getRealValue().getObjectClass();
+            }
+
+            @Override
+            protected boolean isTopTableButtonsVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isSourceChoiceVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isTaskButtonsContainerVisible() {
+                return false;
             }
         };
         table.setOutputMarkupId(true);

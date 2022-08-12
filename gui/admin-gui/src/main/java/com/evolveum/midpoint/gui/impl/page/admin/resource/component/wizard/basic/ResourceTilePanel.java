@@ -5,9 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -40,7 +41,7 @@ public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
     private void initLayout() {
         add(AttributeAppender.append(
                 "class",
-                "card mb-0 col-12 catalog-tile-panel d-flex flex-column align-items-center bg-white p-3 pb-5 pt-4 h-100 mb-0"));
+                "card col-12 catalog-tile-panel d-flex flex-column align-items-center p-3 pb-5 pt-4 h-100 mb-0 btn"));
         setOutputMarkupId(true);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
