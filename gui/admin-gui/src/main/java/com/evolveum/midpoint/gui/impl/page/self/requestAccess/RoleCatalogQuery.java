@@ -20,10 +20,6 @@ public class RoleCatalogQuery implements Serializable {
     public RoleCatalogQuery() {
     }
 
-    public RoleCatalogQuery(Class<? extends ObjectType> type) {
-        this.type = type;
-    }
-
     private Class<? extends ObjectType> type;
 
     private ObjectQuery query;

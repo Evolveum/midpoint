@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -32,6 +30,7 @@ import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
@@ -254,7 +253,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private void initModels() {
         teammateModel = Model.of((ObjectReferenceType) null);
 
-        queryModel = Model.of(new RoleCatalogQuery(RoleType.class));
+        RoleCatalogQuery query = new RoleCatalogQuery();
+        updateFalseQuery(query);
+        queryModel = Model.of(query);
 
         searchModel = new LoadableModel<>(false) {
 
@@ -545,20 +546,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         }
 
         ListGroupMenu<RoleCatalogQueryItem> menu = new ListGroupMenu<>();
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> menuItems = menu.getItems();
 
         ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
-        if (ref != null) {
-            List<ListGroupMenuItem<RoleCatalogQueryItem>> items = loadMenuFromOrgTree(ref);
-            if (items != null) {
-                menu.getItems().addAll(items);
-            }
-        }
+        menuItems.addAll(loadMenuFromOrgTree(ref));
 
         List<RoleCollectionViewType> collections = roleCatalog.getCollection();
-        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = createMenuFromRoleCollections(collections);
-        if (items != null) {
-            menu.getItems().addAll(items);
-        }
+        menuItems.addAll(createMenuFromRoleCollections(collections));
+
+        // todo add default menu item (requestable abstract roles query) or hide menu if orles of teammate is disabled?
 
         if (BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate())) {
             CustomListGroupMenuItem<RoleCatalogQueryItem> rolesOfTeamMate = new CustomListGroupMenuItem<>("RoleCatalogPanel.rolesOfTeammate") {
