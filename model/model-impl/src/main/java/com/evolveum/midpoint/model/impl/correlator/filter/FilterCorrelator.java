@@ -16,7 +16,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -104,7 +104,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);
             ObjectSet<F> confirmedCandidates = confirmCandidates(candidates, result);
-            return createCorrelationResult(confirmedCandidates, task, result);
+            return createResult(confirmedCandidates, task, result);
         }
 
         double checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)

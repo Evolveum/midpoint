@@ -17,6 +17,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.stream.Collectors;
+
 /**
  * Utilities for handling correlation item definitions.
  */
@@ -61,16 +63,16 @@ public class CorrelationItemDefinitionUtil {
             StringBuilder sb = new StringBuilder(configBean.getClass().getSimpleName());
             sb.append(": ");
             if (configBean.getName() != null) {
-                sb.append("name: ")
+                sb.append("named '")
                         .append(configBean.getName())
-                        .append(", ");
+                        .append("', ");
             } else {
                 sb.append("unnamed, ");
             }
             if (configBean.getDisplayName() != null) {
-                sb.append("displayName: ")
+                sb.append("displayName: '")
                         .append(configBean.getDisplayName())
-                        .append(", ");
+                        .append("', ");
             }
             if (configBean.getUsing() != null) {
                 sb.append("using '")
@@ -98,10 +100,16 @@ public class CorrelationItemDefinitionUtil {
             if (Boolean.FALSE.equals(configBean.isEnabled())) {
                 sb.append("disabled, ");
             }
-            sb.append("having ")
-                    .append(configBean.asPrismContainerValue().size())
-                    .append(" item(s)");
-            // TODO specific items, if the correlator is "items" one
+            if (configBean instanceof ItemsCorrelatorType) {
+                sb.append("items: ");
+                sb.append(
+                        ((ItemsCorrelatorType) configBean).getItem().stream()
+                                .map(itemDef -> String.valueOf(itemDef.getPath()))
+                                .collect(Collectors.joining(", ")));
+            } else {
+                sb.append("configured with: ")
+                        .append(configBean.asPrismContainerValue().getItemNames());
+            }
             return sb.toString();
         }
     }

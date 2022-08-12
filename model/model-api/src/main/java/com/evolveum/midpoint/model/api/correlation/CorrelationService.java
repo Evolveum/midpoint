@@ -5,25 +5,22 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.correlator;
-
-import com.evolveum.midpoint.model.api.CorrelationProperty;
-
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+package com.evolveum.midpoint.model.api.correlation;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.util.Collection;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Supports correlation.
@@ -32,7 +29,18 @@ import java.util.Collection;
 public interface CorrelationService {
 
     /**
-     * Instantiates the correlator for given correlation case.
+     * TODO
+     */
+    @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
+            @NotNull CaseType aCase,
+            @Nullable CorrelationCaseDescriptionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException;
+
+    /**
+     * Instantiates the correlator for given correlation case. TODO remove this method - hide the logic in the service impl
      */
     Correlator instantiateCorrelator(
             @NotNull CaseType aCase,
@@ -56,16 +64,6 @@ public interface CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * Returns properties relevant for the correlation, e.g. to be shown in GUI.
-     */
-    Collection<CorrelationProperty> getCorrelationProperties(
-            @NotNull CaseType aCase,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
 
     /**
      * Creates the root correlator context for given configuration.
@@ -161,5 +159,29 @@ public interface CorrelationService {
     interface CaseCloser {
         /** Closes the case in repository. */
         void closeCaseInRepository(OperationResult result) throws ObjectNotFoundException;
+    }
+
+    class CorrelationCaseDescriptionOptions {
+        /** Whether to explain the correlation. See {@link CandidateDescription#explanation}. */
+        private boolean explain;
+
+        public boolean isExplain() {
+            return explain;
+        }
+
+        public void setExplain(boolean explain) {
+            this.explain = explain;
+        }
+
+        public CorrelationCaseDescriptionOptions explain(boolean value) {
+            setExplain(value);
+            return this;
+        }
+
+        // TODO: whether to do the correlation anew
+
+        public static boolean isExplain(CorrelationCaseDescriptionOptions options) {
+            return options != null && options.explain;
+        }
     }
 }

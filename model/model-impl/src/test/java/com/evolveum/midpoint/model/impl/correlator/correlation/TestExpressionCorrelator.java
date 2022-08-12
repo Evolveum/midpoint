@@ -16,7 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

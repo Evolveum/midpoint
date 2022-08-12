@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -29,6 +32,8 @@ import java.io.Serializable;
  *
  * The full result of correlation (as returned from {@link CorrelationService#correlate(ShadowType, ResourceType,
  * SynchronizationPolicy, Class, Task, OperationResult)}) is provided by {@link CompleteCorrelationResult} class.
+ *
+ * TODO better name?
  */
 public class CorrelationResult implements Serializable, DebugDumpable {
 

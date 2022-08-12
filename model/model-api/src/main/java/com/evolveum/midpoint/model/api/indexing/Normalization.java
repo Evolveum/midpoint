@@ -7,19 +7,16 @@
 
 package com.evolveum.midpoint.model.api.indexing;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.util.exception.*;
-
-import org.jetbrains.annotations.NotNull;
-
-public interface Normalization {
+/**
+ * TODO describe or refine/update/fix this concept ...
+ */
+public interface Normalization extends ValueNormalizer {
 
     @NotNull String getName();
 
@@ -30,8 +27,4 @@ public interface Normalization {
     ItemPath getIndexItemPath();
 
     @NotNull PrismPropertyDefinition<String> getIndexItemDefinition();
-
-    @NotNull String normalize(@NotNull String input, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }

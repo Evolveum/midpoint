@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;

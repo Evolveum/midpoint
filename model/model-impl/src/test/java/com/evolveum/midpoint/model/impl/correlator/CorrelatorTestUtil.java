@@ -123,5 +123,7 @@ public class CorrelatorTestUtil {
                 CorrelationTestingAccount.ATTR_EXP_CANDIDATES, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 CorrelationTestingAccount.ATTR_EXP_RESULT, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                CorrelationTestingAccount.ATTR_EXP_MATCH, String.class, false, false);
     }
 }

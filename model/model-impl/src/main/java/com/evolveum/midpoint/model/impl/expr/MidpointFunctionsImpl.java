@@ -35,7 +35,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 

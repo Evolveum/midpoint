@@ -17,8 +17,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.CorrelationProperty;
-
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -350,15 +349,20 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         // TODO check audit and notification event content
 
         and("correlation properties should be correct");
-        Collection<CorrelationProperty> properties = correlationService.getCorrelationProperties(correlationCase, task, result);
+        Collection<CorrelationProperty> properties =
+                correlationService
+                        .describeCorrelationCase(correlationCase, null, task, result)
+                        .getCorrelationProperties()
+                        .values();
         displayValue("properties", DebugUtil.debugDump(properties));
 
         // TODO this will need to be adapted
 
         CorrelationProperty property = findProperty(properties, "givenName");
-        assertThat(property.getSourceRealStringValues()).as("real string values").containsExactly("John");
         assertThat(property.getDefinition()).as("definition").isNotNull();
-        assertThat(property.getPrimaryTargetPath()).as("primary target path").hasToString("givenName");
+        assertThat(property.getItemPath()).as("itemPath").hasToString("givenName");
+
+        // TODO other asserts on correlation case description
     }
 
     @SuppressWarnings("SameParameterValue")
