@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asPrismContainerValues;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
@@ -177,13 +178,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     /**
      * Operation result (currently needed for value metadata computation).
      * Experimentally we make this consolidator auto-closeable so the result is marked as closed automatically.
+     * This works - except for the automatic reporting of exceptions.
      *
      * TODO reconsider if we should not record processing in the caller (e.g. because ConsolidationProcessor
-     * already creates a result for item consolidation).
+     *  already creates a result for item consolidation).
      */
     private final OperationResult result;
-
-    @NotNull private final PrismContext prismContext;
 
     /**
      * The output.
@@ -225,12 +225,15 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         valueMetadataComputer = builder.valueMetadataComputer;
         contextDescription = builder.contextDescription;
-        result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
-                .addArbitraryObjectAsParam("itemPath", itemPath);
-        prismContext = builder.prismContext;
+
+        argCheck(builder.itemDefinition != null, "No definition for %s", itemPath);
 
         //noinspection unchecked
         itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
+
+        // Must be the last instruction here (to avoid leaving result open in case of an exception)
+        result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
+                .addArbitraryObjectAsParam("itemPath", itemPath);
     }
 
     /**
@@ -301,8 +304,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private void applyWeakMappings() throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    private void applyWeakMappings() throws SchemaException {
         Collection<I> valuesToAdd = selectWeakNonNegativeValues();
         LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
                 itemPath, contextDescription, valuesToAdd);
@@ -889,9 +891,11 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         if (result.isTracingNormal(ItemConsolidationTraceType.class)) {
             ItemConsolidationTraceType trace = new ItemConsolidationTraceType();
             trace.setItemPath(new ItemPathType(itemPath));
+            PrismContext prismContext = PrismContext.get();
             try {
                 if (ivwoTriple != null) {
-                    PrismValueDeltaSetTriple<PrismValue> prismValueDeltaSetTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+                    PrismValueDeltaSetTriple<PrismValue> prismValueDeltaSetTriple =
+                            prismContext.deltaFactory().createPrismValueDeltaSetTriple();
                     ivwoTriple.transform(prismValueDeltaSetTriple, ItemValueWithOrigin::getItemValue);
                     trace.setDeltaSetTriple(DeltaSetTripleType.fromDeltaSetTriple(prismValueDeltaSetTriple, prismContext));
                 }

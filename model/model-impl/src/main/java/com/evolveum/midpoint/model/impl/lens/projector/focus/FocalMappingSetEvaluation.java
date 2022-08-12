@@ -50,6 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta;
+import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 /**
@@ -142,8 +143,9 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 sorter.filter(builder.evaluationRequests, builder.phase);
     }
 
-    void evaluateMappingsToTriples() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+    void evaluateMappingsToTriples()
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
 
         for (FocalMappingEvaluationRequest<?, ?> request : requests) {
             evaluateMappingRequest(request);
@@ -151,7 +153,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
     }
 
     private void evaluateMappingRequest(FocalMappingEvaluationRequest<?, ?> request)
-            throws ExpressionEvaluationException, PolicyViolationException, SchemaException, ObjectNotFoundException,
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
             SecurityViolationException, CommunicationException, ConfigurationException {
 
         MappingImpl<?, ?> mapping = createMapping(request);
@@ -178,7 +180,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
     }
 
     private MappingImpl<PrismValue, ItemDefinition<?>> createMapping(FocalMappingEvaluationRequest<?, ?> request)
-            throws ExpressionEvaluationException, PolicyViolationException, SchemaException, ObjectNotFoundException,
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
             SecurityViolationException, CommunicationException, ConfigurationException {
         String description = request.shortDump();
         LOGGER.trace("Starting evaluation of {}", description);
@@ -198,7 +200,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 context.getSystemConfiguration(), env.now, description, env.task, result);
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType, T extends AssignmentHolderType>
+    private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType>
     MappingImpl<V, D> createFocusMapping(
             LensContext<AH> context,
             FocalMappingEvaluationRequest<?, ?> request,
@@ -242,7 +244,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 if (mappingBean.getExpression() != null) {
                     List<JAXBElement<?>> evaluators = mappingBean.getExpression().getExpressionEvaluator();
                     if (evaluators != null) {
-                        for (JAXBElement jaxbEvaluator : evaluators) {
+                        for (JAXBElement<?> jaxbEvaluator : evaluators) {
                             Object object = jaxbEvaluator.getValue();
                             if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
                                 ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
@@ -277,9 +279,18 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         PrismContext prismContext = beans.prismContext;
 
         TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
-        Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, beans.mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
+        Collection<V> targetValues =
+                ExpressionUtil.computeTargetValues(
+                        getPath(mappingBean.getTarget()),
+                        defaultTargetContext,
+                        variables,
+                        beans.mappingFactory.getObjectResolver(),
+                        contextDesc,
+                        prismContext,
+                        task,
+                        result);
 
-        MappingSpecificationType specification = new MappingSpecificationType(prismContext)
+        MappingSpecificationType specification = new MappingSpecificationType()
                 .mappingName(mappingBean.getName())
                 .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
                 .assignmentId(createAssignmentId(assignmentPathVariables));
@@ -296,7 +307,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 .originObject(originObject)
                 .valuePolicySupplier(valuePolicySupplier)
                 .rootNode(focusOdo)
-                .mappingPreExpression(request.getMappingPreExpression()) // Used to populate autoassign assignments
+                .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
                 .mappingSpecification(specification)
                 .now(now);
 
@@ -361,13 +372,17 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         }
     }
 
-    private ObjectDeltaObject<F> getUpdatedFocusOdo(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
+    private ObjectDeltaObject<F> getUpdatedFocusOdo(
+            LensContext<F> context,
+            ObjectDeltaObject<F> focusOdo,
             PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap,
-            FocalMappingEvaluationRequest<?, ?> evaluationRequest, String contextDesc, OperationResult result) throws ExpressionEvaluationException,
-            PolicyViolationException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            FocalMappingEvaluationRequest<?, ?> evaluationRequest,
+            String contextDesc,
+            OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException {
         Holder<ObjectDeltaObject<F>> focusOdoClonedHolder = new Holder<>();
-        MappingType mappingBean = evaluationRequest.getMapping();
-        for (VariableBindingDefinitionType source : mappingBean.getSource()) {
+        for (VariableBindingDefinitionType source : evaluationRequest.getSources()) {
             updateSource(context, focusOdo, focusOdoClonedHolder, outputTripleMap, contextDesc, source, result);
         }
         ObjectDeltaObject<F> focusOdoCloned = focusOdoClonedHolder.getValue();
@@ -407,10 +422,10 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 path, context, beans, env, result);
 
         // TODO not much sure about the parameters
-        //noinspection unchecked
-        try (IvwoConsolidator consolidator = new IvwoConsolidatorBuilder()
+        //noinspection unchecked,rawtypes
+        try (IvwoConsolidator<?, ?, ? extends ItemValueWithOrigin<?, ?>> consolidator = new IvwoConsolidatorBuilder<>()
                     .itemPath(path)
-                    .ivwoTriple(triple)
+                    .ivwoTriple((DeltaSetTriple) triple)
                     .itemDefinition(itemDefinition)
                     .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
                     .itemDeltaExists(context.primaryFocusItemDeltaExists(path))
@@ -425,10 +440,9 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                     .strengthSelector(StrengthSelector.ALL)
                     .valueMetadataComputer(valueMetadataComputer)
                     .result(result)
-                    .prismContext(beans.prismContext)
                     .build()) {
 
-            ItemDelta itemDelta = consolidator.consolidateTriples();
+            ItemDelta<?, ?> itemDelta = consolidator.consolidateTriples();
             itemDelta.simplify();
 
             LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());

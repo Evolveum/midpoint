@@ -385,16 +385,6 @@
             <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0">
 
             </xsd:element>
-            <xsd:element name="includeDefaultRelations" type="xsd:boolean" minOccurs="0">
-
-            </xsd:element>
-            <xsd:element name="relation" type="tns:RelationDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Definition of a single (custom) relation.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -436,9 +426,7 @@
         <xsd:sequence>
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0"/>
-            <!-- todo mark deprecated or remove entirely -->
-            <!--<xsd:element name="collectionViewIdentifier" type="xsd:string" minOccurs="0"/>-->
-            <xsd:element name="collectionUri" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="collectionIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0"/>
         </xsd:sequence>
@@ -458,6 +446,7 @@
 
             </xsd:element>
             <xsd:element name="allowedViews" type="tns:RoleCatalogViewType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="showRolesOfTeammate" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>

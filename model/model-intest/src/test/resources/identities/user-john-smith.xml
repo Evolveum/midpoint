@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:e="http://midpoint.evolveum.com/xml/ns/samples/enterprise"
+        oid="73566218-b455-4d8a-8c5b-326aab5c8291">
+    <extension>
+        <e:personalNumber>1001234</e:personalNumber>
+    </extension>
+    <assignment>
+        <targetRef oid="3a6f3ddd-ac72-4656-abac-0e306cd29645" type="ArchetypeType"/>
+    </assignment>
+    <givenName>John</givenName>
+    <familyName>Smith</familyName>
+</user>

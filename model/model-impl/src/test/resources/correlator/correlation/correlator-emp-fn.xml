@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<filterCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>emp-fn</name>
+    <ownerFilter>
+        <q:equal>
+            <q:path>employeeNumber</q:path>
+            <expression>
+                <path>$projection/attributes/ri:employeeNumber</path>
+            </expression>
+        </q:equal>
+    </ownerFilter>
+    <confirmation>
+        <script>
+            <code>
+                def candidateName = basic.stringify(focus.familyName)
+                def projectionName = basic.getAttributeValue(projection, 'familyName')
+                log.info('Checking candidate familyName ({}) against projection familyName ({})', candidateName, projectionName)
+                candidateName == projectionName
+            </code>
+        </script>
+    </confirmation>
+    <useConfirmationForSingleCandidate>true</useConfirmationForSingleCandidate>
+</filterCorrelator>

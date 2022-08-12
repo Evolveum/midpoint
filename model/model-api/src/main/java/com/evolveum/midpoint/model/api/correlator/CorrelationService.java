@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.Collection;
 
@@ -70,6 +72,7 @@ public interface CorrelationService {
      */
     @NotNull CorrelatorContext<?> createRootCorrelatorContext(
             @NotNull SynchronizationPolicy synchronizationPolicy,
+            @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException;
 
     /**
@@ -80,12 +83,23 @@ public interface CorrelationService {
     void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result) throws ObjectNotFoundException;
 
     /**
+     * Executes the correlation in the standard way.
+     */
+    @NotNull CompleteCorrelationResult correlate(
+            @NotNull CorrelatorContext<?> rootCorrelatorContext,
+            @NotNull CorrelationContext correlationContext,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /**
      * Executes the correlation for a given shadow + pre-focus.
      *
      * This is _not_ the standard use of the correlation, though.
      * (Note that it lacks e.g. the resource object delta information.)
      */
-    @NotNull CorrelationResult correlate(
+    @VisibleForTesting
+    @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadow,
             @Nullable FocusType preFocus,
             @NotNull Task task,
@@ -95,10 +109,11 @@ public interface CorrelationService {
 
     /**
      * Executes the correlation for a given shadow. (By computing pre-focus first.)
-     * This is _not_ the standard use. It lacks e.g. the resource object delta information.
-     * It is used in special cases like the opportunistic synchronization or explicit `midpoint.findCandidateOwners` method call.
+     *
+     * This is _not_ the standard use. It lacks e.g. the resource object delta information. It is used in special cases like
+     * {@link MidpointFunctions#findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)}.
      */
-    @NotNull CorrelationResult correlate(
+    @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
             @NotNull SynchronizationPolicy synchronizationPolicy,
@@ -119,6 +134,24 @@ public interface CorrelationService {
             @NotNull ResourceType resource,
             @NotNull SynchronizationPolicy synchronizationPolicy,
             @NotNull FocusType candidateOwner,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /** TEMPORARY!!! */
+    ObjectTemplateType determineObjectTemplate(
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull FocusType preFocus,
+            @NotNull OperationResult result)
+                    throws SchemaException, ConfigurationException, ObjectNotFoundException;
+
+    /** TODO Maybe temporary. Maybe visible for testing? */
+    @NotNull <F extends FocusType> F computePreFocus(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceType resource,
+            @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull Class<F> focusClass,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

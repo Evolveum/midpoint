@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,7 +16,10 @@ import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.MCase;
@@ -97,7 +100,7 @@ public class QCaseWorkItemMapping
 
     @Override
     public CaseWorkItemType toSchemaObject(MCaseWorkItem row) {
-        CaseWorkItemType cwi = new CaseWorkItemType(prismContext())
+        CaseWorkItemType cwi = new CaseWorkItemType()
                 .id(row.cid)
                 .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
                 .createTimestamp(asXMLGregorianCalendar(row.createTimestamp))
@@ -109,7 +112,7 @@ public class QCaseWorkItemMapping
                 .stageNumber(row.stageNumber);
 
         if (row.outcome != null) {
-            cwi.output(new AbstractWorkItemOutputType(prismContext()).outcome(row.outcome));
+            cwi.output(new AbstractWorkItemOutputType().outcome(row.outcome));
         }
         return cwi;
     }

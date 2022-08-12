@@ -149,6 +149,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final ItemPath implicitTargetPath;
 
     /**
+     * Redirects the target to another item, for example `identities/identity[x]/personalNumber` instead
+     * of `extension/personalNumber` when multi-inbounds are enabled.
+     */
+    final ItemPath targetPathOverride;
+
+    /**
      * Default target path if "target" or "target/path" is missing.
      * Used e.g. for outbound mappings.
      */
@@ -380,6 +386,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         mappingKind = builder.getMappingKind();
         implicitSourcePath = builder.getImplicitSourcePath();
         implicitTargetPath = builder.getImplicitTargetPath();
+        targetPathOverride = builder.getTargetPathOverride();
         defaultSource = builder.getDefaultSource();
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
         expressionProfile = builder.getExpressionProfile();
@@ -407,7 +414,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private MappingSpecificationType createDefaultSpecification() {
-        MappingSpecificationType specification = new MappingSpecificationType(beans.prismContext);
+        MappingSpecificationType specification = new MappingSpecificationType();
         specification.setMappingName(mappingBean.getName());
         if (originObject != null) {
             specification.setDefinitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
@@ -421,6 +428,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.mappingKind = prototype.mappingKind;
         this.implicitSourcePath = prototype.implicitSourcePath;
         this.implicitTargetPath = prototype.implicitTargetPath;
+        this.targetPathOverride = prototype.targetPathOverride;
         this.sources.addAll(prototype.sources);
         this.variables = prototype.variables;
 
@@ -661,11 +669,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 .build();
         tracingLevel = result.getTracingLevel(MappingEvaluationTraceType.class);
         if (isAtLeastMinimal(tracingLevel)) {
-            trace = new MappingEvaluationTraceType(beans.prismContext)
+            trace = new MappingEvaluationTraceType()
                     .mapping(mappingBean.clone())
                     .mappingKind(mappingKind)
                     .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
                     .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
+                    .targetPathOverride(targetPathOverride != null ? new ItemPathType(targetPathOverride) : null)
                     .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
             result.addTrace(trace);
         } else {
@@ -820,7 +829,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private @NotNull MappingStatePropertiesType createStatePropertiesTrace() {
-        MappingStatePropertiesType properties = new MappingStatePropertiesType(PrismContext.get());
+        MappingStatePropertiesType properties = new MappingStatePropertiesType();
         if (stateProperties != null) {
             stateProperties.forEach((name, value) ->
                     properties.beginProperty()
@@ -1169,6 +1178,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             source.mediumDump(sb);
         }
         sb.append("\nTarget: ").append(MiscUtil.toString(getOutputDefinition()));
+        sb.append("\nTarget path: ").append(getOutputPath());
+        if (targetPathOverride != null) {
+            sb.append(" (specified as: ").append(parser.getOriginalOutputPath()).append(")");
+        }
+
         sb.append("\nExpression: ");
         if (expression == null) {
             sb.append("null");

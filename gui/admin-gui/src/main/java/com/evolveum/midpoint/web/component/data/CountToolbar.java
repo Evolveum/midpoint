@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -13,6 +15,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractTool
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.IModel;
@@ -27,6 +30,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 public class CountToolbar extends AbstractToolbar {
 
     private static final String ID_TD = "td";
+
+    private static final String ID_FORM = "form";
     private static final String ID_COUNT = "count";
     private static final String ID_PAGE_SIZE = "pageSize";
 
@@ -46,15 +51,18 @@ public class CountToolbar extends AbstractToolbar {
         count.setRenderBodyOnly(true);
         td.add(count);
 
-        TableConfigurationPanel popover = new TableConfigurationPanel(ID_PAGE_SIZE) {
+        Form form = new MidpointForm(ID_FORM);
+        td.add(form);
+
+        PagingSizePanel pageSize = new PagingSizePanel(ID_PAGE_SIZE) {
 
             @Override
-            protected void pageSizeChanged(AjaxRequestTarget target) {
+            protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
                 CountToolbar.this.pageSizeChanged(target);
             }
         };
-        popover.add(new VisibleBehaviour(() -> CountToolbar.this.isPageSizePopupVisible()));
-        td.add(popover);
+        pageSize.add(new VisibleBehaviour(() -> CountToolbar.this.isPageSizePopupVisible()));
+        form.add(pageSize);
     }
 
     private IModel<String> createModel(Component component, IPageable pageable) {

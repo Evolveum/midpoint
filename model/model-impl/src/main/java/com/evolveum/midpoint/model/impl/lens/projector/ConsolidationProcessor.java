@@ -223,7 +223,6 @@ public class ConsolidationProcessor {
                     .contextDescription(key.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
                     .result(result)
-                    .prismContext(prismContext)
                     .build()) {
 
                 // TODO what about setting existing item?
@@ -429,7 +428,6 @@ public class ConsolidationProcessor {
                     .contextDescription(key.toHumanReadableDescription())
                     .strengthSelector(existingItemKnown ? strengthSelector : strengthSelector.notWeak())
                     .result(result)
-                    .prismContext(prismContext)
                     .build()) {
 
                 // TODO what about setting existing item?

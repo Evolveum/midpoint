@@ -857,6 +857,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public @Nullable ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
+        return customizationBean.getCorrelation();
+    }
+
+    @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         //noinspection OptionalAssignedToNull
         if (structuredType == null) {

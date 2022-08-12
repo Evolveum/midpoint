@@ -42,12 +42,6 @@
                 <ref>ri:sisId</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <target>
-                        <path>extension/sisId</path>
-                    </target>
-                </inbound>
-                <inbound>
-                    <strength>strong</strength>
                     <expression>
                         <path>$shadow/correlation/correlatorState/referenceId</path>
                     </expression>
@@ -65,7 +59,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisGivenName</path>
+                        <path>givenName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -74,7 +68,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisFamilyName</path>
+                        <path>familyName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -83,7 +77,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/sisDateOfBirth</path>
+                        <path>extension/dateOfBirth</path>
                     </target>
                 </inbound>
             </attribute>
@@ -91,8 +85,17 @@
                 <ref>ri:nationalId</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.testing.story.correlation.IdMatchTestUtil.normalizeNationalId
+
+                                normalizeNationalId(input)
+                            </code>
+                        </script>
+                    </expression>
                     <target>
-                        <path>extension/sisNationalId</path>
+                        <path>extension/nationalId</path>
                     </target>
                 </inbound>
             </attribute>
@@ -108,34 +111,6 @@
                 <correlators>
                     <idMatch>
                         <extending>idmatch</extending>
-                        <definitions>
-                            <items>
-                                <item>
-                                    <name>givenName</name>
-                                    <source>
-                                        <path>extension/sisGivenName</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>familyName</name>
-                                    <source>
-                                        <path>extension/sisFamilyName</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>dateOfBirth</name>
-                                    <source>
-                                        <path>extension/sisDateOfBirth</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>nationalId</name>
-                                    <source>
-                                        <path>extension/sisNationalId</path>
-                                    </source>
-                                </item>
-                            </items>
-                        </definitions>
                         <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
                     </idMatch>
                 </correlators>

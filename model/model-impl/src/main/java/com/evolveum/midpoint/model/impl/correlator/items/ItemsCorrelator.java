@@ -13,17 +13,18 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,8 +32,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A "user-friendly" correlator based on a list of items that need to be matched between the source
@@ -57,40 +56,42 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
     }
 
     @Override
-    protected boolean checkCandidateOwnerInternal(
+    protected double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
-            throws ConfigurationException, SchemaException {
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         return new Correlation<>(correlationContext)
-                .checkCandidateOwner(candidateOwner);
+                .checkCandidateOwner(candidateOwner, result);
     }
 
     private class Correlation<F extends FocusType> {
 
         @NotNull private final ShadowType resourceObject;
         @NotNull private final CorrelationContext correlationContext;
+        @NotNull private final Task task;
         @NotNull private final String contextDescription;
 
         Correlation(@NotNull CorrelationContext correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
+            this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
         }
 
         public CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-
             List<F> candidates = findCandidates(result);
-            return beans.builtInResultCreator.createCorrelationResult(candidates, correlationContext);
+            return createCorrelationResult(candidates, task, result);
         }
 
         private @NotNull List<F> findCandidates(OperationResult result)
-                throws SchemaException, ConfigurationException {
+                throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
 
             CorrelationItems correlationItems = createCorrelationItems();
-
             List<F> allCandidates = findCandidates(correlationItems, result);
 
             LOGGER.debug("Found {} owner candidates for {} using {} correlation item(s) in {}: {}",
@@ -100,15 +101,21 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return allCandidates;
         }
 
-        boolean checkCandidateOwner(F candidateOwner) throws SchemaException, ConfigurationException {
-            CorrelationItems correlationItems = createCorrelationItems();
+        double checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
+                throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
 
-            boolean matches = checkCandidateOwner(correlationItems, candidateOwner);
+            CorrelationItems correlationItems = createCorrelationItems();
+            boolean matches = checkCandidateOwner(correlationItems, candidateOwner, result);
 
             LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
                     candidateOwner, resourceObject, correlationItems.size(), contextDescription, matches);
 
-            return matches;
+            if (matches) {
+                return determineConfidence(candidateOwner, task, result);
+            } else {
+                return 0;
+            }
         }
 
         private @NotNull CorrelationItems createCorrelationItems() throws ConfigurationException {
@@ -121,29 +128,22 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         @NotNull private List<F> findCandidates(
                 CorrelationItems correlationItems, OperationResult result)
-                throws SchemaException, ConfigurationException {
-
-            List<ObjectQuery> queries = createQueries(correlationItems);
-            if (queries == null) {
-                return List.of();
-            }
-
-            List<F> candidates = new ArrayList<>();
-            for (ObjectQuery query : queries) {
-                executeQuery(query, candidates, result);
-            }
-            return candidates;
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            ObjectQuery query = createQuery(correlationItems, result);
+            return query != null ? executeQuery(query, result) : List.of();
         }
 
         /** Returns `null` if we cannot use the definitions here. */
-        private @Nullable List<ObjectQuery> createQueries(CorrelationItems correlationItems)
-                throws SchemaException {
+        private @Nullable ObjectQuery createQuery(CorrelationItems correlationItems, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
             if (areItemsApplicable(correlationItems)) {
-                List<ObjectQuery> queries = correlationItems.createQueries(
+                return correlationItems.createIdentityQuery(
                         correlationContext.getFocusType(),
-                        correlationContext.getArchetypeOid());
-                LOGGER.debug("Correlation items specification resulted in {} queries", queries.size());
-                return queries;
+                        correlationContext.getArchetypeOid(),
+                        correlationContext.getTask(),
+                        result);
             } else {
                 return null;
             }
@@ -161,23 +161,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return true;
         }
 
-        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner)
-                throws SchemaException, ConfigurationException {
-
-            List<ObjectQuery> queries = createQueries(correlationItems);
-            if (queries == null) {
-                return false;
-            }
-
-            for (ObjectQuery query : queries) {
-                if (candidateOwnerMatches(query, candidateOwner)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void executeQuery(ObjectQuery query, List<F> candidates, OperationResult gResult) throws SchemaException {
+        private List<F> executeQuery(ObjectQuery query, OperationResult gResult) throws SchemaException {
+            List<F> candidates = new ArrayList<>();
             LOGGER.trace("Using the following query to find owner candidates:\n{}", query.debugDumpLazily(1));
             // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)
             //noinspection unchecked
@@ -188,6 +173,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                     null,
                     true,
                     gResult);
+            return candidates;
         }
 
         private boolean addToCandidates(F object, List<F> candidates) {
@@ -202,12 +188,20 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             return true;
         }
 
+        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException {
+            ObjectQuery query = createQuery(correlationItems, result);
+            return query != null && candidateOwnerMatches(query, candidateOwner);
+        }
+
         private boolean candidateOwnerMatches(ObjectQuery query, F candidateOwner) throws SchemaException {
             LOGGER.trace("Checking the following query:\n{}\nregarding the candidate:\n{}",
                     query.debugDumpLazily(1),
                     candidateOwner.debugDumpLazily(1));
             ObjectFilter filter = query.getFilter();
-            return filter == null || filter.match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
+            return filter == null
+                    || filter.match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
         }
     }
 }

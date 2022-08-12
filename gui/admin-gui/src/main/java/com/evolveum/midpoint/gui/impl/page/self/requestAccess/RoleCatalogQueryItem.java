@@ -23,6 +23,8 @@ public class RoleCatalogQueryItem implements Serializable {
 
     private RoleCollectionViewType collection;
 
+    private boolean rolesOfTeammate;
+
     public RoleCollectionViewType collection() {
         return collection;
     }
@@ -47,6 +49,15 @@ public class RoleCatalogQueryItem implements Serializable {
 
     public RoleCatalogQueryItem scopeOne(boolean scopeOne) {
         this.scopeOne = scopeOne;
+        return this;
+    }
+
+    public boolean rolesOfTeammate() {
+        return rolesOfTeammate;
+    }
+
+    public RoleCatalogQueryItem rolesOfTeammate(boolean rolesOfTeammate) {
+        this.rolesOfTeammate = rolesOfTeammate;
         return this;
     }
 }

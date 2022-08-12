@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.resource;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
@@ -41,6 +42,7 @@ public class QResource extends QAssignmentHolder<MResource> {
             ColumnMetadata.named("connectorRefTargetType").ofType(Types.OTHER);
     public static final ColumnMetadata CONNECTOR_REF_RELATION_ID =
             ColumnMetadata.named("connectorRefRelationId").ofType(Types.INTEGER);
+    public static final ColumnMetadata TEMPLATE = ColumnMetadata.named("template").ofType(Types.BOOLEAN);
 
     public final EnumPath<ResourceAdministrativeStateType> businessAdministrativeState =
             createEnum("businessAdministrativeState", ResourceAdministrativeStateType.class,
@@ -59,6 +61,7 @@ public class QResource extends QAssignmentHolder<MResource> {
                     MObjectType.class, CONNECTOR_REF_TARGET_TYPE);
     public final NumberPath<Integer> connectorRefRelationId =
             createInteger("connectorRefRelationId", CONNECTOR_REF_RELATION_ID);
+    public final BooleanPath template = createBoolean("template", TEMPLATE);
 
     public QResource(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -143,30 +143,14 @@ public class QAccessCertificationCampaignMapping
     }
 
     @Override
-    public AccessCertificationCampaignType toSchemaObject(Tuple rowTuple, QAccessCertificationCampaign entityPath,
+    public AccessCertificationCampaignType toSchemaObjectInternal(Tuple rowTuple, QAccessCertificationCampaign entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull JdbcSession jdbcSession,
             boolean forceFull) throws SchemaException {
-        AccessCertificationCampaignType base = super.toSchemaObject(rowTuple, entityPath, options, jdbcSession, forceFull);
-        if (forceFull || shouldLoadCases(options)) {
+        AccessCertificationCampaignType base = super.toSchemaObjectInternal(rowTuple, entityPath, options, jdbcSession, forceFull);
+        if (forceFull || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_CASE, options)) {
             loadCases(base, options, jdbcSession, forceFull);
         }
         return base;
-    }
-
-    private boolean shouldLoadCases(Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (options == null) {
-            return false;
-        }
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (option.getOptions() == null || !RetrieveOption.INCLUDE.equals(option.getOptions().getRetrieve())) {
-                continue;
-            }
-            var path = option.getSelector() != null ? option.getSelector().getPath() : null;
-            if (path == null || path.isEmpty() || F_CASE.isSubPathOrEquivalent(path)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void loadCases(AccessCertificationCampaignType base, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -194,7 +178,7 @@ public class QAccessCertificationCampaignMapping
         }
         List<Tuple> rows = query.fetch();
         for (Tuple row : rows) {
-            AccessCertificationCaseType c = casesMapping.toSchemaObject(row, qcase, options, jdbcSession, forceFull);
+            AccessCertificationCaseType c = casesMapping.toSchemaObjectInternal(row, qcase, options, jdbcSession, forceFull);
             cases.add(c.asPrismContainerValue());
         }
     }

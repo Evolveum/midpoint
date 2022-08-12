@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,19 +10,25 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Levenshtein;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.Similarity;
 import com.evolveum.midpoint.repo.sqale.filtering.*;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -48,7 +54,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
      */
     private final SqaleObjectLoader objectLoader;
 
-    private QueryModelMapping<S, Q, R> queryMapping;
+    private final QueryModelMapping<S, Q, R> queryMapping;
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
             Class<S> schemaType,
@@ -124,7 +130,7 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         } else if (filter instanceof OwnedByFilter) {
             return new OwnedByFilterProcessor<>(this).process((OwnedByFilter) filter);
         } else if (filter instanceof ReferencedByFilter) {
-                return new ReferencedByFilterProcessor<>(this).process((ReferencedByFilter) filter);
+            return new ReferencedByFilterProcessor<>(this).process((ReferencedByFilter) filter);
         } else if (filter instanceof TypeFilter) {
             return new TypeFilterProcessor<>(this).process((TypeFilter) filter);
         } else {
@@ -204,7 +210,32 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> nestedContext(SqaleNestedMapping<TS, TQ, TR> nestedMapping) {
+    public <TS, TQ extends FlexibleRelationalPathBase<TR>, TR> SqlQueryContext<TS, TQ, TR> nestedContext(
+            SqaleNestedMapping<TS, TQ, TR> nestedMapping) {
         return new SqaleQueryContext(entityPath, mapping(), this, sqlQuery, nestedMapping);
+    }
+
+    @Override
+    public Predicate processFuzzyFilter(
+            FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
+            throws QueryException {
+        FuzzyMatchingMethod method = filter.getMatchingMethod();
+        if (method instanceof Levenshtein) {
+            var levenshtein = (Levenshtein) method;
+            var func = Expressions.numberTemplate(Integer.class,
+                    "levenshtein_less_equal({0}, '{1s}', {2})",
+                    path, String.valueOf(values.singleValue()), levenshtein.getThreshold());
+            // Lower value means more similar
+            return levenshtein.isInclusive() ? func.loe(levenshtein.getThreshold()) : func.lt(levenshtein.getThreshold());
+        } else if (method instanceof Similarity) {
+            var spec = (Similarity) method;
+            var func = Expressions.numberTemplate(Float.class,
+                    "similarity({0}, '{1s}')",
+                    path, String.valueOf(values.singleValue()));
+            // Higher value means more similar
+            return spec.isInclusive() ? func.goe(spec.getThreshold()) : func.gt(spec.getThreshold());
+        }
+
+        return super.processFuzzyFilter(filter, path, values);
     }
 }

@@ -38,7 +38,8 @@
     <logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
     <logger name="com.evolveum.midpoint.test" level="TRACE" />
     <logger name="org.hibernate.SQL" level="INFO" />
-<!--    <logger name="PROFILING" level="TRACE" />-->
+    <!--<logger name="com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger" level="TRACE" />-->
+    <!--<logger name="PROFILING" level="TRACE" />-->
     <root level="INFO">
         <appender-ref ref="X" />
         <appender-ref ref="TracingAppender" />

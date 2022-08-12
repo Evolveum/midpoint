@@ -1,0 +1,8 @@
+# The following requires specially-prepared dummy ID Match service, looking at givenName/familyName/dateOfBirth/nationalId.
+# We expect that there's a single record for Ian Smith (with ref ID 9481). See the TestCorrelators.initDummyIdMatchService.
+
+uid | correlator | givenName | familyName | dateOfBirth | nationalId | expCandidates | expResult   | _note
+1   | id-match   | Ian       | Smith      | 2004-02-06  | 0402061328 | ismith:1.0    | ismith      | Dummy ID Match maps this account to emp #9481
+2   | id-match   | Jan       | Smith      | 2004-02-06  | 0402061328 | ismith:1.0    | ismith      | Dummy ID Match maps this account to emp #9481
+3   | id-match   | Nobody    | Nobody     | 0000-00-00  | 0000000000 |               | _none       | There is no such person in ID Match (therefore also not in repository)
+4   | id-match   | Ian       | Smith      | 2004-02-06  | 040206---- | ismith:0.5    | _uncertain  | ID Match cannot decide for sure, and ismith is a candidate

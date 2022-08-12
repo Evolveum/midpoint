@@ -342,21 +342,7 @@ public class GuiProfileCompiler {
             ar.setDocumentation(roleManagement.getDocumentation());
         }
 
-        mergeRoleManagementRelation(ar, roleManagement.getRelations());
         mergeRoleManagementRoleCatalog(ar, roleManagement);
-    }
-
-    private void mergeRoleManagementRelation(AccessRequestType result, RelationsDefinitionType deprecated) {
-        if (result.getRelationSelection() != null || deprecated == null) {
-            return;
-        }
-
-        RelationSelectionType rs = new RelationSelectionType();
-        result.setRelationSelection(rs);
-
-        rs.setIncludeDefaultRelations(deprecated.isIncludeDefaultRelations());
-
-        deprecated.getRelation().forEach(r -> rs.getRelation().add(r.clone()));
     }
 
     private void mergeRoleManagementRoleCatalog(AccessRequestType result, RoleManagementConfigurationType deprecated) {
@@ -398,7 +384,7 @@ public class GuiProfileCompiler {
 
         RoleCollectionViewType result = new RoleCollectionViewType();
         result.setDefault(isDefault);
-        result.setCollectionUri(uri);
+        result.setCollectionIdentifier(uri);
 
         return result;
     }

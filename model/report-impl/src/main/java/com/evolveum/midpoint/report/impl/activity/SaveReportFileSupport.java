@@ -1,11 +1,20 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.activity;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -36,16 +45,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * Contains common functionality for save exported report file executions.
@@ -85,15 +84,15 @@ class SaveReportFileSupport {
     void saveReportFile(String aggregatedData,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-        storeExportedReport(dataWriter.completizeReport(aggregatedData), dataWriter, result);
+        storeExportedReport(dataWriter.completeReport(aggregatedData), dataWriter, result);
     }
 
     void saveReportFile(ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
-        storeExportedReport(dataWriter.completizeReport(), dataWriter, result);
+        storeExportedReport(dataWriter.completeReport(), dataWriter, result);
     }
 
-    private void storeExportedReport(String completizedReport,
+    private void storeExportedReport(String completedReport,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             OperationResult result) throws CommonException {
 
@@ -106,7 +105,7 @@ class SaveReportFileSupport {
 
         if (StoreExportedWidgetDataType.ONLY_FILE.equals(storeType)
                 || StoreExportedWidgetDataType.WIDGET_AND_FILE.equals(storeType)) {
-            writeToReportFile(completizedReport, aggregatedFilePath);
+            writeToReportFile(completedReport, aggregatedFilePath, dataWriter.getEncoding());
             saveReportDataObject(dataWriter, aggregatedFilePath, result);
             if (report.getPostReportScript() != null) {
                 processPostReportScript(report, aggregatedFilePath, runningTask, result);
@@ -114,7 +113,7 @@ class SaveReportFileSupport {
         }
         if ((StoreExportedWidgetDataType.ONLY_WIDGET.equals(storeType)
                 || StoreExportedWidgetDataType.WIDGET_AND_FILE.equals(storeType))
-                && dataWriter instanceof DashboardReportDataWriter){
+                && dataWriter instanceof DashboardReportDataWriter) {
             DashboardType dashboard = reportService.getObjectResolver().resolve(
                     report.getDashboard().getDashboardRef(),
                     DashboardType.class,
@@ -128,11 +127,11 @@ class SaveReportFileSupport {
             widgets.forEach(widget -> {
                 String widgetData = widgetsData.get(widget.getIdentifier());
                 if (StringUtils.isEmpty(widgetData)) {
-                   return;
+                    return;
                 }
                 DashboardWidgetDataType data = widget.getData();
                 if (data == null) {
-                    data =  new DashboardWidgetDataType().storedData(widgetData);
+                    data = new DashboardWidgetDataType().storedData(widgetData);
                     PrismContainerDefinition<Containerable> def = dashboard.asPrismObject().getDefinition().findContainerDefinition(
                             ItemPath.create(DashboardType.F_WIDGET, DashboardWidgetType.F_DATA));
                     ContainerDelta<Containerable> delta = def.createEmptyDelta(
@@ -185,11 +184,11 @@ class SaveReportFileSupport {
         return formatDate.format(createDate);
     }
 
-    private void writeToReportFile(String contextOfFile, String aggregatedFilePath) {
+    private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
         try {
             FileUtils.writeByteArrayToFile(
                     new File(aggregatedFilePath),
-                    contextOfFile.getBytes(Charset.defaultCharset()));
+                    contextOfFile.getBytes(encoding));
         } catch (IOException e) {
             throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
         }
@@ -198,7 +197,7 @@ class SaveReportFileSupport {
     private void saveReportDataObject(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
             String filePath,
-            OperationResult parentResult) throws CommonException {
+             OperationResult parentResult) throws CommonException {
 
         String reportDataName = getNameOfExportedReportData(report, dataWriter.getType());
 

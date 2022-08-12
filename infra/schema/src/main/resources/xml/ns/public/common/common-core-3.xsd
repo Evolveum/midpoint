@@ -1542,6 +1542,17 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                (Alternative?) identities of this focus object.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -3981,6 +3992,22 @@
                         <a:since>4.2</a:since>
                         <a:experimental>true</a:experimental>
                         <a:displayName>ItemRefinedDefinitionType.persistence</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlation" type="tns:ItemCorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies the correlation for this item. Currently, it is supported only for definitions
+                        of resource attributes. But later we plan to extend the support also to focal item definitions.
+
+                        For attributes this automatically employs "beforeCorrelation" mapping evaluation phase.
+                        (If not explicitly forbidden in the attribute definition.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>ItemRefinedDefinitionType.correlation</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -8366,6 +8393,30 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="identity" type="tns:IdentityDataHandlingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of handling of the identity data. TODO better explanation
+
+                                TODO better name ... multiSource? multiProvenance?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="correlation" type="tns:ObjectTemplateCorrelationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of correlation for the corresponding focus objects.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8416,6 +8467,44 @@
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>
                                 <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="indexing" type="tns:ItemIndexingDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines "indexing" of item value or values, i.e. their transformation to a form suitable
+                                for advanced - for example, fuzzy - searching.
+
+                                Indexing is needed in two typical cases (often overlapping):
+
+                                - Either when a special transformation is necessary (e.g., taking first N characters of
+                                the normalized form; or a unique custom transformation)
+                                - and/or when we need to index data that are not searchable by default (e.g. multi-provenance
+                                properties, or properties not indexed by the repository).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>ItemRefinedDefinitionType.indexing</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="identity" type="tns:IdentityItemDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Marks the item as the one with multiple origins. Such items are not stored directly in their
+                                "main" place in the focus objects, but in $focus/identities/identity[x]/data object instead.
+                                (Where identity[x] is the value assigned to the given origin.) Then there may be special
+                                mapping or mappings devoted to the selection of the value or values to be stored right
+                                to the "main" place of the focus item.
+
+                                TODO better name for this configuration item... multiSource? multiProvenance? multiOrigin? multi?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>ItemRefinedDefinitionType.identity</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -10601,29 +10690,6 @@
                     <xsd:appinfo>
                         <a:displayName>FullTextSearchIndexedItemsConfigurationType.item</a:displayName>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="SystemConfigurationCorrelationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Global settings related to correlation.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Globally-defined correlators.
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

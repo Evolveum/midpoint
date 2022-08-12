@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -47,7 +47,7 @@ public class DerbyControllerTest extends AbstractUnitTest {
         conn.commit();
 
         // Try to connect over the "network" (localhost)
-        Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
+        Class.forName("org.apache.derby.jdbc.ClientDriver").getDeclaredConstructor().newInstance();
         String networkJdbcUrl = "jdbc:derby://" + controller.getListenHostname() + ":" + controller.getListenPort() + "/" + controller.getDbName();
         Properties props = new Properties();
         props.setProperty("user", controller.getUsername());

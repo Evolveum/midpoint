@@ -35,8 +35,4 @@ public class SchemaTestConstants {
     public static final ItemName EXTENSION_LONG_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "longType");
     public static final ItemName EXTENSION_DATE_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "dateType");
     public static final ItemName EXTENSION_SHIP_ELEMENT = new ItemName(NS_EXTENSION, "ship");
-
-    private static final String DUMMY_CORRELATOR_NS = "http://midpoint.evolveum.com/xml/ns/test/correlation";
-    public static final ItemName DUMMY_CORRELATOR_CONFIGURATION_ITEM_NAME = new ItemName(
-            DUMMY_CORRELATOR_NS, "dummy");
 }

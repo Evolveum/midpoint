@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMappi
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentityMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QGenericObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
@@ -144,6 +145,7 @@ public class SqaleRepositoryBeanConfig {
                         QCaseWorkItemMapping.initCaseWorkItemMapping(repositoryContext))
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.init(repositoryContext))
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.initFocusMapping(repositoryContext))
+                .register(FocusIdentityType.COMPLEX_TYPE, QFocusIdentityMapping.init(repositoryContext))
                 .register(FormType.COMPLEX_TYPE, QFormMapping.init(repositoryContext))
                 .register(FunctionLibraryType.COMPLEX_TYPE,
                         QFunctionLibraryMapping.init(repositoryContext))

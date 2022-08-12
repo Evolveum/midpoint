@@ -9,6 +9,8 @@ package com.evolveum.midpoint.test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Value object carrying test context information like task, result and method name.
@@ -18,6 +20,8 @@ import com.evolveum.midpoint.tools.testng.MidpointTestContext;
  * <b>It is important to to call {@link #destroy()} at the end (in some after-method).</b>
  */
 public final class MidpointTestContextWithTask implements MidpointTestContext {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointTestContextWithTask.class);
 
     private static volatile MidpointTestContextWithTask testContext;
 
@@ -78,7 +82,8 @@ public final class MidpointTestContextWithTask implements MidpointTestContext {
                 new MidpointTestContextWithTask(testClass, methodName, task, result);
         Thread.currentThread().setName(ctx.getTestName());
         if (testContext != null) {
-            throw new IllegalStateException("There is a testContext already, use destroy() properly: " + testContext);
+            LOGGER.warn("Previous testContext was not destroyed properly - offending test class: "
+                    + testContext.getTestClass());
         }
         testContext = ctx;
         return ctx;

@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.setMappingTarget;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -15,6 +27,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -25,6 +38,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -32,15 +46,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-import java.util.function.Function;
-
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.setMappingTarget;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Evaluation of object template mappings.
@@ -235,7 +241,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 result);
     }
 
-    public void computeItemDeltas() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+    public void computeItemDeltas() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         LOGGER.trace("Applying object template {} to {} (target {}), iteration {} ({}), phase {}",
@@ -247,7 +253,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private void evaluateMappings() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException {
 
         mappingSetEvaluation = new FocalMappingSetEvaluationBuilder<F, T>()
                 .context(context)
@@ -273,8 +279,18 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         //  What is used here is the original focus odo, which is maybe correct.
         PrismObject<T> targetObject = targetSpecification.getTargetObject();
 
-        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta, itemDeltaExistsProvider,
-                null, null, targetDefinition, env, beans, context, result);
+        consolidation = new DeltaSetTripleMapConsolidation<>(
+                outputTripleMap,
+                targetObject,
+                targetAPrioriDelta,
+                itemDeltaExistsProvider,
+                null,
+                null,
+                ItemDefinitionProvider.forObjectDefinition(targetDefinition),
+                env,
+                beans,
+                context,
+                result);
         consolidation.computeItemDeltas();
     }
 
@@ -312,20 +328,102 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
-                    .processThisAndIncludedTemplates(template, env.contextDescription, env.task, result,
-                            this::collectLocalMappings);
+                    .processThisAndIncludedTemplates(
+                            template, env.contextDescription, env.task, result, this::collectLocalMappings);
         }
     }
 
-    private void collectLocalMappings(ObjectTemplateType objectTemplate) {
+    private void collectLocalMappings(ObjectTemplateType objectTemplate) throws ConfigurationException {
         for (ObjectTemplateMappingType mapping: objectTemplate.getMapping()) {
-            mappings.add(new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+            mappings.add(
+                    new TemplateMappingEvaluationRequest(mapping, objectTemplate));
         }
-        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
-            for (ObjectTemplateMappingType mapping: templateItemDefType.getMapping()) {
-                mapping = setMappingTarget(mapping, templateItemDefType.getRef());
-                mappings.add(new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+        for (ObjectTemplateItemDefinitionType templateItemDefBean: objectTemplate.getItem()) {
+            ItemPathType ref = templateItemDefBean.getRef();
+            for (ObjectTemplateMappingType mapping: templateItemDefBean.getMapping()) {
+                mapping = setMappingTarget(mapping, ref);
+                mappings.add(
+                        new TemplateMappingEvaluationRequest(mapping, objectTemplate));
             }
+            IdentityItemDefinitionType identityDefBean = templateItemDefBean.getIdentity();
+            if (identityDefBean != null) {
+                mappings.add(
+                        new TemplateMappingEvaluationRequest(
+                                getOrCreateItemSelectionMapping(identityDefBean, ref),
+                                objectTemplate));
+            }
+        }
+        IdentityDataHandlingType identityHandlingBean = objectTemplate.getIdentity();
+        if (identityHandlingBean != null) {
+            ObjectTemplateMappingType mapping = getAuthoritativeSourceMapping(identityHandlingBean);
+            if (mapping != null) {
+                mappings.add(
+                        new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+            }
+        }
+    }
+
+    private ObjectTemplateMappingType getOrCreateItemSelectionMapping(
+            IdentityItemDefinitionType identityDefBean, ItemPathType ref) {
+        ObjectTemplateMappingType explicitMapping = identityDefBean.getSelection();
+        ObjectTemplateMappingType selectionMapping;
+        if (explicitMapping != null) {
+            selectionMapping = explicitMapping.clone();
+        } else {
+            String code = String.format(
+                    "midpoint.selectIdentityItemValues("
+                            + "identity, defaultAuthoritativeSource, prismContext.itemPathParser().asItemPath('%s'))",
+                    ref.getItemPath().toStringStandalone()
+                            .replace("'", "\\'"));
+            selectionMapping = new ObjectTemplateMappingType()
+                    .expression(new ExpressionType()
+                            .expressionEvaluator(
+                                    new ObjectFactory().createScript(
+                                            new ScriptExpressionEvaluatorType()
+                                                    .code(code))));
+        }
+        setDefaultStrong(selectionMapping);
+        setDefaultRelativityAbsolute(selectionMapping);
+        selectionMapping.getSource().add(new VariableBindingDefinitionType()
+                .path(new ItemPathType(SchemaConstants.PATH_IDENTITY)));
+        selectionMapping.getSource().add(new VariableBindingDefinitionType()
+                .path(new ItemPathType(SchemaConstants.PATH_DEFAULT_AUTHORITATIVE_SOURCE)));
+        return setMappingTarget(selectionMapping, ref);
+    }
+
+    private void setDefaultStrong(ObjectTemplateMappingType mapping) {
+        if (mapping.getStrength() == null) {
+            mapping.setStrength(MappingStrengthType.STRONG);
+        }
+    }
+
+    private void setDefaultRelativityAbsolute(ObjectTemplateMappingType mapping) {
+        ExpressionType expression = mapping.getExpression();
+        if (expression == null) {
+            return;
+        }
+        for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
+            Object evaluatorValue = evaluator.getValue();
+            if (evaluatorValue instanceof TransformExpressionEvaluatorType) {
+                TransformExpressionEvaluatorType transform = (TransformExpressionEvaluatorType) evaluatorValue;
+                if (transform.getRelativityMode() == null) {
+                    transform.setRelativityMode(TransformExpressionRelativityModeType.ABSOLUTE);
+                }
+            }
+        }
+    }
+
+    private ObjectTemplateMappingType getAuthoritativeSourceMapping(IdentityDataHandlingType identityDataHandlingBean) {
+        ObjectTemplateMappingType mapping = identityDataHandlingBean.getDefaultAuthoritativeSource();
+        if (mapping != null) {
+            ObjectTemplateMappingType clone = mapping.clone();
+            clone.getSource().add(new VariableBindingDefinitionType()
+                    .path(new ItemPathType(SchemaConstants.PATH_IDENTITY)));
+            setDefaultStrong(clone);
+            setDefaultRelativityAbsolute(clone);
+            return setMappingTarget(clone, new ItemPathType(SchemaConstants.PATH_DEFAULT_AUTHORITATIVE_SOURCE));
+        } else {
+            return null;
         }
     }
 

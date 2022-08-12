@@ -1,28 +1,27 @@
 <!--
-  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<c:resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
             oid="afb142f9-2218-491a-8b99-ce5713ca424d">
 
-    <c:name>Student Information System</c:name>
+    <name>Student Information System</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:equal>
-                <q:path>c:connectorType</q:path>
+                <q:path>connectorType</q:path>
                 <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
-    <c:connectorConfiguration>
+    <connectorConfiguration>
         <icfc:configurationProperties
                 xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
             <icfccsvfile:filePath>will-be-replaced-by-test-code</icfccsvfile:filePath> <!-- resource-sis.csv -->
@@ -31,7 +30,7 @@
             <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
             <icfccsvfile:uniqueAttribute>sisId</icfccsvfile:uniqueAttribute>
         </icfc:configurationProperties>
-    </c:connectorConfiguration>
+    </connectorConfiguration>
 
     <schemaHandling>
         <objectType>
@@ -51,21 +50,9 @@
                 </tag>
             </multiplicity>
             <attribute>
-                <c:ref>ri:sisId</c:ref>
+                <ref>ri:sisId</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <source>
-                        <path>$shadow/attributes/ri:firstName</path>
-                    </source>
-                    <source>
-                        <path>$shadow/attributes/ri:lastName</path>
-                    </source>
-                    <source>
-                        <path>$shadow/attributes/ri:born</path>
-                    </source>
-                    <source>
-                        <path>$shadow/attributes/ri:nationalId</path>
-                    </source>
                     <source>
                         <path>$shadow/attributes/ri:studyProgram</path>
                     </source>
@@ -75,10 +62,6 @@
                                 params = new HashMap()
                                 params.put('subtype', 'sis')
                                 params.put('sourceId', input)
-                                params.put('givenName', firstName)
-                                params.put('familyName', lastName)
-                                params.put('dateOfBirth', born)
-                                params.put('nationalId', nationalId)
                                 params.put('targetName', 'program-' + studyProgram)
                                 mylib.execute('createAssignment', params)
                             </code>
@@ -101,6 +84,44 @@
                     </target>
                 </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:firstName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:lastName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:born</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>extension/dateOfBirth</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:nationalId</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>extension/nationalId</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+
             <mappingsEvaluation>
                 <inbound>
                     <defaultEvaluationPhases>
@@ -109,325 +130,38 @@
                     </defaultEvaluationPhases>
                 </inbound>
             </mappingsEvaluation>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
-    <!-- intentionally legacy -->
-    <synchronization>
-        <objectSynchronization>
-            <enabled>true</enabled>
-            <kind>account</kind>
-            <intent>default</intent>
-            <correlationDefinition>
-                <correlators>
-                    <filter>
-                        <order>10</order>
-                        <authority>principal</authority>
-                        <name>name-date-id-user</name>
-                        <documentation>
-                            If key attributes (family name, date of birth, national ID) exactly match,
-                            we are immediately done. We ignore given name here.
-
-                            Comparing assignment vs user.
-                        </documentation>
-                        <ownerFilter>
-                            <q:and>
-                                <q:equal>
-                                    <q:path>familyName</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                MatchingUtil.getValuesForPath(
-                                                        focus, 'assignment', 'extension', 'familyName')
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
-                                <q:equal>
-                                    <q:path>extension/dateOfBirth</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                MatchingUtil.getValuesForPath(
-                                                        focus, 'assignment', 'extension', 'dateOfBirth')
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
-                                <q:equal>
-                                    <q:path>extension/nationalId</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                MatchingUtil.getValuesForPath(
-                                                        focus, 'assignment', 'extension', 'nationalId')
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
-                            </q:and>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>15</order>
-                        <authority>principal</authority>
-                        <name>name-date-id-assignment</name>
-                        <documentation>
-                            If key attributes (family name, date of birth, national ID) exactly match,
-                            we are immediately done. We ignore given name here.
-
-                            Comparing assignment vs existing assignments.
-                        </documentation>
-                        <ownerFilter>
-                            <q:exists>
-                                <q:path>assignment</q:path>
-                                <q:filter>
-                                    <q:and>
-                                        <!-- Not supported by the repository -->
-                                        <!--<q:equal>-->
-                                        <!--    <q:path>subtype</q:path>-->
-                                        <!--    <q:value>sis</q:value>-->
-                                        <!--</q:equal>-->
-                                        <q:equal>
-                                            <q:path>extension/familyName</q:path>
-                                            <expression>
-                                                <script>
-                                                    <code>
-                                                        import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                        MatchingUtil.getValuesForPath(
-                                                                focus, 'assignment', 'extension', 'familyName')
-                                                    </code>
-                                                </script>
-                                            </expression>
-                                        </q:equal>
-                                        <q:equal>
-                                            <q:path>extension/dateOfBirth</q:path>
-                                            <expression>
-                                                <script>
-                                                    <code>
-                                                        import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                        MatchingUtil.getValuesForPath(
-                                                                focus, 'assignment', 'extension', 'dateOfBirth')
-                                                    </code>
-                                                </script>
-                                            </expression>
-                                        </q:equal>
-                                        <q:equal>
-                                            <q:path>extension/nationalId</q:path>
-                                            <expression>
-                                                <script>
-                                                    <code>
-                                                        import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                        MatchingUtil.getValuesForPath(
-                                                                focus, 'assignment', 'extension', 'nationalId')
-                                                    </code>
-                                                </script>
-                                            </expression>
-                                        </q:equal>
-                                    </q:and>
-                                </q:filter>
-                            </q:exists>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>20</order>
-                        <authority>nonAuthoritative</authority>
-                        <name>names-date-user</name>
-                        <documentation>
-                            If given and family name and the date of birth match, we present an option to the operator.
-
-                            Comparing assignment vs user.
-                        </documentation>
-                        <ownerFilter>
-                            <q:and>
-                                <q:equal>
-                                    <q:path>givenName</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                MatchingUtil.getValuesForPath(
-                                                        focus, 'assignment', 'extension', 'givenName')
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
-                                <q:equal>
-                                    <q:path>familyName</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                MatchingUtil.getValuesForPath(
-                                                        focus, 'assignment', 'extension', 'familyName')
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
-                                <q:equal>
-                                    <q:path>extension/dateOfBirth</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>
-                                                import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                MatchingUtil.getValuesForPath(
-                                                        focus, 'assignment', 'extension', 'dateOfBirth')
-                                            </code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
-                            </q:and>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>25</order>
-                        <authority>nonAuthoritative</authority>
-                        <name>names-date-assignment</name>
-                        <documentation>
-                            If given and family name and the date of birth match, we present an option to the operator.
-
-                            Comparing assignment vs assignments.
-                        </documentation>
-                        <ownerFilter>
-                            <q:exists>
-                                <q:path>assignment</q:path>
-                                <q:filter>
-                                    <q:and>
-                                        <q:equal>
-                                            <q:path>extension/givenName</q:path>
-                                            <expression>
-                                                <script>
-                                                    <code>
-                                                        import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                        MatchingUtil.getValuesForPath(
-                                                                focus, 'assignment', 'extension', 'givenName')
-                                                    </code>
-                                                </script>
-                                            </expression>
-                                        </q:equal>
-                                        <q:equal>
-                                            <q:path>extension/familyName</q:path>
-                                            <expression>
-                                                <script>
-                                                    <code>
-                                                        import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                        MatchingUtil.getValuesForPath(
-                                                                focus, 'assignment', 'extension', 'familyName')
-                                                    </code>
-                                                </script>
-                                            </expression>
-                                        </q:equal>
-                                        <q:equal>
-                                            <q:path>extension/dateOfBirth</q:path>
-                                            <expression>
-                                                <script>
-                                                    <code>
-                                                        import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                        MatchingUtil.getValuesForPath(
-                                                                focus, 'assignment', 'extension', 'dateOfBirth')
-                                                    </code>
-                                                </script>
-                                            </expression>
-                                        </q:equal>
-                                    </q:and>
-                                </q:filter>
-                            </q:exists>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>30</order>
-                        <authority>nonAuthoritative</authority>
-                        <name>id-user</name>
-                        <documentation>
-                            If national ID matches, we present an option to the operator.
-
-                            Comparing assignment vs user.
-                        </documentation>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>extension/nationalId</q:path>
-                                <expression>
-                                    <script>
-                                        <code>
-                                            import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                            MatchingUtil.getValuesForPath(
-                                                    focus, 'assignment', 'extension', 'nationalId')
-                                        </code>
-                                    </script>
-                                </expression>
-                            </q:equal>
-                        </ownerFilter>
-                    </filter>
-                    <filter>
-                        <order>35</order>
-                        <authority>nonAuthoritative</authority>
-                        <name>id-assignment</name>
-                        <documentation>
-                            If national ID matches, we present an option to the operator.
-
-                            Comparing assignment vs assignments.
-                        </documentation>
-                        <ownerFilter>
-                            <q:exists>
-                                <q:path>assignment</q:path>
-                                <q:filter>
-                                    <q:equal>
-                                        <q:path>extension/nationalId</q:path>
-                                        <expression>
-                                            <script>
-                                                <code>
-                                                    import com.evolveum.midpoint.schema.util.MatchingUtil
-
-                                                    MatchingUtil.getValuesForPath(
-                                                            focus, 'assignment', 'extension', 'nationalId')
-                                                </code>
-                                            </script>
-                                        </expression>
-                                    </q:equal>
-                                </q:filter>
-                            </q:exists>
-                        </ownerFilter>
-                    </filter>
-                </correlators>
-                <cases/>
-            </correlationDefinition>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
-</c:resource>
+</resource>

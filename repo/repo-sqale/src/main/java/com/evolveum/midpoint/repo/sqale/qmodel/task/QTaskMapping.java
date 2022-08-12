@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -106,7 +106,7 @@ public class QTaskMapping
     @Override
     public @NotNull Path<?>[] selectExpressions(
             QTask entity, Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (SelectorOptions.hasToLoadPath(F_RESULT, options)) {
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_RESULT, options)) {
             return new Path[] { entity.oid, entity.fullObject, entity.fullResult };
         }
         return new Path[] { entity.oid, entity.fullObject };
@@ -176,10 +176,11 @@ public class QTaskMapping
     }
 
     @Override
-    public TaskType toSchemaObject(
-            Tuple row, QTask entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
-        TaskType task = super.toSchemaObject(row, entityPath, options);
+    public TaskType toSchemaObject(@NotNull Tuple row,
+            @NotNull QTask entityPath,
+            @NotNull JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+        TaskType task = super.toSchemaObject(row, entityPath, jdbcSession, options);
         // We need to check options too for proper setting of incompleteness.
         byte[] fullResult = row.get(entityPath.fullResult);
         if (fullResult != null) {
@@ -189,7 +190,7 @@ public class QTaskMapping
             resultProperty.setRealValue(
                     parseSchemaObject(fullResult, "opResult", OperationResultType.class));
             resultProperty.setIncomplete(false);
-        } else if (SelectorOptions.hasToLoadPath(F_RESULT, options)) {
+        } else if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_RESULT, options)) {
             PrismUtil.setPropertyNullAndComplete(task.asPrismObject(), TaskType.F_RESULT);
         }
         return task;

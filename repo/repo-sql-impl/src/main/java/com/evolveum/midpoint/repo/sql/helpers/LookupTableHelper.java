@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -194,7 +194,7 @@ public class LookupTableHelper {
     <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
             Collection<SelectorOptions<GetOperationOptions>> options,
             Session session) throws SchemaException {
-        if (!SelectorOptions.hasToLoadPath(LookupTableType.F_ROW, options)) {
+        if (!SelectorOptions.hasToFetchPathNotRetrievedByDefault(LookupTableType.F_ROW, options)) {
             return;
         }
 

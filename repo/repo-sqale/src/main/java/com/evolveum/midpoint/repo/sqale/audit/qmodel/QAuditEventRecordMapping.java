@@ -119,7 +119,7 @@ public class QAuditEventRecordMapping
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        AuditEventRecordType record = new AuditEventRecordType(prismContext())
+        AuditEventRecordType record = new AuditEventRecordType()
                 .repoId(row.id)
                 .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 .eventIdentifier(row.eventIdentifier)
@@ -400,7 +400,7 @@ public class QAuditEventRecordMapping
             @Override
             public AuditEventRecordType transform(Tuple tuple, QAuditEventRecord entityPath,
                     Collection<SelectorOptions<GetOperationOptions>> options) {
-                return toSchemaObjectSafe(tuple, entityPath, options, jdbcSession, false);
+                return toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
             }
         };
     }

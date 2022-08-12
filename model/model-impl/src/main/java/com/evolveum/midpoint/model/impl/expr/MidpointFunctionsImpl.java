@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.expr;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -2183,5 +2185,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Collection<PrismValue> selectIdentityItemValues(
+            @Nullable Collection<FocusIdentityType> identities,
+            @Nullable FocusIdentitySourceType source,
+            @NotNull ItemPath itemPath) {
+        return beans.identitiesManager.selectIdentityItemValue(identities, source, itemPath);
     }
 }

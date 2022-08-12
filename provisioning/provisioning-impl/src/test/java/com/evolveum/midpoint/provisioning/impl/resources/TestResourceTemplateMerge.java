@@ -7,55 +7,44 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_CONFIGURATION_PROPERTIES;
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_RESULTS_HANDLER_CONFIGURATION;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.AUTHORITATIVE;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.CLOCKWORK;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import static com.evolveum.midpoint.test.IntegrationTestTools.DUMMY_CONNECTOR_TYPE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.CLOCKWORK;
 import static com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import javax.xml.namespace.QName;
 
 public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTest {
 
@@ -606,7 +595,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
         and("there are two 'items' correlators");
         CorrelationDefinitionType correlationDefinitionBean = Objects.requireNonNull(accountDef.getCorrelationDefinitionBean());
-        List<ItemsCorrelatorType> itemsCorrelators = correlationDefinitionBean.getCorrelators().getItems();
+        List<ItemsSubCorrelatorType> itemsCorrelators = correlationDefinitionBean.getCorrelators().getItems();
         assertThat(itemsCorrelators).as("items correlators").hasSize(2);
         ItemsCorrelatorType empNo = MiscUtil.extractSingletonRequired(
                 itemsCorrelators.stream()
@@ -614,7 +603,6 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                         .collect(Collectors.toList()),
                 () -> new AssertionError("multiple empNo correlators"),
                 () -> new AssertionError("no empNo correlator"));
-        assertThat(empNo.getAuthority()).isEqualTo(AUTHORITATIVE); // overridden in types-1
         // Use of toString() is a hack (it's hard to compare paths using equals())
         assertThat(empNo.getItem().get(0).getPath().getItemPath().toString()).as("empNo path")
                 .isEqualTo(prismContext.toUniformPath(UserType.F_EMPLOYEE_NUMBER).toString());
@@ -624,34 +612,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                         .collect(Collectors.toList()),
                 () -> new AssertionError("multiple unnamed correlators"),
                 () -> new AssertionError("no unnamed correlator"));
-        assertThat(unnamedCorrelator.getAuthority()).isEqualTo(NON_AUTHORITATIVE);
         assertThat(unnamedCorrelator.getItem()).hasSize(2);
-
-        and("'items' in correlation definitions are correctly merged");
-        List<CorrelationItemDefinitionType> items =
-                correlationDefinitionBean.getCorrelators().getDefinitions().getItems().getItem();
-        assertThat(items).hasSize(1);
-        CorrelationItemDefinitionType item = items.get(0);
-        assertThat(item.getName()).isEqualTo("test-item-1");
-        assertThat(item.getPath().toString()).isEqualTo("item-2"); // overridden in types-1
-
-        and("'places' in correlation definitions are correctly merged");
-        List<CorrelationItemTargetDefinitionType> targets = item.getTarget();
-        assertThat(targets).as("targets").hasSize(1); // should be merged on qualifier-1
-        CorrelationItemTargetDefinitionType target = targets.get(0);
-        assertThat(target.getQualifier()).isEqualTo("qualifier-1");
-        assertThat(target.getPath().toString()).isEqualTo("item-2-target-2");
-
-        CorrelationItemSourceDefinitionType sourcePlace =
-                correlationDefinitionBean.getCorrelators().getDefinitions().getPlaces().getSource();
-        assertThat(sourcePlace.getPath().toString()).isEqualTo("source-2"); // overridden in types-1
-
-        List<CorrelationItemTargetDefinitionType> targetPlaces =
-                correlationDefinitionBean.getCorrelators().getDefinitions().getPlaces().getTarget();
-        assertThat(targetPlaces).hasSize(1);
-        CorrelationItemTargetDefinitionType targetPlace = targetPlaces.get(0);
-        assertThat(targetPlace.getQualifier()).isEqualTo("qualifier-1"); // merging based on this key
-        assertThat(targetPlace.getPath().toString()).isEqualTo("target-2"); // overridden in types-1
 
         and("default inbound mappings phases are merged");
         // This is a bit counter-intuitive, but according to the general merging algorithm.

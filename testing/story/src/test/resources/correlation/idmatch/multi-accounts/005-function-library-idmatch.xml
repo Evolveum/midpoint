@@ -9,7 +9,7 @@
                  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
                  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
                  xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
-    <name>idmatch</name>
+    <name>mylib</name>
     <function>
         <name>createAssignment</name>
         <parameter>
@@ -18,22 +18,6 @@
         </parameter>
         <parameter>
             <name>sourceId</name>
-            <type>xsd:string</type>
-        </parameter>
-        <parameter>
-            <name>givenName</name>
-            <type>xsd:string</type>
-        </parameter>
-        <parameter>
-            <name>familyName</name>
-            <type>xsd:string</type>
-        </parameter>
-        <parameter>
-            <name>dateOfBirth</name>
-            <type>xsd:string</type>
-        </parameter>
-        <parameter>
-            <name>nationalId</name>
             <type>xsd:string</type>
         </parameter>
         <parameter>
@@ -46,20 +30,16 @@
             <code>
                 import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
-                import static com.evolveum.midpoint.testing.story.correlation.IdMatchTestUtil.normalizeNationalId
 
                 import com.evolveum.midpoint.schema.util.*
                 import com.evolveum.midpoint.prism.path.*
 
-                def assignment = new AssignmentType(midpoint.prismContext)
+                def assignment = new AssignmentType()
                         .subtype(subtype)
                         .subtype(subtype + '-' + sourceId)
 
+                // This is not strictly necessary (just an example of storing something to assignment extension)
                 setExtensionValue(assignment, 'sourceId', sourceId)
-                setExtensionValue(assignment, 'givenName', givenName)
-                setExtensionValue(assignment, 'familyName', familyName)
-                setExtensionValue(assignment, 'dateOfBirth', dateOfBirth)
-                setExtensionValue(assignment, 'nationalId', normalizeNationalId(nationalId))
 
                 if (targetName != null) {
                     target = midpoint.getOrgByName(targetName)
@@ -81,47 +61,6 @@
                                 midpoint.prismContext, containerable.asPrismContainerValue(), new ItemName(name))
                     }
                 }
-            </code>
-        </script>
-    </function>
-
-    <function>
-        <name>getPersonalDataItem</name>
-        <documentation>
-            Selects the assignment that contains the most authoritative personal data.
-        </documentation>
-        <parameter>
-            <name>assignments</name>
-            <type>c:AssignmentType</type>
-        </parameter>
-        <parameter>
-            <name>itemName</name>
-            <type>xsd:string</type>
-        </parameter>
-        <returnType>xsd:string</returnType>
-        <returnMultiplicity>single</returnMultiplicity>
-        <script>
-            <code>
-
-                import com.evolveum.midpoint.prism.path.ItemName
-                import com.evolveum.midpoint.schema.util.ObjectTypeUtil
-
-                // Here would be some very smart code evaluating specified business rules aimed to pick
-                // the most accurate and precise data.
-
-                // Currently we simply take the assignment with the "lowest" ID.
-
-                def sourceId = new ItemName('sourceId')
-
-                if (assignments == null || assignments.isEmpty()) {
-                    return null
-                }
-
-                sorted = new ArrayList(assignments)
-                sorted.sort { ObjectTypeUtil.getExtensionItemRealValue(it.asPrismContainerValue(), sourceId) }
-
-                def assignment = sorted.iterator().next()
-                ObjectTypeUtil.getExtensionItemRealValue(assignment.asPrismContainerValue(), new ItemName(itemName))
             </code>
         </script>
     </function>

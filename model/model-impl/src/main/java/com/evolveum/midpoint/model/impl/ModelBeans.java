@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -14,53 +21,42 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
 import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
-
-import com.evolveum.midpoint.provisioning.api.SynchronizationSorterEvaluator;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.correlator.BuiltInResultCreator;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AutoAssignMappingCollector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFactory;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
+import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionFactory;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-
+import com.evolveum.midpoint.provisioning.api.SynchronizationSorterEvaluator;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaService;
-
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-
 import com.evolveum.midpoint.task.api.TaskManager;
-
-import com.evolveum.midpoint.cases.api.CaseManager;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.AutoAssignMappingCollector;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Commonly-used beans for model-impl module.
@@ -106,6 +102,8 @@ public class ModelBeans {
     @Autowired public SecurityEnforcer securityEnforcer;
     @Autowired public SecurityContextManager securityContextManager;
     @Autowired public OperationalDataManager metadataManager;
+    @Autowired public IdentitiesManager identitiesManager;
+    @Autowired public IndexingManager indexingManager;
     @Autowired public TaskManager taskManager;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired(required = false) public CaseManager caseManager; // not available e.g. during tests
@@ -131,8 +129,8 @@ public class ModelBeans {
     @Autowired public CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;
-    @Autowired public BuiltInResultCreator builtInResultCreator;
     @Autowired public SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     @Autowired public SynchronizationActionFactory synchronizationActionFactory;
     @Autowired public ProjectionContextKeyFactory projectionContextKeyFactory;
+    @Autowired public ArchetypeManager archetypeManager;
 }

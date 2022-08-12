@@ -17,8 +17,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * Utilities for handling correlation item definitions.
  */
@@ -27,17 +25,13 @@ public class CorrelationItemDefinitionUtil {
     /**
      * Returns the name under which we will reference this item definition (using "ref" elements).
      */
-    public static @NotNull String getName(@NotNull CorrelationItemDefinitionType definitionBean) {
+    public static @NotNull String getName(@NotNull ItemCorrelationType definitionBean) {
         if (definitionBean.getName() != null) {
             return definitionBean.getName();
         }
         String nameFromPath = getNameFromPath(definitionBean.getPath());
         if (nameFromPath != null) {
             return nameFromPath;
-        }
-        String nameFromSource = getNameFromSource(definitionBean.getSource());
-        if (nameFromSource != null) {
-            return nameFromSource;
         }
         throw new IllegalArgumentException("Item definition with no name " + definitionBean);
     }
@@ -50,35 +44,6 @@ public class CorrelationItemDefinitionUtil {
         if (lastName != null) {
             return lastName.getLocalPart();
         }
-        return null;
-    }
-
-    private static @Nullable String getNameFromSource(CorrelationItemSourceDefinitionType source) {
-        if (source == null) {
-            return null;
-        }
-
-        ItemPathType itemPathBean = source.getPath();
-        if (itemPathBean != null) {
-            ItemName lastName = itemPathBean.getItemPath().lastName();
-            return lastName != null ? lastName.getLocalPart() : null;
-        }
-
-        ItemRouteType route = source.getRoute();
-        if (route != null) {
-            List<ItemRouteSegmentType> segments = route.getSegment();
-            if (segments.isEmpty()) {
-                return null;
-            }
-            ItemRouteSegmentType lastSegment = segments.get(segments.size() - 1);
-            ItemPathType pathBean = lastSegment.getPath();
-            if (pathBean == null) {
-                return null;
-            }
-            ItemName lastName = pathBean.getItemPath().lastName();
-            return lastName != null ? lastName.getLocalPart() : null;
-        }
-
         return null;
     }
 
@@ -117,23 +82,43 @@ public class CorrelationItemDefinitionUtil {
                         .append(configBean.getExtending())
                         .append("', ");
             }
-            if (configBean.getOrder() != null) {
-                sb.append("order ")
-                        .append(configBean.getOrder())
-                        .append(", ");
+            CorrelatorCompositionDefinitionType composition = getComposition(configBean);
+            if (composition != null) {
+                if (composition.getTier() != null) {
+                    sb.append("tier ")
+                            .append(composition.getTier())
+                            .append(", ");
+                }
+                if (composition.getOrder() != null) {
+                    sb.append("order ")
+                            .append(composition.getOrder())
+                            .append(", ");
+                }
             }
             if (Boolean.FALSE.equals(configBean.isEnabled())) {
                 sb.append("disabled, ");
             }
-            if (configBean.getAuthority() != null) {
-                sb.append("authority: ")
-                        .append(configBean.getAuthority())
-                        .append(", ");
-            }
             sb.append("having ")
                     .append(configBean.asPrismContainerValue().size())
                     .append(" item(s)");
+            // TODO specific items, if the correlator is "items" one
             return sb.toString();
+        }
+    }
+
+    public static @Nullable CorrelatorCompositionDefinitionType getComposition(AbstractCorrelatorType bean) {
+        if (bean instanceof ItemsSubCorrelatorType) {
+            return ((ItemsSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof FilterSubCorrelatorType) {
+            return ((FilterSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof ExpressionSubCorrelatorType) {
+            return ((ExpressionSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof IdMatchSubCorrelatorType) {
+            return ((IdMatchSubCorrelatorType) bean).getComposition();
+        } else if (bean instanceof CompositeSubCorrelatorType) {
+            return ((CompositeSubCorrelatorType) bean).getComposition();
+        } else {
+            return null;
         }
     }
 }

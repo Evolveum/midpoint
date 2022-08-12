@@ -25,8 +25,8 @@
             <correlation>
                 <correlators>
                     <items>
-                        <enabled>false</enabled>
                         <name>itemCorrelator</name>
+                        <enabled>false</enabled>
                         <!-- This is poor man's way how to replace the definition of correlators.
                              Wish there could be a better way... -->
                     </items>

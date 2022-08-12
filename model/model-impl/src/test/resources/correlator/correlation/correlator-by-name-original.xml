@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<itemsCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>by-name-original</name>
+    <confidence>
+        <!-- just testing the dynamic confidence values -->
+        <expression>
+            <script>
+                <code>0.7</code>
+            </script>
+        </expression>
+    </confidence>
+    <item>
+        <path>givenName</path>
+    </item>
+    <item>
+        <path>familyName</path>
+    </item>
+</itemsCorrelator>

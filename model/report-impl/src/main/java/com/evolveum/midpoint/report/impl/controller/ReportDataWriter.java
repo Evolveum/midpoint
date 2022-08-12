@@ -1,17 +1,18 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import java.nio.charset.Charset;
+import java.util.function.Function;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 /**
  * Responsible for creating and manipulating text representation of an exported report.
@@ -62,15 +63,15 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
      * Returns the final text output of the report, formatted according to the rules of the file format (CSV/HTML)
      * and an added prefix and suffix of report.
      */
-    String completizeReport(String aggregatedData);
+    String completeReport(String aggregatedData);
 
     /**
      * Use data in data writer.
      */
-    String completizeReport();
+    String completeReport();
 
     @Nullable
-    default Function<String, String> getFunctionForWidgetStatus(){
+    default Function<String, String> getFunctionForWidgetStatus() {
         return null;
     }
 
@@ -79,4 +80,13 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
     String getType();
 
     FileFormatConfigurationType getFileFormatConfiguration();
+
+    /**
+     * Encoding for the output, supported explicitly only by some types of writers.
+     */
+    @NotNull
+    default Charset getEncoding() {
+        return Charset.defaultCharset();
+//        return StandardCharsets.UTF_8; TODO wouldn't this be better? Definitely more predictable.
+    }
 }

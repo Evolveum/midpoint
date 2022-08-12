@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.testing.story.correlation;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -14,11 +16,12 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +39,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
  * Common superclass for all correlation tests.
@@ -51,6 +52,14 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
     static final String NS_EXT = "http://example.com/idmatch";
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+    private static final ItemName EXT_DATE_OF_BIRTH = new ItemName(NS_EXT, "dateOfBirth");
+    private static final ItemName EXT_NATIONAL_ID = new ItemName(NS_EXT, "nationalId");
+
+    static final ItemPath PATH_DATE_OF_BIRTH = ItemPath.create(UserType.F_EXTENSION, EXT_DATE_OF_BIRTH);
+    static final ItemPath PATH_NATIONAL_ID = ItemPath.create(UserType.F_EXTENSION, EXT_NATIONAL_ID);
+
+    static final ItemName SIS_ID_NAME = new ItemName(NS_RI, "sisId");
 
     @Autowired CorrelationService correlationService;
     @Autowired CorrelationCaseManager correlationCaseManager;

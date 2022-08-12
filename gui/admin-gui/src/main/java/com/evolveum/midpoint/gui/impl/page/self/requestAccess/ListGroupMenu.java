@@ -29,14 +29,42 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
         this.items = items;
     }
 
-    public void activateItem(ListGroupMenuItem item) {
-        if (!item.getItems().isEmpty()) {
+    public void onItemClickPerformed(ListGroupMenuItem item) {
+        if (item.isEmpty()) {
+            getItems().forEach(i -> deactivateItem(i));
+            item.setActive(true);
+
             return;
         }
 
-        getItems().forEach(i -> deactivateItem(i));
+        item.setOpen(!item.isOpen());
+    }
 
-        item.setActive(true);
+    public void activateFirstAvailableItem() {
+        for (ListGroupMenuItem i : getItems()) {
+            if (activateFirstAvailableItem(i)) {
+                i.setOpen(true);
+                break;
+            }
+        }
+    }
+
+    public boolean activateFirstAvailableItem(ListGroupMenuItem item) {
+        List<ListGroupMenuItem> items = item.getItems();
+        if (items.isEmpty() && !item.isDisabled()) {
+            item.setActive(true);
+
+            return true;
+        }
+
+        for (ListGroupMenuItem i : items) {
+            if (activateFirstAvailableItem(i)) {
+                i.setOpen(true);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void deactivateItem(ListGroupMenuItem<T> item) {
@@ -56,12 +84,22 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
         return null;
     }
 
-    private ListGroupMenuItem getActiveMenu(ListGroupMenuItem<T> parent) {
-        if (parent.isActive()) {
-            return parent;
+    private ListGroupMenuItem getActiveMenu(ListGroupMenuItem<T> item) {
+        if (item.isActive()) {
+            return item;
         }
 
-        return parent.getItems().stream().filter(i -> i.isActive()).findFirst().orElse(null);
+        for (ListGroupMenuItem i : item.getItems()) {
+            ListGroupMenuItem active = getActiveMenu(i);
+            if (active != null) {
+                return active;
+            }
+        }
+
+        return null;
     }
 
+    public boolean isEmpty() {
+        return getItems().isEmpty();
+    }
 }

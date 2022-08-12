@@ -7,62 +7,58 @@
 
 package com.evolveum.midpoint.model.impl.correlation;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.identify;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.*;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Creates {@link CorrelatorContext} instances.
  *
- * TODO double check handling of PCV IDs when merging
- *  (fortunately, the object is not stored anywhere, so conflicts are most probably harmless)
+ * TODO rework merging!!!
  */
 public class CorrelatorContextCreator {
-
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelatorContextCreator.class);
 
     /** What items are allowed in the configuration that contains `using` clause - i.e. that points to another config. */
     private static final Collection<ItemName> ALLOWED_ITEMS_FOR_USING = List.of(
             AbstractCorrelatorType.F_USING,
-            AbstractCorrelatorType.F_AUTHORITY,
-            AbstractCorrelatorType.F_ORDER,
             AbstractCorrelatorType.F_DISPLAY_NAME,
-            AbstractCorrelatorType.F_DEFINITIONS,
             AbstractCorrelatorType.F_DESCRIPTION,
             AbstractCorrelatorType.F_DOCUMENTATION);
 
     /** These items are _not_ merged when extending the correlators. */
     private static final Collection<ItemName> NOT_MERGED_WHEN_EXTENDING = List.of(
             AbstractCorrelatorType.F_USING, // forbidden anyway
-            AbstractCorrelatorType.F_AUTHORITY,
-            AbstractCorrelatorType.F_ORDER,
             AbstractCorrelatorType.F_NAME,
             AbstractCorrelatorType.F_DISPLAY_NAME,
             AbstractCorrelatorType.F_DESCRIPTION,
-            AbstractCorrelatorType.F_DOCUMENTATION,
-            AbstractCorrelatorType.F_DEFINITIONS // these are merged in a different way
-    );
+            AbstractCorrelatorType.F_DOCUMENTATION);
 
     /**
      * The original configuration we start with.
@@ -77,71 +73,76 @@ public class CorrelatorContextCreator {
      */
     @NotNull private final AbstractCorrelatorType originalConfigurationBean;
 
-    /** Used to find additional definitions. */
-    @Nullable private final AbstractCorrelatorType parentOriginalConfigurationBean;
-
     /** The correlation definition. We just pass this to the context. */
-    @Nullable private final CorrelationDefinitionType correlationDefinitionBean;
+    @NotNull private final CorrelationDefinitionType correlationDefinitionBean;
+
+    /** TODO */
+    @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
+    @NotNull private final IndexingConfiguration indexingConfiguration;
 
     /** The system configuration. We use it to look for global correlator definitions. */
     @Nullable private final SystemConfigurationType systemConfiguration;
-
-    /** Correlators that we should take definitions from. */
-    @NotNull private final Queue<AbstractCorrelatorType> toMergeDefinitionsQueue = new LinkedList<>();
-
-    /** Correlators we have merged the definitions from. */
-    @NotNull private final List<AbstractCorrelatorType> definitionsMergedFrom = new ArrayList<>();
-
-    /** Source (not cloned) for {@link #merged}. Present in this form to allow reference comparisons. */
-    private AbstractCorrelatorType mergedBeforeClone;
 
     /** The resulting merged configuration. It is cloned to avoid any immutability issues. */
     private AbstractCorrelatorType merged;
 
     private CorrelatorContextCreator(
             @NotNull CorrelatorConfiguration originalConfiguration,
-            @Nullable AbstractCorrelatorType parentOriginalConfigurationBean,
-            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull IdentityManagementConfiguration identityManagementConfiguration,
+            @NotNull IndexingConfiguration indexingConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
         this.originalConfiguration = originalConfiguration;
         this.originalConfigurationBean = originalConfiguration.getConfigurationBean();
-        this.parentOriginalConfigurationBean = parentOriginalConfigurationBean;
         this.correlationDefinitionBean = correlationDefinitionBean;
+        this.identityManagementConfiguration = identityManagementConfiguration;
+        this.indexingConfiguration = indexingConfiguration;
         this.systemConfiguration = systemConfiguration;
     }
 
-    static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext)
+    static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext, ModelBeans beans)
             throws ConfigurationException, SchemaException {
         return createRootContext(
                 fullContext.getCorrelationDefinitionBean(),
-                fullContext.systemConfiguration);
+                fullContext.objectTemplate,
+                fullContext.systemConfiguration,
+                beans);
     }
 
     static CorrelatorContext<?> createRootContext(
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
-            @Nullable SystemConfigurationType systemConfiguration)
+            @Nullable ObjectTemplateType objectTemplate,
+            @Nullable SystemConfigurationType systemConfiguration,
+            @NotNull ModelBeans beans)
             throws ConfigurationException, SchemaException {
-        CorrelatorConfiguration originalConfiguration =
-                getConfiguration(
-                        correlationDefinitionBean.getCorrelators());
+        CompositeCorrelatorType correlators;
+        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean.getCorrelators();
+        if (specificCorrelators != null) {
+            correlators = specificCorrelators;
+        } else {
+            correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate);
+        }
         return new CorrelatorContextCreator(
-                originalConfiguration,
-                null,
+                getConfiguration(correlators),
                 correlationDefinitionBean,
+                IdentitiesManager.createIdentityConfiguration(objectTemplate),
+                IndexingConfigurationImpl.of(objectTemplate, beans),
                 systemConfiguration)
                 .create();
     }
 
     public static CorrelatorContext<?> createChildContext(
             @NotNull CorrelatorConfiguration childConfiguration,
-            @NotNull AbstractCorrelatorType parentOriginalConfigurationBean,
-            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull IdentityManagementConfiguration identityManagementConfiguration,
+            @NotNull IndexingConfiguration indexingConfiguration,
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
         return new CorrelatorContextCreator(
                 childConfiguration,
-                parentOriginalConfigurationBean,
                 correlationDefinitionBean,
+                identityManagementConfiguration,
+                indexingConfiguration,
                 systemConfiguration)
                 .create();
     }
@@ -153,6 +154,8 @@ public class CorrelatorContextCreator {
                     originalConfiguration,
                     originalConfigurationBean,
                     correlationDefinitionBean,
+                    identityManagementConfiguration,
+                    indexingConfiguration,
                     systemConfiguration);
         }
 
@@ -162,23 +165,14 @@ public class CorrelatorContextCreator {
                 new CorrelatorConfiguration.TypedCorrelationConfiguration(merged),
                 originalConfigurationBean,
                 correlationDefinitionBean,
+                identityManagementConfiguration,
+                indexingConfiguration,
                 systemConfiguration);
     }
 
     private void createMergedConfiguration() throws ConfigurationException, SchemaException {
-        toMergeDefinitionsQueue.add(originalConfigurationBean);
-        if (parentOriginalConfigurationBean != null) {
-            toMergeDefinitionsQueue.add(parentOriginalConfigurationBean);
-        }
-
-        mergedBeforeClone = evaluateInitialUsingStep();
-        merged = mergedBeforeClone.clone();
-
+        merged = evaluateInitialUsingStep().clone();
         goThroughExtensionChain();
-
-        while (!toMergeDefinitionsQueue.isEmpty()) {
-            mergeDefinitionsFromQueueHead();
-        }
     }
 
     private @NotNull AbstractCorrelatorType evaluateInitialUsingStep() throws ConfigurationException {
@@ -188,7 +182,6 @@ public class CorrelatorContextCreator {
                     "Both 'extending' and 'using' cannot be set at once: %s", identify(originalConfigurationBean));
             AbstractCorrelatorType referenced = resolveReference(firstUsing);
             checkCompatibilityForTheUsingClause(originalConfigurationBean, referenced);
-            toMergeDefinitionsQueue.add(referenced);
             return referenced;
         } else {
             return originalConfigurationBean;
@@ -206,7 +199,6 @@ public class CorrelatorContextCreator {
             }
             AbstractCorrelatorType extending = resolveReference(extendingRef);
             mergeFromConfigBeingExtended(extending);
-            toMergeDefinitionsQueue.add(extending);
             current = extending;
         }
     }
@@ -279,151 +271,6 @@ public class CorrelatorContextCreator {
         return singleMatching != null ? singleMatching.getConfigurationBean() : null;
     }
 
-    private void mergeDefinitionsFromQueueHead() throws ConfigurationException {
-        AbstractCorrelatorType current = toMergeDefinitionsQueue.remove();
-        LOGGER.trace("Getting ancestors for {}", identifyLazily(current));
-        while (current != null) {
-            if (containsByIdentity(definitionsMergedFrom, current)) {
-                LOGGER.trace("Definition already merged from {}", identifyLazily(current));
-                break;
-            }
-            mergeDefinitionsFrom(current);
-            definitionsMergedFrom.add(current);
-            current = getParentCorrelatorBean(current);
-            LOGGER.trace("Parent = {}", identifyLazily(current));
-        }
-    }
-
-    private void mergeDefinitionsFrom(@NotNull AbstractCorrelatorType config) throws ConfigurationException {
-        if (config == mergedBeforeClone) {
-            return; // No need to merge from myself
-        }
-        LOGGER.trace("Merging definitions from {}", identifyLazily(config));
-        CorrelatorDefinitionsType definitions = config.getDefinitions();
-        if (definitions == null) {
-            return;
-        }
-        CorrelationPlacesDefinitionType places = definitions.getPlaces();
-        if (places != null) {
-            mergePlaces(places);
-        }
-        CorrelationItemsDefinitionType items = definitions.getItems();
-        if (items != null) {
-            for (CorrelationItemDefinitionType item : items.getItem()) {
-                mergeItem(item);
-            }
-        }
-    }
-
-    private void mergePlaces(@NotNull CorrelationPlacesDefinitionType newPlaces) {
-        CorrelatorDefinitionsType definitions = createOrFindMergedDefinitions();
-        CorrelationPlacesDefinitionType places = definitions.getPlaces();
-        if (places == null) {
-            definitions.setPlaces(newPlaces.cloneWithoutId());
-        } else {
-            if (places.getSource() == null && newPlaces.getSource() != null) {
-                places.setSource(newPlaces.getSource().clone());
-            }
-            mergeTargetDefinitions(places.getTarget(), newPlaces.getTarget());
-        }
-    }
-
-    @NotNull
-    private CorrelatorDefinitionsType createOrFindMergedDefinitions() {
-        CorrelatorDefinitionsType definitions = merged.getDefinitions();
-        if (definitions != null) {
-            return definitions;
-        }
-        CorrelatorDefinitionsType newDefinitions = new CorrelatorDefinitionsType();
-        merged.setDefinitions(newDefinitions);
-        return newDefinitions;
-    }
-
-    private void mergeTargetDefinitions(
-            List<CorrelationItemTargetDefinitionType> currentTargets,
-            List<CorrelationItemTargetDefinitionType> newTargets) {
-        for (CorrelationItemTargetDefinitionType newTarget : newTargets) {
-            if (!containsQualifier(currentTargets, newTarget.getQualifier())) {
-                currentTargets.add(newTarget.clone());
-            }
-        }
-    }
-
-    private boolean containsQualifier(List<CorrelationItemTargetDefinitionType> targets, String qualifier) {
-        // TODO null vs #primary# equality
-        return targets.stream().anyMatch(t -> Objects.equals(qualifier, t.getQualifier()));
-    }
-
-    private void mergeItem(@NotNull CorrelationItemDefinitionType newItem) throws ConfigurationException {
-        CorrelatorDefinitionsType definitions = createOrFindMergedDefinitions();
-        if (definitions.getItems() == null) {
-            definitions.setItems(new CorrelationItemsDefinitionType());
-        }
-        List<CorrelationItemDefinitionType> existingItemList = definitions.getItems().getItem();
-        CorrelationItemDefinitionType existingItem = findItem(existingItemList, newItem);
-        if (existingItem == null) {
-            existingItemList.add(newItem.cloneWithoutId());
-        } else {
-            mergeItem(existingItem, newItem);
-        }
-    }
-
-    private void mergeItem(
-            @NotNull CorrelationItemDefinitionType existingItem,
-            @NotNull CorrelationItemDefinitionType newItem) {
-        if (existingItem.getPath() == null && newItem.getPath() != null) {
-            existingItem.setPath(newItem.getPath().clone());
-        }
-        if (existingItem.getSource() == null && newItem.getSource() != null) {
-            existingItem.setSource(newItem.getSource().clone());
-        }
-        mergeTargetDefinitions(existingItem.getTarget(), newItem.getTarget());
-    }
-
-    private CorrelationItemDefinitionType findItem(
-            List<CorrelationItemDefinitionType> items, CorrelationItemDefinitionType newItem) throws ConfigurationException {
-        String newItemName = getName(newItem);
-        List<CorrelationItemDefinitionType> matching = items.stream()
-                .filter(item -> CorrelationItemDefinitionUtil.getName(item).equals(newItemName))
-                .collect(Collectors.toList());
-        return MiscUtil.extractSingleton(
-                matching,
-                () -> new ConfigurationException("Multiple items named '" + newItemName + "' found: " + matching));
-    }
-
-    private <T> boolean containsByIdentity(Collection<T> objects, T object) {
-        return objects.stream()
-                .anyMatch(o -> o == object);
-    }
-
-    /**
-     * Gets the parent correlator bean - in the prism sense.
-     *
-     * Does not support untyped parents.
-     *
-     * Temporary code.
-     */
-    private AbstractCorrelatorType getParentCorrelatorBean(AbstractCorrelatorType configBean) {
-        PrismContainerable<?> parentContainer = configBean.asPrismContainerValue().getParent();
-        if (!(parentContainer instanceof PrismContainer<?>)) {
-            return null;
-        }
-        PrismContainerValue<?> parentPcv = ((PrismContainer<?>) parentContainer).getParent();
-        if (parentPcv == null) {
-            return null;
-        }
-        if (parentPcv.getCompileTimeClass() == null) {
-            // Not a typed correlator configuration, so let's exit to avoid exceptions in asContainerable call below.
-            return null;
-        }
-        Containerable parentContainerable = parentPcv.asContainerable();
-        if (parentContainerable instanceof AbstractCorrelatorType) {
-            return ((AbstractCorrelatorType) parentContainerable);
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Returns exactly one {@link CorrelatorConfiguration} from given "correlators" structure.
      * It may be a single correlator, or the whole structure - if it should be interpreted as a composite correlator.
@@ -438,7 +285,7 @@ public class CorrelatorContextCreator {
             return CorrelatorConfiguration.none();
         }
 
-        Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getConfigurations(composite);
+        Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getChildConfigurations(composite);
 
         if (configurations.isEmpty()) {
             if (composite.getExtending() == null && composite.getUsing() == null) {
@@ -447,21 +294,10 @@ public class CorrelatorContextCreator {
         }
 
         if (configurations.size() == 1) {
-            CorrelatorConfiguration configuration = configurations.iterator().next();
-            if (canBeStandalone(configuration)) {
-                return configuration;
-            }
+            return configurations.iterator().next();
         }
 
         // This is the default composite correlator.
         return new CorrelatorConfiguration.TypedCorrelationConfiguration(composite);
-    }
-
-    /**
-     * Currently, a configuration that is not non-authoritative can be run as standalone - without wrapping
-     * in composite correlator.
-     */
-    private static boolean canBeStandalone(CorrelatorConfiguration configuration) {
-        return configuration.getAuthority() != CorrelatorAuthorityLevelType.NON_AUTHORITATIVE;
     }
 }

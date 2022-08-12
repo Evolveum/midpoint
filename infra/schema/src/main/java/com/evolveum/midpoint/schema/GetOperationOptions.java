@@ -275,6 +275,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return createRetrieve(RetrieveOption.INCLUDE);
     }
 
+    /** As {@link #createRetrieve()} but returns the whole collection. */
+    public static Collection<SelectorOptions<GetOperationOptions>> createRetrieveCollection() {
+        return SelectorOptions.createCollection(createRetrieve());
+    }
+
     /**
      * Specifies whether to return specific items. It is used for optimizations.
      * Some requests only needs a subset of items therefore fetching them all is a waste

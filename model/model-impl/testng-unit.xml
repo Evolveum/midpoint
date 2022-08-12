@@ -6,8 +6,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
-    <test name="Model Basic" preserve-order="true" parallel="false" verbose="10" enabled="false">
+<suite name="unit" parallel="none">
+    <test name="Model Basic" preserve-order="true" parallel="none" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.SpringApplicationContextTest"/>
             <class name="com.evolveum.midpoint.model.impl.TestRefinedSchema"/>
@@ -15,21 +15,22 @@
             <class name="com.evolveum.midpoint.model.impl.TestFilterResolverQueryDsl"/>
         </classes>
     </test>
-    <test name="Expressions" preserve-order="true" parallel="false" verbose="10">
+    <test name="Expressions" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.expr.ExpressionHandlerImplTest"/>
             <class name="com.evolveum.midpoint.model.impl.expr.TestFilterExpression" />
             <class name="com.evolveum.midpoint.model.impl.expr.TestModelExpressions"/>
         </classes>
     </test>
-    <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
+    <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.sync.SynchronizationSituationTest"/>
             <class name="com.evolveum.midpoint.model.impl.sync.TestSynchronizationService"/>
-            <class name="com.evolveum.midpoint.model.impl.sync.TestCorrelationConfirmationEvaluator"/>
+            <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators"/>
+            <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestExpressionCorrelator"/>
         </classes>
     </test>
-    <test name="Lens" preserve-order="true" parallel="false" verbose="10">
+    <test name="Lens" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2"/>
@@ -50,7 +51,7 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjectorPersona"/>
         </classes>
     </test>
-    <test name="Misc" preserve-order="true" parallel="false" verbose="10">
+    <test name="Misc" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.security.TestGuiProfiledPrincipalManager"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestCaseManagement"/>

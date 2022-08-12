@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.CorrelationProperty;
@@ -29,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -65,13 +66,13 @@ class CorrelationPropertiesCreator {
         }
     }
 
+    // TODO deduplicate
     private List<CorrelationItem> getExplicitCorrelationItems() throws ConfigurationException {
         List<CorrelationItem> correlationItems = new ArrayList<>();
-        for (Map.Entry<String, CorrelationItemDefinitionType> entry : correlatorContext.getItemDefinitionsMap().entrySet()) {
+        for (Map.Entry<String, ItemCorrelationType> entry : correlatorContext.getItemDefinitionsMap().entrySet()) {
             CorrelationItem correlationItem = CorrelationItem.create(
                     entry.getValue(),
                     correlatorContext,
-                    fullCorrelationContext.shadow,
                     preFocus);
             LOGGER.trace("Created correlation item: {}", correlationItem);
             correlationItems.add(correlationItem);
@@ -84,7 +85,7 @@ class CorrelationPropertiesCreator {
         List<CorrelationProperty> definitions = new ArrayList<>();
         for (CorrelationItem correlationItem : correlationItems) {
             definitions.add(
-                    correlationItem.getSourceCorrelationPropertyDefinition());
+                    correlationItem.asCorrelationProperty());
         }
         return definitions;
     }

@@ -48,6 +48,7 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
+                <correlation/>
                 <outbound>
                     <name>ICFS NAME outbound mapping</name>
                     <strength>weak</strength>
@@ -67,9 +68,6 @@
                     <target>
                         <path>$c:user/c:name</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <attribute>
@@ -272,16 +270,6 @@
                 </password>
             </credentials>
 
-            <correlation>
-                <correlators>
-                    <items>
-                        <item>
-                            <path>name</path>
-                        </item>
-                    </items>
-                </correlators>
-            </correlation>
-
             <synchronization>
                 <reaction>
                     <situation>linked</situation>
@@ -317,6 +305,7 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Group name</displayName>
+                <correlation/>
                 <outbound>
                     <source>
                         <path>$focus/name</path>
@@ -327,9 +316,6 @@
                     <target>
                         <path>name</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <attribute>
@@ -347,15 +333,6 @@
                     </target>
                 </inbound>
             </attribute>
-            <correlation>
-                <correlators>
-                    <items>
-                        <item>
-                            <path>name</path>
-                        </item>
-                    </items>
-                </correlators>
-            </correlation>
             <synchronization>
                 <reaction>
                     <situation>linked</situation>

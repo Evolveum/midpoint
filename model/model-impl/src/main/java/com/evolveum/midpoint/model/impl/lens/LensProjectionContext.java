@@ -1829,4 +1829,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         ResourceObjectTypeDefinition typeDefinition = objectDefinition.getTypeDefinition();
         return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
     }
+
+    /** Returns focus identity source information for data created from this projection. */
+    public @NotNull FocusIdentitySourceType getFocusIdentitySource() {
+        FocusIdentitySourceType source = new FocusIdentitySourceType()
+                .resourceRef(getResourceOid(), ResourceType.COMPLEX_TYPE)
+                .kind(key.getKind())
+                .intent(key.getIntent())
+                .tag(key.getTag());
+        String shadowOid = getOid();
+        if (shadowOid != null) {
+            source.shadowRef(shadowOid, ShadowType.COMPLEX_TYPE);
+        }
+        // TODO originRef
+        return source;
+    }
 }

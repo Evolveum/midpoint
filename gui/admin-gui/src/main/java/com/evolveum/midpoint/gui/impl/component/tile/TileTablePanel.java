@@ -120,6 +120,11 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
             protected Component createHeader(String headerId) {
                 return createTableHeader(headerId);
             }
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
         };
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);

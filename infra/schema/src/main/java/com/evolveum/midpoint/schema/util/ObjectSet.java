@@ -31,7 +31,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 @Experimental
 public class ObjectSet<O extends ObjectType> implements Collection<O> {
 
-    @NotNull public final HashMap<String, O> objects = new HashMap<>();
+    @NotNull private final HashMap<String, O> objects = new HashMap<>();
 
     public ObjectSet() {
     }
@@ -150,5 +150,9 @@ public class ObjectSet<O extends ObjectType> implements Collection<O> {
 
     public boolean containsOid(String oid) {
         return objects.containsKey(oid);
+    }
+
+    public O get(String oid) {
+        return objects.get(oid);
     }
 }

@@ -87,6 +87,10 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     protected <T> Predicate createBinaryCondition(
             ValueFilter<?, ?> filter, Path<T> path, ValueFilterValues<?, T> values)
             throws QueryException {
+        if (filter instanceof FuzzyStringMatchFilter<?>) {
+            return fuzzyStringPredicate((FuzzyStringMatchFilter<?>) filter, path, values);
+        }
+
         FilterOperation operation = operation(filter);
         if (values.isEmpty()) {
             if (operation.isAnyEqualOperation()) {
@@ -106,6 +110,12 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
         }
 
         return singleValuePredicateWithNotTreated(path, operation, values.singleValue());
+    }
+
+    protected Predicate fuzzyStringPredicate(
+            FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
+            throws QueryException {
+        return context.processFuzzyFilter(filter, path, values);
     }
 
     /**

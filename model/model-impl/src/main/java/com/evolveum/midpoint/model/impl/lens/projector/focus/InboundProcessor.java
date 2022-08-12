@@ -53,8 +53,8 @@ public class InboundProcessor implements ProjectorProcessor {
 
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
-        ClockworkInboundsProcessing<F> evaluation = new ClockworkInboundsProcessing<>(context, beans, env, result);
-        evaluation.collectAndEvaluateMappings();
+        ClockworkInboundsProcessing<F> processing = new ClockworkInboundsProcessing<>(context, beans, env, result);
+        processing.collectAndEvaluateMappings();
 
         context.checkConsistenceIfNeeded();
         context.recomputeFocus();

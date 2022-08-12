@@ -7,9 +7,13 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
+import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -59,6 +63,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     /** Object template relevant for the focus object. */
     private transient ObjectTemplateType focusTemplate;
+
+    private transient IdentityManagementConfiguration identityManagementConfiguration; // TODO
+    private transient IndexingConfiguration indexingConfiguration; // TODO
 
     private boolean primaryDeltaExecuted;
 
@@ -144,6 +151,22 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public boolean isFocusTemplateSetExplicitly() {
         return lensContext.getExplicitFocusTemplateOid() != null;
+    }
+
+    // preliminary version
+    public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() throws ConfigurationException {
+        if (identityManagementConfiguration == null) {
+            identityManagementConfiguration = IdentitiesManager.createIdentityConfiguration(focusTemplate);
+        }
+        return identityManagementConfiguration;
+    }
+
+    // preliminary version
+    public @NotNull IndexingConfiguration getIndexingConfiguration() throws ConfigurationException {
+        if (indexingConfiguration == null) {
+            indexingConfiguration = IndexingConfigurationImpl.of(focusTemplate, getLensContext().getModelBeans());
+        }
+        return indexingConfiguration;
     }
 
     public LifecycleStateModelType getLifecycleModel() {

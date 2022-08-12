@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * Information needed to carry out synchronization-related activities (classification, correlation,
  * and execution of synchronization reactions). This class exists to unify the "legacy" way of specifying
  * this information (in `synchronization` section of resource definition) and "modern" one - right in `schemaHandling` part.
+ *
+ * Created using {@link SynchronizationPolicyFactory}.
  */
 public class SynchronizationPolicy {
 

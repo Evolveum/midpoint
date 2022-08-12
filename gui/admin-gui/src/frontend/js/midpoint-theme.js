@@ -480,4 +480,17 @@ export default class MidPointTheme {
         queryParams.set(paramName, paramValue);
         history.replaceState(null, null, "?" + queryParams.toString());
     }
+
+    increment(inputId, increment) {
+        var input = $('#' + inputId);
+
+        var value = parseInt(input.val(), 10) || 0;
+
+        value = value + increment;
+        if (value <= 0) {
+            value = 5;
+        }
+
+        input.val(value);
+    }
 }

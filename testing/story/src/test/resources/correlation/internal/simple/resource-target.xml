@@ -137,8 +137,6 @@
                     <name>composite</name>
                     <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
                     <filter>
-                        <order>10</order>
-                        <authority>authoritative</authority>
                         <name>employee number</name>
                         <documentation>Matching on employeeNumber (rule #1).</documentation>
                         <ownerFilter>
@@ -154,10 +152,12 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <tier>1</tier>
+                            <order>10</order>
+                        </composition>
                     </filter>
                     <filter>
-                        <order>20</order>
-                        <authority>authoritative</authority>
                         <name>email address</name>
                         <documentation>Matching on emailAddress (rule #2).</documentation>
                         <ownerFilter>
@@ -173,10 +173,12 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <tier>1</tier>
+                            <order>20</order>
+                        </composition>
                     </filter>
                     <filter>
-                        <order>30</order>
-                        <authority>nonAuthoritative</authority>
                         <name>family name</name>
                         <documentation>Non-authoritative matching on familyName (rule #3).</documentation>
                         <ownerFilter>
@@ -192,10 +194,12 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <order>30</order> <!-- actually, this is just the order within the second (unnumbered) tier -->
+                            <weight>0.1</weight>
+                        </composition>
                     </filter>
                     <filter>
-                        <order>40</order>
-                        <authority>nonAuthoritative</authority>
                         <name>telephone number</name>
                         <documentation>Non-authoritative matching on telephoneNumber (rule #4).</documentation>
                         <ownerFilter>
@@ -211,6 +215,10 @@
                                 </script>
                             </condition>
                         </ownerFilter>
+                        <composition>
+                            <order>40</order> <!-- actually, this is just the order within the second (unnumbered) tier -->
+                            <weight>0.1</weight>
+                        </composition>
                     </filter>
                 </correlators>
             </correlation>

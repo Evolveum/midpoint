@@ -1,0 +1,4 @@
+uid  | givenName | familyName | expCandidates | expResult   | _note
+1    | John      | Smith      | smith1:1.0    | smith1      | There is a user John Smith
+2    | Ian       | Smith      | smith1:1.0    | smith1      | John Smith has an alternative name of "Ian"
+3    | Peter     | Smith      |               | _none       | No such user exists
