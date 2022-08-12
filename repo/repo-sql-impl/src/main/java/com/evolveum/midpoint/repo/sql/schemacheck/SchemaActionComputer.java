@@ -40,7 +40,7 @@ class SchemaActionComputer {
      * For database schema versioning please see
      * <a href="https://docs.evolveum.com/midpoint/reference/repository/database-schema-versioning/">wiki page about DB versioning</a>.
      */
-    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.5";
+    public static final String REQUIRED_DATABASE_SCHEMA_VERSION = "4.6";
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaActionComputer.class);
 
@@ -58,7 +58,8 @@ class SchemaActionComputer {
                     new ImmutablePair<>("4.0", "4.2"),
                     new ImmutablePair<>("4.2", "4.3"),
                     new ImmutablePair<>("4.3", "4.4"),
-                    new ImmutablePair<>("4.4", "4.5")));
+                    new ImmutablePair<>("4.4", "4.5"),
+                    new ImmutablePair<>("4.5", "4.6")));
 
     enum State {
         COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADEABLE, MANUALLY_UPGRADEABLE, INCOMPATIBLE

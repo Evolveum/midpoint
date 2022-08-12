@@ -30,6 +30,7 @@ import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
@@ -82,7 +83,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
 
-    private static final ViewToggle DEFAULT_VIEW = ViewToggle.TILE;
+    private static final RoleCatalogViewType DEFAULT_VIEW = RoleCatalogViewType.TILE;
 
     private static final String ID_VIEW_TOGGLE = "viewToggle";
     private static final String ID_MENU = "menu";
@@ -96,6 +97,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private IModel<Search> searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
+
+    private IModel<ObjectReferenceType> teammateModel;
+
+    private IModel<RoleCatalogQuery> queryModel;
 
     public RoleCatalogPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -114,6 +119,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         initModels();
         initLayout();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        ListGroupMenu menu = menuModel.getObject();
+        if (menu.getActiveMenu() == null) {
+            menu.activateFirstAvailableItem();
+            updateQueryModel(menu.getActiveMenu());
+        }
+
+        super.onBeforeRender();
     }
 
     @Override
@@ -145,43 +161,61 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     @Override
     public IModel<String> getTitle() {
-        return () -> getString("RoleCatalogPanel.title");
+        return createStringResource("RoleCatalogPanel.title");
     }
 
-    private ObjectQuery createFalseQuery() {
-        return getPrismContext()
+    private void updateFalseQuery(RoleCatalogQuery query) {
+        ObjectQuery oq = getPrismContext()
                 .queryFor(RoleType.class)
                 .none()
                 .build();
+
+        query.setQuery(oq);
+        query.setType(RoleType.class);
     }
 
-    private ObjectQuery createQueryForRequestableRoles() {
-        return getPrismContext()
+    private void updateQueryForRequestableRoles(RoleCatalogQuery query) {
+        ObjectQuery oq = getPrismContext()
                 .queryFor(AbstractRoleType.class)
-                .item(RoleType.F_REQUESTABLE)
+                .item(AbstractRoleType.F_REQUESTABLE)
                 .eq(true)
-                .asc(ObjectType.F_NAME)
+                .asc(AbstractRoleType.F_NAME)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(AbstractRoleType.class);
     }
 
-    private ObjectQuery createQueryFromOrgRef(ObjectReferenceType ref, boolean scopeOne) {
-        return getPrismContext()
-                .queryFor(RoleType.class)
+    private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref, boolean scopeOne) {
+        ObjectQuery oq = getPrismContext()
+                .queryFor(AbstractRoleType.class)
                 .isInScopeOf(ref.getOid(), scopeOne ? OrgFilter.Scope.ONE_LEVEL : OrgFilter.Scope.SUBTREE)
-                .asc(ObjectType.F_NAME)
+                .asc(AbstractRoleType.F_NAME)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(AbstractRoleType.class);
     }
 
-    private ObjectQuery createQueryForRolesOfTeammate() {
-        return getPrismContext().queryFor(RoleType.class)
+    private void updateQueryForRolesOfTeammate(RoleCatalogQuery query, String userOid) {
+        if (userOid == null) {
+            updateFalseQuery(query);
+            return;
+        }
+
+        ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
                 .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                .id(SystemObjectsType.USER_ADMINISTRATOR.value())
+                .id(userOid)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(AbstractRoleType.class);
     }
 
-    private ObjectQuery createQueryFromCollectionRef(ObjectReferenceType collectionRef) {
+    private void updateQueryFromCollectionRef(RoleCatalogQuery query, ObjectReferenceType collectionRef) {
         if (collectionRef == null) {
-            return createFalseQuery();
+            updateFalseQuery(query);
+            return;
         }
 
         PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(collectionRef, page);
@@ -190,42 +224,56 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         try {
             QName type = objectCollection.getType();
             if (type == null) {
-                type = RoleType.COMPLEX_TYPE;
+                type = AbstractRoleType.COMPLEX_TYPE;
             }
             ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
             ObjectFilter filter = page.getQueryConverter().createObjectFilter(ot.getClassDefinition(), objectCollection.getFilter());
-            return getPrismContext()
+            ObjectQuery oq = getPrismContext()
                     .queryFor(ot.getClassDefinition())
                     .filter(filter)
-                    .asc(ObjectType.F_NAME)
+                    .asc(AbstractRoleType.F_NAME)
                     .build();
+
+            query.setQuery(oq);
+            query.setType(ot.getClassDefinition());
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
             page.error("Couldn't create search filter, reason: " + ex.getMessage());
         }
 
-        return createFalseQuery();
+        updateFalseQuery(query);
     }
 
-    private ObjectQuery createQueryFromCollectionIdentifier(String collectionIdentifier) {
+    private void updateQueryFromCollectionIdentifier(RoleCatalogQuery query, String collectionIdentifier) {
         StaticObjectCollection collection = StaticObjectCollection.findCollection(collectionIdentifier);
         if (collection == null) {
-            return createFalseQuery();
+            updateFalseQuery(query);
+            return;
         }
 
-        return getPrismContext()
+        ObjectQuery oq = getPrismContext()
                 .queryFor(collection.getType())
                 .asc(ObjectType.F_NAME)
                 .build();
+
+        query.setQuery(oq);
+        query.setType(collection.getType());
     }
 
     private void initModels() {
+        teammateModel = Model.of((ObjectReferenceType) null);
+
+        RoleCatalogQuery query = new RoleCatalogQuery();
+        updateFalseQuery(query);
+        queryModel = Model.of(query);
+
         searchModel = new LoadableModel<>(false) {
 
             @Override
             protected Search load() {
-                return SearchFactory.createSearch(RoleType.class, page);
+                Class<? extends ObjectType> type = queryModel.getObject().getType();
+                return SearchFactory.createSearch(type, page);
             }
         };
 
@@ -233,10 +281,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
-                ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
-                menu.activateFirstAvailableItem();
-
-                return menu;
+                return loadRoleCatalogMenu();
             }
         };
     }
@@ -248,38 +293,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                ListGroupMenu menu = menuModel.getObject();
-                ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
-                RoleCatalogQueryItem item = active != null ? active.getValue() : null;
-
-                if (item == null) {
-                    if (menu.isEmpty()) {
-                        return createQueryForRequestableRoles();
-                    }
-
-                    return createFalseQuery();
-                }
-
-                if (item.rolesOfTeammate()) {
-                    return createQueryForRolesOfTeammate();
-                }
-
-                if (item.orgRef() != null) {
-                    return createQueryFromOrgRef(item.orgRef(), item.scopeOne());
-                }
-
-                RoleCollectionViewType collection = item.collection();
-                if (collection == null) {
-                    return createFalseQuery();
-                }
-
-                if (collection.getCollectionRef() != null) {
-                    return createQueryFromCollectionRef(collection.getCollectionRef());
-                } else if (collection.getCollectionIdentifier() != null) {
-                    return createQueryFromCollectionIdentifier(collection.getCollectionIdentifier());
-                }
-
-                return createFalseQuery();
+                return queryModel.getObject().getQuery();
             }
         };
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
@@ -316,7 +330,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
-                        CatalogTile t = new CatalogTile(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, WebComponentUtil.getName(object.getValue()));
+                        ObjectType obj = object.getValue();
+                        String icon = WebComponentUtil.createDefaultColoredIcon(obj.asPrismContainerValue().getTypeName());
+
+                        CatalogTile t = new CatalogTile(icon, WebComponentUtil.getName(object.getValue()));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -369,9 +386,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                             @Override
                             protected DisplayType createDisplayType(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                ObjectType obj = model.getObject().getValue().getValue();
+                                String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+
                                 return new DisplayType()
                                         .icon(new IconType()
-                                                .cssClass(StringUtils.joinWith(" ", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "fa-2x")));
+                                                .cssClass(StringUtils.joinWith(" ", icon, "fa-2x")));
                             }
                         };
                     }
@@ -392,18 +412,25 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected List<Toggle<ViewToggle>> load() {
+                RoleCatalogType config = getRoleCatalogConfiguration();
+                List<RoleCatalogViewType> allowedViews = config.getAllowedViews();
+
                 ViewToggle toggle = tilesTable.getViewToggleModel().getObject();
                 List<Toggle<ViewToggle>> list = new ArrayList<>();
 
-                Toggle asList = new Toggle("fa-solid fa-table-list", null);
-                asList.setActive(ViewToggle.TABLE == toggle);
-                asList.setValue(ViewToggle.TABLE);
-                list.add(asList);
+                if (allowedViews.isEmpty() || allowedViews.contains(RoleCatalogViewType.TABLE)) {
+                    Toggle asList = new Toggle("fa-solid fa-table-list", null);
+                    asList.setActive(ViewToggle.TABLE == toggle);
+                    asList.setValue(ViewToggle.TABLE);
+                    list.add(asList);
+                }
 
-                Toggle asTile = new Toggle("fa-solid fa-table-cells", null);
-                asTile.setActive(ViewToggle.TILE == toggle);
-                asTile.setValue(ViewToggle.TILE);
-                list.add(asTile);
+                if (allowedViews.isEmpty() || allowedViews.contains(RoleCatalogViewType.TILE)) {
+                    Toggle asTile = new Toggle("fa-solid fa-table-cells", null);
+                    asTile.setActive(ViewToggle.TILE == toggle);
+                    asTile.setValue(ViewToggle.TILE);
+                    list.add(asTile);
+                }
 
                 return list;
             }
@@ -419,6 +446,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 target.add(RoleCatalogPanel.this);
             }
         };
+        viewToggle.add(new VisibleEnableBehaviour(() -> items.getObject().size() > 1));
         add(viewToggle);
 
         ListGroupMenuPanel menu = new ListGroupMenuPanel(ID_MENU, menuModel) {
@@ -432,13 +460,63 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     return;
                 }
 
-                target.add(tilesTable);
+                RoleCatalogPanel.this.onMenuClickPerformed(target, item);
             }
         };
         add(menu);
     }
 
-    // todo use configuration getAllowedViews from RoleCatalogType
+    private void updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        RoleCatalogQuery query = queryModel.getObject();
+
+        RoleCatalogQueryItem rcq = item != null ? item.getValue() : null;
+
+        if (rcq == null) {
+            updateFalseQuery(query);
+            return;
+        }
+
+        if (rcq.rolesOfTeammate()) {
+            ObjectReferenceType userRef = teammateModel.getObject();
+            String userOid = userRef != null ? userRef.getOid() : null;
+            updateQueryForRolesOfTeammate(query, userOid);
+            return;
+        }
+
+        if (rcq.orgRef() != null) {
+            updateQueryFromOrgRef(query, rcq.orgRef(), rcq.scopeOne());
+            return;
+        }
+
+        RoleCollectionViewType collection = rcq.collection();
+        if (collection == null) {
+            updateFalseQuery(query);
+            return;
+        }
+
+        if (collection.getCollectionRef() != null) {
+            updateQueryFromCollectionRef(query, collection.getCollectionRef());
+            return;
+        } else if (collection.getCollectionIdentifier() != null) {
+            updateQueryFromCollectionIdentifier(query, collection.getCollectionIdentifier());
+            return;
+        }
+
+        updateFalseQuery(query);
+    }
+
+    private void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        updateQueryModel(item);
+
+        RoleCatalogQuery query = queryModel.getObject();
+
+        Search search = searchModel.getObject();
+        if (!Objects.equals(search.getTypeClass(), query.getType())) {
+            searchModel.setObject(SearchFactory.createSearch(query.getType(), page));
+        }
+
+        target.add(get(ID_TILES));
+    }
 
     private IModel<ViewToggle> createViewToggleModel() {
         return new LoadableModel<>(false) {
@@ -446,13 +524,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             @Override
             protected ViewToggle load() {
                 RoleCatalogType config = getRoleCatalogConfiguration();
-                if (config == null) {
-                    return DEFAULT_VIEW;
+                RoleCatalogViewType view = config.getDefaultView();
+
+                List<RoleCatalogViewType> allowedViews = config.getAllowedViews();
+                if (view == null) {
+                    view = DEFAULT_VIEW;
                 }
 
-                RoleCatalogViewType view = config.getDefaultView();
-                if (view == null) {
-                    return DEFAULT_VIEW;
+                if (!allowedViews.isEmpty() && !allowedViews.contains(view)) {
+                    return findDefaultViewToggle(allowedViews.get(0));
                 }
 
                 switch (view) {
@@ -466,32 +546,38 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         };
     }
 
+    private ViewToggle findDefaultViewToggle(RoleCatalogViewType view) {
+        if (view == null) {
+            return ViewToggle.TILE;
+        }
+
+        switch (view) {
+            case TABLE:
+                return ViewToggle.TABLE;
+            case TILE:
+            default:
+                return ViewToggle.TILE;
+        }
+    }
+
     private RoleCatalogType getRoleCatalogConfiguration() {
         AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getRoleCatalog() : null;
+        return config != null ? config.getRoleCatalog() : new RoleCatalogType();
     }
 
     private ListGroupMenu<RoleCatalogQueryItem> loadRoleCatalogMenu() {
         RoleCatalogType roleCatalog = getRoleCatalogConfiguration();
-        if (roleCatalog == null) {
-            roleCatalog = new RoleCatalogType();
-        }
 
         ListGroupMenu<RoleCatalogQueryItem> menu = new ListGroupMenu<>();
+        List<ListGroupMenuItem<RoleCatalogQueryItem>> menuItems = menu.getItems();
 
         ObjectReferenceType ref = roleCatalog.getRoleCatalogRef();
-        if (ref != null) {
-            List<ListGroupMenuItem<RoleCatalogQueryItem>> items = loadMenuFromOrgTree(ref);
-            if (items != null) {
-                menu.getItems().addAll(items);
-            }
-        }
+        menuItems.addAll(loadMenuFromOrgTree(ref));
 
         List<RoleCollectionViewType> collections = roleCatalog.getCollection();
-        List<ListGroupMenuItem<RoleCatalogQueryItem>> items = createMenuFromRoleCollections(collections);
-        if (items != null) {
-            menu.getItems().addAll(items);
-        }
+        menuItems.addAll(createMenuFromRoleCollections(collections));
+
+        // todo add default menu item (requestable abstract roles query) or hide menu if orles of teammate is disabled?
 
         if (BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate())) {
             CustomListGroupMenuItem<RoleCatalogQueryItem> rolesOfTeamMate = new CustomListGroupMenuItem<>("RoleCatalogPanel.rolesOfTeammate") {
@@ -500,7 +586,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 Component createMenuItemPanel(String id, IModel<ListGroupMenuItem<RoleCatalogQueryItem>> model,
                         SerializableBiConsumer<AjaxRequestTarget, ListGroupMenuItem<RoleCatalogQueryItem>> onClickHandler) {
 
-                    return new RoleOfTeammateMenuPanel<>(id, model) {
+                    return new RoleOfTeammateMenuPanel<>(id, model, teammateModel) {
 
                         @Override
                         protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
@@ -509,12 +595,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                         @Override
                         protected void onManualSelectionPerformed(AjaxRequestTarget target) {
-                            // todo implement
+                            RoleCatalogPanel.this.onManualSelectionPerformed(target, getModelObject());
                         }
 
                         @Override
                         protected void onSelectionUpdate(AjaxRequestTarget target, ObjectReferenceType newSelection) {
-                            // todo implement
+                            onMenuClickPerformed(target, getModelObject());
                         }
                     };
                 }
@@ -528,6 +614,34 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         }
 
         return menu;
+    }
+
+    private void onManualSelectionPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
+                List.of(UserType.COMPLEX_TYPE), false, page) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
+                ObjectReferenceType ref = null;
+                if (user != null) {
+                    ref = new ObjectReferenceType()
+                            .oid(user.getOid())
+                            .type(UserType.COMPLEX_TYPE)
+                            .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
+                }
+
+                teammateModel.setObject(ref);
+
+                onMenuClickPerformed(target, item);
+
+                target.add(RoleCatalogPanel.this.get(ID_MENU));
+
+                page.hideMainPopup(target);
+            }
+        };
+        page.showMainPopup(panel, target);
     }
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> createMenuFromRoleCollections(List<RoleCollectionViewType> collections) {
@@ -558,7 +672,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 }
 
                 ListGroupMenuItem<RoleCatalogQueryItem> item = new ListGroupMenuItem<>(name);
+                item.setIconCss(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
                 item.setValue(rcq);
+                // todo find default active menu and select it
+                // item.setActive(collection.isDefault());
 
                 items.add(item);
             } catch (Exception ex) {

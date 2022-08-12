@@ -67,6 +67,7 @@ public class QResourceMapping
                 q -> q.connectorRefTargetType,
                 q -> q.connectorRefRelationId,
                 QConnectorMapping::get);
+        addItemMapping(F_TEMPLATE, booleanMapper(q -> q.template));
     }
 
     @Override
@@ -104,6 +105,7 @@ public class QResourceMapping
                 o -> row.connectorRefTargetOid = o,
                 t -> row.connectorRefTargetType = t,
                 r -> row.connectorRefRelationId = r);
+        row.template = schemaObject.isTemplate();
 
         return row;
     }

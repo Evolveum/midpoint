@@ -182,7 +182,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     private Tile<QName> createTileForRelation(QName name) {
-        List<RelationDefinitionType> relations = getRelationConfiguration();
+        List<RelationDefinitionType> relations = getSystemRelations();
 
         String icon = getDefaultRelationIcon(name);
         String label = name.getLocalPart();
@@ -242,7 +242,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         getModelObject().setRelation(selected.getValue());
     }
 
-    private List<RelationDefinitionType> getRelationConfiguration() {
+    private List<RelationDefinitionType> getSystemRelations() {
         SystemConfigurationType sys = MidPointApplication.get().getSystemConfigurationIfAvailable();
         if (sys == null) {
             return null;

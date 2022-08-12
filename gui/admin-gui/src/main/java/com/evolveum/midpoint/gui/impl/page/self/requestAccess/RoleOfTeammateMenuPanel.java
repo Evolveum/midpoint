@@ -59,8 +59,12 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
     private static final String ID_INPUT = "input";
     private static final String ID_MANUAL = "manual";
 
-    public RoleOfTeammateMenuPanel(String id, IModel<ListGroupMenuItem<T>> model) {
+    private IModel<ObjectReferenceType> selectionModel;
+
+    public RoleOfTeammateMenuPanel(String id, IModel<ListGroupMenuItem<T>> model, IModel<ObjectReferenceType> selectionModel) {
         super(id, model);
+
+        this.selectionModel = selectionModel != null ? selectionModel : Model.of((ObjectReferenceType) null);
 
         initLayout();
     }
@@ -85,16 +89,14 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         };
         add(link);
 
-        IModel<ObjectReferenceType> selectModel = Model.of((ObjectReferenceType) null);
-
-        Select2Choice select = new Select2Choice(ID_INPUT, selectModel, new ObjectReferenceProvider(this));
+        Select2Choice select = new Select2Choice(ID_INPUT, selectionModel, new ObjectReferenceProvider(this));
         select.getSettings()
                 .setMinimumInputLength(2);
         select.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                onSelectionUpdate(target, selectModel.getObject());
+                onSelectionUpdate(target, selectionModel.getObject());
             }
         });
         container.add(select);

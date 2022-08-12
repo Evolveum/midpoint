@@ -137,7 +137,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     @Override
     public IModel<String> getTitle() {
-        return () -> getString("PersonOfInterestPanel.title");
+        return createStringResource("PersonOfInterestPanel.title");
     }
 
     @Override

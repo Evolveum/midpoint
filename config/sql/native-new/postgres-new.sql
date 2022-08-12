@@ -854,7 +854,8 @@ CREATE TABLE m_resource (
     operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
-    connectorRefRelationId INTEGER REFERENCES m_uri(id)
+    connectorRefRelationId INTEGER REFERENCES m_uri(id),
+    template BOOLEAN
 )
     INHERITS (m_assignment_holder);
 
