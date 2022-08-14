@@ -53,6 +53,11 @@
             </attribute>
             <attribute>
                 <ref>ri:employeeNumber</ref>
+                <inbound>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>

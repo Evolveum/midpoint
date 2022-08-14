@@ -14,7 +14,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -93,7 +93,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
-            return createCorrelationResult(candidateOwners, task, result);
+            return createResult(candidateOwners, task, result);
         }
 
         private @NotNull ObjectSet<F> findCandidatesUsingExpressions(OperationResult result)

@@ -681,6 +681,7 @@ CREATE TABLE m_resource (
   name_norm                  VARCHAR2(255 CHAR),
   name_orig                  VARCHAR2(255 CHAR),
   o16_lastAvailabilityStatus NUMBER(10, 0),
+  template                   NUMBER(1, 0),
   oid                        VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -1236,7 +1237,7 @@ CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30;
 CREATE UNIQUE INDEX uc_connector_type_version_host
   ON m_connector  (connectorType, connectorVersion, nvl(connectorHostRef_targetOid,0));
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.5');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.6');
 
 --
 -- A hint submitted by a user: Oracle DB MUST be created as "shared" and the

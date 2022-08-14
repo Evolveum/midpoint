@@ -93,7 +93,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
 
     @Override
     public IModel<String> getTitle() {
-        return () -> state.getObject() == State.SUMMARY ? getString("ShoppingCartPanel.title") : getString("ShoppingCartPanel.conflict");
+        return () -> state.getObject() == State.SUMMARY ? page.getString("ShoppingCartPanel.title") : page.getString("ShoppingCartPanel.conflict");
     }
 
     @Override

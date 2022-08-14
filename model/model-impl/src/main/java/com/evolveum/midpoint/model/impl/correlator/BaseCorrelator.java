@@ -7,8 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.*;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation.GenericCorrelationExplanation;
+import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation.UnsupportedCorrelationExplanation;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,6 +45,7 @@ import java.util.Objects;
 public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> implements Correlator {
 
     private static final String OP_CORRELATE_SUFFIX = ".correlate";
+    private static final String OP_EXPLAIN_SUFFIX = ".explain";
     private static final String OP_CHECK_CANDIDATE_OWNER_SUFFIX = ".checkCandidateOwner";
 
     /** Correlator-specific logger. */
@@ -105,6 +110,55 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 
+
+    @Override
+    public @NotNull CorrelationExplanation explain(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.subresult(getClass().getName() + OP_EXPLAIN_SUFFIX)
+                .build();
+        try {
+            logger.trace("Explaining candidate owner:\n{}\nin context:\n{}",
+                    candidateOwner.debugDumpLazily(1),
+                    correlationContext.debugDumpLazily(1));
+
+            CorrelationExplanation explanation = explainInternal(correlationContext, candidateOwner, result);
+
+            logger.trace("Determined candidate owner explanation:\n{}", explanation.debugDumpLazily(1));
+
+            result.addArbitraryObjectAsReturn("explanation", explanation);
+
+            return explanation;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    /** This the default implementation, to be overridden in subclasses. */
+    protected @NotNull CorrelationExplanation explainInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        double confidence;
+        try {
+            confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
+        } catch (Exception e) {
+            logger.debug("Determination of the confidence for candidate owner {} failed, no explanation can be provided",
+                    candidateOwner, e);
+            return new UnsupportedCorrelationExplanation(correlatorContext.getConfiguration());
+        }
+        return new GenericCorrelationExplanation(correlatorContext.getConfiguration(), confidence);
+    }
+
     @Override
     public double checkCandidateOwner(
             @NotNull CorrelationContext correlationContext,
@@ -163,7 +217,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                 .instantiateCorrelator(childContext, task, result);
     }
 
-    protected CorrelationResult createCorrelationResult(
+    protected CorrelationResult createResult(
             @NotNull Collection<? extends ObjectType> candidates, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {

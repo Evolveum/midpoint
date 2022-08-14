@@ -22,14 +22,17 @@ import java.util.Collection;
 
 import static com.evolveum.midpoint.model.impl.lens.identities.IndexingManager.normalizeValue;
 
-class Normalizer {
+/**
+ * TODO any other responsibilities?
+ */
+class ItemNormalizer {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Normalizer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemNormalizer.class);
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
     @NotNull private final Normalization normalization;
 
-    Normalizer(@NotNull Normalization normalization) {
+    ItemNormalizer(@NotNull Normalization normalization) {
         this.normalization = normalization;
     }
 

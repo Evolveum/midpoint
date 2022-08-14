@@ -5,13 +5,16 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.correlator;
+package com.evolveum.midpoint.model.api.correlation;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType.*;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
+import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,35 +34,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerO
  */
 public class CompleteCorrelationResult implements Serializable, DebugDumpable {
 
-    /**
-     * What is the result of the correlation?
-     */
+    /** What is the result of the correlation? */
     @NotNull private final CorrelationSituationType situation;
 
-    /**
-     * The correlated owner. Non-null if and only if {@link #situation} is {@link CorrelationSituationType#EXISTING_OWNER}.
-     */
+    /** The correlated owner. Non-null if and only if {@link #situation} is {@link CorrelationSituationType#EXISTING_OWNER}. */
     @Nullable private final ObjectType owner;
 
-    /**
-     * May be null when the result is fetched from the shadow.
-     */
+    /** May be null when the result is fetched from the shadow. */
     @Nullable private final CandidateOwnersMap candidateOwnersMap;
 
     /**
-     * Options for the owner. Typically present when {@link CorrelationSituationType#UNCERTAIN} but (as an auxiliary information)
-     * may be present also for {@link CorrelationSituationType#EXISTING_OWNER}.
+     * Options for the operator to select from. Derived from {@link #candidateOwnersMap}.
      *
-     * Currently we never put here the candidates with the confidence values below "candidate" level.
-     * This may change in the future.
+     * Typically present when {@link CorrelationSituationType#UNCERTAIN} but (as an auxiliary information)
+     * may be present also for {@link CorrelationSituationType#EXISTING_OWNER}.
      *
      * May be null when the result is fetched from the shadow.
      */
     @Nullable private final ResourceObjectOwnerOptionsType ownerOptions;
 
-    /**
-     * If the situation is {@link CorrelationSituationType#ERROR}, here must be the details. Null otherwise.
-     */
+    /** If the situation is {@link CorrelationSituationType#ERROR}, here must be the details. Null otherwise. */
     @Nullable private final CorrelationErrorDetails errorDetails;
 
     private CompleteCorrelationResult(
@@ -75,40 +69,29 @@ public class CompleteCorrelationResult implements Serializable, DebugDumpable {
         this.errorDetails = errorDetails;
     }
 
-    public static CompleteCorrelationResult existingOwner(@NotNull ObjectType owner, @Nullable OwnersInfo ownersInfo) {
+    public static CompleteCorrelationResult existingOwner(
+            @NotNull ObjectType owner,
+            @Nullable CandidateOwnersMap candidateOwnersMap,
+            @Nullable ResourceObjectOwnerOptionsType optionsBean) {
         return new CompleteCorrelationResult(
-                EXISTING_OWNER,
-                owner,
-                ownersInfo != null ? ownersInfo.candidateOwnersMap : null,
-                ownersInfo != null ? ownersInfo.optionsBean : null,
-                null);
+                EXISTING_OWNER, owner, candidateOwnersMap, optionsBean, null);
     }
 
     public static CompleteCorrelationResult noOwner() {
         return new CompleteCorrelationResult(
-                NO_OWNER,
-                null,
-                new CandidateOwnersMap(),
-                null,
-                null);
+                NO_OWNER, null, new CandidateOwnersMap(), null, null);
     }
 
-    public static CompleteCorrelationResult uncertain(@NotNull OwnersInfo ownersInfo) {
+    public static CompleteCorrelationResult uncertain(
+            @NotNull CandidateOwnersMap candidateOwnersMap,
+            @NotNull ResourceObjectOwnerOptionsType optionsBean) {
         return new CompleteCorrelationResult(
-                UNCERTAIN,
-                null,
-                ownersInfo.candidateOwnersMap,
-                ownersInfo.optionsBean,
-                null);
+                UNCERTAIN, null, candidateOwnersMap, optionsBean, null);
     }
 
     public static CompleteCorrelationResult error(@NotNull Throwable t) {
         return new CompleteCorrelationResult(
                 ERROR, null, null, null, CorrelationErrorDetails.forThrowable(t));
-    }
-
-    public static CompleteCorrelationResult error(@NotNull CorrelationErrorDetails details) {
-        return new CompleteCorrelationResult(ERROR, null, null, null, details);
     }
 
     public @NotNull CorrelationSituationType getSituation() {
@@ -214,19 +197,13 @@ public class CompleteCorrelationResult implements Serializable, DebugDumpable {
 
     public enum Status {
 
-        /**
-         * The existing owner was found.
-         */
+        /** The existing owner was found. */
         EXISTING_OWNER,
 
-        /**
-         * No owner matches.
-         */
+        /** No owner matches. */
         NO_OWNER,
 
-        /**
-         * The situation is not certain. (Correlation case may or may not be created.)
-         */
+        /** The situation is not certain. (Correlation case may or may not be created.) */
         UNCERTAIN,
 
         /**
@@ -234,18 +211,5 @@ public class CompleteCorrelationResult implements Serializable, DebugDumpable {
          * (This means that the situation is uncertain - but it's a specific subcase of it.)
          */
         ERROR
-    }
-
-    /** Helper class: Aggregates {@link ResourceObjectOwnerOptionsType} (i.e. references) and full candidate owners.
-     * TODO consider removal */
-    public static class OwnersInfo {
-        @Nullable final CandidateOwnersMap candidateOwnersMap;
-        @NotNull final ResourceObjectOwnerOptionsType optionsBean;
-
-        public OwnersInfo(
-                @Nullable CandidateOwnersMap candidateOwnersMap, @NotNull ResourceObjectOwnerOptionsType optionsBean) {
-            this.candidateOwnersMap = candidateOwnersMap;
-            this.optionsBean = optionsBean;
-        }
     }
 }

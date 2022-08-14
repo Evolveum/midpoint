@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.identities;
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
@@ -176,16 +177,21 @@ public class IndexingManager {
         }
         Collection<Item<?, ?>> normalizedItems = new ArrayList<>();
         for (Normalization normalization : config.getNormalizations()) {
-            Normalizer normalizer = new Normalizer(normalization);
+            ItemNormalizer itemNormalizer = new ItemNormalizer(normalization);
             normalizedItems.add(
-                    normalizer.createNormalizedItem(originalItemDef, originalValues, task, result));
+                    itemNormalizer.createNormalizedItem(originalItemDef, originalValues, task, result));
         }
         return normalizedItems;
     }
 
+    public static @NotNull ValueNormalizer getDefaultNormalizer() {
+        return (input, task, result) ->
+                PrismContext.get().getDefaultPolyStringNormalizer().normalize(input);
+    }
+
     public static @NotNull String normalizeValue(
             @NotNull Object originalRealValue,
-            @NotNull Normalization normalization,
+            @NotNull ValueNormalizer normalizer,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -197,10 +203,10 @@ public class IndexingManager {
             stringValue = (String) originalRealValue;
         } else {
             throw new UnsupportedOperationException(
-                    String.format("Only string or polystring identity items are supported yet: '%s' of %s is %s",
-                            originalRealValue, normalization, originalRealValue.getClass()));
+                    String.format("Only string or polystring identity items are supported yet: '%s' is %s",
+                            originalRealValue, originalRealValue.getClass()));
         }
-        return normalization.normalize(stringValue, task, result);
+        return normalizer.normalize(stringValue, task, result);
     }
 
     private Collection<? extends ItemDelta<?, ?>> computeIndexingDeltas(

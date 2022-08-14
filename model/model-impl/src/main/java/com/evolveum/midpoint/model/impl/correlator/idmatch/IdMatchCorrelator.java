@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -76,8 +77,17 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
-        return new CorrelationOperation(correlationContext)
+        return new CorrelationLikeOperation(correlationContext)
                 .correlate(result);
+    }
+
+    @Override
+    protected @NotNull CorrelationExplanation explainInternal(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
+            @NotNull OperationResult result) {
+        // Values for potential matches are not correct
+        return new CorrelationExplanation.UnsupportedCorrelationExplanation(correlatorContext.getConfiguration());
     }
 
     @Override
@@ -87,7 +97,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, CommunicationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
-        return new CorrelationOperation(correlationContext)
+        return new CorrelationLikeOperation(correlationContext)
                 .checkCandidateOwner(candidateOwner, result);
     }
 
@@ -111,9 +121,9 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
         }
     }
 
-    private class CorrelationOperation extends Operation {
+    private class CorrelationLikeOperation extends Operation {
 
-        CorrelationOperation(@NotNull CorrelationContext correlationContext) {
+        CorrelationLikeOperation(@NotNull CorrelationContext correlationContext) {
             super(correlationContext);
         }
 
@@ -156,6 +166,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             if (referenceId != null) {
                 return checkCandidateOwnerByReferenceId(candidateOwner, referenceId, result);
             } else {
+                // FIXME - here we should check the potential matches obtained from ID Match service!
                 return 0;
             }
         }

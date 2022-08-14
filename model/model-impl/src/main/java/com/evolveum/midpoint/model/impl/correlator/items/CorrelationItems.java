@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;

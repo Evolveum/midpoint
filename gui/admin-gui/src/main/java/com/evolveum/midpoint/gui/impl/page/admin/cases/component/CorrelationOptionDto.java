@@ -11,9 +11,10 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -69,16 +70,16 @@ public class CorrelationOptionDto implements Serializable {
     /**
      * Returns all real values matching given item path. The path should not contain container IDs.
      */
-    public CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty) {
+    CorrelationPropertyValues getPropertyValues(CorrelationCaseDescription.CorrelationProperty correlationProperty) {
         try {
             if (newOwner) {
                 return new CorrelationPropertyValues(
-                        correlationProperty.getSourceRealStringValues(),
+                        getValuesForPath(correlationProperty.getItemPath()),
                         Set.of());
             } else {
                 return new CorrelationPropertyValues(
-                        getValuesForPath(correlationProperty.getPrimaryTargetPath()),
-                        getValuesForPath(correlationProperty.getSecondaryTargetPath()));
+                        getValuesForPath(correlationProperty.getItemPath()),
+                        getValuesForPath(correlationProperty.getSecondaryPath()));
             }
         } catch (Exception e) {
             return new CorrelationPropertyValues(Set.of(e.getMessage()), Set.of());

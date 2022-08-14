@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
-import com.evolveum.midpoint.model.api.correlator.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.lang3.Validate;

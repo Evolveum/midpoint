@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -34,6 +35,20 @@ public interface Correlator {
      */
     @NotNull CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Explains how the correlator came to a given candidate owner (and the specific confidence value of it).
+     *
+     * May not be supported by all correlators. Current support: TODO
+     *
+     * The `candidateOwner` should be fetched in full, e.g., to be able to access multi-provenance identity and indexed data.
+     */
+    @NotNull CorrelationExplanation explain(
+            @NotNull CorrelationContext correlationContext,
+            @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;

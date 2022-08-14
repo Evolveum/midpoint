@@ -33,6 +33,7 @@ public class CorrelationTestingAccount extends TestingAccount {
     private static final String CANDIDATES_START = "#";
     private static final String CANDIDATES_SEPARATOR = ";";
     private static final String CANDIDATE_CONFIDENCE_SEPARATOR = ":";
+    private static final String MATCHES_SEPARATOR = ",";
 
     private static final String NONE = "_none";
     private static final String UNCERTAIN = "_uncertain";
@@ -41,6 +42,8 @@ public class CorrelationTestingAccount extends TestingAccount {
     private static final ItemName ATTR_EXP_CANDIDATES_QNAME = new ItemName(NS_RI, ATTR_EXP_CANDIDATES);
     public static final String ATTR_EXP_RESULT = "expResult"; // used for the test itself
     private static final ItemName ATTR_EXP_RESULT_QNAME = new ItemName(NS_RI, ATTR_EXP_RESULT);
+    public static final String ATTR_EXP_MATCH = "expMatch"; // used for the test itself
+    private static final ItemName ATTR_EXP_MATCH_QNAME = new ItemName(NS_RI, ATTR_EXP_MATCH);
 
     CorrelationTestingAccount(@NotNull PrismObject<ShadowType> account) {
         super(account);
@@ -83,7 +86,8 @@ public class CorrelationTestingAccount extends TestingAccount {
         }
     }
 
-    @NotNull Set<TestCandidateOwner> getCandidateOwners(boolean complete) {
+    /** complete = take expResult (i.e. expected result from the whole correlation) */
+    @NotNull List<TestCandidateOwner> getExpectedCandidateOwners(boolean complete) {
         String expected;
         if (complete) {
             String expResult = emptyIfNull(getAttrExpResult()).trim();
@@ -98,9 +102,9 @@ public class CorrelationTestingAccount extends TestingAccount {
             expected = emptyIfNull(getAttrExpCandidates()).trim();
         }
         if ("".equals(expected)) {
-            return Set.of();
+            return List.of();
         }
-        Set<TestCandidateOwner> candidateOwnerSet = new HashSet<>();
+        List<TestCandidateOwner> candidateOwnerList = new ArrayList<>();
         String[] candidatesAndConfidences = expected.split(CANDIDATES_SEPARATOR);
         for (String candidateAndConfidence : candidatesAndConfidences) {
             String[] parts = candidateAndConfidence.split(CANDIDATE_CONFIDENCE_SEPARATOR);
@@ -112,8 +116,35 @@ public class CorrelationTestingAccount extends TestingAccount {
             } else {
                 throw new IllegalStateException("Wrong candidate-confidence pair: '" + candidateAndConfidence + "' in " + this);
             }
-            candidateOwnerSet.add(candidateOwner);
+            candidateOwnerList.add(candidateOwner);
         }
-        return candidateOwnerSet;
+        return candidateOwnerList;
+    }
+
+    @NotNull List<ExpectedMatches> getExpectedMatches() {
+        String textRaw;
+        try {
+            textRaw = ShadowUtil.getAttributeValue(shadow, ATTR_EXP_MATCH_QNAME);
+        } catch (SchemaException e) {
+            throw new AssertionError(e);
+        }
+        String text = emptyIfNull(textRaw).trim();
+        if ("".equals(text)) {
+            return List.of();
+        }
+        List<ExpectedMatches> candidatesMatches = new ArrayList<>();
+        for (String candidateMatchesText : text.split(CANDIDATES_SEPARATOR)) {
+            ExpectedMatches candidateMatches = new ExpectedMatches();
+            for (String matchText : candidateMatchesText.split(MATCHES_SEPARATOR)) {
+                String[] matchParts = matchText.split(":");
+                if (matchParts.length != 2) {
+                    throw new IllegalArgumentException(
+                            "Wrong matching spec: no two parts in '" + Arrays.toString(matchParts) + "' in: " + text);
+                }
+                candidateMatches.add(matchParts[0], matchParts[1]);
+            }
+            candidatesMatches.add(candidateMatches);
+        }
+        return candidatesMatches;
     }
 }

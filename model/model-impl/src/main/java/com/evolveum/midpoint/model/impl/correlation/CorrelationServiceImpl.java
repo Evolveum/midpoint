@@ -11,16 +11,20 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.CorrelationProperty;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -91,7 +96,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             ConfigurationException, ObjectNotFoundException {
         FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
         CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
-        CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
         return correlate(correlatorContext, correlationContext, result);
     }
 
@@ -132,16 +137,14 @@ public class CorrelationServiceImpl implements CorrelationService {
                             .identifier(OwnerOptionIdentifier.forNoOwner().getStringValue()));
         }
 
-        CompleteCorrelationResult.OwnersInfo ownersInfo = new CompleteCorrelationResult.OwnersInfo(
-                CandidateOwnersMap.from(eligibleCandidates),
-                optionsBean);
-
+        CandidateOwnersMap finalCandidatesMap = CandidateOwnersMap.from(eligibleCandidates);
         if (owners.size() == 1) {
-            return CompleteCorrelationResult.existingOwner(owners.iterator().next().getObject(), ownersInfo);
+            ObjectType owner = owners.iterator().next().getObject();
+            return CompleteCorrelationResult.existingOwner(owner, finalCandidatesMap, optionsBean);
         } else if (eligibleCandidates.isEmpty()) {
             return CompleteCorrelationResult.noOwner();
         } else {
-            return CompleteCorrelationResult.uncertain(ownersInfo);
+            return CompleteCorrelationResult.uncertain(finalCandidatesMap, optionsBean);
         }
     }
 
@@ -170,6 +173,19 @@ public class CorrelationServiceImpl implements CorrelationService {
         return correlate(shadowedResourceObject, preInboundsContext.getPreFocus(), task, result);
     }
 
+    CorrelationExplanation explain(
+            @NotNull FocusType candidate,
+            @NotNull CorrelatorContext<?> correlatorContext,
+            @NotNull CorrelationContext correlationContext,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        return correlatorFactoryRegistry
+                .instantiateCorrelator(correlatorContext, task, result)
+                .explain(correlationContext, candidate, result);
+    }
+
     @Override
     public boolean checkCandidateOwner(
             @NotNull ShadowType shadowedResourceObject,
@@ -186,10 +202,11 @@ public class CorrelationServiceImpl implements CorrelationService {
                 resource,
                 synchronizationPolicy.getObjectTypeDefinition(),
                 synchronizationPolicy,
+                preFocus,
                 determineObjectTemplate(synchronizationPolicy, preFocus, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
         CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
-        CorrelationContext correlationContext = createCorrelationContext(fullContext, preFocus, task, result);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
                 .checkCandidateOwner(correlationContext, candidateOwner, result);
@@ -219,6 +236,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         return preInboundsContext.getPreFocus();
     }
 
+    /** Ignores pre-focus stored in the case. TODO is that OK? */
     private @NotNull FullCorrelationContext getFullCorrelationContext(
             @NotNull CaseType aCase,
             @NotNull Task task,
@@ -258,6 +276,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 resource,
                 policy.getObjectTypeDefinition(),
                 policy,
+                preFocus,
                 determineObjectTemplate(policy, preFocus, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
     }
@@ -276,16 +295,12 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     private CorrelationContext createCorrelationContext(
             @NotNull FullCorrelationContext fullContext,
-            @Nullable FocusType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException {
         return new CorrelationContext(
                 fullContext.shadow,
-                preFocus != null ?
-                        preFocus :
-                        PrismContext.get().createObjectable(
-                                fullContext.synchronizationPolicy.getFocusClass()),
+                fullContext.preFocus,
                 fullContext.resource,
                 fullContext.resourceObjectDefinition,
                 fullContext.objectTemplate,
@@ -302,17 +317,6 @@ public class CorrelationServiceImpl implements CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
-    }
-
-    @Override
-    public Collection<CorrelationProperty> getCorrelationProperties(
-            @NotNull CaseType aCase, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        FullCorrelationContext fullCorrelationContext = getFullCorrelationContext(aCase, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullCorrelationContext, beans);
-        return new CorrelationPropertiesCreator(correlatorContext, fullCorrelationContext, aCase)
-                .createProperties();
     }
 
     @Override
@@ -366,5 +370,39 @@ public class CorrelationServiceImpl implements CorrelationService {
         LOGGER.trace("Determined archetype OID: {}", oid);
         return oid != null ?
                 beans.archetypeManager.getExpandedObjectTemplate(oid, result) : null;
+    }
+
+    @Override
+    public @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
+            @NotNull CaseType aCase,
+            @Nullable CorrelationCaseDescriptionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+
+        FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
+        List<ResourceObjectOwnerOptionType> ownerOptionsList = CorrelationCaseUtil.getOwnerOptionsList(aCase);
+        String contextDesc = "correlation case " + aCase;
+        return new CorrelationCaseDescriber<>(
+                correlatorContext, correlationContext, ownerOptionsList, options, contextDesc, task, beans)
+                .describe(result);
+    }
+
+    @VisibleForTesting
+    public @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
+            @NotNull CorrelatorContext<?> correlatorContext,
+            @NotNull CorrelationContext correlationContext,
+            @NotNull List<ResourceObjectOwnerOptionType> ownerOptionsList,
+            @Nullable CorrelationCaseDescriptionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        return new CorrelationCaseDescriber<>(
+                correlatorContext, correlationContext, ownerOptionsList, options, "test", task, beans)
+                .describe(result);
     }
 }

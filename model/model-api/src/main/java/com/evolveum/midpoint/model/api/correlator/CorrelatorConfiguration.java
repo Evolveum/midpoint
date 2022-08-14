@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,7 +33,7 @@ import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.ge
 /**
  * Wrapper for both typed (bean-only) and untyped (bean + item name) correlator configuration.
  */
-public abstract class CorrelatorConfiguration {
+public abstract class CorrelatorConfiguration implements Serializable {
 
     private static final Double DEFAULT_WEIGHT = 1.0;
 
@@ -165,8 +166,7 @@ public abstract class CorrelatorConfiguration {
                 .collect(Collectors.joining(", "));
     }
 
-    @NotNull
-    public String identify() {
+    public @NotNull String identify() {
         return CorrelationItemDefinitionUtil.identify(
                 getConfigurationBean());
     }
@@ -265,6 +265,17 @@ public abstract class CorrelatorConfiguration {
 
     public @Nullable String getName() {
         return getConfigurationBean().getName();
+    }
+
+    public @NotNull List<CorrelatorConfiguration> getAllConfigurationsDeeply() {
+        List<CorrelatorConfiguration> all = new ArrayList<>();
+        AbstractCorrelatorType bean = getConfigurationBean();
+        all.add(this);
+        if (bean instanceof CompositeCorrelatorType) {
+            all.addAll(
+                    getConfigurationsDeeply((CompositeCorrelatorType) bean));
+        }
+        return all;
     }
 
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {

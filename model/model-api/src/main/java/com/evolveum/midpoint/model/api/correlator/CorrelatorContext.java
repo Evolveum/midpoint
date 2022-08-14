@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;

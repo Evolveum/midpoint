@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;

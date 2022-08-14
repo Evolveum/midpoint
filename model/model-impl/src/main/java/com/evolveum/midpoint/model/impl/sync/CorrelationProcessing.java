@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.model.api.correlator.CompleteCorrelationResult;
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -133,7 +133,7 @@ class CorrelationProcessing<F extends FocusType> {
             ObjectType owner = resolveExistingOwner(shadow.getCorrelation().getResultingOwner(), result);
             if (owner != null) {
                 // We are not interested in other candidates here.
-                return CompleteCorrelationResult.existingOwner(owner, null);
+                return CompleteCorrelationResult.existingOwner(owner, null, null);
             } else {
                 // Something is wrong. Let us try the correlation (again).
                 // TODO perhaps we should clear the correlation state from the shadow

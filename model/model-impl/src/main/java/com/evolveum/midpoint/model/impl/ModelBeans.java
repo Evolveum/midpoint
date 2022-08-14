@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,7 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
@@ -129,6 +131,7 @@ public class ModelBeans {
     @Autowired public CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired public CorrelationCaseManager correlationCaseManager;
     @Autowired public CorrelationService correlationService;
+    @Autowired public CorrelationServiceImpl correlationServiceImpl;
     @Autowired public SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     @Autowired public SynchronizationActionFactory synchronizationActionFactory;
     @Autowired public ProjectionContextKeyFactory projectionContextKeyFactory;

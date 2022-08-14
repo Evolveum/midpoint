@@ -7,17 +7,46 @@
 
 package com.evolveum.midpoint.model.impl.correlator.correlation;
 
+import static com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators.DescriptionMode.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.concepts.func.FailableConsumer;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService.CorrelationCaseDescriptionOptions;
 import com.evolveum.midpoint.model.api.correlator.*;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorTestUtil;
 import com.evolveum.midpoint.model.impl.correlator.idmatch.IdMatchCorrelatorFactory;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.test.idmatch.DummyIdMatchServiceImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -30,23 +59,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Isolated testing of individual correlators.
@@ -130,7 +147,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
     @Autowired private ModelBeans modelBeans;
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
-    @Autowired private CorrelationService correlationService;
+    @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
 
     /** Used by the `id-match` correlator instead of real ID Match Service. */
@@ -178,12 +195,14 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test150CorrelateUsingEmployeeNumberAsOwnerOidWithFullObject() throws Exception {
-        executeTest(CORRELATOR_OWNER, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER);
+        // We skip the explanation because "owner" correlator does not support it.
+        executeTest(CORRELATOR_OWNER, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER, DESCRIBE_ONLY, null);
     }
 
     @Test
     public void test160CorrelateUsingEmployeeNumberAsOwnerOidWithReference() throws Exception {
-        executeTest(CORRELATOR_OWNER_REF, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER_REF);
+        // We skip the explanation because "owner" correlator does not support it.
+        executeTest(CORRELATOR_OWNER_REF, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER_REF, DESCRIBE_ONLY, null);
     }
 
     @Test
@@ -192,6 +211,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 CORRELATOR_ID_MATCH,
                 FILE_USERS_TRADITIONAL,
                 FILE_ACCOUNTS_ID_MATCH,
+                DESCRIBE_ONLY, // the confidence for potential matches is currently wrong (always 0)
                 accounts -> {
                     // We need a specific record in our ID Match service.
                     ShadowType ian1 = CorrelatorTestUtil.findAccount(accounts, 1).getShadow();
@@ -215,7 +235,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @Test
     public void test220CorrelateByNameFuzzy() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
+        // We skip the explanation (for now), because fuzzy filters are not supported
+        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY, NONE, null);
     }
 
     @Test
@@ -236,96 +257,17 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         // @formatter:on
     }
 
-    @NotNull
-    private CorrelationContext createCorrelationContext(
-            CorrelationTestingAccount account, TestCorrelator correlator, Task task, OperationResult result)
-            throws CommonException {
-        ResourceType resource = RESOURCE_DUMMY_CORRELATION.getResource().asObjectable();
-
-        SynchronizationPolicy synchronizationPolicy = getSynchronizationPolicy();
-
-        UserType preFocus =
-                correlationService.computePreFocus(
-                        account.getShadow(),
-                        resource,
-                        synchronizationPolicy,
-                        UserType.class,
-                        task,
-                        result);
-
-        return new CorrelationContext(
-                account.getShadow(),
-                preFocus,
-                resource,
-                resourceObjectTypeDefinition,
-                correlator.getUserTemplate(),
-                systemConfiguration, task);
-    }
-
-    private @NotNull SynchronizationPolicy getSynchronizationPolicy() throws SchemaException, ConfigurationException {
-        return Objects.requireNonNull(
-                SynchronizationPolicyFactory.forKindAndIntent(
-                        ShadowKindType.ACCOUNT,
-                        SchemaConstants.INTENT_DEFAULT,
-                        RESOURCE_DUMMY_CORRELATION.getResource().asObjectable()),
-                "no synchronization policy");
-    }
-
-    private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationTestingAccount account) {
-        displayDumpable("Correlation result", correlationResult);
-        assertCandidateOwnersMap(
-                account.getCandidateOwners(false),
-                correlationResult.getCandidateOwnersMap());
-    }
-
-    private void assertCompleteCorrelationResult(
-            CompleteCorrelationResult completeResult, CorrelationTestingAccount account) {
-
-        displayDumpable("Correlation result", completeResult);
-
-        assertThat(completeResult.getSituation())
-                .as("correlation result status")
-                .isEqualTo(account.getExpectedCorrelationSituation());
-
-        if (completeResult.getSituation() == CorrelationSituationType.EXISTING_OWNER) {
-            ObjectType realOwner = completeResult.getOwner();
-            assertThat(realOwner).as("correlated owner").isNotNull();
-            String expectedOwnerName = account.getExpectedOwnerName();
-            assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
-        }
-
-        assertCandidateOwnersMap(
-                account.getCandidateOwners(true),
-                completeResult.getCandidateOwnersMap());
-    }
-
-    private void assertCandidateOwnersMap(Set<TestCandidateOwner> expectedOwnerOptions, CandidateOwnersMap completeResult) {
-        Set<TestCandidateOwner> realOwnerOptions = getRealOwnerOptions(completeResult);
-        assertThat(realOwnerOptions)
-                .as("owner options")
-                .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
-    }
-
-    private @NotNull Set<TestCandidateOwner> getRealOwnerOptions(@NotNull CandidateOwnersMap candidateOwnersMap) {
-        Set<TestCandidateOwner> candidateOwnerSet = new HashSet<>();
-        for (CandidateOwner candidateOwner : candidateOwnersMap.values()) {
-            candidateOwnerSet.add(
-                    TestCandidateOwner.of(candidateOwner));
-        }
-        return candidateOwnerSet;
-    }
-
     private void executeTest(TestCorrelator correlator, File usersFile, File accountsFile)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
             InterruptedException, ObjectAlreadyExistsException {
-        executeTest(correlator, usersFile, accountsFile, null);
+        executeTest(correlator, usersFile, accountsFile, FULL, null);
     }
 
     private void executeTest(
             TestCorrelator correlator,
             File usersFile,
             File accountsFile,
+            DescriptionMode descriptionMode,
             FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
             throws CommonException, IOException, ConflictException, SchemaViolationException,
             InterruptedException, ObjectAlreadyExistsException, EncryptionException {
@@ -372,6 +314,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             String prefix = "correlating account #" + account.getNumber() + ": ";
 
             given(prefix + "correlation context is created");
+            displayDumpable("account", account);
             CorrelationContext correlationContext = createCorrelationContext(account, correlator, task, result);
 
             when(prefix + "correlation is done (using a correlator)");
@@ -389,6 +332,15 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
             then(prefix + "correlation result is OK");
             assertCompleteCorrelationResult(completeCorrelationResult, account);
+
+            when(prefix + "case description is requested");
+            CorrelationCaseDescription<?> description =
+                    describeCorrelationCase(
+                            correlator.correlatorContext, correlationContext, completeCorrelationResult, descriptionMode, task, result);
+
+            then(prefix + "case description is OK");
+            displayDumpable("case description", description);
+            assertCorrelationDescription(description, descriptionMode, account);
         }
     }
 
@@ -416,6 +368,151 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         systemConfiguration);
         correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
                 correlator.correlatorContext, task, result);
+    }
+
+    @NotNull
+    private CorrelationContext createCorrelationContext(
+            CorrelationTestingAccount account, TestCorrelator correlator, Task task, OperationResult result)
+            throws CommonException {
+        ResourceType resource = RESOURCE_DUMMY_CORRELATION.getResource().asObjectable();
+
+        SynchronizationPolicy synchronizationPolicy = getSynchronizationPolicy();
+
+        UserType preFocus =
+                correlationService.computePreFocus(
+                        account.getShadow(),
+                        resource,
+                        synchronizationPolicy,
+                        UserType.class,
+                        task,
+                        result);
+
+        return new CorrelationContext(
+                account.getShadow(),
+                preFocus,
+                resource,
+                resourceObjectTypeDefinition,
+                correlator.getUserTemplate(),
+                systemConfiguration, task);
+    }
+
+    private @NotNull SynchronizationPolicy getSynchronizationPolicy() throws SchemaException, ConfigurationException {
+        return Objects.requireNonNull(
+                SynchronizationPolicyFactory.forKindAndIntent(
+                        ShadowKindType.ACCOUNT,
+                        SchemaConstants.INTENT_DEFAULT,
+                        RESOURCE_DUMMY_CORRELATION.getResource().asObjectable()),
+                "no synchronization policy");
+    }
+
+    private void assertCorrelationResult(
+            CorrelationResult correlationResult, CorrelationTestingAccount account) {
+        displayDumpable("Correlation result", correlationResult);
+        assertCandidateOwnersMap(
+                account.getExpectedCandidateOwners(false),
+                correlationResult.getCandidateOwnersMap());
+    }
+
+    private void assertCompleteCorrelationResult(
+            CompleteCorrelationResult completeResult, CorrelationTestingAccount account) {
+
+        displayDumpable("Correlation result", completeResult);
+
+        assertThat(completeResult.getSituation())
+                .as("correlation result status")
+                .isEqualTo(account.getExpectedCorrelationSituation());
+
+        if (completeResult.getSituation() == CorrelationSituationType.EXISTING_OWNER) {
+            ObjectType realOwner = completeResult.getOwner();
+            assertThat(realOwner).as("correlated owner").isNotNull();
+            String expectedOwnerName = account.getExpectedOwnerName();
+            assertThat(realOwner.getName().getOrig()).as("owner name").isEqualTo(expectedOwnerName);
+        }
+
+        assertCandidateOwnersMap(
+                account.getExpectedCandidateOwners(true),
+                completeResult.getCandidateOwnersMap());
+    }
+
+    private void assertCandidateOwnersMap(
+            Collection<TestCandidateOwner> expectedOwnerOptions, CandidateOwnersMap completeResult) {
+        Set<TestCandidateOwner> realOwnerOptions = getRealOwnerOptions(completeResult);
+        assertThat(realOwnerOptions)
+                .as("owner options")
+                .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
+    }
+
+    private @NotNull Set<TestCandidateOwner> getRealOwnerOptions(@NotNull CandidateOwnersMap candidateOwnersMap) {
+        Set<TestCandidateOwner> candidateOwnerSet = new HashSet<>();
+        for (CandidateOwner candidateOwner : candidateOwnersMap.values()) {
+            candidateOwnerSet.add(
+                    TestCandidateOwner.of(candidateOwner));
+        }
+        return candidateOwnerSet;
+    }
+
+    private CorrelationCaseDescription<?> describeCorrelationCase(
+            CorrelatorContext<?> correlatorContext,
+            CorrelationContext correlationContext,
+            CompleteCorrelationResult completeCorrelationResult,
+            DescriptionMode descriptionMode,
+            Task task,
+            OperationResult result) throws CommonException {
+        ResourceObjectOwnerOptionsType optionsBean = completeCorrelationResult.getOwnerOptions();
+        if (optionsBean == null || descriptionMode == NONE) {
+            System.out.println("No options (or description mode is NONE), skipping testing the correlation description");
+            return null;
+        } else {
+            CorrelationCaseDescriptionOptions options =
+                    new CorrelationCaseDescriptionOptions().explain(descriptionMode != DESCRIBE_ONLY);
+            return correlationService.describeCorrelationCase(
+                    correlatorContext, correlationContext, optionsBean.getOption(), options, task, result);
+        }
+    }
+
+    private void assertCorrelationDescription(
+            CorrelationCaseDescription<?> description, DescriptionMode descriptionMode, CorrelationTestingAccount account) {
+        if (description == null) {
+            return;
+        }
+
+        List<ExpectedMatches> expectedCandidateMatches = account.getExpectedMatches();
+        List<TestCandidateOwner> expectedCandidates = account.getExpectedCandidateOwners(true);
+        if (descriptionMode == FULL) {
+            assertThat(description.getCandidates())
+                    .as("candidates in description")
+                    .hasSize(expectedCandidates.size());
+            for (int i = 0; i < expectedCandidates.size(); i++) {
+                TestCandidateOwner expectedCandidate = expectedCandidates.get(i);
+                ExpectedMatches expectedMatches = expectedCandidateMatches.size() > i ? expectedCandidateMatches.get(i) : null;
+                CandidateDescription<?> candidateDescription =
+                        MiscUtil.extractSingletonRequired(
+                                description.getCandidates().stream()
+                                        .filter(c -> expectedCandidate.getName().equals(c.getObject().getName().getOrig()))
+                                        .collect(Collectors.toList()),
+                                () -> new AssertionError("Multiple candidates found for " + expectedCandidate),
+                                () -> new AssertionError("No candidates found for " + expectedCandidate));
+                assertThat(candidateDescription.getConfidence())
+                        .as("candidate confidence (in description)")
+                        .isEqualTo(expectedCandidate.getConfidence());
+                System.out.println("Confidence is OK for " + candidateDescription);
+                if (expectedMatches != null) {
+                    expectedMatches.getMatches().forEach(
+                            (path, match) -> assertMatch(candidateDescription, path, match));
+                    System.out.println(expectedMatches.getMatches().size() + " item(s) matches are OK for " + candidateDescription);
+                }
+            }
+        }
+    }
+
+    private void assertMatch(CandidateDescription<?> candidateDescription, ItemPath path, Match expectedMatch) {
+        CorrelationPropertyValuesDescription propertyDesc = candidateDescription.getProperties().get(path);
+        assertThat(propertyDesc).as("property description for " + path).isNotNull();
+        assertThat(propertyDesc.getMatch()).as("match for " + path).isEqualTo(expectedMatch);
+    }
+
+    enum DescriptionMode {
+        FULL, DESCRIBE_ONLY, NONE
     }
 
     /** Definition of the correlator and its instance. */

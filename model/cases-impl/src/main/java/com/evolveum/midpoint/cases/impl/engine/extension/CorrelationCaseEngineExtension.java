@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.cases.api.CaseEngine;
 import com.evolveum.midpoint.cases.api.CaseEngineOperation;
 import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleCaseSchemaType;

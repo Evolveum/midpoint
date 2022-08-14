@@ -29,7 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -47,8 +46,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Instance of a correlation item
  *
  * TODO finish!
- *
- * TODO what's the relation to {@link CorrelationProperty}?
  */
 public class CorrelationItem implements DebugDumpable {
 
@@ -90,9 +87,9 @@ public class CorrelationItem implements DebugDumpable {
             @NotNull CorrelatorContext<?> correlatorContext,
             @NotNull ObjectType preFocus)
             throws ConfigurationException {
-        ItemPath path = getPath(itemBean);
-        IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
-        String explicitIndexName = getExplicitIndexName(itemBean);
+        @NotNull ItemPath path = getPath(itemBean);
+        @Nullable IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
+        @Nullable String explicitIndexName = getExplicitIndexName(itemBean);
         return new CorrelationItem(
                 getName(itemBean),
                 path,
@@ -187,13 +184,6 @@ public class CorrelationItem implements DebugDumpable {
                 () -> new UnsupportedOperationException("Multiple values of " + itemPath + " are not supported: " + prismValues));
     }
 
-    /** Shouldn't return `null` values. */
-    public @NotNull Collection<?> getRealValues() throws SchemaException {
-        return prismValues.stream()
-                .map(PrismValue::getRealValue)
-                .collect(Collectors.toList());
-    }
-
     public @Nullable PrismProperty<?> getProperty() throws SchemaException {
         PrismValue single = getSinglePrismValue();
         if (single == null) {
@@ -215,7 +205,7 @@ public class CorrelationItem implements DebugDumpable {
         return property != null ? property.getDefinition() : null;
     }
 
-    S_FilterExit addClauseToQueryBuilder(
+    public S_FilterExit addClauseToQueryBuilder(
             S_FilterEntry builder, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
@@ -312,15 +302,6 @@ public class CorrelationItem implements DebugDumpable {
                 ", normalization=" + normalization +
                 ", indexing=" + indexingItemConfiguration +
                 '}';
-    }
-
-    // Temporary
-    public @NotNull CorrelationProperty asCorrelationProperty() throws SchemaException {
-        return CorrelationProperty.create(
-                name,
-                itemPath,
-                getRealValues(),
-                getDefinition());
     }
 
     @Override

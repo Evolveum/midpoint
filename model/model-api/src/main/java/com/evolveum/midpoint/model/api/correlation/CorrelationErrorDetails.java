@@ -5,8 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.correlator;
+package com.evolveum.midpoint.model.api.correlation;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
