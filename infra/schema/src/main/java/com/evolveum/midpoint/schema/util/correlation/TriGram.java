@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.schema.util.correlation;
 
 import java.util.ArrayList;
@@ -7,15 +13,15 @@ import java.util.Set;
 
 public class TriGram {
 
-    private static final int nGramValue = 3;
+    private static final int N_GRAM_VALUE = 3;
 
     public List<String> generateTriGram(String object) {
         String[] normalizedInput = normalization(object);
         List<String> triGrams = new ArrayList<>();
 
         for (String preparedString : normalizedInput) {
-            for (int j = 0; j < preparedString.length() - nGramValue + 1; j++) {
-                String triGramSubstring = preparedString.substring(j, j + nGramValue);
+            for (int j = 0; j < preparedString.length() - N_GRAM_VALUE + 1; j++) {
+                String triGramSubstring = preparedString.substring(j, j + N_GRAM_VALUE);
 
                 if (!triGrams.contains(triGramSubstring)) {
                     triGrams.add(triGramSubstring);
