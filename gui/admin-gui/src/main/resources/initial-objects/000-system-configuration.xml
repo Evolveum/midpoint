@@ -254,6 +254,23 @@
                 <panelType>projections</panelType>
                 <preview>true</preview>
             </widget>
+            <widget>
+                <identifier>profileWidget</identifier>
+                <display>
+                    <label>
+                        <orig>Profile</orig>
+                        <translation>
+                            <key>PageSelfDashboard.profile</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-3</cssClass>
+                    <icon>
+                        <cssClass>fa fa-user</cssClass>
+                    </icon>
+                </display>
+                <panelType>statisticWidget</panelType>
+                <preview>true</preview>
+            </widget>
         </homePage>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>

@@ -285,7 +285,15 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             mergedPanel.getPanel().addAll(mergedConfigs);
         }
         if (CollectionUtils.isNotEmpty(configuredPanel.getAction())) {
-            mergedPanel.getAction().addAll(mergeGuiActions(configuredPanel.getAction(), configuredPanel.getAction()));
+            if (mergedPanel.getAction() == null) {
+                mergedPanel.createActionList().addAll(configuredPanel.getAction());
+            } else if (mergedPanel.getAction().isEmpty()) {
+                mergedPanel.getAction().addAll(configuredPanel.getAction());
+            } else {
+                List<GuiActionType> mergedActions = mergeGuiActions(mergedPanel.getAction(), configuredPanel.getAction());
+                mergedPanel.getAction().clear();
+                mergedPanel.getAction().addAll(mergedActions);
+            }
         }
     }
 

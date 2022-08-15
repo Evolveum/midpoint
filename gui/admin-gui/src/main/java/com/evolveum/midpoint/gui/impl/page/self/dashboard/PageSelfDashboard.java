@@ -8,13 +8,13 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.namespace.QName;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardLinkComponent;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardSearchPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.StatisticDashboardWidget;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -33,7 +33,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,16 +61,12 @@ public class PageSelfDashboard extends PageSelf {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfDashboard.class);
     private static final String ID_SEARCH_PANEL = "searchPanel";
-    private static final String ID_LINKS_PANEL = "linksPanel";
-    private static final String ID_LINK_ITEM = "linkItem";
+    private static final String ID_STATISTIC_WIDGETS_PANEL = "statisticWidgetsPanel";
+    private static final String ID_STATISTIC_WIDGET = "statisticWidget";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL = "objectCollectionViewWidgetsPanel";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGET = "objectCollectionViewWidget";
 
-    private static final String ID_TITLE = "title";
-
-
-
-    private static final String DOT_CLASS = PageSelfDashboard.class.getName() + ".";
+    private static final String STATISTIC_WIDGET_IDENTIFIER = "statisticWidget";
 
 
     public PageSelfDashboard() {
@@ -90,13 +85,15 @@ public class PageSelfDashboard extends PageSelf {
         }));
         add(dashboardSearchPanel);
 
-        ListView<RichHyperlinkType> linksPanel = new ListView<>(ID_LINKS_PANEL, () -> loadStatisticWidgetList()) {
+        ListView<ContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<RichHyperlinkType> item) {
-                item.add(new DashboardLinkComponent(ID_LINK_ITEM, item.getModel()));
+            protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
+                StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
+                widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                item.add(widget);
             }
         };
         linksPanel.setOutputMarkupId(true);
@@ -111,8 +108,7 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initPreviewWidgets() {
-         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
-         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, () -> homePageType.getWidget()) {
+         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::getNonStatisticWidgetList) {
 
              @Override
              protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
@@ -125,7 +121,7 @@ public class PageSelfDashboard extends PageSelf {
          viewWidgetsPanel.setOutputMarkupId(true);
          viewWidgetsPanel.add(new VisibleBehaviour(() -> {
             UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
-            return homePageType != null && WebComponentUtil.getElementVisibility(visibility);
+            return getCompiledGuiProfile().getHomePage() != null && WebComponentUtil.getElementVisibility(visibility);
          }));
          add(viewWidgetsPanel);
      }
@@ -137,21 +133,23 @@ public class PageSelfDashboard extends PageSelf {
         return Model.of(panelConfig.getDisplay().getCssClass());
      }
 
-     private DisplayType createDisplayType(String label, String cssClass, String icon) {
-         return new DisplayType().label(label).cssClass(cssClass).beginIcon().cssClass(icon).end();
+     private List<ContainerPanelConfigurationType> getStatisticWidgetList() {
+         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+         List<ContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+         if (allWidgetList == null) {
+             return null;
+         }
+         return allWidgetList.stream().filter(w -> w.getIdentifier().equals(STATISTIC_WIDGET_IDENTIFIER)).collect(Collectors.toList());
      }
 
-     private ContainerPanelConfigurationType createPanelConfig(String panelType, QName type, DisplayType displayType) {
-        ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
-        config.setDisplay(displayType);
-        config.setType(type);
-        config.setPanelType(panelType);
-        return config;
+     private List<ContainerPanelConfigurationType> getNonStatisticWidgetList() {
+         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+         List<ContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+         if (allWidgetList == null) {
+             return null;
+         }
+         return allWidgetList.stream().filter(w -> !w.getIdentifier().equals(STATISTIC_WIDGET_IDENTIFIER)).collect(Collectors.toList());
      }
-
-    private List<RichHyperlinkType> loadStatisticWidgetList() {
-        return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
-    }
 
     private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
         return new LoadableDetachableModel<>() {
