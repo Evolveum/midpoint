@@ -424,13 +424,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
-        if (panelType == null) {
-            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
-            return;
+        if (panelType == null && LOGGER.isDebugEnabled()) {
+            LOGGER.debug("AbstractPageObjectDetails.panelTypeUndefined {}", panelConfig.getIdentifier());
         }
 
         Class<? extends Panel> panelClass = findObjectPanel(panelType);
-        Panel panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
+        Component panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
         panel.add(AttributeAppender.append("class", () -> {
                 List panels = getPanelConfigurations().getObject();
                 if (panels == null || panels.size() <= 1) {

@@ -5471,9 +5471,9 @@ public final class WebComponentUtil {
     }
 
     //TODO
-    public static <T extends ObjectType> Panel createPanel(Class<? extends Panel> panelClass, String markupId, ObjectDetailsModels<T> objectDetailsModels, ContainerPanelConfigurationType panelConfig) {
+    public static <T extends ObjectType> Component createPanel(Class<? extends Panel> panelClass, String markupId, ObjectDetailsModels<T> objectDetailsModels, ContainerPanelConfigurationType panelConfig) {
         if (panelClass == null) {
-            return null;
+            return new WebMarkupContainer(markupId);
         }
 
         if (AbstractAssignmentTypePanel.class.isAssignableFrom(panelClass)) {
@@ -5494,7 +5494,7 @@ public final class WebComponentUtil {
             e.printStackTrace();
             LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
         }
-        return null;
+        return new WebMarkupContainer(markupId);
     }
 
     public static PrismObject<ResourceType> findResource(PrismPropertyWrapper itemWrapper, PrismPropertyPanelContext panelCtx) {

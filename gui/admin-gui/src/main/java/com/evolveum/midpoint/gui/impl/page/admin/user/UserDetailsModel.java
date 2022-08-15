@@ -14,9 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -36,8 +35,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.model.LoadableDetachableModel;
-
 public class UserDetailsModel extends FocusDetailsModels<UserType> {
 
     private static final String DOT_CLASS = UserDetailsModel.class.getName() + ".";
@@ -49,7 +46,11 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
     public UserDetailsModel(LoadableDetachableModel<PrismObject<UserType>> prismObjectModel, PageBase serviceLocator) {
-        super(prismObjectModel, serviceLocator);
+        this(prismObjectModel,false,serviceLocator);
+    }
+
+    public UserDetailsModel(LoadableDetachableModel<PrismObject<UserType>> prismObjectModel,boolean history, PageBase serviceLocator) {
+        super(prismObjectModel, history, serviceLocator);
 
         delegationsModel = new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
