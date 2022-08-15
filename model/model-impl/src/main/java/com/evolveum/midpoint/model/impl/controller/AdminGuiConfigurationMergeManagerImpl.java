@@ -284,6 +284,73 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             mergedPanel.getPanel().clear();
             mergedPanel.getPanel().addAll(mergedConfigs);
         }
+        if (CollectionUtils.isNotEmpty(configuredPanel.getAction())) {
+            mergedPanel.getAction().addAll(mergeGuiActions(configuredPanel.getAction(), configuredPanel.getAction()));
+        }
+    }
+
+    private List<GuiActionType> mergeGuiActions(List<GuiActionType> composited, List<GuiActionType> actionList) {
+        List<GuiActionType> mergedList = new ArrayList<>();
+        for (GuiActionType action : actionList) {
+            GuiActionType actionInList = findAction(composited, action.getName());
+            if (actionInList == null) {
+                mergedList.add(actionInList);
+            } else {
+                mergeGuiAction(actionInList, action);
+            }
+        }
+        return mergedList;
+    }
+
+    private GuiActionType findAction(List<GuiActionType> actionList, String actionName) {
+        if (StringUtils.isEmpty(actionName)) {
+            return null;
+        }
+        return actionList.stream().filter(action -> actionName.equals(action.getName())).findFirst().orElse(null);
+    }
+
+    private void mergeGuiAction(GuiActionType composited, GuiActionType action) {
+        if (action == null) {
+            return;
+        }
+        if (composited == null) {
+            return;
+        }
+        if (StringUtils.isEmpty(composited.getName()) || StringUtils.isEmpty(action.getName())) {
+            LOGGER.trace("Unable to merge gui action without name, action 1: {}, action 2: {}", composited, action);
+        }
+        if (StringUtils.isNotEmpty(action.getDescription())) {
+            composited.setDocumentation(action.getDescription());
+        }
+        if (action.getDisplay() != null) {
+            composited.setDisplay(mergeDisplayType(action.getDisplay(), composited.getDisplay()));
+        }
+        if (StringUtils.isNotEmpty(action.getDocumentation())) {
+            composited.setDescription(action.getDocumentation());
+        }
+        if (action.getTaskTemplateRef() != null) {
+            composited.setTaskTemplateRef(action.getTaskTemplateRef());
+        }
+        mergeRedirectionTargetType(composited.getTarget(), action.getTarget().clone());
+    }
+
+    private void mergeRedirectionTargetType(RedirectionTargetType composited, RedirectionTargetType redirectionTarget) {
+        if (composited == null) {
+            return;
+        }
+        if (redirectionTarget == null) {
+            return;
+        }
+
+        if (StringUtils.isNotEmpty(redirectionTarget.getTargetUrl())) {
+            composited.setTargetUrl(redirectionTarget.getTargetUrl());
+        }
+        if (StringUtils.isNotEmpty(redirectionTarget.getPanelType())) {
+            composited.setPanelType(redirectionTarget.getPanelType());
+        }
+        if (StringUtils.isNotEmpty(redirectionTarget.getPageClass())) {
+            composited.setPageClass(redirectionTarget.getPageClass());
+        }
     }
 
     public List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {

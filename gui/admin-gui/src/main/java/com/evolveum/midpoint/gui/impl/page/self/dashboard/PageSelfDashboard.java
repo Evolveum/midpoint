@@ -90,7 +90,7 @@ public class PageSelfDashboard extends PageSelf {
         }));
         add(dashboardSearchPanel);
 
-        ListView<RichHyperlinkType> linksPanel = new ListView<>(ID_LINKS_PANEL, () -> loadLinksList()) {
+        ListView<RichHyperlinkType> linksPanel = new ListView<>(ID_LINKS_PANEL, () -> loadStatisticWidgetList()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -149,7 +149,7 @@ public class PageSelfDashboard extends PageSelf {
         return config;
      }
 
-    private List<RichHyperlinkType> loadLinksList() {
+    private List<RichHyperlinkType> loadStatisticWidgetList() {
         return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
     }
 
