@@ -63,7 +63,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private boolean column;
 
-    private boolean stripe;
+//    private boolean stripe;
 
     private boolean showEmpty;
 

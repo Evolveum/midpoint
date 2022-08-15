@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefa
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferenceValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -69,10 +72,18 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler()).build();
+        settings.setConfig(getContainerConfiguration());
         VerticalFormDefaultContainerablePanel<C> panel
                 = new VerticalFormDefaultContainerablePanel<C>(ID_VALUE, newValueModel, settings);
         add(panel);
     }
+
+    protected ContainerPanelConfigurationType getContainerConfiguration() {
+        return WebComponentUtil.getContainerConfiguration(
+                getResourceModel().getObjectDetailsPageConfiguration().getObject(), getPanelType());
+    }
+
+    protected abstract String getPanelType();
 
     protected ItemVisibilityHandler getVisibilityHandler() {
         return null;

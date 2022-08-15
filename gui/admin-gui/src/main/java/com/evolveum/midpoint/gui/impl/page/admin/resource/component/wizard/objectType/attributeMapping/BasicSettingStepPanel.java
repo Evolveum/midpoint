@@ -30,8 +30,15 @@ import org.apache.wicket.model.IModel;
         display = @PanelDisplay(label = "PageResource.wizard.step.basicAttributeMappingWizard", icon = "fa fa-circle"))
 public class BasicSettingStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType> {
 
+    private static final String PANEL_TYPE = "basicAttributeWizard";
+
     public BasicSettingStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel) {
         super(model, newValueModel);
+    }
+
+    @Override
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 
     @Override

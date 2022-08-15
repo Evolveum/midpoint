@@ -87,6 +87,7 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
                                     suggestionDef.getSuggestedValues().iterator().next().getValue());
                         }
                     }
+                    item.toMutable().setDisplayOrder(100);
                     item.toMutable().toMutable().setEmphasized(true);
                 }
             }

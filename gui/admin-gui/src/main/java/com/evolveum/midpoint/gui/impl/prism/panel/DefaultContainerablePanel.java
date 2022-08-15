@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,8 +52,8 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     private void initLayout() {
-        createNonContainersPanel();
         createContainersPanel();
+        createNonContainersPanel();
         setOutputMarkupId(true);
     }
 
@@ -117,7 +116,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     protected IModel<List<PrismContainerWrapper<? extends Containerable>>> createContainersModel() {
         return new ReadOnlyModel<>(() -> {
             PrismContainerValueWrapper<C> modelObject = getModelObject();
-            return modelObject.getContainers(getPanelConfiguration());
+            return modelObject.getContainers(getPanelConfiguration(), getPageBase());
         });
     }
 
@@ -184,7 +183,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         return settings;
     }
 
-    private ContainerPanelConfigurationType getPanelConfiguration() {
+    protected ContainerPanelConfigurationType getPanelConfiguration() {
         if (settings == null) {
             return null;
         }
