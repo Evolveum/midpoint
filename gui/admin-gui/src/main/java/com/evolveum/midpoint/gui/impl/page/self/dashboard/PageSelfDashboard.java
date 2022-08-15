@@ -139,7 +139,7 @@ public class PageSelfDashboard extends PageSelf {
          if (allWidgetList == null) {
              return null;
          }
-         return allWidgetList.stream().filter(w -> w.getIdentifier().equals(STATISTIC_WIDGET_IDENTIFIER)).collect(Collectors.toList());
+         return allWidgetList.stream().filter(w -> STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
      private List<ContainerPanelConfigurationType> getNonStatisticWidgetList() {
@@ -148,7 +148,7 @@ public class PageSelfDashboard extends PageSelf {
          if (allWidgetList == null) {
              return null;
          }
-         return allWidgetList.stream().filter(w -> !w.getIdentifier().equals(STATISTIC_WIDGET_IDENTIFIER)).collect(Collectors.toList());
+         return allWidgetList.stream().filter(w -> !STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
     private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {

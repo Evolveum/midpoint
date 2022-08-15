@@ -134,7 +134,7 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
                 }
                 Constructor<?> constructor = clazz.getConstructor();
                 Object pageInstance = constructor.newInstance();
-                if (pageInstance instanceof AbstractPageObjectDetails) {
+                if (pageInstance instanceof AbstractPageObjectDetails && StringUtils.isNotEmpty(panelType)) {
                     String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
                     ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(storageKey);
                     if (pageStorage == null) {
