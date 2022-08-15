@@ -1,4 +1,4 @@
 uid  | givenName | familyName | expCandidates | expResult | expMatch           | _note
-1    | John      | Smith      | smith1:1.0    | smith1    | gn:F,fn:F          | There is a user John Smith
-2    | Ian       | Smith      | smith1:1.0    | smith1    | gn:P,fn:F          | John Smith has an alternative name of "Ian"
-3    | Peter     | Smith      |               | _none     |                    | No such user exists
+1    | John      | Smith      | smith1:1.0    | smith1    | gn:F,fn:F          | There is a user John Smith. Both given name and family name match in full here.
+2    | Ian       | Smith      | smith1:1.0    | smith1    | gn:P,fn:F          | John Smith has an alternative name of "Ian". The match of given name is thus considered partial.
+3    | Peter     | Smith      |               | _none     |                    | No such user exists.

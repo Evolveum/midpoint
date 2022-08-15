@@ -153,7 +153,9 @@ class CorrelationCaseDescriber<F extends FocusType> {
             CorrelationExplanation explanation;
             if (explain) {
                 explanation =
-                        beans.correlationServiceImpl.explain(candidate, correlatorContext, correlationContext, task, result);
+                        beans.correlatorFactoryRegistry
+                                .instantiateCorrelator(correlatorContext, task, result)
+                                .explain(correlationContext, candidate, result);
                 confidence = explanation.getConfidence();
             } else {
                 explanation = null;

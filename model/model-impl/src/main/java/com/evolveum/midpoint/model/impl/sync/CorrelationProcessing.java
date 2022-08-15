@@ -87,7 +87,7 @@ class CorrelationProcessing<F extends FocusType> {
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);
         this.rootCorrelatorContext =
-                beans.correlationService.createRootCorrelatorContext(
+                beans.correlationServiceImpl.createRootCorrelatorContext(
                         syncCtx.getSynchronizationPolicyRequired(),
                         syncCtx.getObjectTemplateForCorrelation(),
                         syncCtx.getSystemConfigurationBean());
@@ -175,7 +175,7 @@ class CorrelationProcessing<F extends FocusType> {
 
         CompleteCorrelationResult correlationResult;
         try {
-            correlationResult = beans.correlationService.correlate(rootCorrelatorContext, correlationContext, result);
+            correlationResult = beans.correlationServiceImpl.correlate(rootCorrelatorContext, correlationContext, result);
         } catch (Exception e) { // Other kinds of Throwable are intentionally passed upwards
             // The exception will be (probably) rethrown, so the stack trace is not strictly necessary here.
             LoggingUtils.logException(LOGGER, "Correlation ended with an exception", e);

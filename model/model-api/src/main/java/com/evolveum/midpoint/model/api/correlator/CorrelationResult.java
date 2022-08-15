@@ -7,21 +7,14 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
-import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlation.CorrelationService;
-import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.io.Serializable;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import java.io.Serializable;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * Result of the correlation at the level of {@link Correlator}, i.e. the return value of
@@ -29,9 +22,6 @@ import java.io.Serializable;
  *
  * *Does not* deal with the question "who is the owner".
  * It simply provides a list of candidates with appropriate confidence values.
- *
- * The full result of correlation (as returned from {@link CorrelationService#correlate(ShadowType, ResourceType,
- * SynchronizationPolicy, Class, Task, OperationResult)}) is provided by {@link CompleteCorrelationResult} class.
  *
  * TODO better name?
  */

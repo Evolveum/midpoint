@@ -7,43 +7,38 @@
 
 package com.evolveum.midpoint.model.api.correlation;
 
+import java.io.Serializable;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
- * Supports correlation.
+ * Contains correlation-related methods that should be accessible from the outside of `model` module.
  */
-@Experimental
 public interface CorrelationService {
 
     /**
-     * TODO
+     * Describes the provided correlation case by providing {@link CorrelationCaseDescription} object.
+     *
+     * Currently, it
+     *
+     * . takes the shadow stored in the correlation case (i.e. does NOT fetch it anew),
+     * . recomputes inbound mappings (i.e. ignores stored pre-focus),
+     * . and processes candidate owners stored in the correlation case (i.e. does NOT search for them again).
+     *
+     * The {@link CorrelationCaseDescriptionOptions} parameter signals if the client wishes to provide also
+     * the correlation explanation, or not. (In the future, we may provide options also for behavior in points 1-3
+     * mentioned above.)
      */
     @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
             @NotNull CaseType aCase,
             @Nullable CorrelationCaseDescriptionOptions options,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
-
-    /**
-     * Instantiates the correlator for given correlation case. TODO remove this method - hide the logic in the service impl
-     */
-    Correlator instantiateCorrelator(
-            @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
@@ -65,103 +60,19 @@ public interface CorrelationService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
-    /**
-     * Creates the root correlator context for given configuration.
-     */
-    @NotNull CorrelatorContext<?> createRootCorrelatorContext(
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @Nullable ObjectTemplateType objectTemplate,
-            @Nullable SystemConfigurationType systemConfiguration) throws ConfigurationException, SchemaException;
-
-    /**
-     * Clears the correlation state of a shadow.
-     *
-     * Does not do unlinking (if the shadow is linked)!
-     */
-    void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result) throws ObjectNotFoundException;
-
-    /**
-     * Executes the correlation in the standard way.
-     */
-    @NotNull CompleteCorrelationResult correlate(
-            @NotNull CorrelatorContext<?> rootCorrelatorContext,
-            @NotNull CorrelationContext correlationContext,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * Executes the correlation for a given shadow + pre-focus.
-     *
-     * This is _not_ the standard use of the correlation, though.
-     * (Note that it lacks e.g. the resource object delta information.)
-     */
-    @VisibleForTesting
-    @NotNull CompleteCorrelationResult correlate(
-            @NotNull ShadowType shadow,
-            @Nullable FocusType preFocus,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * Executes the correlation for a given shadow. (By computing pre-focus first.)
-     *
-     * This is _not_ the standard use. It lacks e.g. the resource object delta information. It is used in special cases like
-     * {@link MidpointFunctions#findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)}.
-     */
-    @NotNull CompleteCorrelationResult correlate(
-            @NotNull ShadowType shadowedResourceObject,
-            @NotNull ResourceType resource,
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull Class<? extends FocusType> focusType,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * Checks whether the supplied candidate owner would be the correlation result (if real correlation would take place).
-     * Used for opportunistic synchronization.
-     *
-     * Why not doing the actual correlation? Because the owner may not exist in repository yet.
-     */
-    boolean checkCandidateOwner(
-            @NotNull ShadowType shadowedResourceObject,
-            @NotNull ResourceType resource,
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull FocusType candidateOwner,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /** TEMPORARY!!! */
-    ObjectTemplateType determineObjectTemplate(
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull FocusType preFocus,
-            @NotNull OperationResult result)
-                    throws SchemaException, ConfigurationException, ObjectNotFoundException;
-
-    /** TODO Maybe temporary. Maybe visible for testing? */
-    @NotNull <F extends FocusType> F computePreFocus(
-            @NotNull ShadowType shadowedResourceObject,
-            @NotNull ResourceType resource,
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull Class<F> focusClass,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
-
     @FunctionalInterface
     interface CaseCloser {
         /** Closes the case in repository. */
         void closeCaseInRepository(OperationResult result) throws ObjectNotFoundException;
     }
 
-    class CorrelationCaseDescriptionOptions {
+    /**
+     * Options for {@link #describeCorrelationCase(CaseType, CorrelationCaseDescriptionOptions, Task, OperationResult)} method.
+     *
+     * TODO Make also other parts of the method behavior configurable.
+     */
+    class CorrelationCaseDescriptionOptions implements Serializable {
+
         /** Whether to explain the correlation. See {@link CandidateDescription#explanation}. */
         private boolean explain;
 
@@ -178,10 +89,15 @@ public interface CorrelationService {
             return this;
         }
 
-        // TODO: whether to do the correlation anew
-
         public static boolean isExplain(CorrelationCaseDescriptionOptions options) {
             return options != null && options.explain;
+        }
+
+        @Override
+        public String toString() {
+            return "CorrelationCaseDescriptionOptions{" +
+                    "explain=" + explain +
+                    '}';
         }
     }
 }

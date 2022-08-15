@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
-import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +73,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
     private static final TestResource<UserType> USER_Z =
             new TestResource<>(TEST_DIR, "user-z.xml", "87f52bbe-8873-4683-adcb-c52a18f63c13");
 
-    @Autowired private CorrelationService correlationService;
+    @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Override
@@ -243,7 +243,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     private CompleteCorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
         ShadowType shadow = getAccountByName(accountName, task, result);
-        return correlationService.correlate(shadow, null, task, result);
+        return correlationService.correlate(shadow, task, result);
     }
 
     private @NotNull ShadowType getAccountByName(String name, Task task, OperationResult result)
