@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -15,16 +16,27 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.FuzzyMatchingMethod;
+import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter.ThresholdMatchingMethod;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,25 +79,30 @@ public class CorrelationItem implements DebugDumpable {
     // TODO
     @NotNull private final List<? extends PrismValue> prismValues;
 
+    @NotNull private final ModelBeans beans;
+
     private CorrelationItem(
             @NotNull String name,
             @NotNull ItemPath itemPath,
             @Nullable Normalization normalization,
             @Nullable ItemSearchDefinitionType searchDefinitionBean,
             @Nullable IndexingItemConfiguration indexingItemConfiguration,
-            @NotNull List<? extends PrismValue> prismValues) {
+            @NotNull List<? extends PrismValue> prismValues,
+            @NotNull ModelBeans beans) {
         this.name = name;
         this.itemPath = itemPath;
         this.normalization = normalization;
         this.searchDefinitionBean = searchDefinitionBean != null ? searchDefinitionBean : new ItemSearchDefinitionType();
         this.indexingItemConfiguration = indexingItemConfiguration;
         this.prismValues = prismValues;
+        this.beans = beans;
     }
 
     public static CorrelationItem create(
             @NotNull ItemCorrelationType itemBean,
             @NotNull CorrelatorContext<?> correlatorContext,
-            @NotNull ObjectType preFocus)
+            @NotNull ObjectType preFocus,
+            @NotNull ModelBeans beans)
             throws ConfigurationException {
         @NotNull ItemPath path = getPath(itemBean);
         @Nullable IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
@@ -96,7 +113,8 @@ public class CorrelationItem implements DebugDumpable {
                 getNormalization(indexingConfig, explicitIndexName, path),
                 itemBean.getSearch(),
                 indexingConfig,
-                getPrismValues(preFocus, path));
+                getPrismValues(preFocus, path),
+                beans);
     }
 
     private static String getExplicitIndexName(ItemCorrelationType itemBean) {
@@ -209,35 +227,47 @@ public class CorrelationItem implements DebugDumpable {
             S_FilterEntry builder, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        Object valueToFind = getValueToFind();
-        if (indexingItemConfiguration != null) {
-            assert normalization != null;
-            ItemPath normalizedItemPath = normalization.getIndexItemPath();
-            String normalizedValue = IndexingManager.normalizeValue(valueToFind, normalization, task, result);
-            LOGGER.trace("Will look for normalized value '{}' in '{}' (of '{}')", normalizedValue, normalizedItemPath, itemPath);
-            ItemDefinition<?> normalizedItemDefinition = normalization.getIndexItemDefinition();
 
-            FuzzySearchDefinitionType fuzzyDef = searchDefinitionBean.getFuzzy();
-            if (fuzzyDef != null) {
-                return builder
-                        .item(normalizedItemPath, normalizedItemDefinition)
-                        .fuzzyString(normalizedValue, getFuzzyMatchingMethod(fuzzyDef));
-            } else {
-                return builder
-                        .item(normalizedItemPath, normalizedItemDefinition)
-                        .eq(normalizedValue)
-                        .matching(getMatchingRuleName());
-            }
-        } else {
-            LOGGER.trace("Will look for value '{}' of '{}'", valueToFind, itemPath);
+        SearchSpec searchSpec = createSearchSpec(task, result);
+        LOGGER.trace("Will look for {}", searchSpec);
+
+        FuzzyMatchingMethod fuzzyMatchingMethod = getFuzzyMatchingMethod();
+        if (fuzzyMatchingMethod != null) {
             return builder
-                    .item(itemPath)
-                    .eq(valueToFind)
+                    .item(searchSpec.itemPath, searchSpec.itemDef)
+                    .fuzzyString(asString(searchSpec.value), fuzzyMatchingMethod);
+        } else {
+            return builder
+                    .item(searchSpec.itemPath, searchSpec.itemDef)
+                    .eq(searchSpec.value)
                     .matching(getMatchingRuleName());
         }
     }
 
-    private FuzzyMatchingMethod getFuzzyMatchingMethod(FuzzySearchDefinitionType fuzzyDef) throws ConfigurationException {
+    private SearchSpec createSearchSpec(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (indexingItemConfiguration != null) {
+            assert normalization != null;
+            return new SearchSpec(
+                    normalization.getIndexItemPath(),
+                    normalization.getIndexItemDefinition(),
+                    IndexingManager.normalizeValue(getValueToFind(), normalization, task, result));
+        } else {
+            return new SearchSpec(
+                    itemPath,
+                    null, // will be found by the query builder
+                    getValueToFind());
+        }
+    }
+
+    private @Nullable FuzzyMatchingMethod getFuzzyMatchingMethod()
+            throws ConfigurationException {
+        FuzzySearchDefinitionType fuzzyDef = searchDefinitionBean.getFuzzy();
+        if (fuzzyDef == null) {
+            return null;
+        }
+
         LevenshteinDistanceSearchDefinitionType levenshtein = fuzzyDef.getLevenshtein();
         if (levenshtein != null) {
             return new FuzzyStringMatchFilter.Levenshtein(
@@ -255,6 +285,26 @@ public class CorrelationItem implements DebugDumpable {
                     !Boolean.FALSE.equals(similarity.isInclusive()));
         }
         throw new ConfigurationException("Please specify Levenshtein or trigram similarity fuzzy string matching method");
+    }
+
+    private ExpressionType getConfidenceExpression() {
+        FuzzySearchDefinitionType fuzzyDef = searchDefinitionBean.getFuzzy();
+        if (fuzzyDef == null) {
+            return null;
+        }
+        LevenshteinDistanceSearchDefinitionType levenshtein = fuzzyDef.getLevenshtein();
+        if (levenshtein != null) {
+            return getConfidenceExpression(levenshtein.getConfidence());
+        }
+        TrigramSimilaritySearchDefinitionType similarity = fuzzyDef.getSimilarity();
+        if (similarity != null) {
+            return getConfidenceExpression(similarity.getConfidence());
+        }
+        return null;
+    }
+
+    private ExpressionType getConfidenceExpression(FuzzySearchConfidenceDefinitionType confidenceDef) {
+        return confidenceDef != null ? confidenceDef.getExpression() : null;
     }
 
     private QName getMatchingRuleName() {
@@ -294,6 +344,78 @@ public class CorrelationItem implements DebugDumpable {
         return name;
     }
 
+    // TODO make this method more readable by splitting it into pieces
+    <CV extends Number> double computeConfidence(ObjectType candidate, Task task, OperationResult result)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        ExpressionType expression = getConfidenceExpression();
+        if (expression == null) {
+            return 1;
+        }
+        FuzzyMatchingMethod fuzzyMatchingMethod = getFuzzyMatchingMethod();
+        if (!(fuzzyMatchingMethod instanceof ThresholdMatchingMethod<?>)) {
+            return 1;
+        }
+        //noinspection unchecked
+        ThresholdMatchingMethod<CV> thresholdMatchingMethod = (ThresholdMatchingMethod<CV>) fuzzyMatchingMethod;
+        SearchSpec searchSpec = createSearchSpec(task, result);
+        String sourceValue = asString(searchSpec.value);
+        Collection<PrismValue> allValues = candidate.asPrismContainerValue().getAllValues(searchSpec.itemPath);
+        LOGGER.trace("Computing confidence of {} for {}: {}", candidate, searchSpec, allValues);
+        List<CV> matchValues = allValues.stream()
+                .map(PrismValue::getRealValue)
+                .filter(Objects::nonNull)
+                .map(CorrelationItem::asString)
+                .map(targetValue -> thresholdMatchingMethod.computeMatchMetricValue(sourceValue, targetValue))
+                .collect(Collectors.toList());
+        LOGGER.trace("Matching strings: {} leading to values: {}", allValues, matchValues);
+        QName inputTypeName =
+                PrismContext.get().getSchemaRegistry()
+                        .determineTypeForClassRequired(thresholdMatchingMethod.getMetricValueClass());
+        PrismPropertyDefinition<CV> inputPropertyDef =
+                PrismContext.get().definitionFactory().createPropertyDefinition(
+                        ExpressionConstants.VAR_INPUT_QNAME, inputTypeName);
+        PrismPropertyDefinition<CV> outputPropertyDef =
+                PrismContext.get().definitionFactory().createPropertyDefinition(
+                        ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
+        PrismProperty<CV> inputProperty = inputPropertyDef.instantiate();
+        matchValues.forEach(inputProperty::addRealValue);
+        Source<PrismPropertyValue<CV>, PrismPropertyDefinition<CV>> inputSource =
+                new Source<>(
+                        inputProperty, null, inputProperty, inputProperty.getElementName(), inputPropertyDef);
+        Collection<PrismPropertyValue<Double>> confidenceValues = ExpressionUtil.evaluateExpressionNative(
+                List.of(inputSource),
+                new VariablesMap(),
+                outputPropertyDef,
+                expression,
+                MiscSchemaUtil.getExpressionProfile(),
+                beans.expressionFactory,
+                "confidence expression for " + this,
+                task,
+                result);
+        double resultingConfidence = confidenceValues.stream()
+                .filter(Objects::nonNull) // maybe not necessary
+                .map(pv -> pv.getRealValue())
+                .filter(Objects::nonNull) // maybe not necessary
+                .max(Comparator.naturalOrder())
+                .orElse(1.0);
+        LOGGER.trace("Confidence values {} yielding {}", confidenceValues, resultingConfidence);
+        return resultingConfidence;
+    }
+
+    private static String asString(@NotNull Object o) {
+        if (o instanceof String) {
+            return (String) o;
+        } else if (o instanceof PolyString) {
+            return ((PolyString) o).getOrig();
+        } else if (o instanceof PolyStringType) {
+            return ((PolyStringType) o).getOrig();
+        } else {
+            throw new UnsupportedOperationException(
+                    "Couldn't use fuzzy search to look for non-string value of " + MiscUtil.getValueWithClass(o));
+        }
+    }
+
     @Override
     public String toString() {
         return "CorrelationItem{" +
@@ -314,5 +436,25 @@ public class CorrelationItem implements DebugDumpable {
                 sb, "indexingItemConfiguration", String.valueOf(indexingItemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "values", prismValues, indent + 1);
         return sb.toString();
+    }
+
+    private static class SearchSpec {
+        @NotNull private final ItemPath itemPath;
+        @Nullable private final ItemDefinition<?> itemDef;
+        @NotNull private final Object value;
+
+        private SearchSpec(
+                @NotNull ItemPath itemPath, @Nullable ItemDefinition<?> itemDef, @NotNull Object value) {
+            this.itemPath = itemPath;
+            this.itemDef = itemDef;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return "path='" + itemPath + "'" +
+                    ", def='" + itemDef + "'" +
+                    ", value='" + value + "'";
+        }
     }
 }
