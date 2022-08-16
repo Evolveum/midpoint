@@ -282,30 +282,38 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="using" type="xsd:string" minOccurs="0">
+            <xsd:element name="super" type="tns:SuperCorrelatorReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to the correlator to be used at this place.
-                        TODO refine this specification
-                        TODO implement
+                        Reference to the "super-correlator", serving as a template for this correlator.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.ref</a:displayName>
+                        <a:displayName>AbstractCorrelatorType.super</a:displayName>
                         <a:displayOrder>100</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="extending" type="xsd:string" minOccurs="0">
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SuperCorrelatorReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to a super-correlator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to an upstream definition of correlator. It is used as a template for this correlator.
-                        TODO refine this specification
-                        TODO implement
+                        Name of the correlator.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.ref</a:displayName>
-                        <a:displayOrder>110</a:displayOrder>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

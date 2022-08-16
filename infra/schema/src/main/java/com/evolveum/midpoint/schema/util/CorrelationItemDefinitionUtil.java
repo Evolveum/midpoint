@@ -74,14 +74,9 @@ public class CorrelationItemDefinitionUtil {
                         .append(configBean.getDisplayName())
                         .append("', ");
             }
-            if (configBean.getUsing() != null) {
-                sb.append("using '")
-                        .append(configBean.getUsing())
-                        .append("', ");
-            }
-            if (configBean.getExtending() != null) {
-                sb.append("extending '")
-                        .append(configBean.getExtending())
+            if (configBean.getSuper() != null) {
+                sb.append("extending super '")
+                        .append(configBean.getSuper().getRef())
                         .append("', ");
             }
             CorrelatorCompositionDefinitionType composition = getComposition(configBean);
