@@ -662,11 +662,57 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="correlationProperties" type="tns:IdMatchCorrelationPropertiesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What properties should be sent to the ID Match service. Default: All pre-focus properties.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateConfidenceLimit" type="xsd:double" minOccurs="0" default="0.9">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Maximum confidence value that is acceptable for the given candidate.
+                                If the ID Match service provides a higher value, it is cropped to this one.
+                                (The same is true if ID Match provides no value.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
+
+    <xsd:complexType name="IdMatchCorrelationPropertiesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What properties should be sent to the ID Match service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the property. It may start with $shadow (or $projection) - then it denotes
+                        the value from the shadow being correlated.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:element name="composition" type="tns:CorrelatorCompositionDefinitionType">
         <xsd:annotation>

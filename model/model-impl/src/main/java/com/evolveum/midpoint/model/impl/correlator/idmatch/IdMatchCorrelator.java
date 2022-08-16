@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Limitation: This correlator is not to be used as a child of the composite correlator.
  */
 class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
+
+    private static final double DEFAULT_CONFIDENCE_LIMIT = 0.9;
 
     private static final Trace LOGGER = TraceManager.getTrace(IdMatchCorrelator.class);
 
@@ -79,15 +82,6 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
         return new CorrelationLikeOperation(correlationContext)
                 .correlate(result);
-    }
-
-    @Override
-    protected @NotNull CorrelationExplanation explainInternal(
-            @NotNull CorrelationContext correlationContext,
-            @NotNull FocusType candidateOwner,
-            @NotNull OperationResult result) {
-        // Values for potential matches are not correct
-        return new CorrelationExplanation.UnsupportedCorrelationExplanation(correlatorContext.getConfiguration());
     }
 
     @Override
@@ -162,11 +156,18 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 throws SchemaException, CommunicationException, SecurityViolationException, ConfigurationException,
                 ExpressionEvaluationException, ObjectNotFoundException {
             MatchingResult mResult = executeMatchAndStoreTheResult(result);
-            String referenceId = mResult.getReferenceId();
-            if (referenceId != null) {
-                return checkCandidateOwnerByReferenceId(candidateOwner, referenceId, result);
+            String definiteReferenceId = mResult.getReferenceId();
+            if (definiteReferenceId != null) {
+                return checkCandidateOwnerByReferenceId(candidateOwner, definiteReferenceId, result) ? 1 : 0;
             } else {
-                // FIXME - here we should check the potential matches obtained from ID Match service!
+                for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
+                    String referenceId = potentialMatch.getReferenceId();
+                    if (referenceId != null) {
+                        if (checkCandidateOwnerByReferenceId(candidateOwner, referenceId, result)) {
+                            return getConfidence(potentialMatch);
+                        }
+                    }
+                }
                 return 0;
             }
         }
@@ -184,7 +185,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             var focus = findFocusWithGivenReferenceId(referenceId, result);
             if (focus != null) {
                 // Note that ID Match does not provide confidence values for certain matches
-                // And we don't support custom confidence values here.
+                // And we don't support custom confidence values here. Hence always 1.0.
                 return CorrelationResult.of(
                         CandidateOwnersMap.from(
                                 List.of(new CandidateOwner(focus, referenceId, 1.0))));
@@ -266,7 +267,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             return clonedContext;
         }
 
-        private double checkCandidateOwnerByReferenceId(FocusType candidateOwner, String referenceId, OperationResult result)
+        private boolean checkCandidateOwnerByReferenceId(FocusType candidateOwner, String referenceId, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
             ReferenceIdResolutionConfig referenceIdResolutionConfig = new ReferenceIdResolutionConfig(correlationContext);
@@ -279,17 +280,18 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             }
         }
 
-        private double checkCandidateOwnerDirectly(FocusType candidateOwner, String referenceId, ItemPath referenceIdPath) {
+        private boolean checkCandidateOwnerDirectly(FocusType candidateOwner, String referenceId, ItemPath referenceIdPath) {
             Object candidateReferenceId = candidateOwner.asPrismObject().getPropertyRealValue(referenceIdPath, Object.class);
-            return candidateReferenceId != null && candidateReferenceId.toString().equals(referenceId) ? 1 : 0;
+            return candidateReferenceId != null && candidateReferenceId.toString().equals(referenceId);
         }
 
-        private double checkCandidateOwnerUsingCorrelator(
+        private boolean checkCandidateOwnerUsingCorrelator(
                 FocusType candidateOwner, CorrelatorConfiguration followOnConfiguration, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
-            return instantiateChild(followOnConfiguration, task, result)
+            double confidence = instantiateChild(followOnConfiguration, task, result)
                     .checkCandidateOwner(correlationContext, candidateOwner, result);
+            return confidence >= correlatorContext.getOwnerThreshold();
         }
 
         /** Converts internal {@link MatchingResult} into "externalized form" of {@link CorrelationResult}. */
@@ -307,13 +309,20 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                         candidateOwnersMap.put(
                                 candidate,
                                 referenceId,
-                                potentialMatch.getConfidenceScaledToOne());
+                                getConfidence(potentialMatch));
                     } else {
                         LOGGER.debug("Potential match with no corresponding user: {}", potentialMatch);
                     }
                 }
             }
             return CorrelationResult.of(candidateOwnersMap);
+        }
+
+        private double getConfidence(PotentialMatch potentialMatch) {
+            double confidenceLimit = Objects.requireNonNullElse(
+                    configurationBean.getCandidateConfidenceLimit(), DEFAULT_CONFIDENCE_LIMIT);
+            Double confidence = potentialMatch.getConfidenceScaledToOne();
+            return confidence != null && confidence <= confidenceLimit ? confidence : confidenceLimit;
         }
     }
 

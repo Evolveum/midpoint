@@ -220,7 +220,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 CORRELATOR_ID_MATCH,
                 FILE_USERS_TRADITIONAL,
                 FILE_ACCOUNTS_ID_MATCH,
-                DESCRIBE_ONLY, // the confidence for potential matches is currently wrong (always 0)
+                FULL,
                 accounts -> {
                     // We need a specific record in our ID Match service.
                     ShadowType ian1 = CorrelatorTestUtil.findAccount(accounts, 1).getShadow();

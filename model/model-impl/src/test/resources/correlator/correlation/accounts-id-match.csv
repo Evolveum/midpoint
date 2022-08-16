@@ -5,4 +5,4 @@ uid | givenName | familyName | dateOfBirth | nationalId | expCandidates | expRes
 1   | Ian       | Smith      | 2004-02-06  | 0402061328 | ismith:1.0    | ismith     | gn:F,fn:F,dob:F,id:F    | Dummy ID Match maps this account to emp #9481
 2   | Jan       | Smith      | 2004-02-06  | 0402061328 | ismith:1.0    | ismith     | gn:N,fn:F,dob:F,id:F    | Dummy ID Match maps this account to emp #9481
 3   | Nobody    | Nobody     | 0000-00-00  | 0000000000 |               | _none      |                         | There is no such person in ID Match (therefore also not in repository)
-4   | Ian       | Smith      | 2004-02-06  | 040206---- | ismith:0.5    | _uncertain | gn:F,fn:F,dob:F,id:N    | ID Match cannot decide for sure, and ismith is a candidate
+4   | Ian       | Smith      | 2004-02-06  | 040206---- | ismith:0.4    | _uncertain | gn:F,fn:F,dob:F,id:N    | ID Match cannot decide for sure, and ismith is a candidate (uncertain result confidence is limited to 0.4)
