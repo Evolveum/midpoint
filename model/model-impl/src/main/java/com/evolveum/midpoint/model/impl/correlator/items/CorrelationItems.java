@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -50,12 +51,13 @@ class CorrelationItems implements DebugDumpable {
 
     public static @NotNull CorrelationItems create(
             @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
-            @NotNull CorrelationContext correlationContext) throws ConfigurationException {
+            @NotNull CorrelationContext correlationContext,
+            @NotNull ModelBeans beans) throws ConfigurationException {
 
         List<CorrelationItem> items = new ArrayList<>();
         for (ItemCorrelationType itemBean : correlatorContext.getConfigurationBean().getItem()) {
             items.add(
-                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus()));
+                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus(), beans));
         }
         stateCheck(!items.isEmpty(), "No correlation items in %s", correlatorContext);
         return new CorrelationItems(items);

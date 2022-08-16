@@ -1813,6 +1813,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="confidence" type="tns:FuzzySearchConfidenceDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression for computing the resulting confidence value. If not specified, value of 1 is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1843,7 +1850,44 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="confidence" type="tns:FuzzySearchConfidenceDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression for computing the resulting confidence value. If not specified, value of 1 is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="FuzzySearchConfidenceDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the custom confidence value for given fuzzy search item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression providing the confidence value for the fuzzy-search-based correlation item.
+                        Its input (variable named `input`) is a value specific to given fuzzy matching method,
+                        e.g., Levenshtein edit distance (a non-negative integer) or trigram similarity value
+                        (a decimal number between 0 and 1).
+
+                        It should output a double precision value, usually between 0 and 1, inclusive.
+                        Outputs of such expressions are multiplied toghether, yielding the final confidence
+                        value for the whole match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:choice>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 </xsd:schema>

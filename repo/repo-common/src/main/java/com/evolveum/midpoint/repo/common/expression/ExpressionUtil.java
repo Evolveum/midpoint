@@ -860,6 +860,7 @@ public class ExpressionUtil {
         return getExpressionOutputValue(outputTriple, shortDesc);
     }
 
+    @NotNull
     public static <V extends PrismValue, D extends ItemDefinition> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)

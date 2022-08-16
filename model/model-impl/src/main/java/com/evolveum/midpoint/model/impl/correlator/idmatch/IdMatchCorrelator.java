@@ -395,7 +395,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
      */
     private IdMatchObject prepareIdMatchObject(@NotNull FocusType preFocus, @NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return new IdMatchObjectCreator(correlatorContext, preFocus, shadow)
+        return new IdMatchObjectCreator(correlatorContext, preFocus, shadow, beans)
                 .create();
     }
 

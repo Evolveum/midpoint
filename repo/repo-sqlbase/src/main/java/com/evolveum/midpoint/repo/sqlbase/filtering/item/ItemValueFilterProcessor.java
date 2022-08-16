@@ -115,7 +115,8 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
     protected Predicate fuzzyStringPredicate(
             FuzzyStringMatchFilter<?> filter, Expression<?> path, ValueFilterValues<?, ?> values)
             throws QueryException {
-        return context.processFuzzyFilter(filter, path, values);
+        return predicateWithNotTreated(path,
+                context.processFuzzyFilter(filter, path, values));
     }
 
     /**

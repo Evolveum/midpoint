@@ -224,16 +224,20 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             var levenshtein = (Levenshtein) method;
             var func = Expressions.numberTemplate(Integer.class,
                     "levenshtein_less_equal({0}, '{1s}', {2})",
-                    path, String.valueOf(values.singleValue()), levenshtein.getThreshold());
+                    path, String.valueOf(values.singleValue()), levenshtein.getThresholdRequired());
             // Lower value means more similar
-            return levenshtein.isInclusive() ? func.loe(levenshtein.getThreshold()) : func.lt(levenshtein.getThreshold());
+            return levenshtein.isInclusive() ?
+                    func.loe(levenshtein.getThresholdRequired()) :
+                    func.lt(levenshtein.getThresholdRequired());
         } else if (method instanceof Similarity) {
             var spec = (Similarity) method;
             var func = Expressions.numberTemplate(Float.class,
                     "similarity({0}, '{1s}')",
                     path, String.valueOf(values.singleValue()));
             // Higher value means more similar
-            return spec.isInclusive() ? func.goe(spec.getThreshold()) : func.gt(spec.getThreshold());
+            return spec.isInclusive() ?
+                    func.goe(spec.getThresholdRequired()) :
+                    func.gt(spec.getThresholdRequired());
         }
 
         return super.processFuzzyFilter(filter, path, values);

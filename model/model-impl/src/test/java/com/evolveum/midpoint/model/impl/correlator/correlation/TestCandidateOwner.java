@@ -15,6 +15,8 @@ import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
 
 class TestCandidateOwner {
 
+    static final double EPSILON = 0.001;
+
     @NotNull private final String name;
     private final double confidence;
 
@@ -47,12 +49,12 @@ class TestCandidateOwner {
         }
         TestCandidateOwner that = (TestCandidateOwner) o;
         return name.equals(that.name)
-                && confidence == that.confidence;
+                && Math.abs(confidence - that.confidence) <= EPSILON;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, confidence);
+        return Objects.hash(name);
     }
 
     @Override

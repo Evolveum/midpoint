@@ -296,7 +296,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
             if (!correlationDefSet.isEmpty()) {
                 LOGGER.trace("Correlation 'item' definitions:\n{}", DebugUtil.toStringCollectionLazy(correlationDefSet, 1));
                 for (ItemCorrelationType correlationDef : correlationDefSet) {
-                    CorrelationItem correlationItem = CorrelationItem.create(correlationDef, correlatorContext, preFocus);
+                    CorrelationItem correlationItem = CorrelationItem.create(correlationDef, correlatorContext, preFocus, beans);
                     S_FilterEntry builder = PrismContext.get().queryFor(preFocus.getClass());
                     ObjectFilter filter =
                             correlationItem.addClauseToQueryBuilder(builder, task, result)

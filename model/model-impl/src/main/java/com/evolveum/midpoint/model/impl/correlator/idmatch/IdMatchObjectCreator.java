@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.items.CorrelationItem;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -45,6 +46,7 @@ class IdMatchObjectCreator {
     @NotNull private final CorrelatorContext<IdMatchCorrelatorType> correlatorContext;
     @NotNull private final FocusType preFocus;
     @NotNull private final ShadowType shadow;
+    @NotNull private final ModelBeans beans;
 
     /** Value serving as a prefix for SOR IDs generated. */
     @NotNull private final String sorIdPrefix;
@@ -58,10 +60,12 @@ class IdMatchObjectCreator {
     IdMatchObjectCreator(
             @NotNull CorrelatorContext<IdMatchCorrelatorType> correlatorContext,
             @NotNull FocusType preFocus,
-            @NotNull ShadowType shadow) {
+            @NotNull ShadowType shadow,
+            @NotNull ModelBeans beans) {
         this.correlatorContext = correlatorContext;
         this.preFocus = preFocus;
         this.shadow = shadow;
+        this.beans = beans;
 
         IdMatchCorrelatorType configBean = correlatorContext.getConfigurationBean();
         sorIdPrefix = requireNonNullElse(configBean.getSorIdentifierPrefix(), "");
@@ -153,7 +157,8 @@ class IdMatchObjectCreator {
             CorrelationItem correlationItem = CorrelationItem.create(
                     entry.getValue(),
                     correlatorContext,
-                    preFocus);
+                    preFocus,
+                    beans);
             LOGGER.trace("Created correlation item: {}", correlationItem);
             correlationItems.add(correlationItem);
         }
