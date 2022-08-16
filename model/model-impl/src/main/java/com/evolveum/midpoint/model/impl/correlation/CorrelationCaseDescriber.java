@@ -290,7 +290,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                             .filter(bean -> bean instanceof ItemsCorrelatorType)
                             .map(bean -> (ItemsCorrelatorType) bean)
                             .flatMap(bean -> bean.getItem().stream())
-                            .filter(item -> item.getPath() != null && item.getPath().getItemPath().equivalent(itemPath))
+                            .filter(item -> item.getRef() != null && item.getRef().getItemPath().equivalent(itemPath))
                             .collect(Collectors.toSet());
 
             if (!correlationDefSet.isEmpty()) {

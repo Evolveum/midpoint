@@ -82,7 +82,7 @@
                     <items>
                         <name>itemCorrelator</name>
                         <item>
-                            <path>employeeNumber</path>
+                            <ref>employeeNumber</ref>
                         </item>
                     </items>
                 </correlators>

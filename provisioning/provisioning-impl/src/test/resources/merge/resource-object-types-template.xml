@@ -146,7 +146,7 @@
                     <items>
                         <name>empNo</name>
                         <item>
-                            <path>employeeNumber</path>
+                            <ref>employeeNumber</ref>
                         </item>
                     </items>
                 </correlators>

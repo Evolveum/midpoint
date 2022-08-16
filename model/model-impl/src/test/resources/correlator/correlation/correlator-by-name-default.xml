@@ -9,9 +9,9 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>by-name-default</name>
     <item>
-        <path>givenName</path>
+        <ref>givenName</ref>
     </item>
     <item>
-        <path>familyName</path>
+        <ref>familyName</ref>
     </item>
 </itemsCorrelator>

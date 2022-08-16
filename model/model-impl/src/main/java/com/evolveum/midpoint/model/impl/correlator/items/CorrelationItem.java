@@ -141,7 +141,7 @@ public class CorrelationItem implements DebugDumpable {
 
     private static IndexingItemConfiguration getIndexingItemConfiguration(
             @NotNull ItemCorrelationType itemBean, @NotNull CorrelatorContext<?> correlatorContext) {
-        ItemPathType itemPathBean = itemBean.getPath();
+        ItemPathType itemPathBean = itemBean.getRef();
         if (itemPathBean != null) {
             return correlatorContext.getIndexingConfiguration().getForPath(itemPathBean.getItemPath());
         } else {
@@ -155,7 +155,7 @@ public class CorrelationItem implements DebugDumpable {
         if (explicitName != null) {
             return explicitName;
         }
-        ItemPathType pathBean = itemBean.getPath();
+        ItemPathType pathBean = itemBean.getRef();
         if (pathBean != null) {
             ItemName lastName = pathBean.getItemPath().lastName();
             if (lastName != null) {
@@ -166,9 +166,8 @@ public class CorrelationItem implements DebugDumpable {
                 "Couldn't determine name for correlation item: no name nor path in " + itemBean);
     }
 
-    // Temporary code
     private static @NotNull ItemPath getPath(@NotNull ItemCorrelationType itemBean) throws ConfigurationException {
-        ItemPathType specifiedPath = itemBean.getPath();
+        ItemPathType specifiedPath = itemBean.getRef();
         if (specifiedPath != null) {
             return specifiedPath.getItemPath();
         } else {
