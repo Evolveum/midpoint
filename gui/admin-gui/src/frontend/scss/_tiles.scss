@@ -67,6 +67,39 @@
     border-radius: 108px;
     background-color: rgba(60, 141, 188, 0.1);
   }
+
+  & > .check {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    border: 2px solid;
+    position: relative;
+    top: -20px;
+    left: 32px;
+
+    &.check-none {
+      display: none !important;
+    }
+
+    &.check-partial {
+      background-color: $white !important;
+      border-color: $success !important;
+
+      & > i {
+        color: $success !important;
+      }
+    }
+
+    &.check-full {
+      background-color: $success !important;
+      border-color: $success !important;
+
+      & > i {
+        color: $white !important;
+      }
+    }
+  }
 }
 
 @include dark-mode() {
