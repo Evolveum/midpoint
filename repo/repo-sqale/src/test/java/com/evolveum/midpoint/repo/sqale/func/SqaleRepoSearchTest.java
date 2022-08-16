@@ -2765,14 +2765,19 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void fuzzyStringSearchTest() throws SchemaException {
-        searchUsersTest("With levelstein",
+        searchUsersTest("With levenshtein",
                 f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("User1").levenshtein(2, true),
                 user1Oid);
 
-        searchUsersTest("With levelstein in extension",
+        searchUsersTest("With levenshtein in extension",
                 f -> f.item(UserType.F_EXTENSION, new ItemName("string")).fuzzyString("string_value").levenshtein(2, true),
                 user1Oid);
+    }
 
+    @Test(expectedExceptions = SystemException.class) // the exception may change
+    public void invalidFuzzyStringSearchTest() throws SchemaException {
+        searchUsersTest("With levenshtein against no values",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString().levenshtein(2, true));
     }
     // endregion
 }
