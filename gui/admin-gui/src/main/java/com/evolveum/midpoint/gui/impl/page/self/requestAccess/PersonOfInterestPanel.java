@@ -8,9 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -119,7 +117,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private IModel<SelectionState> selectionState = Model.of(SelectionState.TILES);
 
-    private IModel<List<ObjectReferenceType>> selectedGroupOfUsers = Model.ofList(new ArrayList<>());
+    private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
 
     public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -304,17 +302,12 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             public Collection<ObjectReferenceType> getObject() {
-                return selectedGroupOfUsers.getObject();
+                return new ArrayList<>(selectedGroupOfUsers.getObject().keySet());
             }
 
             @Override
             public void setObject(Collection<ObjectReferenceType> object) {
-                if (object == null) {
-                    selectedGroupOfUsers.setObject(new ArrayList<>());
-                    return;
-                }
-
-                selectedGroupOfUsers.setObject(new ArrayList<>(object));
+                updateSelectedGroupOfUsers(object);
             }
         };
 
@@ -327,7 +320,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 Collection<ObjectReferenceType> refs = multiselect.getModel().getObject();
-                selectedGroupOfUsers.setObject(new ArrayList<>(refs));
+                updateSelectedGroupOfUsers(refs);
 
                 target.add(PersonOfInterestPanel.this.getNext());
             }
@@ -344,6 +337,24 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         fragment.add(selectManually);
 
         return fragment;
+    }
+
+    private void updateSelectedGroupOfUsers(Collection<ObjectReferenceType> poiRefs) {
+        if (poiRefs == null) {
+            selectedGroupOfUsers.setObject(createPoiMembershipMap(null));
+            return;
+        }
+
+        List<UserType> users = new ArrayList<>();
+        for (ObjectReferenceType poiRef : poiRefs) {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
+            if (user != null) {
+                users.add(user.asObjectable());
+            }
+        }
+
+        Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = createPoiMembershipMap(users);
+        selectedGroupOfUsers.setObject(userMemberships);
     }
 
     private boolean canSkipStep() {
@@ -406,7 +417,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private void groupOthersPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> groupOthers) {
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected != null && selected.getValue().type == TileType.GROUP_OTHERS && selected != groupOthers) {
-            selectedGroupOfUsers.setObject(new ArrayList<>());
+            selectedGroupOfUsers.setObject(createPoiMembershipMap(null));
         }
 
         tiles.getObject().forEach(t -> t.setSelected(false));
@@ -496,16 +507,47 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         page.showMainPopup(panel, target);
     }
 
-    private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
-        List<ObjectReferenceType> refs = new ArrayList<>();
-        for (UserType user : users) {
-            refs.add(new ObjectReferenceType()
-                    .oid(user.getOid())
-                    .type(UserType.COMPLEX_TYPE)
-                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject())));
+    /**
+     * Currently the only nice way to create clean object reference from ObjectReferenceType which already contains
+     * definitions and other prism stuff - dehydrate it to be stored in session without storing MBs of data
+     */
+    private ObjectReferenceType cloneObjectReference(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
         }
 
-        selectedGroupOfUsers.setObject(refs);
+        return new ObjectReferenceType()
+                .oid(ref.getOid())
+                .type(ref.getType())
+                .targetName(ref.getTargetName());
+    }
+
+    private Map<ObjectReferenceType, List<ObjectReferenceType>> createPoiMembershipMap(List<UserType> users) {
+        if (users == null) {
+            return new HashMap<>();
+        }
+
+        Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = new HashMap<>();
+
+        for (UserType user : users) {
+            ObjectReferenceType poi = new ObjectReferenceType()
+                    .oid(user.getOid())
+                    .type(UserType.COMPLEX_TYPE)
+                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
+
+            List<ObjectReferenceType> refs = user.getRoleMembershipRef().stream()
+                    .map(o -> cloneObjectReference(o))
+                    .collect(Collectors.toList());
+
+            userMemberships.put(poi, refs);
+        }
+
+        return userMemberships;
+    }
+
+    private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
+        Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = createPoiMembershipMap(users);
+        selectedGroupOfUsers.setObject(userMemberships);
 
         page.hideMainPopup(target);
         target.add(getWizard().getPanel());
@@ -551,12 +593,17 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                         .oid(principal.getOid())
                         .type(UserType.COMPLEX_TYPE)
                         .targetName(principal.getName());
-                getModelObject().addPersonOfInterest(ref);
+
+                List<ObjectReferenceType> memberships = principal.getFocus().getRoleMembershipRef()
+                        .stream().map(o -> cloneObjectReference(o)).collect(Collectors.toList());
+
+                getModelObject().addPersonOfInterest(ref, memberships);
             } catch (SecurityViolationException ex) {
                 LOGGER.debug("Couldn't get principal, shouldn't happen", ex);
             }
         } else {
-            getModelObject().addPersonOfInterest(selectedGroupOfUsers.getObject());
+            Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = selectedGroupOfUsers.getObject();
+            getModelObject().addPersonOfInterest(new ArrayList<>(userMemberships.keySet()), userMemberships);
         }
 
         return true;
