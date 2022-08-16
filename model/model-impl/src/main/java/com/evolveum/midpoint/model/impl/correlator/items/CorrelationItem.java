@@ -202,27 +202,6 @@ public class CorrelationItem implements DebugDumpable {
                 () -> new UnsupportedOperationException("Multiple values of " + itemPath + " are not supported: " + prismValues));
     }
 
-    public @Nullable PrismProperty<?> getProperty() throws SchemaException {
-        PrismValue single = getSinglePrismValue();
-        if (single == null) {
-            return null;
-        }
-        Itemable parent = single.getParent();
-        if (parent == null) {
-            throw new IllegalStateException("Parent-less source value: " + single + " in " + this);
-        } else if (parent instanceof PrismProperty) {
-            return (PrismProperty<?>) parent;
-        } else {
-            throw new UnsupportedOperationException("Non-property sources are not supported: " + single + " in " + this);
-        }
-    }
-
-    public @Nullable ItemDefinition<?> getDefinition() throws SchemaException {
-        // Very temporary implementation
-        PrismProperty<?> property = getProperty();
-        return property != null ? property.getDefinition() : null;
-    }
-
     public S_FilterExit addClauseToQueryBuilder(
             S_FilterEntry builder, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -320,24 +299,6 @@ public class CorrelationItem implements DebugDumpable {
      */
     public boolean isApplicable() throws SchemaException {
         return getRealValue() != null;
-    }
-
-    /**
-     * Returns the source value wrapped in a property.
-     * The property will be named after correlation item, not after the source property.
-     *
-     * It may be empty. But must not be multi-valued.
-     *
-     * TODO
-     */
-    public @Nullable PrismProperty<?> getRenamedSourceProperty() throws SchemaException {
-        var property = getProperty();
-        if (property == null || name.equals(property.getElementName().getLocalPart())) {
-            return property;
-        }
-        PrismProperty<?> clone = property.clone();
-        clone.setElementName(new QName(name));
-        return clone;
     }
 
     public @NotNull String getName() {

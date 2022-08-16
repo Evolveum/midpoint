@@ -8,11 +8,14 @@
 <idMatchCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>id-match</name>
-    <description>
-        Correlates using dummy ID Match service plus a filter that uses returned referenceId.
-        This is the expected style of use.
-    </description>
     <!-- No url nor credentials. A dummy service is used instead. -->
     <referenceIdProperty>employeeNumber</referenceIdProperty>
+    <correlationProperties>
+        <path>$focus/givenName</path>
+        <path>$shadow/attributes/familyName</path> <!-- just check the use of $shadow -->
+        <path>$focus/extension/dateOfBirth</path>
+        <path>$focus/extension/nationalId</path>
+        <path>$shadow/attributes/employeeNumber</path> <!-- Intentionally null-valued attribute -->
+    </correlationProperties>
     <candidateConfidenceLimit>0.4</candidateConfidenceLimit>
 </idMatchCorrelator>

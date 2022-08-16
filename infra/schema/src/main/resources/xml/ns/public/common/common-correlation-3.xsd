@@ -702,7 +702,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Path of the property. It may start with $shadow (or $projection) - then it denotes
