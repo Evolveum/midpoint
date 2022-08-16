@@ -443,7 +443,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
-        ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(type, query);
+        ObjectFilter objectFilter = prismContext.createQueryParser().parseFilter(type, query);
         ObjectQuery objectQuery = prismContext.queryFactory().createQuery(objectFilter);
         return searchObjects(type, objectQuery, operationResult, selectorOptions);
     }
