@@ -56,6 +56,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Filter processor for extension items stored in JSONB.
  * This takes care of any supported type, scalar or array, and handles any operation.
+ *
+ * NOTE about NOT treatment:
+ * We use the same not treatment for extensions like for other columns resulting in conditions like:
+ * `not (u.ext->>'1510' < ? and u.ext->>'1510' is not null)`
+ * One might think that the part after AND can be replaced with u.ext ? '1510' to benefit from the GIN index.
+ * But `NOT (u.ext ? '...')` is *not* fully complement to the `u.ext ? '...'` (without NOT).
+ * It is only fully complement if additional `AND u.ext is not null` is added in which case the index will not be used either.
+ * So instead of adding special treatment code for extensions, we just reuse existing predicateWithNotTreated methods.
  */
 public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<ValueFilter<?, ?>> {
 

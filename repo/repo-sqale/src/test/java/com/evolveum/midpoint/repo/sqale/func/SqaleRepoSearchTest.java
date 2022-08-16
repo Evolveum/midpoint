@@ -2724,8 +2724,31 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test982SearchRoleReferencedByUserAssignmentWithComplexFilterNoMatch() throws SchemaException {
         searchObjectTest("referenced by an assignment of the user specified by complex filter (no match)", RoleType.class,
-//                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-//                        .ownedBy(UserType.class, F_ASSIGNMENT)
+                /*
+                This filter followed byt the .block() part is logically equivalent to the one used in code:
+                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                        .ownedBy(UserType.class, F_ASSIGNMENT)
+
+                Both produce similar select, just with different nesting of EXISTS and WHERE.
+                For the commented code we're searching for role referenced by assignment owned by user
+                (exactly what the fluent API says):
+                select r.oid, r.fullObject from m_role r
+                where exists (select 1 from m_assignment a
+                    where a.targetRefTargetOid = r.oid
+                        and exists (select 1 from m_user u
+                            where u.oid = a.ownerOid and a.containerType = ?
+                                and (not u.costCenter is null
+                                    and (u.policySituations = '{}' OR u.policySituations is null))))
+
+                And the select for the code from test, where we search role referenced from user's assignment:
+
+                select r.oid, r.fullObject from m_role r
+                where exists (select 1 from m_user u
+                    where exists (select 1 from m_assignment a
+                        where u.oid = a.ownerOid and a.containerType = ?
+                            and a.targetRefTargetOid = r.oid)
+                        and (not u.costCenter is null and (u.policySituations = '{}' OR u.policySituations is null)))
+                */
                 f -> f.referencedBy(UserType.class,
                                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                         .block()
@@ -2764,20 +2787,42 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void fuzzyStringSearchTest() throws SchemaException {
-        searchUsersTest("With levenshtein",
-                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("User1").levenshtein(2, true),
+    public void test992FuzzyStringSearch() throws SchemaException {
+        searchUsersTest("with levenshtein filter against string item",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("User1").levenshteinInclusive(2),
                 user1Oid);
 
-        searchUsersTest("With levenshtein in extension",
-                f -> f.item(UserType.F_EXTENSION, new ItemName("string")).fuzzyString("string_value").levenshtein(2, true),
+        searchUsersTest("with levenshtein filter against extension item",
+                f -> f.item(UserType.F_EXTENSION, new ItemName("string"))
+                        .fuzzyString("string_value").levenshteinExclusive(2), // distance 1, exclusive is still fine
                 user1Oid);
+
+        searchUsersTest("with NOT levenshtein filter against string item",
+                f -> f.not().item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("User1").levenshteinInclusive(2),
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+
+        searchUsersTest("with NOT levenshtein filter against extension item",
+                f -> f.not().item(UserType.F_EXTENSION, new ItemName("string"))
+                        .fuzzyString("string_value").levenshteinExclusive(2),
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
     }
 
-    @Test(expectedExceptions = SystemException.class) // the exception may change
-    public void invalidFuzzyStringSearchTest() throws SchemaException {
-        searchUsersTest("With levenshtein against no values",
-                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString().levenshtein(2, true));
+    @Test
+    public void test995InvalidFuzzyStringSearchWithNullValue() {
+        assertThatThrownBy(() -> searchUsersTest("with fuzzy filter without values",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString().levenshtein(2, true)))
+                .isInstanceOf(SystemException.class) // the exception may change
+                .hasMessage("Filter 'levenshtein: employeeNumber, ' should contain exactly one value, but it contains none.");
+    }
+
+    @Test
+    public void test996InvalidFuzzyStringSearchWithMultipleValues() {
+        assertThatThrownBy(() -> searchUsersTest("with fuzzy filter with multiple values",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("first", "second").levenshtein(2, true)))
+                .isInstanceOf(SystemException.class) // the exception may change
+                .hasMessageMatching("Filter 'levenshtein: employeeNumber, .*' should contain at most one value, but it has 2 of them\\.");
     }
     // endregion
 }
