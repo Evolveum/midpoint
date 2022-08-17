@@ -1180,8 +1180,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private String getItemDisplayName(GuiObjectColumnType column){
-        ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(getType()).findItemDefinition(column.getPath().getItemPath());
+        var itemDefinition = getContainerDefinitionForColumns().findItemDefinition(column.getPath().getItemPath());
         return itemDefinition == null ? "" : itemDefinition.getDisplayName();
     }
 

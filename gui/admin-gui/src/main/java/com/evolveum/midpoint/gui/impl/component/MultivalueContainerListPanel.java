@@ -77,7 +77,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     @Override
     protected Search createSearch(Class<C> type) {
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
-        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), getTypeDefinitionForSearch(),
+        return SearchFactory.createContainerSearch(createTypeSearchItem(type, containerDefinition), containerDefinition,
                 getDefaultSearchItem(), initSearchableItems(containerDefinition), getPageBase(), false);
     }
 
@@ -173,6 +173,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
             private static final long serialVersionUID = 1L;
 
+            @Override
             public CompositedIconBuilder getIconCompositedBuilder(){
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
@@ -265,6 +266,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     protected abstract boolean isCreateNewObjectVisible();
 
+    @Override
     public boolean isListPanelVisible(){
         return true;
     }
