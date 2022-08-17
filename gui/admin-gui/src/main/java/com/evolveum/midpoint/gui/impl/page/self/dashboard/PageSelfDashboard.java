@@ -177,7 +177,7 @@ public class PageSelfDashboard extends PageSelf {
 
         UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this);
 
-        Panel panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
+        Component panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
         if (panel == null) {
             return new WebMarkupContainer(markupId);
         }
