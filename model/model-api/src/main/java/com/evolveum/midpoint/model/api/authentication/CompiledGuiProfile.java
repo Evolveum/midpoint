@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -69,6 +71,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
     private byte[] jpegPhoto;
     private Locale locale;
+    private HomePageType homePage;
 
     private Set<String> dependencies = new HashSet<>();
 
@@ -543,5 +546,35 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public Set<String> getDependencies() {
         return dependencies;
+    }
+
+    public HomePageType getHomePage() {
+        return homePage;
+    }
+
+    public void setHomePage(HomePageType homePage) {
+        this.homePage = homePage;
+    }
+
+    public ContainerPanelConfigurationType findPrincipalFocusDetailsPanel(@NotNull QName focusType, @NotNull String panelType) {
+        if (getObjectDetails() == null || CollectionUtils.isEmpty(getObjectDetails().getObjectDetailsPage())) {
+            return null;
+        }
+        List<GuiObjectDetailsPageType> focusDetailsList = getObjectDetails().getObjectDetailsPage();
+        GuiObjectDetailsPageType focusDetailsPage = null;
+        for (GuiObjectDetailsPageType detailsPage : focusDetailsList) {
+            if (QNameUtil.match(detailsPage.getType(), focusType)) {
+                focusDetailsPage = detailsPage;
+                break;
+            }
+        }
+        if (focusDetailsPage != null && CollectionUtils.isNotEmpty(focusDetailsPage.getPanel())) {
+            for (ContainerPanelConfigurationType panel : focusDetailsPage.getPanel()) {
+                if (panelType.equals(panel.getPanelType())) {
+                    return panel;
+                }
+            }
+        }
+        return null;
     }
 }

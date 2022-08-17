@@ -268,4 +268,26 @@
             </owner>
         </object>
     </authorization>
+    <adminGuiConfiguration>
+        <homePage>
+            <type>UserType</type>
+            <widget>
+                <identifier>myWorkItems</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+            <widget>
+                <identifier>myHistory</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+        </homePage>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>UserType</type>
+                <panel>
+                    <identifier>history</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
 </role>

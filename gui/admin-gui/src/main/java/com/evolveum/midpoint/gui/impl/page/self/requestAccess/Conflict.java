@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -15,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Created by Viliam Repan (lazyman).
  */
 public class Conflict implements Serializable {
+
+    private String shortMessage;
 
     private ObjectReferenceType personOfInterest;
 
@@ -28,11 +31,14 @@ public class Conflict implements Serializable {
 
     private boolean warning;
 
-    public Conflict(ObjectReferenceType personOfInterest, ConflictItem added, ConflictItem exclusion, String message, boolean warning) {
+    private ConflictItem toBeRemoved;
+
+    public Conflict(ObjectReferenceType personOfInterest, ConflictItem added, ConflictItem exclusion, String shortMessage, String message, boolean warning) {
         this.personOfInterest = personOfInterest;
         this.added = added;
         this.exclusion = exclusion;
         this.warning = warning;
+        this.shortMessage = shortMessage;
         this.message = message;
     }
 
@@ -62,5 +68,21 @@ public class Conflict implements Serializable {
 
     public String getMessage() {
         return message;
+    }
+
+    public ConflictItem getToBeRemoved() {
+        return toBeRemoved;
+    }
+
+    public void setToBeRemoved(ConflictItem toBeRemoved) {
+        if (!Objects.equals(toBeRemoved, added) && !Objects.equals(toBeRemoved, exclusion)) {
+            return;
+        }
+
+        this.toBeRemoved = toBeRemoved;
+    }
+
+    public String getShortMessage() {
+        return shortMessage;
     }
 }

@@ -109,14 +109,6 @@ public class PageRoles extends PageAdmin {
 //                return ColumnUtils.getDefaultRoleColumns();
 //            }
 
-            @Override
-            protected List<ItemPath> getFixedSearchItems() {
-                List<ItemPath> fixedSearchItems = new ArrayList<>();
-                fixedSearchItems.add(ObjectType.F_NAME);
-                fixedSearchItems.add(AbstractRoleType.F_DISPLAY_NAME);
-                fixedSearchItems.add(AbstractRoleType.F_IDENTIFIER);
-                return fixedSearchItems;
-            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
