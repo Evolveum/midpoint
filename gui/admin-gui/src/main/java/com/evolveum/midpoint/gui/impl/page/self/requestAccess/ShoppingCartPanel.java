@@ -66,17 +66,18 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
     @Override
     public IModel<List<Badge>> getTitleBadges() {
         return () -> {
-            getModelObject().computeConflicts(page);
+            RequestAccess data = getModelObject();
+            data.computeConflicts(page);
 
             List<Badge> badges = new ArrayList<>();
 
-            long warnings = getModelObject().getWarningCount();
+            long warnings = data.getWarningCount();
             if (warnings > 0) {
                 String key = warnings == 1 ? "ShoppingCartPanel.badge.oneWarning" : "ShoppingCartPanel.badge.multipleWarnings";
                 badges.add(new Badge("badge badge-warning", getString(key, warnings)));
             }
 
-            long errors = getModelObject().getErrorCount();
+            long errors = data.getErrorCount();
             if (errors > 0) {
                 String key = errors == 1 ? "ShoppingCartPanel.badge.oneConflict" : "ShoppingCartPanel.badge.multipleConflicts";
                 badges.add(new Badge("badge badge-danger", "fa fa-exclamation-triangle", getString(key, errors)));
@@ -131,6 +132,13 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             @Override
             protected void backToSummaryPerformed(AjaxRequestTarget target) {
                 ShoppingCartPanel.this.onBackPerformed(target);
+            }
+
+            @Override
+            protected void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
+                super.solveConflictPerformed(target, conflictModel, itemToKeepModel);
+
+                target.add(getWizard().getHeader());
             }
         };
         conflictSolver.add(new VisibleBehaviour(() -> state.getObject() == State.CONFLICTS));
