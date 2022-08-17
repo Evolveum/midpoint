@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -194,7 +195,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
             return super.createObjectOrderings(sortParam);
         }
         String property = sortParam.getProperty();
-        final ItemPath path;
+        ItemPath path;
         if (TARGET_NAME_STRING.equals(property)) {
             path = TARGET_NAME_PATH;
         } else if (property.contains("/")) {
@@ -203,6 +204,15 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
         } else {
             path = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
         }
+
+        if (path.startsWith(TARGET_REF_OBJ) && determineTargetRefType() != null) {
+            // we have more concrete targetRef type and we are sorting using targetRef/@
+            var afterDereference = path.rest(2);
+            var typeHint = determineTargetRefType();
+            path = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(typeHint));
+            path = path.append(afterDereference);
+        }
+
         OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
         return Collections.singletonList(
                 getPrismContext().queryFactory().createOrdering(path, order));
