@@ -211,8 +211,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         CorrelatorContext<?> childContext = CorrelatorContextCreator.createChildContext(
                 childConfiguration,
                 correlatorContext.getCorrelationDefinitionBean(),
-                correlatorContext.getIdentityManagementConfiguration(),
-                correlatorContext.getIndexingConfiguration(),
+                correlatorContext.getTemplateCorrelationConfiguration(),
                 correlatorContext.getSystemConfiguration());
         return beans.correlatorFactoryRegistry
                 .instantiateCorrelator(childContext, task, result);

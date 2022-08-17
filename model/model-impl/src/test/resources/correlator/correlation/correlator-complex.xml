@@ -18,9 +18,7 @@
         </item>
         <item>
             <ref>familyName</ref>
-            <search>
-                <index>orig</index> <!-- just for testing -->
-            </search>
+            <!-- uses "orig" search defined in the object template -->
         </item>
         <item>
             <ref>extension/nationalId</ref>
@@ -36,6 +34,7 @@
         </item>
         <item>
             <ref>familyName</ref>
+            <!-- uses "orig" search defined in the object template -->
         </item>
         <composition>
             <weight>0.5</weight>
@@ -46,6 +45,7 @@
         <name>familyName</name>
         <item>
             <ref>familyName</ref>
+            <!-- uses "orig" search defined in the object template -->
         </item>
         <composition>
             <weight>0.25</weight>

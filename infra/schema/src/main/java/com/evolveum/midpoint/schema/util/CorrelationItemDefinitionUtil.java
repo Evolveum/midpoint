@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,7 +29,7 @@ public class CorrelationItemDefinitionUtil {
     /**
      * Returns the name under which we will reference this item definition (using "ref" elements).
      */
-    public static @NotNull String getName(@NotNull ItemCorrelationType definitionBean) {
+    public static @NotNull String getName(@NotNull CorrelationItemType definitionBean) {
         if (definitionBean.getName() != null) {
             return definitionBean.getName();
         }
@@ -123,5 +125,23 @@ public class CorrelationItemDefinitionUtil {
         } else {
             return null;
         }
+    }
+
+    public static void addSingleItemCorrelator(
+            @NotNull CorrelationDefinitionType overallCorrelationDefBean,
+            @NotNull ItemPath focusItemPath,
+            @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
+        CompositeCorrelatorType correlators = overallCorrelationDefBean.getCorrelators();
+        if (correlators == null) {
+            correlators = new CompositeCorrelatorType();
+            overallCorrelationDefBean.setCorrelators(correlators);
+        }
+        correlators.getItems().add(
+                new ItemsSubCorrelatorType()
+                        .item(new CorrelationItemType()
+                                .ref(
+                                        new ItemPathType(focusItemPath))
+                                .search(
+                                        CloneUtil.clone(attributeCorrelatorDefBean.getSearch()))));
     }
 }

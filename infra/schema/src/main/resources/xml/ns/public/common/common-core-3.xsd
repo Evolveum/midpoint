@@ -3995,19 +3995,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlation" type="tns:ItemCorrelationDefinitionType" minOccurs="0">
+            <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specifies the correlation for this item. Currently, it is supported only for definitions
-                        of resource attributes. But later we plan to extend the support also to focal item definitions.
+                        Creates a single-item correlator for this item.
 
-                        For attributes this automatically employs "beforeCorrelation" mapping evaluation phase.
+                        For attributes this automatically turns on "beforeCorrelation" mapping evaluation phase.
                         (If not explicitly forbidden in the attribute definition.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
                         <a:experimental>true</a:experimental>
-                        <a:displayName>ItemRefinedDefinitionType.correlation</a:displayName>
+                        <a:displayName>ItemRefinedDefinitionType.correlator</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -8505,6 +8504,19 @@
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
                                 <a:displayName>ItemRefinedDefinitionType.identity</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="correlation" type="tns:ItemCorrelationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the correlation-related aspects of this item, for example, the search method to be used
+                                by default.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>ItemRefinedDefinitionType.correlation</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

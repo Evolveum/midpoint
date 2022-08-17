@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
+import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -154,7 +155,6 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                     new File(TEST_DIR, "correlator-complex.xml"),
                     USER_TEMPLATE_COMPLEX);
 
-    @Autowired private ModelBeans modelBeans;
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
@@ -378,8 +378,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         CorrelatorConfiguration.typed(configBean),
                         configBean,
                         getSynchronizationPolicy().getCorrelationDefinition(), // it is OK that there's no correlator info here
-                        IdentitiesManager.createIdentityConfiguration(correlator.getUserTemplate()),
-                        IndexingConfigurationImpl.of(correlator.getUserTemplate(), modelBeans),
+                        TemplateCorrelationConfigurationImpl.of(correlator.getUserTemplate()),
                         systemConfiguration);
         correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
                 correlator.correlatorContext, task, result);
