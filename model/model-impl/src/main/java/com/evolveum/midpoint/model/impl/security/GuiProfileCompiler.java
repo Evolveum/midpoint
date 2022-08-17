@@ -348,11 +348,14 @@ public class GuiProfileCompiler {
             }
         }
         if (composite.getHomePage() != null && composite.getHomePage().getWidget() != null) {
-            List<ContainerPanelConfigurationType> sorted = new ArrayList<>();
-            sorted.addAll(composite.getHomePage().getWidget());
+            List<ContainerPanelConfigurationType> sorted = new ArrayList<>(composite.getHomePage().getWidget());
             MiscSchemaUtil.sortFeaturesPanels(sorted);
             composite.getHomePage().getWidget().clear();
             composite.getHomePage().getWidget().addAll(sorted);
+        }
+        if (adminGuiConfiguration.getSelfProfilePage() != null) {
+            composite.setSelfProfilePage(adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
+                    adminGuiConfiguration.getSelfProfilePage(), composite.getSelfProfilePage()));
         }
     }
 

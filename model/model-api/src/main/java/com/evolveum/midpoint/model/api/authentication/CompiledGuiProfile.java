@@ -72,6 +72,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private byte[] jpegPhoto;
     private Locale locale;
     private HomePageType homePage;
+    private GuiObjectDetailsPageType selfProfilePage;
 
     private Set<String> dependencies = new HashSet<>();
 
@@ -107,6 +108,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public Boolean isUseNewDesign() {
         return useNewDesign;
+    }
+
+    public GuiObjectDetailsPageType getSelfProfilePage() {
+        return selfProfilePage;
+    }
+
+    public void setSelfProfilePage(GuiObjectDetailsPageType selfProfilePage) {
+        this.selfProfilePage = selfProfilePage;
     }
 
     @NotNull
