@@ -48,7 +48,7 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
-                <correlation/>
+                <correlator/>
                 <outbound>
                     <name>ICFS NAME outbound mapping</name>
                     <strength>weak</strength>
@@ -305,7 +305,7 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Group name</displayName>
-                <correlation/>
+                <correlator/>
                 <outbound>
                     <source>
                         <path>$focus/name</path>

@@ -16,15 +16,15 @@
                 <levenshtein>
                     <threshold>4</threshold>
                     <inclusive>false</inclusive> <!-- just testing this -->
-                    <confidence>
-                        <expression>
-                            <script>
-                                <code>1 / (input+1)</code>
-                            </script>
-                        </expression>
-                    </confidence>
                 </levenshtein>
             </fuzzy>
+            <confidence>
+                <expression>
+                    <script>
+                        <code>1 / (input+1)</code>
+                    </script>
+                </expression>
+            </confidence>
         </search>
     </item>
     <item>
@@ -33,15 +33,15 @@
             <fuzzy>
                 <similarity>
                     <threshold>0.2</threshold>
-                    <confidence>
-                        <expression>
-                            <script>
-                                <code>input</code>
-                            </script>
-                        </expression>
-                    </confidence>
                 </similarity>
             </fuzzy>
+            <confidence>
+                <expression>
+                    <script>
+                        <code>input</code>
+                    </script>
+                </expression>
+            </confidence>
         </search>
     </item>
 </itemsCorrelator>

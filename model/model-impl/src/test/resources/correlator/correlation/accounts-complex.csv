@@ -10,3 +10,4 @@ uid  | givenName | familyName | nationalId    | expCandidates           | expRes
 6    | John      | Smith      | 999999/9999   | smith1:0.5;smith2:0.25  | _uncertain  | gn:F,fn:F,id:N;gn:N,fn:F,id:N  | smith1: Matching both names (0.5). For smith2: Only fullName (0.25).
 7    | John      | Johnson    | 040206/1111   | smith1:0.85             | _uncertain  | gn:F,fn:N,id:F                 | Matching national ID (0.75) and givenName (0.1).
 8    | John      | Johnson    | 999999/9999   | smith1:0.1              | _none#      |                                | Matching only givenName (0.1)
+9    | John      | smith      | 040206/1111   | smith1:0.85             | _uncertain  | gn:F,fn:F,id:F                 | Family name does not match because of "orig" matching. (The match is "full" because of the configuration anomaly: smith and Smith match on the default indexing, which is polystring norm.)

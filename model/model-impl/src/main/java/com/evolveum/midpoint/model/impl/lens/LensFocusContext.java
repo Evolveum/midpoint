@@ -6,32 +6,34 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
+import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -164,7 +166,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // preliminary version
     public @NotNull IndexingConfiguration getIndexingConfiguration() throws ConfigurationException {
         if (indexingConfiguration == null) {
-            indexingConfiguration = IndexingConfigurationImpl.of(focusTemplate, getLensContext().getModelBeans());
+            indexingConfiguration = IndexingConfigurationImpl.of(focusTemplate);
         }
         return indexingConfiguration;
     }
