@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.deleg.ReferenceDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TransformableReferenceDefinition extends TransformableItemDefinition<PrismReference, PrismReferenceDefinition>
@@ -49,9 +50,17 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
         if (!path.startsWithObjectReference()) {
             return super.findItemDefinition(path, clazz);
         } else {
+            var first = path.first();
             ItemPath rest = path.rest();
-            PrismObjectDefinition referencedObjectDefinition =
-                    getSchemaRegistry().determineReferencedObjectDefinition(getTargetTypeName(), rest);
+            var targetType = getTargetTypeName();
+            if (first instanceof ObjectReferencePathSegment) {
+                var typeHint = ((ObjectReferencePathSegment) first).typeHint();
+                if (typeHint.isPresent()) {
+                    targetType = typeHint.get();
+                }
+            }
+            PrismObjectDefinition<?> referencedObjectDefinition =
+                    getSchemaRegistry().determineReferencedObjectDefinition(targetType, rest);
             return (T) ((ItemDefinition) referencedObjectDefinition).findItemDefinition(rest, clazz);
         }
     }
