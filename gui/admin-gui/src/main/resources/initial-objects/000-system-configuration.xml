@@ -183,6 +183,12 @@
                         <cssClass>fa fa-history</cssClass>
                     </icon>
                 </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>history</panelType>
+                    </target>
+                </action>
                 <panelType>history</panelType>
                 <preview>true</preview>
             </widget>
@@ -200,6 +206,12 @@
                         <cssClass>fe fe-assignment</cssClass>
                     </icon>
                 </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>allAssignments</panelType>
+                    </target>
+                </action>
                 <panelType>allAssignments</panelType>
                 <preview>true</preview>
             </widget>
@@ -217,6 +229,12 @@
                         <cssClass>fe fe-case</cssClass>
                     </icon>
                 </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>focusCases</panelType>
+                    </target>
+                </action>
                 <panelType>focusCases</panelType>
                 <preview>true</preview>
             </widget>
@@ -234,6 +252,11 @@
                         <cssClass>fa fa-inbox</cssClass>
                     </icon>
                 </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems</pageClass>
+                    </target>
+                </action>
                 <panelType>myWorkItems</panelType>
                 <preview>true</preview>
             </widget>
@@ -251,6 +274,12 @@
                         <cssClass>fa fa-male</cssClass>
                     </icon>
                 </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>projections</panelType>
+                    </target>
+                </action>
                 <panelType>projections</panelType>
                 <preview>true</preview>
             </widget>
@@ -343,7 +372,7 @@
                 <panelType>statisticWidget</panelType>
                 <action>
                     <target>
-                        <pageClass>com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource</pageClass>
+                        <pageClass>com.evolveum.midpoint.web.page.admin.resources.PageResources</pageClass>
                     </target>
                 </action>
                 <preview>true</preview>

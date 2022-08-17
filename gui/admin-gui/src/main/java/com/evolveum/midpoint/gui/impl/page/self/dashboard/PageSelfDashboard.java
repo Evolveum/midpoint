@@ -85,26 +85,29 @@ public class PageSelfDashboard extends PageSelf {
         }));
         add(dashboardSearchPanel);
 
-        ListView<ContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
-                StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
-                widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
-                item.add(widget);
-            }
-        };
-        linksPanel.setOutputMarkupId(true);
-        linksPanel.add(new VisibleBehaviour(() -> {
-            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-            return WebComponentUtil.getElementVisibility(visibility);
-        }));
-        add(linksPanel);
-
+        initStatisticWidgets();
 
         initPreviewWidgets();
+     }
+
+     private void initStatisticWidgets() {
+         ListView<ContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
+
+             private static final long serialVersionUID = 1L;
+
+             @Override
+             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
+                 StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
+                 widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                 item.add(widget);
+             }
+         };
+         linksPanel.setOutputMarkupId(true);
+         linksPanel.add(new VisibleBehaviour(() -> {
+             UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
+             return WebComponentUtil.getElementVisibility(visibility);
+         }));
+         add(linksPanel);
      }
 
      private void initPreviewWidgets() {

@@ -66,7 +66,8 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
 
             @Override
             public void onClick() {
-                redirectActionPerformed();
+                WebComponentUtil.redirectFromDashboardWidget(StatisticDashboardWidget.this.getModelObject(),
+                        StatisticDashboardWidget.this.getPageBase(), StatisticDashboardWidget.this);
             }
 
         };
@@ -90,66 +91,6 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
 
         Label statisticData = new Label(ID_STATISTIC_DATA, getCollectionViewCountLabelModel());
         linkItem.add(statisticData);
-    }
-
-    private void redirectActionPerformed() {
-        List<GuiActionType> actionList = getModelObject().getAction();
-        if (CollectionUtils.isEmpty(actionList)) {
-            return;
-        }
-        Optional<GuiActionType> actionWithRedirection = actionList.stream().filter(this::isRedirectionTargetNotEmpty).findFirst();
-        if (actionWithRedirection.isEmpty()) {
-            return;
-        }
-        RedirectionTargetType redirectionTarget = actionWithRedirection.get().getTarget();
-        String url = redirectionTarget.getTargetUrl();
-        String pageClass = redirectionTarget.getPageClass();
-        String panelType = redirectionTarget.getPanelType();
-        if (StringUtils.isNotEmpty(url) && new UrlValidator().isValid(url)) {
-            throw new RedirectToUrlException(url);
-        } else if (!StringUtils.isAllEmpty(pageClass, panelType)) {
-            redirectToPanel(pageClass, panelType);
-        }
-    }
-
-    private boolean isRedirectionTargetNotEmpty(GuiActionType action) {
-        if (action == null || action.getTarget() == null) {
-            return false;
-        }
-        return !StringUtils.isAllEmpty(action.getTarget().getTargetUrl(), action.getTarget().getPageClass(), action.getTarget().getPanelType());
-    }
-
-    private void redirectToPanel(String pageClass, String panelType) {
-        if (StringUtils.isNotEmpty(pageClass)) {
-            try {
-                Class<?> clazz = Class.forName(pageClass);
-                ContainerPanelConfigurationType config = null;
-                if (hasContainerPanelConfigurationField(clazz)) {
-                    Class<? extends Panel> panel = getPageBase().findObjectPanel(panelType);
-                    //todo get subPanels from ContainerPanelConfigurationType? or get details page panels? and redirect exactly on panelType
-                }
-                if (config == null) {
-                    config = new ContainerPanelConfigurationType();
-                    config.setPanelType(panelType);
-                }
-                Constructor<?> constructor = clazz.getConstructor();
-                Object pageInstance = constructor.newInstance();
-                if (pageInstance instanceof AbstractPageObjectDetails && StringUtils.isNotEmpty(panelType)) {
-                    String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
-                    ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(storageKey);
-                    if (pageStorage == null) {
-                        getPageBase().getSessionStorage().setObjectDetailsStorage(storageKey, config);
-                    } else {
-                        pageStorage.setDefaultConfiguration(config);
-                    }
-                } else if (pageInstance instanceof WebPage) {
-                    getPageBase().navigateToNext((WebPage) pageInstance);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
-            }
-        }
     }
 
     private boolean hasContainerPanelConfigurationField(Class<?> clazz) {

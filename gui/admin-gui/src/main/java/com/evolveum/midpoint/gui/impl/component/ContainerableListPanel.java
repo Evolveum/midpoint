@@ -972,28 +972,29 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected void viewAllActionPerformed(AjaxRequestTarget target) {
-        FocusType principal = getPageBase().getPrincipalFocus();
-        String widgetPanelType = config != null ? config.getPanelType() : null;
-        QName principalFocusType = WebComponentUtil.classToQName(PrismContext.get(), principal.getClass());
-        if (widgetPanelType != null) {
-            ContainerPanelConfigurationType panelConfig = getPageBase().getCompiledGuiProfile().findPrincipalFocusDetailsPanel(
-                    principalFocusType, widgetPanelType);
-            if (panelConfig != null) {
-                ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(getStorageKey());
-                if (pageStorage == null) {
-                    getPageBase().getSessionStorage().setObjectDetailsStorage(getStorageKey(), panelConfig);
-                } else {
-                    pageStorage.setDefaultConfiguration(panelConfig);
-                }
-                WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), ContainerableListPanel.this);
-                return;
-            }
-        }
-
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view != null) {
-            WebComponentUtil.dispatchToListPage(getType(), view.getViewIdentifier(), ContainerableListPanel.this, false);
-        }
+        WebComponentUtil.redirectFromDashboardWidget(config, getPageBase(), ContainerableListPanel.this);
+//        FocusType principal = getPageBase().getPrincipalFocus();
+//        String widgetPanelType = config != null ? config.getPanelType() : null;
+//        QName principalFocusType = WebComponentUtil.classToQName(PrismContext.get(), principal.getClass());
+//        if (widgetPanelType != null) {
+//            ContainerPanelConfigurationType panelConfig = getPageBase().getCompiledGuiProfile().findPrincipalFocusDetailsPanel(
+//                    principalFocusType, widgetPanelType);
+//            if (panelConfig != null) {
+//                ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(getStorageKey());
+//                if (pageStorage == null) {
+//                    getPageBase().getSessionStorage().setObjectDetailsStorage(getStorageKey(), panelConfig);
+//                } else {
+//                    pageStorage.setDefaultConfiguration(panelConfig);
+//                }
+//                WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), ContainerableListPanel.this);
+//                return;
+//            }
+//        }
+//
+//        CompiledObjectCollectionView view = getObjectCollectionView();
+//        if (view != null) {
+//            WebComponentUtil.dispatchToListPage(getType(), view.getViewIdentifier(), ContainerableListPanel.this, false);
+//        }
     }
 
     protected String getStorageKey() {

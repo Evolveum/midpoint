@@ -31,7 +31,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.PageTypes;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,6 +44,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,6 +60,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -69,6 +73,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
@@ -2665,6 +2670,59 @@ public final class WebComponentUtil {
         if (failIfUnsupported) {
             throw new SystemException("Cannot determine details page for " + objectClass);
         }
+    }
+
+    public static void redirectFromDashboardWidget(ContainerPanelConfigurationType widgetConfig, PageBase pageBase, Component component) {
+        if (widgetConfig == null) {
+            return;
+        }
+        List<GuiActionType> actionList = widgetConfig.getAction();
+        if (CollectionUtils.isEmpty(actionList)) {
+            return;
+        }
+        Optional<GuiActionType> actionWithRedirection = actionList.stream().filter(WebComponentUtil::isRedirectionTargetNotEmpty).findFirst();
+        if (actionWithRedirection.isEmpty()) {
+            return;
+        }
+        RedirectionTargetType redirectionTarget = actionWithRedirection.get().getTarget();
+        String url = redirectionTarget.getTargetUrl();
+        String pageClass = redirectionTarget.getPageClass();
+        String panelType = redirectionTarget.getPanelType();
+        if (StringUtils.isNotEmpty(url) && new UrlValidator().isValid(url)) {
+            throw new RedirectToUrlException(url);
+        } else if (StringUtils.isNotEmpty(pageClass)) {
+            try {
+                Class<?> clazz = Class.forName(pageClass);
+                ContainerPanelConfigurationType config =  new ContainerPanelConfigurationType();
+                config.setPanelType(panelType);
+
+                Constructor<?> constructor = clazz.getConstructor();
+                Object pageInstance = constructor.newInstance();
+                if (pageInstance instanceof AbstractPageObjectDetails && StringUtils.isNotEmpty(panelType)) {
+                    String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
+                    FocusType principal = pageBase.getPrincipalFocus();
+                    ObjectDetailsStorage pageStorage = pageBase.getSessionStorage().getObjectDetailsStorage(storageKey);
+                    if (pageStorage == null) {
+                        pageBase.getSessionStorage().setObjectDetailsStorage(storageKey, config);
+                    } else {
+                        pageStorage.setDefaultConfiguration(config);
+                    }
+                    WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), component);
+                } else if (pageInstance instanceof WebPage) {
+                    pageBase.navigateToNext((WebPage) pageInstance);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+            }
+        }
+    }
+
+    public static boolean isRedirectionTargetNotEmpty(GuiActionType action) {
+        if (action == null || action.getTarget() == null) {
+            return false;
+        }
+        return !StringUtils.isAllEmpty(action.getTarget().getTargetUrl(), action.getTarget().getPageClass(), action.getTarget().getPanelType());
     }
 
     public static boolean hasDetailsPage(PrismObject<?> object) {
