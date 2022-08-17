@@ -8,13 +8,22 @@
 package com.evolveum.midpoint.repo.sql.query.definition;
 
 import java.util.Objects;
+import java.util.Optional;
+
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
@@ -39,10 +48,26 @@ public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
 
     @Override
     public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
-        if (ItemPath.isObjectReference(path.first())) {
+        var first = path.first();
+        if (ItemPath.isObjectReference(first)) {
             // returning artificially created transition definition, used to allow dereferencing target object in a generic way
+            // Here we could use type hint?
+            JpaEntityDefinition resolvedEntityDef = referencedEntityDefinition.getResolvedEntityDefinition();
+            if (first instanceof ObjectReferencePathSegment) {
+                Optional<QName> typeHint = ((ObjectReferencePathSegment) first).typeHint();
+                if (typeHint.isPresent()) {
+                    // Now we need to find RObject class for type hint
+                    //Class<? extends RObject> hqlClazz = ClassMapper.getHQLTypeForQName(typeHint.get()).getClazz();
+                    // And now, we somehow need resolvedEntityDefinition
+
+                    resolvedEntityDef = QueryDefinitionRegistry.getInstance().findEntityDefinition(typeHint.get());
+                }
+
+            }
+
+            //
             return new DataSearchResult<>(
-                    new JpaLinkDefinition<>(SchemaConstants.PATH_OBJECT_REFERENCE, "target", null, false, referencedEntityDefinition.getResolvedEntityDefinition()),
+                    new JpaLinkDefinition<>(SchemaConstants.PATH_OBJECT_REFERENCE, "target", null, false, resolvedEntityDef),
                     path.rest());
         } else {
             return null;
