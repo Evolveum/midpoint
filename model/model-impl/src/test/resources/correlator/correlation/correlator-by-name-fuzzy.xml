@@ -9,7 +9,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>by-name-levenshtein</name>
     <item>
-        <path>givenName</path>
+        <ref>givenName</ref>
         <search>
             <fuzzy>
                 <levenshtein>
@@ -19,7 +19,7 @@
         </search>
     </item>
     <item>
-        <path>familyName</path>
+        <ref>familyName</ref>
         <search>
             <fuzzy>
                 <similarity>

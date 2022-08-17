@@ -31,7 +31,7 @@ public class CorrelationItemDefinitionUtil {
         if (definitionBean.getName() != null) {
             return definitionBean.getName();
         }
-        String nameFromPath = getNameFromPath(definitionBean.getPath());
+        String nameFromPath = getNameFromPath(definitionBean.getRef());
         if (nameFromPath != null) {
             return nameFromPath;
         }
@@ -99,7 +99,7 @@ public class CorrelationItemDefinitionUtil {
                 sb.append("items: ");
                 sb.append(
                         ((ItemsCorrelatorType) configBean).getItem().stream()
-                                .map(itemDef -> String.valueOf(itemDef.getPath()))
+                                .map(itemDef -> String.valueOf(itemDef.getRef()))
                                 .collect(Collectors.joining(", ")));
             } else {
                 sb.append("configured with: ")

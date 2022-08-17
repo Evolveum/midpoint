@@ -87,7 +87,7 @@
                 <correlators>
                     <items>
                         <item>
-                            <path>extension/personalNumber</path>
+                            <ref>extension/personalNumber</ref>
                         </item>
                     </items>
                 </correlators>
