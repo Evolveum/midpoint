@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
@@ -13,10 +15,16 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -35,5 +43,16 @@ public class OrgAssignmentsPanel<AH extends AssignmentHolderType> extends Abstra
     @Override
     protected QName getAssignmentType() {
         return OrgType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef,
+            List<SearchItemDefinition> defs) {
+        super.addSpecificSearchableItems(containerDef, defs);
+        if (isRepositorySearchEnabled()) {
+            SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(OrgType.F_COST_CENTER), defs);
+            //SearchFactory.addSearchRefDef(containerDef, TARGET_REF_OBJ.append(OrgType.F_PARENT_ORG_REF), defs, getPageBase());
+            SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(OrgType.F_LOCALITY), defs);
+        }
     }
 }

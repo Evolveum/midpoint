@@ -86,7 +86,6 @@ public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderTyp
         if (isRepositorySearchEnabled()) {
             SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(AbstractRoleType.F_NAME), defs);
             SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(AbstractRoleType.F_DISPLAY_NAME), defs);
-            SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(AbstractRoleType.F_IDENTIFIER), defs);
         }
     }
 }

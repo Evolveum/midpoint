@@ -685,7 +685,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         // We can determine indexed extensions if getAssignmentType() != null
         if (getAssignmentType() != null) {
             var objectExt =  SearchFactory.createExtensionDefinitionList(containerDef, TARGET_REF_EXTENSION);
-            LOGGER.info("Adding extension properties from targetRef/@: {}", objectExt);
+            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
             defs.addAll(objectExt);
         }
         return defs;
