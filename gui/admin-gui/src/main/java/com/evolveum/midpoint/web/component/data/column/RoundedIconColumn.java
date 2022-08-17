@@ -16,6 +16,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.IResource;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,7 +40,7 @@ public class RoundedIconColumn<T, S> extends AbstractColumn<T, S> {
         return null;
     }
 
-    protected IModel<AbstractResource> createPreferredImage(IModel<T> model) {
+    protected IModel<IResource> createPreferredImage(IModel<T> model) {
         return null;
     }
 }

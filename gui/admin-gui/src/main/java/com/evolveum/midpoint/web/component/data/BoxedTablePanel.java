@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -17,6 +19,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -47,6 +50,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_MENU = "menu";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
+    private static final String ID_FORM = "form";
 
     private boolean showAsCard = true;
 
@@ -314,10 +318,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             };
             footerContainer.add(nb2);
 
-            TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
+            Form form = new MidpointForm(ID_FORM);
+            footerContainer.add(form);
+            PagingSizePanel menu = new PagingSizePanel(ID_MENU) {
 
                 @Override
-                protected void pageSizeChanged(AjaxRequestTarget target) {
+                protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
@@ -329,9 +335,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     target.add(findParent(PagingFooter.class));
                     target.add((Component) table);
                 }
-
             };
-            footerContainer.add(menu);
+            // todo nasty hack, we should decide whether paging should be normal or "small"
+            menu.setSmall(getPaginationCssClass() != null);
+            form.add(menu);
             add(footerContainer);
         }
 

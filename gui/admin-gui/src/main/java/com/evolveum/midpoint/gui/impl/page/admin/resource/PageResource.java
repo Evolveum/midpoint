@@ -9,11 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.BasicResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -54,9 +60,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
     private static final String ID_WIZARD = "wizard";
-
-    private static final String ID_WIZARD_PREVIEW_FRAGMENT = "wizardPreviewFragment";
-    private static final String ID_PREVIEW = "preview";
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -163,5 +166,43 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 .noFetch()
                 .item(ResourceType.F_CONNECTOR_REF).resolve()
                 .build();
+    }
+
+    public void showSynchronizationWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+        SynchronizationConfigWizardPanel wizard = new SynchronizationConfigWizardPanel(
+                ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                DetailsFragment detailsFragment = createDetailsFragment();
+                PageResource.this.addOrReplace(detailsFragment);
+                target.add(detailsFragment);
+            }
+        };
+        wizard.setOutputMarkupId(true);
+        fragment.add(wizard);
+        target.add(fragment);
+    }
+
+    public void showAttributeMappingWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+        AttributeMappingWizardPanel wizard = new AttributeMappingWizardPanel(
+                ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                DetailsFragment detailsFragment = createDetailsFragment();
+                PageResource.this.addOrReplace(detailsFragment);
+                target.add(detailsFragment);
+            }
+        };
+        wizard.setOutputMarkupId(true);
+        fragment.add(wizard);
+        target.add(fragment);
     }
 }

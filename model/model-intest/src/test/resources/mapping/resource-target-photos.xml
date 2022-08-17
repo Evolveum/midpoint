@@ -47,6 +47,7 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
+                <correlation/>
                 <outbound>
                     <strength>strong</strength>
                     <source>
@@ -57,9 +58,6 @@
                     <target>
                         <path>name</path>
                     </target>
-                    <evaluationPhases>
-                        <include>beforeCorrelation</include>
-                    </evaluationPhases>
                 </inbound>
             </attribute>
             <attribute>
@@ -73,15 +71,6 @@
                     </source>
                 </outbound>
             </attribute>
-            <correlation>
-                <correlators>
-                    <items>
-                        <item>
-                            <path>name</path>
-                        </item>
-                    </items>
-                </correlators>
-            </correlation>
             <synchronization>
                 <reaction>
                     <situation>unlinked</situation>

@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
@@ -54,6 +55,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     private List<ItemWrapper<?, ?>> nonContainers = new ArrayList<>();
     private List<PrismContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
+    private VirtualContainers virtualContainers;
 
     public PrismContainerValueWrapperImpl(PrismContainerWrapper<C> parent, PrismContainerValue<C> pcv, ValueStatus status) {
         super(parent, pcv, status);
@@ -239,7 +241,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
             collectExtensionItems(container, true, containers);
 
-            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())){
+            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
                 if (WebComponentUtil.isNewDesignEnabled()) {
                     if (!((PrismContainerWrapper) container).isVirtual()) {
                         containers.add((PrismContainerWrapper<? extends Containerable>) container);
@@ -253,24 +255,36 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public List<PrismContainerWrapper<? extends Containerable>> getContainers(ContainerPanelConfigurationType config) {
+    public List<PrismContainerWrapper<? extends Containerable>> getContainers(ContainerPanelConfigurationType config, ModelServiceLocator modelServiceLocal) {
         List<PrismContainerWrapper<? extends Containerable>> basicContainers = new ArrayList<>(getContainers());
         if (config == null) {
             return basicContainers;
         }
-        for (VirtualContainersSpecificationType virtualContainer : config.getContainer()) {
-            if (virtualContainer.getIdentifier() != null) {
-                PrismContainerWrapper<? extends Containerable> pcw = findContainer(virtualContainer.getIdentifier());
-                if (pcw != null) {
-                    basicContainers.add(pcw);
+
+        List<PrismContainerWrapper<? extends Containerable>> virtualContainers = new ArrayList<>(getContainers());
+        if (this.virtualContainers != null && this.virtualContainers.panelIdentifier.equals(config.getIdentifier())) {
+            virtualContainers = this.virtualContainers.virtualContainers;
+        } else {
+            for (VirtualContainersSpecificationType virtualContainer : config.getContainer()) {
+                if (virtualContainer.getIdentifier() != null) {
+                    PrismContainerWrapper<? extends Containerable> pcw = findContainer(virtualContainer.getIdentifier());
+                    if (pcw != null) {
+                        PrismContainerWrapper<? extends Containerable> vpcw = pcw.copyVirtualContainerWithNewValue(this, modelServiceLocal);
+
+                        virtualContainers.add(vpcw);
+                    }
                 }
             }
+            this.virtualContainers = new VirtualContainers(config.getIdentifier());
+            this.virtualContainers.virtualContainers = virtualContainers;
         }
+
+        basicContainers.addAll(virtualContainers);
         return basicContainers;
     }
 
     @Override
-    public List<ItemWrapper<?,?>> getNonContainers() {
+    public List<ItemWrapper<?, ?>> getNonContainers() {
         if (!nonContainers.isEmpty()) {
             sortContainers();
             return nonContainers;
@@ -284,7 +298,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     private void collectContainers() {
-        for (ItemWrapper<?,?> item : items) {
+        for (ItemWrapper<?, ?> item : items) {
 
             collectExtensionItems(item, false, nonContainers);
 
@@ -310,10 +324,20 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             return;
         }
 
+        PrismContainerValueWrapper valueParent = getParent().getParent();
         for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
             try {
                 ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
-                ItemWrapper itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
+                ItemWrapper itemWrapper;
+                if (valueParent != null
+                        && valueParent.getPath() != null
+                        && valueParent.getPath().namedSegmentsOnly().isSubPath(virtualItemPath.namedSegmentsOnly())) {
+                    ItemPath valueParentPath = valueParent.getPath();
+                    ItemPath suffix = virtualItemPath.subPath(valueParentPath.namedSegmentsOnly().size(), virtualItemPath.size());
+                    itemWrapper = valueParent.findItem(suffix);
+                } else {
+                    itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
+                }
                 if (itemWrapper == null) {
                     LOGGER.debug("No wrapper found for {}", virtualItemPath);
                     continue;
@@ -322,6 +346,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 if (itemWrapper instanceof PrismContainerWrapper) {
                     continue;
                 }
+                itemWrapper.setShowInVirtualContainer(true);
 
                 nonContainers.add(itemWrapper);
 
@@ -361,13 +386,13 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                 }
                 if (extensionItem instanceof PrismContainerWrapper) {
                     if (containers && !((PrismContainerWrapper) extensionItem).isVirtual()) {
-                        ((List)itemWrappers).add(extensionItem);
+                        ((List) itemWrappers).add(extensionItem);
                     }
                     continue;
                 }
 
                 if (!containers) {
-                    ((List)itemWrappers).add(extensionItem);
+                    ((List) itemWrappers).add(extensionItem);
                 }
             }
         } catch (SchemaException e) {
@@ -402,7 +427,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         if (CollectionUtils.isNotEmpty(basicContainers)) {
             containers.addAll(basicContainers);
         }
-
 
         addVirtualContainers(containers);
 
@@ -444,11 +468,20 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     private void addVirtualContainersFrom(PrismObjectValueWrapper<?> objectValue, List<PrismContainerWrapper<?>> containers) {
         for (ItemWrapper<?, ?> itemWrapper : objectValue.getItems()) {
-            if (itemWrapper instanceof PrismContainerWrapper && ((PrismContainerWrapper) itemWrapper).isVirtual()) {
+            if (itemWrapper instanceof PrismContainerWrapper
+                    && ((PrismContainerWrapper) itemWrapper).isVirtual()
+                    && (((PrismContainerWrapper<?>) itemWrapper).getIdentifier() == null
+                    || containers.stream().noneMatch(c -> ((PrismContainerWrapper<?>) itemWrapper).getIdentifier().equals(c.getIdentifier())))) {
                 containers.add((PrismContainerWrapper<?>) itemWrapper);
             }
         }
     }
+
+    @Override
+    public <IW extends ItemWrapper> IW findItem(ItemPath path) throws SchemaException {
+        return findItem(path, null);
+    }
+
     @Override
     public <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException {
         Object first = path.first();
@@ -460,7 +493,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         IW item = findItemByQName(subName);
         if (item != null) {
             if (rest.isEmpty()) {
-                if (type.isAssignableFrom(item.getClass())) {
+                if (type == null || type.isAssignableFrom(item.getClass())) {
                     return item;
                 }
             } else {
@@ -564,6 +597,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         this.virtualItems = virtualItems;
     }
 
+    @Override
     public List<VirtualContainerItemSpecificationType> getVirtualItems() {
         return virtualItems;
     }
@@ -630,16 +664,29 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     public void clearItems() {
         items.clear();
         nonContainers.clear();
+        virtualContainers = null;
     }
 
     @Override
     public void addItems(Collection<ItemWrapper<?, ?>> newItems) {
         items.addAll(newItems);
         nonContainers.clear();
+        virtualContainers = null;
     }
 
     @Override
     public int size() {
         return items.size();
+    }
+
+    private class VirtualContainers {
+
+        private List<PrismContainerWrapper<? extends Containerable>> virtualContainers = new ArrayList<>();
+
+        private String panelIdentifier;
+
+        VirtualContainers(String panelIdentifier) {
+            this.panelIdentifier = panelIdentifier;
+        }
     }
 }

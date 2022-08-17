@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
@@ -34,6 +34,8 @@ public class FullCorrelationContext {
     @NotNull public final ResourceType resource;
     @NotNull public final ResourceObjectDefinition resourceObjectDefinition;
     @NotNull public final SynchronizationPolicy synchronizationPolicy;
+    @NotNull public final FocusType preFocus;
+    @Nullable public final ObjectTemplateType objectTemplate;
     @Nullable public final SystemConfigurationType systemConfiguration;
 
     public FullCorrelationContext(
@@ -41,11 +43,15 @@ public class FullCorrelationContext {
             @NotNull ResourceType resource,
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull SynchronizationPolicy synchronizationPolicy,
+            @NotNull FocusType preFocus,
+            @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration) {
         this.shadow = shadow;
         this.resource = resource;
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.synchronizationPolicy = synchronizationPolicy;
+        this.preFocus = preFocus;
+        this.objectTemplate = objectTemplate;
         this.systemConfiguration = systemConfiguration;
     }
 

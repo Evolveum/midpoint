@@ -13,11 +13,16 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,7 +63,26 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     }
 
     protected IModel<List<PrismContainerWrapper<? extends Containerable>>> createContainersModel() {
-        return Model.ofList(List.of());
+        ContainerPanelConfigurationType config = getPanelConfiguration();
+        if (config == null) {
+            return Model.ofList(List.of());
+        }
+
+        return new LoadableDetachableModel<>(){
+            @Override
+            protected List<PrismContainerWrapper<? extends Containerable>> load() {
+                List<PrismContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
+                for (VirtualContainersSpecificationType virtualContainer : config.getContainer()) {
+                    if (virtualContainer.getIdentifier() != null) {
+                        PrismContainerWrapper<? extends Containerable> pcw = getModelObject().findContainer(virtualContainer.getIdentifier());
+                        if (pcw != null) {
+                            containers.add(pcw);
+                        }
+                    }
+                }
+                return containers;
+            }
+        };
     }
 
     @Override

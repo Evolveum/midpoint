@@ -12,8 +12,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -75,7 +74,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private PrismContext prismContext;
-    @Autowired private CorrelationService correlationService;
+    @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private ContextLoader contextLoader;
     @Autowired private ProvisioningService provisioningService;
 

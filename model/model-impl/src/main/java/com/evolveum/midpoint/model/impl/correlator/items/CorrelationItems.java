@@ -8,23 +8,23 @@
 package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.schema.route.ItemRoute;
-import com.evolveum.midpoint.schema.route.ItemRouteSegment;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
@@ -33,38 +33,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Collection of correlation items (for given correlation or correlation-like operation.)
  */
-class CorrelationItems {
+class CorrelationItems implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItems.class);
 
     @NotNull private final List<CorrelationItem> items;
 
-    @NotNull private final Set<String> allTargetQualifiers;
-
-    @NotNull private final CorrelatorContext<?> correlatorContext;
-
-    private CorrelationItems(
-            @NotNull List<CorrelationItem> items,
-            @NotNull CorrelatorContext<?> correlatorContext) {
+    private CorrelationItems(@NotNull List<CorrelationItem> items) {
         this.items = items;
-        this.correlatorContext = correlatorContext;
-        this.allTargetQualifiers = computeAllTargetQualifiers();
-        LOGGER.trace("CorrelationItems created with target qualifiers {}:\n{}", allTargetQualifiers, items);
+        LOGGER.trace("CorrelationItems created:\n{}", DebugUtil.debugDumpLazily(items, 1));
     }
 
     public static @NotNull CorrelationItems create(
             @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
-            @NotNull CorrelationContext correlationContext) throws ConfigurationException {
+            @NotNull CorrelationContext correlationContext,
+            @NotNull ModelBeans beans) throws ConfigurationException {
 
         List<CorrelationItem> items = new ArrayList<>();
         for (ItemCorrelationType itemBean : correlatorContext.getConfigurationBean().getItem()) {
             items.add(
-                    CorrelationItem.create(itemBean, correlatorContext, correlationContext));
+                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus(), beans));
         }
-        return new CorrelationItems(items, correlatorContext);
+        stateCheck(!items.isEmpty(), "No correlation items in %s", correlatorContext);
+        return new CorrelationItems(items);
     }
 
     public boolean isEmpty() {
@@ -79,78 +75,20 @@ class CorrelationItems {
         return items;
     }
 
-    private Set<String> computeAllTargetQualifiers() {
-        return Sets.union(
-                correlatorContext.getTargetPlaces().keySet(),
-                items.stream()
-                        .flatMap(item -> item.getTargetQualifiers().stream())
-                        .collect(Collectors.toSet()));
-    }
-
-    /**
-     * Creates a list of queries to be executed. There should be a single query for each target.
-     *
-     * Each query is either a simple conjunction, or an "exists" blocks - if the targets are contained e.g. in an assignment.
-     */
-    List<ObjectQuery> createQueries(
+    ObjectQuery createIdentityQuery(
             @NotNull Class<? extends ObjectType> focusType,
-            @Nullable String archetypeOid)
-            throws SchemaException {
+            @Nullable String archetypeOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
-        List<ObjectQuery> queries = new ArrayList<>();
+        assert !items.isEmpty();
 
-        for (@NotNull String targetQualifier : allTargetQualifiers) {
-
-            Set<String> unsupported = items.stream()
-                    .filter(item -> !item.supportsTarget(targetQualifier))
-                    .map(CorrelationItem::getName)
-                    .collect(Collectors.toSet());
-            if (!unsupported.isEmpty()) {
-                LOGGER.debug("Correlation item(s) {} does not support target '{}', skipping querying for this target",
-                        unsupported, targetQualifier);
-                continue;
-            }
-
-            S_FilterEntry start = PrismContext.get().queryFor(focusType);
-            // First, we create either simple .block() or .exist(segment-path).block()
-            S_FilterEntry blockStart = openTheBlock(start, targetQualifier);
-            // Then we add clauses corresponding to the items, and close the block
-            S_FilterExit beforeArchetypeClause =
-                    addItemClausesAndCloseTheBlock(blockStart, targetQualifier);
-            // Finally, we add a condition for archetype (if needed)
-            S_FilterExit end =
-                    archetypeOid != null ?
-                            addArchetypeClause(beforeArchetypeClause, archetypeOid) :
-                            beforeArchetypeClause;
-
-            queries.add(end.build());
-        }
-        return queries;
-    }
-
-    private S_FilterEntry openTheBlock(S_FilterEntry start, @NotNull String targetQualifier) {
-        ItemRoute placeRoute = correlatorContext.getTargetPlaceRoute(targetQualifier);
-        if (placeRoute.isEmpty()) {
-            return start.block();
-        } else if (placeRoute.size() == 1) {
-            // Very simplified processing: assumes single segment, ignores filtering conditions!
-            ItemRouteSegment segment = placeRoute.get(0);
-            return start.exists(segment.getPath()).block();
-        } else {
-            throw new UnsupportedOperationException("Multi-segment routes are not supported yet: " + placeRoute);
-        }
-    }
-
-    private S_FilterExit addArchetypeClause(S_FilterExit before, String archetypeOid) {
-        return before.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid);
-    }
-
-    private @NotNull S_FilterExit addItemClausesAndCloseTheBlock(S_FilterEntry nextStart, @NotNull String targetQualifier)
-            throws SchemaException {
+        S_FilterEntry nextStart = PrismContext.get().queryFor(focusType);
         S_FilterExit currentEnd = null;
         for (int i = 0; i < items.size(); i++) {
             CorrelationItem correlationItem = items.get(i);
-            currentEnd = correlationItem.addClauseToQueryBuilder(nextStart, targetQualifier);
+            currentEnd = correlationItem.addClauseToQueryBuilder(nextStart, task, result);
             if (i < items.size() - 1) {
                 nextStart = currentEnd.and();
             } else {
@@ -158,6 +96,22 @@ class CorrelationItems {
                 // (The builder API does not mention it, but the state of the objects are modified on each operation.)
             }
         }
-        return Objects.requireNonNull(currentEnd).endBlock();
+
+        assert currentEnd != null;
+
+        // Finally, we add a condition for archetype (if needed)
+        S_FilterExit end =
+                archetypeOid != null ?
+                        currentEnd.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid) :
+                        currentEnd;
+
+        return end.build();
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+        DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
+        return sb.toString();
     }
 }

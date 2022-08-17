@@ -226,6 +226,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().isDisplayNameAttribute();
     }
 
+    @Override
+    public @Nullable ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
+        return getRefinedAttributeDefinition().getCorrelationDefinitionBean();
+    }
+
     @NotNull
     @Override
     public ResourceAttribute<T> instantiate() {

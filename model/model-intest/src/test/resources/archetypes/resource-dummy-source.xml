@@ -50,6 +50,7 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
+                <correlation/>
                 <inbound>
                     <target>
                         <path>name</path>
@@ -90,46 +91,32 @@
                     </condition>
                 </inbound>
             </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
-
-    <synchronization>
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <enabled>true</enabled>
-            <correlationDefinition>
-                <correlators>
-                    <items>
-                        <item>
-                            <path>name</path>
-                        </item>
-                    </items>
-                </correlators>
-            </correlationDefinition>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
 </resource>

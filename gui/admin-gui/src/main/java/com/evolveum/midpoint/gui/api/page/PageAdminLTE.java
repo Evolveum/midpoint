@@ -80,7 +80,7 @@ import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -62,6 +63,9 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
      * Key: target item path, value: InboundMappingInContext(mapping, projectionCtx [nullable])
      */
     final PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap = new PathKeyedMap<>();
+
+    /** Here we cache definitions for both regular and identity items. */
+    final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
 
     /**
      * Output triples for individual target paths.
@@ -95,7 +99,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
 
     /**
      * Evaluate mappings collected from all the projections. There may be mappings from different projections to the same target.
-     * We want to merge their values. Otherwise those mappings will overwrite each other.
+     * We want to merge their values. Otherwise, those mappings will overwrite each other.
      */
     private void evaluateMappings() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, CommunicationException {
@@ -151,7 +155,6 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
             SchemaException, SecurityViolationException, ExpressionEvaluationException {
 
         PrismObject<F> focusNew = getFocusNew();
-        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusNew);
         ObjectDelta<F> focusAPrioriDelta = getFocusAPrioriDelta();
 
         //noinspection rawtypes
@@ -168,7 +171,7 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
                 getFocusPrimaryItemDeltaExistsProvider(),
                 true,
                 customizer,
-                focusDefinition,
+                this::getItemDefinition,
                 env,
                 beans,
                 getLensContextIfPresent(),
@@ -176,6 +179,12 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
         consolidation.computeItemDeltas();
 
         applyComputedDeltas(consolidation.getItemDeltas());
+    }
+
+    @NotNull private ItemDefinition<?> getItemDefinition(@NotNull ItemPath itemPath) {
+        return Objects.requireNonNull(
+                itemDefinitionMap.get(itemPath),
+                () -> "No cached definition for " + itemPath + " found. Having definitions for: " + itemDefinitionMap.keySet());
     }
 
     private boolean rangeIsCompletelyDefined(ItemPath itemPath) {

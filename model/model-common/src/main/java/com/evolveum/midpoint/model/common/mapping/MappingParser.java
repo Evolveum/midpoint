@@ -19,6 +19,8 @@ import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
@@ -38,17 +40,18 @@ import java.util.Collection;
  */
 class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType> implements Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MappingParser.class);
+
     private final AbstractMappingImpl<?, D, MBT> m;
 
-    /**
-     * Definition of the output item (i.e. target).
-     */
+    /** Definition of the output item (i.e. target). */
     private D outputDefinition;
 
-    /**
-     * Path of the output item (i.e. target) in the targetContext.
-     */
+    /** Path of the output item (i.e. target) in the targetContext. */
     private ItemPath outputPath;
+
+    /** Original output path, as specified in the mapping bean (or implicit one) - i.e., before being overridden. */
+    private ItemPath originalOutputPath;
 
     MappingParser(AbstractMappingImpl<?, D, MBT> mapping) {
         this.m = mapping;
@@ -68,30 +71,32 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     private void parseTarget() throws SchemaException {
-        VariableBindingDefinitionType targetSpecification = m.mappingBean.getTarget();
-        if (targetSpecification == null) {
+        ItemPath targetPath = ExpressionUtil.getPath(m.mappingBean.getTarget());
+        if (targetPath == null) {
             outputDefinition = m.defaultTargetDefinition;
-            outputPath = m.defaultTargetPath;
+            originalOutputPath = m.defaultTargetPath;
         } else {
-            ItemPathType itemPathType = targetSpecification.getPath();
-            if (itemPathType == null) {
-                outputDefinition = m.defaultTargetDefinition;
-                outputPath = m.defaultTargetPath;
-            } else {
-                ItemPath path = itemPathType.getItemPath();
-                outputDefinition = ExpressionUtil.resolveDefinitionPath(
-                        path, m.variables, m.targetContext,
-                        "target definition in " + m.getMappingContextDescription());
-                if (outputDefinition == null) {
-                    throw new SchemaException("No target item that would conform to the path "
-                            + path + " in " + m.getMappingContextDescription());
-                }
-                outputPath = path.stripVariableSegment();
+            outputDefinition = ExpressionUtil.resolveDefinitionPath(
+                    targetPath,
+                    m.variables,
+                    m.targetContext,
+                    "target definition in " + m.getMappingContextDescription());
+            if (outputDefinition == null) {
+                throw new SchemaException("No target item that would conform to the path "
+                        + targetPath + " in " + m.getMappingContextDescription());
             }
+            originalOutputPath = targetPath.stripVariableSegment();
         }
+
+        if (m.targetPathOverride != null) {
+            LOGGER.trace("Overriding output path from {} to {}", outputPath, m.targetPathOverride);
+            outputPath = m.targetPathOverride;
+        } else {
+            outputPath = originalOutputPath;
+        }
+
         if (m.valuePolicySupplier != null) {
             m.valuePolicySupplier.setOutputDefinition(outputDefinition);
-            m.valuePolicySupplier.setOutputPath(outputPath);
         }
     }
 
@@ -135,9 +140,15 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         @NotNull QName sourceQName = sourceDefinition.getName() != null ? sourceDefinition.getName() : ItemPath.toName(path.last());
         String variableName = sourceQName.getLocalPart();
 
-        TypedValue<?> typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, m.variables, true,
-                m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
-                "source definition in " + m.getMappingContextDescription(), m.getTask(), result);
+        TypedValue<?> typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(
+                path,
+                m.variables,
+                true,
+                m.getTypedSourceContext(),
+                m.beans.objectResolver,
+                "source definition in " + m.getMappingContextDescription(),
+                m.getTask(),
+                result);
 
         Object sourceObject = typedSourceObject != null ? typedSourceObject.getValue() : null;
         Item<IV, ID> itemOld = null;
@@ -253,17 +264,11 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     D getOutputDefinition() {
-        if (outputDefinition == null) {
-            try {
-                parseTarget();
-            } catch (SchemaException e) {
-                throw new SystemException(e); // we assume that targets are (usually) already parsed
-            }
-        }
+        parseIfNeeded();
         return outputDefinition;
     }
 
-    ItemPath getOutputPath() {
+    private void parseIfNeeded() {
         if (outputDefinition == null) {
             try {
                 parseTarget();
@@ -271,6 +276,15 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                 throw new SystemException(e); // we assume that targets are (usually) already parsed
             }
         }
+    }
+
+    ItemPath getOutputPath() {
+        parseIfNeeded();
         return outputPath;
+    }
+
+    ItemPath getOriginalOutputPath() {
+        parseIfNeeded();
+        return originalOutputPath;
     }
 }

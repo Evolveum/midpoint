@@ -58,7 +58,6 @@ public class BasicResourceWizardPanel extends BasePanel {
     protected Fragment createTemplateFragment() {
         Fragment fragment = new Fragment(ID_FRAGMENT, ID_TEMPLATE_FRAGMENT, BasicResourceWizardPanel.this);
         fragment.setOutputMarkupId(true);
-        add(fragment);
         CreateResourceTemplatePanel templatePanel = new CreateResourceTemplatePanel(ID_TEMPLATE) {
 
             @Override
@@ -101,7 +100,7 @@ public class BasicResourceWizardPanel extends BasePanel {
             public boolean onBackPerformed(AjaxRequestTarget target) {
                 Fragment fragment = createTemplateFragment();
                 fragment.setOutputMarkupId(true);
-                BasicResourceWizardPanel.this.replace(fragment);
+                BasicResourceWizardPanel.this.addOrReplace(fragment);
                 target.add(fragment);
 
                 return false;

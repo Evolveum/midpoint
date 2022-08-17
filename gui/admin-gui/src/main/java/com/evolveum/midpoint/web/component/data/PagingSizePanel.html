@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <input wicket:id="input" type="text" class="form-control" style="max-width: 50px;" wicket:message="title:PagingSizePanel.pageSize">
+    <div class="input-group-append">
+        <div class="d-flex flex-column">
+            <a wicket:id="increment" class="border flex-fill px-1 d-flex align-items-center border-bottom-0" style="line-height: 1; border-color: #ced4da !important; color: #444;">
+                <i class="fa-solid fa-caret-up fa-xs"></i>
+            </a>
+            <a wicket:id="decrement" class="border flex-fill px-1 d-flex align-items-center" style="line-height: 1; border-color: #ced4da !important; color: #444;">
+                <i class="fa-solid fa-caret-down fa-xs"></i>
+            </a>
+        </div>
+        <a wicket:id="submit" class="btn btn-primary">
+            <i class="fa fa-check"></i>
+        </a>
+    </div>
+</wicket:panel>
+</html>

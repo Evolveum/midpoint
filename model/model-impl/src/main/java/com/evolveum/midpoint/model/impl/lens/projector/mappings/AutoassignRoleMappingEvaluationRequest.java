@@ -38,7 +38,9 @@ public class AutoassignRoleMappingEvaluationRequest
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> Source<V, D> constructDefaultSource(
+    public <V extends PrismValue,
+            D extends ItemDefinition<?>,
+            AH extends AssignmentHolderType> Source<V, D> constructDefaultSource(
             ObjectDeltaObject<AH> focusOdo) throws SchemaException {
         PrismObject<AH> focus = focusOdo.getAnyObject();
         assignmentDef = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);

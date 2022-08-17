@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -50,8 +49,19 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     private LoadableDetachableModel<List<ShadowWrapper>> projectionModel;
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
     private boolean isSelfProfile = false;
+    private boolean history;
+
+    private static final String PANEL_TYPE_BASIC = "basic";
+    private static final String PANEL_TYPE_ASSIGNMENTS = "assignments";
+    private static final String PANEL_TYPE_ACTIVATION = "activation";
+    private static final String PANEL_TYPE_PASSWORD = "password";
+    private static final String PANEL_TYPE_DELEGATED_TO_ME = "delegatedToMe";
 
     public FocusDetailsModels(LoadableDetachableModel<PrismObject<F>> prismObjectModel, PageBase serviceLocator) {
+        this(prismObjectModel, false, serviceLocator);
+    }
+
+    public FocusDetailsModels(LoadableDetachableModel<PrismObject<F>> prismObjectModel, boolean history, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
         projectionModel = new LoadableDetachableModel<>() {
@@ -71,6 +81,51 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
                 return ExecuteChangeOptionsDto.createFromSystemConfiguration();
             }
         };
+        this.history = history;
+    }
+
+    @Override
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
+        if (history) {
+            GuiObjectDetailsPageType guiObjectDetailsPageType = super.loadDetailsPageConfiguration().clone();
+            List<ContainerPanelConfigurationType> containerPanelConfigurationTypeList = guiObjectDetailsPageType.getPanel();
+            hiddeSpecificPanel(containerPanelConfigurationTypeList, visiblePanelIdentifierList());
+
+            return guiObjectDetailsPageType;
+        }
+
+        return super.loadDetailsPageConfiguration();
+    }
+
+    private void hiddeSpecificPanel(List<ContainerPanelConfigurationType> item, List<String> visiblePanelIdentifierList) {
+        for (ContainerPanelConfigurationType containerPanelConfigurationType : item) {
+            String identifier = containerPanelConfigurationType
+                    .getIdentifier();
+
+            if (identifier == null) {
+                continue;
+            }
+
+            if (!visiblePanelIdentifierList.contains(identifier)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        }
+    }
+
+    @Override
+    protected boolean isReadonly() {
+        return history;
+    }
+
+    private List<String> visiblePanelIdentifierList() {
+        ArrayList<String> visiblePanelIdentifier = new ArrayList<>();
+        visiblePanelIdentifier.add(PANEL_TYPE_BASIC);
+        visiblePanelIdentifier.add(PANEL_TYPE_DELEGATED_TO_ME);
+        visiblePanelIdentifier.add(PANEL_TYPE_PASSWORD);
+        visiblePanelIdentifier.add(PANEL_TYPE_ACTIVATION);
+        visiblePanelIdentifier.add(PANEL_TYPE_ASSIGNMENTS);
+
+        return visiblePanelIdentifier;
     }
 
     private List<ShadowWrapper> loadShadowWrappers() {
@@ -363,6 +418,6 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     }
 
     public LoadableModel<ExecuteChangeOptionsDto> getExecuteOptionsModel() {
-        return executeOptionsModel;
+        return this.executeOptionsModel;
     }
 }

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.expr;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -33,8 +35,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
-
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
@@ -143,7 +144,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private TaskManager taskManager;
     @Autowired private SchemaService schemaService;
     @Autowired private CorrelationCaseManager correlationCaseManager;
-    @Autowired private CorrelationService correlationService;
+    @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private SystemObjectCache systemObjectCache;
 
     @Autowired
@@ -1834,22 +1835,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                     .intent(intent)
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
 
-            ResourceType resource = provisioningService.getObject(
-                            ResourceType.class,
-                            resourceOid,
-                            createNoFetchCollection(),
-                            task,
-                            result)
-                    .asObjectable();
-
-            SynchronizationPolicy synchronizationPolicy =
-                    MiscUtil.requireNonNull(
-                            SynchronizationPolicyFactory.forKindAndIntent(kind, intent, resource),
-                            () -> new ConfigurationException("No sync policy for " + kind + "/" + intent + " in " + resource));
-
-            Class<F> specificFocusType = getMoreSpecificType(focusType, synchronizationPolicy.getFocusClass());
-
-            return correlationService.correlate(shadowClone, resource, synchronizationPolicy, specificFocusType, task, result)
+            return correlationService.correlate(shadowClone, task, result)
                     .getAllCandidates(focusType);
 
         } catch (Throwable t) {
@@ -2183,5 +2169,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Collection<PrismValue> selectIdentityItemValues(
+            @Nullable Collection<FocusIdentityType> identities,
+            @Nullable FocusIdentitySourceType source,
+            @NotNull ItemPath itemPath) {
+        return beans.identitiesManager.selectIdentityItemValue(identities, source, itemPath);
     }
 }

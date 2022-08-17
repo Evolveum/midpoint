@@ -1541,6 +1541,13 @@
                     <xsd:element name="conditionResultNew" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="implicitSourcePath" type="t:ItemPathType" minOccurs="0"/>
                     <xsd:element name="implicitTargetPath" type="t:ItemPathType" minOccurs="0"/>
+                    <xsd:element name="targetPathOverride" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="pushChangesRequested" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>

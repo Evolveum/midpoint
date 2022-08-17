@@ -41,27 +41,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.basicSettings", icon = "fa fa-circle"))
 public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType> {
-    private static final List<ItemName> VISIBLE_ITEMS = List.of(
-            F_DISPLAY_NAME,
-            F_INTENT,
-            F_KIND,
-            F_DESCRIPTION,
-            F_OBJECT_CLASS,
-            F_SECURITY_POLICY_REF,
-            F_DEFAULT);
 
+    private static final String PANEL_TYPE = "basicResourceObjectTypeWizard";
 
     public BasicSettingResourceObjectTypeStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, newValueModel);
     }
 
-    protected ItemVisibilityHandler getVisibilityHandler() {
-        return wrapper -> {
-            if (VISIBLE_ITEMS.contains(wrapper.getItemName())) {
-                return ItemVisibility.AUTO;
-            }
-            return ItemVisibility.HIDDEN;
-        };
+    protected String getPanelType() {
+        return PANEL_TYPE;
     }
 
     @Override

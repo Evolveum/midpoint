@@ -173,10 +173,6 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>

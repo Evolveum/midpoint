@@ -11,10 +11,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.CorrelationProperty;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
@@ -60,7 +61,7 @@ class CorrelationContextDto implements Serializable {
      *
      * Correspond to rows in the correlation options table.
      */
-    private final List<CorrelationProperty> correlationProperties = new ArrayList<>();
+    private final List<CorrelationCaseDescription.CorrelationProperty> correlationProperties = new ArrayList<>();
 
     CorrelationContextDto(CaseType aCase, PageBase pageBase, Task task, OperationResult result) throws CommonException {
         load(aCase, pageBase, task, result);
@@ -128,7 +129,10 @@ class CorrelationContextDto implements Serializable {
             throws CommonException {
         correlationProperties.clear();
         correlationProperties.addAll(
-                pageBase.getCorrelationService().getCorrelationProperties(aCase, task, result));
+                pageBase.getCorrelationService()
+                        .describeCorrelationCase(aCase, null, task, result)
+                        .getCorrelationProperties()
+                        .values());
     }
 
     @Nullable CorrelationOptionDto getNewOwnerOption() {
@@ -147,7 +151,7 @@ class CorrelationContextDto implements Serializable {
         return optionHeaders;
     }
 
-    public List<CorrelationProperty> getCorrelationProperties() {
+    public List<CorrelationCaseDescription.CorrelationProperty> getCorrelationProperties() {
         return correlationProperties;
     }
 }

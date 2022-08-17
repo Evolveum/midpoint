@@ -909,46 +909,6 @@
             <identifier>admin-dashboard</identifier>
             <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
         </configurableUserDashboard>
-        <accessRequest>
-            <relationSelection>
-                <relation>
-                    <ref>org:default</ref>
-                    <display>
-                        <label>Member</label>
-                        <icon>
-                            <cssClass>fa-solid fa-user</cssClass>
-                        </icon>
-                    </display>
-                </relation>
-                <relation>
-                    <ref>org:manager</ref>
-                    <display>
-                        <label>Manager</label>
-                        <icon>
-                            <cssClass>fa-solid fa-user-tie</cssClass>
-                        </icon>
-                    </display>
-                </relation>
-                <relation>
-                    <ref>org:approver</ref>
-                    <display>
-                        <label>Approver</label>
-                        <icon>
-                            <cssClass>fa-solid fa-clipboard-check</cssClass>
-                        </icon>
-                    </display>
-                </relation>
-                <relation>
-                    <ref>org:owner</ref>
-                    <display>
-                        <label>Owner</label>
-                        <icon>
-                            <cssClass>fa-solid fa-crown</cssClass>
-                        </icon>
-                    </display>
-                </relation>
-            </relationSelection>
-        </accessRequest>
     </adminGuiConfiguration>
 
     <expressions>

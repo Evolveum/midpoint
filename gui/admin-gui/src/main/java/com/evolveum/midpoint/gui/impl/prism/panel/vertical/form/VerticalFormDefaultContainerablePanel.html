@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="bg-white card mb-0 p-3 border-top">
+    <div class="card mb-0 p-3 border-top">
         <wicket:container wicket:id="propertiesLabel">
             <wicket:container wicket:id="properties">
                 <div class="mb-3" wicket:id="property"/>
@@ -20,10 +20,11 @@
                 </div>
             </div>
         </wicket:container>
-        <div wicket:id="containersLabel">
-            <div class="prism-containers" wicket:id="containers">
-                <div class="row prism-container" wicket:id="container"/>
-            </div>
+    </div>
+
+    <div wicket:id="containersLabel">
+        <div wicket:id="containers">
+            <div class="card mt-3 p-3" wicket:id="container"/>
         </div>
     </div>
 </wicket:panel>

@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionExecutor;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -127,7 +129,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      * TODO: Consider situations when one account belongs to two different users. It should correspond to
      *  the {@link SynchronizationSituationType#DISPUTED} situation.
      */
-    private <F extends FocusType> @Nullable F findShadowOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+    private <F extends FocusType> @Nullable F findLinkedOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
             throws SchemaException {
         ShadowType shadow = syncCtx.getShadowedResourceObject();
         ObjectQuery query = prismContext.queryFor(FocusType.class)
@@ -242,10 +244,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 syncCtx.getFocusClass(), syncCtx.getPolicyName());
 
         try {
-            F linkedOwner = findShadowOwner(syncCtx, result);
+            F linkedOwner = findLinkedOwner(syncCtx, result);
             syncCtx.setLinkedOwner(linkedOwner);
 
-            if (syncCtx.getLinkedOwner() == null || syncCtx.isCorrelatorsUpdateRequested()) {
+            if (linkedOwner == null || syncCtx.isCorrelatorsUpdateRequested()) {
                 determineSituationWithCorrelators(syncCtx, change, result); // TODO change the name (if sorter is used)
             } else {
                 determineSituationWithoutCorrelators(syncCtx, change, result);
@@ -308,7 +310,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *
      * We need to update the correlator state.
      */
-    private <F extends FocusType> void determineSituationWithCorrelators(SynchronizationContext<F> syncCtx,
+    private <F extends FocusType> void determineSituationWithCorrelators(SynchronizationContext.Complete<F> syncCtx,
             ResourceObjectShadowChangeDescription change, OperationResult result)
             throws CommonException {
 
@@ -324,11 +326,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        PrismObject<? extends ShadowType> resourceObject = change.getShadowedResourceObject();
-        ResourceType resource = change.getResource().asObjectable();
-        setupResourceRefInShadowIfNeeded(resourceObject.asObjectable(), resource);
+        setupResourceRefInShadowIfNeeded(change);
 
         evaluatePreMappings(syncCtx, result);
+        setObjectTemplateForCorrelation(syncCtx, result);
 
         if (syncCtx.isUpdatingCorrelatorsOnly()) {
             new CorrelationProcessing<>(syncCtx, beans)
@@ -336,7 +337,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        CorrelationResult correlationResult =
+        CompleteCorrelationResult correlationResult =
                 new CorrelationProcessing<>(syncCtx, beans)
                         .correlate(result);
 
@@ -377,6 +378,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
+    private <F extends FocusType> void setObjectTemplateForCorrelation(
+            SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        syncCtx.setObjectTemplateForCorrelation(
+                beans.correlationServiceImpl.determineObjectTemplate(
+                        syncCtx.getSynchronizationPolicy(),
+                        syncCtx.getPreFocus(),
+                        result));
+    }
+
     private <F extends FocusType> void evaluatePreMappings(SynchronizationContext<F> syncCtx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
@@ -385,12 +396,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     // This is maybe not needed
-    private void setupResourceRefInShadowIfNeeded(ShadowType shadow, ResourceType resource) {
-        if (shadow.getResourceRef() == null) {
-            ObjectReferenceType reference = new ObjectReferenceType();
-            reference.setOid(resource.getOid());
-            reference.setType(ResourceType.COMPLEX_TYPE);
-            shadow.setResourceRef(reference);
+    private void setupResourceRefInShadowIfNeeded(ResourceObjectShadowChangeDescription change) {
+        ShadowType shadowedResourceObject = change.getShadowedResourceObject().asObjectable();
+
+        if (shadowedResourceObject.getResourceRef() == null) {
+            shadowedResourceObject.setResourceRef(
+                    ObjectTypeUtil.createObjectRef(
+                            change.getResource()));
         }
     }
 

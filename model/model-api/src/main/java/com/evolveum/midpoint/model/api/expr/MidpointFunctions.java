@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -1401,4 +1402,18 @@ public interface MidpointFunctions {
     }
 
     String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Selects specified values from all relevant identity data.
+     *
+     * @param identities a collection of identities where we search for the data
+     * @param source specification of a source we are looking for; `null` means "any non-own sources"
+     * @param itemPath item that should be provided
+     *
+     * @see FocusIdentityTypeUtil#matches(FocusIdentitySourceType, FocusIdentitySourceType)
+     */
+    Collection<PrismValue> selectIdentityItemValues(
+            @Nullable Collection<FocusIdentityType> identities,
+            @Nullable FocusIdentitySourceType source,
+            @NotNull ItemPath itemPath);
 }

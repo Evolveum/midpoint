@@ -117,25 +117,10 @@
                 <correlators>
                     <idMatch>
                         <name>idmatch</name>
-                        <definitions>
-                            <items>
-                                <item>
-                                    <path>givenName</path>
-                                </item>
-                                <item>
-                                    <path>familyName</path>
-                                </item>
-                                <item>
-                                    <path>extension/dateOfBirth</path>
-                                </item>
-                                <item>
-                                    <path>extension/nationalId</path>
-                                </item>
-                            </items>
-                        </definitions>
                         <url>http://localhost:9090/match/api/1</url>
                         <username>administrator</username>
                         <password><t:clearValue>5ecr3t</t:clearValue></password>
+                        <!-- testing the legacy way -->
                         <followOn>
                             <filter>
                                 <ownerFilter>

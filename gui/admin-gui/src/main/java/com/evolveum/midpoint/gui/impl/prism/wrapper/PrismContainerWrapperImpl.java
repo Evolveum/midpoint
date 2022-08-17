@@ -62,6 +62,14 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public void setShowEmpty(boolean isShowEmpty, boolean recursive) {
+        super.setShowEmpty(isShowEmpty, recursive);
+        if (recursive) {
+            getValues().forEach(v -> v.setShowEmpty(isShowEmpty));
+        }
+    }
+
+    @Override
     public Class<C> getCompileTimeClass() {
         return getItemDefinition().getCompileTimeClass();
     }
@@ -372,5 +380,50 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     public Class<C> getTypeClass() {
         //noinspection unchecked
         return (Class<C>) super.getTypeClass();
+    }
+
+    @Override
+    public PrismContainerWrapper<C> copyVirtualContainerWithNewValue(
+            PrismContainerValueWrapper<? extends Containerable> parent, ModelServiceLocator modelServiceLocator){
+        if (!isVirtual()) {
+            throw new UnsupportedOperationException();
+        }
+        PrismContainerWrapperImpl<C> virtualContainer = new PrismContainerWrapperImpl<>(parent, getOldItem().clone(), getStatus());
+        virtualContainer.setExpanded(isExpanded());
+        virtualContainer.setVirtual(isVirtual());
+        virtualContainer.setIdentifier(getIdentifier());
+        virtualContainer.setColumn(isColumn());
+        virtualContainer.setShowEmpty(isShowEmpty(), false);
+        virtualContainer.setShowInVirtualContainer(isShowInVirtualContainer());
+        virtualContainer.setMetadata(isMetadata());
+        virtualContainer.setShowMetadataDetails(isShowMetadataDetails());
+        virtualContainer.setProcessProvenanceMetadata(isProcessProvenanceMetadata());
+        virtualContainer.setReadOnly(isReadOnly());
+        virtualContainer.setVisibleOverwrite(getVisibleOverwrite());
+
+        PrismContainerValue<C> newValue = virtualContainer.getItem().createNewValue();
+
+        try {
+            PrismContainerValueWrapper<C> oldValueWrapper = getValue();
+            PrismContainerValueWrapper<C> newValueWrapper =
+                    WebPrismUtil.createNewValueWrapper(virtualContainer, newValue, modelServiceLocator);
+
+            newValueWrapper.setExpanded(oldValueWrapper.isExpanded());
+            newValueWrapper.setShowEmpty(oldValueWrapper.isShowEmpty());
+            newValueWrapper.setSorted(oldValueWrapper.isSorted());
+            newValueWrapper.setShowMetadata(oldValueWrapper.isShowMetadata());
+            newValueWrapper.setReadOnly(oldValueWrapper.isReadOnly(), false);
+            newValueWrapper.setSelected(oldValueWrapper.isSelected());
+            newValueWrapper.setHeterogenous(oldValueWrapper.isHeterogenous());
+            newValueWrapper.setMetadata(oldValueWrapper.isMetadata());
+            newValueWrapper.setVirtualContainerItems(oldValueWrapper.getVirtualItems());
+            newValueWrapper.setValueMetadata(oldValueWrapper.getValueMetadata());
+
+            virtualContainer.getValues().add(newValueWrapper);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create new Wrapper for virtual container.", e);
+        }
+
+        return virtualContainer;
     }
 }

@@ -127,18 +127,28 @@ public class ExpressionUtil {
 
     // TODO: do we need this?
     public static Object resolvePathGetValue(
-            ItemPath path, VariablesMap variables, boolean normalizeValuesToDelete,
-            TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext,
-            String shortDesc, Task task, OperationResult result)
+            ItemPath path,
+            VariablesMap variables,
+            boolean normalizeValuesToDelete,
+            TypedValue<?> defaultContext,
+            ObjectResolver objectResolver,
+            String shortDesc,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        TypedValue typedValue = resolvePathGetTypedValue(
-                path, variables, normalizeValuesToDelete, defaultContext,
-                objectResolver, prismContext, shortDesc, task, result);
-        if (typedValue == null) {
-            return null;
-        }
-        return typedValue.getValue();
+        TypedValue<?> typedValue =
+                new PathExpressionResolver(
+                        path,
+                        variables,
+                        normalizeValuesToDelete,
+                        defaultContext,
+                        true,
+                        objectResolver,
+                        shortDesc,
+                        task)
+                        .resolve(result);
+        return typedValue != null ? typedValue.getValue() : null;
     }
 
     /**
@@ -149,33 +159,63 @@ public class ExpressionUtil {
      *
      * TODO Anyway, we should analyze existing code and resolve this issue in more general way.
      */
-    public static TypedValue<?> resolvePathGetTypedValue(ItemPath path, VariablesMap variables, boolean normalizeValuesToDelete,
-            TypedValue<?> defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return new PathExpressionResolver(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task)
+    public static TypedValue<?> resolvePathGetTypedValue(
+            ItemPath path,
+            VariablesMap variables,
+            boolean normalizeValuesToDelete,
+            TypedValue<?> defaultContext,
+            ObjectResolver objectResolver,
+            String shortDesc,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return new PathExpressionResolver(
+                path,
+                variables,
+                normalizeValuesToDelete,
+                defaultContext,
+                false,
+                objectResolver,
+                shortDesc,
+                task)
                 .resolve(result);
+    }
+
+    public static @Nullable ItemPath getPath(@Nullable VariableBindingDefinitionType bindingDefinition) {
+        if (bindingDefinition == null) {
+            return null;
+        } else {
+            ItemPathType itemPathBean = bindingDefinition.getPath();
+            return itemPathBean != null ? itemPathBean.getItemPath() : null;
+        }
     }
 
     @SuppressWarnings("unchecked")
     public static <V extends PrismValue> Collection<V> computeTargetValues(
-            VariableBindingDefinitionType target, TypedValue<?> defaultTargetContext,
-            VariablesMap variables, ObjectResolver objectResolver, String contextDesc,
-            PrismContext prismContext, Task task, OperationResult result)
+            ItemPath path,
+            TypedValue<?> defaultTargetContext,
+            VariablesMap variables,
+            ObjectResolver objectResolver,
+            String contextDesc,
+            PrismContext prismContext,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (target == null) {
+        if (path == null) {
             // Is this correct? What about default targets?
             return null;
         }
-
-        ItemPathType itemPathType = target.getPath();
-        if (itemPathType == null) {
-            // Is this correct? What about default targets?
-            return null;
-        }
-        ItemPath path = itemPathType.getItemPath();
-
-        Object object = resolvePathGetValue(path, variables, false, defaultTargetContext, objectResolver, prismContext, contextDesc, task, result);
+        Object object = resolvePathGetValue(
+                path,
+                variables,
+                false,
+                defaultTargetContext,
+                objectResolver,
+                contextDesc,
+                task,
+                result);
         if (object == null) {
             return new ArrayList<>();
         } else if (object instanceof Item) {
@@ -820,6 +860,7 @@ public class ExpressionUtil {
         return getExpressionOutputValue(outputTriple, shortDesc);
     }
 
+    @NotNull
     public static <V extends PrismValue, D extends ItemDefinition> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)

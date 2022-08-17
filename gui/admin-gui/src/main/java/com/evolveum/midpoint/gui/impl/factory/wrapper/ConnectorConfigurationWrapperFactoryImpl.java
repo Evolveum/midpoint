@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -124,5 +125,19 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
         }
 
         return createWrapper(parent, childItem, status, context);
+    }
+
+    protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
+            WrapperContext context, List<ItemWrapper<?,?>> wrappers) throws SchemaException {
+        if (def.isMandatory()) {
+            def.toMutable().toMutable().setEmphasized(true);
+            def.toMutable().setDisplayOrder(50);
+        }
+
+        ItemWrapper<?,?> wrapper = createChildWrapper(def, containerValueWrapper, context);
+
+        if (wrapper != null) {
+            wrappers.add(wrapper);
+        }
     }
 }

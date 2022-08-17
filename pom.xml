@@ -278,6 +278,11 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>com.evolveum.commons</groupId>
+                <artifactId>concepts</artifactId>
+                <version>${prism.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-api</artifactId>
                 <version>${prism.version}</version>
@@ -968,7 +973,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
-                <version>1.4.9.1</version>
+                <version>1.5.0.0-M1</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
@@ -986,7 +991,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.4</version>
+                <version>2.5-M1</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
@@ -1005,7 +1010,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.5-M1</version>
+                <version>3.5-M2</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -1665,7 +1670,7 @@
         <pluginRepository>
             <id>evolveum</id>
             <name>Evolveum</name>
-            <url>https://nexus.evolveum.com/nexus/content/groups/public</url>
+            <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
         </pluginRepository>
     </pluginRepositories>
 

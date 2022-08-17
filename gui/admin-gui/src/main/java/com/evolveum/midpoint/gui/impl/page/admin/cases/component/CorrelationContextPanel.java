@@ -9,7 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.CorrelationProperty;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;

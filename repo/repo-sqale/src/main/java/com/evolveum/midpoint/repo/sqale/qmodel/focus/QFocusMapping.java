@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,8 +8,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
@@ -17,14 +18,18 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -109,14 +114,22 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
         addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.initForPersona(repositoryContext));
         addRefMapping(F_LINK_REF, QObjectReferenceMapping.initForProjection(repositoryContext));
+
+        addNestedMapping(F_IDENTITIES, FocusIdentitiesType.class)
+                .addContainerTableMapping(FocusIdentitiesType.F_IDENTITY,
+                        QFocusIdentityMapping.init(repositoryContext),
+                        joinOn((o, fi) -> o.oid.eq(fi.ownerOid)));
     }
 
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
             return new Path[] { entity.oid, entity.fullObject, entity.photo };
         }
+
+        // F_IDENTITIES are handled with another select via QFocusIdentityMapping.
+
         return new Path[] { entity.oid, entity.fullObject };
     }
 
@@ -134,7 +147,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return Collections.singletonList(F_JPEG_PHOTO);
+        return List.of(F_JPEG_PHOTO, F_IDENTITIES);
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
@@ -185,9 +198,10 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     }
 
     @Override
-    public S toSchemaObject(Tuple row, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
+    public S toSchemaObject(@NotNull Tuple row, @NotNull Q entityPath, @NotNull JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
-        S focus = super.toSchemaObject(row, entityPath, options);
+        S focus = super.toSchemaObject(row, entityPath, jdbcSession, options);
 
         byte[] photo = row.get(entityPath.photo);
         if (photo != null) {
@@ -196,10 +210,34 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                     focusPrismObject.findOrCreateProperty(F_JPEG_PHOTO);
             resultProperty.setRealValue(photo);
             resultProperty.setIncomplete(false);
-        } else if (SelectorOptions.hasToLoadPath(F_JPEG_PHOTO, options)) {
+        } else if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
             PrismUtil.setPropertyNullAndComplete(focus.asPrismObject(), F_JPEG_PHOTO);
         }
+
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_IDENTITIES, options)) {
+            loadFocusIdentities(focus, jdbcSession);
+        }
+
         return focus;
+    }
+
+    private void loadFocusIdentities(S focus, JdbcSession jdbcSession)
+            throws SchemaException {
+        QFocusIdentityMapping<MFocus> focusIdentityMapping = QFocusIdentityMapping.get();
+        PrismContainer<FocusIdentityType> focusIdentityWrapper = focus.asPrismObject().findOrCreateContainer(F_IDENTITIES);
+        QFocusIdentity<?> q = focusIdentityMapping.defaultAlias();
+        var query = jdbcSession.newQuery()
+                .from(q)
+                .select(q) // no complications here, we load it whole
+                .where(q.ownerOid.eq(SqaleUtils.oidToUUid(focus.getOid())));
+
+        // TODO limit container ids?
+        focusIdentityWrapper.setIncomplete(false); // DO NOT set, if only selected IDs are loaded
+
+        for (MFocusIdentity row : query.fetch()) {
+            FocusIdentityType focusIdentity = focusIdentityMapping.toSchemaObject(row);
+            focus.getIdentities().identity(focusIdentity);
+        }
     }
 
     @Override
@@ -211,5 +249,28 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                 QObjectReferenceMapping.getForProjection(), jdbcSession);
         storeRefs(row, schemaObject.getPersonaRef(),
                 QObjectReferenceMapping.getForPersona(), jdbcSession);
+
+        FocusIdentitiesType identitiesWrapper = schemaObject.getIdentities();
+        if (identitiesWrapper != null) {
+            List<FocusIdentityType> identities = identitiesWrapper.getIdentity();
+            if (!identities.isEmpty()) {
+                QFocusIdentityMapping<MFocus> focusIdentityMapping = QFocusIdentityMapping.get();
+                for (FocusIdentityType identity : identities) {
+                    focusIdentityMapping.insert(identity, row, jdbcSession);
+                }
+            }
+        }
+    }
+
+    @Override
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        List<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+
+        if (modifications.stream().anyMatch(m -> F_IDENTITIES.isSubPath(m.getPath()))) {
+            ret.addAll(SchemaService.get().getOperationOptionsBuilder().item(F_IDENTITIES).retrieve().build());
+        }
+        return ret;
     }
 }

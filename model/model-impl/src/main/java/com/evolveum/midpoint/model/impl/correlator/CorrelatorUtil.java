@@ -13,7 +13,7 @@ import com.evolveum.midpoint.schema.util.ObjectSet;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -50,6 +50,7 @@ public class CorrelatorUtil {
         return variables;
     }
 
+    /** We assume to get the "full" shadow, i.e. shadowed resource object. */
     public static @NotNull ShadowType getShadowFromCorrelationCase(@NotNull CaseType aCase) throws SchemaException {
         return MiscUtil.requireNonNull(
                 MiscUtil.castSafely(

@@ -7,27 +7,30 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Minimalistic context needed to evaluate inbound mappings before the clockwork (e.g. before the correlation).
+ * Minimalistic context needed to evaluate inbound mappings outside of both {@link LensContext}
+ * and {@link SynchronizationContext}.
  *
- * Plays the role of {@link LensContext} (during clockwork), and {@link SynchronizationContext} (during "standard" correlation
- * that occurs as part of the synchronization).
+ * It is used e.g. when a correlation is invoked as part
+ * of {@link MidpointFunctions#findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)}
+ * or {@link CorrelationServiceImpl#checkCandidateOwner(ShadowType, ResourceType, SynchronizationPolicy, FocusType, Task,
+ * OperationResult)} method call.
  */
 public class SimplePreInboundsContextImpl<F extends FocusType>
         implements PreInboundsContext<F> {
@@ -104,6 +107,14 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
     public String getChannel() {
         // This is an approximation. (Normally, the channel comes as part of the resource object change information.)
         return task.getChannel();
+    }
+
+    @Override
+    public String toString() {
+        return "SimplePreInboundsContext for " +
+                shadowedResourceObject +
+                " on " + resource.getName() +
+                " of " + objectTypeDefinition.getTypeIdentification();
     }
 
     @Override

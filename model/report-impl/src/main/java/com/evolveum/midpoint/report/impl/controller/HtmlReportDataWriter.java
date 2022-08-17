@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import java.util.List;
 
 import j2html.TagCreator;
 import j2html.tags.ContainerTag;
@@ -19,7 +14,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 /**
  * Creates and manipulates exported reports in HTML format.
@@ -53,7 +51,7 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
         dataRows.forEach(row -> {
             ContainerTag tr = TagCreator.tr();
             row.getValues().forEach(values -> {
-                if (values.size() == 1 && values.iterator().next().startsWith(CommonHtmlSupport.VALUE_CSS_STYLE_TAG)){
+                if (values.size() == 1 && values.iterator().next().startsWith(CommonHtmlSupport.VALUE_CSS_STYLE_TAG)) {
                     String value = values.iterator().next();
                     tr.with(TagCreator.th().withStyle(value.substring((value.indexOf("{") + 1), value.indexOf("}"))));
                 } else {
@@ -97,13 +95,13 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
     }
 
     @Override
-    public String completizeReport(String aggregatedData) {
-        return completizeReportInternal(aggregatedData, true);
+    public String completeReport(String aggregatedData) {
+        return completeReportInternal(aggregatedData, true);
     }
 
     @Override
-    public String completizeReport() {
-        return completizeReportInternal(getStringData(), false);
+    public String completeReport() {
+        return completeReportInternal(getStringData(), false);
     }
 
     @Override
@@ -121,7 +119,7 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
         return configuration;
     }
 
-    private String completizeReportInternal(String aggregatedData, boolean parseData) {
+    private String completeReportInternal(String aggregatedData, boolean parseData) {
         String cssStyle = support.getCssStyle();
 
         StringBuilder body = new StringBuilder();
@@ -146,7 +144,7 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
 
         String parsedData;
         if (parseData) {
-            parsedData = parseAgregatedData(aggregatedData);
+            parsedData = parseAggregatedData(aggregatedData);
         } else {
             parsedData = aggregatedData;
         }
@@ -159,19 +157,19 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
         return table.toString();
     }
 
-    private String parseAgregatedData(String aggregatedData) {
+    private String parseAggregatedData(String aggregatedData) {
         if (StringUtils.isEmpty(aggregatedData)) {
             return aggregatedData;
         }
         StringBuilder sb = new StringBuilder();
-        String formatedData = aggregatedData;
+        String formattedData = aggregatedData;
         if (aggregatedData.contains("</thead>")) {
             String tHeader = aggregatedData.substring(0, aggregatedData.indexOf("</thead>") + 8);
             sb.append(tHeader);
-            formatedData = formatedData.replace(tHeader, "");
+            formattedData = formattedData.replace(tHeader, "");
         }
         sb.append("<tbody>");
-        sb.append(formatedData.replaceAll("<tbody>", "").replaceAll("</tbody>", ""));
+        sb.append(formattedData.replaceAll("<tbody>", "").replaceAll("</tbody>", ""));
         sb.append("</tbody>");
         return sb.toString();
     }

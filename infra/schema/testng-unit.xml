@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false" verbose="1">
+<suite name="unit" parallel="none" verbose="1">
     <test name="Parsing XML with namespaces" preserve-order="false" verbose="1">
         <parameter name="language" value="xml"/>
         <parameter name="namespaces" value="true"/>

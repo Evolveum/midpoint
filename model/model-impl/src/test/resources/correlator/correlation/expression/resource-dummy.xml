@@ -10,7 +10,6 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>resource-dummy-source</name>
@@ -41,15 +40,7 @@
             <intent>default</intent>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-        </objectType>
-    </schemaHandling>
-    <synchronization>
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <focusType>UserType</focusType>
-            <correlationDefinition>
+            <correlation>
                 <correlators>
                     <expression>
                         <ownerRef>
@@ -65,7 +56,7 @@
                         </ownerRef>
                     </expression>
                 </correlators>
-            </correlationDefinition>
-        </objectSynchronization>
-    </synchronization>
+            </correlation>
+        </objectType>
+    </schemaHandling>
 </resource>

@@ -39,7 +39,6 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     String contextDescription;
     OperationResult result;
     StrengthSelector strengthSelector;
-    PrismContext prismContext;
 
     public IvwoConsolidatorBuilder<V, D, I> itemPath(ItemPath val) {
         itemPath = val;
@@ -146,11 +145,6 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> prismContext(PrismContext val) {
-        prismContext = val;
-        return this;
-    }
-
     public IvwoConsolidatorBuilder<V, D, I> customize(Consumer<IvwoConsolidatorBuilder> customizer) {
         if (customizer != null) {
             customizer.accept(this);
@@ -161,5 +155,4 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     public IvwoConsolidator<V, D, I> build() {
         return new IvwoConsolidator<>(this);
     }
-
 }

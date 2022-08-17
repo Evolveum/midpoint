@@ -66,6 +66,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
 
         };
+        form.setOutputMarkupId(true);
         add(form);
     }
 

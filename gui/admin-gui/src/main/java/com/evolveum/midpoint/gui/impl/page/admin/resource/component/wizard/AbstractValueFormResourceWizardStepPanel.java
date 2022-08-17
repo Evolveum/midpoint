@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
@@ -17,7 +18,12 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPris
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferenceValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -26,6 +32,9 @@ import org.apache.wicket.model.IModel;
 public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable> extends AbstractResourceWizardStepPanel {
 
     private static final String ID_HEADER = "header";
+    private static final String ID_ICON = "icon";
+    private static final String ID_TITLE = "title";
+
     private static final String ID_VALUE = "value";
     private final IModel<PrismContainerValueWrapper<C>> newValueModel;
 
@@ -43,20 +52,38 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     protected void initLayout() {
-        VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getTitle()) {
-            @Override
-            protected String getIcon() {
-                return AbstractValueFormResourceWizardStepPanel.this.getIcon();
-            }
-        };
+        WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
+        header.setOutputMarkupId(true);
         add(header);
+
+        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
+        icon.add(AttributeAppender.append("class", () -> getIcon()));
+        header.add(icon);
+
+        header.add(new Label(ID_TITLE, getModel()));
+
+//        VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getTitle()) {
+//            @Override
+//            protected String getIcon() {
+//                return AbstractValueFormResourceWizardStepPanel.this.getIcon();
+//            }
+//        };
+//        add(header);
 
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler()).build();
+        settings.setConfig(getContainerConfiguration());
         VerticalFormDefaultContainerablePanel<C> panel
                 = new VerticalFormDefaultContainerablePanel<C>(ID_VALUE, newValueModel, settings);
         add(panel);
     }
+
+    protected ContainerPanelConfigurationType getContainerConfiguration() {
+        return WebComponentUtil.getContainerConfiguration(
+                getResourceModel().getObjectDetailsPageConfiguration().getObject(), getPanelType());
+    }
+
+    protected abstract String getPanelType();
 
     protected ItemVisibilityHandler getVisibilityHandler() {
         return null;

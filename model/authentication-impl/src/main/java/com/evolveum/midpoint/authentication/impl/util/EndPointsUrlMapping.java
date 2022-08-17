@@ -69,7 +69,7 @@ public enum EndPointsUrlMapping {
                     "PageAdminUsers.auth.orgAll.label", "PageAdminUsers.auth.orgAll.description"),
             new AuthorizationActionValue(AUTZ_UI_ORG_DETAILS_URL,
                     "PageOrgUnit.auth.orgUnit.label", "PageOrgUnit.auth.orgUnit.description")),
-    SERVICE_NEW_DETAILS("/admin/serviceNew/**",
+    SERVICE_NEW_DETAILS("/admin/service/**",
             new AuthorizationActionValue(AUTZ_UI_SERVICE_DETAILS_URL,
                     "PageAdminRoles.authUri.serviceDetails.label", "PageAdminRoles.authUri.serviceDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_SERVICES_ALL_URL,

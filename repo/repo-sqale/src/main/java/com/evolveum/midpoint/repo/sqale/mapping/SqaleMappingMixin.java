@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.Objects;
@@ -15,15 +21,15 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sqale.delta.item.ContainerTableDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.item.EmbeddedContainerDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.item.RefItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.delta.item.*;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -93,8 +99,8 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
     default <TS, TQ extends QObject<TR>, TR extends MObject> SqaleMappingMixin<S, Q, R> addRefMapping(
             @NotNull QName itemName,
             @NotNull Function<Q, UuidPath> rootToOidPath,
-            @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @Nullable Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @Nullable Function<Q, NumberPath<Integer>> rootToRelationIdPath,
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
         ItemSqlMapper<Q, R> referenceMapping = new SqaleItemSqlMapper<>(
                 ctx -> new RefItemFilterProcessor(ctx,
@@ -150,7 +156,23 @@ public interface SqaleMappingMixin<S, Q extends FlexibleRelationalPathBase<R>, R
         return this;
     }
 
-    /** Method called from `SqaleUpdateContext.finishExecutionOwn()` for containers. */
+    default SqaleMappingMixin<S, Q, R> addExtensionMapping(
+            @NotNull ItemName itemName,
+            @NotNull MExtItemHolderType holderType,
+            @NotNull Function<Q, JsonbPath> rootToPath,
+            @NotNull SqaleRepoContext repoContext) {
+        ExtensionMapping<Q, R> mapping =
+                new ExtensionMapping<>(holderType, queryType(), rootToPath, repoContext);
+        addRelationResolver(itemName, new ExtensionMappingResolver<>(mapping, rootToPath));
+        addItemMapping(itemName, new SqaleItemSqlMapper<>(
+                ctx -> new ExtensionContainerDeltaProcessor<>(ctx, mapping, rootToPath)));
+        return this;
+    }
+
+    /**
+     * Method called from `SqaleUpdateContext.finishExecutionOwn()` for containers.
+     * This can be handy when more than just column set is required, e.g. to refresh fullObject, etc.
+     */
     default void afterModify(SqaleUpdateContext<S, Q, R> updateContext) throws SchemaException {
         // nothing by default
     }

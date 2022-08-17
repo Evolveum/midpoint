@@ -29,15 +29,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_FOCUS;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_USER;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
- * Item for which mapping(s) have to be created.
+ * Source item (attribute, association, and so on) for which mapping(s) have to be created.
  *
  * It it here mainly to allow gathering all such requests first, then looking if we need to load the resource object,
  * and then create all the mappings with the resource object loaded.
@@ -117,7 +121,8 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
         LOGGER.trace("Creating {} inbound mapping(s) for {} in {} ({}). Relevant values are:\n"
                         + "- a priori item delta:\n{}\n"
                         + "- current item:\n{}",
-                mappingBeans.size(), itemDescription,
+                mappingBeans.size(),
+                itemDescription,
                 source.getProjectionHumanReadableNameLazy(),
                 fromAbsoluteState ? "absolute mode" : "relative mode",
                 DebugUtil.debugDumpLazily(itemAPrioriDelta, 1),
@@ -155,16 +160,30 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                 continue;
             }
 
+            String contextDescription = "inbound expression for " + itemDescription + " in " + resource;
+
+            ItemPath declaredTargetPath =
+                    stripFocusVariable(
+                            getPath(mappingBean.getTarget()),
+                            contextDescription);
+            if (ItemPath.isEmpty(declaredTargetPath)) {
+                throw new ConfigurationException("Empty target path in " + contextDescription);
+            }
+
+            ItemPath targetPathOverride = source.determineTargetPathOverride(declaredTargetPath);
+            LOGGER.trace("Target path override: {}", targetPathOverride);
+
             MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
                     .mappingBean(mappingBean)
                     .mappingKind(MappingKindType.INBOUND)
                     .implicitSourcePath(implicitSourcePath)
-                    .contextDescription("inbound expression for " + itemDescription + " in " + resource)
+                    .targetPathOverride(targetPathOverride)
+                    .contextDescription(contextDescription)
                     .defaultSource(defaultSource)
                     .targetContext(target.focusDefinition)
-                    .addVariableDefinition(ExpressionConstants.VAR_USER, target.focus, target.focusDefinition)
+                    .addVariableDefinition(VAR_USER, target.focus, target.focusDefinition)
                     .addVariableDefinition(ExpressionConstants.VAR_FOCUS, target.focus, target.focusDefinition)
-                    .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS)
+                    .addAliasRegistration(VAR_USER, ExpressionConstants.VAR_FOCUS)
                     .addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadowVariableValue, shadowVariableDef)
                     .addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadowVariableValue, shadowVariableDef)
                     .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowVariableValue, shadowVariableDef)
@@ -185,7 +204,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                 TypedValue<PrismObject<F>> targetContext = new TypedValue<>(target.focus);
                 builder.originalTargetValues(
                         ExpressionUtil.computeTargetValues(
-                                mappingBean.getTarget(),
+                                targetPathOverride != null ? targetPathOverride : declaredTargetPath,
                                 targetContext,
                                 builder.getVariables(),
                                 beans.mappingFactory.getObjectResolver(),
@@ -197,22 +216,37 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
 
             MappingImpl<V, D> mapping = builder.build();
 
-            if (checkWeakSkip(mapping)) {
+            ItemPath realTargetPath = mapping.getOutputPath();
+
+            // We check the weak mapping skipping using the declared path, not the overridden path pointing to identities data.
+            if (checkWeakSkip(mapping, declaredTargetPath)) {
                 LOGGER.trace("Skipping because of mapping is weak and focus property has already a value");
                 continue;
             }
 
-            InboundMappingInContext<V, D> mappingStruct = source.createInboundMappingInContext(mapping);
-
-            ItemPath targetFocusItemPath = mapping.getOutputPath();
-            if (ItemPath.isEmpty(targetFocusItemPath)) {
-                throw new ConfigurationException("Empty target path in " + mapping.getContextDescription());
-            }
-            checkTargetItemDefinitionKnown(targetFocusItemPath);
+            rememberItemDefinition(mapping, declaredTargetPath, targetPathOverride);
 
             mappingsMap
-                    .computeIfAbsent(targetFocusItemPath, k -> new ArrayList<>())
-                    .add(mappingStruct);
+                    .computeIfAbsent(realTargetPath, k -> new ArrayList<>())
+                    .add(source.createInboundMappingInContext(mapping));
+        }
+    }
+
+    private ItemPath stripFocusVariable(ItemPath targetPath, String contextDescription) {
+        if (targetPath == null) {
+            return null;
+        }
+        QName variable = targetPath.firstToVariableNameOrNull();
+        if (variable == null) {
+            return targetPath;
+        }
+        if (VAR_USER.equals(variable.getLocalPart())
+                || VAR_FOCUS.equals(variable.getLocalPart())) {
+            return targetPath.rest();
+        } else {
+            throw new IllegalStateException(
+                    String.format("Unsupported variable in target path '%s' in %s. Only $focus and $user are allowed here.",
+                            targetPath, contextDescription));
         }
     }
 
@@ -235,19 +269,12 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
         }
     }
 
-    private void checkTargetItemDefinitionKnown(ItemPath targetFocusItemPath) throws SchemaException {
-        MiscUtil.requireNonNull(
-                target.focusDefinition.findItemDefinition(targetFocusItemPath),
-                () -> "No definition for focus property " + targetFocusItemPath + ", cannot process"
-                        + " inbound expression for " + itemDescription + " in " + source.getResource());
-    }
-
-    private boolean checkWeakSkip(MappingImpl<?, ?> inbound) {
+    private boolean checkWeakSkip(MappingImpl<?, ?> inbound, ItemPath declaredTargetPath) {
         if (inbound.getStrength() != MappingStrengthType.WEAK) {
             return false;
         }
         if (target.focus != null) {
-            Item<?, ?> item = target.focus.findItem(inbound.getOutputPath());
+            Item<?, ?> item = target.focus.findItem(declaredTargetPath);
             return item != null && !item.isEmpty();
         } else {
             return false;
@@ -256,6 +283,20 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
 
     boolean doesRequireAbsoluteState() {
         return processingMode == ProcessingMode.ABSOLUTE_STATE;
+    }
+
+    private void rememberItemDefinition(MappingImpl<V, D> mapping, ItemPath declaredTargetPath, ItemPath targetPathOverride)
+            throws ConfigurationException {
+        D outputDefinition =
+                MiscUtil.configNonNull(
+                        mapping.getOutputDefinition(),
+                        () -> "No definition for target item " + declaredTargetPath + " in " + mapping.getContextDescription());
+        target.addItemDefinition(declaredTargetPath, outputDefinition);
+        if (targetPathOverride != null) {
+            MutableItemDefinition<?> clone = outputDefinition.clone().toMutable();
+            clone.setDynamic(true); // To serialize xsi:type along with the values.
+            target.addItemDefinition(targetPathOverride, clone);
+        }
     }
 
     @FunctionalInterface

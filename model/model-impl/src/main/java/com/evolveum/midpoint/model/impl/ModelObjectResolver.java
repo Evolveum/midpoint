@@ -77,11 +77,13 @@ public class ModelObjectResolver implements ObjectResolver {
         return getObject(expectedType, oid, options, task, result);
     }
 
-    public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
-        return resolve(refVal, string, null, task, result);
+    public <O extends ObjectType> PrismObject<O> resolve(
+            PrismReferenceValue refVal, String contextDesc, Task task, OperationResult result) throws ObjectNotFoundException {
+        return resolve(refVal, contextDesc, null, task, result);
     }
 
-    public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task,
+    public <O extends ObjectType> PrismObject<O> resolve(
+            PrismReferenceValue refVal, String contextDesc, GetOperationOptions options, Task task,
             OperationResult result) throws ObjectNotFoundException {
         String oid = refVal.getOid();
         if (oid == null) {

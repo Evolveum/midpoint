@@ -151,7 +151,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     // region transformation
     @Override
-    public S toSchemaObject(Tuple row, Q entityPath,
+    public S toSchemaObject(
+            @NotNull Tuple row,
+            @NotNull Q entityPath,
+            @NotNull JdbcSession jdbcSession,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
         byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
@@ -170,14 +173,14 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
      * should not spoil the whole result list.
      */
     @Override
-    public S toSchemaObjectSafe(
+    public S toSchemaObjectCompleteSafe(
             Tuple tuple,
             Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull JdbcSession jdbcSession,
             boolean forceFull) {
         try {
-            return toSchemaObject(tuple, entityPath, options, jdbcSession, forceFull);
+            return toSchemaObjectComplete(tuple, entityPath, options, jdbcSession, forceFull);
         } catch (SchemaException e) {
             try {
                 PrismObject<S> errorObject = prismContext().createObject(schemaType());

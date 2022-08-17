@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -23,15 +23,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -69,9 +75,7 @@ public class GuiProfileCompiler {
     @Autowired private AssignmentCollector assignmentCollector;
 
     @Autowired private SchemaService schemaService;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @Autowired private GuiProfileCompilerRegistry guiProfileCompilerRegistry;
 
@@ -94,9 +98,9 @@ public class GuiProfileCompiler {
 
         CompiledGuiProfile compiledGuiProfile = compileFocusProfile(adminGuiConfigurations, systemConfiguration, principal, task, result);
 
-            setupFocusPhoto(principal, compiledGuiProfile, result);
-            setupLocale(principal, compiledGuiProfile);
-            compiledGuiProfile.setDependencies(profileDependencies);
+        setupFocusPhoto(principal, compiledGuiProfile, result);
+        setupLocale(principal, compiledGuiProfile);
+        compiledGuiProfile.setDependencies(profileDependencies);
 
         guiProfileCompilerRegistry.invokeCompiler(compiledGuiProfile);
         principal.setCompiledGuiProfile(compiledGuiProfile);
@@ -149,6 +153,7 @@ public class GuiProfileCompiler {
         }
     }
 
+    @NotNull
     public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
@@ -186,7 +191,8 @@ public class GuiProfileCompiler {
     private void setupFocusPhoto(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile, OperationResult result) {
         FocusType focus = principal.getFocus();
         byte[] jpegPhoto = focus.getJpegPhoto();
-        if (jpegPhoto == null) {
+        Item<PrismValue, ItemDefinition<?>> jpegPhotoItem = focus.asPrismObject().findItem(FocusType.F_JPEG_PHOTO);
+        if (jpegPhotoItem != null && jpegPhotoItem.isIncomplete()) {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     // no read-only because the photo (byte[]) is provided to unknown actors
                     .item(FocusType.F_JPEG_PHOTO).retrieve()
@@ -418,21 +424,7 @@ public class GuiProfileCompiler {
             ar.setDocumentation(roleManagement.getDocumentation());
         }
 
-        mergeRoleManagementRelation(ar, roleManagement.getRelations());
         mergeRoleManagementRoleCatalog(ar, roleManagement);
-    }
-
-    private void mergeRoleManagementRelation(AccessRequestType result, RelationsDefinitionType deprecated) {
-        if (result.getRelationSelection() != null || deprecated == null) {
-            return;
-        }
-
-        RelationSelectionType rs = new RelationSelectionType();
-        result.setRelationSelection(rs);
-
-        rs.setIncludeDefaultRelations(deprecated.isIncludeDefaultRelations());
-
-        deprecated.getRelation().forEach(r -> rs.getRelation().add(r.clone()));
     }
 
     private void mergeRoleManagementRoleCatalog(AccessRequestType result, RoleManagementConfigurationType deprecated) {
@@ -449,8 +441,7 @@ public class GuiProfileCompiler {
         List<RoleCollectionViewType> collection = rc.getCollection();
         if (collection.isEmpty() && deprecated.getRoleCatalogCollections() != null) {
             ObjectCollectionsUseType ocus = deprecated.getRoleCatalogCollections();
-            ocus.getCollection().stream().forEach(ocu -> {
-
+            ocus.getCollection().forEach(ocu -> {
                 RoleCollectionViewType rcv = mapObjectCollectionUse(ocu, false);
                 if (rcv != null) {
                     collection.add(rcv);
@@ -475,7 +466,7 @@ public class GuiProfileCompiler {
 
         RoleCollectionViewType result = new RoleCollectionViewType();
         result.setDefault(isDefault);
-        result.setCollectionUri(uri);
+        result.setCollectionIdentifier(uri);
 
         return result;
     }

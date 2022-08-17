@@ -50,6 +50,8 @@ public class RResource extends RObject {
     private RResourceAdministrativeState administrativeState;
     private Set<RObjectReference<RFocus>> approverRef;
     //end of resource business configuration
+    // administrativeOperationalStateAdministrativeAvailabilityStatus works only in new repo by design
+    private Boolean template;
 
     @Enumerated(EnumType.ORDINAL)
     @Column
@@ -89,6 +91,11 @@ public class RResource extends RObject {
         return nameCopy;
     }
 
+    @Column
+    public Boolean getTemplate() {
+        return template;
+    }
+
     public void setNameCopy(RPolyString nameCopy) {
         this.nameCopy = nameCopy;
     }
@@ -109,6 +116,10 @@ public class RResource extends RObject {
         this.connectorRef = connectorRef;
     }
 
+    public void setTemplate(Boolean template) {
+        this.template = template;
+    }
+
     // dynamically called
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
@@ -116,6 +127,7 @@ public class RResource extends RObject {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.relationRegistry));
+        repo.setTemplate(jaxb.isTemplate());
 
         try {
             if (jaxb.getBusiness() != null) {

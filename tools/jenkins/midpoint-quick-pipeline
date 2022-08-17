@@ -47,6 +47,10 @@ podTemplate(
             }
             stage("build") {
                 container('maven') {
+                    if (params.CLEAN_M2_REPOSITORY) {
+                        sh "rm -rf ~/.m2/repository/*"
+                    }
+
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then
@@ -71,6 +75,11 @@ podTemplate(
                         // failureOnFailedTestConfig: true // unusable, we don't want FAILURE
                         // FAILURE result can't be switched to lower-level UNSTABLE later!
                     ])
+
+                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                        sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
+	                    archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
+                    }
                 }
             }
         } catch (Exception e) {

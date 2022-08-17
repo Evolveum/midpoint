@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<compositeCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>complex</name>
+    <scaling>
+        <scale>1.0</scale>
+    </scaling>
+    <items>
+        <name>full</name>
+        <item>
+            <path>givenName</path>
+        </item>
+        <item>
+            <path>familyName</path>
+            <search>
+                <index>orig</index> <!-- just for testing -->
+            </search>
+        </item>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+        <composition>
+            <tier>1</tier>
+        </composition>
+    </items>
+    <items>
+        <name>both-names</name>
+        <item>
+            <path>givenName</path>
+        </item>
+        <item>
+            <path>familyName</path>
+        </item>
+        <composition>
+            <weight>0.5</weight>
+            <ignoreIfMatchedBy>full</ignoreIfMatchedBy>
+        </composition>
+    </items>
+    <items>
+        <name>familyName</name>
+        <item>
+            <path>familyName</path>
+        </item>
+        <composition>
+            <weight>0.25</weight>
+            <ignoreIfMatchedBy>both-names</ignoreIfMatchedBy>
+        </composition>
+    </items>
+    <items>
+        <!-- just for the testing, not to be used in real life! -->
+        <name>givenName</name>
+        <item>
+            <path>givenName</path>
+        </item>
+        <composition>
+            <weight>0.1</weight>
+            <ignoreIfMatchedBy>both-names</ignoreIfMatchedBy>
+        </composition>
+    </items>
+    <items>
+        <name>nationalId</name>
+        <item>
+            <path>extension/nationalId</path>
+        </item>
+        <composition>
+            <weight>0.75</weight>
+            <ignoreIfMatchedBy>full</ignoreIfMatchedBy>
+        </composition>
+    </items>
+</compositeCorrelator>

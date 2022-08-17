@@ -190,8 +190,14 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
         // WHEN
         ObjectResolver objectResolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
         Object resolved = ExpressionUtil.resolvePathGetValue(
-                itemPath, variables, false, null, objectResolver,
-                PrismTestUtil.getPrismContext(), exprShortDesc, new NullTaskImpl(), result);
+                itemPath,
+                variables,
+                false,
+                null,
+                objectResolver,
+                exprShortDesc,
+                new NullTaskImpl(),
+                result);
 
         // THEN
         IntegrationTestTools.display("Resolved", resolved);

@@ -39,20 +39,11 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
-                <ref>ri:HR_ID</ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>extension/hrId</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
                 <ref>ri:FIRSTN</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrGivenName</path>
+                        <path>givenName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -61,7 +52,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrFamilyName</path>
+                        <path>familyName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -70,7 +61,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrDateOfBirth</path>
+                        <path>extension/dateOfBirth</path>
                     </target>
                 </inbound>
             </attribute>
@@ -79,7 +70,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/hrNationalId</path>
+                        <path>extension/nationalId</path>
                     </target>
                 </inbound>
             </attribute>
@@ -91,39 +82,7 @@
                     </defaultEvaluationPhases>
                 </inbound>
             </mappingsEvaluation>
-            <correlation>
-                <correlators>
-                    <using>combined-correlator</using>
-                    <definitions>
-                        <items>
-                            <item>
-                                <name>givenName</name>
-                                <source>
-                                    <path>extension/hrGivenName</path>
-                                </source>
-                            </item>
-                            <item>
-                                <name>familyName</name>
-                                <source>
-                                    <path>extension/hrFamilyName</path>
-                                </source>
-                            </item>
-                            <item>
-                                <name>dateOfBirth</name>
-                                <source>
-                                    <path>extension/hrDateOfBirth</path>
-                                </source>
-                            </item>
-                            <item>
-                                <name>nationalId</name>
-                                <source>
-                                    <path>extension/hrNationalId</path>
-                                </source>
-                            </item>
-                        </items>
-                    </definitions>
-                </correlators>
-            </correlation>
+            <correlation><!-- Do we need anything here? --></correlation>
             <synchronization>
                 <reaction>
                     <situation>linked</situation>
@@ -158,6 +117,4 @@
             </synchronization>
         </objectType>
     </schemaHandling>
-    <synchronization>
-    </synchronization>
 </resource>

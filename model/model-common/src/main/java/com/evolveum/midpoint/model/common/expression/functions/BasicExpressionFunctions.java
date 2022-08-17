@@ -637,21 +637,17 @@ public class BasicExpressionFunctions {
         if (shadow == null) {
             return null;
         }
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-        if (identifiers.size() == 0) {
+        ResourceAttribute<?> primaryIdentifier =
+                MiscUtil.extractSingleton(
+                        ShadowUtil.getPrimaryIdentifiers(shadow),
+                        () -> new SchemaException("More than one identifier in " + shadow));
+        if (primaryIdentifier == null) {
             return null;
         }
-        if (identifiers.size() > 1) {
-            throw new SchemaException("More than one idenfier in " + shadow);
-        }
-        Collection<T> realValues = (Collection<T>) identifiers.iterator().next().getRealValues();
-        if (realValues.size() == 0) {
-            return null;
-        }
-        if (realValues.size() > 1) {
-            throw new SchemaException("More than one idenfier value in " + shadow);
-        }
-        return realValues.iterator().next();
+        //noinspection unchecked
+        return (T) MiscUtil.extractSingleton(
+                primaryIdentifier.getRealValues(),
+                () -> new SchemaException("More than one identifier value in " + shadow));
     }
 
     public <T> T getSecondaryIdentifierValue(ShadowType shadow) throws SchemaException {

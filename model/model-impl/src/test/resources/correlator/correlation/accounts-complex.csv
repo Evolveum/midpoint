@@ -1,0 +1,12 @@
+#
+# Note: the candidate threshold of 0.25 is set in resource-dummy-correlation.xml
+#
+uid  | givenName | familyName | nationalId    | expCandidates           | expResult   | expMatch                       | _note
+1    | John      | Smith      | 040206///1111 | smith1:1.0              | smith1      | gn:F,fn:F,id:F                 | There is a user John Smith, ID 040206/1111 (national ID has custom normalization)
+2    | john      | Smith      | 04.02.06.1111 | smith1:1.0              | smith1      | gn:F,fn:F,id:F                 | Given name is matched as poly string norm.
+3    | Jupiter   | Smith      | 040206/1111   | smith1:1.0;smith2:0.25  | smith1      | gn:N,fn:F,id:F;gn:N,fn:F,id:N  | smith1: Matching fullName (0.25) and nationalId (0.75) rules. The value is on the threshold for "certain". For smith2: Matching only fullName (0.25).
+4    | Jupiter   | Smith      | 999999/9999   | smith1:0.25;smith2:0.25 | _uncertain  | gn:N,fn:F,id:N;gn:N,fn:F,id:N  | Matching only familyName (0.25).
+5    | Jupiter   | Johnson    | 040206/1111   | smith1:0.75             | _uncertain  | gn:N,fn:N,id:F                 | Matching only national ID (0.75).
+6    | John      | Smith      | 999999/9999   | smith1:0.5;smith2:0.25  | _uncertain  | gn:F,fn:F,id:N;gn:N,fn:F,id:N  | smith1: Matching both names (0.5). For smith2: Only fullName (0.25).
+7    | John      | Johnson    | 040206/1111   | smith1:0.85             | _uncertain  | gn:F,fn:N,id:F                 | Matching national ID (0.75) and givenName (0.1).
+8    | John      | Johnson    | 999999/9999   | smith1:0.1              | _none#      |                                | Matching only givenName (0.1)

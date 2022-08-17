@@ -11,6 +11,7 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.impl.correlator.correlation.CorrelationTestingAccount;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -118,5 +119,11 @@ public class CorrelatorTestUtil {
                 TestingAccount.ATTR_NATIONAL_ID, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 TestingAccount.ATTR_TEST, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                CorrelationTestingAccount.ATTR_EXP_CANDIDATES, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                CorrelationTestingAccount.ATTR_EXP_RESULT, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                CorrelationTestingAccount.ATTR_EXP_MATCH, String.class, false, false);
     }
 }

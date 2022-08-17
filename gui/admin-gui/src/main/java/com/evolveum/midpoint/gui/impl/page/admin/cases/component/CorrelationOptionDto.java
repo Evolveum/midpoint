@@ -8,24 +8,20 @@
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.CorrelationProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.route.ItemRoute;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectOwnerOptionType;
 
 /**
  * Represents a correlation option: a candidate owner or a "new owner".
@@ -74,33 +70,24 @@ public class CorrelationOptionDto implements Serializable {
     /**
      * Returns all real values matching given item path. The path should not contain container IDs.
      */
-    public CorrelationPropertyValues getPropertyValues(CorrelationProperty correlationProperty) {
+    CorrelationPropertyValues getPropertyValues(CorrelationCaseDescription.CorrelationProperty correlationProperty) {
         try {
             if (newOwner) {
                 return new CorrelationPropertyValues(
-                        correlationProperty.getSourceRealStringValues(),
+                        getValuesForPath(correlationProperty.getItemPath()),
                         Set.of());
             } else {
                 return new CorrelationPropertyValues(
-                        getValuesForRoute(correlationProperty.getPrimaryTargetRoute()),
-                        getValuesForRoutes(correlationProperty.getSecondaryTargetRoutes()));
+                        getValuesForPath(correlationProperty.getItemPath()),
+                        getValuesForPath(correlationProperty.getSecondaryPath()));
             }
         } catch (Exception e) {
             return new CorrelationPropertyValues(Set.of(e.getMessage()), Set.of());
         }
     }
 
-    private Set<String> getValuesForRoutes(List<ItemRoute> routes) throws SchemaException {
-        Set<String> values = new HashSet<>();
-        for (ItemRoute route : routes) {
-            values.addAll(getValuesForRoute(route));
-        }
-        return values;
-    }
-
-    private @NotNull Set<String> getValuesForRoute(ItemRoute route) throws SchemaException {
-        return route.resolveFor(object.asObjectable()).stream()
-                .filter(Objects::nonNull)
+    private @NotNull Set<String> getValuesForPath(ItemPath path) {
+        return object.getAllValues(path).stream()
                 .map(PrismValue::getRealValue)
                 .map(String::valueOf)
                 .collect(Collectors.toSet());

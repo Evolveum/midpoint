@@ -1299,7 +1299,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .administrativeOperationalState(new AdministrativeOperationalStateType()
                         .administrativeAvailabilityStatus(AdministrativeAvailabilityStatusType.MAINTENANCE))
                 .connectorRef(connectorOid.toString(),
-                        ConnectorType.COMPLEX_TYPE, connectorRelation);
+                        ConnectorType.COMPLEX_TYPE, connectorRelation)
+                .template(false);
 
         when("adding it to the repository");
         repositoryService.addObject(resource.asPrismObject(), null, result);
@@ -1317,6 +1318,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(row.connectorRefTargetOid).isEqualTo(connectorOid);
         assertThat(row.connectorRefTargetType).isEqualTo(MObjectType.CONNECTOR);
         assertCachedUri(row.connectorRefRelationId, connectorRelation);
+        assertThat(row.template).isFalse();
 
         QObjectReference<?> ref = QObjectReferenceMapping
                 .getForResourceBusinessConfigurationApprover().defaultAlias();

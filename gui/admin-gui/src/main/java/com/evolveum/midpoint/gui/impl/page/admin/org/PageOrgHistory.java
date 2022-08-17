@@ -8,6 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.org;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -21,12 +25,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 /**
  * Created by honchar.
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/orgHistory", matchUrlForSecurity = "/admin/orgUnitHistory")
+                @Url(mountUrl = "/admin/orgHistory", matchUrlForSecurity = "/admin/orgHistory")
         },
         action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
@@ -40,28 +46,25 @@ public class PageOrgHistory extends PageOrg {
 
     private static final String DOT_CLASS = PageOrgHistory.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgHistory.class);
-    private String date = "";
 
-    public PageOrgHistory(final PrismObject<OrgType> org, String date) {
-        super(org);
-        this.date = date;
+
+    private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
+    private static final String OID_PARAMETER_LABEL = "oid";
+    private static final String EID_PARAMETER_LABEL = "eventIdentifier";
+    private static final String DATE_PARAMETER_LABEL = "date";
+
+    public PageOrgHistory(PageParameters pageParameters) {
+        super(pageParameters);
     }
 
     @Override
     protected FocusDetailsModels<OrgType> createObjectDetailsModels(PrismObject<OrgType> object) {
-        return new FocusDetailsModels<OrgType>(createPrismObjectModel(object), this) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isReadonly() {
-                return true;
-            }
-        };
+        return new FocusDetailsModels<>(createPrismObjectModel(getReconstructedObject()), true, this);
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -70,9 +73,35 @@ public class PageOrgHistory extends PageOrg {
                 if (getModelObjectType() != null) {
                     name = WebComponentUtil.getName(getModelObjectType());
                 }
-                return createStringResource("PageUserHistory.title", name, date).getObject();
+                return createStringResource("PageUserHistory.title", name, getDate()).getObject();
             }
         };
+    }
+
+    private PrismObject<OrgType> getReconstructedObject() {
+        OperationResult result = new OperationResult(OPERATION_RESTRUCT_OBJECT);
+        try {
+            Task task = createSimpleTask(OPERATION_RESTRUCT_OBJECT);
+            return getModelAuditService().reconstructObject(OrgType.class, getObjectId(), getEventIdentifier(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(
+                    createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError")
+                            .getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
+        }
+        return null;
+    }
+
+    public String getDate() {
+        return String.valueOf(getPageParameters().get(DATE_PARAMETER_LABEL));
+    }
+
+    public String getObjectId() {
+        return String.valueOf(getPageParameters().get(OID_PARAMETER_LABEL));
+    }
+
+    public String getEventIdentifier() {
+        return String.valueOf(getPageParameters().get(EID_PARAMETER_LABEL));
     }
 
 }

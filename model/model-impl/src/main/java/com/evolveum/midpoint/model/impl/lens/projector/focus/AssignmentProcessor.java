@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionP
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
@@ -386,10 +387,18 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             logOutputTripleMap(focusOutputTripleMap);
 
-            DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(focusOutputTripleMap,
-                    focusOdoRelative.getNewObject(), focusOdoRelative.getObjectDelta(), context::primaryFocusItemDeltaExists,
-                    null, null,
-                    focusContext.getObjectDefinition(), env, beans, context, result);
+            DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
+                    focusOutputTripleMap,
+                    focusOdoRelative.getNewObject(),
+                    focusOdoRelative.getObjectDelta(),
+                    context::primaryFocusItemDeltaExists,
+                    null,
+                    null,
+                    ItemDefinitionProvider.forObjectDefinition(focusContext.getObjectDefinition()),
+                    env,
+                    beans,
+                    context,
+                    result);
             consolidation.computeItemDeltas();
             Collection<ItemDelta<?, ?>> focusDeltas = consolidation.getItemDeltas();
 

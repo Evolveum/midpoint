@@ -62,7 +62,8 @@ abstract class ShadowInboundsPreparation<F extends FocusType> {
 
     ShadowInboundsPreparation(
             @NotNull PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap,
-            @NotNull MSource source, @NotNull Target<F> target,
+            @NotNull MSource source,
+            @NotNull Target<F> target,
             @NotNull Context context) {
         this.mappingsMap = mappingsMap;
         this.source = source;
@@ -99,7 +100,7 @@ abstract class ShadowInboundsPreparation<F extends FocusType> {
             mappedItem.createMappings(mappingsMap);
         }
 
-        // Evaluation of special mappings. This will part be transformed to the same style as the other mappings (eventually).
+        // Evaluation of special mappings. This part will be transformed to the same style as the other mappings (eventually).
         if (!source.isProjectionBeingDeleted()) {
             evaluateSpecialInbounds();
         } else {

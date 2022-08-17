@@ -17,8 +17,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.CorrelationProperty;
-
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -163,7 +162,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                         .assertTransitions(1)
                     .end();
 
-        UserType mary = findUserByUsername("smith1").asObjectable();
+        UserType mary = findUserByUsernameFullRequired("smith1").asObjectable();
         assertUser(mary, "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
@@ -178,7 +177,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                     .resolveTarget()
                         .display();
 
-        john = findUserByUsername("smith2").asObjectable();
+        john = findUserByUsernameFullRequired("smith2").asObjectable();
         assertUser(john, "John after")
                 .display()
                 .assertFullName("John Smith")
@@ -231,7 +230,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                         .assertTransitions(2)
                     .end();
 
-        assertUser(findUserByUsername("smith1"), "Mary after")
+        assertUser(findUserByUsernameFullRequired("smith1"), "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
                 .assignments()
@@ -241,7 +240,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                 .end()
                 .assertLinks(1, 0);
 
-        assertUser(findUserByUsername("smith2"), "John after")
+        assertUser(findUserByUsernameFullRequired("smith2"), "John after")
                 .display()
                 .assertFullName("John Smith") // unchanged
                 .assignments()
@@ -293,7 +292,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                     .end();
 
         and("Mary should be unchanged");
-        assertUser(findUserByUsername("smith1"), "Mary after")
+        assertUser(findUserByUsernameFullRequired("smith1"), "Mary after")
                 .display()
                 .assertFullName("Mary Smith")
                 .assignments()
@@ -304,7 +303,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                 .assertLinks(1, 0);
 
         and("John should be unchanged");
-        assertUser(findUserByUsername("smith2"), "John after")
+        assertUser(findUserByUsernameFullRequired("smith2"), "John after")
                 .display()
                 .assertFullName("John Smith") // unchanged
                 .assignments()
@@ -350,16 +349,20 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         // TODO check audit and notification event content
 
         and("correlation properties should be correct");
-        Collection<CorrelationProperty> properties = correlationService.getCorrelationProperties(correlationCase, task, result);
+        Collection<CorrelationProperty> properties =
+                correlationService
+                        .describeCorrelationCase(correlationCase, null, task, result)
+                        .getCorrelationProperties()
+                        .values();
         displayValue("properties", DebugUtil.debugDump(properties));
 
+        // TODO this will need to be adapted
+
         CorrelationProperty property = findProperty(properties, "givenName");
-        assertThat(property.getSourceRealStringValues()).as("real string values").containsExactly("John");
         assertThat(property.getDefinition()).as("definition").isNotNull();
-        assertThat(property.getPrimaryTargetRoute()).as("primary target route").hasToString("givenName");
-        assertThat(property.getSecondaryTargetRoutes().get(0))
-                .as("secondary target route")
-                .hasToString("assignment/extension/givenName");
+        assertThat(property.getItemPath()).as("itemPath").hasToString("givenName");
+
+        // TODO other asserts on correlation case description
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -402,7 +405,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         assertSuccess(result);
 
         // @formatter:off
-        UserType john = findUserByUsername("smith2").asObjectable();
+        UserType john = findUserByUsernameFullRequired("smith2").asObjectable();
         assertUser(john, "John after")
                 .display()
                 .assertFullName("John Smith")
@@ -624,7 +627,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
                 .assertClosed()
                 .assertSuccess();
 
-        assertUser(findUserByUsername("smith2"), "John after")
+        assertUser(findUserByUsernameFullRequired("smith2"), "John after")
                 .display()
                 .assertFullName("John Smith") // unchanged
                 .assignments()

@@ -27,4 +27,5 @@ public class MResource extends MObject {
     public UUID connectorRefTargetOid;
     public MObjectType connectorRefTargetType;
     public Integer connectorRefRelationId;
+    public Boolean template;
 }

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceContentPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceSchemaHandlingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -45,7 +46,23 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
     }
 
     private void initLayout() {
-        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(ID_TABLE, getResourceModel(), getConfiguration());
+        ResourceContentPanel table
+                = new ResourceContentPanel(ID_TABLE, null, getResourceModel(), getConfiguration(), false) {
+            @Override
+            protected boolean isTaskButtonsContainerVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isTopTableButtonsVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isSourceChoiceVisible() {
+                return false;
+            }
+        };
         table.setOutputMarkupId(true);
         add(table);
     }

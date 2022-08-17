@@ -11,16 +11,12 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.util.ObjectSet;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
@@ -28,12 +24,14 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -67,7 +65,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
     }
 
     @Override
-    protected boolean checkCandidateOwnerInternal(
+    protected double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) {
@@ -95,7 +93,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
-            return beans.builtInResultCreator.createCorrelationResult(candidateOwners, correlationContext);
+            return createResult(candidateOwners, null, task, result);
         }
 
         private @NotNull ObjectSet<F> findCandidatesUsingExpressions(OperationResult result)

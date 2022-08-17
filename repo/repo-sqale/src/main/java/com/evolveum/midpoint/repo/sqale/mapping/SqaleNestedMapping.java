@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -63,8 +64,8 @@ public class SqaleNestedMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
     public <TS, TQ extends QObject<TR>, TR extends MObject> SqaleNestedMapping<S, Q, R> addRefMapping(
             @NotNull QName itemName,
             @NotNull Function<Q, UuidPath> rootToOidPath,
-            @NotNull Function<Q, EnumPath<MObjectType>> rootToTypePath,
-            @NotNull Function<Q, NumberPath<Integer>> rootToRelationIdPath,
+            @Nullable Function<Q, EnumPath<MObjectType>> rootToTypePath,
+            @Nullable Function<Q, NumberPath<Integer>> rootToRelationIdPath,
             @NotNull Supplier<QueryTableMapping<TS, TQ, TR>> targetMappingSupplier) {
         SqaleMappingMixin.super.addRefMapping(itemName,
                 rootToOidPath, rootToTypePath, rootToRelationIdPath, targetMappingSupplier);

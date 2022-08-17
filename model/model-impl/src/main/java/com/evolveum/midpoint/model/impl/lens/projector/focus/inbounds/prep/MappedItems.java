@@ -55,7 +55,6 @@ class MappedItems<F extends FocusType> {
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class)
                     .findContainerDefinition(ShadowType.F_ASSOCIATION));
 
-
     /**
      * Definition of `auxiliaryObjectClass` property in shadows.
      */
@@ -121,7 +120,8 @@ class MappedItems<F extends FocusType> {
 
         List<InboundMappingType> mappingBeans =
                 source.filterApplicableMappingBeans(
-                        attributeDefinition.getInboundMappingBeans());
+                        attributeDefinition.getInboundMappingBeans(),
+                        attributeDefinition.getCorrelationDefinitionBean() != null);
         if (mappingBeans.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
@@ -186,7 +186,8 @@ class MappedItems<F extends FocusType> {
         String itemDescription = "association " + associationName;
         List<InboundMappingType> mappingBeans =
                 source.filterApplicableMappingBeans(
-                        associationDefinition.getInboundMappingTypes());
+                        associationDefinition.getInboundMappingTypes(),
+                        false);
         if (mappingBeans.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;

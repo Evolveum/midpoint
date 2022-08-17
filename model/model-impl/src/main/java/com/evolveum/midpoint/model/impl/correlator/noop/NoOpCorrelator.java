@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.noop;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -14,8 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NoOpCorrelatorType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
-import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,14 +37,14 @@ class NoOpCorrelator extends BaseCorrelator<NoOpCorrelatorType> {
     public @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result) {
-        return CorrelationResult.noOwner();
+        return CorrelationResult.empty();
     }
 
     @Override
-    protected boolean checkCandidateOwnerInternal(
+    protected double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) {
-        return false;
+        return 0;
     }
 }

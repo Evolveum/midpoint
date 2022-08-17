@@ -34,8 +34,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
+import org.apache.wicket.request.resource.IResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -59,7 +57,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -373,10 +370,10 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         columns.add(new RoundedIconColumn<>(null) {
 
             @Override
-            protected IModel<AbstractResource> createPreferredImage(IModel<ShoppingCartItem> model) {
+            protected IModel<IResource> createPreferredImage(IModel<ShoppingCartItem> model) {
                 return new LoadableModel<>(false) {
                     @Override
-                    protected AbstractResource load() {
+                    protected IResource load() {
                         ObjectReferenceType ref = model.getObject().getAssignment().getTargetRef();
 
                         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
@@ -387,14 +384,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                         OperationResult result = task.getResult();
 
                         PrismObject obj = WebModelServiceUtils.loadObject(ObjectTypes.getObjectTypeClass(ref.getType()), ref.getOid(), options, getPageBase(), task, result);
-                        FocusType focus = (FocusType) obj.asObjectable();
-                        byte[] photo = focus.getJpegPhoto();
-
-                        if (photo == null) {
-                            return null;
-                        }
-
-                        return new ByteArrayResource("image/jpeg", photo);
+                        return WebComponentUtil.createJpegPhotoResource(obj);
                     }
                 };
             }

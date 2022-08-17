@@ -6,9 +6,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="perf" parallel="false" verbose="1">
+<suite name="perf" parallel="none" verbose="1">
 
-    <test name="Perf testing" preserve-order="true" parallel="false" verbose="10">
+    <test name="Perf testing" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.gui.MidScaleGuiTest"/>
         </classes>

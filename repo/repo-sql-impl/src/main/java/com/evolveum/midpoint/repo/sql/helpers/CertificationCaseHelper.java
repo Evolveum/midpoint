@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -195,11 +195,6 @@ public class CertificationCaseHelper {
                         affectedIds.add(id);
                         // TODO couldn't this cascading be done by hibernate itself?
                         Integer integerCaseId = RUtil.toInteger(id);
-//                        NativeQuery deleteCaseReferences = session.createNativeQuery("delete from " + RCertCaseReference.TABLE +
-//                                " where owner_owner_oid=:oid and owner_id=:id");
-//                        deleteCaseReferences.setParameter("oid", campaignOid);
-//                        deleteCaseReferences.setParameter("id", integerCaseId);
-//                        deleteCaseReferences.executeUpdate();
                         NativeQuery<?> deleteWorkItemReferences = session.createNativeQuery("delete from " + RCertWorkItemReference.TABLE +
                                 " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
                         deleteWorkItemReferences.setParameter("oid", campaignOid);
@@ -387,9 +382,10 @@ public class CertificationCaseHelper {
     }
 
     // adds cases to campaign if requested by options
-    <T extends ObjectType> void updateLoadedCampaign(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
-            Session session) throws SchemaException {
-        if (!SelectorOptions.hasToLoadPath(AccessCertificationCampaignType.F_CASE, options)) {
+    <T extends ObjectType> void updateLoadedCampaign(
+            PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options, Session session)
+            throws SchemaException {
+        if (!SelectorOptions.hasToFetchPathNotRetrievedByDefault(AccessCertificationCampaignType.F_CASE, options)) {
             return;
         }
 

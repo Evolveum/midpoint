@@ -7,13 +7,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -23,15 +27,21 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -51,9 +61,6 @@ import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePan
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author katkav
@@ -76,6 +83,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private static final String ID_OBJECT_CLASS = "objectClass";
     private static final String ID_MAIN_FORM = "mainForm";
 
+    private static final String ID_RESOURCE_CHOICE_CONTAINER_SEARCH = "resourceChoiceContainer";
     private static final String ID_REPO_SEARCH = "repositorySearch";
     private static final String ID_RESOURCE_SEARCH = "resourceSearch";
 
@@ -84,16 +92,23 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private ShadowKindType kind;
 
     private boolean useObjectClass;
-    private boolean isRepoSearch = true;
+    private boolean isRepoSearch;
 
     private IModel<ResourceContentSearchDto> resourceContentSearch;
 
     public ResourceContentPanel(String id, final ShadowKindType kind,
             final ResourceDetailsModel model, ContainerPanelConfigurationType config) {
+        this(id, kind, model, config, true);
+    }
+
+    public ResourceContentPanel(String id, final ShadowKindType kind,
+            final ResourceDetailsModel model, ContainerPanelConfigurationType config,
+            boolean isRepoSearch) {
         super(id, model, config);
 
         this.kind = kind;
         this.resourceContentSearch = createContentSearchModel(kind);
+        this.isRepoSearch = isRepoSearch;
         //TODO config
     }
 
@@ -121,7 +136,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     }
 
     private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
-        return getPageBase().getSessionStorage().getResourceContentStorage(kind, searchMode);
+        return getObjectDetailsModels().getPageResource().getSessionStorage().getResourceContentStorage(kind, searchMode);
     }
 
     protected void initLayout() {
@@ -132,18 +147,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         topButtons.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         add(topButtons);
 
-        AjaxIconButton synchConfButton = new AjaxIconButton(
-                topButtons.newChildId(),
-                Model.of(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG.getIcon()),
-                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG)) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-//                SynchronizationConfigWizardPanel synchPanel = new SynchronizationConfigWizardPanel()
-            }
-        };
-        synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-default btn-lg"));
-        topButtons.add(synchConfButton);
+        initSychronizationButton(topButtons);
+        initAttributeMappingButton (topButtons);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -225,7 +230,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         add(realObjectClassLabel);
 
         AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS,
-            new PropertyModel<>(resourceContentSearch, "objectClass")) {
+                new PropertyModel<>(resourceContentSearch, "objectClass")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -253,8 +258,13 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         });
         add(objectClassPanel);
 
+        WebMarkupContainer resourceChoiceContainer = new WebMarkupContainer(ID_RESOURCE_CHOICE_CONTAINER_SEARCH);
+        resourceChoiceContainer.setOutputMarkupId(true);
+        resourceChoiceContainer.add(new VisibleBehaviour( () -> isSourceChoiceVisible()));
+        add(resourceChoiceContainer);
+
         AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
-            new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
+                new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -268,21 +278,20 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 mainForm.addOrReplace(initRepoContent(ResourceContentPanel.this.getObjectWrapperModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this);
-                target.add(getParent().get(ID_RESOURCE_SEARCH)
+                target.add(getParent().get(getPageBase().createComponentPath(ID_RESOURCE_CHOICE_CONTAINER_SEARCH, ID_RESOURCE_SEARCH))
                         .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
             }
 
             @Override
             protected void onBeforeRender() {
                 super.onBeforeRender();
-                if (!getModelObject().booleanValue())
-                    add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
+                if (!getModelObject().booleanValue()) {add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));}
             }
         };
-        add(repoSearch);
+        resourceChoiceContainer.add(repoSearch);
 
         AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
-            new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
+                new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -295,7 +304,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 mainForm.addOrReplace(initResourceContent(ResourceContentPanel.this.getObjectWrapperModel()));
                 target.add(getParent().addOrReplace(mainForm));
                 target.add(this.add(AttributeModifier.append("class", " active")));
-                target.add(getParent().get(ID_REPO_SEARCH)
+                target.add(getParent().get(getPageBase().createComponentPath(ID_RESOURCE_CHOICE_CONTAINER_SEARCH, ID_REPO_SEARCH))
                         .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
             }
 
@@ -303,15 +312,111 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             protected void onBeforeRender() {
                 super.onBeforeRender();
                 getModelObject().booleanValue();
-                if (getModelObject().booleanValue())
-                    add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
+                if (getModelObject().booleanValue()) {add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));}
             }
         };
-        add(resourceSearch);
+        resourceChoiceContainer.add(resourceSearch);
 
     }
 
-    private boolean isTopTableButtonsVisible() {
+    protected boolean isSourceChoiceVisible() {
+        return true;
+    }
+
+    private void initAttributeMappingButton(RepeatingView topButtons) {
+        AjaxIconButton attrMappingButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showAttributeMappingWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        attrMappingButton.showTitleAsLabel(true);
+        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary btn p-3 flex-basis-0 flex-fill"));
+        topButtons.add(attrMappingButton);
+    }
+
+    private void initSychronizationButton(RepeatingView topButtons) {
+        AjaxIconButton synchConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        synchConfButton.showTitleAsLabel(true);
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary btn p-3 flex-fill flex-basis-0 mr-3"));
+        topButtons.add(synchConfButton);
+    }
+
+    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(
+            AjaxRequestTarget target) {
+
+        if ((!isUseObjectClass() && resourceContentSearch.getObject().getKind() == null)
+                || (isUseObjectClass() && resourceContentSearch.getObject().getObjectClass() == null)) {
+            getPageBase().warn("Couldn't recognize resource object type");
+            LOGGER.debug("Couldn't recognize resource object type");
+            target.add(getPageBase().getFeedbackPanel());
+            return null;
+        }
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> foundValue = null;
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> defaultValue = null;
+        try {
+            PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = getObjectWrapperModel().getObject().findContainer(
+                    ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+            for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> value : container.getValues()) {
+                if (!isUseObjectClass()
+                        && (resourceContentSearch.getObject().getKind().equals(value.getRealValue().getKind()))
+                        || kind.equals(value.getRealValue().getKind())) {
+                    if (resourceContentSearch.getObject().getIntent() != null
+                            && resourceContentSearch.getObject().getIntent().equals(value.getRealValue().getKind())) {
+                        foundValue = value;
+                    }
+                    if (Boolean.TRUE.equals(value.getRealValue().isDefaultForKind())){
+                        defaultValue = value;
+                    }
+                }
+                if (isUseObjectClass()
+                        && resourceContentSearch.getObject().getObjectClass().equals(value.getRealValue().getObjectClass())
+                        && Boolean.TRUE.equals(value.getRealValue().isDefaultForObjectClass())) {
+                    foundValue = value;
+                }
+                if (Boolean.TRUE.equals(value.getRealValue().isDefault() && defaultValue == null)) {
+                    defaultValue = value;
+                }
+            }
+        } catch (SchemaException e) {
+            //ignore issue log error below
+        }
+        if (foundValue == null) {
+            if (defaultValue == null) {
+                getPageBase().warn("Couldn't recognize resource object type");
+                LOGGER.debug("Couldn't recognize resource object type");
+                target.add(getPageBase().getFeedbackPanel());
+                return null;
+            }
+            foundValue = defaultValue;
+        }
+        return new ContainerValueWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), foundValue.getPath());
+    }
+
+    protected boolean isTopTableButtonsVisible() {
         return true;
     }
 
@@ -339,7 +444,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
             @Override
             protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
@@ -348,17 +453,26 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     return getObjectDetailsModels().getRefinedSchema();
                 }
             }
+
+            @Override
+            protected boolean isTaskButtonsContainerVisible() {
+                return ResourceContentPanel.this.isTaskButtonsContainerVisible();
+            }
         };
         resourceContent.setOutputMarkupId(true);
         return resourceContent;
 
     }
 
+    protected boolean isTaskButtonsContainerVisible() {
+        return true;
+    }
+
     private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObjectWrapper<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
         ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, loadResourceModel(),
-                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()){
+                getObjectClass(), getKind(), getIntent(), searchMode, getPanelConfiguration()) {
             @Override
             protected ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
                 try {
@@ -366,6 +480,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 } catch (SchemaException | ConfigurationException e) {
                     return getObjectDetailsModels().getRefinedSchema();
                 }
+            }
+
+            @Override
+            protected boolean isTaskButtonsContainerVisible() {
+                return ResourceContentPanel.this.isTaskButtonsContainerVisible();
             }
         };
         repositoryContent.setOutputMarkupId(true);

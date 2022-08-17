@@ -90,7 +90,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
         });
 
-        steps.add(new LimitationsStepPanel(getResourceModel(), valueModel) {
+        steps.add(new AttributeInboundStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
@@ -104,7 +104,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
         });
 
-        steps.add(new AttributeInboundStepPanel(getResourceModel(), valueModel) {
+        steps.add(new LimitationsStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
@@ -125,9 +125,6 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                 }
             }
         });
-
-
-
         return steps;
     }
 

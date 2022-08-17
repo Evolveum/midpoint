@@ -29,6 +29,7 @@
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
 CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch; -- fuzzy string match (levenshtein, etc.)
 
 -- region custom enum types
 -- Some enums are from schema, some are only defined in repo-sqale.
@@ -40,6 +41,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'ASSIGNMENT',
     'CASE_WORK_ITEM',
+    'FOCUS_IDENTITY',
     'INDUCEMENT',
     'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
@@ -487,6 +489,23 @@ CREATE TABLE m_ref_projection (
 CREATE INDEX m_ref_projection_targetOidRelationId_idx
     ON m_ref_projection (targetOid, relationId);
 
+CREATE TABLE m_focus_identity (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('FOCUS_IDENTITY') STORED
+        CHECK (containerType = 'FOCUS_IDENTITY'),
+    fullObject BYTEA,
+    sourceResourceRefTargetOid UUID,
+    itemsOriginal JSONB,
+    itemsNormalized JSONB,
+
+    PRIMARY KEY (ownerOid, cid)
+)
+    INHERITS(m_container);
+
+CREATE INDEX m_focus_identity_sourceResourceRefTargetOid_idx ON m_focus_identity (sourceResourceRefTargetOid);
+CREATE INDEX m_focus_identity_itemsOriginal_idx ON m_focus_identity USING gin(itemsOriginal);
+CREATE INDEX m_focus_identity_itemsNormalized_idx ON m_focus_identity USING gin(itemsNormalized);
+
 -- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
 CREATE TABLE m_generic_object (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -508,7 +527,7 @@ CREATE INDEX m_generic_object_subtypes_idx ON m_generic_object USING gin(subtype
 CREATE INDEX m_generic_object_validFrom_idx ON m_generic_object (validFrom);
 CREATE INDEX m_generic_object_validTo_idx ON m_generic_object (validTo);
 CREATE INDEX m_generic_object_fullTextInfo_idx
-    ON m_generic_object USING gin (fullTextInfo gin_trgm_ops);
+    ON m_generic_object USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_generic_object_createTimestamp_idx ON m_generic_object (createTimestamp);
 CREATE INDEX m_generic_object_modifyTimestamp_idx ON m_generic_object (modifyTimestamp);
 -- endregion
@@ -561,7 +580,7 @@ CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
 CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
 CREATE INDEX m_user_validFrom_idx ON m_user (validFrom);
 CREATE INDEX m_user_validTo_idx ON m_user (validTo);
-CREATE INDEX m_user_fullTextInfo_idx ON m_user USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_user_fullTextInfo_idx ON m_user USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_user_createTimestamp_idx ON m_user (createTimestamp);
 CREATE INDEX m_user_modifyTimestamp_idx ON m_user (modifyTimestamp);
 -- endregion
@@ -611,7 +630,7 @@ CREATE INDEX m_role_subtypes_idx ON m_role USING gin(subtypes);
 CREATE INDEX m_role_identifier_idx ON m_role (identifier);
 CREATE INDEX m_role_validFrom_idx ON m_role (validFrom);
 CREATE INDEX m_role_validTo_idx ON m_role (validTo);
-CREATE INDEX m_role_fullTextInfo_idx ON m_role USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_role_fullTextInfo_idx ON m_role USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_role_createTimestamp_idx ON m_role (createTimestamp);
 CREATE INDEX m_role_modifyTimestamp_idx ON m_role (modifyTimestamp);
 
@@ -637,7 +656,7 @@ CREATE INDEX m_service_subtypes_idx ON m_service USING gin(subtypes);
 CREATE INDEX m_service_identifier_idx ON m_service (identifier);
 CREATE INDEX m_service_validFrom_idx ON m_service (validFrom);
 CREATE INDEX m_service_validTo_idx ON m_service (validTo);
-CREATE INDEX m_service_fullTextInfo_idx ON m_service USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_service_fullTextInfo_idx ON m_service USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_service_createTimestamp_idx ON m_service (createTimestamp);
 CREATE INDEX m_service_modifyTimestamp_idx ON m_service (modifyTimestamp);
 
@@ -662,7 +681,7 @@ CREATE INDEX m_archetype_subtypes_idx ON m_archetype USING gin(subtypes);
 CREATE INDEX m_archetype_identifier_idx ON m_archetype (identifier);
 CREATE INDEX m_archetype_validFrom_idx ON m_archetype (validFrom);
 CREATE INDEX m_archetype_validTo_idx ON m_archetype (validTo);
-CREATE INDEX m_archetype_fullTextInfo_idx ON m_archetype USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_archetype_fullTextInfo_idx ON m_archetype USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_archetype_createTimestamp_idx ON m_archetype (createTimestamp);
 CREATE INDEX m_archetype_modifyTimestamp_idx ON m_archetype (modifyTimestamp);
 -- endregion
@@ -692,7 +711,7 @@ CREATE INDEX m_org_subtypes_idx ON m_org USING gin(subtypes);
 CREATE INDEX m_org_identifier_idx ON m_org (identifier);
 CREATE INDEX m_org_validFrom_idx ON m_org (validFrom);
 CREATE INDEX m_org_validTo_idx ON m_org (validTo);
-CREATE INDEX m_org_fullTextInfo_idx ON m_org USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_org_fullTextInfo_idx ON m_org USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_org_createTimestamp_idx ON m_org (createTimestamp);
 CREATE INDEX m_org_modifyTimestamp_idx ON m_org (modifyTimestamp);
 
@@ -835,7 +854,8 @@ CREATE TABLE m_resource (
     operationalStateLastAvailabilityStatus AvailabilityStatusType,
     connectorRefTargetOid UUID,
     connectorRefTargetType ObjectType,
-    connectorRefRelationId INTEGER REFERENCES m_uri(id)
+    connectorRefRelationId INTEGER REFERENCES m_uri(id),
+    template BOOLEAN
 )
     INHERITS (m_assignment_holder);
 
@@ -849,7 +869,7 @@ CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
 CREATE INDEX m_resource_nameOrig_idx ON m_resource (nameOrig);
 CREATE UNIQUE INDEX m_resource_nameNorm_key ON m_resource (nameNorm);
 CREATE INDEX m_resource_subtypes_idx ON m_resource USING gin(subtypes);
-CREATE INDEX m_resource_fullTextInfo_idx ON m_resource USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_resource_fullTextInfo_idx ON m_resource USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_resource_createTimestamp_idx ON m_resource (createTimestamp);
 CREATE INDEX m_resource_modifyTimestamp_idx ON m_resource (modifyTimestamp);
 
@@ -912,7 +932,7 @@ CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
 CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING gin(policysituations gin__int_ops);
 CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
 CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
-CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_shadow_resourceRefTargetOid_idx ON m_shadow (resourceRefTargetOid);
 CREATE INDEX m_shadow_createTimestamp_idx ON m_shadow (createTimestamp);
 CREATE INDEX m_shadow_modifyTimestamp_idx ON m_shadow (modifyTimestamp);
@@ -992,7 +1012,7 @@ CREATE INDEX m_security_policy_subtypes_idx ON m_security_policy USING gin(subty
 CREATE INDEX m_security_policy_policySituation_idx
     ON m_security_policy USING gin(policysituations gin__int_ops);
 CREATE INDEX m_security_policy_fullTextInfo_idx
-    ON m_security_policy USING gin (fullTextInfo gin_trgm_ops);
+    ON m_security_policy USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_security_policy_createTimestamp_idx ON m_security_policy (createTimestamp);
 CREATE INDEX m_security_policy_modifyTimestamp_idx ON m_security_policy (modifyTimestamp);
 
@@ -1017,7 +1037,7 @@ CREATE INDEX m_object_collection_subtypes_idx ON m_object_collection USING gin(s
 CREATE INDEX m_object_collection_policySituation_idx
     ON m_object_collection USING gin(policysituations gin__int_ops);
 CREATE INDEX m_object_collection_fullTextInfo_idx
-    ON m_object_collection USING gin (fullTextInfo gin_trgm_ops);
+    ON m_object_collection USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_object_collection_createTimestamp_idx ON m_object_collection (createTimestamp);
 CREATE INDEX m_object_collection_modifyTimestamp_idx ON m_object_collection (modifyTimestamp);
 
@@ -1266,7 +1286,7 @@ CREATE INDEX m_task_dependentTaskIdentifiers_idx ON m_task USING gin(dependentTa
 CREATE INDEX m_task_subtypes_idx ON m_task USING gin(subtypes);
 CREATE INDEX m_task_policySituation_idx ON m_task USING gin(policysituations gin__int_ops);
 CREATE INDEX m_task_ext_idx ON m_task USING gin(ext);
-CREATE INDEX m_task_fullTextInfo_idx ON m_task USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_task_fullTextInfo_idx ON m_task USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_task_createTimestamp_idx ON m_task (createTimestamp);
 CREATE INDEX m_task_modifyTimestamp_idx ON m_task (modifyTimestamp);
 -- endregion
@@ -1305,7 +1325,7 @@ CREATE INDEX m_case_nameOrig_idx ON m_case (nameOrig);
 CREATE INDEX m_case_nameNorm_idx ON m_case (nameNorm);
 CREATE INDEX m_case_subtypes_idx ON m_case USING gin(subtypes);
 CREATE INDEX m_case_policySituation_idx ON m_case USING gin(policysituations gin__int_ops);
-CREATE INDEX m_case_fullTextInfo_idx ON m_case USING gin (fullTextInfo gin_trgm_ops);
+CREATE INDEX m_case_fullTextInfo_idx ON m_case USING gin(fullTextInfo gin_trgm_ops);
 
 CREATE INDEX m_case_objectRefTargetOid_idx ON m_case(objectRefTargetOid);
 CREATE INDEX m_case_targetRefTargetOid_idx ON m_case(targetRefTargetOid);
@@ -1351,6 +1371,7 @@ CREATE TABLE m_case_wi_assignee (
 )
     INHERITS (m_reference);
 
+-- indexed by first three PK columns
 ALTER TABLE m_case_wi_assignee ADD CONSTRAINT m_case_wi_assignee_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1368,6 +1389,7 @@ CREATE TABLE m_case_wi_candidate (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns
 ALTER TABLE m_case_wi_candidate ADD CONSTRAINT m_case_wi_candidate_id_fk
     FOREIGN KEY (ownerOid, workItemCid) REFERENCES m_case_wi (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1405,7 +1427,7 @@ CREATE INDEX m_access_cert_definition_policySituation_idx
     ON m_access_cert_definition USING gin(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_definition_ext_idx ON m_access_cert_definition USING gin(ext);
 CREATE INDEX m_access_cert_definition_fullTextInfo_idx
-    ON m_access_cert_definition USING gin (fullTextInfo gin_trgm_ops);
+    ON m_access_cert_definition USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_access_cert_definition_createTimestamp_idx ON m_access_cert_definition (createTimestamp);
 CREATE INDEX m_access_cert_definition_modifyTimestamp_idx ON m_access_cert_definition (modifyTimestamp);
 
@@ -1442,7 +1464,7 @@ CREATE INDEX m_access_cert_campaign_policySituation_idx
     ON m_access_cert_campaign USING gin(policysituations gin__int_ops);
 CREATE INDEX m_access_cert_campaign_ext_idx ON m_access_cert_campaign USING gin(ext);
 CREATE INDEX m_access_cert_campaign_fullTextInfo_idx
-    ON m_access_cert_campaign USING gin (fullTextInfo gin_trgm_ops);
+    ON m_access_cert_campaign USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_access_cert_campaign_createTimestamp_idx ON m_access_cert_campaign (createTimestamp);
 CREATE INDEX m_access_cert_campaign_modifyTimestamp_idx ON m_access_cert_campaign (modifyTimestamp);
 
@@ -1508,6 +1530,7 @@ CREATE TABLE m_access_cert_wi (
 )
     INHERITS(m_container);
 
+-- indexed by first two PK columns
 ALTER TABLE m_access_cert_wi
     ADD CONSTRAINT m_access_cert_wi_id_fk FOREIGN KEY (ownerOid, accessCertCaseCid)
         REFERENCES m_access_cert_case (ownerOid, cid)
@@ -1524,10 +1547,12 @@ CREATE TABLE m_access_cert_wi_assignee (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns, TODO: isn't this one superfluous with the next one?
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_case
     FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
+-- indexed by first three PK columns
 ALTER TABLE m_access_cert_wi_assignee ADD CONSTRAINT m_access_cert_wi_assignee_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
@@ -1547,10 +1572,12 @@ CREATE TABLE m_access_cert_wi_candidate (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns, TODO: isn't this one superfluous with the next one?
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_case
     FOREIGN KEY (ownerOid, accessCertCaseCid) REFERENCES m_access_cert_case (ownerOid, cid)
         ON DELETE CASCADE;
 
+-- indexed by first three PK columns
 ALTER TABLE m_access_cert_wi_candidate ADD CONSTRAINT m_access_cert_wi_candidate_id_fk_wi
     FOREIGN KEY (ownerOid, accessCertCaseCid, accessCertWorkItemCid)
         REFERENCES m_access_cert_wi (ownerOid, accessCertCaseCid, cid)
@@ -1769,6 +1796,7 @@ CREATE TABLE m_assignment_ref_create_approver (
 )
     INHERITS (m_reference);
 
+-- indexed by first two PK columns
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1787,6 +1815,7 @@ CREATE TABLE m_assignment_ref_modify_approver (
 )
     INHERITS (m_reference);
 
+-- indexed by first three PK columns
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
@@ -1909,4 +1938,4 @@ END $$;
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_change(7, $$ SELECT 1 $$, true);
+call apply_change(9, $$ SELECT 1 $$, true);

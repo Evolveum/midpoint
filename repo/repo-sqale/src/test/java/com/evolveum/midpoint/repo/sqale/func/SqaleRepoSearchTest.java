@@ -29,7 +29,10 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -405,6 +408,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 .id(2L)
                                 .stageNumber(2)
                                 .iteration(2)
+                                .targetRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .workItem(new AccessCertificationWorkItemType()
                                         .stageNumber(21)
                                         .iteration(1))
@@ -1961,7 +1965,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         + "  </filter>\n"
                         + "</query>").parseRealValue(QueryType.class));
         SearchResultList<UserType> result =
-                repositorySearchObjects(UserType.class, objectQuery, operationResult);
+                searchObjects(UserType.class, objectQuery, operationResult);
 
         then("users with extension/ref matching any of the values are returned");
         assertThatOperationResult(operationResult).isSuccess();
@@ -2388,7 +2392,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         // This is new repo speciality, but this query can't be formatted/reparsed.
         when("searching for user having specified OID");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<UserType> result = repositorySearchObjects(UserType.class,
+        SearchResultList<UserType> result = searchObjects(UserType.class,
                 prismContext.queryFor(UserType.class)
                         .item(PrismConstants.T_ID).eq(user1Oid)
                         .build(),
@@ -2406,7 +2410,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test911SearchByOidLowerThan() throws SchemaException {
         when("searching for objects with OID lower than");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2425,7 +2429,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test912SearchByOidLoe() throws SchemaException {
         when("searching for objects with OID lower than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2446,7 +2450,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test913SearchByOidGoe() throws SchemaException {
         when("searching for objects with OID greater than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2466,7 +2470,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test914SearchByOidPrefixGoe() throws SchemaException {
         when("searching for objects with OID prefix greater than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2487,7 +2491,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test915SearchByUpperCaseOidPrefixGoe() throws SchemaException {
         when("searching for objects with upper-case OID prefix greater than or equal");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2509,7 +2513,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test916SearchByOidPrefixStartsWith() throws SchemaException {
         when("searching for objects with OID prefix starting with");
         OperationResult operationResult = createOperationResult();
-        SearchResultList<ServiceType> result = repositorySearchObjects(ServiceType.class,
+        SearchResultList<ServiceType> result = searchObjects(ServiceType.class,
                 prismContext.queryFor(ServiceType.class)
                         .item(ServiceType.F_COST_CENTER).eq("OIDTEST")
                         .and()
@@ -2618,18 +2622,25 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test961SearchGetNames() throws SchemaException {
         var options = SchemaService.get().getOperationOptionsBuilder().resolveNames().build();
         ObjectQuery query = PrismContext.get().queryFor(FocusType.class).all().build();
-        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options.iterator().next());
+        SearchResultList<FocusType> result = searchObjects(FocusType.class, query, createOperationResult(), options);
         assertNotNull(result);
-        //noinspection rawtypes
-        Visitor check = visitable -> {
-            if (visitable instanceof PrismReferenceValue) {
-                assertNotNull(((PrismReferenceValue) visitable).getTargetName(), "TargetName should be set.");
-            }
-        };
-        for (FocusType obj : result) {
-            //noinspection unchecked
-            obj.asPrismObject().accept(check);
-        }
+
+        assertReferenceNamesSet(result);
+    }
+
+    @Test
+    public void test962SearchGetNamesAccessCertificationCampaignsWithCases() throws SchemaException {
+        var options = SchemaService.get().getOperationOptionsBuilder().resolveNames()
+                .item(AccessCertificationCampaignType.F_CASE).retrieve()
+                .build();
+        ObjectQuery query = PrismContext.get().queryFor(AccessCertificationCampaignType.class).all().build();
+        OperationResult opResult = createOperationResult();
+        SearchResultList<AccessCertificationCampaignType> result =
+                searchObjects(AccessCertificationCampaignType.class, query, opResult, options);
+        assertThatOperationResult(opResult).isSuccess();
+        assertNotNull(result);
+
+        assertReferenceNamesSet(result);
     }
 
     @Test
@@ -2713,8 +2724,31 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test982SearchRoleReferencedByUserAssignmentWithComplexFilterNoMatch() throws SchemaException {
         searchObjectTest("referenced by an assignment of the user specified by complex filter (no match)", RoleType.class,
-//                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
-//                        .ownedBy(UserType.class, F_ASSIGNMENT)
+                /*
+                This filter followed byt the .block() part is logically equivalent to the one used in code:
+                f -> f.referencedBy(AssignmentType.class, AssignmentType.F_TARGET_REF)
+                        .ownedBy(UserType.class, F_ASSIGNMENT)
+
+                Both produce similar select, just with different nesting of EXISTS and WHERE.
+                For the commented code we're searching for role referenced by assignment owned by user
+                (exactly what the fluent API says):
+                select r.oid, r.fullObject from m_role r
+                where exists (select 1 from m_assignment a
+                    where a.targetRefTargetOid = r.oid
+                        and exists (select 1 from m_user u
+                            where u.oid = a.ownerOid and a.containerType = ?
+                                and (not u.costCenter is null
+                                    and (u.policySituations = '{}' OR u.policySituations is null))))
+
+                And the select for the code from test, where we search role referenced from user's assignment:
+
+                select r.oid, r.fullObject from m_role r
+                where exists (select 1 from m_user u
+                    where exists (select 1 from m_assignment a
+                        where u.oid = a.ownerOid and a.containerType = ?
+                            and a.targetRefTargetOid = r.oid)
+                        and (not u.costCenter is null and (u.policySituations = '{}' OR u.policySituations is null)))
+                */
                 f -> f.referencedBy(UserType.class,
                                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
                         .block()
@@ -2750,6 +2784,45 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         // Use QName without namespace
                         .matching(new QName(STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart())),
                 user1Oid);
+    }
+
+    @Test
+    public void test992FuzzyStringSearch() throws SchemaException {
+        searchUsersTest("with levenshtein filter against string item",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("User1").levenshteinInclusive(2),
+                user1Oid);
+
+        searchUsersTest("with levenshtein filter against extension item",
+                f -> f.item(UserType.F_EXTENSION, new ItemName("string"))
+                        .fuzzyString("string_value").levenshteinExclusive(2), // distance 1, exclusive is still fine
+                user1Oid);
+
+        searchUsersTest("with NOT levenshtein filter against string item",
+                f -> f.not().item(UserType.F_EMPLOYEE_NUMBER)
+                        .fuzzyString("User1").levenshteinInclusive(2),
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+
+        searchUsersTest("with NOT levenshtein filter against extension item",
+                f -> f.not().item(UserType.F_EXTENSION, new ItemName("string"))
+                        .fuzzyString("string_value").levenshteinExclusive(2),
+                creatorOid, modifierOid, user2Oid, user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test995InvalidFuzzyStringSearchWithNullValue() {
+        assertThatThrownBy(() -> searchUsersTest("with fuzzy filter without values",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString().levenshtein(2, true)))
+                .isInstanceOf(SystemException.class) // the exception may change
+                .hasMessage("Filter 'levenshtein: employeeNumber, ' should contain exactly one value, but it contains none.");
+    }
+
+    @Test
+    public void test996InvalidFuzzyStringSearchWithMultipleValues() {
+        assertThatThrownBy(() -> searchUsersTest("with fuzzy filter with multiple values",
+                f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("first", "second").levenshtein(2, true)))
+                .isInstanceOf(SystemException.class) // the exception may change
+                .hasMessageMatching("Filter 'levenshtein: employeeNumber, .*' should contain at most one value, but it has 2 of them\\.");
     }
     // endregion
 }

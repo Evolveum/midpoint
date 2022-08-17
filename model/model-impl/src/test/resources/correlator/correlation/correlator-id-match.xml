@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<idMatchCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>id-match</name>
+    <!-- No url nor credentials. A dummy service is used instead. -->
+    <referenceIdProperty>employeeNumber</referenceIdProperty>
+    <correlationProperties>
+        <path>$focus/givenName</path>
+        <path>$shadow/attributes/familyName</path> <!-- just check the use of $shadow -->
+        <path>$focus/extension/dateOfBirth</path>
+        <path>$focus/extension/nationalId</path>
+        <path>$shadow/attributes/employeeNumber</path> <!-- Intentionally null-valued attribute -->
+    </correlationProperties>
+    <candidateConfidenceLimit>0.4</candidateConfidenceLimit>
+</idMatchCorrelator>

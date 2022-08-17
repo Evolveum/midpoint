@@ -30,10 +30,7 @@ import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqale.ExtUtils;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleQueryContext;
@@ -59,6 +56,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Filter processor for extension items stored in JSONB.
  * This takes care of any supported type, scalar or array, and handles any operation.
+ *
+ * NOTE about NOT treatment:
+ * We use the same not treatment for extensions like for other columns resulting in conditions like:
+ * `not (u.ext->>'1510' < ? and u.ext->>'1510' is not null)`
+ * One might think that the part after AND can be replaced with u.ext ? '1510' to benefit from the GIN index.
+ * But `NOT (u.ext ? '...')` is *not* fully complement to the `u.ext ? '...'` (without NOT).
+ * It is only fully complement if additional `AND u.ext is not null` is added in which case the index will not be used either.
+ * So instead of adding special treatment code for extensions, we just reuse existing predicateWithNotTreated methods.
  */
 public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<ValueFilter<?, ?>> {
 
@@ -107,6 +112,11 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
 
         PropertyValueFilter<?> propertyValueFilter = (PropertyValueFilter<?>) filter;
         ValueFilterValues<?, ?> values = ValueFilterValues.from(propertyValueFilter);
+
+        if (filter instanceof FuzzyStringMatchFilter<?>) {
+            return processFuzzySearch(extItem, values, (FuzzyStringMatchFilter<?>) filter);
+        }
+
         FilterOperation operation = operation(filter);
 
         if (values.isEmpty()) {
@@ -148,6 +158,29 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         }
 
         throw new QueryException("Unsupported filter for extension item: " + filter);
+    }
+
+    private Predicate processFuzzySearch(
+            MExtItem extItem, ValueFilterValues<?, ?> values, FuzzyStringMatchFilter<?> filter)
+            throws QueryException {
+        if (extItem.cardinality == SCALAR) {
+            return fuzzyStringPredicate(filter,
+                    stringTemplate("{0}->>'{1s}'", path, extItem.id),
+                    values);
+        } else if (!values.isMultiValue()) {
+            // e.g. for levenshtein: WHERE ... ext ? '421'
+            //   AND exists (select 1 from jsonb_array_elements_text(ext->'421') as val
+            //      WHERE levenshtein_less_equal(val, 'john', $1) <= $2)
+            // This can't use index, but it works. Sparse keys are helped a lot by indexed ext ? key condition.
+            SQLQuery<?> subselect = new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
+                    .from(stringTemplate("jsonb_array_elements_text({0}->'{1s}') as val", path, extItem.id))
+                    .where(fuzzyStringPredicate(filter, stringTemplate("val"), values));
+            return booleanTemplate("{0} ?? '{1s}'", path, extItem.id)
+                    .and(subselect.exists());
+        } else {
+            throw new QueryException("Fuzzy match not supported for multi-value extensions"
+                    + " and multiple values on the right-hand; used filter: " + filter);
+        }
     }
 
     private Predicate processReference(MExtItem extItem, RefFilter filter) {

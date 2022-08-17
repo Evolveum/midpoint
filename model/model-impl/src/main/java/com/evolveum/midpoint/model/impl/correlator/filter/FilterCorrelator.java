@@ -13,16 +13,12 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectSet;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.model.api.correlator.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.BaseCorrelator;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
@@ -39,6 +35,8 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -75,7 +73,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
     }
 
     @Override
-    protected boolean checkCandidateOwnerInternal(
+    protected double checkCandidateOwnerInternal(
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
@@ -106,16 +104,20 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);
             ObjectSet<F> confirmedCandidates = confirmCandidates(candidates, result);
-            // TODO selection expression
-
-            return beans.builtInResultCreator.createCorrelationResult(confirmedCandidates, correlationContext);
+            return createResult(confirmedCandidates, null, task, result);
         }
 
-        boolean checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
+        double checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            return checkCandidateUsingConditionalFilters(candidateOwner, result)
-                    && !confirmCandidates(ObjectSet.of(candidateOwner), result).isEmpty();
+            boolean matches =
+                    checkCandidateUsingConditionalFilters(candidateOwner, result)
+                            && !confirmCandidates(ObjectSet.of(candidateOwner), result).isEmpty();
+            if (matches) {
+                return determineConfidence(candidateOwner, null, task, result);
+            } else {
+                return 0;
+            }
         }
 
         private @NotNull ObjectSet<F> findCandidatesUsingConditionalFilters(OperationResult result)

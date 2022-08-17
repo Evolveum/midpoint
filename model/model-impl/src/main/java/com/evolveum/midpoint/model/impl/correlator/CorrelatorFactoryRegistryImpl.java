@@ -76,7 +76,7 @@ public class CorrelatorFactoryRegistryImpl implements CorrelatorFactoryRegistry 
         //noinspection unchecked
         return MiscUtil.extractSingletonRequired(
                 factories.values().stream()
-                        .filter(factory -> factory.getConfigurationBeanType().equals(type))
+                        .filter(factory -> factory.getConfigurationBeanType().isAssignableFrom(type))
                         .map(factory -> (CorrelatorFactory<?, CB>) factory)
                         .collect(Collectors.toList()),
                 () -> new IllegalStateException("Multiple correlator factories for configuration " + type),

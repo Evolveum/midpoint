@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -86,14 +86,14 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * specification we don't have the actual query path representing the entity or the column.
      * These paths are non-static properties of query class instances.
      *
-     * The {@link ItemSqlMapper} also provides so called "primary mapping" to a column for ORDER BY
+     * The {@link ItemSqlMapper} also provides so-called "primary mapping" to a column for ORDER BY
      * part of the filter.
      * But there can be additional column mappings specified as for some types (e.g. poly-strings)
      * there may be other than 1-to-1 mapping.
      *
      * Construction of the {@link ItemSqlMapper} is typically simplified by static methods
      * {@code #mapper()} provided on various {@code *ItemFilterProcessor} classes.
-     * This works as a "processor factory factory" and makes table mapping specification simpler.
+     * This works as a "processor factory-factory" and makes table mapping specification simpler.
      *
      * @param itemName item name from schema type (see {@code F_*} constants on schema types)
      * @param itemMapper mapper wrapping the information about column mappings working also

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,12 +18,17 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutableItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -82,6 +87,23 @@ public class ExtUtils {
         return MiscUtil.asInstant(dateTime)
                 .truncatedTo(ChronoUnit.MILLIS)
                 .toString();
+    }
+
+    /** Creates definition from {@link MExtItem}. */
+    public static ItemDefinition<?> createDefinition(QName name, MExtItem itemInfo, boolean indexOnly) {
+        QName typeName = ExtUtils.getSupportedTypeName(itemInfo.valueType);
+        final MutableItemDefinition<?> def;
+        if (ObjectReferenceType.COMPLEX_TYPE.equals(typeName)) {
+            def = PrismContext.get().definitionFactory().createReferenceDefinition(name, typeName);
+        } else {
+            def = PrismContext.get().definitionFactory().createPropertyDefinition(name, typeName);
+        }
+        def.setMinOccurs(0);
+        def.setMaxOccurs(-1);
+        def.setRuntimeSchema(true);
+        def.setDynamic(true);
+        def.setIndexOnly(indexOnly);
+        return def;
     }
 
     public static class SupportedExtensionTypeInfo {

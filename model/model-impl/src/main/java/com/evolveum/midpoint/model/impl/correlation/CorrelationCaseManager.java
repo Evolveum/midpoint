@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.correlator.CorrelationService;
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -66,15 +66,11 @@ public class CorrelationCaseManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationCaseManager.class);
 
-    private static final String OP_PERFORM_COMPLETION_IN_CORRELATOR =
-            CorrelationCaseManager.class.getName() + ".performCompletionInCorrelator";
-
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
-    @Autowired private CorrelationService correlationService;
-    @Autowired private ProvisioningService provisioningService;
+    @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private CaseEventDispatcher caseEventDispatcher;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired(required = false) private CaseManager caseManager;
@@ -278,7 +274,7 @@ public class CorrelationCaseManager {
      * - case is freshly fetched,
      * - case is a correlation one
      */
-    public void completeCorrelationCase(
+    void completeCorrelationCase(
             @NotNull CaseType aCase,
             @NotNull CorrelationService.CaseCloser caseCloser,
             @NotNull Task task,
@@ -292,13 +288,9 @@ public class CorrelationCaseManager {
             return;
         }
 
-        Correlator correlator = correlationService.instantiateCorrelator(aCase, task, result);
-
         recordCaseCompletionInShadow(aCase, task, result);
-
         caseCloser.closeCaseInRepository(result);
-
-        performCompletionInCorrelator(aCase, outcomeUri, correlator, task, result);
+        correlationService.resolve(aCase, task, result);
 
         // As a convenience, we try to re-import the object. Technically this is not a part of the correlation case processing.
         // Whether we do this should be made configurable (in the future).
@@ -390,40 +382,5 @@ public class CorrelationCaseManager {
     private boolean hasOutcomeUri(@NotNull CaseWorkItemType workItem, @NotNull String outcomeUri) {
         return workItem.getOutput() != null
                 && outcomeUri.equals(workItem.getOutput().getOutcome());
-    }
-
-    private void performCompletionInCorrelator(
-            @NotNull CaseType aCase,
-            @NotNull String outcomeUri,
-            @NotNull Correlator correlator,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        OperationResult result = parentResult.createSubresult(OP_PERFORM_COMPLETION_IN_CORRELATOR);
-        try {
-            applyShadowDefinition(aCase, task, result);
-            correlator.resolve(aCase, outcomeUri, task, result);
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.close();
-        }
-    }
-
-    /**
-     * Applies the correct definition to the shadow embedded in the case.targetRef.
-     */
-    private void applyShadowDefinition(CaseType aCase, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
-        ShadowType shadow =
-                MiscUtil.requireNonNull(
-                        MiscUtil.castSafely(
-                                ObjectTypeUtil.getObjectFromReference(aCase.getTargetRef()),
-                                ShadowType.class),
-                        () -> "No embedded shadow in " + aCase);
-        provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 }

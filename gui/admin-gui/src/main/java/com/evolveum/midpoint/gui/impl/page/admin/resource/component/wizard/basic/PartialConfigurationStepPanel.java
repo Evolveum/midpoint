@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -72,6 +73,11 @@ public class PartialConfigurationStepPanel extends AbstractFormResourceWizardSte
 
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
+        ContainerPanelConfigurationType config = getContainerConfiguration();
+        if (config != null
+                && (config.getContainer().size() != 1 || config.getContainer().iterator().next().getPath() == null)) {
+            return w -> ItemVisibility.AUTO;
+        }
         return w -> {
             if (w.isMandatory()) {
                 return ItemVisibility.AUTO;

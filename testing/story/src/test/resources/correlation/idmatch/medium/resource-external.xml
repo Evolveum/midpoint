@@ -42,12 +42,6 @@
                 <ref>ri:EXT_ID</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <target>
-                        <path>extension/externalId</path>
-                    </target>
-                </inbound>
-                <inbound>
-                    <strength>strong</strength>
                     <expression>
                         <path>$shadow/correlation/correlatorState/referenceId</path>
                     </expression>
@@ -65,7 +59,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/externalGivenName</path>
+                        <path>givenName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -74,7 +68,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/externalFamilyName</path>
+                        <path>familyName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -83,7 +77,7 @@
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>extension/externalDateOfBirth</path>
+                        <path>extension/dateOfBirth</path>
                     </target>
                 </inbound>
             </attribute>
@@ -91,8 +85,17 @@
                 <ref>ri:NATIDENT</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import static com.evolveum.midpoint.testing.story.correlation.IdMatchTestUtil.normalizeNationalId
+
+                                normalizeNationalId(input)
+                            </code>
+                        </script>
+                    </expression>
                     <target>
-                        <path>extension/externalNationalId</path>
+                        <path>extension/nationalId</path>
                     </target>
                 </inbound>
             </attribute>
@@ -107,35 +110,9 @@
             <correlation>
                 <correlators>
                     <idMatch>
-                        <extending>idmatch</extending>
-                        <definitions>
-                            <items>
-                                <item>
-                                    <name>givenName</name>
-                                    <source>
-                                        <path>extension/externalGivenName</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>familyName</name>
-                                    <source>
-                                        <path>extension/externalFamilyName</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>dateOfBirth</name>
-                                    <source>
-                                        <path>extension/externalDateOfBirth</path>
-                                    </source>
-                                </item>
-                                <item>
-                                    <name>nationalId</name>
-                                    <source>
-                                        <path>extension/externalNationalId</path>
-                                    </source>
-                                </item>
-                            </items>
-                        </definitions>
+                        <super>
+                            <ref>idmatch</ref>
+                        </super>
                         <sorIdentifierPrefix>external-</sorIdentifierPrefix>
                     </idMatch>
                 </correlators>

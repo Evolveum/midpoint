@@ -8,16 +8,18 @@
 package com.evolveum.midpoint.testing.story.correlation;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvResource;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
 import java.io.File;
+
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,8 +42,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
             "10f012cd-17dc-45dd-886d-2d53aa889fd7", "resource-sis.csv",
             "sisId,firstName,lastName,born,nationalId");
 
-    private static final TestTask TASK_IMPORT_SIS = new TestTask(TEST_DIR, "task-import-sis.xml",
-            "e010c26d-407d-4b9e-9ea9-697f4c5ed1c3", 30000);
+    private static final ItemName SIS_ID_NAME = new ItemName(NS_RI, "sisId");
 
     private String johnOid;
 
@@ -52,7 +53,6 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
 
         RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
-        TASK_IMPORT_SIS.initialize(this, initTask, initResult);
     }
 
     @Override
@@ -71,20 +71,14 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         given("John is in SIS as #1");
         RESOURCE_SIS.appendLine("1,John,Smith,2004-02-06,040206/1328");
 
-        when("import task from SIS is run");
-        TASK_IMPORT_SIS.rerun(result);
+        when("import for #1 is run");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("1")
+                .execute(result);
 
         then("John should be imported");
-
-        // @formatter:off
-        TASK_IMPORT_SIS.assertAfter()
-                .assertClosed()
-                .assertSuccess()
-                .rootActivityState()
-                    .progress()
-                        .assertCommitted(1, 0, 0);
-        // @formatter:on
-
         johnOid = assertUserAfterByUsername("smith1")
                 .assertGivenName("John")
                 .assertFamilyName("Smith")
@@ -109,19 +103,14 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         given("John is in SIS as #2");
         RESOURCE_SIS.appendLine("2,John,Smith,2004-02-06,040206/132x");
 
-        when("import task from SIS is run");
-        TASK_IMPORT_SIS.rerun(result);
+        when("import for #2 is run");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("2")
+                .execute(result);
 
         then("Correlation case should be created");
-
-        // @formatter:off
-        TASK_IMPORT_SIS.assertAfter()
-                .assertClosed()
-                .assertSuccess()
-                .rootActivityState()
-                    .progress()
-                        .assertCommitted(2, 0, 0);
-        // @formatter:on
 
         PrismObject<ShadowType> a2 = findShadowByPrismName("2", RESOURCE_SIS.getObject(), result);
         assertShadowAfter(a2)
@@ -167,19 +156,14 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         PrismObject<ShadowType> a2 = findShadowByPrismName("2", RESOURCE_SIS.getObject(), result);
         correlationService.clearCorrelationState(a2.getOid(), result);
 
-        when("import task from SIS is run");
-        TASK_IMPORT_SIS.rerun(result);
+        when("import for #3 is run");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIS.oid)
+                .withNamingAttribute(SIS_ID_NAME)
+                .withNameValue("3")
+                .execute(result);
 
         then("Correlation case should be created");
-
-        // @formatter:off
-        TASK_IMPORT_SIS.assertAfter()
-                .assertClosed()
-                .assertSuccess()
-                .rootActivityState()
-                    .progress()
-                        .assertCommitted(2, 0, 0);
-        // @formatter:on
 
         PrismObject<ShadowType> a3 = findShadowByPrismName("3", RESOURCE_SIS.getObject(), result);
         assertShadowAfter(a3)

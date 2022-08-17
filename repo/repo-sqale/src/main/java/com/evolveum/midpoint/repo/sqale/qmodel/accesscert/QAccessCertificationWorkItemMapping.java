@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -92,7 +92,7 @@ public class QAccessCertificationWorkItemMapping
 
     @Override
     public AccessCertificationWorkItemType toSchemaObject(MAccessCertificationWorkItem row) {
-        AccessCertificationWorkItemType acwi = new AccessCertificationWorkItemType(prismContext())
+        AccessCertificationWorkItemType acwi = new AccessCertificationWorkItemType()
                 .id(row.cid)
                 .closeTimestamp(asXMLGregorianCalendar(row.closeTimestamp))
                 .iteration(row.campaignIteration)
@@ -102,7 +102,7 @@ public class QAccessCertificationWorkItemMapping
                 .stageNumber(row.stageNumber);
 
         if (row.outcome != null) {
-            acwi.output(new AbstractWorkItemOutputType(prismContext()).outcome(row.outcome));
+            acwi.output(new AbstractWorkItemOutputType().outcome(row.outcome));
         }
 
         return acwi;
@@ -193,7 +193,7 @@ public class QAccessCertificationWorkItemMapping
                     throw new SystemException(e);
                 }
             }
-            resolveNames(aCase.asContainerable(), jdbcSession, options);
+            resolveReferenceNames(aCase.asContainerable(), jdbcSession, options);
 
             PrismContainer<AccessCertificationWorkItemType> container =
                     aCase.findContainer(AccessCertificationCaseType.F_WORK_ITEM);
@@ -205,7 +205,7 @@ public class QAccessCertificationWorkItemMapping
                 throw new SystemException("Campaign " + owner + "has no work item with ID " + row.cid);
             }
             @NotNull AccessCertificationWorkItemType ret = value.asContainerable();
-            resolveNames(ret, jdbcSession, options);
+            resolveReferenceNames(ret, jdbcSession, options);
             return ret;
         };
     }
@@ -224,7 +224,7 @@ public class QAccessCertificationWorkItemMapping
         }
         try {
             //noinspection unchecked
-            return mapping.toSchemaObject(result, root, Collections.emptyList()).asPrismContainerValue();
+            return mapping.toSchemaObject(result, root, jdbcSession, Collections.emptyList()).asPrismContainerValue();
         } catch (SchemaException e) {
             throw new SystemException(e);
         }

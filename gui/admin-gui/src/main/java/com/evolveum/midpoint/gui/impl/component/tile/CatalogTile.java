@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import java.io.Serializable;
 
 /**
@@ -14,9 +16,15 @@ import java.io.Serializable;
  */
 public class CatalogTile<T extends Serializable> extends Tile<T> {
 
-    private String logo;
+    public enum CheckState {
+        NONE, PARTIAL, FULL
+    }
 
     private String description;
+
+    private String info;
+
+    private CheckState checkState;
 
     public CatalogTile() {
         this(null, null);
@@ -26,19 +34,30 @@ public class CatalogTile<T extends Serializable> extends Tile<T> {
         super(icon, title);
     }
 
-    public String getLogo() {
-        return logo;
-    }
-
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public CheckState getCheckState() {
+        if (checkState == null) {
+            checkState = CheckState.NONE;
+        }
+        return checkState;
+    }
+
+    public void setCheckState(CheckState checkState) {
+        this.checkState = checkState;
     }
 }

@@ -16,8 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.correlator.*;
+import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 /**
- * Tests expression correlator, including creation and resolution of manual correlation cases.
+ * Tests expression correlator.
  *
  * Scenario:
  *
@@ -47,7 +48,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * - accounts: dynamically created - one for each test
  *
  * Correlators returns various combinations for users for individual accounts (see the individual tests).
- * Manual cases are sometimes created, and sometimes also resolved.
+ *
+ * Originally we tested creation of manual cases here; but this is now disabled, as this functionality
+ * has been removed from the correlator.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -70,7 +73,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
     private static final TestResource<UserType> USER_Z =
             new TestResource<>(TEST_DIR, "user-z.xml", "87f52bbe-8873-4683-adcb-c52a18f63c13");
 
-    @Autowired private CorrelationService correlationService;
+    @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private CorrelationCaseManager correlationCaseManager;
 
     @Override
@@ -97,7 +100,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, "[]");
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, NO_OWNER, null);
@@ -118,7 +121,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, ownersCode(USER_X));
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, EXISTING_OWNER, USER_X.oid);
@@ -126,7 +129,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
     }
 
     /**
-     * The correlation code returns X and Y. Because manual case is not created automatically, no case should be there.
+     * The correlation code returns X and Y.
      */
     @Test
     public void test120OwnersXY() throws Exception {
@@ -139,7 +142,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, ownersCode(USER_X, USER_Y));
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
@@ -148,8 +151,10 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     /**
      * The correlation code returns X and Y. Correlation case is requested to be created.
+     *
+     * THIS TEST IS DISABLED: the explicit case-creation functionality has been removed, at least for now.
      */
-    @Test
+    @Test(enabled = false)
     public void test130OwnersXYWithCase() throws Exception {
         given();
         Task task = getTestTask();
@@ -161,7 +166,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
                 requestCaseCode() + ownersCode(USER_X, USER_Y));
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
@@ -170,8 +175,10 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
 
     /**
      * The correlation code returns empty list but a custom potential matches.
+     *
+     * THIS TEST IS DISABLED: the explicit case-creation functionality has been removed, at least for now.
      */
-    @Test
+    @Test(enabled = false)
     public void test140CustomPotentialMatches() throws Exception {
         given();
         Task task = getTestTask();
@@ -190,7 +197,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         account.addAttributeValue(ATTR_CORRELATION_CODE, customCode);
 
         when();
-        CorrelationResult correlationResult = correlateAccount(accountName, task, result);
+        CompleteCorrelationResult correlationResult = correlateAccount(accountName, task, result);
 
         then();
         assertCorrelationResult(correlationResult, UNCERTAIN, null);
@@ -226,7 +233,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
     }
 
     private void assertCorrelationResult(
-            CorrelationResult correlationResult, CorrelationSituationType expectedSituation, String expectedOid) {
+            CompleteCorrelationResult correlationResult, CorrelationSituationType expectedSituation, String expectedOid) {
         displayDumpable("correlation result", correlationResult);
         assertThat(correlationResult.getSituation()).as("correlation result status").isEqualTo(expectedSituation);
         ObjectType owner = correlationResult.getOwner();
@@ -234,9 +241,9 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         assertThat(oid).as("correlated owner OID").isEqualTo(expectedOid);
     }
 
-    private CorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
+    private CompleteCorrelationResult correlateAccount(String accountName, Task task, OperationResult result) throws CommonException {
         ShadowType shadow = getAccountByName(accountName, task, result);
-        return correlationService.correlate(shadow, null, task, result);
+        return correlationService.correlate(shadow, task, result);
     }
 
     private @NotNull ShadowType getAccountByName(String name, Task task, OperationResult result)
