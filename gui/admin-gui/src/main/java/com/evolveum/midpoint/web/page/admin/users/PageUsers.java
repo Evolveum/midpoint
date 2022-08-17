@@ -131,15 +131,6 @@ public class PageUsers extends PageAdmin {
             }
 
             @Override
-            protected List<ItemPath> getFixedSearchItems() {
-                List<ItemPath> fixedSearchItems = new ArrayList<>();
-                fixedSearchItems.add(UserType.F_NAME);
-                fixedSearchItems.add(UserType.F_GIVEN_NAME);
-                fixedSearchItems.add(UserType.F_FAMILY_NAME);
-                return fixedSearchItems;
-            }
-
-            @Override
             protected String getNothingSelectedMessage() {
                 return getString("pageUsers.message.nothingSelected");
             }

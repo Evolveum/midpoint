@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
@@ -57,7 +59,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Created by honchar
  */
-public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
+@PanelType(name = "myWorkItems")
+public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -67,114 +70,139 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     private static final String ID_WORKITEMS_TABLE = "workitemsTable";
 
-    public enum View {
-        FULL_LIST,                // selectable, full information
-        DASHBOARD,                 // not selectable, reduced info (on dashboard)
-        ITEMS_FOR_PROCESS        // work items for a process
-    }
+//    public enum View {
+//        FULL_LIST,                // selectable, full information
+//        DASHBOARD,                 // not selectable, reduced info (on dashboard)
+//        ITEMS_FOR_PROCESS        // work items for a process
+//    }
+//
+//    private final View view;
 
-    private final View view;
 
+    //TODO page parameters?
     private PageParameters pageParameters;
-    private ContainerPanelConfigurationType config;
 
-    public CaseWorkItemsPanel(String id, View view) {
-        super(id);
-        this.view = view;
-    }
-    public CaseWorkItemsPanel(String id, View view, ContainerPanelConfigurationType configurationType) {
-        super(id);
-        this.view = view;
-        this.config = configurationType;
+    public CaseWorkItemsPanel(String id) {
+        super(id, CaseWorkItemType.class);
     }
 
+    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
+        super(id, CaseWorkItemType.class, options);
+    }
 
-    public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters) {
-        super(id);
-        this.view = view;
-        this.pageParameters = pageParameters;
+    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
+        super(id, CaseWorkItemType.class, options, configurationType);
+    }
+
+//    public CaseWorkItemsPanel(String id, View view) {
+//        super(id);
+//        this.view = view;
+//    }
+//    public CaseWorkItemsPanel(String id, View view, ContainerPanelConfigurationType configurationType) {
+//        super(id);
+//        this.view = view;
+//        this.config = configurationType;
+//    }
+//
+//    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
+//        super(id);
+////        this.view = view;
+//        this.view = View.DASHBOARD;
+//        this.config = configurationType;
+//    }
+
+
+//    public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters) {
+//        super(id);
+//        this.view = view;
+//        this.pageParameters = pageParameters;
+//    }
+
+//    @Override
+//    protected void onInitialize() {
+//        super.onInitialize();
+////        initLayout();
+//    }
+
+    @Override
+    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
+        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), !isDashboard());
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
+    protected List<InlineMenuItem> createInlineMenu() {
+        if (!isDashboard()) {
+            return createRowActions();
+        }
+        return null;
     }
 
-    private void initLayout(){
-        ContainerableListPanel workItemsPanel =
-                new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class, null, config) {
-
-                    @Override
-                    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
-                        return CaseWorkItemsPanel.this.createDefaultColumns();
-                    }
-
-                    @Override
-                    protected List<InlineMenuItem> createInlineMenu() {
-                        if (View.FULL_LIST.equals(view)) {
-                            return createRowActions();
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected ISelectableDataProvider<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
-                        return CaseWorkItemsPanel.this.createProvider(getSearchModel());
-                    }
-
-                    @Override
-                    public List<CaseWorkItemType> getSelectedRealObjects() {
-                        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
-                    }
-
-                    @Override
-                    protected UserProfileStorage.TableId getTableId() {
-                        return UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL;
-                    }
-
-                    @Override
-                    protected boolean isPagingVisible() {
-                        return View.DASHBOARD != view;
-                    }
-
-                    @Override
-                    protected boolean isHeaderVisible() {
-                        return !View.DASHBOARD.equals(view);
-                    }
-
-                    @Override
-                    protected IColumn createCheckboxColumn() {
-                        return CaseWorkItemsPanel.this.createCheckboxColumn();
-                    }
-
-                    @Override
-                    protected IColumn createIconColumn() {
-                        return CaseWorkItemsPanel.this.createIconColumn();
-                    }
-
-                    @Override
-                    protected IColumn createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-                        return CaseWorkItemsPanel.this.createNameColumn();
-                    }
-
-                    @Override
-                    protected String getStorageKey() {
-                        return SessionStorage.KEY_WORK_ITEMS;
-                    }
-
-                    @Override
-                    protected CaseWorkItemType getRowRealValue(PrismContainerValueWrapper<CaseWorkItemType> rowModelObject) {
-                        if (rowModelObject == null) {
-                            return null;
-                        }
-                        return rowModelObject.getRealValue();
-                    }
-                };
-        workItemsPanel.setOutputMarkupId(true);
-        workItemsPanel.setDashboard(view == View.DASHBOARD);
-        add(workItemsPanel);
+    @Override
+    protected ISelectableDataProvider<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
+        return CaseWorkItemsPanel.this.createProvider(getSearchModel());
     }
+
+    @Override
+    public List<CaseWorkItemType> getSelectedRealObjects() {
+        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL;
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createCheckboxColumn(){
+        if (!isDashboard()) {
+            return  new CheckBoxHeaderColumn<>();
+        }
+        return null;
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createIconColumn(){
+        return new IconColumn<>(Model.of("")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
+            }
+
+        };
+    }
+
+    @Override
+    protected IColumn createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+        return CaseWorkItemsPanel.this.createNameColumn();
+    }
+
+    @Override
+    protected String getStorageKey() {
+        return SessionStorage.KEY_WORK_ITEMS;
+    }
+
+
+    @Override
+    protected CaseWorkItemType getRowRealValue(PrismContainerValueWrapper<CaseWorkItemType> rowModelObject) {
+        if (rowModelObject == null) {
+            return null;
+        }
+        return rowModelObject.getRealValue();
+    }
+
+//    private void initLayout(){
+//        ContainerableListPanel workItemsPanel =
+//                new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class, null, config) {
+//
+//
+//                };
+//        workItemsPanel.setOutputMarkupId(true);
+//        workItemsPanel.setDashboard(view == View.DASHBOARD);
+//        add(workItemsPanel);
+//    }
 
     private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
@@ -206,26 +234,6 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         return provider;
     }
 
-    private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createCheckboxColumn(){
-        if (View.FULL_LIST.equals(view)) {
-            return  new CheckBoxHeaderColumn<>();
-        }
-        return null;
-    }
-
-    private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createIconColumn(){
-        return new IconColumn<>(Model.of("")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
-            }
-
-        };
-    }
-
     private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createNameColumn(){
         return new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
@@ -249,9 +257,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         };
     }
 
-    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns(){
-        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view));
-    }
+//    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns(){
+//        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view));
+//    }
 
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();

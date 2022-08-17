@@ -14,16 +14,16 @@
     <items>
         <name>full</name>
         <item>
-            <path>givenName</path>
+            <ref>givenName</ref>
         </item>
         <item>
-            <path>familyName</path>
+            <ref>familyName</ref>
             <search>
                 <index>orig</index> <!-- just for testing -->
             </search>
         </item>
         <item>
-            <path>extension/nationalId</path>
+            <ref>extension/nationalId</ref>
         </item>
         <composition>
             <tier>1</tier>
@@ -32,10 +32,10 @@
     <items>
         <name>both-names</name>
         <item>
-            <path>givenName</path>
+            <ref>givenName</ref>
         </item>
         <item>
-            <path>familyName</path>
+            <ref>familyName</ref>
         </item>
         <composition>
             <weight>0.5</weight>
@@ -45,7 +45,7 @@
     <items>
         <name>familyName</name>
         <item>
-            <path>familyName</path>
+            <ref>familyName</ref>
         </item>
         <composition>
             <weight>0.25</weight>
@@ -56,7 +56,7 @@
         <!-- just for the testing, not to be used in real life! -->
         <name>givenName</name>
         <item>
-            <path>givenName</path>
+            <ref>givenName</ref>
         </item>
         <composition>
             <weight>0.1</weight>
@@ -66,7 +66,7 @@
     <items>
         <name>nationalId</name>
         <item>
-            <path>extension/nationalId</path>
+            <ref>extension/nationalId</ref>
         </item>
         <composition>
             <weight>0.75</weight>

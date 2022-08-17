@@ -167,6 +167,217 @@
         </tracing>
     </internals>
     <adminGuiConfiguration>
+        <homePage>
+            <type>UserType</type>
+            <widget>
+                <identifier>myHistory</identifier>
+                <display>
+                    <label>
+                        <orig>History</orig>
+                        <translation>
+                            <key>PageSelfDashboard.history</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fa fa-history</cssClass>
+                    </icon>
+                </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>history</panelType>
+                    </target>
+                </action>
+                <panelType>history</panelType>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>myAccesses</identifier>
+                <display>
+                    <label>
+                        <orig>My accesses</orig>
+                        <translation>
+                            <key>PageSelfDashboard.myAccesses</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fe fe-assignment</cssClass>
+                    </icon>
+                </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>allAssignments</panelType>
+                    </target>
+                </action>
+                <panelType>allAssignments</panelType>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>myRequests</identifier>
+                <display>
+                    <label>
+                        <orig>My requests</orig>
+                        <translation>
+                            <key>PageSelfDashboard.myRequests</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fe fe-case</cssClass>
+                    </icon>
+                </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>focusCases</panelType>
+                    </target>
+                </action>
+                <panelType>focusCases</panelType>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>myWorkItems</identifier>
+                <display>
+                    <label>
+                        <orig>My work items</orig>
+                        <translation>
+                            <key>PageSelfDashboard.workItems</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fa fa-inbox</cssClass>
+                    </icon>
+                </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems</pageClass>
+                    </target>
+                </action>
+                <panelType>myWorkItems</panelType>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>myAccounts</identifier>
+                <display>
+                    <label>
+                        <orig>My accounts</orig>
+                        <translation>
+                            <key>PageDashboard.accounts</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fa fa-male</cssClass>
+                    </icon>
+                </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>projections</panelType>
+                    </target>
+                </action>
+                <panelType>projections</panelType>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>profileWidget</identifier>
+                <display>
+                    <label>
+                        <orig>Profile</orig>
+                        <translation>
+                            <key>PageSelfDashboard.profile</key>
+                        </translation>
+                    </label>
+                    <help>PageSelfDashboard.profile.description</help>
+                    <cssClass>col-md-3</cssClass>
+                    <icon>
+                        <cssClass>fa fa-user</cssClass>
+                        <color>green</color>
+                    </icon>
+                </display>
+                <panelType>statisticWidget</panelType>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                    </target>
+                </action>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>credentialsWidget</identifier>
+                <display>
+                    <label>
+                        <orig>Credentials</orig>
+                        <translation>
+                            <key>PageSelfDashboard.credentials</key>
+                        </translation>
+                    </label>
+                    <help>PageSelfDashboard.credentials.description</help>
+                    <cssClass>col-md-3</cssClass>
+                    <icon>
+                        <cssClass>fa fa-shield-alt</cssClass>
+                        <color>blue</color>
+                    </icon>
+                </display>
+                <panelType>statisticWidget</panelType>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials</pageClass>
+                    </target>
+                </action>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>listUsersWidget</identifier>
+                <display>
+                    <label>
+                        <orig>List users</orig>
+                        <translation>
+                            <key>PageSelfDashboard.listUsers</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-3</cssClass>
+                    <icon>
+                        <cssClass>fa fa-user</cssClass>
+                        <color>red</color>
+                    </icon>
+                </display>
+                <panelType>statisticWidget</panelType>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.web.page.admin.users.PageUsers</pageClass>
+                    </target>
+                </action>
+                <preview>true</preview>
+            </widget>
+            <widget>
+                <identifier>listResourcesWidget</identifier>
+                <display>
+                    <label>
+                        <orig>List resources</orig>
+                        <translation>
+                            <key>PageSelfDashboard.listResources</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-3</cssClass>
+                    <icon>
+                        <cssClass>fa fa-database</cssClass>
+                        <color>purple</color>
+                    </icon>
+                </display>
+                <panelType>statisticWidget</panelType>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.web.page.admin.resources.PageResources</pageClass>
+                    </target>
+                </action>
+                <preview>true</preview>
+            </widget>
+        </homePage>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>
             <label>PageSelfDashboard.profile</label>

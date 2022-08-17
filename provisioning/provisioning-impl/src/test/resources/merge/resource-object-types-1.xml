@@ -93,10 +93,10 @@
                 <correlators>
                     <items> <!-- this is a new one -->
                         <item>
-                            <path>givenName</path>
+                            <ref>givenName</ref>
                         </item>
                         <item>
-                            <path>fullName</path>
+                            <ref>fullName</ref>
                         </item>
                     </items>
                 </correlators>

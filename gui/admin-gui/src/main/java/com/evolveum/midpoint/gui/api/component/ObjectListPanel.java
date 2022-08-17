@@ -83,11 +83,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return SearchFactory.createSearch(type, collectionName, getPageBase());
     }
 
-    protected List<ItemPath> getFixedSearchItems() {
-        List<ItemPath> fixedSearchItems = new ArrayList<>();
-        fixedSearchItems.add(ObjectType.F_NAME);
-        return fixedSearchItems;
-    }
 
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {

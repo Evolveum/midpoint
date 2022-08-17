@@ -137,7 +137,7 @@
                     <documentation>Implements correlation rules #1-#4 (see TestCorrelationSimple javadoc)</documentation>
                     <items>
                         <item>
-                            <path>employeeNumber</path>
+                            <ref>employeeNumber</ref>
                         </item>
                         <composition>
                             <tier>1</tier>
@@ -145,7 +145,7 @@
                     </items>
                     <items>
                         <item>
-                            <path>emailAddress</path>
+                            <ref>emailAddress</ref>
                         </item>
                         <composition>
                             <tier>1</tier>
@@ -153,7 +153,7 @@
                     </items>
                     <items>
                         <item>
-                            <path>familyName</path>
+                            <ref>familyName</ref>
                         </item>
                         <composition>
                             <weight>0.1</weight>
@@ -161,7 +161,7 @@
                     </items>
                     <items>
                         <item>
-                            <path>telephoneNumber</path>
+                            <ref>telephoneNumber</ref>
                         </item>
                         <composition>
                             <weight>0.1</weight>

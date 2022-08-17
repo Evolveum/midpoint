@@ -12,6 +12,13 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -135,8 +142,8 @@ public class ColumnUtils {
             return getDefaultTaskColumns();
         } else if (type.equals(ResourceType.class)) {
             return getDefaultResourceColumns();
-        } else if (type.equals(AssignmentType.class)) {
-            return getDefaultAssignmentsColumns();
+//        } else if (type.equals(AssignmentType.class)) {
+//            return getDefaultAssignmentsColumns(pageBase);
         } else {
             return new ArrayList<>();
 //            throw new UnsupportedOperationException("Will be implemented eventually");
@@ -1069,6 +1076,23 @@ public class ColumnUtils {
         return rowModel.getObject().getRealValue();
     }
 
+    private static <C extends Containerable, S extends SelectableRow<C>> C unwrapSelectableRowModel(IModel<S> rowModel) {
+        if (rowModel == null) {
+            return null;
+        }
+        S rowValue = rowModel.getObject();
+        if (rowValue == null) {
+            return null;
+        }
+        if (rowValue instanceof SelectableBean) {
+            return (C) ((SelectableBean<?>) rowValue).getValue();
+        } else if (rowValue instanceof PrismValueWrapper) {
+            return (C) ((PrismValueWrapper<?>) rowValue).getRealValue();
+        }
+
+        return null;
+    }
+
     private static List<ObjectReferenceType> getActorsForCase(CaseType caseType) {
         List<ObjectReferenceType> actorsList = new ArrayList<>();
         if (caseType != null) {
@@ -1094,14 +1118,122 @@ public class ColumnUtils {
         }
     }
 
-    public static <C extends Containerable> List<IColumn<SelectableBean<C>, String>> getDefaultAssignmentsColumns() {
+    public static <S extends SelectableRow<AssignmentType>> List<IColumn<S, String>> getDefaultAssignmentsColumns(String realValuePath,
+            PageBase pageBase) {
+        return getDefaultAssignmentsColumns(null, realValuePath, false, pageBase);
+    }
+
+    //attempt to gather assignment columns creation in one place. not finished (e.g.  for construction, inducements...), not sure if needed at all
+    public static <S extends SelectableRow<AssignmentType>> List<IColumn<S, String>> getDefaultAssignmentsColumns(
+            QName assignmentTargetRefType, String realValuePath, boolean showAllColumns, PageBase pageBase) {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<>("AssignmentType.activation.effectiveStatus",
-                        SelectableBeanImpl.F_VALUE + ".activation.effectiveStatus", null)
+                new ColumnTypeDto<>("AssignmentDataTablePanel.activationColumnName",
+                        realValuePath + ".activation.effectiveStatus", null)
 
         );
 
-        return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
+        List<IColumn<S, String>> assignmentColumns = new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
+        if (assignmentTargetRefType == null && !showAllColumns) {
+            return assignmentColumns;
+        }
+        if (showAllColumns || QNameUtil.matchAny(assignmentTargetRefType, Arrays.asList(RoleType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE,
+                ServiceType.COMPLEX_TYPE))) {
+            assignmentColumns.add(new AbstractColumn<>(
+                    createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
+                @Override
+                public void populateItem(Item<ICellPopulator<S>> item, String componentId, IModel<S> assignmentModel) {
+                    item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(unwrapSelectableRowModel(assignmentModel), pageBase)));
+                }
+            });
+
+            assignmentColumns.add(new AbstractColumn<>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(Item<ICellPopulator<S>> item, String componentId,
+                        final IModel<S> rowModel) {
+                    item.add(new Label(componentId, AssignmentsUtil.getIdentifierLabelModel(unwrapSelectableRowModel(rowModel), pageBase)));
+                }
+            });
+
+
+        }
+        if (showAllColumns || QNameUtil.match(assignmentTargetRefType, RoleType.COMPLEX_TYPE)) {
+            assignmentColumns.add(new PropertyColumn<>(pageBase.createStringResource("AssignmentDataTablePanel.tenantColumnName"),
+                    AssignmentType.F_TENANT_REF.getLocalPart()) {
+                @Override
+                public IModel<String> getDataModel(IModel<S> rowModel) {
+                    AssignmentType assignment = unwrapSelectableRowModel(rowModel);
+                    if (assignment == null) {
+                        return Model.of("");
+                    }
+                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(assignment.getTenantRef(), true, pageBase));
+                }
+            });
+            assignmentColumns.add(new PropertyColumn<>(pageBase.createStringResource("AssignmentDataTablePanel.organizationColumnName"),
+                    AssignmentType.F_ORG_REF.getLocalPart()) {
+                @Override
+                public IModel<String> getDataModel(IModel<S> rowModel) {
+                    AssignmentType assignment = unwrapSelectableRowModel(rowModel);
+                    if (assignment == null) {
+                        return Model.of("");
+                    }
+                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(assignment.getOrgRef(), true, pageBase));
+                }
+            });
+        }
+        if (showAllColumns || QNameUtil.match(assignmentTargetRefType, ResourceType.COMPLEX_TYPE)) {
+            List<ColumnTypeDto<String>> constructionColumnsDefs = Arrays.asList(
+                    new ColumnTypeDto<>("ConstructionType.kind",
+                            realValuePath + "." + AssignmentType.F_CONSTRUCTION.getLocalPart() + "." + ConstructionType.F_KIND.getLocalPart(),
+                            null),
+                    new ColumnTypeDto<>("ConstructionType.intent",
+                            realValuePath + "." + AssignmentType.F_CONSTRUCTION.getLocalPart() + "." + ConstructionType.F_INTENT.getLocalPart(),
+                            null)
+            );
+            assignmentColumns.addAll(ColumnUtils.createColumns(constructionColumnsDefs));
+        }
+        return assignmentColumns;
     }
+
+    public static <S extends SelectableRow<AssignmentType>> CompositedIconColumn<S> createAssignmentIconColumn(PageBase pageBase) {
+        return new CompositedIconColumn<>(Model.of("")) {
+
+            @Override
+            protected CompositedIcon getCompositedIcon(IModel<S> rowModel) {
+                AssignmentType assignment = unwrapSelectableRowModel(rowModel);
+                PrismObject<? extends FocusType> object = AssignmentsUtil.loadTargetObject(assignment, pageBase);
+                if (object != null) {
+                    return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
+                            new OperationResult("create_assignment_composited_icon"), pageBase);
+                }
+                String displayType = WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
+                CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+                iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
+                return iconBuilder.build();
+            }
+        };
+    }
+
+    public static <S extends SelectableRow<AssignmentType>> String loadValuesForAssignmentNameColumn(IModel<S> rowModel, Collection<String> evaluatedExpressionValues,
+            boolean useEvaluatedValues, PageBase pageBase) {
+        if (useEvaluatedValues) {
+            if (CollectionUtils.isEmpty(evaluatedExpressionValues)) {
+                return "";
+            }
+            if (evaluatedExpressionValues.size() == 1) {
+                return evaluatedExpressionValues.iterator().next();
+            }
+            return String.join(", ", evaluatedExpressionValues);
+        }
+        String name = AssignmentsUtil.getName(unwrapSelectableRowModel(rowModel), pageBase);
+        LOGGER.trace("Name for AssignmentType: " + name);
+        if (StringUtils.isBlank(name)) {
+            return createStringResource("AssignmentPanel.noName").getString();
+        }
+
+        return name;
+    }
+
 }

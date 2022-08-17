@@ -300,7 +300,7 @@ public class SynchronizationPolicyFactory {
                 new ItemsSubCorrelatorType()
                         .confidence(CloneUtil.clone(attributeCorrelationDefBean.getConfidence()))
                         .item(new ItemCorrelationType()
-                                .path(itemPathBean.clone())));
+                                .ref(itemPathBean.clone())));
     }
 
     private static ItemPathType determineItemPathBean(

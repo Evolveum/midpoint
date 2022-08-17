@@ -9,6 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -50,27 +55,11 @@ public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderTyp
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
                     final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
+                item.add(new Label(componentId, AssignmentsUtil.getIdentifierLabelModel(rowModel.getObject().getRealValue(), getPageBase())));
             }
         });
 
         return columns;
     }
 
-    private <AR extends AbstractRoleType> IModel<String> getIdentifierLabelModel(PrismContainerValueWrapper<AssignmentType> assignmentContainer) {
-        if (assignmentContainer == null || assignmentContainer.getRealValue() == null) {
-            return Model.of("");
-        }
-        PrismObject<AR> targetObject = loadTargetObject(assignmentContainer.getRealValue());
-        if (targetObject != null) {
-            AR targetRefObject = targetObject.asObjectable();
-            if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())) {
-                return Model.of(targetRefObject.getIdentifier());
-            }
-            if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())) {
-                return Model.of(targetRefObject.getName().getOrig());
-            }
-        }
-        return Model.of("");
-    }
 }

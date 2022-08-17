@@ -29,6 +29,11 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.menu.PageTypes;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -37,6 +42,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,6 +58,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -64,6 +71,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.IResource;
@@ -1268,7 +1276,8 @@ public final class WebComponentUtil {
             localizationService = MidPointApplication.get().getLocalizationService();
         }
         String translatedValue = localizationService.translate(value, getCurrentLocale(), true);
-        if (StringUtils.isNotEmpty(translatedValue)) {
+        String translationKey = value.getTranslation() != null ? value.getTranslation().getKey() : null;
+        if (StringUtils.isNotEmpty(translatedValue) && !translatedValue.equals(translationKey)) {
             return translatedValue;
         }
         return value.getOrig();
@@ -2126,6 +2135,18 @@ public final class WebComponentUtil {
                 pageBase.createStringResource(relation.getLocalPart()).getString();
     }
 
+    public static String getRelationLabelValue(AssignmentType assignment, PageBase pageBase) {
+        String relationDisplayName = null;
+        QName relation = null;
+        if (assignment != null || assignment.getTargetRef() != null) {
+            relation = assignment.getTargetRef().getRelation();
+            relationDisplayName = getRelationHeaderLabelKeyIfKnown(relation);
+        }
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                pageBase.createStringResource(relationDisplayName).getString() :
+                pageBase.createStringResource(relation.getLocalPart()).getString();
+    }
+
     private static QName getRelation(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) throws SchemaException {
         if (assignmentWrapper == null) {
             return null;
@@ -2634,6 +2655,75 @@ public final class WebComponentUtil {
         } else if (failIfUnsupported) {
             throw new SystemException("Cannot determine details page for " + objectClass);
         }
+    }
+
+    public static void dispatchToListPage(Class<? extends Containerable> objectClass, String collectionViewId, Component component, boolean failIfUnsupported) {
+        QName type = WebComponentUtil.containerClassToQName(PrismContext.get(), objectClass);
+        PageTypes pageTypes = PageTypes.getPageTypesByType(type);
+        if (pageTypes != null) {
+            Class<? extends PageBase> listPage = pageTypes.getListClass();
+            PageParameters pageParameters = new PageParameters();
+            pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, collectionViewId);
+            if (listPage != null) {
+                ((PageBase) component.getPage()).navigateToNext(listPage, pageParameters);
+            }
+        }
+        if (failIfUnsupported) {
+            throw new SystemException("Cannot determine details page for " + objectClass);
+        }
+    }
+
+    public static void redirectFromDashboardWidget(ContainerPanelConfigurationType widgetConfig, PageBase pageBase, Component component) {
+        if (widgetConfig == null) {
+            return;
+        }
+        List<GuiActionType> actionList = widgetConfig.getAction();
+        if (CollectionUtils.isEmpty(actionList)) {
+            return;
+        }
+        Optional<GuiActionType> actionWithRedirection = actionList.stream().filter(WebComponentUtil::isRedirectionTargetNotEmpty).findFirst();
+        if (actionWithRedirection.isEmpty()) {
+            return;
+        }
+        RedirectionTargetType redirectionTarget = actionWithRedirection.get().getTarget();
+        String url = redirectionTarget.getTargetUrl();
+        String pageClass = redirectionTarget.getPageClass();
+        String panelType = redirectionTarget.getPanelType();
+        if (StringUtils.isNotEmpty(url) && new UrlValidator().isValid(url)) {
+            throw new RedirectToUrlException(url);
+        } else if (StringUtils.isNotEmpty(pageClass)) {
+            try {
+                Class<?> clazz = Class.forName(pageClass);
+                ContainerPanelConfigurationType config =  new ContainerPanelConfigurationType();
+                config.setPanelType(panelType);
+
+                Constructor<?> constructor = clazz.getConstructor();
+                Object pageInstance = constructor.newInstance();
+                if (pageInstance instanceof AbstractPageObjectDetails && StringUtils.isNotEmpty(panelType)) {
+                    String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
+                    FocusType principal = pageBase.getPrincipalFocus();
+                    ObjectDetailsStorage pageStorage = pageBase.getSessionStorage().getObjectDetailsStorage(storageKey);
+                    if (pageStorage == null) {
+                        pageBase.getSessionStorage().setObjectDetailsStorage(storageKey, config);
+                    } else {
+                        pageStorage.setDefaultConfiguration(config);
+                    }
+                    WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), component);
+                } else if (pageInstance instanceof WebPage) {
+                    pageBase.navigateToNext((WebPage) pageInstance);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+            }
+        }
+    }
+
+    public static boolean isRedirectionTargetNotEmpty(GuiActionType action) {
+        if (action == null || action.getTarget() == null) {
+            return false;
+        }
+        return !StringUtils.isAllEmpty(action.getTarget().getTargetUrl(), action.getTarget().getPageClass(), action.getTarget().getPanelType());
     }
 
     public static boolean hasDetailsPage(PrismObject<?> object) {
@@ -3890,6 +3980,13 @@ public final class WebComponentUtil {
             return "";
         }
         return displayType.getIcon().getColor();
+    }
+
+    public static String getHelp(DisplayType displayType) {
+        if (displayType == null || displayType.getHelp() == null) {
+            return "";
+        }
+        return getTranslatedPolyString(displayType.getHelp());
     }
 
     public static String getDisplayTypeTitle(DisplayType displayType) {
@@ -5483,6 +5580,19 @@ public final class WebComponentUtil {
                 return panel;
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+                return null;
+            }
+        }
+
+        if (ContainerableListPanel.class.isAssignableFrom(panelClass)) {
+            try {
+                ContainerableListPanel panel = (ContainerableListPanel) ConstructorUtils.invokeConstructor(panelClass, markupId, new ArrayList<>(), panelConfig);
+                panel.setDashboard(true);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+                return null;
             }
         }
 

@@ -8,12 +8,14 @@
 package com.evolveum.midpoint.gui.impl.component.table;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 public class WidgetTableHeader extends BasePanel<DisplayType> {
 
@@ -31,12 +33,12 @@ public class WidgetTableHeader extends BasePanel<DisplayType> {
     }
 
     private void initLayout() {
-        Label label = new Label(ID_TITLE, getModelObject().getLabel());
+        Label label = new Label(ID_TITLE, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getLabel())));
         label.setRenderBodyOnly(true);
         add(label);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", getModelObject().getIcon().getCssClass()));
+        icon.add(AttributeAppender.append("class", Model.of(WebComponentUtil.getIconCssClass(getModelObject()))));
         add(icon);
     }
 }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,13 +35,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 /**
 * @author lskublik
  */
-
+@PanelType(name = "myRequests")
 public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     private static final long serialVersionUID = 1L;
 
     public CasesTablePanel(String id) {
-        this(id, null);
+        this(id, null, null);
     }
 
     public CasesTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -49,6 +50,10 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     public CasesTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
         super(id, CaseType.class, options, config);
+    }
+
+    public CasesTablePanel(String id, ContainerPanelConfigurationType config) {
+        super(id, CaseType.class, null, config);
     }
 
     @Override
