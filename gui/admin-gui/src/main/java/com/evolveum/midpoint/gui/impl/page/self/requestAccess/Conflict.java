@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -27,6 +28,8 @@ public class Conflict implements Serializable {
     private ConflictState state = ConflictState.UNRESOLVED;
 
     private boolean warning;
+
+    private ConflictItem toBeRemoved;
 
     public Conflict(ObjectReferenceType personOfInterest, ConflictItem added, ConflictItem exclusion, String message, boolean warning) {
         this.personOfInterest = personOfInterest;
@@ -62,5 +65,17 @@ public class Conflict implements Serializable {
 
     public String getMessage() {
         return message;
+    }
+
+    public ConflictItem getToBeRemoved() {
+        return toBeRemoved;
+    }
+
+    public void setToBeRemoved(ConflictItem toBeRemoved) {
+        if (!Objects.equals(toBeRemoved, added) && !Objects.equals(toBeRemoved, exclusion)) {
+            return;
+        }
+
+        this.toBeRemoved = toBeRemoved;
     }
 }

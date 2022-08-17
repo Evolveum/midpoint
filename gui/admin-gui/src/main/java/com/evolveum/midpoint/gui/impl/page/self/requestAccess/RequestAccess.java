@@ -557,6 +557,7 @@ public class RequestAccess implements Serializable {
         assignments.remove(toRemove.getAssignment());
 
         conflict.setState(ConflictState.SOLVED);
+        conflict.setToBeRemoved(toRemove);
 
         markConflictsDirty();
     }

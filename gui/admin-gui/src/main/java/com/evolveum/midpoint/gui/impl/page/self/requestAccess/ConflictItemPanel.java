@@ -29,6 +29,8 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import java.util.Objects;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -51,12 +53,45 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
     private static final String ID_FORM = "form";
     private static final String ID_TITLE = "title";
 
-    private IModel<ConflictItem> selectedOption = Model.of((ConflictItem) null);
+    private IModel<ConflictItem> selectedOption;
 
     public ConflictItemPanel(String id, IModel<Conflict> model) {
         super(id, model);
 
+        initModels();
         initLayout();
+    }
+
+    private void initModels() {
+        selectedOption = new IModel<>() {
+
+            @Override
+            public ConflictItem getObject() {
+                Conflict conflict = getModelObject();
+                if (conflict.getToBeRemoved() == null) {
+                    return null;
+                }
+
+                return Objects.equals(conflict.getToBeRemoved(), conflict.getAdded()) ?
+                        conflict.getExclusion() :
+                        conflict.getAdded();
+            }
+
+            @Override
+            public void setObject(ConflictItem toKeep) {
+                Conflict conflict = getModelObject();
+                if (toKeep == null) {
+                    conflict.setToBeRemoved(null);
+                    return;
+                }
+
+                ConflictItem toRemove = Objects.equals(toKeep, conflict.getAdded()) ?
+                        conflict.getExclusion() :
+                        conflict.getAdded();
+
+                conflict.setToBeRemoved(toRemove);
+            }
+        };
     }
 
     private void initLayout() {
@@ -64,8 +99,8 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
         add(AttributeAppender.append("class", () -> {
             Conflict c = getModelObject();
             switch (c.getState()) {
-//                case SKIPPED:
-//                    return "conflict-item-secondary";
+                case SKIPPED:
+                    return "conflict-item-secondary";
                 case SOLVED:
                     return "conflict-item-success";
             }
