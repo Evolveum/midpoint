@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  */
 public class Conflict implements Serializable {
 
+    private String shortMessage;
+
     private ObjectReferenceType personOfInterest;
 
     private ConflictItem added;
@@ -31,11 +33,12 @@ public class Conflict implements Serializable {
 
     private ConflictItem toBeRemoved;
 
-    public Conflict(ObjectReferenceType personOfInterest, ConflictItem added, ConflictItem exclusion, String message, boolean warning) {
+    public Conflict(ObjectReferenceType personOfInterest, ConflictItem added, ConflictItem exclusion, String shortMessage, String message, boolean warning) {
         this.personOfInterest = personOfInterest;
         this.added = added;
         this.exclusion = exclusion;
         this.warning = warning;
+        this.shortMessage = shortMessage;
         this.message = message;
     }
 
@@ -77,5 +80,9 @@ public class Conflict implements Serializable {
         }
 
         this.toBeRemoved = toBeRemoved;
+    }
+
+    public String getShortMessage() {
+        return shortMessage;
     }
 }

@@ -108,8 +108,16 @@ public class ConflictItemPanel extends BasePanel<Conflict> {
             return c.isWarning() ? "conflict-item-warning" : "conflict-item-danger";
         }));
 
-        Label title = new Label(ID_TITLE, () -> getString("ConflictItemPanel.duplicationConflict",
-                WebComponentUtil.getName(getModelObject().getPersonOfInterest())));
+        Label title = new Label(ID_TITLE, () -> {
+            String poiName = WebComponentUtil.getName(getModelObject().getPersonOfInterest());
+
+            String shortMsg = getModelObject().getShortMessage();
+            if (shortMsg != null) {
+                return getString("ConflictItemPanel.conflictTitle", shortMsg, poiName);
+            }
+
+            return getString("ConflictItemPanel.defaultConflictTitle", poiName);
+        });
         add(title);
 
         BadgePanel badge = new BadgePanel(ID_BADGE, () -> {

@@ -16,6 +16,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -449,13 +451,20 @@ public class RequestAccess implements Serializable {
         ConflictItem exclusion = new ConflictItem(conflictingAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(exclusionTargetObj),
                 conflictingAssignment.getAssignment(true) != null);
 
+        MidPointApplication mp = MidPointApplication.get();
+        LocalizationService localizationService = mp.getLocalizationService();
+
         String message = null;
         if (trigger.getMessage() != null) {
-            MidPointApplication mp = MidPointApplication.get();
-            message = mp.getLocalizationService().translate(trigger.getMessage());
+            message = localizationService.translate(trigger.getMessage());
         }
 
-        Conflict conflict = new Conflict(userRef, added, exclusion, message, warning);
+        String shortMessage = null;
+        if (trigger.getShortMessage() != null) {
+            shortMessage = localizationService.translate(trigger.getShortMessage());
+        }
+
+        Conflict conflict = new Conflict(userRef, added, exclusion, shortMessage, message, warning);
 
         if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
             conflicts.put(key, conflict);
