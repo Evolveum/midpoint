@@ -972,32 +972,6 @@
                         </item>
                     </container>
                     <container>
-                        <identifier>baseContext</identifier>
-                        <display>
-                            <label>ResourceObjectTypeDelineationType.baseContext</label>
-                        </display>
-                        <item>
-                            <path>schemaHandling/objectType/delineation/baseContext/objectClass</path>
-                            <visibility>visible</visibility>
-                        </item>
-                        <item>
-                            <path>schemaHandling/objectType/delineation/baseContext/filter</path>
-                            <visibility>visible</visibility>
-                        </item>
-                        <item>
-                            <path>schemaHandling/objectType/delineation/baseContext/shadowRef</path>
-                            <visibility>visible</visibility>
-                        </item>
-                        <item>
-                            <path>schemaHandling/objectType/delineation/baseContext/resolutionStrategy</path>
-                            <visibility>visible</visibility>
-                        </item>
-                        <item>
-                            <path>schemaHandling/objectType/delineation/baseContext/resolutionFrequency</path>
-                            <visibility>visible</visibility>
-                        </item>
-                    </container>
-                    <container>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/delineation</path>
                     </container>
