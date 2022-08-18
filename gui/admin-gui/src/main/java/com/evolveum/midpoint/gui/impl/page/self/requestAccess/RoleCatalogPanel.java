@@ -87,6 +87,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final RoleCatalogViewType DEFAULT_VIEW = RoleCatalogViewType.TILE;
 
@@ -193,18 +194,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         query.setType(RoleType.class);
     }
 
-    private void updateQueryForRequestableRoles(RoleCatalogQuery query) {
-        ObjectQuery oq = getPrismContext()
-                .queryFor(AbstractRoleType.class)
-                .item(AbstractRoleType.F_REQUESTABLE)
-                .eq(true)
-                .asc(AbstractRoleType.F_NAME)
-                .build();
-
-        query.setQuery(oq);
-        query.setType(AbstractRoleType.class);
-    }
-
     private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref, boolean scopeOne) {
         ObjectQuery oq = getPrismContext()
                 .queryFor(AbstractRoleType.class)
@@ -222,13 +211,48 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             return;
         }
 
-        ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
-                .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                .id(userOid)
-                .build();
-
-        query.setQuery(oq);
         query.setType(AbstractRoleType.class);
+
+        if (getPageBase().isNativeRepo()) {
+            ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
+                    .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                    .id(userOid)
+                    .and().not().type(ArchetypeType.class)
+                    .build();
+
+            query.setQuery(oq);
+            return;
+        }
+
+        // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
+        Task task = page.createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult result = task.getResult();
+        try {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, page, task, result);
+            if (user == null) {
+                updateFalseQuery(query);
+                return;
+            }
+
+            List<String> oids = user.asObjectable().getAssignment().stream()
+                    .filter(a -> a.getTargetRef() != null)
+                    .map(a -> a.getTargetRef().getOid())
+                    .collect(Collectors.toList());
+
+            ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
+                    .id(oids.toArray(new String[oids.size()]))
+                    .and().not().type(ArchetypeType.class)
+                    .build();
+            query.setQuery(oq);
+
+            result.computeStatusIfUnknown();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't load user", ex);
+        }
+
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            page.showResult(result);
+        }
     }
 
     private void updateQueryFromCollectionRef(RoleCatalogQuery query, ObjectReferenceType collectionRef) {
