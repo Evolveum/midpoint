@@ -102,18 +102,12 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
             protected List<Tile<QName>> load() {
                 RequestAccess ra = getModelObject();
 
-                QName currentRelation = ra.getRelation();
-                if (currentRelation == null) {
-                    currentRelation = ra.getDefaultRelation();
-                    getModelObject().setRelation(currentRelation);
-                }
-
                 List<Tile<QName>> tiles = new ArrayList<>();
 
                 List<QName> availableRelations = ra.getAvailableRelations(page);
                 for (QName name : availableRelations) {
                     Tile<QName> tile = createTileForRelation(name);
-                    tile.setSelected(name.equals(currentRelation));
+                    tile.setSelected(name.equals(ra.getDefaultRelation()));
                     tile.setValue(name);
 
                     tiles.add(tile);
