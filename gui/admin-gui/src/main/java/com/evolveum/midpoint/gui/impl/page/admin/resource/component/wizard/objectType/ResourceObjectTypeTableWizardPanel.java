@@ -107,6 +107,11 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     }
 
     @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.title");
+    }
+
+    @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.subText");
     }

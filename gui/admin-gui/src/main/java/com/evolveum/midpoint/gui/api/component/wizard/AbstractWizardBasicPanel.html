@@ -11,6 +11,13 @@
 <body>
 <wicket:panel>
     <div class="d-flex flex-column gap-3 align-items-center mt-5">
+        <div>
+            <ol class="breadcrumb p-0 bg-transparent">
+                <li class="breadcrumb-item" wicket:id="breadcrumb">
+                    <span wicket:id="bcName"/>
+                </li>
+            </ol>
+        </div>
         <h2 class="mb-3" wicket:id="text"/>
         <h5 class="text-secondary mb-5" wicket:id="subText"/>
         <div class="col-12">

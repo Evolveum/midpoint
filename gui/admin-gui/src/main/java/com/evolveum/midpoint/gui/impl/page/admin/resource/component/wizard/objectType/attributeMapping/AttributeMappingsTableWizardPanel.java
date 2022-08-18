@@ -117,6 +117,11 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target);
 
     @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.title");
+    }
+
+    @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.text");
     }
