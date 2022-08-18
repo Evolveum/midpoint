@@ -24,7 +24,7 @@ public interface AdminGuiConfigurationMergeManager {
 
     GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType, OperationResult result) throws SchemaException, ConfigurationException;
 
-    GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, GuiObjectDetailsPageType compiledPageType);
+    <DP extends GuiObjectDetailsPageType> DP mergeObjectDetailsPageConfiguration(DP defaultPageConfiguration, DP compiledPageType);
 
     GuiShadowDetailsPageType mergeShadowDetailsPageConfiguration(GuiShadowDetailsPageType defaultPageConfiguration, GuiShadowDetailsPageType compiledPageType);
 

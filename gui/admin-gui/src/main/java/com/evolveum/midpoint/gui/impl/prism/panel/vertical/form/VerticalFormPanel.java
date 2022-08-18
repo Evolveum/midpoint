@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
@@ -63,12 +65,24 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         try {
             if (container.getItem().getDefinition().isMultiValue() && container.getValues().isEmpty()) {
                 PrismContainerValue<C> newItem = container.getItem().createNewValue();
-                PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(container, newItem, getPageBase());
+                PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(container, newItem, getPageBase(), getWrapperContext());
                 container.getValues().add(newItemWrapper);
             }
         } catch (SchemaException e) {
             LOGGER.error("Cannot find wrapper: {}", e.getMessage());
         }
+    }
+
+    private WrapperContext getWrapperContext() {
+        WrapperContext context = createWrapperContext();
+        context.setObjectStatus(getModelObject().findObjectStatus());
+        context.setShowEmpty(true);
+        context.setCreateIfEmpty(true);
+        return context;
+    }
+
+    protected WrapperContext createWrapperContext() {
+        return null;
     }
 
     private void initLayout() {
@@ -121,6 +135,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     return getModel();
                 }
                 return super.createVirtualContainerModel(virtualContainer);
+
             }
 
             private ItemVisibilityHandler getVisibilityHandler(ItemVisibilityHandler handler) {

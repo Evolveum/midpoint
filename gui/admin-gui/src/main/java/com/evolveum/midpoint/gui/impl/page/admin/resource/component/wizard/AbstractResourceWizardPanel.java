@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -101,7 +102,8 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
         try {
             PrismContainerWrapper<C> container = findContainer(path);
             PrismContainerValue<C> newItem = container.getItem().createNewValue();
-            PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(container, newItem, getPageBase());
+            PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(
+                    container, newItem, getPageBase(), getWrapperContext(container));
             container.getValues().add(newItemWrapper);
             return () -> newItemWrapper;
 
@@ -109,6 +111,14 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
             LOGGER.error("Cannot find wrapper: {}", e.getMessage());
         }
         return null;
+    }
+
+    private WrapperContext getWrapperContext(PrismContainerWrapper<C> container) {
+        WrapperContext context = getResourceModel().createWrapperContext();
+        context.setObjectStatus(container.findObjectStatus());
+        context.setShowEmpty(true);
+        context.setCreateIfEmpty(true);
+        return context;
     }
 
     protected PrismContainerWrapper<C> findContainer(ItemPath path) throws SchemaException {

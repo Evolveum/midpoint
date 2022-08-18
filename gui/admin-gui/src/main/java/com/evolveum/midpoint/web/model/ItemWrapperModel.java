@@ -107,4 +107,8 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
     public IModel<?> getParent() {
         return parent;
     }
+
+    protected boolean isFromContainerValue() {
+        return fromContainerValue;
+    }
 }

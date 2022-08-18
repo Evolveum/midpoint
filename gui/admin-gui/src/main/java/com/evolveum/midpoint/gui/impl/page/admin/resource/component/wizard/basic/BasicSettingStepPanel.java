@@ -59,12 +59,12 @@ public class BasicSettingStepPanel extends AbstractFormResourceWizardStepPanel {
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.basicSettings.text");
+        return createStringResource("PageResource.wizard.step.basicSettings.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.basicSettings.subText");
+        return createStringResource("PageResource.wizard.step.basicSettings.subText");
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {

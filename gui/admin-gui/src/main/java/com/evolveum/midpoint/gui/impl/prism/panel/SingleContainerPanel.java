@@ -140,5 +140,4 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
     public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(ItemPath path) {
         return PrismContainerWrapperModel.fromContainerWrapper(getModel(), path);
     }
-
 }

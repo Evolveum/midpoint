@@ -280,14 +280,12 @@
                 <visibility>hidden</visibility>
             </widget>
         </homePage>
-        <objectDetails>
-            <objectDetailsPage>
-                <type>UserType</type>
-                <panel>
-                    <identifier>history</identifier>
-                    <visibility>hidden</visibility>
-                </panel>
-            </objectDetailsPage>
-        </objectDetails>
+        <selfProfilePage>
+            <type>UserType</type>
+            <panel>
+                <identifier>history</identifier>
+                <visibility>hidden</visibility>
+            </panel>
+        </selfProfilePage>
     </adminGuiConfiguration>
 </role>

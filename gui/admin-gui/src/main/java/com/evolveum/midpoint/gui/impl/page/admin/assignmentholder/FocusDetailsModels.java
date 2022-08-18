@@ -92,6 +92,11 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
             hiddeSpecificPanel(containerPanelConfigurationTypeList, visiblePanelIdentifierList());
 
             return guiObjectDetailsPageType;
+        } else if (isSelfProfile) {
+            GuiObjectDetailsPageType detailsPage = getModelServiceLocator().getCompiledGuiProfile().getSelfProfilePage();
+            if (detailsPage != null) {
+                return detailsPage;
+            }
         }
 
         return super.loadDetailsPageConfiguration();

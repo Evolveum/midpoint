@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class DefaultContainerablePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends BasePanel<CVW> {
 
-    private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
+    protected static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     protected static final String ID_CONTAINERS_LABEL = "containersLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
@@ -144,7 +144,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
                 && getModelObject().isExpanded();
     }
 
-    private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
+    protected void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
@@ -190,7 +190,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         return settings.getConfig();
     }
 
-    private ItemVisibilityHandler getVisibilityHandler() {
+    protected ItemVisibilityHandler getVisibilityHandler() {
         if (settings == null) {
             return null;
         }

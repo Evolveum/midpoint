@@ -224,7 +224,7 @@ public class WrapperContext {
         return virtualContainers;
     }
 
-    private void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
+    protected void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
         for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
             if (objectStatus == null || panelConfig.getApplicableForOperation() == null
                     || (ItemStatus.NOT_CHANGED.equals(objectStatus)

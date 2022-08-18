@@ -12,28 +12,22 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormContainerHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferenceValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 /**
  * @author lskublik
  */
 public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable> extends AbstractResourceWizardStepPanel {
-
-    private static final String ID_HEADER = "header";
-    private static final String ID_ICON = "icon";
-    private static final String ID_TITLE = "title";
 
     private static final String ID_VALUE = "value";
     private final IModel<PrismContainerValueWrapper<C>> newValueModel;
@@ -43,6 +37,24 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
             IModel<PrismContainerValueWrapper<C>> newValueModel) {
         super(model);
         this.newValueModel = newValueModel;
+        newValueModel.getObject().setExpanded(true);
+        newValueModel.getObject().setShowEmpty(true);
+    }
+
+    protected static <C extends Containerable, T extends Containerable> IModel<PrismContainerValueWrapper<C>> createNewValueModel(
+            IModel<PrismContainerValueWrapper<T>> parentValue, ItemName itemName) {
+        LoadableDetachableModel<PrismContainerValueWrapper<C>> model = new LoadableDetachableModel<>() {
+
+            @Override
+            protected PrismContainerValueWrapper<C> load() {
+                PrismContainerWrapperModel<T, C> model
+                        = PrismContainerWrapperModel.fromContainerValueWrapper(
+                        parentValue,
+                        itemName);
+                return model.getObject().getValues().get(0);
+            }
+        };
+        return model;
     }
 
     @Override
@@ -52,29 +64,27 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     protected void initLayout() {
-        WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
-        header.setOutputMarkupId(true);
-        add(header);
-
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", () -> getIcon()));
-        header.add(icon);
-
-        header.add(new Label(ID_TITLE, getModel()));
-
-//        VerticalFormContainerHeaderPanel header = new VerticalFormContainerHeaderPanel(ID_HEADER, getTitle()) {
-//            @Override
-//            protected String getIcon() {
-//                return AbstractValueFormResourceWizardStepPanel.this.getIcon();
-//            }
-//        };
-//        add(header);
-
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler()).build();
         settings.setConfig(getContainerConfiguration());
-        VerticalFormDefaultContainerablePanel<C> panel
-                = new VerticalFormDefaultContainerablePanel<C>(ID_VALUE, newValueModel, settings);
+        VerticalFormPrismContainerValuePanel panel
+                = new VerticalFormPrismContainerValuePanel(ID_VALUE, newValueModel, settings){
+
+            @Override
+            protected WebMarkupContainer createHeaderPanel() {
+                return super.createHeaderPanel();
+            }
+
+            @Override
+            protected LoadableDetachableModel<String> getLabelModel() {
+                return (LoadableDetachableModel<String>) getTitle();
+            }
+
+            @Override
+            protected String getIcon() {
+                return AbstractValueFormResourceWizardStepPanel.this.getIcon();
+            }
+        };
         add(panel);
     }
 

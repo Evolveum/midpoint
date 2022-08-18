@@ -8,33 +8,24 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectTypeDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,27 +38,26 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     private static final String OPERATION_CREATE_CONFIGURATION_WRAPPERS = DOT_CLASS + "loadConnectorWrapper";
     private static final String OPERATION_FETCH_SCHEMA = DOT_CLASS + "fetchSchema";
 
-    private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
+//    private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
 
     private final LoadableModel<List<ObjectClassWrapper>> objectClassesModel;
-    private DiscoveredConfiguration connectorConfigurationSuggestions;
 
     public ResourceDetailsModel(LoadableDetachableModel<PrismObject<ResourceType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
-        this.configurationModel = new LoadableModel<>(true) {
-            @Override
-            protected PrismContainerWrapper<ConnectorConfigurationType> load() {
-                OperationResult result = new OperationResult(OPERATION_CREATE_CONFIGURATION_WRAPPERS);
-                try {
-                    return createConfigContainerWrappers(result);
-                } catch (Exception e) {
-                    result.recordPartialError("Cannot load conector configuration, " + e.getMessage());
-                    getPageBase().showResult(result);
-                    return null;
-                }
-            }
-        };
+//        this.configurationModel = new LoadableModel<>(true) {
+//            @Override
+//            protected PrismContainerWrapper<ConnectorConfigurationType> load() {
+//                OperationResult result = new OperationResult(OPERATION_CREATE_CONFIGURATION_WRAPPERS);
+//                try {
+//                    return createConfigContainerWrappers(result);
+//                } catch (Exception e) {
+//                    result.recordPartialError("Cannot load conector configuration, " + e.getMessage());
+//                    getPageBase().showResult(result);
+//                    return null;
+//                }
+//            }
+//        };
 
         this.objectClassesModel = new LoadableModel<>() {
             @Override
@@ -100,46 +90,46 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         };
     }
 
-    private PrismContainerWrapper<ConnectorConfigurationType> createConfigContainerWrappers(OperationResult result) throws SchemaException {
-
-        Task task = getModelServiceLocator().createSimpleTask(OPERATION_CREATE_CONFIGURATION_WRAPPERS);
-        PrismObjectWrapper<ResourceType> resourceWrapper = getObjectWrapper();
-
-        PrismContainerWrapper<ConnectorConfigurationType> configuration = resourceWrapper.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        PrismContainer<ConnectorConfigurationType> connectorConfigurationType = null;
-
-        if (configuration == null || configuration.isEmpty()) {
-            PrismReferenceWrapper<Referencable> connectorRef = resourceWrapper.findReference(ResourceType.F_CONNECTOR_REF);
-            if (connectorRef == null || connectorRef.getValue() == null || connectorRef.getValue().getRealValue() == null) {
-                return null;
-            }
-
-            PrismObject<ConnectorType> connector = WebModelServiceUtils.resolveReferenceNoFetch(connectorRef.getValue().getRealValue(), getPageBase(), task, result);
-            if (connector == null) {
-                return null;
-            }
-            ConnectorType connectorType = connector.asObjectable();
-            PrismSchema schema;
-            try {
-                schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
-            } catch (SchemaException e) {
-                throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
-            }
-            PrismContainerDefinition<ConnectorConfigurationType> definition =
-                    ConnectorTypeUtil.findConfigurationContainerDefinitionRequired(connectorType, schema);
-            // Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
-            PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
-            definitionFixed.toMutable().setMaxOccurs(1);
-            connectorConfigurationType = definitionFixed.instantiate();
-
-            WrapperContext ctx = new WrapperContext(task, result);
-            ctx.setShowEmpty(true);
-            ctx.setDetailsPageTypeConfiguration(getResourceDetailsPageConfiguration());
-            configuration = getModelServiceLocator().createItemWrapper(connectorConfigurationType, ItemStatus.ADDED, ctx);
-        }
-
-        return configuration;
-    }
+//    private PrismContainerWrapper<ConnectorConfigurationType> createConfigContainerWrappers(OperationResult result) throws SchemaException {
+//
+//        Task task = getModelServiceLocator().createSimpleTask(OPERATION_CREATE_CONFIGURATION_WRAPPERS);
+//        PrismObjectWrapper<ResourceType> resourceWrapper = getObjectWrapper();
+//
+//        PrismContainerWrapper<ConnectorConfigurationType> configuration = resourceWrapper.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+//        PrismContainer<ConnectorConfigurationType> connectorConfigurationType = null;
+//
+//        if (configuration == null || configuration.isEmpty()) {
+//            PrismReferenceWrapper<Referencable> connectorRef = resourceWrapper.findReference(ResourceType.F_CONNECTOR_REF);
+//            if (connectorRef == null || connectorRef.getValue() == null || connectorRef.getValue().getRealValue() == null) {
+//                return null;
+//            }
+//
+//            PrismObject<ConnectorType> connector = WebModelServiceUtils.resolveReferenceNoFetch(connectorRef.getValue().getRealValue(), getPageBase(), task, result);
+//            if (connector == null) {
+//                return null;
+//            }
+//            ConnectorType connectorType = connector.asObjectable();
+//            PrismSchema schema;
+//            try {
+//                schema = ConnectorTypeUtil.parseConnectorSchema(connectorType);
+//            } catch (SchemaException e) {
+//                throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
+//            }
+//            PrismContainerDefinition<ConnectorConfigurationType> definition =
+//                    ConnectorTypeUtil.findConfigurationContainerDefinitionRequired(connectorType, schema);
+//            // Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
+//            PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
+//            definitionFixed.toMutable().setMaxOccurs(1);
+//            connectorConfigurationType = definitionFixed.instantiate();
+//
+//            WrapperContext ctx = new WrapperContext(task, result);
+//            ctx.setShowEmpty(true);
+//            ctx.setDetailsPageTypeConfiguration(getResourceDetailsPageConfiguration());
+//            configuration = getModelServiceLocator().createItemWrapper(connectorConfigurationType, ItemStatus.ADDED, ctx);
+//        }
+//
+//        return configuration;
+//    }
 
     private List<ContainerPanelConfigurationType> getResourceDetailsPageConfiguration() {
         GuiObjectDetailsPageType resourceDetailsPage = getObjectDetailsPageConfiguration().getObject(); //TODO shouldn't be resource details page type?
@@ -149,13 +139,13 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return resourceDetailsPage.getPanel();
     }
 
-    public LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> getConfigurationModel() {
-        return configurationModel;
-    }
-
-    public PrismContainerWrapper<ConnectorConfigurationType> getConfigurationModelObject() {
-        return configurationModel.getObject();
-    }
+//    public LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> getConfigurationModel() {
+//        return configurationModel;
+//    }
+//
+//    public PrismContainerWrapper<ConnectorConfigurationType> getConfigurationModelObject() {
+//        return configurationModel.getObject();
+//    }
 
     //    @Override
 //    protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<ResourceType> resource) {
@@ -176,7 +166,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     @Override
     public void reset() {
         super.reset();
-        configurationModel.reset();
+//        configurationModel.reset();
         objectClassesModel.reset();
     }
 
@@ -188,9 +178,9 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);
     }
 
-    public void setConnectorConfigurationSuggestions(DiscoveredConfiguration connectorConfigurationSuggestions) {
-        this.connectorConfigurationSuggestions = connectorConfigurationSuggestions;
-    }
+//    public void setConnectorConfigurationSuggestions(DiscoveredConfiguration connectorConfigurationSuggestions) {
+//        this.connectorConfigurationSuggestions = connectorConfigurationSuggestions;
+//    }
 
     public IModel<List<ObjectClassWrapper>> getObjectClassesModel() {
         return objectClassesModel;
@@ -203,5 +193,37 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
     public PageResource getPageResource() {
         return (PageResource) super.getPageBase();
+    }
+
+    public WrapperContext createWrapperContext(){
+        Task task = getModelServiceLocator().createSimpleTask("createWrapper");
+        OperationResult result = task.getResult();
+        return createWrapperContext(task, result);
+    }
+    @Override
+    protected WrapperContext createWrapperContext(Task task, OperationResult result) {
+        WrapperContext ctx = new WrapperContext(task, result) {
+            @Override
+            protected void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
+                if (!(getModelServiceLocator() instanceof PageResource)) {
+                    super.collectVirtualContainers(panelConfigs, virtualContainers);
+                    return;
+                }
+                PageResource pageResource = (PageResource) getModelServiceLocator();
+                for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
+                    if (getObjectStatus() == null || panelConfig.getApplicableForOperation() == null
+                            || (pageResource.isEditObject()
+                            && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
+                            || (!pageResource.isEditObject()
+                            && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))) {
+                        virtualContainers.addAll(panelConfig.getContainer());
+                        collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
+                    }
+                }
+            }
+        };
+        ctx.setCreateIfEmpty(true);
+        ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
+        return ctx;
     }
 }

@@ -20,11 +20,10 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "passwordInboundWizard")
 @PanelInstance(identifier = "passwordInboundWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.password.step.inbound", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.password.inbound", icon = "fa fa-circle"),
         containerPath = "schemaHandling/objectType/credentials/password/inbound",
         expanded = true)
 public class PasswordInboundStepPanel extends AbstractInboundStepPanel<ResourceObjectTypeDefinitionType> {
@@ -50,16 +49,16 @@ public class PasswordInboundStepPanel extends AbstractInboundStepPanel<ResourceO
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.password.step.inbound");
+        return createStringResource("PageResource.wizard.step.password.inbound");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.password.inbound.text");
+        return createStringResource("PageResource.wizard.step.password.inbound.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.password.inbound.subText");
+        return createStringResource("PageResource.wizard.step.password.inbound.subText");
     }
 }

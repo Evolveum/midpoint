@@ -24,16 +24,15 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "LimitationsMappingWizard")
-@PanelInstance(identifier = "LimitationsMappingWizard",
+@PanelInstance(identifier = "limitationsMappingWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.attributes.step.limitation", icon = "fa fa-circle"),
-        containerPath = "schemaHandling/objectType/attribute/limitations",
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
+//        containerPath = "schemaHandling/objectType/attribute/limitations",
         expanded = true)
 public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "LimitationsMappingWizard";
+    private static final String PANEL_TYPE = "limitationsMappingWizard";
 
     private final IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel;
 
@@ -67,16 +66,16 @@ public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.attributes.step.limitation");
+        return createStringResource("PageResource.wizard.step.attributes.limitation");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.attributes.limitation.text");
+        return createStringResource("PageResource.wizard.step.attributes.limitation.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.attributes.limitation.subText");
+        return createStringResource("PageResource.wizard.step.attributes.limitation.subText");
     }
 }
