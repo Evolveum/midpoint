@@ -6,59 +6,12 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
-import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
-import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
-import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
-import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
-import com.evolveum.midpoint.web.application.PageMounter;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.error.*;
-import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
-import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
-import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import javax.servlet.ServletContext;
+import javax.xml.datatype.Duration;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
@@ -106,12 +59,59 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 
-import javax.servlet.ServletContext;
-import javax.xml.datatype.Duration;
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
+import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
+import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
+import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
+import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
+import com.evolveum.midpoint.web.application.PageMounter;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
+import com.evolveum.midpoint.web.page.error.*;
+import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
+import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
+import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * @author lazyman
@@ -577,11 +577,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public MatchingRuleRegistry getMatchingRuleRegistry() {
         return matchingRuleRegistry;
-    }
-
-    public SystemConfigurationType getSystemConfiguration() throws SchemaException {
-        PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
-        return config != null ? config.asObjectable() : null;
     }
 
     public SystemConfigurationType getSystemConfigurationIfAvailable() {

@@ -10,12 +10,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationPanelPart;
-import com.evolveum.midpoint.gui.impl.page.admin.component.OperationsPanel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -25,9 +19,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationPanelPart;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationsPanel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -43,8 +43,6 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -60,10 +58,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
                 @Url(mountUrl = "/admin/config/debug", matchUrlForSecurity = "/admin/config/debug")
         },
         action = {
-        @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
-                label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
-                label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description") })
+                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
+                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
+                        label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description") })
 public class PageDebugView extends PageAdminConfiguration {
     private static final long serialVersionUID = 1L;
 
@@ -75,7 +73,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private static final String ID_FORM = "mainForm";
 
-    private static final String ID_OPERATIONS_PANEL="operationsPanel";
+    private static final String ID_OPERATIONS_PANEL = "operationsPanel";
     private static final String ID_MAIN = "main";
     private static final String ID_OPTIONS = "options";
 
@@ -330,7 +328,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 }
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
-                ModelExecuteOptions options = ModelExecuteOptions.create(getPrismContext());
+                ModelExecuteOptions options = ModelExecuteOptions.create();
                 if (debugViewConfiguration.saveAsRaw) {
                     options.raw(true);
                 }
