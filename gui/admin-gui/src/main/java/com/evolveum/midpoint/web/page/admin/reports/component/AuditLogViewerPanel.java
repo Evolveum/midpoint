@@ -137,7 +137,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             Search search = SearchFactory.createSearch(type, getPageBase());
 
             DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-            if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
+            if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null
+                    && !isCollectionViewPanelForWidget() && !isDashboard()) {
                 Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
                 timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
             }

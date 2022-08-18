@@ -146,6 +146,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         mergeCollectionViewsWithDefault(compiledGuiProfile);
         processShadowPanels(compiledGuiProfile);
         processResourcePanels(compiledGuiProfile);
+        processSelfProfilePageConfig(compiledGuiProfile);
     }
 
     private void compileDefaultDetailsPages(CompiledGuiProfile compiledGuiProfile) {
@@ -186,6 +187,17 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             mergeCollectionViews(compiledObjectCollectionView, defaultCollectionView);
         }
 
+    }
+
+    private void processSelfProfilePageConfig(CompiledGuiProfile compiledGuiProfile) {
+        if (compiledGuiProfile.getSelfProfilePage() == null || compiledGuiProfile.getSelfProfilePage().getType() == null) {
+            return;
+        }
+        Class<? extends Containerable> principalFocusType = prismContext.getSchemaRegistry()
+                .determineClassForType(compiledGuiProfile.getSelfProfilePage().getType());
+        GuiObjectDetailsPageType defaultSelfProfilePage = compileDefaultGuiObjectDetailsPage(principalFocusType);
+        compiledGuiProfile.setSelfProfilePage(adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
+                defaultSelfProfilePage, compiledGuiProfile.getSelfProfilePage()).cloneWithoutId());
     }
 
     private void mergeCollectionViews(CompiledObjectCollectionView compiledObjectCollectionView,

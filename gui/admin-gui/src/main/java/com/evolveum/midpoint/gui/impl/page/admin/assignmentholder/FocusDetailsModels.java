@@ -94,7 +94,9 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
             return guiObjectDetailsPageType;
         } else if (isSelfProfile) {
             GuiObjectDetailsPageType detailsPage = getModelServiceLocator().getCompiledGuiProfile().getSelfProfilePage();
-            return detailsPage != null ? detailsPage : new GuiObjectDetailsPageType().type(getPrismObject().getDefinition().getTypeName());
+            if (detailsPage != null) {
+                return detailsPage;
+            }
         }
 
         return super.loadDetailsPageConfiguration();

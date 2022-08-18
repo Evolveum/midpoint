@@ -353,6 +353,10 @@ public class GuiProfileCompiler {
             composite.getHomePage().getWidget().clear();
             composite.getHomePage().getWidget().addAll(sorted);
         }
+        if (composite.getSelfProfilePage() == null) {
+            QName principalType = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(principal.getFocus().getClass()).getTypeName();
+            composite.setSelfProfilePage(new GuiObjectDetailsPageType().type(principalType));
+        }
         if (adminGuiConfiguration.getSelfProfilePage() != null) {
             composite.setSelfProfilePage(adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     adminGuiConfiguration.getSelfProfilePage(), composite.getSelfProfilePage()));
