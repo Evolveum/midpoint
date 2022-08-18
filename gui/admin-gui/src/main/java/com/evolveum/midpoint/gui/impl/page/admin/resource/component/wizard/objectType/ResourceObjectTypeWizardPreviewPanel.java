@@ -12,9 +12,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
 
@@ -58,6 +60,11 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
         return valueModel;
+    }
+
+    @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return Model.of(GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue()));
     }
 
     @Override

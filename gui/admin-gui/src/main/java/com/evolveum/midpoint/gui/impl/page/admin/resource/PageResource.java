@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,6 +38,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -60,6 +64,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
     private static final String ID_WIZARD = "wizard";
+    private IModel<List<Breadcrumb>> wizardBreadcrumbs = Model.ofList(new ArrayList<>());
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -204,5 +209,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         wizard.setOutputMarkupId(true);
         fragment.add(wizard);
         target.add(fragment);
+    }
+
+    public IModel<List<Breadcrumb>> getWizardBreadcrumbs() {
+        return wizardBreadcrumbs;
     }
 }

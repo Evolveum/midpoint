@@ -74,6 +74,11 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
     }
 
     @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return getPageBase().createStringResource("PreviewResourceDataWizardPanel.title");
+    }
+
+    @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("PreviewResourceDataWizardPanel.text");
     }

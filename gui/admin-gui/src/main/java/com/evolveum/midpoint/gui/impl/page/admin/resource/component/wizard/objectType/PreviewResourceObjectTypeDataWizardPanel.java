@@ -94,6 +94,11 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         return resourceObjectType;
     }
 
+    @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.title");
+    }
+
     //    @Override
 //    protected IModel<String> getSubTextModel() {
 //        return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.text");

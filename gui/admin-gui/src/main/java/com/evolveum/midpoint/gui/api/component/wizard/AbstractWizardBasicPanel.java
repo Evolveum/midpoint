@@ -7,20 +7,34 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.List;
+
 public abstract class AbstractWizardBasicPanel extends BasePanel {
 
+
+    private static final String ID_BREADCRUMB = "breadcrumb";
+    private static final String ID_BC_NAME = "bcName";
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BUTTONS = "buttons";
@@ -39,9 +53,36 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+        getBreadcrumbsModel().getObject().add(new Breadcrumb(getBreadcrumbLabel()));
+    }
+
+    protected abstract IModel<String> getBreadcrumbLabel();
+
+    protected void removeLastBreadcrumb() {
+        int index = getBreadcrumbsModel().getObject().size() - 1;
+        getBreadcrumbsModel().getObject().remove(index);
     }
 
     private void initLayout() {
+        ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, getBreadcrumbsModel()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<Breadcrumb> item) {
+                int index = item.getIndex() + 1;
+                if (index == getList().size()) {
+                    item.add(AttributeAppender.append("class", "text-primary"));
+                }
+
+                Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
+                item.add(bcName);
+
+                item.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
+            }
+        };
+        add(breadcrumbs);
+        breadcrumbs.add(new VisibleBehaviour(() -> getBreadcrumbsModel().getObject().size() > 1));
 
         Label mainText = new Label(ID_TEXT, getTextModel());
         mainText.add(new VisibleBehaviour(() -> getTextModel().getObject() != null));
@@ -68,6 +109,14 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
         addCustomButtons(buttons);
         add(buttons);
+    }
+
+    private IModel<List<Breadcrumb>> getBreadcrumbsModel() {
+        PageBase page = getPageBase();
+        if (page instanceof PageResource) {
+            return ((PageResource)page).getWizardBreadcrumbs();
+        }
+        return Model.ofList(List.of());
     }
 
     protected IModel<String> getExitLabel() {
