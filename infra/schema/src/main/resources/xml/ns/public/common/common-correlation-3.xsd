@@ -282,30 +282,38 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="using" type="xsd:string" minOccurs="0">
+            <xsd:element name="super" type="tns:SuperCorrelatorReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to the correlator to be used at this place.
-                        TODO refine this specification
-                        TODO implement
+                        Reference to the "super-correlator", serving as a template for this correlator.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.ref</a:displayName>
+                        <a:displayName>AbstractCorrelatorType.super</a:displayName>
                         <a:displayOrder>100</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="extending" type="xsd:string" minOccurs="0">
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SuperCorrelatorReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to a super-correlator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to an upstream definition of correlator. It is used as a template for this correlator.
-                        TODO refine this specification
-                        TODO implement
+                        Name of the correlator.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.ref</a:displayName>
-                        <a:displayOrder>110</a:displayOrder>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -421,7 +429,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractCorrelatorType">
                 <xsd:sequence>
-                    <xsd:element name="item" type="tns:ItemCorrelationType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="item" type="tns:CorrelationItemType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Item that should be correlated.
@@ -434,10 +442,10 @@
     </xsd:complexType>
     <xsd:element name="itemsCorrelator" type="tns:ItemsCorrelatorType"/>
 
-    <xsd:complexType name="ItemCorrelationType">
+    <xsd:complexType name="CorrelationItemType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Item that should be correlated as part of this correlator (i.e., correlation rule).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
@@ -456,23 +464,23 @@
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+            <xsd:element name="ref" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        A reference to focus item that is being correlated (using its path).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="search" type="tns:ItemSearchDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to search for the item values?
+                        How to search for the item values? This overrides any search definition attached to the item.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="itemCorrelation" type="tns:ItemCorrelationType"/>
+    <xsd:element name="itemCorrelation" type="tns:CorrelationItemType"/>
 
     <xsd:complexType name="FilterCorrelatorType">
         <xsd:annotation>
@@ -662,11 +670,57 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="correlationProperties" type="tns:IdMatchCorrelationPropertiesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What properties should be sent to the ID Match service. Default: All pre-focus properties.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateConfidenceLimit" type="xsd:double" minOccurs="0" default="0.9">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Maximum confidence value that is acceptable for the given candidate.
+                                If the ID Match service provides a higher value, it is cropped to this one.
+                                (The same is true if ID Match provides no value.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="idMatchCorrelator" type="tns:IdMatchCorrelatorType"/>
+
+    <xsd:complexType name="IdMatchCorrelationPropertiesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What properties should be sent to the ID Match service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the property. It may start with $shadow (or $projection) - then it denotes
+                        the value from the shadow being correlated.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:element name="composition" type="tns:CorrelatorCompositionDefinitionType">
         <xsd:annotation>
@@ -1129,9 +1183,7 @@
     <xsd:complexType name="ItemCorrelationDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                A shortcut: correlation definition attached directly to a resource attribute or (in the future) focus item.
-
-                TODO TODO TODO
+                Definition of correlation-related aspects of a focus item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1140,25 +1192,40 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="confidence" type="tns:CorrelationConfidenceDefinitionType" minOccurs="0">
+            <xsd:element name="search" type="tns:ItemSearchDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A confidence - if this attribute creates its own correlation rule.
+                        How to search for the item values? May be overridden in specific correlator
+                        where this item is referenced.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="rules" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Items correlators (a.k.a. rules) that contain this attribute/item as its part.
-                        To be considered - if this is a good idea.
-                        Mutually exclusive with "confidence".
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
-                        NOT IMPLEMENTED YET.
+    <xsd:complexType name="ItemCorrelatorDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a single-item correlator for an item (a resource object attribute or a focus item).
+
+                LIMITATION: Currently supported only for resource attributes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="search" type="tns:ItemSearchDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to search for the item values?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="item" type="t:ItemPathType" minOccurs="0">
+            <xsd:element name="focusItem" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Item to which this attribute should be correlated to. (To be used only for attributes.
@@ -1751,6 +1818,13 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
+            <xsd:element name="confidence" type="tns:ItemSearchConfidenceDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression for computing the resulting confidence value. If not specified, value of 1 is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1844,6 +1918,38 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemSearchConfidenceDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the custom confidence value for given search item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.6</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression providing the confidence value for the correlation item.
+                        Its input (variable named `input`) is a value specific to given matching method,
+                        e.g., Levenshtein edit distance (a non-negative integer) or trigram similarity value
+                        (a decimal number between 0 and 1). Non-fuzzy methods provide the value of 1 there.
+
+                        TODO other inputs?
+
+                        It should output a double precision value, usually between 0 and 1, inclusive.
+                        Outputs of such expressions are multiplied together, yielding the final confidence
+                        value for the whole match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:choice>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 </xsd:schema>

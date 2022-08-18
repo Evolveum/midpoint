@@ -16,16 +16,18 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.common.LocalizationService;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Page;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -48,8 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.Page;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -90,6 +90,8 @@ public class RequestAccess implements Serializable {
      * This map contains existing assignments from users that have to be removed to avoid conflicts when requesting
      */
     private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
+
+    private Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
 
     private Set<AssignmentType> selectedAssignments = new HashSet<>();
 
@@ -148,11 +150,11 @@ public class RequestAccess implements Serializable {
         return List.copyOf(new ArrayList<>(requestItems.keySet()));
     }
 
-    public void addPersonOfInterest(ObjectReferenceType ref) {
-        addPersonOfInterest(List.of(ref));
+    public void addPersonOfInterest(ObjectReferenceType ref, List<ObjectReferenceType> existingMemberships) {
+        addPersonOfInterest(List.of(ref), Map.of(ref, existingMemberships));
     }
 
-    public void addPersonOfInterest(List<ObjectReferenceType> refs) {
+    public void addPersonOfInterest(List<ObjectReferenceType> refs, Map<ObjectReferenceType, List<ObjectReferenceType>> existingMemberships) {
         if (refs == null) {
             return;
         }
@@ -173,6 +175,12 @@ public class RequestAccess implements Serializable {
             List<AssignmentType> assignments = this.selectedAssignments.stream().map(a -> a.clone()).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
+            List<ObjectReferenceType> memberships = existingMemberships.get(ref);
+            if (memberships == null) {
+                memberships = new ArrayList<>();
+            }
+            existingPoiRoleMemberships.put(ref, memberships);
+
             changed = true;
         }
 
@@ -183,6 +191,7 @@ public class RequestAccess implements Serializable {
             }
 
             requestItems.remove(ref);
+            existingOids.remove(ref);
 
             changed = true;
         }
@@ -318,6 +327,7 @@ public class RequestAccess implements Serializable {
     public void clearCart() {
         requestItems.clear();
         requestItemsExistingToRemove.clear();
+        existingPoiRoleMemberships.clear();
 
         selectedAssignments.clear();
         relation = null;
@@ -441,13 +451,20 @@ public class RequestAccess implements Serializable {
         ConflictItem exclusion = new ConflictItem(conflictingAssignment.getAssignment(), WebComponentUtil.getDisplayNameOrName(exclusionTargetObj),
                 conflictingAssignment.getAssignment(true) != null);
 
+        MidPointApplication mp = MidPointApplication.get();
+        LocalizationService localizationService = mp.getLocalizationService();
+
         String message = null;
         if (trigger.getMessage() != null) {
-            MidPointApplication mp = MidPointApplication.get();
-            message = mp.getLocalizationService().translate(trigger.getMessage());
+            message = localizationService.translate(trigger.getMessage());
         }
 
-        Conflict conflict = new Conflict(userRef, added, exclusion, message, warning);
+        String shortMessage = null;
+        if (trigger.getShortMessage() != null) {
+            shortMessage = localizationService.translate(trigger.getShortMessage());
+        }
+
+        Conflict conflict = new Conflict(userRef, added, exclusion, shortMessage, message, warning);
 
         if (!conflicts.containsKey(key) && !conflicts.containsKey(alternateKey)) {
             conflicts.put(key, conflict);
@@ -549,8 +566,7 @@ public class RequestAccess implements Serializable {
         assignments.remove(toRemove.getAssignment());
 
         conflict.setState(ConflictState.SOLVED);
-
-        markConflictsDirty();
+        conflict.setToBeRemoved(toRemove);
     }
 
     public boolean isAllConflictsSolved() {
@@ -714,5 +730,20 @@ public class RequestAccess implements Serializable {
         }
 
         return defaultRelation != null ? defaultRelation : SchemaConstants.ORG_DEFAULT;
+    }
+
+    public boolean isAssignedToAll(String oid) {
+        if (oid == null) {
+            return false;
+        }
+
+        for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
+            boolean found = memberships.stream().filter(m -> oid.equals(m.getOid())).count() > 0;
+            if (!found) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

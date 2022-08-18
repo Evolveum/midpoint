@@ -13,7 +13,10 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -518,6 +521,43 @@ public class AssignmentsUtil {
             LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
         }
         return assignmentsLimit;
+    }
+
+    public static <AR extends AbstractRoleType> IModel<String> getIdentifierLabelModel(AssignmentType assignment, PageBase pageBase) {
+        if (assignment == null) {
+            return Model.of("");
+        }
+        PrismObject<AR> targetObject = loadTargetObject(assignment, pageBase);
+        if (targetObject != null) {
+            AR targetRefObject = targetObject.asObjectable();
+            if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())) {
+                return Model.of(targetRefObject.getIdentifier());
+            }
+            if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())) {
+                return Model.of(targetRefObject.getName().getOrig());
+            }
+        }
+        return Model.of("");
+    }
+
+    public static  <F extends FocusType> PrismObject<F> loadTargetObject(AssignmentType assignmentType, PageBase pageBase) {
+        if (assignmentType == null) {
+            return null;
+        }
+
+        ObjectReferenceType targetRef = assignmentType.getTargetRef();
+        if (targetRef == null || targetRef.getOid() == null) {
+            return null;
+        }
+
+        PrismObject<F> targetObject = targetRef.getObject();
+        if (targetObject == null) {
+            Task task = pageBase.createSimpleTask("load assignment targets");
+            OperationResult result = task.getResult();
+            targetObject = WebModelServiceUtils.loadObject(targetRef, pageBase, task, result);
+            result.recomputeStatus();
+        }
+        return targetObject;
     }
 
 }

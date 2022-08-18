@@ -195,9 +195,8 @@ public interface AttributeDefinitionDelegator<T> extends PropertyDefinitionDeleg
     }
 
     @Override
-    @Nullable
-    default ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
-        return delegate().getCorrelationDefinitionBean();
+    default @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+        return delegate().getCorrelatorDefinition();
     }
 
     @Override

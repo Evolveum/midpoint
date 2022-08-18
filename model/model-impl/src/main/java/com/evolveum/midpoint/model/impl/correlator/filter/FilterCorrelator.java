@@ -104,7 +104,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);
             ObjectSet<F> confirmedCandidates = confirmCandidates(candidates, result);
-            return createResult(confirmedCandidates, task, result);
+            return createResult(confirmedCandidates, null, task, result);
         }
 
         double checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
@@ -114,7 +114,7 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                     checkCandidateUsingConditionalFilters(candidateOwner, result)
                             && !confirmCandidates(ObjectSet.of(candidateOwner), result).isEmpty();
             if (matches) {
-                return determineConfidence(candidateOwner, task, result);
+                return determineConfidence(candidateOwner, null, task, result);
             } else {
                 return 0;
             }

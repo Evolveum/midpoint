@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -59,7 +59,8 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      */
     private TracingProfileType tracingProfile;
 
-    @Deprecated public ModelExecuteOptions(PrismContext ignored) {
+    @Deprecated
+    public ModelExecuteOptions(PrismContext ignored) {
         content = new ModelExecuteOptionsType();
     }
 
@@ -76,7 +77,8 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return new ModelExecuteOptions();
     }
 
-    @Deprecated public static ModelExecuteOptions create(PrismContext ignored) {
+    @Deprecated(forRemoval = true)
+    public static ModelExecuteOptions create(PrismContext ignored) {
         return new ModelExecuteOptions();
     }
 
@@ -434,7 +436,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         }
 
         ModelExecuteOptions retVal = ModelExecuteOptions.create();
-        for (String option : options){
+        for (String option : options) {
             if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)) {
                 retVal.raw(true);
             }
@@ -533,10 +535,16 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         }
         String value;
         switch (option) {
-            case AUTOMATIC: return;
-            case PROCESS: value = "+"; break;
-            case SKIP: value = "-"; break;
-            default: throw new AssertionError();
+            case AUTOMATIC:
+                return;
+            case PROCESS:
+                value = "+";
+                break;
+            case SKIP:
+                value = "-";
+                break;
+            default:
+                throw new AssertionError();
         }
         sb.append(label).append(value).append(",");
     }

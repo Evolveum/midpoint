@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -97,11 +97,11 @@ public class TestQueryConverter extends AbstractUnitTest {
 
         ObjectFilter first = getFilterCondition(filter, 0);
         PrismAsserts.assertEqualsFilter(first, ShadowType.F_TAG, PrimitiveType.XSD_STRING, ShadowType.F_TAG);
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "abc");
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) first, "abc");
 
         ObjectFilter second = getFilterCondition(filter, 1);
         PrismAsserts.assertEqualsFilter(second, ShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, ShadowType.F_NAME);
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) second, createPolyString("someName"));
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) second, createPolyString("someName"));
 
         QueryType convertedQueryType = toQueryType(query);
         System.out.println("Re-converted query type");
@@ -111,28 +111,11 @@ public class TestQueryConverter extends AbstractUnitTest {
         MapXNode xFilter = convertedFilterType.serializeToXNode(getPrismContext());
         PrismAsserts.assertSize(xFilter, 1);
         PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
-        MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
-        PrismAsserts.assertSize(xandmap, 1);
-        PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNode.class);
-        ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
-        PrismAsserts.assertSize(xequalsList, 2);
-
-//        Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());
-//        System.out.println("Serialized filter (JAXB->DOM)");
-//        System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
-//
-//        DomAsserts.assertElementQName(filterClauseElement, AndFilter.ELEMENT_NAME);
-//        DomAsserts.assertSubElements(filterClauseElement, 2);
-//
-//        Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
-//        DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
-//        Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
-//        DomAsserts.assertTextContent(firstValueElement, "abc");
-//
-//        Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
-//        DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
-//        Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
-//        DomAsserts.assertTextContent(secondValueElement, "someName");
+        MapXNode xAndMap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
+        PrismAsserts.assertSize(xAndMap, 1);
+        PrismAsserts.assertSubnode(xAndMap, EqualFilter.ELEMENT_NAME, ListXNode.class);
+        ListXNode xEqualsList = (ListXNode) xAndMap.get(EqualFilter.ELEMENT_NAME);
+        PrismAsserts.assertSize(xEqualsList, 2);
     }
 
     @Test
@@ -151,11 +134,11 @@ public class TestQueryConverter extends AbstractUnitTest {
         assertRefFilterValue((RefFilter) first, "aae7be60-df56-11df-8608-0002a5d5c51b");
 
         ObjectFilter second = getFilterCondition(filter, 1);
-        PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, SchemaConstants.ICFS_NAME_PATH);
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
+        PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, ItemPath.create(ShadowType.F_ATTRIBUTES,
+                ICF_NAME));
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) second, "uid=jbond,ou=People,dc=example,dc=com");
 
-        QueryType convertedQueryType = toQueryType(query);
-//        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+        toQueryType(query);
     }
 
     @Test
@@ -176,10 +159,8 @@ public class TestQueryConverter extends AbstractUnitTest {
 
         ObjectFilter second = getFilterCondition(filter, 1);
         PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, ItemPath.create("attributes", "name"));
-        //PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
-        QueryType convertedQueryType = toQueryType(query);
-//        System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+        toQueryType(query);
     }
 
     @Test
@@ -195,25 +176,24 @@ public class TestQueryConverter extends AbstractUnitTest {
 
         ObjectFilter first = getFilterCondition(filter, 0);
         PrismAsserts.assertEqualsFilter(first, ShadowType.F_INTENT, DOMUtil.XSD_STRING, ShadowType.F_INTENT);
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "some account type");
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) first, "some account type");
 
         ObjectFilter second = getFilterCondition(filter, 1);
         PrismAsserts.assertEqualsFilter(second, fooBlaDefinition, DOMUtil.XSD_STRING, ItemPath.create(
                 ShadowType.F_ATTRIBUTES, fooBlaDefinition));
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "foo value");
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) second, "foo value");
 
         ObjectFilter third = getFilterCondition(filter, 2);
         PrismAsserts.assertEqualsFilter(third, stringExtensionDefinition, DOMUtil.XSD_STRING, ItemPath.create(
                 ShadowType.F_EXTENSION, stringExtensionDefinition));
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) third, "uid=test,dc=example,dc=com");
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) third, "uid=test,dc=example,dc=com");
 
         ObjectFilter forth = getFilterCondition(filter, 3);
         PrismAsserts.assertRefFilter(forth, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE,
                 ShadowType.F_RESOURCE_REF);
         assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
-        QueryType convertedQueryType = toQueryType(query);
-//        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+        toQueryType(query);
     }
 
     @Test
@@ -228,7 +208,7 @@ public class TestQueryConverter extends AbstractUnitTest {
             ObjectFilter filter = query.getFilter();
             PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
                     ConnectorType.F_CONNECTOR_TYPE);
-            PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, "org.identityconnectors.ldap.LdapConnector");
+            PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) filter, "org.identityconnectors.ldap.LdapConnector");
 
             QueryType convertedQueryType = toQueryType(query);
             displayQueryType(convertedQueryType);
@@ -259,9 +239,9 @@ public class TestQueryConverter extends AbstractUnitTest {
             assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
             assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
             ItemPath namePath = UserType.F_NAME;
-            PrismPropertyDefinition ppd = getUserDefinition().findPropertyDefinition(namePath);
+            PrismPropertyDefinition<?> ppd = getUserDefinition().findPropertyDefinition(namePath);
             PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), ppd.getItemName(), ppd.getTypeName(), namePath);
-            PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), PrismTestUtil.createPolyString("some name identificator"));
+            PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) typeFilter.getFilter(), PrismTestUtil.createPolyString("some name identifier"));
 
             QueryType convertedQueryType = toQueryType(query);
             displayQueryType(convertedQueryType);
@@ -274,7 +254,6 @@ public class TestQueryConverter extends AbstractUnitTest {
 
     @Test
     public void testShadowKindTypeQuery() throws Exception {
-        SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
         ObjectQuery query;
         try {
             ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
@@ -285,8 +264,10 @@ public class TestQueryConverter extends AbstractUnitTest {
             ObjectFilter filter = query.getFilter();
             assertTrue("filter is not an instance of type filter", filter instanceof EqualFilter);
 
-            EqualFilter typeFilter = (EqualFilter) filter;
-            assertEquals(typeFilter.getSingleValue().getRealValue(), ShadowKindType.ACCOUNT);
+            EqualFilter<?> typeFilter = (EqualFilter<?>) filter;
+            PrismPropertyValue<?> singleValue = typeFilter.getSingleValue();
+            assertThat(singleValue).isNotNull();
+            assertEquals(singleValue.getRealValue(), ShadowKindType.ACCOUNT);
 
             QueryType convertedQueryType = toQueryType(query);
 
@@ -302,25 +283,25 @@ public class TestQueryConverter extends AbstractUnitTest {
 
     private void assertRefFilterValue(RefFilter filter, String oid) {
         List<? extends PrismValue> values = filter.getValues();
-        assertEquals(1, values.size());
+        assertThat(values)
+                .isNotNull()
+                .hasSize(1);
         assertTrue(values.get(0) instanceof PrismReferenceValue);
         PrismReferenceValue val = (PrismReferenceValue) values.get(0);
 
         assertEquals(oid, val.getOid());
     }
 
-    private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
-        return getQueryConverter().createObjectQuery(type, queryType
-        );
+    private ObjectQuery toObjectQuery(Class<? extends Containerable> type, QueryType queryType) throws Exception {
+        return getQueryConverter().createObjectQuery(type, queryType);
     }
 
     private QueryConverter getQueryConverter() {
         return getPrismContext().getQueryConverter();
     }
 
-    private ObjectQuery toObjectQuery(Class type, SearchFilterType filterType) throws Exception {
-        return getQueryConverter().createObjectQuery(type, filterType
-        );
+    private ObjectQuery toObjectQuery(Class<? extends Containerable> type, SearchFilterType filterType) throws Exception {
+        return getQueryConverter().createObjectQuery(type, filterType);
     }
 
     private QueryType toQueryType(ObjectQuery query) throws Exception {
@@ -353,12 +334,12 @@ public class TestQueryConverter extends AbstractUnitTest {
         // check first condition
         ObjectFilter first = getFilterCondition(filter, 0);
         PrismAsserts.assertEqualsFilter(first, GenericObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, GenericObjectType.F_NAME);
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) first, createPolyString("generic object"));
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) first, createPolyString("generic object"));
         // check second condition
         ObjectFilter second = getFilterCondition(filter, 1);
         PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, ItemPath.create(
                 ObjectType.F_EXTENSION, new QName(NS_EXTENSION, "intType")));
-        PrismAsserts.assertEqualsFilterValue((EqualFilter) second, 123);
+        PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) second, 123);
 
         QueryType convertedQueryType = toQueryType(query);
         assertNotNull("Re-serialized query is null ", convertedQueryType);
@@ -386,11 +367,10 @@ public class TestQueryConverter extends AbstractUnitTest {
                 logger.info("query converted: ");
 
                 logger.info("QUERY DUMP: {}", query.debugDump());
-                logger.info("QUERY Pretty print: {}", query.toString());
-                System.out.println("QUERY Pretty print: " + query.toString());
+                logger.info("QUERY Pretty print: {}", query);
+                System.out.println("QUERY Pretty print: " + query);
 
-                QueryType convertedQueryType = getQueryConverter().createQueryType(query);
-//                logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+                getQueryConverter().createQueryType(query);
             } catch (Exception ex) {
                 logger.error("Error while converting query: {}", ex.getMessage(), ex);
                 throw ex;
@@ -425,7 +405,6 @@ public class TestQueryConverter extends AbstractUnitTest {
         displayQueryType(q1jaxb);
         String q1xml = toXml(q1jaxb);
         displayQueryXml(q1xml);
-//        XMLAssert.assertXMLEqual("Serialized query is not correct: Expected:\n" + q2xml + "\n\nReal:\n" + q1xml, q2xml, q1xml);
 
         // step 2 (parsing of Q2 + comparison)
         displayText("Query 2:");
@@ -433,7 +412,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         QueryType q2jaxb = toQueryType(q2xml);
         displayQueryType(q2jaxb);
         ObjectQuery q2object = toObjectQuery(objectClass, q2jaxb);
-        assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString());    // primitive way of comparing parsed queries
+        assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString()); // primitive way of comparing parsed queries
         assertTrue("Reparsed query is not as original one (via equivalent):\nq1=" + q1object + "\nq2=" + q2object, q1object.equivalent(q2object));
     }
 
@@ -562,7 +541,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         System.out.println("q1object:\n" + q1object.debugDump(1));
         System.out.println("q2object:\n" + q2object.debugDump(1));
 
-        assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString());    // primitive way of comparing parsed queries
+        assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString()); // primitive way of comparing parsed queries
 
         if (!q1object.equivalent(q2object)) {
             AssertJUnit.fail("Reparsed query is not as original one (via equivalent):\nq1=" + q1object + "\nq2=" + q2object);
@@ -613,7 +592,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         displayQuery(query);
 
         ObjectQuery expectedQuery = getPrismContext().queryFor(OrgType.class).isChildOf("333").build();
-        assertEquals("Parsed query is wrong", expectedQuery.toString(), query.toString());            // primitive way of comparing queries
+        assertEquals("Parsed query is wrong", expectedQuery.toString(), query.toString()); // primitive way of comparing queries
 
         // now reserialize the parsed query and compare with XML - the XML contains explicit scope=SUBTREE (as this is set when parsing original queryXml)
         checkQueryRoundtripFile(OrgType.class, query);
@@ -694,7 +673,7 @@ public class TestQueryConverter extends AbstractUnitTest {
     public void test700Exists() throws Exception {
         PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
         ObjectQuery q = getPrismContext().queryFor(AccessCertificationCaseType.class)
-                .exists(new ParentPathSegment())        // if using T_PARENT then toString representation of paths is different
+                .exists(new ParentPathSegment()) // if using T_PARENT then toString representation of paths is different
                 .block()
                 .id(123456L)
                 .or().item(F_OWNER_REF).ref(ownerRef)
@@ -732,7 +711,10 @@ public class TestQueryConverter extends AbstractUnitTest {
         }
     }
 
-    // Q{AND(IN OID: 8657eccf-c60d-4b5c-bbd4-4c73ecfd6436; ,REF: resourceRef,PRV(oid=aeff994e-381a-4fb3-af3b-f0f5dcdc9653, targetType=null),EQUAL: kind,PPV(ShadowKindType:ENTITLEMENT),EQUAL: intent,PPV(String:group)),null
+    // Q{AND(IN OID: 8657eccf-c60d-4b5c-bbd4-4c73ecfd6436; ,
+    //  REF: resourceRef,PRV(oid=aeff994e-381a-4fb3-af3b-f0f5dcdc9653, targetType=null),
+    //  EQUAL: kind,PPV(ShadowKindType:ENTITLEMENT),
+    //  EQUAL: intent,PPV(String:group)),null
 
     @Test
     public void test920QueryTypeEquals() throws Exception {
@@ -769,7 +751,7 @@ public class TestQueryConverter extends AbstractUnitTest {
 
             ObjectFilter filter = query.getFilter();
             PrismAsserts.assertEqualsFilter(query.getFilter(), EXT_LONG_TYPE, DOMUtil.XSD_LONG, EXT_LONG_TYPE_PATH);
-            PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, 4L);
+            PrismAsserts.assertEqualsFilterValue((EqualFilter<?>) filter, 4L);
 
             QueryType convertedQueryBean = toQueryType(query);
             displayQueryType(convertedQueryBean);
@@ -804,5 +786,14 @@ public class TestQueryConverter extends AbstractUnitTest {
             logger.error("Error while converting query: {}", ex.getMessage(), ex);
             throw ex;
         }
+    }
+
+    /** MID-7905 reported for 4.4.1, fails for 4.4.2 as well, fixed in 4.4.3 and in 4.6. */
+    @Test
+    public void test950ExistsForReferenceTarget() {
+        getPrismContext().queryFor(UserType.class)
+                .exists(F_ROLE_MEMBERSHIP_REF, T_OBJECT_REFERENCE)
+                .item(ObjectType.F_NAME).eq("role-name")
+                .build();
     }
 }

@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
@@ -61,7 +61,7 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
 
     static final ItemName SIS_ID_NAME = new ItemName(NS_RI, "sisId");
 
-    @Autowired CorrelationService correlationService;
+    @Autowired CorrelationServiceImpl correlationService;
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseService caseService;
 

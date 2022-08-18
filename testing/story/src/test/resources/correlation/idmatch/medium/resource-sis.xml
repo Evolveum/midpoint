@@ -110,7 +110,9 @@
             <correlation>
                 <correlators>
                     <idMatch>
-                        <extending>idmatch</extending>
+                        <super>
+                            <ref>idmatch</ref>
+                        </super>
                         <sorIdentifierPrefix>sis-</sorIdentifierPrefix>
                     </idMatch>
                 </correlators>

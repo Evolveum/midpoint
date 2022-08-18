@@ -7,18 +7,22 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.user;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * Created by honchar.
@@ -39,28 +43,24 @@ public class PageUserHistory extends PageUser {
 
     private static final String DOT_CLASS = PageUserHistory.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(PageUserHistory.class);
-    private String date = "";
 
-    public PageUserHistory(final PrismObject<UserType> user, String date) {
-        super(user);
-        this.date = date;
+    private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
+    private static final String OID_PARAMETER_LABEL = "oid";
+    private static final String EID_PARAMETER_LABEL = "eventIdentifier";
+    private static final String DATE_PARAMETER_LABEL = "date";
+
+    public PageUserHistory(PageParameters pageParameters) {
+        super(pageParameters);
     }
 
     @Override
     protected UserDetailsModel createObjectDetailsModels(PrismObject<UserType> object) {
-        return new UserDetailsModel(createPrismObjectModel(object), this) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isReadonly() {
-                return true;
-            }
-        };
+        return new UserDetailsModel(createPrismObjectModel(getReconstructedObject()), true,this);
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -69,9 +69,33 @@ public class PageUserHistory extends PageUser {
                 if (getModelObjectType() != null) {
                     name = WebComponentUtil.getName(getModelObjectType());
                 }
-                return createStringResource("PageUserHistory.title", name, date).getObject();
+                return createStringResource("PageUserHistory.title", name, getDate()).getObject();
             }
         };
+    }
+
+    private PrismObject<UserType> getReconstructedObject() {
+        OperationResult result = new OperationResult(OPERATION_RESTRUCT_OBJECT);
+        try {
+            Task task = createSimpleTask(OPERATION_RESTRUCT_OBJECT);
+            return getModelAuditService().reconstructObject(UserType.class, getObjectId(), getEventIdentifier(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
+        }
+        return null;
+    }
+
+    public String getDate() {
+        return String.valueOf(getPageParameters().get(DATE_PARAMETER_LABEL));
+    }
+
+    public String getObjectId() {
+        return String.valueOf(getPageParameters().get(OID_PARAMETER_LABEL));
+    }
+
+    public String getEventIdentifier() {
+        return String.valueOf(getPageParameters().get(EID_PARAMETER_LABEL));
     }
 
 }

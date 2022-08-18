@@ -11,7 +11,10 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +24,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -31,18 +33,13 @@ import com.evolveum.midpoint.gui.api.component.AssignmentPopupDto;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -68,10 +65,8 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.util.AssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.GenericPageStorage;
@@ -165,7 +160,9 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 return new LoadableModel<>() {
                     @Override
                     protected String load() {
-                        return loadValuesForNameColumn(rowModel, customColumn, itemPath, expression);
+                        Collection<String> evaluatedValues = loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
+                        return ColumnUtils.loadValuesForAssignmentNameColumn(rowModel, evaluatedValues,
+                                expression != null || itemPath != null, getPageBase());
                     }
                 };
             }
@@ -194,26 +191,6 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         storage.put(storageKey, pageStorage);
 
         return pageStorage;
-    }
-
-    private String loadValuesForNameColumn(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-        if (expression != null || itemPath != null) {
-            Collection<String> evaluatedValues = loadExportableColumnDataModel(rowModel, customColumn, itemPath, expression);
-            if (CollectionUtils.isEmpty(evaluatedValues)) {
-                return "";
-            }
-            if (evaluatedValues.size() == 1) {
-                return evaluatedValues.iterator().next();
-            }
-            return String.join(", ", evaluatedValues);
-        }
-        String name = AssignmentsUtil.getName(rowModel.getObject(), getPageBase());
-        LOGGER.trace("Name for AssignmentType: " + name);
-        if (StringUtils.isBlank(name)) {
-            return createStringResource("AssignmentPanel.noName").getString();
-        }
-
-        return name;
     }
 
     @Override
@@ -360,23 +337,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     private IColumn<PrismContainerValueWrapper<AssignmentType>, String> createAssignmentIconColumn() {
-        return new CompositedIconColumn<>(Model.of("")) {
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                AssignmentType assignment = rowModel.getObject().getRealValue();
-                LOGGER.trace("Create icon for AssignmentType: " + assignment);
-                PrismObject<? extends FocusType> object = loadTargetObject(assignment);
-                if (object != null) {
-                    return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
-                            new OperationResult("create_assignment_composited_icon"), getPageBase());
-                }
-                String displayType = WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
-                CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
-                iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
-                return iconBuilder.build();
-            }
-        };
+        return ColumnUtils.createAssignmentIconColumn(getPageBase());
     }
 
     protected <F extends FocusType> PrismObject<F> loadTargetObject(AssignmentType assignmentType) {

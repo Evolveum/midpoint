@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-//TODO remove in 4.5
+//TODO remove in future
 public enum PageTypes {
 
     USER("users", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class, PageUser.class,  UserType.COMPLEX_TYPE),
@@ -84,5 +85,14 @@ public enum PageTypes {
 
     public QName getTypeName() {
         return typeName;
+    }
+
+    public static PageTypes getPageTypesByType(QName type) {
+        for (PageTypes pageType : values()) {
+            if (QNameUtil.match(pageType.typeName, type)) {
+                return pageType;
+            }
+        }
+        return null;
     }
 }

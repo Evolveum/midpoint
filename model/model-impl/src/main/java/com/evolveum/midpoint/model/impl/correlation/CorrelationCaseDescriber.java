@@ -26,10 +26,10 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Ca
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService.CorrelationCaseDescriptionOptions;
+import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -76,7 +76,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
     @NotNull private final CorrelationCaseDescription<F> description;
 
     /** Relates to pre-focus. We assume that it is applicable also to the candidates. */
-    @NotNull private final IndexingConfiguration indexingConfiguration;
+    private final @NotNull TemplateCorrelationConfiguration templateCorrelationConfiguration;
 
     @NotNull private final String contextDesc;
 
@@ -100,7 +100,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
         this.correlatorContext = correlatorContext;
         this.correlationContext = correlationContext;
         this.explain = CorrelationCaseDescriptionOptions.isExplain(options);
-        this.indexingConfiguration = correlatorContext.getIndexingConfiguration();
+        this.templateCorrelationConfiguration = correlatorContext.getTemplateCorrelationConfiguration();
         this.contextDesc = contextDesc;
         this.task = task;
         this.beans = beans;
@@ -153,7 +153,9 @@ class CorrelationCaseDescriber<F extends FocusType> {
             CorrelationExplanation explanation;
             if (explain) {
                 explanation =
-                        beans.correlationServiceImpl.explain(candidate, correlatorContext, correlationContext, task, result);
+                        beans.correlatorFactoryRegistry
+                                .instantiateCorrelator(correlatorContext, task, result)
+                                .explain(correlationContext, candidate, result);
                 confidence = explanation.getConfidence();
             } else {
                 explanation = null;
@@ -190,7 +192,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
         Set<PrismValue> allValues = Sets.union(primaryValues, allSecondaryValues);
 
         Collection<PrismValue> preFocusValues = preFocus.asPrismContainerValue().getAllValues(itemPath);
-        IndexingItemConfiguration indexing = indexingConfiguration.getForPath(itemPath);
+        IndexingItemConfiguration indexing = templateCorrelationConfiguration.getIndexingConfiguration().getForPath(itemPath);
         CorrelationCaseDescription.Match match =
                 new MatchDetermination(candidate, correlationProperty, preFocusValues, primaryValues, allValues, indexing)
                         .determine(task, result);
@@ -264,54 +266,54 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 LOGGER.trace("... not applicable because real value in pre-focus is null"); // shouldn't be
                 return NOT_APPLICABLE;
             }
-            ValueNormalizer valueNormalizer = indexing != null ?
+            ValueNormalizer defaultValueNormalizer = indexing != null ?
                     indexing.getDefaultNormalization() : IndexingManager.getDefaultNormalizer();
-            String preFocusNormalized = IndexingManager.normalizeValue(preFocusRealValue, valueNormalizer, task, result);
+            String preFocusNormalized = IndexingManager.normalizeValue(preFocusRealValue, defaultValueNormalizer, task, result);
 
             for (PrismValue primaryValue : primaryValues) {
                 Object primaryRealValue = primaryValue.getRealValue();
                 if (primaryRealValue == null) {
                     continue;
                 }
-                String primaryNormalized = IndexingManager.normalizeValue(primaryRealValue, valueNormalizer, task, result);
+                String primaryNormalized = IndexingManager.normalizeValue(primaryRealValue, defaultValueNormalizer, task, result);
                 if (primaryNormalized.equals(preFocusNormalized)) {
-                    LOGGER.trace("Match of primary value '{}' (normalized to '{}' using default normalization) -> FULL",
-                            primaryRealValue, primaryNormalized);
+                    LOGGER.trace("Match of primary value '{}' (normalized to '{}' using default normalizer '{}') -> FULL",
+                            primaryRealValue, primaryNormalized, defaultValueNormalizer);
                     return FULL;
+                } else {
+                    LOGGER.trace("No match of primary value '{}' (normalized to '{}' using default normalizer '{}') -> continuing",
+                            primaryRealValue, primaryNormalized, defaultValueNormalizer);
                 }
             }
 
             ItemPath itemPath = correlationProperty.getItemPath();
-            Set<ItemCorrelationType> correlationDefSet =
+            Set<CorrelationItemType> correlationDefSet =
                     correlatorContext.getConfiguration().getAllConfigurationsDeeply().stream()
                             .map(CorrelatorConfiguration::getConfigurationBean)
                             .filter(bean -> bean instanceof ItemsCorrelatorType)
                             .map(bean -> (ItemsCorrelatorType) bean)
                             .flatMap(bean -> bean.getItem().stream())
-                            .filter(item -> item.getPath() != null && item.getPath().getItemPath().equivalent(itemPath))
+                            .filter(item -> item.getRef() != null && item.getRef().getItemPath().equivalent(itemPath))
                             .collect(Collectors.toSet());
 
-            if (!correlationDefSet.isEmpty()) {
-                LOGGER.trace("Correlation 'item' definitions:\n{}", DebugUtil.toStringCollectionLazy(correlationDefSet, 1));
-                for (ItemCorrelationType correlationDef : correlationDefSet) {
-                    CorrelationItem correlationItem = CorrelationItem.create(correlationDef, correlatorContext, preFocus);
-                    S_FilterEntry builder = PrismContext.get().queryFor(preFocus.getClass());
-                    ObjectFilter filter =
-                            correlationItem.addClauseToQueryBuilder(builder, task, result)
-                                    .buildFilter();
-                    if (filter.match(candidate.asPrismContainerValue(), beans.matchingRuleRegistry)) {
-                        LOGGER.trace("Match on item-derived filter: {} -> PARTIAL", filter);
-                        return PARTIAL;
-                    }
+            LOGGER.trace("Correlation 'item' definitions:\n{}", DebugUtil.toStringCollectionLazy(correlationDefSet, 1));
+            for (CorrelationItemType correlationDef : correlationDefSet) {
+                CorrelationItem correlationItem = CorrelationItem.create(correlationDef, correlatorContext, preFocus);
+                S_FilterEntry builder = PrismContext.get().queryFor(preFocus.getClass());
+                ObjectFilter filter =
+                        correlationItem.addClauseToQueryBuilder(builder, task, result)
+                                .buildFilter();
+                if (filter.match(candidate.asPrismContainerValue(), beans.matchingRuleRegistry)) {
+                    LOGGER.trace("Match on item-derived filter: {} -> PARTIAL", filter);
+                    return PARTIAL;
+                } else {
+                    LOGGER.trace("No match on item-derived filter: {} -> continuing", filter);
                 }
-                LOGGER.trace("No item definition matches -> NONE");
-                return NONE;
             }
 
             Collection<? extends ValueNormalizer> normalizers = indexing != null ?
                     indexing.getNormalizations() : Set.of(IndexingManager.getDefaultNormalizer());
-            LOGGER.trace("No correlation item definitions, trying to find a match using applicable normalizers (count: {})",
-                    normalizers.size());
+            LOGGER.trace("Trying to find a match using applicable normalizers (count: {})", normalizers.size());
 
             for (PrismValue anyValue : allValues) {
                 Object anyRealValue = anyValue.getRealValue();
@@ -321,9 +323,12 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 for (ValueNormalizer normalizer : normalizers) {
                     String anyNormalized = IndexingManager.normalizeValue(anyRealValue, normalizer, task, result);
                     if (anyNormalized.equals(preFocusNormalized)) {
-                        LOGGER.trace("Match of 'any' value '{}' (normalized to '{}' using a normalizer) -> PARTIAL",
-                                anyRealValue, anyNormalized);
+                        LOGGER.trace("Match of 'any' value '{}' (normalized to '{}' using a normalizer '{}') -> PARTIAL",
+                                anyRealValue, anyNormalized, normalizer);
                         return PARTIAL;
+                    } else {
+                        LOGGER.trace("No match of 'any' value '{}' (normalized to '{}' using a normalizer '{}') -> continuing",
+                                anyRealValue, anyNormalized, normalizer);
                     }
                 }
             }

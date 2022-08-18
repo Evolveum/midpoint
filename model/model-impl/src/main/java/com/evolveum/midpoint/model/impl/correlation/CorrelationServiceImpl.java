@@ -49,12 +49,25 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Provides correlation-related functionality, primarily on top of {@link Correlator} interface:
+ *
+ * . the correlation itself (`correlate`) - including creation of {@link CompleteCorrelationResult} out of correlator-provided
+ * {@link CorrelationResult} object;
+ * . determining candidate owner suitability (`checkCandidateOwner`);
+ * . describing the correlation case (`describeCorrelationCase`);
+ * . completing a correlation case;
+ *
+ * and further auxiliary methods.
+ *
+ */
 @Component
 public class CorrelationServiceImpl implements CorrelationService {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationServiceImpl.class);
 
     private static final String OP_CORRELATE = CorrelationServiceImpl.class.getName() + ".correlate";
+    private static final String OP_RESOLVE = CorrelationServiceImpl.class.getName() + ".resolve";
 
     @Autowired ModelBeans beans;
     @Autowired CorrelatorFactoryRegistry correlatorFactoryRegistry;
@@ -62,7 +75,25 @@ public class CorrelationServiceImpl implements CorrelationService {
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
 
-    @Override
+    /**
+     * A limited convenience variant of {@link #correlate(CorrelatorContext, CorrelationContext, OperationResult)}
+     * that starts with a single shadow only. Used in special cases, including testing.
+     */
+    public @NotNull CompleteCorrelationResult correlate(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
+        return correlate(correlatorContext, correlationContext, result);
+    }
+
+    /**
+     * Executes the correlation in the standard way.
+     */
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull CorrelatorContext<?> rootCorrelatorContext,
             @NotNull CorrelationContext correlationContext,
@@ -86,20 +117,6 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
     }
 
-    @Override
-    public @NotNull CompleteCorrelationResult correlate(
-            @NotNull ShadowType shadowedResourceObject,
-            @Nullable FocusType preFocus,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        FullCorrelationContext fullContext = getFullCorrelationContext(shadowedResourceObject, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
-        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
-        return correlate(correlatorContext, correlationContext, result);
-    }
-
     private @NotNull CompleteCorrelationResult createCompleteResult(
             CorrelationResult correlationResult, CorrelatorContext<?> correlatorContext) {
         CandidateOwnersMap candidateOwnersMap = correlationResult.getCandidateOwnersMap();
@@ -112,7 +129,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 candidateOwnersMap.selectWithConfidenceAtLeast(
                         candidateThreshold);
 
-        LOGGER.info("Determining overall result with owner threshold of {}, candidate threshold of {}, "
+        LOGGER.debug("Determining overall result with owner threshold of {}, candidate threshold of {}, "
                         + "owners: {}, eligible candidates: {}, all candidates:\n{}",
                 ownerThreshold, candidateThreshold, owners.size(), eligibleCandidates.size(),
                 DebugUtil.toStringCollectionLazy(candidateOwnersMap.values(), 1));
@@ -148,45 +165,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
     }
 
-    @Override
-    public @NotNull CompleteCorrelationResult correlate(
-            @NotNull ShadowType shadowedResourceObject,
-            @NotNull ResourceType resource,
-            @NotNull SynchronizationPolicy synchronizationPolicy,
-            @NotNull Class<? extends FocusType> focusType,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-
-        SimplePreInboundsContextImpl<?> preInboundsContext = new SimplePreInboundsContextImpl<>(
-                shadowedResourceObject,
-                resource,
-                PrismContext.get().createObjectable(focusType),
-                ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)),
-                task,
-                synchronizationPolicy.getObjectTypeDefinition(),
-                beans);
-        new PreMappingsEvaluation<>(preInboundsContext, beans)
-                .evaluate(result);
-
-        return correlate(shadowedResourceObject, preInboundsContext.getPreFocus(), task, result);
-    }
-
-    CorrelationExplanation explain(
-            @NotNull FocusType candidate,
-            @NotNull CorrelatorContext<?> correlatorContext,
-            @NotNull CorrelationContext correlationContext,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        return correlatorFactoryRegistry
-                .instantiateCorrelator(correlatorContext, task, result)
-                .explain(correlationContext, candidate, result);
-    }
-
-    @Override
+    /**
+     * Checks whether the supplied candidate owner would be the correlation result (if real correlation would take place).
+     * Used for opportunistic synchronization.
+     *
+     * Why not doing the actual correlation? Because the owner may not exist in repository yet.
+     */
     public boolean checkCandidateOwner(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
@@ -205,7 +189,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 preFocus,
                 determineObjectTemplate(synchronizationPolicy, preFocus, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
         CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
@@ -214,6 +198,78 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     @Override
+    public @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
+            @NotNull CaseType aCase,
+            @Nullable CorrelationCaseDescriptionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+
+        FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
+        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
+        List<ResourceObjectOwnerOptionType> ownerOptionsList = CorrelationCaseUtil.getOwnerOptionsList(aCase);
+        String contextDesc = "correlation case " + aCase;
+        return new CorrelationCaseDescriber<>(
+                correlatorContext, correlationContext, ownerOptionsList, options, contextDesc, task, beans)
+                .describe(result);
+    }
+
+    @VisibleForTesting
+    public @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
+            @NotNull CorrelatorContext<?> correlatorContext,
+            @NotNull CorrelationContext correlationContext,
+            @NotNull List<ResourceObjectOwnerOptionType> ownerOptionsList,
+            @Nullable CorrelationCaseDescriptionOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        return new CorrelationCaseDescriber<>(
+                correlatorContext, correlationContext, ownerOptionsList, options, "test", task, beans)
+                .describe(result);
+    }
+
+    @Override
+    public void completeCorrelationCase(
+            @NotNull CaseType currentCase,
+            @NotNull CaseCloser caseCloser,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
+    }
+
+    /**
+     * Resolves the given correlation case - in the correlator.
+     * (For majority of correlators this is no-op. See {@link Correlator#resolve(CaseType, String, Task, OperationResult)}.)
+     *
+     * Note that {@link CaseType#getOutcome()} must not be null.
+     */
+    void resolve(
+            @NotNull CaseType aCase,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(OP_RESOLVE);
+        try {
+            FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
+            CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
+            correlatorFactoryRegistry
+                    .instantiateCorrelator(correlatorContext, task, result)
+                    .resolve(aCase, aCase.getOutcome(), task, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @VisibleForTesting
     public <F extends FocusType> @NotNull F computePreFocus(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceType resource,
@@ -236,7 +292,12 @@ public class CorrelationServiceImpl implements CorrelationService {
         return preInboundsContext.getPreFocus();
     }
 
-    /** Ignores pre-focus stored in the case. TODO is that OK? */
+    /**
+     * Creates {@link FullCorrelationContext} from the given {@link CaseType}.
+     *
+     * Note that this method intentionally ignores pre-focus stored in the case,
+     * and computes it from scratch.
+     */
     private @NotNull FullCorrelationContext getFullCorrelationContext(
             @NotNull CaseType aCase,
             @NotNull Task task,
@@ -256,7 +317,9 @@ public class CorrelationServiceImpl implements CorrelationService {
             ConfigurationException, ObjectNotFoundException {
         String resourceOid = ShadowUtil.getResourceOidRequired(shadow);
         ResourceType resource =
-                beans.provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+                beans.provisioningService
+                        .getObject(ResourceType.class, resourceOid, null, task, result)
+                        .asObjectable();
 
         ShadowKindType kind = shadow.getKind();
         String intent = shadow.getIntent();
@@ -281,18 +344,6 @@ public class CorrelationServiceImpl implements CorrelationService {
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
     }
 
-    @Override
-    public Correlator instantiateCorrelator(
-            @NotNull CaseType aCase,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
-        return correlatorFactoryRegistry.instantiateCorrelator(correlatorContext, task, result);
-    }
-
     private CorrelationContext createCorrelationContext(
             @NotNull FullCorrelationContext fullContext,
             @NotNull Task task,
@@ -308,18 +359,9 @@ public class CorrelationServiceImpl implements CorrelationService {
                 task);
     }
 
-    @Override
-    public void completeCorrelationCase(
-            @NotNull CaseType currentCase,
-            @NotNull CaseCloser caseCloser,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
-    }
-
-    @Override
+    /**
+     * Creates the root correlator context for given configuration.
+     */
     public @NotNull CorrelatorContext<?> createRootCorrelatorContext(
             @NotNull SynchronizationPolicy synchronizationPolicy,
             @Nullable ObjectTemplateType objectTemplate,
@@ -327,11 +369,17 @@ public class CorrelationServiceImpl implements CorrelationService {
         return CorrelatorContextCreator.createRootContext(
                 synchronizationPolicy.getCorrelationDefinition(),
                 objectTemplate,
-                systemConfiguration,
-                beans);
+                systemConfiguration);
     }
 
-    @Override
+    /**
+     * Clears the correlation state of a shadow.
+     *
+     * Does not do unlinking (if the shadow is linked)!
+     *
+     * Only for testing.
+     */
+    @VisibleForTesting // TODO consider what to do with this method
     public void clearCorrelationState(@NotNull String shadowOid, @NotNull OperationResult result)
             throws ObjectNotFoundException {
         try {
@@ -351,8 +399,9 @@ public class CorrelationServiceImpl implements CorrelationService {
      * Determines object template from pre-focus or from archetype reference.
      *
      * In the future we may allow explicit configuration of the template ref in the `correlation` section.
+     *
+     * TODO find better place for this method
      */
-    @Override
     public ObjectTemplateType determineObjectTemplate(
             @NotNull SynchronizationPolicy synchronizationPolicy,
             @NotNull FocusType preFocus,
@@ -370,39 +419,5 @@ public class CorrelationServiceImpl implements CorrelationService {
         LOGGER.trace("Determined archetype OID: {}", oid);
         return oid != null ?
                 beans.archetypeManager.getExpandedObjectTemplate(oid, result) : null;
-    }
-
-    @Override
-    public @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
-            @NotNull CaseType aCase,
-            @Nullable CorrelationCaseDescriptionOptions options,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-
-        FullCorrelationContext fullContext = getFullCorrelationContext(aCase, task, result);
-        CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext, beans);
-        CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
-        List<ResourceObjectOwnerOptionType> ownerOptionsList = CorrelationCaseUtil.getOwnerOptionsList(aCase);
-        String contextDesc = "correlation case " + aCase;
-        return new CorrelationCaseDescriber<>(
-                correlatorContext, correlationContext, ownerOptionsList, options, contextDesc, task, beans)
-                .describe(result);
-    }
-
-    @VisibleForTesting
-    public @NotNull CorrelationCaseDescription<?> describeCorrelationCase(
-            @NotNull CorrelatorContext<?> correlatorContext,
-            @NotNull CorrelationContext correlationContext,
-            @NotNull List<ResourceObjectOwnerOptionType> ownerOptionsList,
-            @Nullable CorrelationCaseDescriptionOptions options,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        return new CorrelationCaseDescriber<>(
-                correlatorContext, correlationContext, ownerOptionsList, options, "test", task, beans)
-                .describe(result);
     }
 }

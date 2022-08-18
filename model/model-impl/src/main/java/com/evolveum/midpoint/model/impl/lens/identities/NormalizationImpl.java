@@ -46,9 +46,8 @@ public class NormalizationImpl implements Normalization {
 
     public static Normalization create(
             @NotNull String indexedItemName,
-            @NotNull IndexedItemNormalizationDefinitionType normalizationBean,
-            @NotNull ModelBeans beans) {
-        Collection<NormalizationStep<?>> parsedSteps = NormalizationStep.parse(normalizationBean.getSteps(), beans);
+            @NotNull IndexedItemNormalizationDefinitionType normalizationBean) {
+        Collection<NormalizationStep<?>> parsedSteps = NormalizationStep.parse(normalizationBean.getSteps());
         String normalizationName = getNormalizationName(normalizationBean, parsedSteps);
         String normalizedItemLocalName =
                 getNormalizedItemLocalName(indexedItemName, normalizationName, normalizationBean);

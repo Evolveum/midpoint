@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -15,7 +27,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,24 +50,12 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.List;
-
 /**
  * Created by honchar.
  */
 @PanelType(name = "history")
 @PanelInstance(identifier = "history", applicableForType = FocusType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = "fa fa-history", order = 60))
+        display = @PanelDisplay(label = "pageAdminFocus.objectHistory", icon = GuiStyleConstants.CLASS_ICON_HISTORY, order = 60))
 public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
 
     private static final long serialVersionUID = 1L;
@@ -65,6 +64,11 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     private static final Trace LOGGER = TraceManager.getTrace(FocusHistoryPanel.class);
     private static final String DOT_CLASS = FocusHistoryPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
+
+    private static final String OID_PARAMETER_LABEL = "oid";
+    private static final String EID_PARAMETER_LABEL = "eventIdentifier";
+    private static final String DATE_PARAMETER_LABEL = "date";
+    private static final String CLASS_TYPE_PARAMETER_LABEL = "classType";
 
     public FocusHistoryPanel(String id, FocusDetailsModels<F> focusModel, ContainerPanelConfigurationType config) {
         super(id, focusModel, config);
@@ -77,7 +81,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     }
 
     protected void initLayout() {
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, null, getPanelConfiguration()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -106,8 +110,9 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.INFO),
                                                 target ->
-                                                        currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
-                                                                unwrapModel(model).getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
+                                                        currentStateButtonClicked(getObjectWrapper().getOid(),
+                                                                unwrapModel(model).getEventIdentifier(),
+                                                                getObjectWrapper().getCompileTimeClass(),
                                                                 WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                     case 1:
@@ -163,26 +168,38 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
         add(panel);
     }
 
-    protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date) {
-        Class<F> objectClass = object.getCompileTimeClass();
+    protected void currentStateButtonClicked(String oid, String eventIdentifier, Class<F> type, String date) {
+        PrismObject<F> object = getReconstructedObject(oid, eventIdentifier, type);
+
+        //TODO fix sessionStorage
+        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(),null);
+
+        PageParameters pageParameters = new PageParameters();
+        pageParameters.add(OID_PARAMETER_LABEL, oid);
+        pageParameters.add(EID_PARAMETER_LABEL, eventIdentifier);
+        pageParameters.add(DATE_PARAMETER_LABEL, date);
+
+        Class<F> objectClass = null;
+        if (object != null) {
+            objectClass = object.getCompileTimeClass();
+        }
         if (UserType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(new PageUserHistory((PrismObject<UserType>) object, date));
+            getPageBase().navigateToNext(PageUserHistory.class, pageParameters);
         } else if (RoleType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(new PageRoleHistory((PrismObject<RoleType>) object, date));
+            getPageBase().navigateToNext(PageRoleHistory.class,pageParameters);
         } else if (OrgType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(new PageOrgHistory((PrismObject<OrgType>) object, date));
+            getPageBase().navigateToNext(PageOrgHistory.class,pageParameters);
         } else if (ServiceType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(new PageServiceHistory((PrismObject<ServiceType>) object, date));
+            getPageBase().navigateToNext(PageServiceHistory.class,pageParameters);
         }
     }
 
     private PrismObject<F> getReconstructedObject(String oid, String eventIdentifier,
-                                                  Class type) {
+            Class<F> type) {
         OperationResult result = new OperationResult(OPERATION_RESTRUCT_OBJECT);
         try {
             Task task = getPageBase().createSimpleTask(OPERATION_RESTRUCT_OBJECT);
-            PrismObject<F> object = WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
-            return object;
+            return WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
@@ -190,36 +207,14 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
         return null;
     }
 
-    private void viewObjectXmlButtonClicked(String oid, String eventIdentifier, Class type, String date) {
-        PrismObject<F> object = getReconstructedObject(oid, eventIdentifier, type);
-        String name = WebComponentUtil.getName(object);
+    private void viewObjectXmlButtonClicked(String oid, String eventIdentifier, Class<F> type, String date) {
+        PageParameters pageParameters = new PageParameters();
+        pageParameters.add(OID_PARAMETER_LABEL, oid);
+        pageParameters.add(EID_PARAMETER_LABEL, eventIdentifier);
+        pageParameters.add(DATE_PARAMETER_LABEL, date);
+        pageParameters.add(CLASS_TYPE_PARAMETER_LABEL, type.getName());
 
-        getPageBase().navigateToNext(new PageXmlDataReview(getPageBase().createStringResource("PageXmlDataReview.aceEditorPanelTitle", name, date),
-                new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        PrismContext context = getPageBase().getPrismContext();
-                        String xml = "";
-                        try {
-                            xml = context.xmlSerializer().serialize(object);
-                        } catch (Exception ex) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize object", ex);
-                        }
-                        return xml;
-                    }
-
-                    @Override
-                    public void setObject(String s) {
-
-                    }
-
-                    @Override
-                    public void detach() {
-
-                    }
-                }));
+        getPageBase().navigateToNext(PageXmlDataReview.class, pageParameters);
     }
 
 }

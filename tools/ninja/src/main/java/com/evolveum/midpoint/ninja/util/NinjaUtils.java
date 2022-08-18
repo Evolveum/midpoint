@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -111,7 +111,7 @@ public class NinjaUtils {
         PrismContext prismContext = context.getPrismContext();
         // Experimental Axiom filter support, % is chosen as a marker and will be skipped.
         if (filterStr.startsWith("%")) {
-            ObjectFilter objectFilter = prismContext.createQueryParser().parseQuery(objectClass, filterStr.substring(1));
+            ObjectFilter objectFilter = prismContext.createQueryParser().parseFilter(objectClass, filterStr.substring(1));
             return prismContext.queryFactory().createQuery(objectFilter);
         } else {
             PrismParserNoIO parser = prismContext.parserFor(filterStr);

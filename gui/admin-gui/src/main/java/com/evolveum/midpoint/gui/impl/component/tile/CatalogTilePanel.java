@@ -39,6 +39,7 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
     private static final String ID_INFO = "info";
+    private static final String ID_CHECK = "check";
 
     public CatalogTilePanel(String id, IModel<CatalogTile<T>> model) {
         super(id, model);
@@ -53,6 +54,27 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
 
         RoundedImagePanel logo1 = new RoundedImagePanel(ID_LOGO, () -> createDisplayType(getModel()), createPreferredImage(getModel()));
         add(logo1);
+
+        WebMarkupContainer check = new WebMarkupContainer(ID_CHECK);
+        check.add(AttributeAppender.append("class", () -> {
+            CatalogTile t = getModelObject();
+            CatalogTile.CheckState state = t.getCheckState();
+
+            if (state == null) {
+                return "check-none";
+            }
+
+            switch (state) {
+                case FULL:
+                    return "check-full";
+                case PARTIAL:
+                    return "check-partial";
+                case NONE:
+                default:
+                    return "check-none";
+            }
+        }));
+        add(check);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         add(description);

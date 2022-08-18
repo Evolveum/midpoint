@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.addSingleItemCorrelator;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;
@@ -260,63 +261,47 @@ public class SynchronizationPolicyFactory {
             @NotNull ResourceType resource) throws ConfigurationException {
         CorrelationDefinitionType cloned = null;
         for (ResourceAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
-            ItemCorrelationDefinitionType correlationDefBean = attributeDefinition.getCorrelationDefinitionBean();
-            if (correlationDefBean != null) {
+            ItemCorrelatorDefinitionType correlatorDefBean = attributeDefinition.getCorrelatorDefinition();
+            if (correlatorDefBean != null) {
                 if (cloned == null) {
                     cloned = explicitDefinition.clone();
                 }
-                addCorrelationDefinitionFromAttribute(cloned, attributeDefinition, correlationDefBean, typeDef, resource);
+                addCorrelatorFromAttribute(cloned, attributeDefinition, correlatorDefBean, typeDef, resource);
             }
         }
         return cloned != null ? cloned : explicitDefinition;
     }
 
-    private static void addCorrelationDefinitionFromAttribute(
+    private static void addCorrelatorFromAttribute(
             @NotNull CorrelationDefinitionType overallCorrelationDefBean,
             @NotNull ResourceAttributeDefinition<?> attributeDefinition,
-            @NotNull ItemCorrelationDefinitionType attributeCorrelationDefBean,
+            @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean,
             @NotNull ResourceObjectTypeDefinition typeDef,
             @NotNull ResourceType resource) throws ConfigurationException {
         List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
         configCheck(!inboundMappingBeans.isEmpty(),
                 "Attribute-level correlation requires an inbound mapping; for %s in %s (%s)",
                 attributeDefinition, typeDef, resource);
-        ItemPathType itemPathBean = determineItemPathBean(attributeDefinition, attributeCorrelationDefBean);
-        configCheck(itemPathBean != null,
+        ItemPath focusItemPath = determineFocusItemPath(attributeDefinition, attributeCorrelatorDefBean);
+        configCheck(focusItemPath != null,
                 "Item corresponding to correlation attribute %s couldn't be determined in %s (%s). You must specify"
                         + " it either explicitly, or provide exactly one inbound mapping with a proper target",
                 attributeDefinition, typeDef, resource);
-        if (!attributeCorrelationDefBean.getRules().isEmpty()) {
-            throw new UnsupportedOperationException(
-                    String.format("Explicit specification of rules is not supported yet: in %s in %s (%s)",
-                            attributeDefinition, typeDef, resource));
-        }
-        CompositeCorrelatorType correlators = overallCorrelationDefBean.getCorrelators();
-        if (correlators == null) {
-            correlators = new CompositeCorrelatorType();
-            overallCorrelationDefBean.setCorrelators(correlators);
-        }
-        correlators.getItems().add(
-                new ItemsSubCorrelatorType()
-                        .confidence(CloneUtil.clone(attributeCorrelationDefBean.getConfidence()))
-                        .item(new ItemCorrelationType()
-                                .path(itemPathBean.clone())));
+        addSingleItemCorrelator(overallCorrelationDefBean, focusItemPath, attributeCorrelatorDefBean);
     }
 
-    private static ItemPathType determineItemPathBean(
-            ResourceAttributeDefinition<?> attributeDefinition, ItemCorrelationDefinitionType attributeCorrelationDefBean) {
-        ItemPathType explicitItemPath = attributeCorrelationDefBean.getItem();
+    private static ItemPath determineFocusItemPath(
+            ResourceAttributeDefinition<?> attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
+        ItemPathType explicitItemPath = attributeCorrelatorDefBean.getFocusItem();
         if (explicitItemPath != null) {
-            return explicitItemPath;
+            return explicitItemPath.getItemPath();
         } else {
-            return guessCorrelationItemPath(attributeDefinition);
+            return guessFocusItemPath(attributeDefinition);
         }
     }
 
-    /**
-     * Tries to determine correlation item path from the inbound mapping target.
-     */
-    private static ItemPathType guessCorrelationItemPath(ResourceAttributeDefinition<?> attributeDefinition) {
+    /** Tries to determine correlation (focus) item path from the inbound mapping target. */
+    private static ItemPath guessFocusItemPath(ResourceAttributeDefinition<?> attributeDefinition) {
         List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.size() != 1) {
             return null;
@@ -329,12 +314,12 @@ public class SynchronizationPolicyFactory {
         ItemPath itemPath = itemPathType.getItemPath();
         QName variableName = itemPath.firstToVariableNameOrNull();
         if (variableName == null) {
-            return itemPathType;
+            return itemPath;
         }
         String localPart = variableName.getLocalPart();
         if (ExpressionConstants.VAR_FOCUS.equals(localPart)
                 || ExpressionConstants.VAR_USER.equals(localPart)) {
-            return new ItemPathType(itemPath.rest());
+            return itemPath.rest();
         } else {
             LOGGER.warn("Mapping target variable name '{}' is not supported for determination of correlation item path in {}",
                     variableName, attributeDefinition);

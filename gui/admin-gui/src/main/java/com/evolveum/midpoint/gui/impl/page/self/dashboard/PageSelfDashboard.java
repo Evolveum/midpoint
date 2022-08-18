@@ -6,41 +6,43 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.namespace.QName;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardSearchPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.StatisticDashboardWidget;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.MyAccessesPreviewDataPanel;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
-import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 
 @PageDescriptor(
         urls = {
@@ -59,16 +61,12 @@ public class PageSelfDashboard extends PageSelf {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfDashboard.class);
     private static final String ID_SEARCH_PANEL = "searchPanel";
-    private static final String ID_LINKS_PANEL = "linksPanel";
-    private static final String ID_LINK_ITEM = "linkItem";
+    private static final String ID_STATISTIC_WIDGETS_PANEL = "statisticWidgetsPanel";
+    private static final String ID_STATISTIC_WIDGET = "statisticWidget";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL = "objectCollectionViewWidgetsPanel";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGET = "objectCollectionViewWidget";
 
-    private static final String ID_TITLE = "title";
-
-
-
-    private static final String DOT_CLASS = PageSelfDashboard.class.getName() + ".";
+    private static final String STATISTIC_WIDGET_IDENTIFIER = "statisticWidget";
 
 
     public PageSelfDashboard() {
@@ -82,134 +80,131 @@ public class PageSelfDashboard extends PageSelf {
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL);
         dashboardSearchPanel.add(new VisibleBehaviour(() -> {
-//            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
-//            return WebComponentUtil.getElementVisibility(visibility, searchPanelActions);
-            return true;
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
+            return WebComponentUtil.getElementVisibility(visibility, searchPanelActions);
         }));
         add(dashboardSearchPanel);
 
-        ListView<RichHyperlinkType> linksPanel = new ListView<>(ID_LINKS_PANEL, () -> loadLinksList()) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<RichHyperlinkType> item) {
-                item.add(new DashboardLinkComponent(ID_LINK_ITEM, item.getModel()));
-            }
-        };
-        linksPanel.setOutputMarkupId(true);
-        linksPanel.add(new VisibleBehaviour(() -> {
-//            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-//            return WebComponentUtil.getElementVisibility(visibility);
-            return true;
-        }));
-        add(linksPanel);
-
+        initStatisticWidgets();
 
         initPreviewWidgets();
      }
 
+     private void initStatisticWidgets() {
+         ListView<ContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
+
+             private static final long serialVersionUID = 1L;
+
+             @Override
+             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
+                 StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
+                 widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                 item.add(widget);
+             }
+         };
+         linksPanel.setOutputMarkupId(true);
+         linksPanel.add(new VisibleBehaviour(() -> {
+             UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
+             return WebComponentUtil.getElementVisibility(visibility);
+         }));
+         add(linksPanel);
+     }
+
      private void initPreviewWidgets() {
-         //TODO compile default config + prepare config to default roles.
-         List<ContainerPanelConfigurationType> configs = new ArrayList<>();
-         configs.add(createPanelConfig(AssignmentType.COMPLEX_TYPE, createDisplayType("My Access", "col-md-4", GuiStyleConstants.EVO_ASSIGNMENT_ICON)));
-         configs.add(createPanelConfig(CaseType.COMPLEX_TYPE, createDisplayType("My Requests", "col-md-8", GuiStyleConstants.EVO_CASE_OBJECT_ICON)));
-         configs.add(createPanelConfig(CaseWorkItemType.COMPLEX_TYPE, createDisplayType("My Work Items", "col-md-6", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON)));
-
-
-         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, () -> configs) {
+         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::getNonStatisticWidgetList) {
 
              @Override
              protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
                  Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel());
-                 //TODO use model!
-                 widget.add(AttributeAppender.append("class", item.getModelObject().getDisplay().getCssClass()));
+                 widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                 widget.add(AttributeAppender.append("class", getWidgetCssClassModel(item.getModelObject())));
                  item.add(widget);
              }
          };
          viewWidgetsPanel.setOutputMarkupId(true);
          viewWidgetsPanel.add(new VisibleBehaviour(() -> {
-//            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
-//            return WebComponentUtil.getElementVisibility(visibility);
-             return true;
+            UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
+            return getCompiledGuiProfile().getHomePage() != null && WebComponentUtil.getElementVisibility(visibility);
          }));
          add(viewWidgetsPanel);
      }
 
-     private DisplayType createDisplayType(String label, String cssClass, String icon) {
-         return new DisplayType().label(label).cssClass(cssClass).beginIcon().cssClass(icon).end();
+     private IModel<String> getWidgetCssClassModel(ContainerPanelConfigurationType panelConfig) {
+        if (panelConfig == null || panelConfig.getDisplay() == null) {
+            return Model.of();
+        }
+        return Model.of(panelConfig.getDisplay().getCssClass());
      }
 
-     private ContainerPanelConfigurationType createPanelConfig(QName type, DisplayType displayType) {
-        ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
-        config.setDisplay(displayType);
-        config.setType(type);
-        return config;
+     private List<ContainerPanelConfigurationType> getStatisticWidgetList() {
+         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+         List<ContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+         if (allWidgetList == null) {
+             return null;
+         }
+         return allWidgetList.stream().filter(w -> STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
-    private List<RichHyperlinkType> loadLinksList() {
-        return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
+     private List<ContainerPanelConfigurationType> getNonStatisticWidgetList() {
+         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+         List<ContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+         if (allWidgetList == null) {
+             return null;
+         }
+         return allWidgetList.stream().filter(w -> !STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+     }
+
+    private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<UserType> load() {
+                MidPointPrincipal principal;
+                try {
+                    principal = SecurityUtil.getPrincipal();
+                } catch (SecurityViolationException e) {
+                    LOGGER.error("Cannot load logged in focus");
+                    return null;
+                }
+                return (PrismObject<UserType>) principal.getFocus().asPrismObject();
+            }
+        };
     }
 
-        // TODO just a prototype, should be initialized using refrection? or factory?
     private Component createWidget(String markupId, IModel<ContainerPanelConfigurationType> model) {
-        Class<?> type = WebComponentUtil.qnameToClass(PrismContext.get(), model.getObject().getType());
-        if (AssignmentType.class.equals(type)) {
-            return new MyAccessesPreviewDataPanel(markupId, null, model.getObject());
+        ContainerPanelConfigurationType config = model.getObject();
+        String panelType = config.getPanelType();
+        Class<? extends Panel> panelClass = findObjectPanel(panelType);
+
+        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this);
+
+        Component panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
+        if (panel == null) {
+            return new WebMarkupContainer(markupId);
         }
 
-        if (CaseType.class.equals(type)) {
-            return createMyRequestsPanel(markupId, model.getObject());
+        return panel;
+    }
+
+    private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId) {
+        CompiledGuiProfile compiledGuiProfile = getCompiledGuiProfile();
+        if (compiledGuiProfile.getUserDashboard() == null) {
+            return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-
-        if (CaseWorkItemType.class.equals(type)) {
-            return createMyWorkItemsPanel(markupId, model.getObject());
+        List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
+        if (CollectionUtils.isEmpty(widgetsList)) {
+            return UserInterfaceElementVisibilityType.VACANT;
         }
-
-        return new WebMarkupContainer(markupId);
+        HomePageType homePage = compiledGuiProfile.getHomePage();
+        List<ContainerPanelConfigurationType> containerPanelWidgets = homePage == null ? null : compiledGuiProfile.getHomePage().getWidget();
+        if (CollectionUtils.isEmpty(containerPanelWidgets)) {
+            return UserInterfaceElementVisibilityType.VACANT;
+        }
+        DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
+        if (widget == null || widget.getVisibility() == null) {
+            return UserInterfaceElementVisibilityType.HIDDEN;
+        } else {
+            return widget.getVisibility();
+        }
     }
-
-    private Component createMyWorkItemsPanel(String markupId, ContainerPanelConfigurationType config) {
-        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD, config) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ObjectFilter getCaseWorkItemsFilter() {
-                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                                AuthUtil.getPrincipalUser(),
-                                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPageBase().getRelationRegistry())
-                        .desc(F_CREATE_TIMESTAMP)
-                        .buildFilter();
-            }
-        };
-        workItemsPanel.setOutputMarkupId(true);
-        return workItemsPanel;
-    }
-
-    private Component createMyRequestsPanel(String markupId, ContainerPanelConfigurationType config) {
-        CasesTablePanel cases =  new CasesTablePanel(markupId, null, config) {
-
-            @Override
-            protected ObjectFilter getCasesFilter() {
-                return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
-                                AuthUtil.getPrincipalUser().getOid())
-                        .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-                        .buildFilter();
-            }
-
-            @Override
-            protected boolean isDashboard() {
-                return true;
-            }
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
-            }
-        };
-        cases.setDashboard(true);
-        return cases;
-    }
-
 
 }

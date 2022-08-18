@@ -13,6 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 
+import static org.assertj.core.api.Assertions.offset;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
+import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -139,13 +142,19 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                     new File(TEST_DIR, "correlator-by-name-fuzzy.xml"),
                     USER_TEMPLATE_DEFAULT_INDEXING);
 
+    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY_GRADUAL =
+            new File(TEST_DIR, "accounts-by-name-fuzzy-gradual.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY_GRADUAL =
+            new TestCorrelator(
+                    new File(TEST_DIR, "correlator-by-name-fuzzy-gradual.xml"),
+                    USER_TEMPLATE_DEFAULT_INDEXING);
+
     private static final File FILE_ACCOUNTS_COMPLEX = new File(TEST_DIR, "accounts-complex.csv");
     private static final TestCorrelator CORRELATOR_COMPLEX =
             new TestCorrelator(
                     new File(TEST_DIR, "correlator-complex.xml"),
                     USER_TEMPLATE_COMPLEX);
 
-    @Autowired private ModelBeans modelBeans;
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private IdMatchCorrelatorFactory idMatchCorrelatorFactory;
@@ -211,7 +220,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 CORRELATOR_ID_MATCH,
                 FILE_USERS_TRADITIONAL,
                 FILE_ACCOUNTS_ID_MATCH,
-                DESCRIBE_ONLY, // the confidence for potential matches is currently wrong (always 0)
+                FULL,
                 accounts -> {
                     // We need a specific record in our ID Match service.
                     ShadowType ian1 = CorrelatorTestUtil.findAccount(accounts, 1).getShadow();
@@ -235,8 +244,14 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @Test
     public void test220CorrelateByNameFuzzy() throws Exception {
         skipIfNotNativeRepository();
+        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
+    }
+
+    @Test
+    public void test225CorrelateByNameFuzzyGradual() throws Exception {
+        skipIfNotNativeRepository();
         // We skip the explanation (for now), because fuzzy filters are not supported
-        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY, NONE, null);
+        executeTest(CORRELATOR_BY_NAME_FUZZY_GRADUAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY_GRADUAL);
     }
 
     @Test
@@ -363,8 +378,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         CorrelatorConfiguration.typed(configBean),
                         configBean,
                         getSynchronizationPolicy().getCorrelationDefinition(), // it is OK that there's no correlator info here
-                        IdentitiesManager.createIdentityConfiguration(correlator.getUserTemplate()),
-                        IndexingConfigurationImpl.of(correlator.getUserTemplate(), modelBeans),
+                        TemplateCorrelationConfigurationImpl.of(correlator.getUserTemplate()),
                         systemConfiguration);
         correlator.instance = correlatorFactoryRegistry.instantiateCorrelator(
                 correlator.correlatorContext, task, result);
@@ -494,7 +508,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                                 () -> new AssertionError("No candidates found for " + expectedCandidate));
                 assertThat(candidateDescription.getConfidence())
                         .as("candidate confidence (in description)")
-                        .isEqualTo(expectedCandidate.getConfidence());
+                        .isEqualTo(expectedCandidate.getConfidence(), offset(TestCandidateOwner.EPSILON));
                 System.out.println("Confidence is OK for " + candidateDescription);
                 if (expectedMatches != null) {
                     expectedMatches.getMatches().forEach(

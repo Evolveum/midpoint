@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<itemsCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>by-name-fuzzy-gradual</name>
+    <description>Filters using broad fuzzy conditions, and computes the confidence according to the proximity of the matches.</description>
+    <item>
+        <ref>givenName</ref>
+        <search>
+            <fuzzy>
+                <levenshtein>
+                    <threshold>4</threshold>
+                    <inclusive>false</inclusive> <!-- just testing this -->
+                </levenshtein>
+            </fuzzy>
+            <confidence>
+                <expression>
+                    <script>
+                        <code>1 / (input+1)</code>
+                    </script>
+                </expression>
+            </confidence>
+        </search>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <search>
+            <fuzzy>
+                <similarity>
+                    <threshold>0.2</threshold>
+                </similarity>
+            </fuzzy>
+            <confidence>
+                <expression>
+                    <script>
+                        <code>input</code>
+                    </script>
+                </expression>
+            </confidence>
+        </search>
+    </item>
+</itemsCorrelator>

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -53,7 +53,7 @@ class CorrelationItems implements DebugDumpable {
             @NotNull CorrelationContext correlationContext) throws ConfigurationException {
 
         List<CorrelationItem> items = new ArrayList<>();
-        for (ItemCorrelationType itemBean : correlatorContext.getConfigurationBean().getItem()) {
+        for (CorrelationItemType itemBean : correlatorContext.getConfigurationBean().getItem()) {
             items.add(
                     CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus()));
         }

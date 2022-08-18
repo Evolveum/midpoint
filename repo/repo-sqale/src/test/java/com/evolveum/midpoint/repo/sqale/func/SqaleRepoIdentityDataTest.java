@@ -120,7 +120,7 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test200SearchUsingFuzzyMatching() throws CommonException {
+    public void test200SearchUsingNonFuzzyMatching() throws CommonException {
         given("query by focus identity normalized item");
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory()
@@ -138,27 +138,53 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
 
         when("search is executed without any get options");
         OperationResult result = createOperationResult();
-        SearchResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        SearchResultList<UserType> users = searchObjects(UserType.class, query, result);
         assertThatOperationResult(result).isSuccess();
 
         then("result contains found user but identities are incomplete");
         assertThat(users).singleElement()
-                .matches(u -> u.findContainer(FocusType.F_IDENTITIES).isIncomplete());
+                .matches(u -> u.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete());
 
         when("search is executed with retrieve items options");
         result = createOperationResult();
-        users = repositoryService.searchObjects(UserType.class, query, getWithIdentitiesOptions, result);
+        users = searchObjects(UserType.class, query, result, getWithIdentitiesOptions);
         assertThatOperationResult(result).isSuccess();
 
         then("result contains round user with complete identities container");
         assertThat(users).singleElement()
-                .matches(u -> !u.findContainer(FocusType.F_IDENTITIES).isIncomplete()); // is complete this time
-        UserType user = users.get(0).asObjectable();
+                .matches(u -> !u.asPrismObject().findContainer(FocusType.F_IDENTITIES).isIncomplete()); // is complete this time
+        UserType user = users.get(0);
         List<FocusIdentityType> identities = user.getIdentities().getIdentity();
         assertThat(identities).hasSize(2);
     }
 
-    // TODO search fuzzy
+    @Test
+    public void test210SearchUsingFuzzyMatching() throws CommonException {
+        given("query by focus identity normalized item using levenshtein");
+        ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
+        var def = PrismContext.get().definitionFactory()
+                .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
+                .itemWithDef(def,
+                        UserType.F_IDENTITIES,
+                        FocusIdentitiesType.F_IDENTITY,
+                        FocusIdentityType.F_ITEMS,
+                        FocusIdentityItemsType.F_NORMALIZED,
+                        familyNameQName)
+                .fuzzyString("gren").levenshteinInclusive(3)
+                .build();
+
+        when("search is executed");
+        OperationResult result = createOperationResult();
+        SearchResultList<UserType> users = searchObjects(UserType.class, query, result);
+        assertThatOperationResult(result).isSuccess();
+
+        then("result contains found user");
+        assertThat(users).hasSize(1);
+        UserType user = users.get(0);
+        assertThat(user.getOid()).isEqualTo(userOid);
+    }
 
     @Test
     public void test300ModifyAddIdentityContainer() throws CommonException {

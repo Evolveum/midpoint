@@ -17,6 +17,8 @@ import java.io.Serializable;
 
 /**
  * Describes how the correlator (could) came to a given candidate owner, and the specific confidence value of it.
+ *
+ * There are subtypes of this class for particular correlators, with the special cases for generic and unsupported correlators.
  */
 public abstract class CorrelationExplanation implements Serializable, DebugDumpable {
 
@@ -45,7 +47,10 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
         return confidence;
     }
 
-    /** For correlators that support candidate check but not the specific explanation. */
+    /**
+     * This is for correlators that support candidate check (i.e., determining confidence for the provided candidate)
+     * but do not provide any the specific explanations of their decisions.
+     */
     public static class GenericCorrelationExplanation extends CorrelationExplanation {
 
         public GenericCorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration, double confidence) {
@@ -57,7 +62,10 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
         }
     }
 
-    /** For correlators that do not support neither explanation nor candidate check. */
+    /**
+     * This is for correlators that do not support neither explanation nor candidate check (i.e., determining confidence
+     * for the provided candidate).
+     */
     public static class UnsupportedCorrelationExplanation extends CorrelationExplanation {
 
         public UnsupportedCorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration) {

@@ -7,25 +7,22 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-
-import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-
-import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
+import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationConfidenceThresholdsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Overall context in which the correlator works.
@@ -51,10 +48,7 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     @NotNull private final CorrelationDefinitionType correlationDefinitionBean;
 
     /** TODO */
-    @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
-
-    /** TODO */
-    @NotNull private final IndexingConfiguration indexingConfiguration;
+    @NotNull private final TemplateCorrelationConfiguration templateCorrelationConfiguration;
 
     /** System configuration, used to look for correlator configurations. */
     @Nullable private final SystemConfigurationType systemConfiguration;
@@ -63,16 +57,14 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
             @NotNull CorrelatorConfiguration configuration,
             @NotNull AbstractCorrelatorType originalConfigurationBean,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
-            @NotNull IdentityManagementConfiguration identityManagementConfiguration,
-            @NotNull IndexingConfiguration indexingConfiguration,
+            @NotNull TemplateCorrelationConfiguration templateCorrelationConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
         //noinspection unchecked
         this.configurationBean = (C) configuration.getConfigurationBean();
         this.configuration = configuration;
         this.originalConfigurationBean = originalConfigurationBean;
         this.correlationDefinitionBean = correlationDefinitionBean;
-        this.identityManagementConfiguration = identityManagementConfiguration;
-        this.indexingConfiguration = indexingConfiguration;
+        this.templateCorrelationConfiguration = templateCorrelationConfiguration;
         this.systemConfiguration = systemConfiguration;
     }
 
@@ -82,13 +74,6 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
 
     public @NotNull CorrelatorConfiguration getConfiguration() {
         return configuration;
-    }
-
-    /**
-     * TODO
-     */
-    public @NotNull Map<String, ItemCorrelationType> getItemDefinitionsMap() {
-        return new HashMap<>(); // TODO extract from the object template
     }
 
     public @NotNull AbstractCorrelatorType getOriginalConfigurationBean() {
@@ -103,12 +88,8 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         return systemConfiguration;
     }
 
-    public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() {
-        return identityManagementConfiguration;
-    }
-
-    public @NotNull IndexingConfiguration getIndexingConfiguration() {
-        return indexingConfiguration;
+    public @NotNull TemplateCorrelationConfiguration getTemplateCorrelationConfiguration() {
+        return templateCorrelationConfiguration;
     }
 
     public double getOwnerThreshold() {

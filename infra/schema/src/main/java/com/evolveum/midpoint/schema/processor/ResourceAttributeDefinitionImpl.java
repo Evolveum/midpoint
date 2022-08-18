@@ -857,8 +857,8 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public @Nullable ItemCorrelationDefinitionType getCorrelationDefinitionBean() {
-        return customizationBean.getCorrelation();
+    public @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+        return customizationBean.getCorrelator();
     }
 
     @Override

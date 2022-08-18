@@ -6,23 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.service;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * Created by honchar
@@ -43,28 +44,24 @@ public class PageServiceHistory extends PageService {
 
     private static final String DOT_CLASS = PageServiceHistory.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(PageServiceHistory.class);
-    private String date = "";
 
-    public PageServiceHistory(final PrismObject<ServiceType> service, String date) {
-        super(service);
-        this.date = date;
+    private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
+    private static final String OID_PARAMETER_LABEL = "oid";
+    private static final String EID_PARAMETER_LABEL = "eventIdentifier";
+    private static final String DATE_PARAMETER_LABEL = "date";
+
+    public PageServiceHistory(PageParameters pageParameters) {
+        super(pageParameters);
     }
 
     @Override
     protected FocusDetailsModels<ServiceType> createObjectDetailsModels(PrismObject<ServiceType> object) {
-        return new FocusDetailsModels<ServiceType>(createPrismObjectModel(object), this) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isReadonly() {
-                return true;
-            }
-        };
+        return new FocusDetailsModels<>(createPrismObjectModel(getReconstructedObject()),true, this);
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -73,9 +70,33 @@ public class PageServiceHistory extends PageService {
                 if (getModelObjectType() != null) {
                     name = WebComponentUtil.getName(getModelObjectType());
                 }
-                return createStringResource("PageUserHistory.title", name, date).getObject();
+                return createStringResource("PageUserHistory.title", name, getDate()).getObject();
             }
         };
+    }
+
+    private PrismObject<ServiceType> getReconstructedObject() {
+        OperationResult result = new OperationResult(OPERATION_RESTRUCT_OBJECT);
+        try {
+            Task task = createSimpleTask(OPERATION_RESTRUCT_OBJECT);
+            return getModelAuditService().reconstructObject(ServiceType.class, getObjectId(), getEventIdentifier(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
+        }
+        return null;
+    }
+
+    public String getDate() {
+        return String.valueOf(getPageParameters().get(DATE_PARAMETER_LABEL));
+    }
+
+    public String getObjectId() {
+        return String.valueOf(getPageParameters().get(OID_PARAMETER_LABEL));
+    }
+
+    public String getEventIdentifier() {
+        return String.valueOf(getPageParameters().get(EID_PARAMETER_LABEL));
     }
 
 }

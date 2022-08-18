@@ -50,8 +50,7 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
 
     @NotNull public static IndexingItemConfiguration of(
             @NotNull ItemRefinedDefinitionType itemDefBean,
-            @NotNull ItemIndexingDefinitionType indexingDefBean,
-            @NotNull ModelBeans modelBeans)
+            @NotNull ItemIndexingDefinitionType indexingDefBean)
             throws ConfigurationException {
         ItemPath path = MiscUtil.configNonNull(
                         itemDefBean.getRef(),
@@ -59,23 +58,22 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
                 .getItemPath();
         String explicitName = indexingDefBean.getIndexedItemName();
         String indexedItemName = explicitName != null ? explicitName : deriveName(path, itemDefBean);
-        Collection<Normalization> normalizations = createNormalizations(indexedItemName, indexingDefBean, modelBeans);
+        Collection<Normalization> normalizations = createNormalizations(indexedItemName, indexingDefBean);
         return new IndexingItemConfigurationImpl(indexedItemName, path, normalizations);
     }
 
     private static Collection<Normalization> createNormalizations(
             @NotNull String indexedItemName,
-            @NotNull ItemIndexingDefinitionType indexingDefBean,
-            @NotNull ModelBeans modelBeans) {
+            @NotNull ItemIndexingDefinitionType indexingDefBean) {
         List<Normalization> normalizations = new ArrayList<>();
         for (IndexedItemNormalizationDefinitionType normalizationBean : indexingDefBean.getNormalization()) {
             normalizations.add(
-                    NormalizationImpl.create(indexedItemName, normalizationBean, modelBeans));
+                    NormalizationImpl.create(indexedItemName, normalizationBean));
         }
         if (normalizations.isEmpty()) {
             normalizations.add(
                     NormalizationImpl.create(
-                            indexedItemName, new IndexedItemNormalizationDefinitionType()._default(true), modelBeans));
+                            indexedItemName, new IndexedItemNormalizationDefinitionType()._default(true)));
         }
         return normalizations;
     }

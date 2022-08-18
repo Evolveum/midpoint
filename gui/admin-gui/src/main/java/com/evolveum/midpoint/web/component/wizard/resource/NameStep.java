@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -81,10 +81,10 @@ public class NameStep extends WizardStep {
     private final LoadableModel<String> resourceDescriptionModel;
     private final LoadableModel<PrismObject<ConnectorHostType>> selectedHostModel;
     private final LoadableModel<List<PrismObject<ConnectorType>>> allConnectorsModel;
-    private final LoadableModel<List<PrismObject<ConnectorType>>> relevantConnectorsModel;            // filtered, based on selected host
+    private final LoadableModel<List<PrismObject<ConnectorType>>> relevantConnectorsModel; // filtered, based on selected host
     private final LoadableModel<PrismObject<ConnectorType>> selectedConnectorModel;
     private final IModel<String> schemaChangeWarningModel;
-    private final LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel;                // this one is not dependent on resource content
+    private final LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel; // this one is not dependent on resource content
 
     private final PageResourceWizard parentPage;
 
@@ -93,7 +93,7 @@ public class NameStep extends WizardStep {
         this.parentPage = parentPage;
         this.resourceModelRaw = modelRaw;
 
-        resourceNameModel = new LoadableModel<String>() {
+        resourceNameModel = new LoadableModel<>() {
             @Override
             protected String load() {
                 return PolyString.getOrig(resourceModelRaw.getObject().getName());
@@ -101,7 +101,7 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(resourceNameModel);
 
-        resourceDescriptionModel = new LoadableModel<String>() {
+        resourceDescriptionModel = new LoadableModel<>() {
             @Override
             protected String load() {
                 return resourceModelRaw.getObject().asObjectable().getDescription();
@@ -109,14 +109,14 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(resourceDescriptionModel);
 
-        allHostsModel = new LoadableModel<List<PrismObject<ConnectorHostType>>>(false) {
+        allHostsModel = new LoadableModel<>(false) {
             @Override
             protected List<PrismObject<ConnectorHostType>> load() {
                 return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, NameStep.this.parentPage);
             }
         };
 
-        selectedHostModel = new LoadableModel<PrismObject<ConnectorHostType>>(false) {
+        selectedHostModel = new LoadableModel<>(false) {
             @Override
             protected PrismObject<ConnectorHostType> load() {
                 return getExistingConnectorHost();
@@ -124,7 +124,7 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(selectedHostModel);
 
-        allConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
+        allConnectorsModel = new LoadableModel<>(false) {
             @Override
             protected List<PrismObject<ConnectorType>> load() {
                 return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, NameStep.this.parentPage);
@@ -132,7 +132,7 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(allConnectorsModel);
 
-        relevantConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
+        relevantConnectorsModel = new LoadableModel<>(false) {
             @Override
             protected List<PrismObject<ConnectorType>> load() {
                 return loadConnectors(selectedHostModel.getObject());
@@ -140,7 +140,7 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(relevantConnectorsModel);
 
-        selectedConnectorModel = new LoadableModel<PrismObject<ConnectorType>>(false) {
+        selectedConnectorModel = new LoadableModel<>(false) {
             @Override
             protected PrismObject<ConnectorType> load() {
                 return getExistingConnector();
@@ -148,7 +148,7 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(selectedConnectorModel);
 
-        schemaChangeWarningModel = (IModel<String>) () -> {
+        schemaChangeWarningModel = () -> {
             PrismObject<ConnectorType> selectedConnector = getConnectorDropDown().getInput().getModel().getObject();
             return isConfigurationSchemaCompatible(selectedConnector) ? "" : getString("NameStep.configurationWillBeLost");
         };
@@ -183,7 +183,9 @@ public class NameStep extends WizardStep {
 
     private DropDownFormGroup<PrismObject<ConnectorType>> createConnectorDropDown() {
 
-        return new DropDownFormGroup<PrismObject<ConnectorType>>(
+        // Suppress because if removed, compiler reports: IChoiceRenderer is abstract; cannot be instantiated
+        //noinspection Convert2Diamond
+        return new DropDownFormGroup<>(
                 ID_CONNECTOR, selectedConnectorModel, relevantConnectorsModel,
                 new IChoiceRenderer<PrismObject<ConnectorType>>() {
 
@@ -289,7 +291,9 @@ public class NameStep extends WizardStep {
 
     @NotNull
     private DropDownFormGroup<PrismObject<ConnectorHostType>> createHostDropDown() {
-        return new DropDownFormGroup<PrismObject<ConnectorHostType>>(ID_CONNECTOR_HOST, selectedHostModel,
+        // Suppress because if removed, compiler reports: IChoiceRenderer is abstract; cannot be instantiated
+        //noinspection Convert2Diamond
+        return new DropDownFormGroup<>(ID_CONNECTOR_HOST, selectedHostModel,
                 allHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
 
             @Override
@@ -467,7 +471,7 @@ public class NameStep extends WizardStep {
             }
             if (!delta.isEmpty()) {
                 parentPage.logDelta(delta);
-                WebModelServiceUtils.save(delta, ModelExecuteOptions.create(prismContext).raw(), result, null, parentPage);
+                WebModelServiceUtils.save(delta, ModelExecuteOptions.create().raw(), result, null, parentPage);
                 parentPage.resetModels();
                 saved = true;
             }

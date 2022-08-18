@@ -47,7 +47,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         this.bean = bean;
     }
 
-    public static List<NormalizationStep<?>> parse(NormalizationStepsType steps, @NotNull ModelBeans modelBeans) {
+    public static List<NormalizationStep<?>> parse(NormalizationStepsType steps) {
         List<AbstractNormalizationStepType> beans = new ArrayList<>();
         if (steps == null) {
             beans.add(new PolyStringNormalizationStepType());
@@ -62,16 +62,16 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
                         Comparator.comparing(
                                 AbstractNormalizationStepType::getOrder,
                                 Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(bean -> parse(bean, modelBeans))
+                .map(bean -> parse(bean))
                 .collect(Collectors.toList());
     }
 
     public static @NotNull NormalizationStep<?> parse(
-            @NotNull AbstractNormalizationStepType bean, @NotNull ModelBeans modelBeans) {
+            @NotNull AbstractNormalizationStepType bean) {
         if (bean instanceof NoOpNormalizationStepType) {
             return new NoOp((NoOpNormalizationStepType) bean);
         } else if (bean instanceof CustomNormalizationStepType) {
-            return new Custom((CustomNormalizationStepType) bean, modelBeans.expressionFactory);
+            return new Custom((CustomNormalizationStepType) bean, ModelBeans.get().expressionFactory);
         } else if (bean instanceof PolyStringNormalizationStepType) {
             return new PolyString((PolyStringNormalizationStepType) bean);
         } else if (bean instanceof PrefixNormalizationStepType) {

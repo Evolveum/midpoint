@@ -100,13 +100,13 @@
                         we are immediately done. We ignore given name here.
                     </documentation>
                     <item>
-                        <path>familyName</path>
+                        <ref>familyName</ref>
                     </item>
                     <item>
-                        <path>extension/dateOfBirth</path>
+                        <ref>extension/dateOfBirth</ref>
                     </item>
                     <item>
-                        <path>extension/nationalId</path>
+                        <ref>extension/nationalId</ref>
                     </item>
                     <composition>
                         <tier>1</tier>
@@ -116,13 +116,13 @@
                     <name>names-date</name>
                     <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
                     <item>
-                        <path>givenName</path>
+                        <ref>givenName</ref>
                     </item>
                     <item>
-                        <path>familyName</path>
+                        <ref>familyName</ref>
                     </item>
                     <item>
-                        <path>extension/dateOfBirth</path>
+                        <ref>extension/dateOfBirth</ref>
                     </item>
                     <composition>
                         <weight>0.4</weight>
@@ -132,7 +132,7 @@
                     <name>id</name>
                     <documentation>If national ID matches, we present an option to the operator.</documentation>
                     <item>
-                        <path>extension/nationalId</path>
+                        <ref>extension/nationalId</ref>
                     </item>
                     <composition>
                         <weight>0.4</weight>

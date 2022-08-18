@@ -604,7 +604,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 () -> new AssertionError("multiple empNo correlators"),
                 () -> new AssertionError("no empNo correlator"));
         // Use of toString() is a hack (it's hard to compare paths using equals())
-        assertThat(empNo.getItem().get(0).getPath().getItemPath().toString()).as("empNo path")
+        assertThat(empNo.getItem().get(0).getRef().getItemPath().toString()).as("empNo path")
                 .isEqualTo(prismContext.toUniformPath(UserType.F_EMPLOYEE_NUMBER).toString());
         ItemsCorrelatorType unnamedCorrelator = MiscUtil.extractSingletonRequired(
                 itemsCorrelators.stream()

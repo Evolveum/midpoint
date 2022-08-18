@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -27,11 +29,11 @@ public class CorrelationItemDefinitionUtil {
     /**
      * Returns the name under which we will reference this item definition (using "ref" elements).
      */
-    public static @NotNull String getName(@NotNull ItemCorrelationType definitionBean) {
+    public static @NotNull String getName(@NotNull CorrelationItemType definitionBean) {
         if (definitionBean.getName() != null) {
             return definitionBean.getName();
         }
-        String nameFromPath = getNameFromPath(definitionBean.getPath());
+        String nameFromPath = getNameFromPath(definitionBean.getRef());
         if (nameFromPath != null) {
             return nameFromPath;
         }
@@ -74,14 +76,9 @@ public class CorrelationItemDefinitionUtil {
                         .append(configBean.getDisplayName())
                         .append("', ");
             }
-            if (configBean.getUsing() != null) {
-                sb.append("using '")
-                        .append(configBean.getUsing())
-                        .append("', ");
-            }
-            if (configBean.getExtending() != null) {
-                sb.append("extending '")
-                        .append(configBean.getExtending())
+            if (configBean.getSuper() != null) {
+                sb.append("extending super '")
+                        .append(configBean.getSuper().getRef())
                         .append("', ");
             }
             CorrelatorCompositionDefinitionType composition = getComposition(configBean);
@@ -104,7 +101,7 @@ public class CorrelationItemDefinitionUtil {
                 sb.append("items: ");
                 sb.append(
                         ((ItemsCorrelatorType) configBean).getItem().stream()
-                                .map(itemDef -> String.valueOf(itemDef.getPath()))
+                                .map(itemDef -> String.valueOf(itemDef.getRef()))
                                 .collect(Collectors.joining(", ")));
             } else {
                 sb.append("configured with: ")
@@ -128,5 +125,23 @@ public class CorrelationItemDefinitionUtil {
         } else {
             return null;
         }
+    }
+
+    public static void addSingleItemCorrelator(
+            @NotNull CorrelationDefinitionType overallCorrelationDefBean,
+            @NotNull ItemPath focusItemPath,
+            @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
+        CompositeCorrelatorType correlators = overallCorrelationDefBean.getCorrelators();
+        if (correlators == null) {
+            correlators = new CompositeCorrelatorType();
+            overallCorrelationDefBean.setCorrelators(correlators);
+        }
+        correlators.getItems().add(
+                new ItemsSubCorrelatorType()
+                        .item(new CorrelationItemType()
+                                .ref(
+                                        new ItemPathType(focusItemPath))
+                                .search(
+                                        CloneUtil.clone(attributeCorrelatorDefBean.getSearch()))));
     }
 }

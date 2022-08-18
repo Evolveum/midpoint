@@ -6,14 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.menu.PageTypes;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -228,7 +233,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     }
                 }
                 if (storage != null) {
-
                     storage.setSearch(search);
                 }
                 return search;
@@ -278,7 +282,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected Component createHeader(String headerId) {
-                if (dashboard) {
+                if (isDashboard()) {
                     return createWidgetHeader(headerId);
                 }
                 Component header = ContainerableListPanel.this.createHeader(headerId);
@@ -297,7 +301,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (dashboard) {
+                if (isDashboard()) {
                     return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createNavigationButtons(ID_BUTTON));
                 }
                 return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
@@ -340,20 +344,33 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 itemTable.setCurrentPage(pageStorage);
             }
         }
+        if (isDashboard()) {
+            Integer maxSize = getViewPagingMaxSize();
+            itemTable.setItemsPerPage(maxSize != null ? maxSize.intValue() : UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
+        }
         return itemTable;
+    }
+
+    private Integer getViewPagingMaxSize() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
     }
 
     protected void customProcessNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
     }
 
     protected boolean isPagingVisible() {
-        return !dashboard;
+        return !isDashboard();
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
 
     protected boolean isHeaderVisible() {
         return true;
+    }
+
+    protected boolean isDashboard() {
+        return dashboard || (config != null && BooleanUtils.isTrue(config.isPreview()));
     }
 
     protected PageStorage getPageStorage(String storageKey) {
@@ -411,25 +428,27 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private List<IColumn<PO, String>> createColumns() {
         List<IColumn<PO, String>> columns = collectColumns();
 
-        List<InlineMenuItem> menuItems = createInlineMenu();
-        if (menuItems == null) {
-            menuItems = new ArrayList<>();
-        }
-        addCustomActions(menuItems, this::getSelectedRealObjects);
+        if (!isDashboard()) {
+            List<InlineMenuItem> menuItems = createInlineMenu();
+            if (menuItems == null) {
+                menuItems = new ArrayList<>();
+            }
+            addCustomActions(menuItems, this::getSelectedRealObjects);
 
-        if (!menuItems.isEmpty()) {
-            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
-                @Override
-                public String getCssClass() {
-                    return "inline-menu-column";
-                }
+            if (!menuItems.isEmpty()) {
+                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
+                    @Override
+                    public String getCssClass() {
+                        return "inline-menu-column";
+                    }
 
-                @Override
-                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
-                    return isMenuItemVisible(rowModel);
-                }
-            };
-            columns.add(actionsColumn);
+                    @Override
+                    protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                        return isMenuItemVisible(rowModel);
+                    }
+                };
+                columns.add(actionsColumn);
+            }
         }
         return columns;
     }
@@ -474,9 +493,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns) {
-        IColumn<PO, String> checkboxColumn = createCheckboxColumn();
-        if (checkboxColumn != null) {
-            columns.add(checkboxColumn);
+        if (!isDashboard()) {
+            IColumn<PO, String> checkboxColumn = createCheckboxColumn();
+            if (checkboxColumn != null) {
+                columns.add(checkboxColumn);
+            }
         }
 
         IColumn<PO, String> iconColumn = createIconColumn();
@@ -930,7 +951,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     //TODO TODO TODO what about other buttons? e.g. request access?
     private List<Component> createNavigationButtons(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-
         buttonsList.add(createViewAllButton(idButton));
         return buttonsList;
     }
@@ -942,12 +962,39 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //TODO redirect
+                viewAllActionPerformed(target);
             }
         };
+        viewAll.add(new VisibleBehaviour(() -> isDashboard()));
         viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
+    }
+
+    protected void viewAllActionPerformed(AjaxRequestTarget target) {
+        WebComponentUtil.redirectFromDashboardWidget(config, getPageBase(), ContainerableListPanel.this);
+//        FocusType principal = getPageBase().getPrincipalFocus();
+//        String widgetPanelType = config != null ? config.getPanelType() : null;
+//        QName principalFocusType = WebComponentUtil.classToQName(PrismContext.get(), principal.getClass());
+//        if (widgetPanelType != null) {
+//            ContainerPanelConfigurationType panelConfig = getPageBase().getCompiledGuiProfile().findPrincipalFocusDetailsPanel(
+//                    principalFocusType, widgetPanelType);
+//            if (panelConfig != null) {
+//                ObjectDetailsStorage pageStorage = getPageBase().getSessionStorage().getObjectDetailsStorage(getStorageKey());
+//                if (pageStorage == null) {
+//                    getPageBase().getSessionStorage().setObjectDetailsStorage(getStorageKey(), panelConfig);
+//                } else {
+//                    pageStorage.setDefaultConfiguration(panelConfig);
+//                }
+//                WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), ContainerableListPanel.this);
+//                return;
+//            }
+//        }
+//
+//        CompiledObjectCollectionView view = getObjectCollectionView();
+//        if (view != null) {
+//            WebComponentUtil.dispatchToListPage(getType(), view.getViewIdentifier(), ContainerableListPanel.this, false);
+//        }
     }
 
     protected String getStorageKey() {
@@ -958,6 +1005,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         } else if (isCollectionViewPanelForWidget()) {
             String widgetName = getWidgetNameOfCollection();
             return WebComponentUtil.getObjectListPageStorageKey(widgetName);
+        } else if (isDashboard()) {
+            return WebComponentUtil.getObjectListPageStorageKey(config.getIdentifier());
         }
 
         return WebComponentUtil.getObjectListPageStorageKey(getDefaultType().getSimpleName());

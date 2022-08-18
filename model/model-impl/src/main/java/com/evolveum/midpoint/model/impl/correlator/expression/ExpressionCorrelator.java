@@ -93,7 +93,7 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
-            return createResult(candidateOwners, task, result);
+            return createResult(candidateOwners, null, task, result);
         }
 
         private @NotNull ObjectSet<F> findCandidatesUsingExpressions(OperationResult result)

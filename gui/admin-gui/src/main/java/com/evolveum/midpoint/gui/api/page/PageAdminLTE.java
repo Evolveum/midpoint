@@ -14,27 +14,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.SubscriptionType;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -63,6 +42,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -77,32 +57,42 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.SubscriptionUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.CheckedProducer;
@@ -112,14 +102,20 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.SimpleCounter;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -150,7 +146,6 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
-
 
     // Strictly speaking following fields should be transient.
     // But making them transient is causing problems on some
@@ -228,9 +223,6 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private CacheDispatcher cacheDispatcher;
 
     @SpringBean
-    private MidpointFunctions midpointFunctions;
-
-    @SpringBean
     private GuiComponentRegistry registry;
 
     @SpringBean
@@ -238,9 +230,6 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private DefaultGuiConfigurationCompiler guiConfigurationRegistry;
-
-    @SpringBean
-    private ClusterExecutionHelper clusterExecutionHelper;
 
     @SpringBean
     private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
@@ -340,10 +329,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                     @Override
                     public String getObject() {
                         String subscriptionId = getSubscriptionId();
-                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
+                        if (!SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId)) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
-                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+                        assert subscriptionId != null;
+                        if (SubscriptionUtil.SubscriptionType.DEMO_SUBSCRIPTION.getSubscriptionType()
+                                .equals(subscriptionId.substring(0, 2))) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
                         }
                         return "";
@@ -370,9 +361,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         if (StringUtils.isEmpty(subscriptionId)) {
             return true;
         }
-        return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
-                (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-                        && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+        return !SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId) ||
+                (SubscriptionUtil.SubscriptionType.DEMO_SUBSCRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+                        && SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId));
     }
 
     private String getSubscriptionId() {
@@ -760,7 +751,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         }
     }
 
-    public <ID extends ItemDefinition, C extends Containerable> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def, PrismContainerValue<C> parentValue) {
+    public <ID extends ItemDefinition, C extends Containerable> ItemWrapperFactory<?, ?, ?> findWrapperFactory(
+            ID def, PrismContainerValue<C> parentValue) {
         return registry.findWrapperFactory(def, parentValue);
     }
 
@@ -812,7 +804,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     public ModelExecuteOptions executeOptions() {
-        return ModelExecuteOptions.create(getPrismContext());
+        return ModelExecuteOptions.create();
     }
 
     public Class<? extends Panel> findObjectPanel(String identifier) {

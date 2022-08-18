@@ -37,6 +37,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  * Need not be connected to actual {@link CaseType} object. The term "case" is used more figuratively here, to describe
  * a correlation situation that is going to be resolved.
+ *
+ * Contains the object being correlated (currently called {@link #preFocus}) and the correlation candidates ({@link #candidates}).
+ *
+ * The correlation data are represented as a set of {@link #correlationProperties}, whose values on the source are to be fetched
+ * directly from {@link #preFocus}, but the valued for candidates are processed into the form of
+ * {@link CorrelationPropertyValuesDescription}:
+ *
+ *  - sorted out into "primary" and "secondary" values (corresponding to the main identity and alternative ones),
+ *  - and providing a {@link Match} value that shows the degree of match between the particular candidate and the pre-focus
+ *  on this particular property.
+ *
+ * Optionally, there may be a {@link CorrelationExplanation} object for each correlation candidate. (If requested.)
  */
 public class CorrelationCaseDescription<F extends FocusType> implements DebugDumpable, Serializable {
 
@@ -295,6 +307,10 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
         /**
          * A full match: The default normalization of the primary value (or one of the primary values) exactly matches
          * the same normalization of the source value. Usually displayed in green.
+         *
+         * This should be adequate for the majority of cases. An exception could be if we use a correlator with more
+         * strict indexing than the default one. But this may be seen as a configuration issue: one should perhaps
+         * set the default correlator to be the more strict one.
          */
         FULL,
 

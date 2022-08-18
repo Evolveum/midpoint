@@ -10,30 +10,33 @@ package com.evolveum.midpoint.model.impl.correlator.idmatch;
 import static java.util.Objects.requireNonNullElse;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.correlator.items.CorrelationItem;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchObject;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.MatchingUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Creates ID Match object for given operation (e.g. match, update, resolve).
@@ -90,21 +93,67 @@ class IdMatchObjectCreator {
         return IdMatchObject.create(getSorIdentifierValue(), attributes);
     }
 
-    /** May return "live" properties. They will be cloned. */
-    private @NotNull List<PrismProperty<?>> getCorrelationProperties() throws SchemaException, ConfigurationException {
-        List<CorrelationItem> correlationItems = getExplicitCorrelationItems();
-        if (!correlationItems.isEmpty()) {
-            List<PrismProperty<?>> properties = new ArrayList<>();
-            for (CorrelationItem correlationItem : correlationItems) {
-                PrismProperty<?> sourceProperty = correlationItem.getRenamedSourceProperty();
-                if (sourceProperty != null) {
-                    properties.add(sourceProperty);
-                }
-            }
-            return properties;
+    /** May return "live" properties. They must be cloned by the caller. */
+    private @NotNull List<PrismProperty<?>> getCorrelationProperties() throws ConfigurationException {
+        IdMatchCorrelationPropertiesType propertiesDef = correlatorContext.getConfigurationBean().getCorrelationProperties();
+        List<ItemPathType> pathBeanList = propertiesDef != null ? propertiesDef.getPath() : List.of();
+        if (!pathBeanList.isEmpty()) {
+            return getConfiguredProperties(pathBeanList);
         } else {
             // Fallback: take all single-valued properties from the focus
             return MatchingUtil.getSingleValuedProperties(preFocus);
+        }
+    }
+
+    private List<PrismProperty<?>> getConfiguredProperties(List<ItemPathType> pathBeanList) throws ConfigurationException {
+        List<PrismProperty<?>> properties = new ArrayList<>();
+        for (ItemPathType pathBean : pathBeanList) {
+            ItemPath propertyPath = pathBean.getItemPath();
+            ObjectType source = getSourceObject(propertyPath);
+            ItemPath purePath = propertyPath.stripVariableSegment();
+            Set<PrismValue> allValues = new HashSet<>(source.asPrismContainerValue().getAllValues(purePath));
+            LOGGER.trace("Configured correlation property '{}' yielding values: {}", propertyPath, allValues);
+            if (allValues.isEmpty()) {
+                // Let us check if the path is correct, to allow fast fail on problems.
+                PrismPropertyDefinition<Object> def = source.asPrismObject().getDefinition().findPropertyDefinition(purePath);
+                if (def == null) {
+                    throw new ConfigurationException(
+                            String.format("No definition of '%s' in %s. Is the path correct?", purePath, source));
+                } else {
+                    continue;
+                }
+            } else if (allValues.size() > 1) {
+                throw new UnsupportedOperationException(
+                        String.format("Correlation based on multi-valued properties is not supported. "
+                                        + "Item '%s' has multiple values in %s: %s", purePath, source, allValues));
+            }
+            PrismValue value = allValues.iterator().next();
+            Itemable parent = value.getParent();
+            if (!(parent instanceof PrismProperty<?>)) {
+                throw new IllegalStateException("Parent of " + value + " is not a PrismProperty; it is " + parent);
+            }
+            properties.add(((PrismProperty<?>) parent));
+        }
+        return properties;
+    }
+
+    private @NotNull ObjectType getSourceObject(ItemPath propertyPath) throws ConfigurationException {
+        QName variableName = propertyPath.firstToVariableNameOrNull();
+        String variableLocalName = variableName != null ? variableName.getLocalPart() : null;
+        if (variableLocalName != null) {
+            if (ExpressionConstants.VAR_FOCUS.equals(variableLocalName)
+                    || ExpressionConstants.VAR_USER.equals(variableLocalName)) {
+                return preFocus;
+            } else if (ExpressionConstants.VAR_PROJECTION.equals(variableLocalName)
+                || ExpressionConstants.VAR_SHADOW.equals(variableLocalName)
+                || ExpressionConstants.VAR_ACCOUNT.equals(variableLocalName)) {
+                return shadow;
+            } else {
+                throw new ConfigurationException(
+                        "Unsupported variable name in correlation property path '" + propertyPath + "'");
+            }
+        } else {
+            return preFocus;
         }
     }
 
@@ -145,18 +194,5 @@ class IdMatchObjectCreator {
         String localPart = varName.getLocalPart();
         return ExpressionConstants.VAR_FOCUS.equals(localPart)
                 || ExpressionConstants.VAR_USER.equals(localPart);
-    }
-
-    private List<CorrelationItem> getExplicitCorrelationItems() throws ConfigurationException {
-        List<CorrelationItem> correlationItems = new ArrayList<>();
-        for (Map.Entry<String, ItemCorrelationType> entry : correlatorContext.getItemDefinitionsMap().entrySet()) {
-            CorrelationItem correlationItem = CorrelationItem.create(
-                    entry.getValue(),
-                    correlatorContext,
-                    preFocus);
-            LOGGER.trace("Created correlation item: {}", correlationItem);
-            correlationItems.add(correlationItem);
-        }
-        return correlationItems;
     }
 }

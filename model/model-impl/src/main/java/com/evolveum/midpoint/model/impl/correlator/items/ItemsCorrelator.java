@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
@@ -17,6 +18,8 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.ItemsCorrelationExplanation;
 import com.evolveum.midpoint.model.api.correlator.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,30 +82,32 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 .execute(result);
     }
 
-    private abstract class CorrelationLikeOperation {
+    private abstract class CorrelationLikeOperation implements ConfidenceValueProvider {
 
         @NotNull final ShadowType resourceObject;
         @NotNull final CorrelationContext correlationContext;
         @NotNull final Task task;
         @NotNull final String contextDescription;
+        @NotNull final CorrelationItems correlationItems;
 
-        CorrelationLikeOperation(@NotNull CorrelationContext correlationContext) {
+        CorrelationLikeOperation(@NotNull CorrelationContext correlationContext) throws ConfigurationException {
             this.resourceObject = correlationContext.getResourceObject();
             this.correlationContext = correlationContext;
             this.task = correlationContext.getTask();
             this.contextDescription = getDefaultContextDescription(correlationContext);
+            this.correlationItems = createCorrelationItems();
         }
 
         @NotNull CorrelationItems createCorrelationItems() throws ConfigurationException {
             CorrelationItems items = CorrelationItems.create(correlatorContext, correlationContext);
             configCheck(!items.isEmpty(), "No items specified in %s", contextDescription);
-            LOGGER.trace("Going to find candidates (or check candidate) using {} conditional items(s) in {}",
+            LOGGER.trace("Going to proceed using {} correlation items(s) in {}",
                     items.size(), contextDescription);
             return items;
         }
 
         /** Returns `null` if we cannot use the definitions here. */
-        @Nullable ObjectQuery createQuery(CorrelationItems correlationItems, OperationResult result)
+        @Nullable ObjectQuery createQuery(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             if (areItemsApplicable(correlationItems)) {
@@ -127,11 +132,23 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             }
             return true;
         }
+
+        @Override
+        public Double getConfidence(ObjectType candidate, Task task, OperationResult result)
+                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                SecurityViolationException, ObjectNotFoundException {
+            double confidence = 1.0;
+            for (CorrelationItem item : correlationItems.getItems()) {
+                confidence *= item.computeConfidence(candidate, task, result);
+            }
+            LOGGER.trace("Overall confidence for {}: {}", candidate, confidence);
+            return confidence;
+        }
     }
 
     private class CorrelationOperation<F extends FocusType> extends CorrelationLikeOperation {
 
-        CorrelationOperation(@NotNull CorrelationContext correlationContext) {
+        CorrelationOperation(@NotNull CorrelationContext correlationContext) throws ConfigurationException {
             super(correlationContext);
         }
 
@@ -139,29 +156,21 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             List<F> candidates = findCandidates(result);
-            return createResult(candidates, task, result);
+            return createResult(candidates, this, task, result);
         }
 
         private @NotNull List<F> findCandidates(OperationResult result)
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
-            CorrelationItems correlationItems = createCorrelationItems();
-            List<F> allCandidates = findCandidates(correlationItems, result);
+            ObjectQuery query = createQuery(result);
+            List<F> allCandidates = query != null ? executeQuery(query, result) : List.of();
 
             LOGGER.debug("Found {} owner candidates for {} using {} correlation item(s) in {}: {}",
                     allCandidates.size(), resourceObject, correlationItems.size(), contextDescription,
                     lazy(() -> PrettyPrinter.prettyPrint(allCandidates, 3)));
 
             return allCandidates;
-        }
-
-        @NotNull private List<F> findCandidates(
-                CorrelationItems correlationItems, OperationResult result)
-                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
-            ObjectQuery query = createQuery(correlationItems, result);
-            return query != null ? executeQuery(query, result) : List.of();
         }
 
         private List<F> executeQuery(ObjectQuery query, OperationResult gResult) throws SchemaException {
@@ -173,7 +182,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                     (Class<F>) correlationContext.getFocusType(),
                     query,
                     (object, lResult) -> addToCandidates(object.asObjectable(), candidates),
-                    null,
+                    createRetrieveCollection(),
                     true,
                     gResult);
             return candidates;
@@ -196,7 +205,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         private final F candidateOwner;
 
-        CheckCandidateOperation(@NotNull CorrelationContext correlationContext, @NotNull F candidateOwner) {
+        CheckCandidateOperation(@NotNull CorrelationContext correlationContext, @NotNull F candidateOwner)
+                throws ConfigurationException {
             super(correlationContext);
             this.candidateOwner = candidateOwner;
         }
@@ -205,23 +215,22 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
                 SecurityViolationException, ObjectNotFoundException {
 
-            CorrelationItems correlationItems = createCorrelationItems();
-            boolean matches = checkCandidateOwner(correlationItems, candidateOwner, result);
+            boolean matches = checkCandidateOwner(candidateOwner, result);
 
             LOGGER.debug("Does candidate owner {} for {} using {} correlation item(s) in {} match: {}",
                     candidateOwner, resourceObject, correlationItems.size(), contextDescription, matches);
 
             if (matches) {
-                return determineConfidence(candidateOwner, task, result);
+                return determineConfidence(candidateOwner, this, task, result);
             } else {
                 return 0;
             }
         }
 
-        private boolean checkCandidateOwner(CorrelationItems correlationItems, F candidateOwner, OperationResult result)
+        private boolean checkCandidateOwner(F candidateOwner, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            ObjectQuery query = createQuery(correlationItems, result);
+            ObjectQuery query = createQuery(result);
             return query != null && candidateOwnerMatches(query, candidateOwner);
         }
 
@@ -239,7 +248,8 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         private final F candidateOwner;
 
-        ExplanationOperation(@NotNull CorrelationContext correlationContext, @NotNull F candidateOwner) {
+        ExplanationOperation(@NotNull CorrelationContext correlationContext, @NotNull F candidateOwner)
+                throws ConfigurationException {
             super(correlationContext);
             this.candidateOwner = candidateOwner;
         }
