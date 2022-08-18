@@ -134,7 +134,7 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
         add(items);
     }
 
-    private void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
+    protected void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
         Conflict conflict = conflictModel.getObject();
         ConflictItem itemToKeep = itemToKeepModel.getObject();
 

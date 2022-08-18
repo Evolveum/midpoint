@@ -9,35 +9,34 @@ package com.evolveum.midpoint.model.impl.correlator.idmatch;
 
 import static java.util.Objects.requireNonNullElse;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.correlator.items.CorrelationItem;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.api.correlator.idmatch.IdMatchObject;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.MatchingUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Creates ID Match object for given operation (e.g. match, update, resolve).
@@ -49,7 +48,6 @@ class IdMatchObjectCreator {
     @NotNull private final CorrelatorContext<IdMatchCorrelatorType> correlatorContext;
     @NotNull private final FocusType preFocus;
     @NotNull private final ShadowType shadow;
-    @NotNull private final ModelBeans beans;
 
     /** Value serving as a prefix for SOR IDs generated. */
     @NotNull private final String sorIdPrefix;
@@ -63,12 +61,10 @@ class IdMatchObjectCreator {
     IdMatchObjectCreator(
             @NotNull CorrelatorContext<IdMatchCorrelatorType> correlatorContext,
             @NotNull FocusType preFocus,
-            @NotNull ShadowType shadow,
-            @NotNull ModelBeans beans) {
+            @NotNull ShadowType shadow) {
         this.correlatorContext = correlatorContext;
         this.preFocus = preFocus;
         this.shadow = shadow;
-        this.beans = beans;
 
         IdMatchCorrelatorType configBean = correlatorContext.getConfigurationBean();
         sorIdPrefix = requireNonNullElse(configBean.getSorIdentifierPrefix(), "");
@@ -198,19 +194,5 @@ class IdMatchObjectCreator {
         String localPart = varName.getLocalPart();
         return ExpressionConstants.VAR_FOCUS.equals(localPart)
                 || ExpressionConstants.VAR_USER.equals(localPart);
-    }
-
-    private List<CorrelationItem> getExplicitCorrelationItems() throws ConfigurationException {
-        List<CorrelationItem> correlationItems = new ArrayList<>();
-        for (Map.Entry<String, ItemCorrelationType> entry : correlatorContext.getItemDefinitionsMap().entrySet()) {
-            CorrelationItem correlationItem = CorrelationItem.create(
-                    entry.getValue(),
-                    correlatorContext,
-                    preFocus,
-                    beans);
-            LOGGER.trace("Created correlation item: {}", correlationItem);
-            correlationItems.add(correlationItem);
-        }
-        return correlationItems;
     }
 }

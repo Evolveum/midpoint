@@ -50,7 +50,7 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
-                <correlation/>
+                <correlator/>
                 <inbound>
                     <target>
                         <path>name</path>

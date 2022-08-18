@@ -567,8 +567,6 @@ public class RequestAccess implements Serializable {
 
         conflict.setState(ConflictState.SOLVED);
         conflict.setToBeRemoved(toRemove);
-
-        markConflictsDirty();
     }
 
     public boolean isAllConflictsSolved() {

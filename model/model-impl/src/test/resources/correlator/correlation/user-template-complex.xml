@@ -37,6 +37,11 @@
                 </steps>
             </normalization>
         </indexing>
+        <correlation>
+            <search>
+                <index>orig</index> <!-- just for testing -->
+            </search>
+        </correlation>
     </item>
     <item>
         <ref>extension/nationalId</ref>

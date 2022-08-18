@@ -99,9 +99,9 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         }
 
         @NotNull CorrelationItems createCorrelationItems() throws ConfigurationException {
-            CorrelationItems items = CorrelationItems.create(correlatorContext, correlationContext, beans);
+            CorrelationItems items = CorrelationItems.create(correlatorContext, correlationContext);
             configCheck(!items.isEmpty(), "No items specified in %s", contextDescription);
-            LOGGER.trace("Going to proceed using {} conditional items(s) in {}",
+            LOGGER.trace("Going to proceed using {} correlation items(s) in {}",
                     items.size(), contextDescription);
             return items;
         }

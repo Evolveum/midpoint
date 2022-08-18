@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -27,7 +26,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -51,13 +50,12 @@ class CorrelationItems implements DebugDumpable {
 
     public static @NotNull CorrelationItems create(
             @NotNull CorrelatorContext<ItemsCorrelatorType> correlatorContext,
-            @NotNull CorrelationContext correlationContext,
-            @NotNull ModelBeans beans) throws ConfigurationException {
+            @NotNull CorrelationContext correlationContext) throws ConfigurationException {
 
         List<CorrelationItem> items = new ArrayList<>();
-        for (ItemCorrelationType itemBean : correlatorContext.getConfigurationBean().getItem()) {
+        for (CorrelationItemType itemBean : correlatorContext.getConfigurationBean().getItem()) {
             items.add(
-                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus(), beans));
+                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus()));
         }
         stateCheck(!items.isEmpty(), "No correlation items in %s", correlatorContext);
         return new CorrelationItems(items);

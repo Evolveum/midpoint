@@ -121,7 +121,7 @@ class MappedItems<F extends FocusType> {
         List<InboundMappingType> mappingBeans =
                 source.filterApplicableMappingBeans(
                         attributeDefinition.getInboundMappingBeans(),
-                        attributeDefinition.getCorrelationDefinitionBean() != null);
+                        attributeDefinition.getCorrelatorDefinition() != null);
         if (mappingBeans.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;

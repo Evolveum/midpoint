@@ -32,27 +32,27 @@ public class IndexingConfigurationImpl implements IndexingConfiguration {
     @NotNull private final ObjectTemplateType objectTemplate;
     @NotNull private final PathKeyedMap<IndexingItemConfiguration> itemsMap;
 
-    private IndexingConfigurationImpl(ObjectTemplateType objectTemplate, @NotNull ModelBeans beans) throws ConfigurationException {
+    private IndexingConfigurationImpl(ObjectTemplateType objectTemplate) throws ConfigurationException {
         this.objectTemplate = objectTemplate != null ? objectTemplate : new ObjectTemplateType();
-        this.itemsMap = extractItemsConfiguration(this.objectTemplate, beans);
+        this.itemsMap = extractItemsConfiguration(this.objectTemplate);
     }
 
-    public static @NotNull IndexingConfiguration of(@Nullable ObjectTemplateType objectTemplate, @NotNull ModelBeans beans) throws ConfigurationException {
-        return new IndexingConfigurationImpl(objectTemplate, beans);
+    public static @NotNull IndexingConfiguration of(@Nullable ObjectTemplateType objectTemplate) throws ConfigurationException {
+        return new IndexingConfigurationImpl(objectTemplate);
     }
 
     private static PathKeyedMap<IndexingItemConfiguration> extractItemsConfiguration(
-            @NotNull ObjectTemplateType objectTemplate, @NotNull ModelBeans beans)
+            @NotNull ObjectTemplateType objectTemplate)
             throws ConfigurationException {
         PathKeyedMap<IndexingItemConfiguration> itemConfigurationMap = new PathKeyedMap<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
             ItemIndexingDefinitionType itemIndexingDefBean = itemDefBean.getIndexing();
             IndexingItemConfiguration itemConfiguration;
             if (itemIndexingDefBean != null) {
-                itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, itemIndexingDefBean, beans);
+                itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, itemIndexingDefBean);
             } else if (itemDefBean.getIdentity() != null) {
                 // "Identity" items are indexed by default (TODO how can that be turned off?)
-                itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, new ItemIndexingDefinitionType(), beans);
+                itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, new ItemIndexingDefinitionType());
             } else {
                 continue;
             }
