@@ -68,7 +68,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             }
 
             @Override
-            protected void onExpandClick(AjaxRequestTarget target) {
+            protected void onHeaderClick(AjaxRequestTarget target) {
                 PrismContainerWrapper<C> wrapper = VerticalFormPrismContainerPanel.this.getModelObject();
                 boolean expandedValue = !wrapper.isExpanded();
                 wrapper.setExpanded(expandedValue);

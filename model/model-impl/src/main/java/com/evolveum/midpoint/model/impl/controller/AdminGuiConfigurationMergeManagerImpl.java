@@ -69,8 +69,8 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
     }
 
     @Override
-    public GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, GuiObjectDetailsPageType compiledPageType) {
-        GuiObjectDetailsPageType mergedDetailsPage = defaultPageConfiguration.cloneWithoutId();
+    public <DP extends GuiObjectDetailsPageType> DP mergeObjectDetailsPageConfiguration(DP defaultPageConfiguration, DP compiledPageType) {
+        DP mergedDetailsPage = defaultPageConfiguration.cloneWithoutId();
 
         return mergeDetailsPages(defaultPageConfiguration, compiledPageType, mergedDetailsPage);
     }

@@ -69,9 +69,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(prismObject.getDefinition());
                 Task task = modelServiceLocator.createSimpleTask("createWrapper");
                 OperationResult result = task.getResult();
-                WrapperContext ctx = new WrapperContext(task, result);
-                ctx.setCreateIfEmpty(true);
-                ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
+                WrapperContext ctx = createWrapperContext(task, result);
                 if (isReadonly()) {
                     ctx.setReadOnly(isReadonly());
                 }
@@ -111,7 +109,14 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         };
     }
 
-    private List<ContainerPanelConfigurationType> getPanelConfigurations() {
+    protected WrapperContext createWrapperContext(Task task, OperationResult result) {
+        WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
+        ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
+        return ctx;
+    }
+
+    public List<ContainerPanelConfigurationType> getPanelConfigurations() {
         GuiObjectDetailsPageType detailsPage = detailsPageConfigurationModel.getObject();
         if (detailsPage == null) {
             return Collections.emptyList();

@@ -73,14 +73,29 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
     private List<WizardStep> createNewObjectTypeSteps() {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new BasicSettingResourceObjectTypeStepPanel(
-                getResourceModel(),
-                createModelOfNewValue(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE))) {
+
+        IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                createModelOfNewValue(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+        steps.add(new BasicSettingResourceObjectTypeStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target);
+            }
+        });
+
+        steps.add(new DelineationResourceObjectTypeStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target);
+            }
+        });
+
+        steps.add(new FocusResourceObjectTypeStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onFinishPerformed(AjaxRequestTarget target) {
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
-                    showObjectTypePreviewFragment(getValueModel(), target);
+                    showObjectTypePreviewFragment(getObjectTypeValueModel(), target);
                 }
             }
 
@@ -89,6 +104,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 showTableFragment(target);
             }
         });
+
 
         return steps;
     }

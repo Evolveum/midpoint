@@ -25,8 +25,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "ReactionSynchronizationWizard")
-@PanelInstance(identifier = "ReactionSynchronizationWizard",
+@PanelInstance(identifier = "reactionSynchronizationWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.synchronization.step.reaction", icon = "fa fa-circle"),
@@ -34,7 +33,7 @@ import org.apache.wicket.model.IModel;
         expanded = true)
 public class ReactionStepPanel extends AbstractFormResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "ReactionSynchronizationWizard";
+    private static final String PANEL_TYPE = "reactionSynchronizationWizard";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel;
 
@@ -77,11 +76,11 @@ public class ReactionStepPanel extends AbstractFormResourceWizardStepPanel {
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.synchronization.reaction.text");
+        return createStringResource("PageResource.wizard.synchronization.step.reaction.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.synchronization.reaction.subText");
+        return createStringResource("PageResource.wizard.synchronization.step.reaction.subText");
     }
 }

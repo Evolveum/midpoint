@@ -297,7 +297,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             compiledGuiProfile.setObjectDetails(new GuiObjectDetailsSetType());
         }
 
-        compiledGuiProfile.getObjectDetails().getResourceDetailsPage().add(new GuiResourceDetailsPageType());
+        if (compiledGuiProfile.getObjectDetails().getResourceDetailsPage().stream().noneMatch(d -> d.getConnectorRef() == null)) {
+            compiledGuiProfile.getObjectDetails().getResourceDetailsPage().add(new GuiResourceDetailsPageType());
+        }
 
         for (GuiResourceDetailsPageType resourceDetailsPage : compiledGuiProfile.getObjectDetails().getResourceDetailsPage()) {
             List<ContainerPanelConfigurationType> cloneResourcePanels = new ArrayList<>();

@@ -44,12 +44,12 @@ public abstract class AbstractConfigurationStepPanel extends AbstractFormResourc
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.configuration.text");
+        return createStringResource("PageResource.wizard.step.configuration.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.configuration.subText");
+        return createStringResource("PageResource.wizard.step.configuration.subText");
     }
 
     @Override

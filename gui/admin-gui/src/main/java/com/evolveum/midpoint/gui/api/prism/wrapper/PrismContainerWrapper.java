@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -44,7 +43,7 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
     String getIdentifier();
 
     @Experimental
-    default PrismContainerWrapper<C> copyVirtualContainerWithNewValue(PrismContainerValueWrapper<? extends Containerable> parent, ModelServiceLocator modelServiceLocator){
+    default PrismContainerWrapper<C> cloneVirtualContainerWithNewValue(PrismContainerValueWrapper<? extends Containerable> parent, ModelServiceLocator modelServiceLocator){
         throw new UnsupportedOperationException();
     }
 }

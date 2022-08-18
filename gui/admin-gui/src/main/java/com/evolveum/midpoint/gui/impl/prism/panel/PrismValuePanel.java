@@ -46,11 +46,11 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
     private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_VALUE_CONTAINER = "valueContainer";
+    protected static final String ID_VALUE_CONTAINER = "valueContainer";
 
     protected static final String ID_HEADER_CONTAINER = "header";
 
-    private static final String ID_INPUT = "input";
+    protected static final String ID_INPUT = "input";
     private static final String ID_SHOW_METADATA = "showMetadata";
 
     private static final String ID_METADATA = "metadata";

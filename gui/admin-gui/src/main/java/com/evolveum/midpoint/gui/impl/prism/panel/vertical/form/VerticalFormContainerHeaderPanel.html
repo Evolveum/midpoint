@@ -16,7 +16,7 @@
             <span wicket:id="label"/>
         </span>
 
-        <span wicket:id="required" class="text-danger" style="font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
+        <span wicket:id="required" style="display: none;"/>
         <wicket:enclosure child="help">
             <button class="btn btn-tool">
                 <i wicket:id="help"/>
@@ -24,12 +24,12 @@
         </wicket:enclosure>
         <wicket:enclosure child="deprecated">
             <button class="btn btn-tool">
-                <i wicket:id="deprecated"/>
+                <i wicket:id="deprecated" style="display: none;"/>
             </button>
         </wicket:enclosure>
         <wicket:enclosure child="experimental">
             <button class="btn btn-tool">
-                <i wicket:id="experimental"/>
+                <i wicket:id="experimental" style="display: none;"/>
             </button>
         </wicket:enclosure>
 
