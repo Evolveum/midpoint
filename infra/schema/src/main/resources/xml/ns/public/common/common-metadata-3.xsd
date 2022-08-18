@@ -786,7 +786,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="metadataMapping" type="tns:MappingType"/>
+    <xsd:element name="metadataMapping" type="tns:MetadataMappingType"/>
 
     <xsd:simpleType name="MetadataMappingScopeType">
         <xsd:annotation>
