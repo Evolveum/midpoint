@@ -103,7 +103,7 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.text");
+        return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.subText");
     }
 
     @Override
@@ -113,6 +113,6 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.subText");
+        return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.text");
     }
 }

@@ -30,7 +30,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_BACK = "back";
     private static final String ID_EXIT = "exit";
 
-    private static final String ID_FINISH = "finish";
+    private static final String ID_SUBMIT = "submit";
+    private static final String ID_SUBMIT_LABEL = "submitLabel";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LABEL = "nextLabel";
 
@@ -83,7 +84,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(exit);
         add(exit);
 
-        AjaxSubmitButton finish = new AjaxSubmitButton(ID_FINISH) {
+        AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
@@ -95,11 +96,14 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 updateFeedbackPanels(target);
             }
         };
-        finish.add(new VisibleBehaviour(() -> isFinishVisible()));
-        finish.setOutputMarkupId(true);
-        finish.setOutputMarkupPlaceholderTag(true);
-        WebComponentUtil.addDisabledClassBehavior(finish);
-        add(finish);
+        submit.add(new VisibleBehaviour(() -> isSubmitVisible()));
+        submit.setOutputMarkupId(true);
+        submit.setOutputMarkupPlaceholderTag(true);
+        WebComponentUtil.addDisabledClassBehavior(submit);
+        add(submit);
+
+        Label submitLabel = new Label(ID_SUBMIT_LABEL, getSubmitLabelModel());
+        submit.add(submitLabel);
 
         AjaxSubmitButton next = new AjaxSubmitButton(ID_NEXT) {
 
@@ -123,12 +127,16 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         next.add(nextLabel);
     }
 
-    @Override
-    public VisibleEnableBehaviour getNextBehaviour() {
-        return new VisibleEnableBehaviour(() -> !isFinishVisible());
+    protected IModel<?> getSubmitLabelModel() {
+        return getPageBase().createStringResource("WizardPanel.submit");
     }
 
-    private boolean isFinishVisible() {
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleEnableBehaviour(() -> !isSubmitVisible());
+    }
+
+    private boolean isSubmitVisible() {
       return getWizard().getNextPanel() == null;
     }
 

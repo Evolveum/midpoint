@@ -9,13 +9,6 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
-
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -44,11 +37,14 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -67,8 +63,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -80,6 +74,7 @@ import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
@@ -130,8 +125,6 @@ public abstract class PageBase extends PageAdminLTE {
     public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
-
     private List<Breadcrumb> breadcrumbs;
 
     private boolean initialized = false;
@@ -180,36 +173,6 @@ public abstract class PageBase extends PageAdminLTE {
     public PageBase() {
         this(null);
     }
-
-//    public <O extends ObjectType> boolean isAuthorized(ModelAuthorizationAction action, PrismObject<O> object) {
-//        try {
-//            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
-//                    || isAuthorized(action.getUrl(), null, object, null, null, null);
-//        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-//                ConfigurationException | SecurityViolationException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
-//            return true;            // it is only GUI thing
-//        }
-//    }
-//
-//    public boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-//        return isAuthorized(operationUrl, null, null, null, null, null);
-//    }
-//
-//    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-//            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-//        Task task = getPageTask();
-//        AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
-//                .oldObject(object)
-//                .delta(delta)
-//                .target(target)
-//                .build();
-//        boolean isAuthorized = getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
-//        if (!isAuthorized && (ModelAuthorizationAction.GET.getUrl().equals(operationUrl) || ModelAuthorizationAction.SEARCH.getUrl().equals(operationUrl))) {
-//            isAuthorized = getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(), phase, params, ownerResolver, task, task.getResult());
-//        }
-//        return isAuthorized;
-//    }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
             PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)

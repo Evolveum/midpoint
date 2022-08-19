@@ -56,7 +56,7 @@ class GenericSupport {
             if (path != null) {
                 ItemDefinition<Item<?, ?>> def = objectDefinition.findItemDefinition(path);
                 if (def == null) {
-                    throw new IllegalArgumentException("Could'n find item for path " + path);
+                    throw new IllegalArgumentException("Couldn't find item for path " + path);
                 }
                 displayName = def.getDisplayName();
 

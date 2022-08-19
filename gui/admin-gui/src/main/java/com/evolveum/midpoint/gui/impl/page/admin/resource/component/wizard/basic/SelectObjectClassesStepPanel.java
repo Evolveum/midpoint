@@ -255,7 +255,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     }
 
     @Override
-    protected IModel<String> getNextLabelModel() {
-        return getPageBase().createStringResource("SelectObjectClassesStepPanel.nextLabel");
+    protected IModel<String> getSubmitLabelModel() {
+        return getPageBase().createStringResource("SelectObjectClassesStepPanel.submitLabel");
     }
 }

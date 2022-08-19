@@ -62,7 +62,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
             @Override
             protected IModel<?> getTitleModel() {
-                return getTitle();
+                return getFormTitle();
             }
 
             @Override

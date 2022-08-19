@@ -113,6 +113,11 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
     }
 
     @Override
+    protected IModel<String> getFormTitle() {
+        return createStringResource("PageResource.wizard.step.discovery.title");
+    }
+
+    @Override
     protected IModel<?> getTextModel() {
         return createStringResource("PageResource.wizard.step.discovery.text");
     }
