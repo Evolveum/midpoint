@@ -185,11 +185,34 @@ Basic info section will contain attributes describing organizationalUnit, emailA
 | Boolean
 | If the panel is set to default = true, that after navigating to object details, this panel will be shown by default.
 Only one panel can be default. In midPoint, each object type has its default panel defined. If there is a wish to change it, make sure there is only one panel set to default = true at the end.
+
+| preview
+| NO
+| Boolean
+| If true, the panel is used on dashboard page and has a light view (e.g. no checkbox or menu items columns on the list view panels)
+
+| action
+| NO
+| GuiActionType
+| Since 4.6: implemented the possibility to apply some action to the panel (e.g. redirection action for the dashboard widget panel which redirects the user to the specified in action page/panel)
 |===
 
 It is very important to be aware of difference between `identifier` and `panelType`. The attribute `identifier` points to the concrete instance of the panel idenfied by the `identifier`. This `identifier` is used to identify the same panel across different places where is might be configured and according to the `identifier` all related configurations are merged. The attribute `panelType` represents the type of the panel which will be instantiated and used to represent data. There might be different `panel` configurations with different `identifier` for the same `panelType`. In such a case, different menu links on details page will be generated and each will display instantiated `panelType` with the corresponding configuration in `panel`.
 
 MidPoint itself comes with default panels with the identifiers specified. Those are stated in the tables below divided by the types for which they applies.
+As one of the options, the panels can be used and displayed on the self Dashboard page. It's considered that the object to which the panel is applied is principal focus. The statistic widgets on the self Dashboard page usually don't require object type to be specified, they are used just to display some information or to redirect the user to the the appropriate page/panel.
+
+Type-independent panels:
+[%autowidth]
+
+|===
+| Panel | Identifier | Description | Default order
+
+| Statistic widget
+| `statisticWidget`
+| Panel displaying some statistic or configured data, works as a link to redirect the user to the specified page/panel.
+|
+|===
 
 Panels applicable for all AssignmentHolderType object (except ResourceType):
 [%autowidth]
@@ -410,7 +433,7 @@ Panels applicable only for services:
 
 |===
 
-Panels applicable onlu for archetypes:
+Panels applicable only for archetypes:
 
 [%autowidth]
 |===
@@ -1225,11 +1248,11 @@ Following example can be used to customize the look of the user dashboard (home 
      <adminGuiConfiguration>
         <userDashboard>
             <widget>
-                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#shortcuts</identifier>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#shortcuts</identifier> <!-- before 4.6 -->
                 <visibility>automatic</visibility>
             </widget>
             <widget>
-                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myRequests</identifier>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myRequests</identifier> <!-- before 4.6 -->
                 <visibility>automatic</visibility>
             </widget>
         </userDashboard>
@@ -1262,6 +1285,83 @@ Let's have another role:
 This role defines just one widget.
 Therefore if a user has just this one role then he will see only the workitems widget.
 But if the user has both roles then the configuration will be merged and he will see all three widgets.
+
+Since midPoint 4.6 the configuration of the user dashboard (home screen) becomes more flexible. All the panels on the page can be configured.
+
+e.g. the configuration for user's assignment panel on the dashboard page
+[source,xml]
+----
+<role>
+     <name>Approver</name>
+     ...
+     <adminGuiConfiguration>
+        <homePage>
+            <type>UserType</type>
+            <widget>
+                <identifier>myAccesses</identifier>
+                <display>
+                    <label>
+                        <orig>My accesses</orig>
+                        <translation>
+                            <key>PageSelfDashboard.myAccesses</key>
+                        </translation>
+                    </label>
+                    <cssClass>col-md-6</cssClass>
+                    <icon>
+                        <cssClass>fe fe-assignment</cssClass>
+                    </icon>
+                </display>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
+                        <panelType>allAssignments</panelType>
+                    </target>
+                </action>
+                <panelType>allAssignments</panelType>
+                <preview>true</preview>
+            </widget>
+        </homePage>
+    </adminGuiConfiguration>
+</role>
+----
+
+configuration for shortcup Credentials widget on the user's dashboard page:
+[source,xml]
+----
+<role>
+     <name>Approver</name>
+     ...
+     <adminGuiConfiguration>
+        <homePage>
+            <type>UserType</type>
+            <widget>
+                <identifier>credentialsWidget</identifier>
+                <display>
+                    <label>
+                        <orig>Credentials</orig>
+                        <translation>
+                            <key>PageSelfDashboard.credentials</key>
+                        </translation>
+                    </label>
+                    <help>PageSelfDashboard.credentials.description</help>
+                    <cssClass>col-md-3</cssClass>
+                    <icon>
+                        <cssClass>fa fa-shield-alt</cssClass>
+                        <color>blue</color>
+                    </icon>
+                </display>
+                <panelType>statisticWidget</panelType>
+                <action>
+                    <target>
+                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials</pageClass>
+                    </target>
+                </action>
+                <preview>true</preview>
+            </widget>
+        </homePage>
+    </adminGuiConfiguration>
+</role>
+----
 
 Possible visibility values are:
 
