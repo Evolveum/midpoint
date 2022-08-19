@@ -3910,6 +3910,10 @@ public final class WebComponentUtil {
         return displayType.getIcon().getCssClass();
     }
 
+    public static PolyStringType getLabel(DisplayType displayType) {
+        return displayType == null ? null : displayType.getLabel();
+    }
+
     public static String getIconColor(DisplayType displayType) {
         if (displayType == null || displayType.getIcon() == null) {
             return "";

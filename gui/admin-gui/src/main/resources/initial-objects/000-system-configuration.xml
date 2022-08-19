@@ -378,46 +378,6 @@
                 <preview>true</preview>
             </widget>
         </homePage>
-        <userDashboardLink>
-            <targetUrl>/self/profile</targetUrl>
-            <label>PageSelfDashboard.profile</label>
-            <description>PageSelfDashboard.profile.description</description>
-            <icon>
-                <cssClass>fa fa-user</cssClass>
-            </icon>
-            <color>green</color>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
-        </userDashboardLink>
-        <userDashboardLink>
-            <targetUrl>/self/credentials</targetUrl>
-            <label>PageSelfDashboard.credentials</label>
-            <description>PageSelfDashboard.credentials.description</description>
-            <icon>
-                <cssClass>fa fa-shield-alt</cssClass>
-            </icon>
-            <color>blue</color>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
-        </userDashboardLink>
-        <userDashboardLink>
-            <targetUrl>/admin/users</targetUrl>
-            <label>PageSelfDashboard.listUsers</label>
-            <icon>
-                <cssClass>fa fa-users</cssClass>
-            </icon>
-            <color>red</color>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
-        </userDashboardLink>
-        <userDashboardLink>
-            <targetUrl>/admin/resources</targetUrl>
-            <label>PageSelfDashboard.listResources</label>
-            <icon>
-                <cssClass>fa fa-database</cssClass>
-            </icon>
-            <color>purple</color>
-            <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
-        </userDashboardLink>
         <objectCollectionViews>
             <objectCollectionView>
                 <identifier>my-cases</identifier>

@@ -370,7 +370,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isDashboard() {
-        return dashboard || (config != null && BooleanUtils.isTrue(config.isPreview()));
+        return dashboard || isPreview();
+    }
+
+    private boolean isPreview() {
+        return config != null && BooleanUtils.isTrue(config.isPreview());
     }
 
     protected PageStorage getPageStorage(String storageKey) {
@@ -965,7 +969,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 viewAllActionPerformed(target);
             }
         };
-        viewAll.add(new VisibleBehaviour(() -> isDashboard()));
+        viewAll.add(new VisibleBehaviour(this::isPreview));
         viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
