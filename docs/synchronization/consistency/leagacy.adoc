@@ -160,7 +160,7 @@ All what you need is to have configured synchronization part in the resource des
 == Reconciliation
 
 xref:/midpoint/reference/synchronization/introduction/[Reconciliation process] (also called synchronization) is a standard way how identity management systems solve possible inconsistencies.
-It is used to scan external resource and find out changes that have been not applied yet because of some reason, e.q. when administrator made changes on external resource, synchronization was suspended.
+It is used to scan external resource and find out changes that have been not applied yet because of some reason, e.g. when administrator made changes on external resource, synchronization was suspended.
 In the midPoint we use this standard reconciliation process, but we also add another option.
 In out reconciliation process we process not only changes from the external resource but also the changes from the local midPoint's repository.
 In this way, we add opaque direction for handling.
