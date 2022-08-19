@@ -57,4 +57,9 @@ public class FocusResourceObjectTypeStepPanel extends AbstractValueFormResourceW
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.objectType.focus.subText");
     }
+
+    @Override
+    protected IModel<String> getNextLabelModel() {
+        return createStringResource("PageResource.wizard.step.objectType.focus.subText");
+    }
 }

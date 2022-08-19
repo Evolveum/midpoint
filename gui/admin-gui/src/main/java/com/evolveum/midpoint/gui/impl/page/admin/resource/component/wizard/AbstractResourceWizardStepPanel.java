@@ -41,4 +41,8 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
     public String appendCssToWizard() {
         return "mt-5 mx-auto col-8";
     }
+
+    protected IModel<String> getFormTitle() {
+        return getTitle();
+    }
 }

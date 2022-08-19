@@ -122,12 +122,12 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
     }
 
     @Override
-    protected IModel<String> getSubTextModel() {
+    protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.text");
     }
 
     @Override
-    protected IModel<String> getTextModel() {
+    protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.subText");
     }
 }

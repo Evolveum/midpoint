@@ -22,17 +22,17 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "basicSettingsWizard")
-@PanelInstance(identifier = "basicSettingsWizard",
+@PanelType(name = "basicInformationWizard")
+@PanelInstance(identifier = "basicInformationWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.basicSettings", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicSettingStepPanel extends AbstractFormResourceWizardStepPanel {
+public class BasicInformationStepPanel extends AbstractFormResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "basicSettingsWizard";
+    private static final String PANEL_TYPE = "basicInformationWizard";
 
-    public BasicSettingStepPanel(ResourceDetailsModel model) {
+    public BasicInformationStepPanel(ResourceDetailsModel model) {
         super(model);
     }
 
@@ -54,17 +54,17 @@ public class BasicSettingStepPanel extends AbstractFormResourceWizardStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.basicSettings");
+        return createStringResource("PageResource.wizard.step.basicInformation");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.basicSettings.text");
+        return createStringResource("PageResource.wizard.step.basicInformation.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.basicSettings.subText");
+        return createStringResource("PageResource.wizard.step.basicInformation.subText");
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {

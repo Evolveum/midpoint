@@ -68,7 +68,7 @@ public class PartialConfigurationStepPanel extends AbstractFormResourceWizardSte
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.configuration.subText");
+        return createStringResource("PageResource.wizard.step.partialConfiguration.subText");
     }
 
     @Override
