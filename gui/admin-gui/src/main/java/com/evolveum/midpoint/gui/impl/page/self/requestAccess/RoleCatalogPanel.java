@@ -623,7 +623,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private RoleCatalogType getRoleCatalogConfiguration() {
         AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getRoleCatalog() : new RoleCatalogType();
+        RoleCatalogType catalog = null;
+        if (config != null) {
+            catalog = config.getRoleCatalog();
+        }
+
+        return catalog != null ? catalog : new RoleCatalogType();
     }
 
     private ListGroupMenu<RoleCatalogQueryItem> loadRoleCatalogMenu() {
