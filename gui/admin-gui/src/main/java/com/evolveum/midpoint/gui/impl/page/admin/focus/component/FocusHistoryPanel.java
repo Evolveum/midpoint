@@ -87,7 +87,9 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
             @Override
             protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createColumns() {
                 List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = super.createColumns();
-
+                if (isDashboard()) {
+                    return columns;
+                }
                 IColumn<SelectableBean<AuditEventRecordType>, String> column
                         = new AbstractColumn<SelectableBean<AuditEventRecordType>, String>(new Model<>()) {
 

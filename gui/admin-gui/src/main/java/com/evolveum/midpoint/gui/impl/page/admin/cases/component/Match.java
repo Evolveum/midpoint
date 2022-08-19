@@ -10,9 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 public enum Match {
 
     NOT_APPLICABLE(""),
-    NONE("danger disabled color-palette"),
-    PARTIAL("warning disabled color-palette"),
-    FULL("success disabled color-palette");
+    NONE("bg-danger disabled color-palette"),
+    PARTIAL("bg-warning disabled color-palette"),
+    FULL("bg-success disabled color-palette");
 
     private final String css;
 

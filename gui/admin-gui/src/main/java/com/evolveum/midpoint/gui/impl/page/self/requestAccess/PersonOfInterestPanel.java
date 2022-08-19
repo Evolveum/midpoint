@@ -615,7 +615,12 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private TargetSelectionType getTargetSelectionConfiguration() {
         AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getTargetSelection() : new TargetSelectionType();
+        TargetSelectionType result = null;
+        if (config != null) {
+            result = config.getTargetSelection();
+        }
+
+        return result != null ? result : new TargetSelectionType();
     }
 
     public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {

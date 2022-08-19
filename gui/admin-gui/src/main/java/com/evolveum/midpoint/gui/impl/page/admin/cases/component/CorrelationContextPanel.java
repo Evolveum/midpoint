@@ -43,6 +43,8 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.StringResourceModel;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_OPTION_HEADERS;
 
 @PanelType(name = "correlationContext")
@@ -185,9 +187,7 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             protected void populateItem(ListItem<CorrelationProperty> item) {
                 // First column contains the property name
                 item.add(
-                        new Label(ID_ATTR_NAME,
-                                new PropertyModel<>(
-                                        item.getModel(), CorrelationProperty.F_DISPLAY_NAME)));
+                        new Label(ID_ATTR_NAME, new StringResourceModel("${displayName}", item.getModel())));
 
                 // Here are columns for values for individual options
                 item.add(

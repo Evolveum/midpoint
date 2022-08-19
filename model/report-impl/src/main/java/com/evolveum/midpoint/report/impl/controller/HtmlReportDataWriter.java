@@ -22,7 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurat
 /**
  * Creates and manipulates exported reports in HTML format.
  */
-public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> extends AbstractReportDataWriter<ED, EH> {
+public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow>
+        extends AbstractReportDataWriter<ED, EH> {
 
     @NotNull private final CommonHtmlSupport support;
 
@@ -30,8 +31,11 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
 
     @Nullable private final FileFormatConfigurationType configuration;
 
-    public HtmlReportDataWriter(ReportServiceImpl reportService, CompiledObjectCollectionView compiledView,
+    public HtmlReportDataWriter(
+            ReportServiceImpl reportService,
+            CompiledObjectCollectionView compiledView,
             @Nullable FileFormatConfigurationType configuration) {
+        super(reportService);
         this.support = new CommonHtmlSupport(reportService.getClock(), compiledView);
         this.localizationService = reportService.getLocalizationService();
         this.configuration = configuration;
@@ -127,6 +131,15 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
 
         String table = createTableBox(aggregatedData, support, parseData);
         body.append(table).append("</div>");
+
+        // This is used by exported HTML report only. We probably don't want to add this to
+        // the Dashboard reports, because there is a footer in the GUI already.
+        String subscriptionFooter = reportService.missingSubscriptionFooter();
+        if (subscriptionFooter != null) {
+            body.append("<div>")
+                    .append(subscriptionFooter)
+                    .append("</div>");
+        }
 
         return body.toString();
     }

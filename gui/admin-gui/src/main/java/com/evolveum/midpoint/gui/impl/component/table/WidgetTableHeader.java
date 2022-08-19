@@ -33,7 +33,7 @@ public class WidgetTableHeader extends BasePanel<DisplayType> {
     }
 
     private void initLayout() {
-        Label label = new Label(ID_TITLE, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getLabel())));
+        Label label = new Label(ID_TITLE, Model.of(WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(getModelObject()))));
         label.setRenderBodyOnly(true);
         add(label);
 
