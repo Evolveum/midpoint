@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -29,6 +32,8 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -81,6 +86,18 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     @Override
+    protected void onBeforeRender() {
+        if (getModelObject().getPersonOfInterest().size() == 0) {
+            PageParameters params = new PageParameters();
+            params.set(WizardModel.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
+
+            throw new RestartResponseException(new PageRequestAccess(params));
+        }
+
+        super.onBeforeRender();
+    }
+
+    @Override
     public void init(WizardModel wizard) {
         super.init(wizard);
 
@@ -102,18 +119,12 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
             protected List<Tile<QName>> load() {
                 RequestAccess ra = getModelObject();
 
-                QName currentRelation = ra.getRelation();
-                if (currentRelation == null) {
-                    currentRelation = ra.getDefaultRelation();
-                    getModelObject().setRelation(currentRelation);
-                }
-
                 List<Tile<QName>> tiles = new ArrayList<>();
 
                 List<QName> availableRelations = ra.getAvailableRelations(page);
                 for (QName name : availableRelations) {
                     Tile<QName> tile = createTileForRelation(name);
-                    tile.setSelected(name.equals(currentRelation));
+                    tile.setSelected(name.equals(ra.getDefaultRelation()));
                     tile.setValue(name);
 
                     tiles.add(tile);

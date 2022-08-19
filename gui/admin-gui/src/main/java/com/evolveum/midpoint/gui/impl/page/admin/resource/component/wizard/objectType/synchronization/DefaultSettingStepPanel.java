@@ -23,16 +23,15 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "DefaultSettingSynchronizationWizard")
-@PanelInstance(identifier = "DefaultSettingSynchronizationWizard",
+@PanelInstance(identifier = "defaultSettingSynchronizationWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.synchronization.step.defaultSettings", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.defaultSettings", icon = "fa fa-circle"),
         containerPath = "schemaHandling/objectType/synchronization/defaultSettings",
         expanded = true)
 public class DefaultSettingStepPanel extends AbstractFormResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "DefaultSettingSynchronizationWizard";
+    private static final String PANEL_TYPE = "defaultSettingSynchronizationWizard";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel;
 
@@ -70,16 +69,16 @@ public class DefaultSettingStepPanel extends AbstractFormResourceWizardStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.synchronization.step.defaultSettings");
+        return createStringResource("PageResource.wizard.step.synchronization.defaultSettings");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.synchronization.defaultSettings.text");
+        return createStringResource("PageResource.wizard.step.synchronization.defaultSettings.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.synchronization.defaultSettings.subText");
+        return createStringResource("PageResource.wizard.step.synchronization.defaultSettings.subText");
     }
 }

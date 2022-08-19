@@ -88,12 +88,12 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.selectObjectClasses.text");
+        return createStringResource("PageResource.wizard.step.selectObjectClasses.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.selectObjectClasses.subText");
+        return createStringResource("PageResource.wizard.step.selectObjectClasses.subText");
     }
 
     @Override
@@ -255,7 +255,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     }
 
     @Override
-    protected IModel<String> getNextLabelModel() {
-        return getPageBase().createStringResource("SelectObjectClassesStepPanel.nextLabel");
+    protected IModel<String> getSubmitLabelModel() {
+        return getPageBase().createStringResource("SelectObjectClassesStepPanel.submitLabel");
     }
 }

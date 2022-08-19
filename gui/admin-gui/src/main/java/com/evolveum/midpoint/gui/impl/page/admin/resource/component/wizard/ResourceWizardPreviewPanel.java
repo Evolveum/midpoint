@@ -36,6 +36,11 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
     }
 
     @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return getPageBase().createStringResource("ResourceWizardPreviewPanel.title");
+    }
+
+    @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("ResourceWizardPreviewPanel.subText");
     }

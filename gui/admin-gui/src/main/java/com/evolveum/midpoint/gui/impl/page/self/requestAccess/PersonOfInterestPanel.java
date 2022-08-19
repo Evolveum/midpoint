@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -115,7 +116,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private LoadableModel<List<Tile<PersonOfInterest>>> tiles;
 
-    private IModel<SelectionState> selectionState = Model.of(SelectionState.TILES);
+    private IModel<SelectionState> selectionState;
 
     private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
 
@@ -155,56 +156,58 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private void initModels() {
+
         tiles = new LoadableModel<>(false) {
 
             @Override
             protected List<Tile<PersonOfInterest>> load() {
                 List<Tile<PersonOfInterest>> list = new ArrayList<>();
 
+                // todo check assignment authorizations
+
                 TargetSelectionType selection = getTargetSelectionConfiguration();
-                if (selection == null) {
-                    for (TileType type : TileType.values()) {
-                        Tile tile = createDefaultTile(type);
-                        list.add(tile);
-                    }
-
-                    selectTileIfOnlyOne(list);
-
-                    return list;
-                }
-
-                if (selection.isAllowRequestForMyself() == null || selection.isAllowRequestForMyself()) {
+                if (BooleanUtils.isNotFalse(selection.isAllowRequestForMyself())) {
                     list.add(createDefaultTile(TileType.MYSELF));
                 }
 
-                if (selection.isAllowRequestForOthers() != null && !selection.isAllowRequestForOthers()) {
-                    selectTileIfOnlyOne(list);
-
-                    return list;
+                if (BooleanUtils.isNotFalse(selection.isAllowRequestForOthers())) {
+                    List<GroupSelectionType> selections = selection.getGroup();
+                    if (selections.isEmpty()) {
+                        list.add(createDefaultTile(TileType.GROUP_OTHERS));
+                    } else {
+                        for (GroupSelectionType gs : selections) {
+                            list.add(createTile(gs));
+                        }
+                    }
                 }
 
-                List<GroupSelectionType> selections = selection.getGroup();
-                if (selections.isEmpty()) {
-                    list.add(createDefaultTile(TileType.GROUP_OTHERS));
-                    selectTileIfOnlyOne(list);
-                    return list;
+                if (list.size() == 1) {
+                    Tile<PersonOfInterest> tile = list.get(0);
+                    switch (tile.getValue().type) {
+                        case MYSELF:
+                            tile.setSelected(true);
+                            break;
+                        case GROUP_OTHERS:
+                            tile.setSelected(true);
+                    }
                 }
-
-                for (GroupSelectionType gs : selections) {
-                    list.add(createTile(gs));
-                }
-
-                selectTileIfOnlyOne(list);
 
                 return list;
             }
         };
-    }
 
-    private void selectTileIfOnlyOne(List<Tile<PersonOfInterest>> list) {
-        if (list != null && list.size() == 1) {
-            list.get(0).setSelected(true);
-        }
+        selectionState = new LoadableModel<>(false) {
+
+            @Override
+            protected SelectionState load() {
+                Tile<PersonOfInterest> selected = getSelectedTile();
+                if (selected != null && selected.getValue().type == TileType.GROUP_OTHERS) {
+                    return SelectionState.USERS;
+                }
+
+                return SelectionState.TILES;
+            }
+        };
     }
 
     private Tile<PersonOfInterest> createTile(GroupSelectionType selection) {
@@ -417,6 +420,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private void groupOthersPerformed(AjaxRequestTarget target, Tile<PersonOfInterest> groupOthers) {
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected != null && selected.getValue().type == TileType.GROUP_OTHERS && selected != groupOthers) {
+            // we've selected different group of users as it was previously selected, so we clear our map of selected users
             selectedGroupOfUsers.setObject(createPoiMembershipMap(null));
         }
 
@@ -611,7 +615,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private TargetSelectionType getTargetSelectionConfiguration() {
         AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getTargetSelection() : null;
+        return config != null ? config.getTargetSelection() : new TargetSelectionType();
     }
 
     public static class ObjectReferenceProvider extends ChoiceProvider<ObjectReferenceType> {

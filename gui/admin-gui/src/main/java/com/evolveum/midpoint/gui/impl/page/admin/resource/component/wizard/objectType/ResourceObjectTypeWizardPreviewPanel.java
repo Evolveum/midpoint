@@ -12,9 +12,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
 
@@ -35,8 +37,8 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
         SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate"),
 //        CORRELATION_CONFIG("fa fa-code-branch"),
         CAPABILITIES_CONFIG("fab fa-react"),
-        ACTIVATION("fa fa-shield"),
-        CREDENTIALS("fa fa-shield"),
+        ACTIVATION("fa fa-toggle-off"),
+        CREDENTIALS("fa fa-key"),
         ASSOCIATIONS("fa fa-shield");
 
         private String icon;
@@ -58,6 +60,11 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
         return valueModel;
+    }
+
+    @Override
+    protected IModel<String> getBreadcrumbLabel() {
+        return Model.of(GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue()));
     }
 
     @Override

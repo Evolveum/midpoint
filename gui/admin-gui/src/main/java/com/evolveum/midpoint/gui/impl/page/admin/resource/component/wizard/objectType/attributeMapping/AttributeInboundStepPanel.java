@@ -24,12 +24,11 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "attributeInboundWizard")
 @PanelInstance(identifier = "attributeInboundWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.attributes.step.inbound", icon = "fa fa-circle"),
-        containerPath = "schemaHandling/objectType/attribute/inbound",
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound", icon = "fa fa-circle"),
+//        containerPath = "schemaHandling/objectType/attribute/inbound",
         expanded = true)
 public class AttributeInboundStepPanel extends AbstractInboundStepPanel<ResourceAttributeDefinitionType> {
 

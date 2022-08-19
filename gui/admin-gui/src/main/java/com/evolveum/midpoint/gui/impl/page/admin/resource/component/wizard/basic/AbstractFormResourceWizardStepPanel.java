@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -61,10 +62,13 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
             @Override
             protected IModel<?> getTitleModel() {
-                return getTitle();
+                return getFormTitle();
             }
 
-
+            @Override
+            protected WrapperContext createWrapperContext() {
+                return resourceModel.createWrapperContext();
+            }
         };
         form.setOutputMarkupId(true);
         add(form);

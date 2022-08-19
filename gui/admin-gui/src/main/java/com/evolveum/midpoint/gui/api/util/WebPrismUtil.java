@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -31,10 +33,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * @author katka
@@ -92,20 +90,37 @@ public class WebPrismUtil {
         return newValueWrapper;
     }
 
-    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, ModelServiceLocator modelServiceLocator) throws SchemaException {
+    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(
+            IW itemWrapper, PV newValue, ModelServiceLocator modelServiceLocator) throws SchemaException {
         return createNewValueWrapper(itemWrapper, newValue, ValueStatus.ADDED, modelServiceLocator);
     }
 
-    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, ValueStatus status, ModelServiceLocator modelServiceLocator) throws SchemaException {
+    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(
+            IW itemWrapper, PV newValue, ModelServiceLocator modelServiceLocator,
+            WrapperContext wrapperContext) throws SchemaException {
+        return createNewValueWrapper(itemWrapper, newValue, ValueStatus.ADDED, modelServiceLocator, wrapperContext);
+    }
+
+    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(
+            IW itemWrapper, PV newValue, ValueStatus status, ModelServiceLocator modelServiceLocator) throws SchemaException {
+        return createNewValueWrapper(itemWrapper, newValue, status, modelServiceLocator, null);
+    }
+
+    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(
+            IW itemWrapper, PV newValue, ValueStatus status, ModelServiceLocator modelServiceLocator,
+            WrapperContext context) throws SchemaException {
         LOGGER.debug("Adding value to {}", itemWrapper);
 
         Task task = modelServiceLocator.createSimpleTask(OPERATION_CREATE_NEW_VALUE);
         OperationResult result = task.getResult();
 
-        WrapperContext context = new WrapperContext(task, result);
-        context.setObjectStatus(itemWrapper.findObjectStatus());
-        context.setShowEmpty(true);
-        context.setCreateIfEmpty(true);
+        if (context == null) {
+            context = new WrapperContext(task, result);
+            context.setObjectStatus(itemWrapper.findObjectStatus());
+            context.setShowEmpty(true);
+            context.setCreateIfEmpty(true);
+        }
+
 
         VW newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newValue, status, context);
         result.recordSuccess();

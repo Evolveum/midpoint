@@ -383,7 +383,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public PrismContainerWrapper<C> copyVirtualContainerWithNewValue(
+    public PrismContainerWrapper<C> cloneVirtualContainerWithNewValue(
             PrismContainerValueWrapper<? extends Containerable> parent, ModelServiceLocator modelServiceLocator){
         if (!isVirtual()) {
             throw new UnsupportedOperationException();

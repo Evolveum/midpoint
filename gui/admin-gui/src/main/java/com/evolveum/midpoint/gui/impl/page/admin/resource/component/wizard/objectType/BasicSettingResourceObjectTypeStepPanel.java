@@ -35,7 +35,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 /**
  * @author lskublik
  */
-@PanelType(name = "basicResourceObjectTypeWizard")
 @PanelInstance(identifier = "basicResourceObjectTypeWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
@@ -59,12 +58,12 @@ public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormRe
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.objectType.basicSettings.text");
+        return createStringResource("PageResource.wizard.step.objectType.basicSettings.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.objectType.basicSettings.subText");
+        return createStringResource("PageResource.wizard.step.objectType.basicSettings.subText");
     }
 
     @Override

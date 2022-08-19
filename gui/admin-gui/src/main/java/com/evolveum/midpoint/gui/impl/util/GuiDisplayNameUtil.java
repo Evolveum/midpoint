@@ -93,6 +93,45 @@ public class GuiDisplayNameUtil {
         return displayName;
     }
 
+    public static String getDisplayName(ResourceObjectTypeDefinitionType objectType) {
+        if (StringUtils.isNotEmpty(objectType.getDisplayName())) {
+            return objectType.getDisplayName();
+        }
+        StringBuilder sb = new StringBuilder();
+        if (objectType.getKind() != null) {
+            sb.append(PageBase.createStringResourceStatic(null, objectType.getKind()));
+        }
+        if (StringUtils.isNotEmpty(objectType.getIntent())) {
+            if (StringUtils.isNotEmpty(sb.toString())) {
+                sb.append("-");
+            }
+            sb.append(objectType.getIntent());
+        }
+
+        QName objectClass = null;
+        if (objectType.getDelineation() != null) {
+            objectClass = objectType.getDelineation().getObjectClass();
+        }
+        if (objectClass == null) {
+            objectClass = objectType.getObjectClass();
+        }
+        if (objectClass != null) {
+            boolean isNotDisplayNameEmpty = StringUtils.isNotEmpty(sb.toString());
+            if (isNotDisplayNameEmpty) {
+                sb.append("(");
+            }
+            sb.append(objectClass.getLocalPart());
+            if (isNotDisplayNameEmpty) {
+                sb.append(")");
+            }
+        }
+
+        if (StringUtils.isEmpty(sb.toString())) {
+            return PageBase.createStringResourceStatic("SchemaHandlingType.objectType").getString();
+        }
+        return sb.toString();
+    }
+
     public static String getDisplayName(ExclusionPolicyConstraintType exclusionConstraint) {
         String exclusionConstraintName = getExclusionConstraintName(exclusionConstraint);
         return exclusionConstraintNameExists(exclusionConstraintName, exclusionConstraint) ? exclusionConstraintName : "ExclusionPolicyConstraintType.details";

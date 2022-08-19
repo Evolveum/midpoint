@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
- *
  */
 @Component
 public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends ItemWrapperFactoryImpl<PrismContainerWrapper<C>, PrismContainerValue<C>, PrismContainer<C>, PrismContainerValueWrapper<C>> implements PrismContainerWrapperFactory<C> {
@@ -46,7 +45,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return  def instanceof PrismContainerDefinition;
+        return def instanceof PrismContainerDefinition;
     }
 
     @PostConstruct
@@ -59,7 +58,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     public int getOrder() {
         return Integer.MAX_VALUE;
     }
-
 
     @Override
     public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
@@ -80,21 +78,36 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
                 containerValueWrapper.setExpanded(virtualContainerSpec.isExpanded());
             }
             for (ItemWrapper<?, ?> child : children) {
-                 if (childNotDefined(virtualContainerSpec, child)) {
-                     continue;
-                 }
-                 containerValueWrapper.addItem(child);
+                if (childNotDefined(virtualContainerSpec, child)) {
+                    continue;
+                }
+                containerValueWrapper.addItem(child);
             }
         } else {
             containerValueWrapper.addItems(children);
         }
 
-        containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
+        containerValueWrapper.setVirtualContainerItems(determineVirtualContainerItems(parent, context));
         if (parent != null && context.getVirtualItemSpecification() != null) {
             parent.setVirtual(true);
             parent.setShowInVirtualContainer(true);
         }
         return containerValueWrapper;
+    }
+
+    private List<VirtualContainerItemSpecificationType> determineVirtualContainerItems(PrismContainerWrapper<C> parent, WrapperContext context) {
+        if (context.getVirtualItemSpecification() != null) {
+            return context.getVirtualItemSpecification();
+        }
+        for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
+            if (virtualContainer.getPath() == null) {
+                continue;
+            }
+            if (parent.getPath().namedSegmentsOnly().equivalent(virtualContainer.getPath().getItemPath())) {
+                return virtualContainer.getItem();
+            }
+        }
+        return null;
     }
 
     private boolean childNotDefined(VirtualContainersSpecificationType virtualContainerSpec, ItemWrapper<?, ?> child) {
@@ -111,7 +124,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     @NotNull
     protected List<ItemWrapper<?, ?>> createChildren(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, PrismContainerValueWrapper<C> containerValueWrapper, WrapperContext context) throws SchemaException {
-        List<ItemWrapper<?,?>> wrappers = new ArrayList<>();
+        List<ItemWrapper<?, ?>> wrappers = new ArrayList<>();
         for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
             addItemWrapper(def, containerValueWrapper, context, wrappers);
         }
@@ -119,16 +132,16 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     }
 
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
-        if (parent == null){
+        if (parent == null) {
             return new ArrayList<>();
         }
         return parent.getDefinitions();
     }
 
     protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
-            WrapperContext context, List<ItemWrapper<?,?>> wrappers) throws SchemaException {
+            WrapperContext context, List<ItemWrapper<?, ?>> wrappers) throws SchemaException {
 
-        ItemWrapper<?,?> wrapper = createChildWrapper(def, containerValueWrapper, context);
+        ItemWrapper<?, ?> wrapper = createChildWrapper(def, containerValueWrapper, context);
 
         if (wrapper != null) {
             wrappers.add(wrapper);
@@ -144,7 +157,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         return child;
     }
 
-    private ItemWrapperFactory<?,?,?> getChildWrapperFactory(ItemDefinition def, PrismContainerValue<?> parentValue) throws SchemaException {
+    private ItemWrapperFactory<?, ?, ?> getChildWrapperFactory(ItemDefinition def, PrismContainerValue<?> parentValue) throws SchemaException {
         ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, parentValue);
         if (factory == null) {
             LOGGER.error("Cannot find factory for {}", def);
@@ -154,8 +167,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         LOGGER.trace("Found factory {} for {}", factory, def);
         return factory;
     }
-
-
 
     @Override
     protected PrismContainerValue<C> createNewValue(PrismContainer<C> item) {
@@ -174,7 +185,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
             containerWrapper.setVirtual(true);
             containerWrapper.setShowInVirtualContainer(true);
         }
-
 
         return containerWrapper;
     }

@@ -71,6 +71,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         setOutputMarkupId(true);
 
+        appendClassForAddedOrRemovedItem();
+
+    }
+
+    protected void appendClassForAddedOrRemovedItem(){
         add(AttributeModifier.append("class", () -> {
             String cssClasses = "";
             if (getModelObject() != null && ValueStatus.ADDED == getModelObject().getStatus()) {
@@ -81,7 +86,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             }
             return cssClasses;
         }));
-
     }
 
     @Override
@@ -126,8 +130,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         header.add(createAddMoreButton());
     }
 
-    private void onExpandClick(AjaxRequestTarget target) {
-
+    protected void onExpandClick(AjaxRequestTarget target) {
         CVW wrapper = getModelObject();
         wrapper.setExpanded(!wrapper.isExpanded());
         refreshPanel(target);
@@ -258,7 +261,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (ToggleIconButton) get(createComponentPath(ID_VALUE_FORM, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
     }
 
-    private void refreshPanel(AjaxRequestTarget target) {
+    protected void refreshPanel(AjaxRequestTarget target) {
         target.add(PrismContainerValuePanel.this);
         target.add(getPageBase().getFeedbackPanel());
     }

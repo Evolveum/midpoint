@@ -23,11 +23,10 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "basicAttributeWizard")
-@PanelInstance(identifier = "basicAttributeWizard",
+@PanelInstance(identifier = "basicSettingAttributeWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.basicAttributeMappingWizard", icon = "fa fa-circle"))
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.basicSetting", icon = "fa fa-circle"))
 public class BasicSettingStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType> {
 
     private static final String PANEL_TYPE = "basicAttributeWizard";
@@ -43,17 +42,17 @@ public class BasicSettingStepPanel extends AbstractValueFormResourceWizardStepPa
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.basicSettings");
+        return createStringResource("PageResource.wizard.step.attributes.basicSetting");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.basicSettings.text");
+        return createStringResource("PageResource.wizard.step.attributes.basicSetting.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.basicSettings.subText");
+        return createStringResource("PageResource.wizard.step.attributes.basicSetting.subText");
     }
 
     @Override

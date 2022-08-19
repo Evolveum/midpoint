@@ -270,8 +270,13 @@ public class GuiProfileCompiler {
                 joinShadowDetails(composite.getObjectDetails(), shadowDetails);
             }
 
+
+            Optional<GuiResourceDetailsPageType> detailForAllResources
+                    = adminGuiConfiguration.getObjectDetails().getResourceDetailsPage().stream()
+                    .filter(currentDetails -> currentDetails.getConnectorRef() == null)
+                    .findFirst();
             for (GuiResourceDetailsPageType resourceDetails : adminGuiConfiguration.getObjectDetails().getResourceDetailsPage()) {
-                joinResourceDetails(composite.getObjectDetails(), resourceDetails);
+                joinResourceDetails(composite.getObjectDetails(), resourceDetails, detailForAllResources);
             }
         }
         if (adminGuiConfiguration.getUserDashboard() != null) {
@@ -622,9 +627,17 @@ public class GuiProfileCompiler {
         objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.clone());
     }
 
-    private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails) {
+    private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources) {
         objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnectorType(currentDetails, newObjectDetails));
-        objectDetailsSet.getResourceDetailsPage().add(newObjectDetails.clone());
+        if (!detailForAllResources.isEmpty() && newObjectDetails.getConnectorRef() != null) {
+            GuiResourceDetailsPageType merged = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
+                    detailForAllResources.get(),
+                    newObjectDetails);
+            merged.setConnectorRef(newObjectDetails.getConnectorRef().clone());
+            objectDetailsSet.getResourceDetailsPage().add(merged);
+        } else {
+            objectDetailsSet.getResourceDetailsPage().add(newObjectDetails.clone());
+        }
     }
 
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
@@ -662,7 +675,7 @@ public class GuiProfileCompiler {
 
     private boolean isTheSameConnectorType(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf) {
         if (oldConf.getConnectorRef() == null || newConf.getConnectorRef() == null) {
-            LOGGER.warn("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
+            LOGGER.trace("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
             return false;
         }
         return oldConf.getConnectorRef().getOid().equals(newConf.getConnectorRef().getOid());

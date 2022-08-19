@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
@@ -35,6 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -344,12 +346,21 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private boolean isCollectionInstancePage() {
-        return getPageBase().getClass().getAnnotation(CollectionInstance.class) != null;
+        return getCollectionInstance() != null;
     }
 
     private String getCollectionInstanceDefaultIdentifier() {
-        CollectionInstance collectionInstance = getPageBase().getClass().getAnnotation(CollectionInstance.class);
+        CollectionInstance collectionInstance = getCollectionInstance();
         return collectionInstance != null ? collectionInstance.identifier() : null;
+    }
+
+    private CollectionInstance getCollectionInstance() {
+        PageBase page = findParent(PageBase.class);
+        if (page == null) {
+            return null;
+        }
+
+        return page.getClass().getAnnotation(CollectionInstance.class);
     }
 
     private boolean isPopupWindow() {
