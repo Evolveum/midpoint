@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -25,6 +26,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.util.string.Strings;
 
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -45,6 +48,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
 import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -82,6 +87,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private static final String DOT_CLASS = RoleCatalogPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_MENU = DOT_CLASS + "loadRoleCatalogMenu";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final RoleCatalogViewType DEFAULT_VIEW = RoleCatalogViewType.TILE;
 
@@ -123,11 +129,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     @Override
     protected void onBeforeRender() {
+        if (getModelObject().getRelation() == null) {
+            PageParameters params = new PageParameters();
+            params.set(WizardModel.PARAM_STEP, RelationPanel.STEP_ID);
+
+            throw new RestartResponseException(new PageRequestAccess(params));
+        }
+
         ListGroupMenu menu = menuModel.getObject();
         if (menu.getActiveMenu() == null) {
             menu.activateFirstAvailableItem();
-            updateQueryModel(menu.getActiveMenu());
         }
+
+        ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
+        updateQueryModel(active);
 
         super.onBeforeRender();
     }
@@ -164,6 +179,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return createStringResource("RoleCatalogPanel.title");
     }
 
+    @Override
+    public PrismContext getPrismContext() {
+        return page.getPrismContext();
+    }
+
     private void updateFalseQuery(RoleCatalogQuery query) {
         ObjectQuery oq = getPrismContext()
                 .queryFor(RoleType.class)
@@ -172,18 +192,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         query.setQuery(oq);
         query.setType(RoleType.class);
-    }
-
-    private void updateQueryForRequestableRoles(RoleCatalogQuery query) {
-        ObjectQuery oq = getPrismContext()
-                .queryFor(AbstractRoleType.class)
-                .item(AbstractRoleType.F_REQUESTABLE)
-                .eq(true)
-                .asc(AbstractRoleType.F_NAME)
-                .build();
-
-        query.setQuery(oq);
-        query.setType(AbstractRoleType.class);
     }
 
     private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref, boolean scopeOne) {
@@ -203,13 +211,48 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             return;
         }
 
-        ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
-                .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                .id(userOid)
-                .build();
-
-        query.setQuery(oq);
         query.setType(AbstractRoleType.class);
+
+        if (getPageBase().isNativeRepo()) {
+            ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
+                    .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
+                    .id(userOid)
+                    .and().not().type(ArchetypeType.class)
+                    .build();
+
+            query.setQuery(oq);
+            return;
+        }
+
+        // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
+        Task task = page.createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult result = task.getResult();
+        try {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, page, task, result);
+            if (user == null) {
+                updateFalseQuery(query);
+                return;
+            }
+
+            List<String> oids = user.asObjectable().getAssignment().stream()
+                    .filter(a -> a.getTargetRef() != null)
+                    .map(a -> a.getTargetRef().getOid())
+                    .collect(Collectors.toList());
+
+            ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
+                    .id(oids.toArray(new String[oids.size()]))
+                    .and().not().type(ArchetypeType.class)
+                    .build();
+            query.setQuery(oq);
+
+            result.computeStatusIfUnknown();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't load user", ex);
+        }
+
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            page.showResult(result);
+        }
     }
 
     private void updateQueryFromCollectionRef(RoleCatalogQuery query, ObjectReferenceType collectionRef) {
@@ -269,6 +312,21 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         queryModel = Model.of(query);
 
         searchModel = new LoadableModel<>(false) {
+
+            @Override
+            public Search getObject() {
+                Search search = super.getObject();
+
+                Class<? extends ObjectType> type = queryModel.getObject().getType();
+                // make sure we'll return search object that was created for proper ObjectType class
+                if (!Objects.equals(type, search.getTypeClass())) {
+                    reset();
+
+                    search = super.getObject();
+                }
+
+                return search;
+            }
 
             @Override
             protected Search load() {
@@ -649,6 +707,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> createMenuFromRoleCollections(List<RoleCollectionViewType> collections) {
         List<ListGroupMenuItem<RoleCatalogQueryItem>> items = new ArrayList<>();
+        boolean defaultFound = false;
         for (RoleCollectionViewType collection : collections) {
             try {
                 String name = null;
@@ -677,8 +736,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 ListGroupMenuItem<RoleCatalogQueryItem> item = new ListGroupMenuItem<>(name);
                 item.setIconCss(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
                 item.setValue(rcq);
-                // todo find default active menu and select it
-                // item.setActive(collection.isDefault());
+
+                if (!defaultFound && BooleanUtils.isTrue(collection.isDefault())) {
+                    item.setActive(true);
+                    defaultFound = true;
+                }
 
                 items.add(item);
             } catch (Exception ex) {
