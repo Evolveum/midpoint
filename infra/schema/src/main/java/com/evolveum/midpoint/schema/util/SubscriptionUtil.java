@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -111,19 +113,17 @@ public class SubscriptionUtil {
             return subscriptionType != null;
         }
 
-        private static final Map<String, SubscriptionType> codeToType = new HashMap<>();
+        private static final Map<String, SubscriptionType> CODE_TO_TYPE;
 
         static {
-            for (SubscriptionType value : values()) {
-                if (value.subscriptionType != null) {
-                    codeToType.put(value.subscriptionType, value);
-                }
-            }
+            CODE_TO_TYPE = Arrays.stream(values())
+                    .filter(v -> v.subscriptionType != null)
+                    .collect(Collectors.toUnmodifiableMap(v -> v.subscriptionType, Function.identity()));
         }
 
         @Nullable
         public static SubscriptionType resolveType(String code) {
-            return codeToType.get(code);
+            return CODE_TO_TYPE.get(code);
         }
     }
 }
