@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -27,6 +28,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -52,13 +54,31 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        addBreadcrumb();
         initLayout();
-        getBreadcrumbsModel().getObject().add(new Breadcrumb(getBreadcrumbLabel()));
     }
 
-    protected abstract IModel<String> getBreadcrumbLabel();
+    private void addBreadcrumb() {
+        List<Breadcrumb> breadcrumbs = getBreadcrumbsModel().getObject();
+        IModel<String> breadcrumbLabelModel = getBreadcrumbLabel();
+        String breadcrumbLabel = breadcrumbLabelModel.getObject();
 
-    protected void removeLastBreadcrumb() {
+        if (breadcrumbs.isEmpty() && StringUtils.isNotEmpty(breadcrumbLabel)) {
+            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
+        return;
+        }
+
+        String lastBreadcrumbLabel = breadcrumbs.get(breadcrumbs.size() - 1).getLabel().getObject();
+        if (StringUtils.isNotEmpty(lastBreadcrumbLabel)
+                && StringUtils.isNotEmpty(breadcrumbLabel)
+                && !lastBreadcrumbLabel.equals(breadcrumbLabel)) {
+            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
+        }
+    }
+
+    @NotNull protected abstract IModel<String> getBreadcrumbLabel();
+
+    private void removeLastBreadcrumb() {
         int index = getBreadcrumbsModel().getObject().size() - 1;
         getBreadcrumbsModel().getObject().remove(index);
     }
@@ -100,6 +120,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
                 getExitLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
                 onExitPerformed(target);
             }
         };
