@@ -11,6 +11,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+
 /**
  * Creates and manipulates exported reports.
  */
@@ -26,6 +28,12 @@ public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow,
      * Data rows to be put into resulting CSV file.
      */
     @NotNull private final List<ED> dataRows = new ArrayList<>();
+
+    @NotNull protected final ReportServiceImpl reportService;
+
+    protected AbstractReportDataWriter(@NotNull ReportServiceImpl reportService) {
+        this.reportService = reportService;
+    }
 
     @Override
     public void setHeaderRow(EH headerRow) {

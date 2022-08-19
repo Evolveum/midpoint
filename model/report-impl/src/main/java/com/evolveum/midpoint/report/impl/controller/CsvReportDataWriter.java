@@ -19,6 +19,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
@@ -34,7 +35,10 @@ public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReport
 
     @NotNull private final Map<String, String> widgetsData = new HashMap<>();
 
-    public CsvReportDataWriter(@Nullable FileFormatConfigurationType configuration) {
+    public CsvReportDataWriter(
+            ReportServiceImpl reportService,
+            @Nullable FileFormatConfigurationType configuration) {
+        super(reportService);
         this.support = new CommonCsvSupport(configuration);
         this.configuration = configuration;
     }
@@ -118,6 +122,19 @@ public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReport
     @NotNull
     public Map<String, String> getWidgetsData() {
         return widgetsData;
+    }
+
+    @Override
+    public String completeReport(String aggregatedData) {
+        String reportContent = super.completeReport(aggregatedData);
+
+        String subscriptionFooter = reportService.missingSubscriptionFooter();
+        if (subscriptionFooter != null) {
+            // CSV has final line terminator, so this goes on a new line:
+            reportContent += subscriptionFooter + System.lineSeparator();
+        }
+
+        return reportContent;
     }
 
     @Override

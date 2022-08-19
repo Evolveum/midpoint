@@ -7,47 +7,66 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 public class SubscriptionUtil {
 
-    public static boolean isSubscriptionIdCorrect(String subscriptionId) {
+    @NotNull
+    public static SubscriptionType getSubscriptionType(@Nullable SystemConfigurationType systemConfigurationType) {
+        if (systemConfigurationType == null) {
+            return SubscriptionType.NONE;
+        }
+
+        DeploymentInformationType deploymentInformation = systemConfigurationType.getDeploymentInformation();
+        if (deploymentInformation == null) {
+            return SubscriptionType.NONE;
+        }
+
+        return getSubscriptionType(deploymentInformation.getSubscriptionIdentifier());
+    }
+
+    @NotNull
+    public static SubscriptionType getSubscriptionType(String subscriptionId) {
         if (StringUtils.isEmpty(subscriptionId)) {
-            return false;
+            return SubscriptionType.NONE;
         }
         if (!NumberUtils.isDigits(subscriptionId)) {
-            return false;
+            return SubscriptionType.INVALID;
         }
         if (subscriptionId.length() < 11) {
-            return false;
+            return SubscriptionType.INVALID;
         }
-        String subscriptionType = subscriptionId.substring(0, 2);
-        boolean isTypeCorrect = false;
-        for (SubscriptionType type : SubscriptionType.values()) {
-            if (type.getSubscriptionType().equals(subscriptionType)) {
-                isTypeCorrect = true;
-                break;
-            }
+
+        SubscriptionType type = SubscriptionType.resolveType(subscriptionId.substring(0, 2));
+        if (type == null || !type.isCorrect()) {
+            return SubscriptionType.INVALID;
         }
-        if (!isTypeCorrect) {
-            return false;
-        }
+
         String substring1 = subscriptionId.substring(2, 4);
         String substring2 = subscriptionId.substring(4, 6);
         try {
             if (Integer.parseInt(substring1) < 1 || Integer.parseInt(substring1) > 12) {
-                return false;
+                return SubscriptionType.INVALID;
             }
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yy");
             String currentYear = dateFormat.format(Calendar.getInstance().getTime());
             if (Integer.parseInt(substring2) < Integer.parseInt(currentYear)) {
-                return false;
+                return SubscriptionType.INVALID;
             }
 
             String expDateStr = subscriptionId.substring(2, 6);
@@ -58,13 +77,17 @@ public class SubscriptionUtil {
             expireCalendarValue.add(Calendar.MONTH, 1);
             Date currentDate = new Date(System.currentTimeMillis());
             if (expireCalendarValue.getTime().before(currentDate) || expireCalendarValue.getTime().equals(currentDate)) {
-                return false;
+                return SubscriptionType.INVALID;
             }
         } catch (Exception ex) {
-            return false;
+            return SubscriptionType.INVALID;
         }
         VerhoeffCheckDigit checkDigit = new VerhoeffCheckDigit();
-        return checkDigit.isValid(subscriptionId);
+        if (!checkDigit.isValid(subscriptionId)) {
+            return SubscriptionType.INVALID;
+        }
+
+        return type;
     }
 
     /**
@@ -72,6 +95,8 @@ public class SubscriptionUtil {
      */
     public enum SubscriptionType {
 
+        NONE(null),
+        INVALID(null),
         ANNUAL_SUBSCRIPTION("01"),
         PLATFORM_SUBSCRIPTION("02"),
         DEPLOYMENT_SUBSCRIPTION("03"),
@@ -84,8 +109,21 @@ public class SubscriptionUtil {
             this.subscriptionType = subscriptionType;
         }
 
-        public String getSubscriptionType() {
-            return subscriptionType;
+        public boolean isCorrect() {
+            return subscriptionType != null;
+        }
+
+        private static final Map<String, SubscriptionType> CODE_TO_TYPE;
+
+        static {
+            CODE_TO_TYPE = Arrays.stream(values())
+                    .filter(v -> v.subscriptionType != null)
+                    .collect(Collectors.toUnmodifiableMap(v -> v.subscriptionType, Function.identity()));
+        }
+
+        @Nullable
+        public static SubscriptionType resolveType(String code) {
+            return CODE_TO_TYPE.get(code);
         }
     }
 }
