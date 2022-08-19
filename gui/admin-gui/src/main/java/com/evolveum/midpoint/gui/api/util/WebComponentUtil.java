@@ -612,31 +612,6 @@ public final class WebComponentUtil {
         return pageBase.getCompiledGuiProfile().getDefaultObjectCollectionView();
     }
 
-//    public enum Channel {
-//        // TODO: move this to schema component
-//        LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
-//        RECONCILIATION(SchemaConstants.CHANGE_CHANNEL_RECON_URI),
-//        RECOMPUTATION(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI),
-//        DISCOVERY(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI),
-//        WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI),
-//        IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
-//        REST(SchemaConstants.CHANNEL_REST_URI),
-//        INIT(SchemaConstants.CHANNEL_GUI_INIT_URI),
-//        USER(SchemaConstants.CHANNEL_USER_URI),
-//        SELF_REGISTRATION(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI),
-//        RESET_PASSWORD(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
-//
-//        private String channel;
-//
-//        Channel(String channel) {
-//            this.channel = channel;
-//        }
-//
-//        public String getChannel() {
-//            return channel;
-//        }
-//    }
-
     public static DateValidator getRangeValidator(Form<?> form, ItemPath path) {
         DateValidator validator = null;
         List<DateValidator> validators = form.getBehaviors(DateValidator.class);
@@ -4898,12 +4873,12 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
-        DeploymentInformationType deploymentInfo = MidPointApplication.get().getDeploymentInfo();
-        String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
-        if (!SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId)
-                || SubscriptionType.DEMO_SUBSCRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
+        if (!subscriptionType.isCorrect() || subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION) {
             return pageBase.createStringResource(defaultSystemNameKey).getString();
         }
+
+        DeploymentInformationType deploymentInfo = MidPointApplication.get().getDeploymentInfo();
         return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ?
                 deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
     }

@@ -88,6 +88,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.SubscriptionUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -195,6 +196,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
+    private SubscriptionUtil.SubscriptionType subscriptionType;
 
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -230,10 +232,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 
         systemConfigurationChangeDispatcher.registerListener(new DeploymentInformationChangeListener(this));
-        SystemConfigurationType config = getSystemConfigurationIfAvailable();
-        if (config != null) {
-            deploymentInfo = config.getDeploymentInformation();
-        }
+        updateDeploymentInfo(getSystemConfigurationIfAvailable());
 
         ResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setParentFolderPlaceholder("$-$");
@@ -336,6 +335,12 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public DeploymentInformationType getDeploymentInfo() {
         return deploymentInfo;
+    }
+
+    @NotNull
+    public SubscriptionUtil.SubscriptionType getSubscriptionType() {
+        // should not be null, unless called before initialization, in which case we provide default NONE
+        return Objects.requireNonNullElse(subscriptionType, SubscriptionUtil.SubscriptionType.NONE);
     }
 
     private void initializeSchrodinger() {
@@ -627,8 +632,14 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         @Override
         public void update(@Nullable SystemConfigurationType value) {
-            application.deploymentInfo = value != null ? value.getDeploymentInformation() : null;
+            application.updateDeploymentInfo(value);
         }
+    }
+
+    private void updateDeploymentInfo(@Nullable SystemConfigurationType value) {
+        deploymentInfo = value != null ? value.getDeploymentInformation() : null;
+        String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
+        subscriptionType = SubscriptionUtil.getSubscriptionType(subscriptionId);
     }
 
     /* (non-Javadoc)

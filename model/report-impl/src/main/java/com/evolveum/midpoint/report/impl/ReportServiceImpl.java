@@ -1,13 +1,23 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
@@ -16,25 +26,6 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
-import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
-
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.schema.*;
-
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
@@ -42,26 +33,38 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
+import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.report.api.ReportService;
-import com.evolveum.midpoint.schema.expression.*;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SubscriptionUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-
-@Component
+@Service
 public class ReportServiceImpl implements ReportService {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportServiceImpl.class);
@@ -86,12 +89,16 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private LocalizationService localizationService;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
     @Autowired private ScriptingService scriptingService;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     @Autowired(required = false) private List<ReportOutputCreatedListener> reportOutputCreatedListeners;
 
     @Override
-    public Collection<? extends PrismValue> evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public Collection<? extends PrismValue> evaluateScript(
+            PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables,
+            String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (expression.getExpressionEvaluator().size() == 1
                 && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
@@ -102,17 +109,21 @@ public class ReportServiceImpl implements ReportService {
             context.setResult(result);
             setupExpressionProfiles(context, report);
 
-            ScriptExpressionEvaluatorType expressionType = (ScriptExpressionEvaluatorType) expression.getExpressionEvaluator().get(0).getValue();
+            ScriptExpressionEvaluatorType expressionType =
+                    (ScriptExpressionEvaluatorType) expression.getExpressionEvaluator().get(0).getValue();
             if (expressionType.getObjectVariableMode() == null) {
-                ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
-                expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
+                ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration =
+                        report.asObjectable().getDefaultScriptConfiguration();
+                expressionType.setObjectVariableMode(defaultScriptConfiguration == null
+                        ? ObjectVariableModeType.OBJECT
+                        : defaultScriptConfiguration.getObjectVariableMode());
             }
             context.setExpressionType(expressionType);
             context.setObjectResolver(objectResolver);
 
             ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                    expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
-                    context.getResult());
+                    expressionType, context.getOutputDefinition(), context.getExpressionProfile(),
+                    expressionFactory, context.getContextDescription(), context.getResult());
 
             scriptExpression.setFunctions(createFunctionLibraries(scriptExpression.getFunctions()));
 
@@ -136,8 +147,7 @@ public class ReportServiceImpl implements ReportService {
         ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaService, model, taskManager, modelAuditService);
         midPointLib.setGenericFunctions(reportFunctions);
 
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.addAll(originalFunctions);
+        Collection<FunctionLibrary> functions = new ArrayList<>(originalFunctions);
         functions.add(midPointLib);
         return functions;
     }
@@ -146,25 +156,30 @@ public class ReportServiceImpl implements ReportService {
         return prismContext;
     }
 
-    public ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
+    public ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result)
+            throws SchemaException, ConfigurationException {
         if (report == null) {
             throw new IllegalArgumentException("No report defined, cannot determine profile");
         }
         return archetypeManager.determineExpressionProfile(report, result);
     }
 
-    private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report) throws SchemaException, ConfigurationException {
+    private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report)
+            throws SchemaException, ConfigurationException {
         ExpressionProfile expressionProfile = determineExpressionProfile(report, context.getResult());
-        LOGGER.trace("Using expression profile '" + (expressionProfile == null ? null : expressionProfile.getIdentifier()) + "' for report evaluation, determined from: {}", report);
+        LOGGER.trace("Using expression profile '" + (expressionProfile == null ? null : expressionProfile.getIdentifier())
+                + "' for report evaluation, determined from: {}", report);
         context.setExpressionProfile(expressionProfile);
         context.setScriptExpressionProfile(findScriptExpressionProfile(expressionProfile, report));
     }
 
-    private ScriptExpressionProfile findScriptExpressionProfile(ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
+    private ScriptExpressionProfile findScriptExpressionProfile(
+            ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
         if (expressionProfile == null) {
             return null;
         }
-        ExpressionEvaluatorProfile scriptEvaluatorProfile = expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+        ExpressionEvaluatorProfile scriptEvaluatorProfile =
+                expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
         if (scriptEvaluatorProfile == null) {
             return null;
         }
@@ -177,18 +192,24 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return model.getObject(ReportType.class, reportOid, null, task, result);
     }
 
     @Override
-    public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
     }
 
     @Override
-    public boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, null, task, result);
     }
@@ -210,8 +231,9 @@ public class ReportServiceImpl implements ReportService {
         CollectionRefSpecificationType collectionRefSpecification =
                 getDashboardService().getCollectionRefSpecificationType(widget, task, result);
         if (collectionRefSpecification != null) {
-            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec = getModelInteractionService().compileObjectCollectionView(
-                    collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec =
+                    getModelInteractionService().compileObjectCollectionView(
+                            collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
             getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
             compiledCollection = compiledCollectionRefSpec;
         }
@@ -223,9 +245,9 @@ public class ReportServiceImpl implements ReportService {
         }
 
         if (compiledCollection.getColumns().isEmpty()) {
-           Class<Containerable> type = resolveTypeForReport(compiledCollection);
-           getModelInteractionService().applyView(
-                   compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
+            Class<Containerable> type = resolveTypeForReport(compiledCollection);
+            getModelInteractionService().applyView(
+                    compiledCollection, DefaultColumnUtils.getDefaultView(ObjectUtils.defaultIfNull(type, ObjectType.class)));
         }
         return compiledCollection;
     }
@@ -239,8 +261,11 @@ public class ReportServiceImpl implements ReportService {
         return null;
     }
 
-    public CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    public CompiledObjectCollectionView createCompiledView(
+            ObjectCollectionReportEngineConfigurationType collectionConfig,
+            boolean useDefaultView, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         Validate.notNull(collectionConfig, "Collection engine in report couldn't be null.");
 
         CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
@@ -251,8 +276,9 @@ public class ReportServiceImpl implements ReportService {
 
         CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
         if (collectionRefSpecification != null) {
-            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec = getModelInteractionService().compileObjectCollectionView(
-                    collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+            @NotNull CompiledObjectCollectionView compiledCollectionRefSpec =
+                    getModelInteractionService().compileObjectCollectionView(
+                            collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
 
             if (Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
                 compiledCollectionRefSpec.getColumns().clear();
@@ -301,7 +327,8 @@ public class ReportServiceImpl implements ReportService {
         return object;
     }
 
-    public VariablesMap evaluateSubreportParameters(PrismObject<ReportType> report, VariablesMap variables, Task task, OperationResult result) {
+    public VariablesMap evaluateSubreportParameters(
+            PrismObject<ReportType> report, VariablesMap variables, Task task, OperationResult result) {
         VariablesMap subreportVariable = new VariablesMap();
         if (report != null && report.asObjectable().getObjectCollection() != null
                 && report.asObjectable().getObjectCollection().getSubreport() != null
@@ -315,7 +342,8 @@ public class ReportServiceImpl implements ReportService {
                 }
                 ExpressionType expression = subreport.getExpression();
                 try {
-                    Collection<? extends PrismValue> subreportParameter = evaluateScript(report, expression, variables, "subreport parameter", task, result);
+                    Collection<? extends PrismValue> subreportParameter =
+                            evaluateScript(report, expression, variables, "subreport parameter", task, result);
                     Class<?> subreportParameterClass;
                     if (subreport.getType() != null) {
                         subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
@@ -394,5 +422,27 @@ public class ReportServiceImpl implements ReportService {
 
     public @NotNull List<ReportOutputCreatedListener> getReportCreatedListeners() {
         return emptyIfNull(reportOutputCreatedListeners);
+    }
+
+    /**
+     * If null is returned, the report should not be changed.
+     * If non-null message is returned, report writer knows how to integrate it to the report.
+     */
+    @Nullable
+    public String missingSubscriptionFooter() {
+        try {
+            PrismObject<SystemConfigurationType> config =
+                    systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
+            if (SubscriptionUtil.getSubscriptionType(config != null ? config.asObjectable() : null)
+                    .isCorrect()) {
+                return null;
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
+        }
+
+        // Everything else uses Locale.getDefault(),
+        return localizationService.translate("PageBase.nonActiveSubscriptionMessage", null, Locale.getDefault(),
+                "No active subscription. Please support midPoint by purchasing a subscription.");
     }
 }

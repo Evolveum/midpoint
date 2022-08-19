@@ -86,7 +86,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SubscriptionUtil;
+import com.evolveum.midpoint.schema.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -328,13 +328,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
                     @Override
                     public String getObject() {
-                        String subscriptionId = getSubscriptionId();
-                        if (!SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId)) {
+                        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
+                        if (!subscriptionType.isCorrect()) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
-                        assert subscriptionId != null;
-                        if (SubscriptionUtil.SubscriptionType.DEMO_SUBSCRIPTION.getSubscriptionType()
-                                .equals(subscriptionId.substring(0, 2))) {
+                        if (subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION) {
                             return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
                         }
                         return "";
@@ -357,18 +355,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     private boolean isFooterVisible() {
-        String subscriptionId = getSubscriptionId();
-        if (StringUtils.isEmpty(subscriptionId)) {
-            return true;
-        }
-        return !SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId) ||
-                (SubscriptionUtil.SubscriptionType.DEMO_SUBSCRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-                        && SubscriptionUtil.isSubscriptionIdCorrect(subscriptionId));
-    }
-
-    private String getSubscriptionId() {
-        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-        return info != null ? info.getSubscriptionIdentifier() : null;
+        SubscriptionType subscriptionType = MidPointApplication.get().getSubscriptionType();
+        return !subscriptionType.isCorrect()
+                || subscriptionType == SubscriptionType.DEMO_SUBSCRIPTION;
     }
 
     /**
