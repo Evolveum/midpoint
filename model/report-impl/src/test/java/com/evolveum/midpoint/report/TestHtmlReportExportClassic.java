@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.io.File;
 import java.util.List;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -17,11 +22,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.testng.annotations.Test;
-
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author skublik
@@ -151,12 +151,13 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         File outputFile = findOutputFile(report);
         displayValue("Found report file", outputFile);
         if (StoreExportedWidgetDataType.ONLY_WIDGET.equals(storeDataType)) {
-            assertTrue("Output file for " + report + " exists", outputFile == null);
+            assertThat(outputFile).withFailMessage("Output file for " + report + " exists").isNull();
         } else {
-            assertTrue("Output file for " + report + " non exists", outputFile != null);
+            assertThat(outputFile).withFailMessage("Output file for " + report + " does not exist").isNotNull();
         }
         if (outputFile != null) {
-            outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
+            assertThat(outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName())))
+                    .isTrue();
         }
 
         PrismObject<DashboardType> dashboard = getObject(DashboardType.class, DASHBOARD_DEFAULT_COLUMNS.oid);
@@ -298,7 +299,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
         List<String> lines = getLinesOfOutputFile(report);
 
         if (lines.size() < 10) {
-            fail("Html report too short ("+lines.size()+" lines)");
+            fail("Html report too short (" + lines.size() + " lines)");
         }
     }
 }
