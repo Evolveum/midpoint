@@ -14,7 +14,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TypedCacheKey;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,20 +53,16 @@ import java.util.stream.Collectors;
  * @author lazyman
  */
 public class ResourceTemplateProvider
-        extends BaseSearchDataProvider<AssignmentHolderType, TemplateTile<ResourceTemplateProvider.ResourceTemplate>> {
+        extends ObjectDataProvider<TemplateTile<ResourceTemplateProvider.ResourceTemplate>, AssignmentHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTemplateProvider.class);
     private static final String DOT_CLASS = ResourceTemplateProvider.class.getName() + ".";
-    private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
-    private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
+    private static final String OPERATION_GET_DISPLAY = DOT_CLASS + "getDisplay";
 
-    private Integer internalSize;
-
-    private Collection<SelectorOptions<GetOperationOptions>> options;
     private final IModel<TemplateType> type;
 
     public ResourceTemplateProvider(Component component, IModel<Search<AssignmentHolderType>> search, IModel<TemplateType> type) {
-        super(component, search, true);
+        super(component, search);
         this.type = type;
     }
 
@@ -84,60 +84,68 @@ public class ResourceTemplateProvider
 
     // Here we apply the distinct option. It is easier and more reliable to apply it here than to do at all the places
     // where options for this provider are defined.
-    private Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
+    protected Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
         @NotNull Collection<SelectorOptions<GetOperationOptions>> rawOption = getOperationOptionsBuilder().raw().build();
-        return GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions(), rawOption);
+        return GetOperationOptions.merge(getPrismContext(), getOptions(), getDistinctRelatedOptions(), rawOption);
     }
 
+//    @Override
+//    public Iterator<TemplateTile<ResourceTemplate>> internalIterator(long first, long count) {
+//        LOGGER.trace("begin::iterator() from {} count {}.", first, count);
+//
+//        getAvailableData().clear();
+//
+//        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
+//        try {
+//            Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+//
+//            ObjectQuery query = getQuery();
+//            if (query == null) {
+//                query = getPrismContext().queryFactory().createQuery();
+//            }
+//
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
+//            }
+//
+//            List<PrismObject<AssignmentHolderType>> list = getModelService().searchObjects(getType(), query, getOptionsToUse(), task, result);
+//
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("Query {} resulted in {} objects", getType().getSimpleName(), list.size());
+//            }
+//
+//            List<TemplateTile<ResourceTemplate>> tiles = new ArrayList<>();
+//            for (PrismObject<AssignmentHolderType> object : list) {
+//                tiles.add(createDataObjectWrapper(object, result));
+//            }
+//            Collections.sort(tiles);
+//            internalSize = tiles.size();
+//            getAvailableData().addAll(
+//                    tiles.stream()
+//                            .skip(first)
+//                            .limit(count)
+//                            .collect(Collectors.toList()));
+//        } catch (Exception ex) {
+//            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
+//        } finally {
+//            result.computeStatusIfUnknown();
+//        }
+//
+//        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+//            handleNotSuccessOrHandledErrorInIterator(result);
+//        }
+//
+//        LOGGER.trace("end::iterator()");
+//        return getAvailableData().iterator();
+//    }
+
     @Override
-    public Iterator<TemplateTile<ResourceTemplate>> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", first, count);
-
-        getAvailableData().clear();
-
-        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
-        try {
-            Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
-
-            ObjectQuery query = getQuery();
-            if (query == null) {
-                query = getPrismContext().queryFactory().createQuery();
-            }
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
-            }
-
-            List<PrismObject<AssignmentHolderType>> list = getModelService().searchObjects(getType(), query, getOptionsToUse(), task, result);
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Query {} resulted in {} objects", getType().getSimpleName(), list.size());
-            }
-
-            List<TemplateTile<ResourceTemplate>> tiles = new ArrayList<>();
-            for (PrismObject<AssignmentHolderType> object : list) {
-                tiles.add(createDataObjectWrapper(object, result));
-            }
-            Collections.sort(tiles);
-            internalSize = tiles.size();
-            getAvailableData().addAll(
-                    tiles.stream()
-                            .skip(first)
-                            .limit(count)
-                            .collect(Collectors.toList()));
-        } catch (Exception ex) {
-            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            handleNotSuccessOrHandledErrorInIterator(result);
-        }
-
-        LOGGER.trace("end::iterator()");
-        return getAvailableData().iterator();
+    protected @NotNull List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        List<ObjectOrdering> orderings = new ArrayList<>();
+        orderings.add(PrismContext.get().queryFactory().createOrdering(ConnectorType.F_DISPLAY_NAME, OrderDirection.ASCENDING));
+        orderings.addAll(super.createObjectOrderings(sortParam));
+        return orderings;
     }
 
     @Override
@@ -161,17 +169,7 @@ public class ResourceTemplateProvider
         return query.build();
     }
 
-    @Override
-    protected boolean checkOrderingSettings() {
-        return true;
-    }
-
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
-        getPageBase().showResult(result);
-        throw new RestartResponseException(PageError.class);
-    }
-
-    public TemplateTile<ResourceTemplate> createDataObjectWrapper(PrismObject<? extends AssignmentHolderType> obj, OperationResult result) {
+    public TemplateTile<ResourceTemplate> createDataObjectWrapper(PrismObject<AssignmentHolderType> obj) {
         if (obj.getCompileTimeClass().isAssignableFrom(ConnectorType.class)) {
             @NotNull ConnectorType connectorObject = (ConnectorType) obj.asObjectable();
             String title;
@@ -190,6 +188,8 @@ public class ResourceTemplateProvider
 
         String title = WebComponentUtil.getDisplayNameOrName(obj);
 
+        OperationResult result = new OperationResult(OPERATION_GET_DISPLAY);
+
         DisplayType display =
                 GuiDisplayTypeUtil.getDisplayTypeForObject(obj, result, getPageBase());
         return new TemplateTile(
@@ -205,40 +205,6 @@ public class ResourceTemplateProvider
             return connectorObject.getName().getOrig();
         }
         return connectorObject.getDescription();
-    }
-
-    @Override
-    protected int internalSize() {
-        if (internalSize == null) {
-            internalIterator(0, 10);
-            getAvailableData().clear();
-        }
-        return internalSize;
-    }
-
-    @Override
-    protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
-        return cache.get(new TypedCacheKey(getQuery(), getType()));
-    }
-
-    @Override
-    protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
-        cache.put(new TypedCacheKey(getQuery(), getType()), newSize);
-    }
-
-//    public void setType(Class<O> type) {
-//        Validate.notNull(type, "Class must not be null.");
-//        this.type = type;
-//
-//        clearCache();
-//    }
-
-    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-        return options;
-    }
-
-    public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
-        this.options = options;
     }
 
     protected class ResourceTemplate implements Serializable {
