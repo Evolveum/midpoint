@@ -151,7 +151,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
                     "candidate=" + object +
                     ", confidence=" + confidence +
                     ", properties: " + properties.size() +
-                    ", explanation: " + (explanation != null ? "present" : "missing") +
+                    ", explanation: " + explanation +
                     '}';
         }
 

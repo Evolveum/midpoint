@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator.correlation;
 
 import static com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators.DescriptionMode.*;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Co
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
 import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -408,7 +410,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     private @NotNull SynchronizationPolicy getSynchronizationPolicy() throws SchemaException, ConfigurationException {
-        return Objects.requireNonNull(
+        return requireNonNull(
                 SynchronizationPolicyFactory.forKindAndIntent(
                         ShadowKindType.ACCOUNT,
                         SchemaConstants.INTENT_DEFAULT,
@@ -512,6 +514,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                             (path, match) -> assertMatch(candidateDescription, path, match));
                     System.out.println(expectedMatches.getMatches().size() + " item(s) matches are OK for " + candidateDescription);
                 }
+
+                LocalizableMessage message =
+                        requireNonNull(candidateDescription.getExplanation(), "no explanation")
+                                .toLocalizableMessage();
+                String messageText = localizationService.translate(message, Locale.US);
+                displayValue("explanation as message", messageText);
             }
         }
     }
