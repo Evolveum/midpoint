@@ -11,6 +11,10 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 
@@ -26,7 +30,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -54,8 +57,8 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
 
     public List<O> getSelectedData() {
         for (Serializable s : super.getAvailableData()) {
-            if (s instanceof SelectableBeanImpl) {
-                SelectableBeanImpl<O> selectable = (SelectableBeanImpl<O>) s;
+            if (s instanceof SelectableBean) {
+                SelectableBean<O> selectable = (SelectableBean<O>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
                     selected.add(selectable.getValue());
                 }
@@ -75,18 +78,16 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
     public Iterator<W> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
 
+        // todo what is this? why we're "storing" selection in iterator?
+        // This most definitely should not be here, doesn't seem right.
+        // what if someone calls provider to get data multiple times?
+        // also provider therefore stores whole objects when being serialized...
         for (W available : getAvailableData()) {
-            if (available instanceof SelectableBeanImpl) {
-                SelectableBeanImpl<O> selectableBean = (SelectableBeanImpl<O>) available;
+            if (available instanceof SelectableBean) {
+                SelectableBean<O> selectableBean = (SelectableBean<O>) available;
                 if (selectableBean.isSelected() && selectableBean.getValue() != null) {
                     selected.add(selectableBean.getValue());
                 }
-            }
-        }
-
-        for (W available : getAvailableData()) {
-            if (available instanceof SelectableBeanImpl) {
-                SelectableBeanImpl<O> selectableBean = (SelectableBeanImpl<O>) available;
                 if (!selectableBean.isSelected()) {
                     selected.remove(selectableBean.getValue());
                 }
@@ -145,7 +146,7 @@ public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
     }
 
     public W createDataObjectWrapper(PrismObject<O> obj) {
-        SelectableBeanImpl<O> selectable = new SelectableBeanImpl<>(Model.of(obj.asObjectable()));
+        SelectableBean<O> selectable = new SelectableBeanImpl<>(Model.of(obj.asObjectable()));
         if (selected.contains(obj.asObjectable())) {
             selectable.setSelected(true);
         }

@@ -131,7 +131,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getAuditService();
     }
 
-    protected List<T> getAvailableData() {
+    public List<T> getAvailableData() {
         if (availableData == null) {
             availableData = new ArrayList<>();
         }

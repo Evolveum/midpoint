@@ -283,9 +283,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
             page.error("Couldn't create search filter, reason: " + ex.getMessage());
-        }
 
-        updateFalseQuery(query);
+            updateFalseQuery(query);
+        }
     }
 
     private void updateQueryFromCollectionIdentifier(RoleCatalogQuery query, String collectionIdentifier) {
@@ -389,9 +389,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
                         ObjectType obj = object.getValue();
-                        String icon = WebComponentUtil.createDefaultColoredIcon(obj.asPrismContainerValue().getTypeName());
+                        PrismObject prism = obj != null ? obj.asPrismObject() : null;
+                        String icon = WebComponentUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
 
-                        CatalogTile<SelectableBean<ObjectType>> t = new CatalogTile<>(icon, WebComponentUtil.getName(object.getValue()));
+                        CatalogTile<SelectableBean<ObjectType>> t = new CatalogTile<>(icon, WebComponentUtil.getDisplayNameOrName(prism));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -641,8 +642,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         List<RoleCollectionViewType> collections = roleCatalog.getCollection();
         menuItems.addAll(createMenuFromRoleCollections(collections));
-
-        // todo add default menu item (requestable abstract roles query) or hide menu if orles of teammate is disabled?
 
         if (BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate())) {
             CustomListGroupMenuItem<RoleCatalogQueryItem> rolesOfTeamMate = new CustomListGroupMenuItem<>("RoleCatalogPanel.rolesOfTeammate") {
@@ -908,7 +907,19 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
-        // todo implement
+        TileTablePanel tiles = (TileTablePanel) get(ID_TILES);
+        ObjectDataProvider provider = (ObjectDataProvider) tiles.getProvider();
+        List<SelectableBean<ObjectType>> objects = provider.getAvailableData();
+
+        if (objects == null) {
+            page.warn(getString("RoleCatalogPanel.noItemsAvailable"));
+            target.add(page.getFeedbackPanel());
+            return;
+        }
+
+        List<ObjectType> items = objects.stream().map(s -> s.getValue()).collect(Collectors.toList());
+
+        addItemsPerformed(target, items);
     }
 
     private AssignmentType createNewAssignment(ObjectType object, QName relation) {

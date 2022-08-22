@@ -78,8 +78,11 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
             page = 0;
         }
 
-//        addStateChange();
         getPageableModel().setCurrentPage(page);
+    }
+
+    public ISortableDataProvider<SPI, String> getProvider() {
+        return getPageableModel().getProvider();
     }
 
     private static class PageableListModel<LI extends Serializable, SPI extends Serializable> implements IModel<List<LI>> {

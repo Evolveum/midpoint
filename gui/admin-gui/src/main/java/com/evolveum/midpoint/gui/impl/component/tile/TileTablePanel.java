@@ -132,6 +132,11 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         add(table);
     }
 
+    public ISortableDataProvider<O, String> getProvider() {
+        PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        return view.getProvider();
+    }
+
     protected String getTileCssClasses() {
         return null;
     }
