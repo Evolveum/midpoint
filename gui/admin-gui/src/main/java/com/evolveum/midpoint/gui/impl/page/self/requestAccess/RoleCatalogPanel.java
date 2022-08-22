@@ -11,17 +11,23 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -361,7 +367,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
-                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel()) {
+                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+
+                    @Override
+                    protected Component createHeader(String id) {
+                        Component header = super.createHeader(id);
+                        if (header instanceof SearchPanel) {
+                            // mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout
+                            header.add(AttributeAppender.append("class", "mt-2"));
+                        }
+
+                        return header;
+                    }
 
                     @Override
                     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -832,7 +849,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
             }
         });
-        columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
+        columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
+                item.add(AttributeAppender.append("class", "align-middle"));
+                item.add(new LabelWithCheck(id, () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject())));
+            }
+        });
         columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
 
         columns.add(new AbstractColumn<>(null) {

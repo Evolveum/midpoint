@@ -61,17 +61,17 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
             CatalogTile.CheckState state = t.getCheckState();
 
             if (state == null) {
-                return "check-none";
+                return "rounded-icon-none";
             }
 
             switch (state) {
                 case FULL:
-                    return "check-full";
+                    return "rounded-icon-full";
                 case PARTIAL:
-                    return "check-partial";
+                    return "rounded-icon-partial";
                 case NONE:
                 default:
-                    return "check-none";
+                    return "rounded-icon-none";
             }
         }));
         add(check);
