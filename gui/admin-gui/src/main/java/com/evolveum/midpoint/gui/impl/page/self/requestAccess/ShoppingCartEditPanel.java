@@ -52,10 +52,13 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     private IModel<CustomValidity> customValidityModel;
 
-    public ShoppingCartEditPanel(IModel<ShoppingCartItem> model, IModel<RequestAccess> requestAccess) {
+    private boolean validitySettingsEnabled;
+
+    public ShoppingCartEditPanel(IModel<ShoppingCartItem> model, IModel<RequestAccess> requestAccess, boolean validitySettingsEnabled) {
         super(Popupable.ID_CONTENT, model);
 
         this.requestAccess = requestAccess;
+        this.validitySettingsEnabled = validitySettingsEnabled;
 
         initModels();
         initLayout();
@@ -130,6 +133,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         add(administrativeStatus);
 
         CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel);
+        customValidity.add(new EnableBehaviour(() -> validitySettingsEnabled));
         add(customValidity);
     }
 

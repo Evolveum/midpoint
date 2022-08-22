@@ -81,8 +81,6 @@ public class RequestAccess implements Serializable {
 
     public static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
 
-    public static final String VALIDITY_CUSTOM_FOR_EACH = "validityCustomForEach";
-
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
     /**
@@ -518,7 +516,6 @@ public class RequestAccess implements Serializable {
             PrismContainerDefinition def, boolean addAssignments) throws SchemaException {
 
         PrismContext ctx = def.getPrismContext();
-        //todo use this probably def.createEmptyDelta(ItemPath.EMPTY_PATH)
         ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
 
         for (AssignmentType a : assignments) {
@@ -582,7 +579,6 @@ public class RequestAccess implements Serializable {
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
                 delta = createUserDelta(user);
 
-                // todo add async flag
                 ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
                 options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
                 page.getModelService().executeChanges(Collections.singletonList(delta), options, task, subresult);

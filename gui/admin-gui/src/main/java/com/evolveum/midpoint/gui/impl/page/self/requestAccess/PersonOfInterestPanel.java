@@ -163,8 +163,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             protected List<Tile<PersonOfInterest>> load() {
                 List<Tile<PersonOfInterest>> list = new ArrayList<>();
 
-                // todo check assignment authorizations
-
                 TargetSelectionType selection = getTargetSelectionConfiguration();
                 if (BooleanUtils.isNotFalse(selection.isAllowRequestForMyself())) {
                     list.add(createDefaultTile(TileType.MYSELF));
