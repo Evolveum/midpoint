@@ -81,4 +81,8 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
             }
         };
     }
+
+    protected String getCssClassForValueContainer() {
+        return "";
+    }
 }

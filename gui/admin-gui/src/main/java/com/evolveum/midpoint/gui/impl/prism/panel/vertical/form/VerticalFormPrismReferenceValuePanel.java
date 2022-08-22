@@ -161,4 +161,8 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
             }
         };
     }
+
+    protected String getCssClassForValueContainer() {
+        return "";
+    }
 }

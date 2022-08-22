@@ -124,10 +124,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, Model.of(newPasswordValue), false, true, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
-            @Override
-            protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
-                return null;//getModelObject().getFocusPolicy();
-            }
+//            @Override
+//            protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
+//                return null;//getModelObject().getFocusPolicy();
+//            }
 
             @Override
             protected void updatePasswordValidation(AjaxRequestTarget target) {
@@ -171,9 +171,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 FeedbackMessages messages = getPageBase().getFeedbackMessages();
                 if (messages != null && !messages.isEmpty()) {
                     new Toast()
-                            .cssClass("bg-danger m3")
+                            .error()
                             .autohide(false)
-                            .title(messages.first().getMessage().toString())
+                            .title(getString("ChangePasswordPanel.savePassword"))
+                            .body(messages.first().getMessage().toString())
                             .show(target);
                 }
             }
@@ -264,9 +265,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 //                warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));
 //                target.add(getPageBase().getFeedbackPanel());
                 new Toast()
-                        .cssClass("bg-warning m3")
+                        .warning()
                         .autohide(false)
-                        .title(getString("PageSelfCredentials.specifyOldPasswordMessage"))
+                        .title(getString("ChangePasswordPanel.savePassword"))
+                        .body(getString("PageSelfCredentials.specifyOldPasswordMessage"))
                         .show(target);
                 return;
             } else {
@@ -281,9 +283,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 //                        error(getString("PageSelfCredentials.incorrectOldPassword"));
 //                        target.add(getPageBase().getFeedbackPanel());
                         new Toast()
-                                .cssClass("bg-danger m3")
+                                .error()
                                 .autohide(false)
-                                .title(getString("PageSelfCredentials.incorrectOldPassword"))
+                                .title(getString("ChangePasswordPanel.savePassword"))
+                                .body(getString("PageSelfCredentials.incorrectOldPassword"))
                                 .show(target);
                         return;
                     }
@@ -293,9 +296,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                             getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);
 //                    target.add(getPageBase().getFeedbackPanel());
                     new Toast()
-                            .cssClass("bg-danger m3")
+                            .error()
                             .autohide(false)
-                            .title(getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError"))
+                            .title(getString("ChangePasswordPanel.savePassword"))
+                            .body(getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError"))
                             .show(target);
                     return;
                 } finally {
@@ -304,13 +308,14 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         }
 
-        if (newPasswordValue == null || StringUtils.isEmpty(newPasswordValue.getClearValue())) {
+        if (newPasswordValue == null || (!newPasswordValue.isEncrypted() && StringUtils.isEmpty(newPasswordValue.getClearValue()))) {
 //            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
 //            target.add(getPageBase().getFeedbackPanel());
             new Toast()
-                    .cssClass("bg-warning m3")
+                    .warning()
                     .autohide(false)
-                    .title(getString("PageSelfCredentials.emptyPasswordFiled"))
+                    .title(getString("ChangePasswordPanel.savePassword"))
+                    .body(getString("PageSelfCredentials.emptyPasswordFiled"))
                     .show(target);
             return;
         }
@@ -378,16 +383,18 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 //                getPageBase().showResult(result);
 //                target.add(getPageBase().getFeedbackPanel());
                 new Toast()
-                        .cssClass("bg-warning m3")
+                        .warning()
                         .autohide(false)
-                        .title(getString(result.getMessage()))
+                        .title(getString("ChangePasswordPanel.savePassword"))
+                        .body(getString(result.getMessage()))
                         .show(target);
             }
         } else {
             new Toast()
-                    .cssClass("bg-info m3")
+                    .info()
                     .autohide(false)
-                    .title(getString(result.getMessage()))
+                    .title(getString("ChangePasswordPanel.savePassword"))
+                    .body(getString(result.getMessage()))
                     .show(target);
 //            target.add(getPageBase().getFeedbackPanel());
         }

@@ -18,6 +18,8 @@ import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -42,6 +44,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     private static final String DOT_CLASS = ItemPanel.class.getName() + "";
 
+    private static final String ID_VALUES_CONTAINER = "valuesContainer";
     private static final String ID_VALUES = "values";
 
     private ItemPanelSettings itemPanelSettings;
@@ -86,6 +89,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     protected Component createValuesPanel() {
 
+        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUES_CONTAINER);
+        valueContainer.add(AttributeAppender.append("class", getCssClassForValueContainer()));
+
         ListView<VW> values = new ListView<VW>(ID_VALUES, createValuesModel()) {
 
             private static final long serialVersionUID = 1L;
@@ -99,8 +105,17 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
             }
 
         };
+        valueContainer.add(values);
 
-        return values;
+        return valueContainer;
+    }
+
+
+    protected String getCssClassForValueContainer() {
+        if (getSettings() != null && getSettings().isDisplayedInColumn()) {
+            return "col-12";
+        }
+        return "col-xl-10 col-md-8 col-xs-12";
     }
 
     protected IModel<List<VW>> createValuesModel() {

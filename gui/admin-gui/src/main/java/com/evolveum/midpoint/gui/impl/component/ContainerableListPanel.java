@@ -970,7 +970,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
         };
         viewAll.add(new VisibleBehaviour(this::isPreview));
-        viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        viewAll.add(AttributeAppender.append("class", "btn btn-info btn-sm"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
     }

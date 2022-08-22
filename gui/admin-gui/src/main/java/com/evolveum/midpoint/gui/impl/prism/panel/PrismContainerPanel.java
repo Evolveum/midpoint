@@ -86,6 +86,11 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
         return panel;
     }
 
+    protected String getCssClassForValueContainer() {
+        return "";
+    }
+
+
     @SuppressWarnings("unchecked")
     @Override
     protected <PV extends PrismValue> PV createNewValue(PCW itemWrapper) {
