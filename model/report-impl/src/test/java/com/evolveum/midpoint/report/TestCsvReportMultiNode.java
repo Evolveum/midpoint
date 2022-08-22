@@ -87,7 +87,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
         assertTrue(rows.size() > 1000 && rows.size() <= 1010,
                 "Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size());
     }
@@ -111,7 +111,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
         assertTrue(rows.size() > 800 && rows.size() <= 810,
                 "Unexpected number of rows in report. Expected:800-810, Actual:" + rows.size());
     }
@@ -135,7 +135,7 @@ public class TestCsvReportMultiNode extends TestCsvReport {
         auditTest();
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
-        List<String> rows = basicCheckOutputFile(report, -1, 8, null);
+        List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
         assertTrue(rows.size() > 1200 && rows.size() <= 1250,
                 "Unexpected number of rows in report. Expected:1200-1250, Actual:" + rows.size());
     }

@@ -1,10 +1,31 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.function.Supplier;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.io.FileUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -15,22 +36,7 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.function.Supplier;
-
-import static org.testng.AssertJUnit.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -74,7 +80,6 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         PolyStringType name = new PolyStringType(getTestNameShort());
         name.setNorm(prismContext.getDefaultPolyStringNormalizer().normalize(getTestNameShort()));
         reportData.setName(name);
-        reportData.asPrismObject().setPrismContext(prismContext);
         reportData.setOid(REPORT_DATA_TEST100_OID);
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(REPORT_IMPORT_USERS_CLASSIC.oid);
@@ -102,7 +107,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         assertEquals("2020-07-07T00:00:00.000+02:00", getValueOrNull(() -> user1.asObjectable().getActivation().getValidFrom().toString()));
         assertEquals("sub1", getValueOrNull(() -> user1.asObjectable().getSubtype().get(0)));
         assertEquals("sub22", getValueOrNull(() -> user1.asObjectable().getSubtype().get(1)));
-        assertEquals("Test import: test_NICK", getValueOrNull(() ->  user1.asObjectable().getNickName().getOrig()));
+        assertEquals("Test import: test_NICK", getValueOrNull(() -> user1.asObjectable().getNickName().getOrig()));
         assertEquals("00000000-0000-0000-0000-000000000008", getValueOrNull(() -> user1.asObjectable().getAssignment().get(0).getTargetRef().getOid()));
         assertEquals("00000000-0000-0000-0000-000000000004", getValueOrNull(() -> user1.asObjectable().getAssignment().get(1).getTargetRef().getOid()));
 
@@ -152,12 +157,12 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         PolyStringType name = new PolyStringType(getTestNameShort());
         name.setNorm(prismContext.getDefaultPolyStringNormalizer().normalize(getTestNameShort()));
         reportData.setName(name);
-        reportData.asPrismObject().setPrismContext(prismContext);
         reportData.setOid(REPORT_DATA_TEST101_OID);
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(REPORT_REIMPORT_USERS_CLASSIC.oid);
         reportData.setParentRef(ref);
         reportData.setFilePath(outputFile.getAbsolutePath());
+        removeLastLine(outputFile.getAbsolutePath());
         addObject(reportData.asPrismObject());
         runImportTask(REPORT_REIMPORT_USERS_CLASSIC, REPORT_DATA_TEST101_OID, result);
 
@@ -167,21 +172,29 @@ public class TestCsvReportImportClassic extends TestCsvReport {
 
         then();
 
-        outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
+        assertThat(outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName())))
+                .isTrue();
         assertTask(TASK_IMPORT_CLASSIC.oid, "after")
                 .assertSuccess()
                 .display();
 
         PrismObject<UserType> newWill = searchObjectByName(UserType.class, "will");
         assertNotNull("User will was not created", newWill);
-        assertEquals(null, newWill.asObjectable().getTelephoneNumber());
+        assertThat(newWill.asObjectable().getTelephoneNumber()).isNull();
         assertEquals(oldWill.asObjectable().getGivenName(), newWill.asObjectable().getGivenName());
         assertEquals(oldWill.asObjectable().getFamilyName(), newWill.asObjectable().getFamilyName());
         assertEquals(oldWill.asObjectable().getFullName(), newWill.asObjectable().getFullName());
         assertEquals(oldWill.asObjectable().getEmailAddress(), newWill.asObjectable().getEmailAddress());
     }
 
-    @Test(dependsOnMethods = {"test100ImportUsers"}, priority = 102)
+    /** This removes the last line with subscription appeal. */
+    private void removeLastLine(String absolutePath) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(absolutePath), Charset.defaultCharset());
+        lines.remove(lines.size() - 1);
+        FileUtils.writeLines(new File(absolutePath), Charset.defaultCharset().name(), lines);
+    }
+
+    @Test(dependsOnMethods = { "test100ImportUsers" }, priority = 102)
     public void test102ImportWithImportScript() throws Exception {
         given();
 
@@ -194,7 +207,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
 
         PrismObject<UserType> testUser01 = searchObjectByName(UserType.class, "testUser01");
         assertNotNull("User testUser01 was not created", testUser01);
-        assertTrue(testUser01.asObjectable().getAssignment().size() == 2);
+        assertThat(testUser01.asObjectable().getAssignment()).hasSize(2);
 
         PrismObject<UserType> jack = searchObjectByName(UserType.class, "jack");
         assertNotNull("User jack was not created", jack);
@@ -205,7 +218,6 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         PolyStringType name = new PolyStringType(getTestNameShort());
         name.setNorm(prismContext.getDefaultPolyStringNormalizer().normalize(getTestNameShort()));
         reportData.setName(name);
-        reportData.asPrismObject().setPrismContext(prismContext);
         reportData.setOid(REPORT_DATA_TEST102_OID);
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(REPORT_IMPORT_WITH_SCRIPT_CLASSIC.oid);
@@ -243,7 +255,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
 
         testUser01 = searchObjectByName(UserType.class, "testUser01");
         assertNotNull("User testUser01 was not created", testUser01);
-        assertTrue(testUser01.asObjectable().getAssignment().size() == 1);
+        assertThat(testUser01.asObjectable().getAssignment()).hasSize(1);
         assertEquals("00000000-0000-0000-0000-000000000008", testUser01.asObjectable().getAssignment().get(0).getTargetRef().getOid());
 
         jack = searchObjectByName(UserType.class, "jack");
@@ -258,7 +270,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         rerunTask(TASK_IMPORT_CLASSIC.oid, result);
     }
 
-    private Object getValueOrNull(Supplier<Object> function){
+    private Object getValueOrNull(Supplier<Object> function) {
         try {
             return function.get();
         } catch (Exception e) {
@@ -269,10 +281,10 @@ public class TestCsvReportImportClassic extends TestCsvReport {
     private void changeImportReport(TestResource<ReportType> reportResource, String reportDataOid) throws CommonException {
         changeTaskReport(reportResource,
                 ItemPath.create(TaskType.F_ACTIVITY,
-                    ActivityDefinitionType.F_WORK,
-                    WorkDefinitionsType.F_REPORT_IMPORT,
-                    ClassicReportImportWorkDefinitionType.F_REPORT_REF
-                    ),
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_REPORT_IMPORT,
+                        ClassicReportImportWorkDefinitionType.F_REPORT_REF
+                ),
                 TASK_IMPORT_CLASSIC);
         Task task = getTestTask();
         ObjectReferenceType ref = new ObjectReferenceType();
