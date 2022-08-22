@@ -317,7 +317,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
         /**
          * A partial match.
          *
-         * The default meaning is that any normalization of any primary or secondary value exactly matches
+         * The "baseline" meaning is that any normalization of any primary or secondary value exactly matches
          * the same normalization of the source value.
          *
          * For items mentioned by "items" correlator(s) the partial match is also if at least one filter defined

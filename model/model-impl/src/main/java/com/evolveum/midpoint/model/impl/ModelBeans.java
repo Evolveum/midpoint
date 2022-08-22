@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
+import com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AutoAssignMappingCollector;

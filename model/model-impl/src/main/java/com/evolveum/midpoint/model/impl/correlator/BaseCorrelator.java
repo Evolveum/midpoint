@@ -115,7 +115,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     @Override
     public @NotNull CorrelationExplanation explain(
             @NotNull CorrelationContext correlationContext,
-            @NotNull FocusType candidateOwner,
+            @NotNull FocusType candidate,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
@@ -123,11 +123,11 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
         OperationResult result = parentResult.subresult(getClass().getName() + OP_EXPLAIN_SUFFIX)
                 .build();
         try {
-            logger.trace("Explaining candidate owner:\n{}\nin context:\n{}",
-                    candidateOwner.debugDumpLazily(1),
+            logger.trace("Explaining candidate:\n{}\nin context:\n{}",
+                    candidate.debugDumpLazily(1),
                     correlationContext.debugDumpLazily(1));
 
-            CorrelationExplanation explanation = explainInternal(correlationContext, candidateOwner, result);
+            CorrelationExplanation explanation = explainInternal(correlationContext, candidate, result);
 
             logger.trace("Determined candidate owner explanation:\n{}", explanation.debugDumpLazily(1));
 

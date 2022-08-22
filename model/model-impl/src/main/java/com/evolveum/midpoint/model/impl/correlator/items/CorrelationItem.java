@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
+import com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter;
@@ -68,12 +68,12 @@ public class CorrelationItem implements DebugDumpable {
     @NotNull private final ItemPath itemPath;
 
     /** Null iff {@link #indexingItemConfiguration} is null. */
-    @Nullable private final Normalization normalization;
+    @Nullable private final IndexedItemValueNormalizer valueNormalizer;
 
     // TODO
     @Nullable private final IndexingItemConfiguration indexingItemConfiguration;
 
-    /** Note we ignore "index" from this configuration. It is already processed into {@link #normalization} field. */
+    /** Note we ignore "index" from this configuration. It is already processed into {@link #valueNormalizer} field. */
     @NotNull private final ItemSearchDefinitionType searchDefinitionBean;
 
     // TODO
@@ -82,13 +82,13 @@ public class CorrelationItem implements DebugDumpable {
     private CorrelationItem(
             @NotNull String name,
             @NotNull ItemPath itemPath,
-            @Nullable Normalization normalization,
+            @Nullable IndexedItemValueNormalizer valueNormalizer,
             @Nullable ItemSearchDefinitionType searchDefinitionBean,
             @Nullable IndexingItemConfiguration indexingItemConfiguration,
             @NotNull List<? extends PrismValue> prismValues) {
         this.name = name;
         this.itemPath = itemPath;
-        this.normalization = normalization;
+        this.valueNormalizer = valueNormalizer;
         this.searchDefinitionBean = searchDefinitionBean != null ? searchDefinitionBean : new ItemSearchDefinitionType();
         this.indexingItemConfiguration = indexingItemConfiguration;
         this.prismValues = prismValues;
@@ -106,7 +106,7 @@ public class CorrelationItem implements DebugDumpable {
         return new CorrelationItem(
                 getName(itemBean),
                 path,
-                getNormalization(indexingConfig, explicitIndexName, path),
+                getValueNormalizer(indexingConfig, explicitIndexName, path),
                 searchDef,
                 indexingConfig,
                 getPrismValues(preFocus, path));
@@ -145,7 +145,8 @@ public class CorrelationItem implements DebugDumpable {
         return inTemplateDef != null ? inTemplateDef.getSearch() : null;
     }
 
-    private static Normalization getNormalization(IndexingItemConfiguration indexingConfig, String index, ItemPath path)
+    private static IndexedItemValueNormalizer getValueNormalizer(
+            IndexingItemConfiguration indexingConfig, String index, ItemPath path)
             throws ConfigurationException {
         if (indexingConfig == null) {
             if (index != null) {
@@ -156,7 +157,7 @@ public class CorrelationItem implements DebugDumpable {
             return null;
         } else {
             return MiscUtil.requireNonNull(
-                    indexingConfig.findNormalization(index),
+                    indexingConfig.findNormalizer(index),
                     () -> new ConfigurationException(
                             String.format("Index '%s' was not found in indexing configuration for '%s'", index, path)));
         }
@@ -229,11 +230,11 @@ public class CorrelationItem implements DebugDumpable {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (indexingItemConfiguration != null) {
-            assert normalization != null;
+            assert valueNormalizer != null;
             return new SearchSpec(
-                    normalization.getIndexItemPath(),
-                    normalization.getIndexItemDefinition(),
-                    IndexingManager.normalizeValue(getValueToFind(), normalization, task, result));
+                    valueNormalizer.getIndexItemPath(),
+                    valueNormalizer.getIndexItemDefinition(),
+                    IndexingManager.normalizeValue(getValueToFind(), valueNormalizer, task, result));
         } else {
             return new SearchSpec(
                     itemPath,
@@ -398,7 +399,7 @@ public class CorrelationItem implements DebugDumpable {
         return "CorrelationItem{" +
                 "name=" + name +
                 ", itemPath=" + itemPath +
-                ", normalization=" + normalization +
+                ", valueNormalizer=" + valueNormalizer +
                 ", indexing=" + indexingItemConfiguration +
                 '}';
     }
@@ -408,7 +409,7 @@ public class CorrelationItem implements DebugDumpable {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "name", name, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "itemPath", String.valueOf(itemPath), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "normalization", String.valueOf(normalization), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "valueNormalizer", String.valueOf(valueNormalizer), indent + 1);
         DebugUtil.debugDumpWithLabelLn(
                 sb, "indexingItemConfiguration", String.valueOf(indexingItemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "values", prismValues, indent + 1);

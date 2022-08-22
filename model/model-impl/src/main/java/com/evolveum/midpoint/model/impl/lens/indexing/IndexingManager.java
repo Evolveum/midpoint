@@ -5,14 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.impl.lens.indexing;
 
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -44,7 +45,7 @@ import java.util.Objects;
 /**
  * Helps with searching through model-indexed values (currently, in identities/identity[X]/items/normalized container).
  *
- *  Only `String` and `PolyString` types are supported.
+ * Only `String` and `PolyString` types are supported.
  */
 @Component
 public class IndexingManager {
@@ -176,8 +177,8 @@ public class IndexingManager {
             return List.of();
         }
         Collection<Item<?, ?>> normalizedItems = new ArrayList<>();
-        for (Normalization normalization : config.getNormalizations()) {
-            ItemNormalizer itemNormalizer = new ItemNormalizer(normalization);
+        for (IndexedItemValueNormalizer normalizer : config.getNormalizers()) {
+            ItemNormalizer itemNormalizer = new ItemNormalizer(normalizer);
             normalizedItems.add(
                     itemNormalizer.createNormalizedItem(originalItemDef, originalValues, task, result));
         }
