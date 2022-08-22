@@ -193,14 +193,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
         // users
         creatorOid = repositoryService.addObject(
-                new UserType().name("creator").asPrismObject(),
+                new UserType().name("creator").familyName("Creator").asPrismObject(),
                 null, result);
         modifierOid = repositoryService.addObject(
-                new UserType().name("modifier").asPrismObject(),
+                new UserType().name("modifier").givenName("Modifier").asPrismObject(),
                 null, result);
 
         UserType user1 = new UserType().name("user-1")
                 .fullName("User Name 1")
+                .givenName("First")
+                .familyName("Adams")
                 .metadata(new MetadataType()
                         .creatorRef(creatorOid, UserType.COMPLEX_TYPE, relation1)
                         .createChannel("create-channel")
@@ -273,6 +275,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         user1Oid = repositoryService.addObject(user1.asPrismObject(), null, result);
 
         UserType user2 = new UserType().name("user-2")
+                .familyName("Adams")
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE)
                 .parentOrgRef(org11Oid, OrgType.COMPLEX_TYPE, relation1)
                 .subtype("workerA")
@@ -312,6 +315,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         user2Oid = repositoryService.addObject(user2.asPrismObject(), null, result);
 
         UserType user3 = new UserType().name("user-3")
+                .givenName("Third")
+                .familyName("Adams")
                 .costCenter("50")
                 .parentOrgRef(orgXOid, OrgType.COMPLEX_TYPE, relation2)
                 .parentOrgRef(org21Oid, OrgType.COMPLEX_TYPE, relation1)
@@ -2823,6 +2828,24 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 f -> f.item(UserType.F_EMPLOYEE_NUMBER).fuzzyString("first", "second").levenshtein(2, true)))
                 .isInstanceOf(SystemException.class) // the exception may change
                 .hasMessageMatching("Filter 'levenshtein: employeeNumber, .*' should contain at most one value, but it has 2 of them\\.");
+    }
+
+    @Test
+    public void test999MultipleOrdersAreSupportedByFluentApiAndRepository() throws SchemaException {
+        given("search users query ordered by family and given name");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .asc(UserType.F_FAMILY_NAME).desc(UserType.F_GIVEN_NAME)
+                .build();
+
+        when("the query is executed");
+        OperationResult opResult = createOperationResult();
+        SearchResultList<UserType> result = searchObjects(UserType.class, query, opResult);
+
+        then("sorted users are returned (NULLs last for ASC, first for DESC)");
+        assertThatOperationResult(opResult).isSuccess();
+        assertThat(result)
+                .extracting(o -> o.getOid())
+                .containsExactly(user2Oid, user3Oid, user1Oid, creatorOid, modifierOid, user4Oid);
     }
     // endregion
 }
